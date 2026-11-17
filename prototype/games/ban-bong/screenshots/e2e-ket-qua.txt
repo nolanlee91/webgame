@@ -1,0 +1,60 @@
+PASS menu hiện khi mở game: 12 màn + Tự do, chỉ màn 1 mở
+PASS ô thông tin màn 1: cứu 3 trứng, 20 viên, 3 màu
+PASS icon trứng/đá/bom trong hướng dẫn là pixel vẽ bằng code
+PASS sau menu vẫn thấy sân mẫu được vẽ trên canvas
+PASS bấm màn chưa mở → không chọn được
+PASS bấm Bắt đầu → vào màn 1, 20 viên, 3 trứng
+PASS HUD: còn 20 viên, màn 1/12, 3 icon trứng
+PASS màn 1 không hạ trần → ẩn ô đếm hụt
+PASS desktop 1440×900: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":651,"h":804,"cs":57}
+PASS rê chuột sang phải/trái → nòng xoay theo (≈45° / 135°) — 0.79 / 2.36
+PASS rê chuột xuống dưới bệ → góc bị kẹp, không bắn ngược xuống
+PASS bấm chuột → bóng bay (đang bay)
+PASS bóng dính lên bàn, còn 19 viên — {"n0":53,"n1":54,"sc":0}
+PASS âm thanh bắn đã phát (nếu tải được)
+PASS bắn trúng nhóm 2 viên cùng màu → nổ 3, bóng treo bên dưới rơi, trứng rơi được cứu — {"mode":"level","level":1,"status":"playing","score":170,"shots":14,"fired":2,"misses":0,"par":0,"cur":1,"next":1,"eggsLeft":1,"eggsTotal":3,"stars":0,"bonus":0,"refills":0,"n":10}
+PASS HUD trứng: 2/3 đã cứu (icon trứng nở)
+PASS hiệu ứng nổ/rơi/trứng bay đang chạy trên canvas
+PASS phím ← xoay nòng sang trái 2°/lần
+PASS phím X đổi viên đang bắn ↔ viên kế
+PASS bấm chuột vào bệ phóng → đổi viên (không bắn)
+PASS phím Space bắn
+PASS sau khi bắn bằng phím: đã bắn thêm 1 viên
+PASS bắn hụt lần thứ 3 → trần hạ một hàng (đổi chẵn lẻ), có thông báo — {"mode":"level","level":1,"status":"playing","score":170,"shots":12,"fired":4,"misses":0,"par":1,"cur":0,"next":1,"eggsLeft":1,"eggsTotal":3,"stars":0,"bonus":0,"refills":0,"n":43}
+PASS ô đếm hụt hiện đúng 3 nấc
+PASS bắn chạm bom → bom nổ dây chuyền, xóa vùng xung quanh — {"mode":"level","level":1,"status":"playing","score":360,"shots":11,"fired":5,"misses":0,"par":0,"cur":2,"next":1,"eggsLeft":1,"eggsTotal":3,"stars":0,"bonus":0,"refills":0,"n":24}
+PASS cứu trứng cuối → thắng, thưởng viên dư, 3 sao — {"mode":"level","level":1,"status":"won","score":1050,"shots":11,"fired":6,"misses":0,"par":0,"cur":0,"next":0,"eggsLeft":0,"eggsTotal":3,"stars":3,"bonus":550,"refills":0,"n":9}
+PASS bảng thắng hiện: 3 sao, trứng nở, nút Màn tiếp
+PASS mở khóa màn 2, lưu sao
+PASS SDK nhận kết quả thắng
+PASS bấm Màn tiếp → màn 2 (4 trứng, 20 viên, có hạ trần)
+PASS bóng chạm vạch đỏ → thua
+PASS bảng thua ghi số trứng chưa cứu
+PASS Chơi lại → bàn mới màn 2
+PASS hết viên chưa cứu đủ trứng → thua "Hết viên!"
+PASS tải lại trang → menu có nút "Chơi tiếp" + "Chơi lại từ đầu"
+PASS Chơi tiếp → khôi phục đúng ván đang chơi (bàn, viên, điểm)
+PASS dữ liệu lưu hỏng → không lỗi, bỏ ván hỏng, giới hạn màn mở ≤ 12
+PASS JSON lưu hỏng hẳn → về mặc định
+PASS chế độ Tự do: không giới hạn viên, ẩn ô trứng, HUD "Tự do"
+PASS Tự do: dọn sạch bàn → +500 và bàn mới
+PASS phím M tắt tiếng, lưu wgp.muted
+PASS Esc → về menu
+PASS Esc lần nữa → đóng menu, chơi tiếp ván đang dở
+PASS desktop 1920×1080: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":662,"h":818,"cs":58}
+PASS laptop 1280×720: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":508,"h":626,"cs":44}
+PASS tablet dọc 768×1024: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":605,"h":748,"cs":53}
+PASS điện thoại nhỏ 360×640: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":320,"h":395,"cs":28}
+PASS mobile: menu vừa màn hình, bấm được
+PASS mobile 390×844: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":355,"h":438,"cs":31}
+PASS mobile: hiện dòng hướng dẫn chạm
+PASS mobile: chạm kéo → nòng xoay theo ngón tay (chưa bắn)
+PASS mobile: thả tay → bắn
+PASS mobile: còn 19 viên
+PASS mobile: kéo xuống dưới bệ rồi thả → hủy, không bắn
+PASS mobile: chạm bệ → đổi viên
+PASS mobile: nút Đổi viên hoạt động
+PASS mobile: thắng → bảng thắng vừa màn hình
+PASS mobile ngang 844×390: không tràn trang, sân nằm gọn trong khung, không đè HUD/nút — {"w":265,"h":327,"cs":23}
+PASS không có lỗi console / exception trong suốt quá trình
+59/59 PASS
