@@ -68,23 +68,76 @@
 <div class="wrap">
   <header>
     <h1>🎮 Webgame Portal — Tiến độ dự án</h1>
-    <div class="sub">Cổng webgame tiếng Việt · single + multiplayer · quảng cáo SpeakUp Kids &nbsp;·&nbsp; Cập nhật: 17/11/2026</div>
+    <div class="sub">Cổng webgame tiếng Việt · single + multiplayer · quảng cáo SpeakUp Kids &nbsp;·&nbsp; Cập nhật: 17/11/2026 (V2)</div>
   </header>
 
   <div class="card">
-    <h2>Quy trình dự án</h2>
-    <div class="steps">
-      <div class="step"><div class="n">1</div>Tạo folder &amp; Git<br/><span class="badge ok">Hoàn tất</span></div>
-      <div class="step"><div class="n">2</div>Bàn giao &amp; truy cập<br/><span class="badge ok">Hoàn tất</span></div>
-      <div class="step"><div class="n">3</div>Phân tích &amp; kiến trúc<br/><span class="badge ok">Hoàn tất</span></div>
-      <div class="step"><div class="n">4</div>UX, phản biện, review<br/><span class="badge ok">Hoàn tất</span></div>
-      <div class="step"><div class="n">5</div>Duyệt kế hoạch<br/><span class="badge wait">Chờ duyệt</span></div>
-      <div class="step"><div class="n">6</div>Triển khai tuần tự<br/><span class="badge todo">Chưa bắt đầu</span></div>
+    <div class="callout">
+      📌 Kế hoạch V1 (3 game MVP) đã bị chủ dự án từ chối làm phạm vi launch — chỉ dùng để kiểm chứng kỹ thuật. Team đã làm lại <b>Kế hoạch V2</b>: danh mục 18 game cho Public Launch, kiến trúc mở rộng, roadmap theo giai đoạn, review độc lập. Xem <a href="docs/plan-v2.md">docs/plan-v2.md</a>.
     </div>
   </div>
 
   <div class="card">
-    <h2>Task &amp; Agent phụ trách</h2>
+    <h2>Quy trình dự án — Vòng V2</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div>Điều chỉnh mục tiêu (18 game)<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">2</div>Danh mục game (Gehihi)<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">3</div>Kiến trúc &amp; roadmap (Dev)<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">4</div>Review độc lập (Codex)<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">5</div>Tổng hợp plan-v2 (Mama)<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">6</div>Duyệt 10 quyết định V2<br/><span class="badge wait">Chờ duyệt</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Task &amp; Agent phụ trách — Kế hoạch V2 (hiện tại)</h2>
+    <table>
+      <thead>
+        <tr><th>Task</th><th>Agent</th><th>Trạng thái</th><th>Kết quả</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nghiên cứu lại 15–20 game cho Public Launch, điểm sức hút/chơi lại/chia sẻ/SEO/SpeakUp-fit, redesign trang chủ (bỏ phong cách SaaS dashboard)</td>
+          <td><span class="agent">Gehihi</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/game-catalog-v2.md">docs/game-catalog-v2.md</a> — 18 game, 3 nhóm ưu tiên</td>
+        </tr>
+        <tr>
+          <td>Phân loại kỹ thuật 18 game, kiểm license thật (không đoán), đánh giá lại kiến trúc A ở quy mô 18 game, roadmap theo giai đoạn</td>
+          <td><span class="agent">Dev</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/tech-architecture-v2.md">docs/tech-architecture-v2.md</a> — RoomShell + 4 engine, ~120–177 người-ngày</td>
+        </tr>
+        <tr>
+          <td>Review độc lập danh mục + roadmap: license/thương hiệu/an ninh/hiệu năng/khả thi Public Launch — không tự thu hẹp phạm vi</td>
+          <td><span class="agent">Codex</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/architecture-review-v2.md">docs/architecture-review-v2.md</a> — đồng ý có điều kiện, đề xuất dự phòng +25–35%, phương án 15 game chỉ nếu bị ép tiến độ</td>
+        </tr>
+        <tr>
+          <td>Tổng hợp Kế hoạch V2: danh mục, MVP vs Launch, kiến trúc, roadmap, traffic/SEO/SpeakUp Kids, chi phí, pháp lý, quyết định cần duyệt</td>
+          <td><span class="agent">Mama</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/plan-v2.md">docs/plan-v2.md</a></td>
+        </tr>
+        <tr>
+          <td>Phê duyệt Kế hoạch V2</td>
+          <td>Chủ dự án</td>
+          <td><span class="badge wait">Chờ duyệt</span></td>
+          <td>10 quyết định cần chốt — xem <a href="docs/plan-v2.md#8-danh-sách-quyết-định-cần-chủ-dự-án-phê-duyệt">docs/plan-v2.md §8</a></td>
+        </tr>
+        <tr>
+          <td>Lập trình nền móng + Technical MVP (2048 + Caro + Rắn đơn) — chỉ để kiểm chứng kiến trúc, không phải launch</td>
+          <td><span class="agent">Dev</span></td>
+          <td><span class="badge todo">Chưa bắt đầu</span></td>
+          <td>Chờ phê duyệt Kế hoạch V2 trước khi code</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Kế hoạch V1 (đã làm lại — giữ để so sánh)</h2>
     <table>
       <thead>
         <tr><th>Task</th><th>Agent</th><th>Trạng thái</th><th>Kết quả</th></tr>
@@ -97,46 +150,28 @@
           <td>Repo tại <code>C:\Projects\Webgame-Portal</code>, commit đầu <code>1662476</code></td>
         </tr>
         <tr>
-          <td>Bàn giao vai trò + kiểm tra truy cập folder</td>
-          <td><span class="agent">Mama</span></td>
-          <td><span class="badge ok">Hoàn tất</span></td>
-          <td>Gehihi, Dev, Codex đều xác nhận đọc được <code>README.md</code> và hiểu vai trò</td>
-        </tr>
-        <tr>
-          <td>Nghiên cứu &amp; đặc tả UX/UI (Poki × Đấu Trí, ads SpeakUp Kids, design direction)</td>
+          <td>Nghiên cứu &amp; đặc tả UX/UI V1</td>
           <td><span class="agent">Gehihi</span></td>
           <td><span class="badge ok">Hoàn tất</span></td>
           <td><a href="docs/ux-ui-spec.md">docs/ux-ui-spec.md</a></td>
         </tr>
         <tr>
-          <td>Đề xuất kiến trúc kỹ thuật, modular Game SDK, open-source, danh sách MVP</td>
+          <td>Đề xuất kiến trúc kỹ thuật V1 (Phương án A, MVP 3 game)</td>
           <td><span class="agent">Dev</span></td>
           <td><span class="badge ok">Hoàn tất</span></td>
           <td><a href="docs/tech-architecture.md">docs/tech-architecture.md</a></td>
         </tr>
         <tr>
-          <td>Review độc lập: scalability, bảo mật, realtime sync, chống gian lận, phạm vi MVP</td>
+          <td>Review độc lập V1</td>
           <td><span class="agent">Codex</span></td>
           <td><span class="badge ok">Hoàn tất</span></td>
-          <td><a href="docs/architecture-review.md">docs/architecture-review.md</a> — đồng ý có điều kiện với Phương án A; đề nghị thu hẹp MVP còn 2048 + Caro + Rắn</td>
+          <td><a href="docs/architecture-review.md">docs/architecture-review.md</a></td>
         </tr>
         <tr>
-          <td>Tổng hợp kế hoạch thống nhất (MVP/Phase 2/dài hạn, kiến trúc, KPI, giả định, quyết định cần duyệt)</td>
+          <td>Kế hoạch tổng hợp V1 — <b>chủ dự án từ chối dùng làm phạm vi launch</b>, yêu cầu làm lại thành V2 (18 game)</td>
           <td><span class="agent">Mama</span></td>
-          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><span class="badge todo">Đã thay bằng V2</span></td>
           <td><a href="docs/plan.md">docs/plan.md</a></td>
-        </tr>
-        <tr>
-          <td>Phê duyệt kiến trúc &amp; phạm vi MVP</td>
-          <td>Chủ dự án</td>
-          <td><span class="badge wait">Chờ duyệt</span></td>
-          <td>7 quyết định cần chốt — xem <a href="docs/plan.md#7-quyết-định-cần-chủ-dự-án-phê-duyệt">docs/plan.md §7</a></td>
-        </tr>
-        <tr>
-          <td>Lập trình nền móng + Mốc 1 MVP (2048 + portal)</td>
-          <td><span class="agent">Dev</span></td>
-          <td><span class="badge todo">Chưa bắt đầu</span></td>
-          <td>Chờ phê duyệt kiến trúc &amp; MVP trước khi code</td>
         </tr>
       </tbody>
     </table>
@@ -144,12 +179,12 @@
 
   <div class="card">
     <div class="callout">
-      ⏸️ Đang tạm dừng ở bước 5 — chờ chủ dự án phê duyệt kiến trúc &amp; phạm vi MVP. Chưa có code sản phẩm, chưa deploy, chưa dùng dịch vụ trả phí.
+      ⏸️ Đang tạm dừng ở bước 6 (V2) — chờ chủ dự án duyệt 10 quyết định trong <a href="docs/plan-v2.md">docs/plan-v2.md §8</a> (phạm vi 15 vs 18 game, chế độ online Rắn/Đặt Bom, ngân sách thời gian, nguồn lực mỹ thuật/QA, tên thương hiệu, nội dung từ điển, tư vấn pháp lý, mốc đo năng suất, bot takeover, chính sách quảng cáo). Chưa có code sản phẩm, chưa deploy, chưa dùng dịch vụ trả phí.
     </div>
   </div>
 
   <div class="footer">
-    Nguồn: docs/plan.md, docs/tech-architecture.md, docs/ux-ui-spec.md, docs/architecture-review.md · Cập nhật thủ công bởi Mama sau mỗi giai đoạn.
+    Nguồn V2: docs/plan-v2.md, docs/game-catalog-v2.md, docs/tech-architecture-v2.md, docs/architecture-review-v2.md · Nguồn V1 (lưu để so sánh): docs/plan.md, docs/tech-architecture.md, docs/ux-ui-spec.md, docs/architecture-review.md · Cập nhật thủ công bởi Mama sau mỗi giai đoạn.
   </div>
 </div>
 </body>
