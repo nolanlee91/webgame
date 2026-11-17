@@ -1,6 +1,8 @@
-# Đào Vàng — bản thử cơ chế (hình khối tạm)
+# Đào Vàng — bản chơi thử
 
-Chỉ có logic và cơ chế chơi, hình vẽ là hình khối tạm. Asset thật sẽ thay vào sau, khi Art Bible được áp dụng cho game này.
+Hình vẽ dùng asset thật pixel art V4 trong `assets/` (do Codex tạo): `hang-dong-nen.webp` (nền hang), `tho-mo.webp` (thợ mỏ + tời + càng móc), `vat-the.webp` (8 vật thể gộp 1 ảnh).
+`game.js` cắt từng phần theo bảng `SPRITES` (toạ độ trên ảnh gốc 1280×960) lúc tải trang — không có file ảnh phụ. Nền là 1 ảnh phủ kín, không ghép lặp nên không có đường nối.
+Nếu ảnh không tải được, game tự vẽ lại bằng hình khối tạm và vẫn chơi được. Logic (`logic.js`) và độ khó không phụ thuộc phần vẽ.
 
 ## Chạy thử
 

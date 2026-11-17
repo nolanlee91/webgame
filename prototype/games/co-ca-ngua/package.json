@@ -1,0 +1,6 @@
+{
+  "name": "co-ca-ngua-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}

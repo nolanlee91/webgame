@@ -1,6 +1,7 @@
 // Đào Vàng — phần hiển thị + điều khiển, theo hợp đồng Game SDK (docs/tech-architecture.md §3.3):
 //   mount(el, ctx) -> { pause, resume, destroy }
-// Hình vẽ ở đây là HÌNH KHỐI TẠM; asset thật thay vào sau khi Art Bible áp dụng cho game này.
+// Hình vẽ dùng asset thật trong ./assets (nền hang, thợ mỏ + tời + móc, 8 vật thể gộp 1 ảnh — cắt theo SPRITES).
+// Khi ảnh chưa tải xong hoặc lỗi, tự quay về hình khối tạm (vẫn chơi được).
 import { W, H, CFG, KINDS, createGame, step, fire, nextLevel, restart, tipOf, drainEvents } from "./logic.js";
 
 const DT = 1 / 60;
@@ -11,7 +12,68 @@ const COLORS = {
   tnt: "#d8433a", tntDark: "#7a1c17", p1: "#ffd27a", p2: "#7fe0c8", panel: "rgba(14,18,22,.86)", ok: "#7fe0a0", bad: "#ff8a7a",
 };
 
+// ---------- Asset thật ----------
+// Ô cắt [x, y, w, h] tính trên ảnh gốc 1280×960 (đo bằng kênh alpha), cùng điểm neo và cỡ hiển thị.
+const SHEET = { bg: "hang-dong-nen.webp", miner: "tho-mo.webp", objs: "vat-the.webp" };
+const SPRITES = {
+  goldS:   { box: [64, 248, 168, 148], size: 2.5 },
+  goldM:   { box: [308, 208, 240, 204], size: 2.35 },
+  goldL:   { box: [596, 144, 352, 288], size: 2.3 },
+  diamond: { box: [996, 204, 244, 204], size: 3.0 },
+  rockS:   { box: [40, 628, 200, 180], size: 2.35 },
+  rockL:   { box: [284, 568, 308, 260], size: 2.35 },
+  bag:     { box: [628, 528, 280, 312], size: 2.9 },
+  tnt:     { box: [956, 552, 300, 284], size: 2.4 },
+  // Thợ mỏ + tời (bỏ cột dây và càng móc ở góc trái ảnh); neo = đỉnh trống tời, đặt vào trục dây.
+  station: { box: [280, 24, 892, 728], anchor: [485, 350], scale: 0.135 },
+  // Càng móc; neo = giữa càng, đặt vào đầu móc (điểm xét va chạm).
+  // clear = phần chân bệ tời lọt vào ô cắt, xoá đi.
+  claw:    { box: [104, 712, 300, 232], anchor: [236, 740], scale: 0.2, clear: [290, 700, 120, 54] },
+};
+const art = { ready: false, bg: null, sprites: {} };
+function loadImg(name) {
+  return new Promise((ok, bad) => {
+    const im = new Image();
+    im.onload = () => ok(im);
+    im.onerror = () => bad(new Error("Không tải được " + name));
+    im.src = new URL("./assets/" + name, import.meta.url).href;
+  });
+}
+function cut(img, [x, y, w, h], clear) {
+  const cv = document.createElement("canvas");
+  cv.width = w; cv.height = h;
+  const cx = cv.getContext("2d");
+  cx.drawImage(img, x, y, w, h, 0, 0, w, h);
+  if (clear) cx.clearRect(clear[0] - x, clear[1] - y, clear[2], clear[3]);
+  return cv;
+}
+let artPromise = null;
+function loadArt() {
+  if (artPromise) return artPromise;
+  artPromise = Promise.all([loadImg(SHEET.bg), loadImg(SHEET.miner), loadImg(SHEET.objs)]).then(([bg, miner, objs]) => {
+    // Nền: 1 ảnh phủ kín (không ghép lặp nên không có đường nối). Phóng 0,82 để mép đá xanh/đất nâu
+    // (y≈400 trên ảnh) rơi đúng mặt đất CFG.groundY, đáy ảnh vẫn phủ hết khung 960×600.
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const cx = cv.getContext("2d");
+    cx.imageSmoothingQuality = "high";
+    const s = 0.82, dw = bg.width * s, dh = bg.height * s;
+    cx.drawImage(bg, (W - dw) / 2, CFG.groundY - 400 * s, dw, dh);
+    // Phủ tối nhẹ vùng trên mặt đất để thợ mỏ/HUD nổi hơn nền đá.
+    cx.fillStyle = "rgba(10,12,24,.28)"; cx.fillRect(0, 0, W, CFG.groundY);
+    art.bg = cv;
+    for (const [k, sp] of Object.entries(SPRITES)) {
+      const src = k === "station" || k === "claw" ? miner : objs;
+      art.sprites[k] = cut(src, sp.box, sp.clear);
+    }
+    art.ready = true;
+  });
+  artPromise.catch((e) => console.warn("[dao-vang] dùng hình khối tạm:", e.message));
+  return artPromise;
+}
+
 export function mount(el, ctx = {}) {
+  loadArt().catch(() => {});
   const sdk = ctx.sdk || {};
   const players = ctx.localPlayers === 2 ? 2 : 1;
   let g = createGame({ players, seed: ctx.seed });
@@ -125,8 +187,17 @@ export function mount(el, ctx = {}) {
     c2.fillStyle = fill; c2.fill();
     c2.lineWidth = 3; c2.strokeStyle = stroke; c2.stroke();
   }
+  function drawSprite(key, x, y, r) {
+    const sp = SPRITES[key], cv = art.sprites[key];
+    const k = (r * sp.size) / Math.max(cv.width, cv.height);
+    const w = cv.width * k, h = cv.height * k;
+    c2.imageSmoothingEnabled = true; c2.imageSmoothingQuality = "high";
+    c2.drawImage(cv, x - w / 2, y - h / 2, w, h);
+    c2.imageSmoothingEnabled = false;
+  }
   function drawObject(o) {
     const { x, y, r } = o;
+    if (art.ready) { drawSprite(o.kind, x, y, r); return; }
     switch (o.kind) {
       case "goldS": case "goldM": case "goldL":
         poly(x, y, r, 8, 0.3, COLORS.gold, COLORS.goldDark);
@@ -155,8 +226,26 @@ export function mount(el, ctx = {}) {
         break;
     }
   }
+  function drawAnchored(key, x, y, rot) {
+    const sp = SPRITES[key], cv = art.sprites[key];
+    const ax = (sp.anchor[0] - sp.box[0]) * sp.scale, ay = (sp.anchor[1] - sp.box[1]) * sp.scale;
+    c2.save(); c2.translate(x, y); if (rot) c2.rotate(rot);
+    c2.imageSmoothingEnabled = true; c2.imageSmoothingQuality = "high";
+    c2.drawImage(cv, -ax, -ay, cv.width * sp.scale, cv.height * sp.scale);
+    c2.restore(); c2.imageSmoothingEnabled = false;
+  }
   function drawMiner(h, i) {
     const col = i === 0 ? COLORS.p1 : COLORS.p2;
+    if (art.ready) {
+      const bob = h.state === "back" ? Math.round(Math.sin(performance.now() / 70)) : 0;
+      drawAnchored("station", h.x, h.y + bob, 0);
+      if (players === 2) {
+        c2.fillStyle = col; c2.fillRect(h.x - 66, CFG.groundY - 22, 28, 16);
+        c2.fillStyle = "#14181c"; c2.font = "bold 13px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
+        c2.fillText("P" + (i + 1), h.x - 52, CFG.groundY - 13);
+      }
+      return;
+    }
     // bệ tời
     c2.fillStyle = "#6b4a2e"; c2.fillRect(h.x - 34, CFG.groundY - 26, 68, 26);
     c2.strokeStyle = "#2a1a10"; c2.lineWidth = 3; c2.strokeRect(h.x - 34, CFG.groundY - 26, 68, 26);
@@ -178,6 +267,12 @@ export function mount(el, ctx = {}) {
     const t = tipOf(h);
     c2.strokeStyle = COLORS.rope; c2.lineWidth = 2;
     c2.beginPath(); c2.moveTo(h.x, h.y); c2.lineTo(t.x, t.y); c2.stroke();
+    if (art.ready) {
+      c2.strokeStyle = "rgba(40,24,12,.6)"; c2.lineWidth = 1;
+      c2.beginPath(); c2.moveTo(h.x + 1.5, h.y); c2.lineTo(t.x + 1.5, t.y); c2.stroke();
+      drawAnchored("claw", t.x, t.y, -h.angle);
+      return;
+    }
     // càng móc
     c2.save(); c2.translate(t.x, t.y); c2.rotate(-h.angle);
     c2.strokeStyle = COLORS.hook; c2.lineWidth = 4;
@@ -221,7 +316,9 @@ export function mount(el, ctx = {}) {
   function draw() {
     c2.save();
     if (shake > 0) c2.translate((Math.random() - 0.5) * 10 * shake / 0.35, (Math.random() - 0.5) * 10 * shake / 0.35);
-    // nền: bầu trời + các lớp đất
+    if (art.ready) c2.drawImage(art.bg, -6, -6, W + 12, H + 12);
+    else {
+    // nền tạm: bầu trời + các lớp đất
     c2.fillStyle = COLORS.sky; c2.fillRect(-10, -10, W + 20, CFG.groundY + 10);
     c2.fillStyle = COLORS.skyLow; c2.fillRect(-10, CFG.groundY - 50, W + 20, 50);
     c2.fillStyle = COLORS.ground; c2.fillRect(-10, CFG.groundY, W + 20, 14);
@@ -229,6 +326,7 @@ export function mount(el, ctx = {}) {
     c2.fillStyle = COLORS.dirtDeep; c2.fillRect(-10, CFG.groundY + 214, W + 20, H);
     c2.fillStyle = "rgba(0,0,0,.12)";
     for (let y = CFG.groundY + 30; y < H; y += 36) for (let x = (y / 36 % 2) * 40; x < W; x += 80) c2.fillRect(x, y, 10, 4);
+    }
     for (const o of g.objects) if (!o.taken) drawObject(o);
     g.hooks.forEach((h, i) => drawMiner(h, i));
     g.hooks.forEach((h, i) => { drawHook(h, i); if (h.carry) drawObject(h.carry); });
@@ -270,6 +368,7 @@ export function mount(el, ctx = {}) {
     get state() { return g; },
     set state(v) { g = v; },
     get paused() { return paused; },
+    get artReady() { return art.ready; },
   };
   return inst;
 }
