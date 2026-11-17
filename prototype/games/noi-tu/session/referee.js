@@ -5,6 +5,8 @@ import { reduce, validate, pinOf, samePin, nextFirst, replay } from '../core/rul
 import { pickWord } from '../core/ai.js';
 import { createRng } from '../core/rng.js';
 
+// Cache idempotent: giữ kết quả của 500 lệnh gần nhất (toàn trận, cả hai ghế). Gửi lại một commandId đã bị đẩy ra
+// khỏi cache sẽ được xử lý như lệnh mới — an toàn vì submit còn phải khớp expectedSeq (lệnh cũ sẽ nhận 'stale').
 const RESULT_CACHE = 500;
 
 export class RefereeHost {
@@ -41,10 +43,21 @@ export class RefereeHost {
 
   get now() { return this.sch.now(); }
 
+  /** Dừng hẳn trọng tài: hủy mọi hẹn giờ (hết lượt, bot, chờ kết nối lại), bỏ qua mọi thông điệp sau đó. */
+  dispose() {
+    this.closed = true;
+    const t = this.timers;
+    for (const id of [t.deadline, t.bot, ...t.grace]) if (id != null) this.sch.cancel(id);
+    this.timers = { deadline: null, bot: null, grace: [null, null] };
+    this.conns.clear();
+    this.seatConn = [null, null];
+  }
+
   // ---------- kết nối ----------
-  connect(connId, send) { this.conns.set(connId, { send, seat: null }); }
+  connect(connId, send) { if (!this.closed) this.conns.set(connId, { send, seat: null }); }
 
   disconnect(connId) {
+    if (this.closed) return;
     const c = this.conns.get(connId);
     this.conns.delete(connId);
     if (!c || c.seat == null || this.seatConn[c.seat] !== connId) return;
@@ -59,12 +72,15 @@ export class RefereeHost {
 
   message(connId, msg) {
     const c = this.conns.get(connId);
-    if (!c) return;
+    if (!c || this.closed) return;
+    if (!msg || typeof msg !== 'object') return;   // thông điệp hỏng (null, chuỗi...) ⇒ bỏ qua, không làm sập trọng tài
     this._checkDeadline();
     switch (msg.t) {
       case 'join': return this._join(connId, c, msg);
       case 'ping': return c.send({ t: 'pong', id: msg.id, t0: msg.t0, serverTime: this.now });
-      case 'sync': return c.send(this._snapshot());
+      case 'sync':                                    // chỉ người đã vào phòng mới được xem ván
+        if (c.seat == null) return c.send({ t: 'syncRejected', reason: 'not-joined' });
+        return c.send(this._snapshot());
       case 'intent': {
         if (c.seat == null) return c.send({ t: 'result', commandId: msg.commandId, res: { ok: false, reason: 'not-joined' } });
         const res = this._intent(c.seat, msg);
@@ -77,7 +93,9 @@ export class RefereeHost {
     const seat = this.tokens.get(m.token);
     if (m.matchId && m.matchId !== this.state.matchId) return c.send({ t: 'joinRejected', reason: 'wrong-match' });
     if (seat == null) return c.send({ t: 'joinRejected', reason: 'bad-token' });
-    if (m.pin && !samePin(m.pin, this.state.pin)) return c.send({ t: 'joinRejected', reason: 'pin-mismatch', pin: this.state.pin });
+    // Bắt buộc ghim phiên bản: thiếu pin cũng bị từ chối (không lặng lẽ chơi bằng từ điển/luật khác)
+    if (!m.pin) return c.send({ t: 'joinRejected', reason: 'pin-required', pin: this.state.pin });
+    if (!samePin(m.pin, this.state.pin)) return c.send({ t: 'joinRejected', reason: 'pin-mismatch', pin: this.state.pin });
     const old = this.seatConn[seat];
     if (old != null && old !== connId) { this.conns.get(old)?.send({ t: 'kicked', reason: 'joined-elsewhere' }); this.conns.delete(old); }
     c.seat = seat;
@@ -162,6 +180,7 @@ export class RefereeHost {
 
   _graceExpired(seat) {
     this.timers.grace[seat] = null;
+    if (this.closed) return;
     if (this.seatConn[seat] != null || this.state.seats[seat].kind !== 'human') return;
     const h = this.humans[seat];
     this._emit({ type: 'seatChanged', seat, kind: 'bot', id: `bot-${seat}`, name: `Máy (thay ${h?.name ?? 'người chơi'})` });
@@ -190,15 +209,22 @@ export class RefereeHost {
     if (this.timers.bot) { this.sch.cancel(this.timers.bot); this.timers.bot = null; }
     if (!r) return;
     if (!r.over) {
-      this.timers.deadline = this.sch.at(r.deadlineAt, () => { this.timers.deadline = null; this._checkDeadline(); });
+      this.timers.deadline = this.sch.at(r.deadlineAt, () => { this.timers.deadline = null; if (!this.closed) this._checkDeadline(); });
       if (s.seats[r.turn].kind === 'bot') {
         const [a, b] = this.o.botDelay, seqAt = s.seq, seat = r.turn;
         this.timers.bot = this.sch.at(this.now + a + this.rng.int(Math.max(1, b - a)), () => {
           this.timers.bot = null;
-          if (this.state.seq !== seqAt) return;
+          if (this.closed) return;
+          // Kiểm lại NGAY LÚC áp nước, không chỉ lúc lên lịch: event loop có thể nghẽn khiến callback chạy trễ
+          // quá deadline. Quá giờ ⇒ xử thua vì hết giờ như người thật, bot không được đánh.
+          this._checkDeadline();
+          const cur = this.state.round;
+          if (this.state.seq !== seqAt || !cur || cur.over || cur.id !== r.id || cur.turn !== seat) return;
+          if (this.state.seats[seat].kind !== 'bot') return;
           const word = pickWord(this.state, this.dict, this.o.botLevel, this.rng);
-          if (!word) return this._emit({ type: 'roundEnded', roundId: r.id, winner: 1 - seat, reason: 'resign', at: this.now });
-          this._play(seat, validate(this.state, seat, word, this.dict));
+          const v = word ? validate(this.state, seat, word, this.dict) : null;
+          if (!v?.ok) return this._emit({ type: 'roundEnded', roundId: r.id, winner: 1 - seat, reason: 'resign', at: this.now });
+          this._play(seat, v);
         });
       }
       return;

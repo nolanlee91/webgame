@@ -8,6 +8,7 @@ import { RefereeHost } from '../session/referee.js';
 import { fakeScheduler } from '../session/scheduler.js';
 import { MatchClient } from '../session/client.js';
 import { createDict } from '../core/dict.js';
+import { pinOf } from '../core/rules.js';
 import { TEST_WORDS, SERVER_T0, CLIENT_T0 } from './fixtures.mjs';
 
 const tick = () => new Promise((r) => setImmediate(r));
@@ -57,6 +58,9 @@ function processBackend() {
   };
 }
 
+/** pin đúng của từ điển test — client test mặc định gửi pin này (trọng tài bắt buộc pin). */
+export const TEST_PIN = pinOf(createDict({ words: TEST_WORDS }));
+
 export const BACKENDS = { inproc: inprocBackend, process: processBackend };
 
 /** Đường truyền có lỗi cho MỘT client. Quy tắc: { dir:'up'|'down', match(msg), action:'drop'|'dup'|'hold', times } */
@@ -99,7 +103,7 @@ export async function setup(backendName, hostOpts) {
     backend, csch,
     client(token, extra = {}) {
       const tr = faultyTransport(backend, `c${++ids}`);
-      const c = new MatchClient({ transport: tr, token, scheduler: csch, retryMs: 1000, pingEveryMs: 3000,
+      const c = new MatchClient({ transport: tr, token, pin: TEST_PIN, scheduler: csch, retryMs: 1000, pingEveryMs: 3000,
         newId: () => `${token}-cmd${++ids}`, ...extra });
       c.tr = tr;
       c.fx = []; c.on('event', (ev) => c.fx.push(ev.seq));

@@ -48,10 +48,22 @@ export function createLocalSession(opts) {
   if (canResume) host.resumeClock(); // đóng tab giữa ván: tính giờ lại lượt đang dở, không xử thua
 
   const persist = () => opts.storage?.set(key, JSON.stringify({ mode: opts.mode, log: host.log }));
-  const mk = (i) => new MatchClient({ transport: memoryTransport(host, `local-${i}`), token: seats[i].token, scheduler: sch, retryMs: 1500 });
+  // luôn gửi pin: trọng tài từ chối mọi join thiếu/sai pin
+  const mk = (i) => new MatchClient({ transport: memoryTransport(host, `local-${i}`), token: seats[i].token, pin, scheduler: sch, retryMs: 1500 });
   const clients = seats.map((s, i) => (s.kind === 'human' ? mk(i) : null)).filter(Boolean);
   clients[0].on('state', persist);
   const session = clients[0];
+  // Rời game: đóng MỌI client (cả hai ghế hotseat) rồi dừng trọng tài ⇒ không còn hẹn giờ nào chạy ngầm
+  // (không tự đổi ghế sang bot, không mở ván mới sau khi đã rời). Gọi dispose ở client nào cũng được.
+  let disposed = false;
+  const own = clients.map((c) => c.dispose.bind(c));
+  const disposeAll = () => {
+    if (disposed) return;
+    disposed = true;
+    own.forEach((d) => d());
+    host.dispose();
+  };
+  for (const c of clients) c.dispose = disposeAll;
   session.host = host;               // chỉ để test/gỡ lỗi; UI không được dùng
   session.seatsClients = clients;    // hotseat: clients[0] ghế 0, clients[1] ghế 1
   session.clearSaved = () => opts.storage?.remove(key);

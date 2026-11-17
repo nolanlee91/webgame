@@ -31,6 +31,7 @@ export class MatchClient {
     this.buffer = new Map();
     this.pending = new Map();      // commandId → { msg, resolve, timer }
     this.syncTimer = null;
+    this.needSeq = 0;              // seq server đã báo (qua kết quả lệnh) mà client chưa có ⇒ phải xin snapshot
     this.samples = [];
     this.offset = 0;
     this.rtt = null;
@@ -100,6 +101,11 @@ export class MatchClient {
         if (!p) return;                        // kết quả trùng (do gửi lại) ⇒ bỏ qua
         this.pending.delete(m.commandId);
         this.sch.cancel(p.timer);
+        // Kết quả báo server đã ở seq mới hơn (vd. 'stale' vì lỡ mất sự kiện) ⇒ đồng bộ lại NGAY, không chờ sự kiện kế tiếp
+        if (typeof m.res?.seq === 'number' && m.res.seq > this.seq) {
+          this.needSeq = Math.max(this.needSeq, m.res.seq);
+          this._requestSync();
+        }
         p.resolve(m.res);
         break;
       }
@@ -155,14 +161,16 @@ export class MatchClient {
   _drain() {
     while (this.buffer.has(this.seq + 1)) { const ev = this.buffer.get(this.seq + 1); this.buffer.delete(ev.seq); this._apply(ev); }
     for (const k of this.buffer.keys()) if (k <= this.seq) this.buffer.delete(k);
-    if (!this.buffer.size && this.syncTimer) { this.sch.cancel(this.syncTimer); this.syncTimer = null; }
+    if (!this._behind() && this.syncTimer) { this.sch.cancel(this.syncTimer); this.syncTimer = null; }
   }
+
+  _behind() { return this.buffer.size > 0 || this.needSeq > this.seq; }
 
   _requestSync() {
     if (this.syncTimer) return;
     const ask = () => {
       this.transport.send({ t: 'sync', fromSeq: this.seq });
-      this.syncTimer = this.sch.at(this.sch.now() + this.retryMs, () => { this.syncTimer = null; if (this.buffer.size) this._requestSync(); });
+      this.syncTimer = this.sch.at(this.sch.now() + this.retryMs, () => { this.syncTimer = null; if (this._behind()) this._requestSync(); });
     };
     ask();
   }

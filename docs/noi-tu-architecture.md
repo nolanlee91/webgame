@@ -1,6 +1,6 @@
 # Nối Từ — kiến trúc (bản 2, đã áp 6 điểm review của Codex)
 
-Trạng thái: **bước 1 xong** — kiến trúc + lõi + lớp phiên chơi + test hợp đồng đã code và chạy (43 test).
+Trạng thái: **bước 1 xong** — kiến trúc + lõi + lớp phiên chơi + test hợp đồng đã code và chạy (56 test; bản 2.1 sửa 4 lỗi Codex tìm ra khi review code — xem mục 8).
 Chưa có giao diện (bước 2). Mục tiêu giữ nguyên: bản đầu chơi với máy/offline, sau này cắm online 1v1 thật
 **mà không sửa luật, AI hay giao diện** — chỉ thêm một transport Colyseus và phần server.
 Code: `prototype/games/noi-tu/` · Test: `npm test` trong thư mục đó.
@@ -35,9 +35,9 @@ và online; online chỉ đổi transport và chuyển `RefereeHost` lên server
 
 **Intent** (client → trọng tài): `{ t:'intent', type:'submit'|'resign'|'rematch', commandId, matchId, roundId, expectedSeq?, word? }`
 - `commandId` duy nhất mỗi lệnh. Client **gửi lại nguyên lệnh (cùng commandId)** mỗi 1 s và sau khi kết nối lại,
-  đến khi có `result`. Trọng tài lưu kết quả theo `ghế:commandId` (500 lệnh gần nhất) ⇒ trùng lệnh / mất ACK
+  đến khi có `result`. Trọng tài lưu kết quả theo `ghế:commandId` (**giới hạn: 500 lệnh gần nhất** của cả trận; lệnh cũ hơn bị đẩy khỏi cache sẽ xử lý như lệnh mới, nhưng submit vẫn phải khớp `expectedSeq` nên nhận `stale` chứ không đánh lần hai) ⇒ trùng lệnh / mất ACK
   **trả lại kết quả cũ, không đánh hai lần**.
-- `submit` bắt buộc `expectedSeq === state.seq` (từ được chọn theo chuỗi người chơi đang thấy) — lệch thì `stale`.
+- `submit` bắt buộc `expectedSeq === state.seq` (từ được chọn theo chuỗi người chơi đang thấy) — lệch thì `stale`. Mọi `result` kèm `seq` hiện tại của server; nếu lớn hơn seq client đang có, client **xin snapshot ngay** (gửi lại sau mỗi `retryMs` đến khi bắt kịp), không chờ sự kiện kế tiếp.
   `resign`/`rematch` chỉ cần đúng `matchId` + `roundId`.
 
 **Kết quả** `{ t:'result', commandId, res:{ ok, reason?, key?, need?, seq } }` — chỉ gửi cho người ra lệnh.
@@ -90,7 +90,7 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
 ## 6. Từ điển gửi xuống máy người chơi (điểm 4)
 - Mỗi trận ghim `pin = { dictHash, normVersion, rulesVersion }` trong `matchCreated`. `dictHash` là **hash nội dung**
   (FNV-1a 64 trên danh sách khóa đã chuẩn hóa + sắp xếp + danh sách từ hiếm) — không phải chuỗi phiên bản đặt tay.
-  Client gửi pin khi `join`; lệch ⇒ `joinRejected: pin-mismatch` (sau này: client tải đúng file
+  Client **bắt buộc** gửi pin khi `join` (LocalSession luôn gửi): thiếu ⇒ `joinRejected: pin-required`, lệch/thiếu trường ⇒ `joinRejected: pin-mismatch`, kèm pin đúng của trận (sau này: client tải đúng file
   `words.<hash>.json` bất biến rồi vào lại).
 - **Đo thật** (`node data/build.mjs`, bản khởi đầu): **591 từ → 8.069 B JSON, gzip 3.111 B, brotli 2.841 B
   (5,26 B/từ gzip)**. Ngoại suy tuyến tính cho 5.000 từ ≈ **26 KB gzip** — sẽ đo lại khi đủ danh sách.
@@ -107,7 +107,7 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
   (vd. `số ba → ba ba`: đường nối duy nhất của "ba" chính là "ba ba" ⇒ sau khi đánh là cụt). Kiểm tra ngay trong
   `validate` của lượt đánh; mặc định ⇒ `played` + `roundEnded(no-move)` cùng lúc, `noDeadEnd` ⇒ từ chối `dead-end`.
 
-## 8. Test (điểm 5) — `npm test`, 43 test
+## 8. Test (điểm 5) — `npm test`, 56 test
 - **Hợp đồng, 17 kịch bản × 2 backend** (`test/contract.test.mjs`): backend `process` chạy trọng tài trong
   **tiến trình Node riêng** (`test/referee-proc.mjs`, tự dựng từ điển của nó, chỉ trao đổi chuỗi JSON qua IPC);
   backend `inproc` là đường của bản offline. Giữa hai phía có đường truyền lỗi lập trình được (rơi / nhân đôi /
@@ -124,6 +124,11 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
   bỏ expectedSeq, tính từ cụt trước khi trừ từ vừa dùng ⇒ mỗi lỗi đều làm 2–6 test đỏ.
 - **Lõi** (`test/core.test.mjs`): chuẩn hóa, hash từ điển, luật, replay mọi loại sự kiện, AI đấu AI 200 ván
   (mọi nước hợp lệ, nước chậm nhất ~5 ms).
+- **Hồi quy review code của Codex** (`test/regression.test.mjs`, 13 test — cả 12 test lỗi đều đỏ trên code cũ 86d69b4):
+  (1) callback bot chạy trễ quá deadline (event loop nghẽn) ⇒ kiểm lại deadline + `validate` ngay lúc áp nước, xử thua hết giờ;
+  (2) nhận `stale` với seq server mới hơn ⇒ client tự xin snapshot ngay, cả khi yêu cầu sync bị rơi (2 backend);
+  (3) `dispose()` LocalSession đóng mọi client (cả 2 ghế hotseat) và `RefereeHost.dispose()` hủy mọi hẹn giờ ⇒ không tự đổi ghế/mở ván;
+  (4) join thiếu/sai pin bị từ chối (trọng tài + 2 backend + LocalSession). Kèm: message hỏng (null) bị bỏ qua, `sync` khi chưa join bị từ chối.
 - **LocalSession** (`test/local.test.mjs`): chơi với bot, đóng tab mở lại (clockReset), đổi từ điển ⇒ ván mới,
   hai người chung máy.
 
@@ -133,3 +138,4 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
 - **Từ điển:** bản khởi đầu mới có 591 từ (ván máy-đấu-máy trung bình ~4 nước — quá ngắn). Cần mở rộng lên
   3.000–5.000 từ và **người thật duyệt** trước khi phát hành.
 - Bot Dễ "thỉnh thoảng bí"; báo từ thiếu.
+- Chưa có adapter Colyseus/WebSocket thật để chạy bộ test hợp đồng qua mạng thật (làm cùng OnlineSession).
