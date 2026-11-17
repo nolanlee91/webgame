@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cổng Game Việt — Chơi ngay, không cần tải</title>
+  <meta name="description" content="Chơi Cờ Caro, Đào Vàng, Nối Thú, Cờ Tướng và nhiều game miễn phí ngay trên trình duyệt, một mình hoặc cùng bạn bè." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 rx=%224%22 fill=%22%2311171c%22/%3E%3Cpath d=%22M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15.4A3 3 0 0 0 5 19c1 0 1.9-.5 2.4-1.3L9 15h6l1.6 2.7c.5.8 1.4 1.3 2.4 1.3a3 3 0 0 0 3-3.6l-.7-6.8A4 4 0 0 0 17.3 5Z%22 fill=%22none%22 stroke=%22%23ffd27a%22 stroke-width=%222%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
+
+  <header class="topbar" data-name="topbar">
+    <div class="topbar__inner">
+      <a class="logo" href="./" aria-label="Cổng Game Việt — Trang chủ">
+        <svg class="logo__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15.4A3 3 0 0 0 5 19c1 0 1.9-.5 2.4-1.3L9 15h6l1.6 2.7c.5.8 1.4 1.3 2.4 1.3a3 3 0 0 0 3-3.6l-.7-6.8A4 4 0 0 0 17.3 5Z"/></svg>
+        <span class="logo__text">Cổng Game Việt</span>
+      </a>
+
+      <label class="field search" for="q">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="sr-only">Tìm game</span>
+        <input id="q" type="search" placeholder="Tìm game…" autocomplete="off" enterkeyhint="search" />
+      </label>
+
+      <!-- Desktop: nhập mã phòng ngay trên thanh trên (1 bước). Mobile: nút mở hộp thoại. -->
+      <form class="room-inline" id="roomInline" novalidate data-name="room-inline">
+        <label class="sr-only" for="roomInlineCode">Mã phòng bạn bè gửi</label>
+        <input class="field room-inline__input" id="roomInlineCode" autocomplete="off" spellcheck="false" autocapitalize="characters"
+               maxlength="6" placeholder="Mã phòng" aria-describedby="roomInlineError" />
+        <button class="btn btn--gold" type="submit">Vào phòng</button>
+        <p class="room-inline__error" id="roomInlineError" role="alert"></p>
+      </form>
+
+      <button class="btn btn--gold btn--sm" id="openRoom" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <span>Mã phòng</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- Mobile: ô tìm kiếm nằm đầu trang để thanh trên chỉ 1 hàng -->
+    <div class="mobile-search-slot" id="mobileSearchSlot"></div>
+
+    <section class="section section--featured" id="featuredSection" data-name="featured" aria-labelledby="featuredTitle">
+      <div class="section__head">
+        <h2 class="section__title" id="featuredTitle"><span class="mark mark--hot" aria-hidden="true"></span>Mới &amp; Hot</h2>
+        <p class="online" data-name="online"><span class="online__dot" aria-hidden="true"></span><strong>1.248</strong>&nbsp;đang online <span class="online__sub">· 312 phòng</span></p>
+      </div>
+      <div class="bento" id="featured"></div>
+    </section>
+
+    <section class="section section--recent" id="recentSection" hidden data-name="recent" aria-labelledby="recentTitle">
+      <h2 class="section__title section__title--sub" id="recentTitle">Chơi tiếp</h2>
+      <div class="recent-row" id="recent"></div>
+    </section>
+
+    <section class="section section--all" id="games" data-name="games" aria-labelledby="gamesTitle">
+      <div class="section__head section__head--all">
+        <h2 class="section__title" id="gamesTitle">Tất cả game <span class="count" id="count"></span></h2>
+        <nav class="tabs" id="chips" aria-label="Lọc game theo loại" data-name="filters"></nav>
+      </div>
+      <div id="grid"></div>
+      <p class="empty" id="empty" hidden>Không tìm thấy game nào. <button class="link" id="clearSearch" type="button">Xem tất cả game</button></p>
+    </section>
+  </main>
+
+  <footer class="footer" data-name="footer">
+    <p><span class="tag-sponsor">Tài trợ</span> <a href="#" rel="sponsored">SpeakUp Kids — Tiếng Anh cho bé qua trò chơi</a></p>
+    <p class="footer__small">Bản prototype trang chủ · ảnh game cắt từ concept V4, game chưa có ảnh dùng hình tạm; số người online là số giả.</p>
+  </footer>
+
+  <dialog class="dialog frame" id="roomDialog" aria-labelledby="roomTitle">
+    <form method="dialog" class="dialog__body" id="roomForm" novalidate>
+      <h2 id="roomTitle">Vào phòng của bạn bè</h2>
+      <p class="dialog__hint">Nhập mã 6 ký tự bạn bè gửi cho bạn.</p>
+      <label for="roomCode" class="sr-only">Mã phòng</label>
+      <input id="roomCode" class="field pin" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false"
+             maxlength="6" placeholder="ABC789" aria-describedby="roomError" />
+      <p class="dialog__error" id="roomError" role="alert"></p>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" value="cancel" type="button" id="roomCancel">Huỷ</button>
+        <button class="btn btn--gold" type="submit" id="roomJoin">Vào phòng</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="games.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

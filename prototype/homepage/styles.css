@@ -1,0 +1,363 @@
+/* Webgame Portal — Homepage prototype · Pixel UI Kit theo concept V4 (Premium Detailed Pixel Art)
+   Nguyên tắc: góc vuông/bo nhẹ (≤4px), khung gỗ hồng nâu 2 lớp, bóng đổ "bậc" kiểu pixel (lệch thẳng xuống, không nhoè),
+   nút có vát sáng phía trên + tối phía dưới. Chữ tiêu đề Roboto Slab, chữ thường Be Vietnam Pro (dễ đọc tiếng Việt).
+   Không pixel font cho văn bản, không neon, không pill bo tròn kiểu SaaS. */
+:root {
+  --bg: #10161a;
+  --bg-2: #141b20;
+  --panel: #1a2228;
+  --panel-2: #212b32;
+  --line: #34434a;
+  --line-soft: #273239;
+  --frame: #7a5152;
+  --frame-dark: #4a3233;
+  --frame-hi: #b9857f;
+  --ink: #f3ead2;
+  --ink-soft: #b7b09d;
+  --ink-mute: #8a8576;
+  --teal: #2c7466;
+  --teal-top: #3f9b86;
+  --teal-edge: #15463d;
+  --teal-hi: #7fd0b4;
+  --gold: #f2a63a;
+  --gold-top: #ffd27a;
+  --gold-edge: #8a5414;
+  --gold-ink: #2a1806;
+  --hot: #e2553b;
+  --shadow-step: #080b0d;
+  --r: 4px;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-title: "Roboto Slab", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh;
+  font-family: var(--font-body); color: var(--ink); line-height: 1.45;
+  background:
+    radial-gradient(900px 380px at 30% -120px, rgba(242, 166, 58, .09), transparent 70%),
+    /* vân đá rất nhẹ, gợi nền đá tối của V4 */
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0 2px, transparent 2px 6px),
+    var(--bg);
+}
+img { display: block; max-width: 100%; }
+svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+a { color: inherit; }
+h3 { margin: 0; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 8px; top: -48px; z-index: 50; padding: 8px 12px; background: var(--gold); color: var(--gold-ink); border-radius: var(--r); font-weight: 700; }
+.skip:focus { top: 8px; }
+:focus-visible { outline: 3px solid var(--gold-top); outline-offset: 2px; }
+
+/* =========================================================
+   UI KIT
+   ========================================================= */
+
+/* Khung V4: viền gỗ + viền tối bên ngoài + bóng bậc pixel */
+.frame {
+  border: 2px solid var(--frame); border-radius: var(--r);
+  box-shadow: inset 0 0 0 1px rgba(255, 225, 205, .07), 0 0 0 2px var(--shadow-step), 0 5px 0 2px var(--shadow-step);
+}
+
+/* Nút: vát sáng trên, tối dưới, bóng bậc. Bấm = lún xuống 2px. */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 42px; padding: 0 18px;
+  font: inherit; font-weight: 800; font-size: 15px; letter-spacing: .1px; white-space: nowrap;
+  border: 2px solid; border-radius: var(--r); cursor: pointer; text-decoration: none;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .32), inset 0 -3px 0 rgba(0, 0, 0, .22), 0 3px 0 var(--shadow-step);
+  transition: transform .08s ease, box-shadow .08s ease, filter .12s ease;
+}
+.btn svg { width: 18px; height: 18px; }
+.btn:hover { filter: brightness(1.07); }
+.btn:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .25), inset 0 -2px 0 rgba(0, 0, 0, .2), 0 1px 0 var(--shadow-step); }
+.btn--gold { background: linear-gradient(var(--gold-top), var(--gold) 60%); color: var(--gold-ink); border-color: var(--gold-edge); }
+.btn--teal { background: linear-gradient(var(--teal-top), var(--teal) 65%); color: #effff9; border-color: var(--teal-edge); }
+.btn--ghost { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
+.btn--sm { min-height: 34px; padding: 0 12px; font-size: 14px; }
+.btn--lg { min-height: 48px; padding: 0 24px; font-size: 17px; }
+.btn--lg svg { fill: currentColor; stroke: none; }
+
+/* Ô nhập: lõm vào (bóng trong), góc vuông nhẹ */
+.field {
+  display: flex; align-items: center; gap: 8px;
+  height: 42px; padding: 0 12px;
+  background: #0d1215; border: 2px solid var(--line); border-radius: var(--r);
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, .45);
+  color: var(--ink); font: inherit; font-size: 16px;
+}
+.field:focus-within, input.field:focus { border-color: var(--teal-hi); outline: none; }
+.field input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; outline: 0; color: var(--ink); font: inherit; }
+.field svg { width: 18px; height: 18px; color: var(--ink-soft); flex: none; }
+.field input::placeholder, input.field::placeholder { color: var(--ink-mute); }
+
+/* Tab lọc: thanh phân đoạn liền khối, mục đang chọn là nút xanh ngọc nổi lên */
+.tabs {
+  display: inline-flex; gap: 2px; padding: 3px;
+  background: #0d1215; border: 2px solid var(--line); border-radius: var(--r);
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, .45);
+  overflow-x: auto; scrollbar-width: none; max-width: 100%;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; min-height: 36px; padding: 0 14px;
+  font: inherit; font-weight: 700; font-size: 14px; color: var(--ink-soft);
+  background: transparent; border: 2px solid transparent; border-radius: 3px; cursor: pointer;
+}
+.tab:hover { color: var(--ink); background: var(--panel-2); }
+.tab[aria-pressed="true"] {
+  color: #effff9; background: linear-gradient(var(--teal-top), var(--teal) 65%); border-color: var(--teal-edge);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), 0 2px 0 var(--shadow-step);
+}
+
+/* Nhãn Hot / Mới: hình chữ nhật cắt góc kiểu pixel */
+.badge {
+  position: absolute; top: 8px; left: 8px; z-index: 2;
+  padding: 2px 8px; font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; line-height: 1.5;
+  clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0 calc(100% - 2px), 0 2px);
+}
+.badge--hot { background: var(--hot); color: #fff; }
+.badge--new { background: var(--gold-top); color: var(--gold-ink); }
+
+/* Ô vuông nhỏ trước tiêu đề — "pixel" duy nhất mang tính trang trí */
+.mark { display: inline-block; width: 12px; height: 12px; margin-right: 10px; vertical-align: 2px; background: var(--gold); box-shadow: 2px 2px 0 var(--gold-edge); }
+.mark--hot { background: var(--hot); box-shadow: 2px 2px 0 #7c2416; }
+
+.meta { margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+.meta svg { width: 15px; height: 15px; flex: none; }
+.meta--multi { color: var(--teal-hi); }
+
+/* Placeholder game chưa có ảnh: nền đá nhuốm màu + icon */
+.ph {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  background:
+    radial-gradient(circle at 50% 55%, hsl(var(--h) 42% 30% / .9), transparent 66%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 2px, transparent 2px 4px),
+    hsl(var(--h) 22% 12%);
+}
+.ph svg { width: 40%; height: 62%; color: hsl(var(--h) 70% 78%); stroke-width: 1.6; filter: drop-shadow(0 3px 0 rgba(0,0,0,.45)); }
+
+/* =========================================================
+   KHUNG TRANG
+   ========================================================= */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(20, 27, 32, .96);
+  border-bottom: 2px solid var(--frame);
+  box-shadow: 0 2px 0 var(--shadow-step);
+}
+.topbar__inner {
+  max-width: 1280px; margin: 0 auto; height: 60px; padding: 0 24px;
+  display: flex; align-items: center; gap: 20px;
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
+.logo__icon { width: 30px; height: 30px; color: var(--gold-top); }
+.logo__text { font-family: var(--font-title); font-weight: 800; font-size: 21px; white-space: nowrap; }
+.search { flex: 1; max-width: 440px; }
+.room-inline { position: relative; display: flex; gap: 8px; margin-left: auto; }
+.room-inline__input { width: 128px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+.room-inline__input::placeholder { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.room-inline__error:empty { display: none; }
+.room-inline__error {
+  position: absolute; top: calc(100% + 8px); left: 0; margin: 0; padding: 6px 10px; white-space: nowrap;
+  background: #3a1a17; color: #ffb3a6; border: 2px solid #8d3a2c; border-radius: var(--r); font-size: 13px; font-weight: 600;
+}
+#openRoom { display: none; }
+
+.page { max-width: 1280px; margin: 0 auto; padding: 22px 24px 48px; }
+
+.section + .section { margin-top: 40px; }
+.section__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.section__title { margin: 0; font-family: var(--font-title); font-size: 24px; font-weight: 800; letter-spacing: .2px; }
+.section__title--sub { font-size: 17px; color: var(--ink-soft); margin-bottom: 10px; }
+.count { color: var(--ink-mute); font-family: var(--font-body); font-size: 15px; font-weight: 700; margin-left: 4px; }
+
+.online { margin: 0; display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--ink-soft); white-space: nowrap; }
+.online strong { color: var(--ink); }
+.online__dot { width: 9px; height: 9px; margin-right: 4px; background: #4fd18b; box-shadow: 0 0 0 3px rgba(79, 209, 139, .2); }
+.online__sub { color: var(--ink-mute); margin-left: 4px; }
+
+/* =========================================================
+   1) KHU NỔI BẬT — bento: 1 thẻ lớn + 4 thẻ vừa
+   ========================================================= */
+.card { position: relative; display: flex; flex-direction: column; text-decoration: none; color: var(--ink); background: var(--panel); overflow: hidden; }
+.card img { width: 100%; height: 100%; object-fit: cover; }
+.card__name { font-family: var(--font-title); font-weight: 700; line-height: 1.2; }
+
+.bento { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 20px; }
+
+.hero { min-height: 420px; transition: transform .15s ease; }
+.hero:hover { transform: translateY(-2px); }
+.hero__art { position: absolute; inset: 0 0 -14% 0; }
+.hero__art img { object-position: 0 0; transition: transform .4s ease; }
+.hero:hover .hero__art img { transform: scale(1.03); }
+.hero__info {
+  position: relative; margin-top: auto; padding: 72px 24px 22px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: linear-gradient(transparent, rgba(10, 14, 17, .78) 38%, rgba(10, 14, 17, .95));
+}
+.hero__tags { display: flex; align-items: center; gap: 10px; }
+.hero__tags .badge { position: static; font-size: 12px; }
+.hero__kicker { font-size: 13px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--gold-top); }
+.hero__name { font-family: var(--font-title); font-size: 44px; font-weight: 800; line-height: 1.05; text-shadow: 0 3px 0 rgba(0, 0, 0, .6); }
+.hero__text { max-width: 440px; font-size: 15px; color: #ddd5c0; }
+.hero__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.hero__row .meta { font-size: 15px; }
+/* góc khung trang trí kiểu V4 — chỉ dùng cho thẻ lớn nhất */
+.hero::before, .hero::after { content: ""; position: absolute; z-index: 3; width: 18px; height: 18px; border: 3px solid var(--frame-hi); pointer-events: none; }
+.hero::before { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+.hero::after { top: 6px; right: 6px; border-left: 0; border-bottom: 0; }
+
+.picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.pick { transition: transform .15s ease, border-color .15s ease; }
+.pick:hover { transform: translateY(-2px); border-color: var(--frame-hi); }
+.pick__art { position: relative; aspect-ratio: 2 / 1; flex: none; border-bottom: 2px solid var(--shadow-step); overflow: hidden; }
+.pick__body { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; }
+.pick__text { min-width: 0; }
+.pick .card__name { font-size: 20px; }
+
+/* =========================================================
+   2) "CHƠI TIẾP" — hàng thẻ mini, điểm nhấn phụ
+   ========================================================= */
+.recent-row { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 4px; }
+.recent-row::-webkit-scrollbar { display: none; }
+.mini {
+  flex: none; flex-direction: row; align-items: center; gap: 10px;
+  min-height: 52px; padding: 4px 16px 4px 4px;
+  border: 2px solid var(--line); border-radius: var(--r); background: var(--panel);
+}
+.mini:hover { border-color: var(--frame-hi); }
+.mini__art { width: 44px; height: 44px; flex: none; border-radius: 2px; overflow: hidden; }
+.mini__art .ph svg { width: 62%; height: 62%; }
+.mini__name { font-weight: 700; font-size: 15px; white-space: nowrap; }
+
+/* =========================================================
+   3) TẤT CẢ GAME — ô nhỏ, chia nhóm, nhiều khoảng nghỉ
+   ========================================================= */
+.section--all { padding-top: 28px; border-top: 2px solid var(--line-soft); }
+.section__head--all { margin-bottom: 20px; flex-wrap: wrap; }
+.group + .group { margin-top: 28px; }
+.group__title {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 12px;
+  font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft);
+}
+.group__title::after { content: ""; flex: 1; height: 2px; background: var(--line-soft); }
+.group__title .count { font-size: 12px; margin: 0; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px 14px; }
+.tile { background: transparent; overflow: visible; }
+.tile__art {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden;
+  border: 2px solid var(--frame-dark); border-radius: var(--r);
+  box-shadow: 0 0 0 1px var(--shadow-step), 0 3px 0 1px var(--shadow-step);
+  transition: transform .15s ease, border-color .15s ease;
+}
+.tile:hover .tile__art { transform: translateY(-2px); border-color: var(--frame-hi); }
+.tile .badge { top: 5px; left: 5px; font-size: 10px; padding: 1px 6px; }
+.tile__play {
+  position: absolute; right: 6px; bottom: 6px; width: 30px; height: 30px; display: grid; place-items: center;
+  background: linear-gradient(var(--gold-top), var(--gold)); color: var(--gold-ink); border: 2px solid var(--gold-edge); border-radius: 3px;
+  box-shadow: 0 2px 0 var(--shadow-step); opacity: 0; transition: opacity .15s ease;
+}
+.tile__play svg { width: 13px; height: 13px; fill: currentColor; stroke: none; }
+.tile:hover .tile__play, .tile:focus-visible .tile__play { opacity: 1; }
+.tile__body { padding: 8px 2px 0; }
+.tile .card__name { font-family: var(--font-body); font-size: 15px; font-weight: 700; }
+.tile .meta { font-size: 12px; }
+
+.empty { color: var(--ink-soft); padding: 24px 0; }
+.link { background: none; border: 0; padding: 0; color: var(--teal-hi); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+/* ---------- Chân trang ---------- */
+.footer { max-width: 1280px; margin: 0 auto; padding: 20px 24px 40px; border-top: 2px solid var(--line-soft); color: var(--ink-soft); font-size: 14px; }
+.footer p { margin: 0 0 6px; }
+.footer a { color: var(--ink); }
+.footer__small { font-size: 12px; color: var(--ink-mute); }
+.tag-sponsor { display: inline-block; padding: 1px 6px; margin-right: 6px; border: 1px solid var(--ink-soft); border-radius: 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+
+/* ---------- Hộp mã phòng ---------- */
+.dialog { width: min(400px, calc(100vw - 32px)); padding: 0; color: var(--ink); background: var(--panel); }
+.dialog::backdrop { background: rgba(5, 8, 10, .72); }
+.dialog__body { padding: 22px; }
+.dialog h2 { margin: 0 0 4px; font-family: var(--font-title); font-size: 22px; }
+.dialog__hint { margin: 0 0 16px; color: var(--ink-soft); font-size: 15px; }
+.pin { width: 100%; height: 58px; justify-content: center; font: 800 28px/1 var(--font-body); letter-spacing: 10px; text-align: center; text-transform: uppercase; color: var(--gold-top); }
+.pin::placeholder { color: #4c534f; }
+.dialog__error { min-height: 20px; margin: 8px 0 0; color: #ff8a7a; font-size: 14px; }
+.dialog__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+@media (max-width: 1080px) and (min-width: 721px) {
+  .bento { grid-template-columns: 1fr; }
+  .hero { min-height: 340px; }
+  .picks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .pick__body { flex-direction: column; align-items: stretch; }
+  .pick .card__name { font-size: 18px; }
+  .room-inline__input { width: 110px; }
+  .logo__text { font-size: 19px; }
+}
+
+/* =========================================================
+   MOBILE — bố cục riêng, không thu nhỏ bản desktop
+   - Thanh trên 1 hàng (logo + Mã phòng), ô tìm nằm đầu trang
+   - Thẻ lớn tràn ngang, 4 game nổi bật thành dải vuốt ngang
+   - Tất cả game: 3 cột, chia nhóm
+   ========================================================= */
+@media (max-width: 720px) {
+  .topbar__inner { height: 54px; padding: 0 12px; gap: 10px; justify-content: space-between; }
+  .logo__icon { width: 26px; height: 26px; }
+  .logo__text { font-size: 18px; }
+  .room-inline { display: none; }
+  #openRoom { display: inline-flex; min-height: 40px; }
+  .search { max-width: none; height: 46px; margin-bottom: 16px; }
+
+  .page { padding: 14px 12px 32px; }
+  .section + .section { margin-top: 28px; }
+  .section__head { margin-bottom: 10px; }
+  .section__title { font-size: 20px; }
+  .online { font-size: 13px; }
+  .online__sub { display: none; }
+
+  .bento { display: block; }
+  .hero { min-height: 0; aspect-ratio: 16 / 10; }
+  .hero__art { bottom: -26%; }
+  .hero__art img { object-position: 72% 0; }
+  .hero__info { padding: 40px 12px 12px; gap: 2px; background: linear-gradient(transparent, rgba(10, 14, 17, .85) 40%, rgba(10, 14, 17, .97)); }
+  .hero__name { font-size: 28px; }
+  .hero__text { display: none; }
+  .hero__row { margin-top: 6px; }
+  .hero__row .meta { font-size: 13px; }
+  .hero .btn--lg { min-height: 44px; padding: 0 18px; font-size: 16px; }
+
+  .picks {
+    display: flex; gap: 12px; margin: 18px -12px 0; padding: 2px 12px 8px;
+    overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 12px; scrollbar-width: none;
+  }
+  .picks::-webkit-scrollbar { display: none; }
+  .pick { flex: 0 0 46%; scroll-snap-align: start; }
+  .pick__body { flex-direction: column; align-items: stretch; gap: 8px; padding: 8px 10px 10px; }
+  .pick .card__name { font-size: 17px; }
+  .pick .btn--sm { min-height: 40px; }
+
+  .section--all { padding-top: 22px; }
+  .section__head--all { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 16px; }
+  .tabs { display: flex; }
+  .tab { min-height: 40px; padding: 0 12px; }
+  .group + .group { margin-top: 22px; }
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
+  .tile .card__name { font-size: 13.5px; line-height: 1.2; }
+  .tile .meta { font-size: 11.5px; gap: 4px; }
+  .tile .meta svg { width: 13px; height: 13px; }
+  .tile__play { display: none; }
+  .tile .badge { font-size: 9px; padding: 1px 5px; top: 4px; left: 4px; }
+  .footer { padding: 16px 12px 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
