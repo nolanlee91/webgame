@@ -92,6 +92,11 @@ check('mục "Chơi tiếp" hiện các game vừa chơi, mới nhất trước'
 check('"Chơi tiếp" là điểm nhấn phụ (thẻ mini thấp hơn nhiều thẻ nổi bật)', await ev('document.querySelector("#recent .mini").offsetHeight*2 < document.querySelector("#featured .card").offsetHeight'));
 await shot('desktop-1440-recent.png');
 await ev('localStorage.clear()');
+await ev(`document.querySelector('a.card[data-id="co-ca-ngua"]').click()`); await sleep(1500);
+check('bấm thẻ Cờ Cá Ngựa → mở thẳng game thật (1 thao tác)', (await ev('location.pathname')).endsWith('/games/co-ca-ngua/') && await ev('!!document.getElementById("menu") && !!document.getElementById("stage")'), await ev('location.href'));
+await ev('document.querySelector("a[href*=homepage]").click()'); await sleep(1500);
+check('từ Cờ Cá Ngựa bấm "← Trang chủ" → về trang chủ', (await ev('location.pathname')).endsWith('/homepage/'), await ev('location.href'));
+await ev('localStorage.clear()');
 check('mỗi thẻ là 1 link duy nhất (1 lần Tab)', await ev('[...document.querySelectorAll("#grid .card")].every(c=>c.tagName==="A"&&c.querySelectorAll("a,button").length===0)'));
 
 // ---------- Tablet ----------

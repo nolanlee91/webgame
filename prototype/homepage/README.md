@@ -26,7 +26,7 @@ python -m http.server 8765
 ```
 Mở http://127.0.0.1:8765/
 
-Muốn bấm "Chơi ngay" ở Đào Vàng để vào game thật (`../games/dao-vang/`) thì chạy server từ thư mục `prototype/`:
+Muốn bấm "Chơi ngay" ở Đào Vàng / Cờ Cá Ngựa để vào game thật (`../games/dao-vang/`, `../games/co-ca-ngua/`) thì chạy server từ thư mục `prototype/`:
 ```
 cd prototype
 python -m http.server 8766
