@@ -1,0 +1,63 @@
+PASS menu hiện khi mở game: 12 màn + chế độ Tự do, chỉ màn 1 mở
+PASS sau menu là bàn kẹo mẫu 64 viên, sprite pixel vẽ bằng code
+PASS ô thông tin màn: 20 bước, mục tiêu 1.200
+PASS bấm màn chưa mở → không chọn được
+PASS Bắt đầu → màn 1, 20 bước, 5 loại kẹo
+PASS HUD: còn 20 bước, màn 1/12, điểm 0
+PASS DOM khớp bàn — ok
+PASS đang chạy hoạt ảnh thì khóa thao tác
+PASS kéo chuột nước vô nghĩa → kẹo đổi rồi trả về, không mất bước — ô 0,1
+PASS kéo chuột nước hợp lệ → nổ, rơi, sinh kẹo mới, trừ 1 bước, có điểm — điểm 480, nổ 24
+PASS HUD cập nhật bước + điểm
+PASS bấm 1 viên → viên đó được chọn (nhảy + khung vàng)
+PASS bấm viên kề bên → đổi chỗ
+PASS bấm viên không kề → chuyển lựa chọn, không đổi
+PASS bấm lại viên đang chọn → bỏ chọn
+PASS phím mũi tên di chuyển ô, Space chọn kẹo — sel 36 cần 36
+PASS mũi tên khi đang chọn → đổi kẹo
+PASS phím H → gợi ý 1 nước hợp lệ, 2 viên rung
+PASS đổi xong thì xóa gợi ý
+PASS đứng yên ~6 giây → tự gợi ý
+PASS Esc → menu, nút "Chơi tiếp"
+PASS Esc lần nữa → quay lại ván
+PASS tải lại trang → menu có "Chơi tiếp"
+PASS Chơi tiếp → đúng bàn, điểm, số bước
+PASS đạt mục tiêu → qua màn, thưởng bước dư 60/bước — thưởng 900
+PASS bảng thắng: sao, tổng điểm, nút Màn tiếp
+PASS lưu: mở khóa màn 2, lưu sao + kỷ lục, xóa ván đang chơi
+PASS SDK nhận gameOver thắng
+PASS Màn tiếp → màn 2 (18 bước, mục tiêu thu kẹo)
+PASS hết bước chưa đạt → thua, báo còn thiếu gì
+PASS Chơi lại → màn 2 từ đầu
+PASS chế độ Tự do: không giới hạn bước, HUD "Đã đi"
+PASS dựng bàn thử kẹo sọc
+PASS xếp 4 viên → tạo kẹo sọc — 2,0,4,0,1,3,0,4,4,1,5,4,2,3,5,2,3,2,0,0,4,2,2,1,5,1,2,1,1,3,1,4,3,2,3,0,5,2,5,2,0,0,1,4,3,3,4,2,5,0,5,5,4,1,0,1,5,5,3,3,1,5h,3,2
+PASS kẹo sao: có vòng nổ
+PASS đổi kẹo sao → xóa hết 1 loại kẹo (≥ 10 viên) — nổ 34
+PASS đổi 2 kẹo sọc → nổ chữ thập (≥ 15 viên) — nổ 22
+PASS kỷ lục Tự do được lưu
+PASS phím M → tắt tiếng (lưu wgp.muted)
+PASS nút Âm thanh → bật lại
+PASS dữ liệu lưu hỏng → vẫn mở được menu, về mặc định
+PASS ván lưu sai cấu trúc → bỏ qua ván, giữ tiến độ
+PASS desktop 1440×900: bàn vừa khung, không chồng HUD/nút, không tràn — ô 80px true,true,true,true,true
+PASS laptop 1280×720: bàn vừa khung, không chồng HUD/nút, không tràn — ô 75px true,true,true,true,true
+PASS tablet ngang 1024×768: bàn vừa khung, không chồng HUD/nút, không tràn — ô 80px true,true,true,true,true
+PASS tablet dọc 768×1024: bàn vừa khung, không chồng HUD/nút, không tràn — ô 71px true,true,true,true,true
+PASS mobile 390×844: bàn vừa khung, không chồng HUD/nút, không tràn — ô 41px true,true,true,true,true
+PASS mobile nhỏ 360×640: bàn vừa khung, không chồng HUD/nút, không tràn — ô 38px true,true,true,true,true
+PASS mobile ngang 844×390: bàn vừa khung, không chồng HUD/nút, không tràn — ô 39px true,true,true,true,true
+PASS mobile: menu + 12 màn vừa màn hình
+PASS mobile: chạm Bắt đầu → màn 1
+PASS mobile: vuốt kẹo sang ô bên cạnh → đổi chỗ
+PASS mobile: vuốt nước vô nghĩa → trả về, không mất bước
+PASS mobile: chạm 2 viên kề nhau → đổi chỗ
+PASS mobile: chạm Gợi ý
+PASS mobile: trang không cuộn, không tràn
+PASS mobile: nút loa trên HUD tắt tiếng
+PASS mobile: qua màn → bảng thắng, nút trong màn hình
+PASS mobile: nút Menu → menu, màn 2 đã mở
+PASS mobile ngang: vuốt vẫn đổi được
+PASS mobile ngang: bàn + nút vừa màn hình
+PASS không có lỗi console
+62/62 PASS
