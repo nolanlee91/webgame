@@ -55,6 +55,7 @@
     </div>
     <div class="row" id="controls" hidden>
       <button class="linkbtn" id="pauseBtn" type="button">Tạm dừng (P)</button>
+      <button class="linkbtn" id="muteBtn" type="button" aria-pressed="false">🔊 Âm thanh: bật (M)</button>
       <button class="linkbtn" id="menuBtn" type="button">Đổi chế độ</button>
     </div>
     <div class="help">
@@ -78,7 +79,7 @@
       reportScore: (s) => { window.__lastScore = s; },
       gameOver: (r) => { window.__lastResult = r; },
       requestAdBreak: () => Promise.resolve(),
-      sound: { muted: true },
+      sound: { muted: localStorage.getItem("wgp.muted") === "1" }, // nút tắt tiếng bên dưới đổi giá trị này
     };
     function start(n) {
       if (inst) inst.destroy();
@@ -90,6 +91,12 @@
     }
     document.getElementById("play1").onclick = () => start(1);
     document.getElementById("play2").onclick = () => start(2);
+    const muteBtn = document.getElementById("muteBtn");
+    const showMute = () => { const m = sdk.sound.muted; muteBtn.textContent = (m ? "🔇 Âm thanh: tắt" : "🔊 Âm thanh: bật") + " (M)"; muteBtn.setAttribute("aria-pressed", String(m)); };
+    const toggleMute = () => { sdk.sound.muted = !sdk.sound.muted; localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0"); showMute(); };
+    muteBtn.onclick = () => { toggleMute(); const c = stage.querySelector("canvas"); c && c.focus(); };
+    window.addEventListener("keydown", (e) => { if (e.code === "KeyM" && !e.repeat && inst) toggleMute(); });
+    showMute();
     pauseBtn.onclick = () => { inst.paused ? inst.resume() : inst.pause(); stage.querySelector("canvas").focus(); };
     document.getElementById("menuBtn").onclick = () => { inst && inst.destroy(); inst = null; menu.hidden = false; controls.hidden = true; };
     if (params.get("players") === "1" || params.get("players") === "2") start(Number(params.get("players")));

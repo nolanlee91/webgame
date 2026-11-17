@@ -72,9 +72,46 @@ function loadArt() {
   return artPromise;
 }
 
+
+// ---------- Âm thanh (SFX .ogg) ----------
+// Tải sẵn bằng Web Audio; trình duyệt chỉ cho phát sau lần chạm/bấm phím đầu tiên (unlock).
+// Tắt tiếng: đọc sdk.sound.muted mỗi lần phát (trang/SDK đổi giá trị này khi người chơi bấm nút tắt tiếng).
+function makeSfx(dir, names, sdk) {
+  const AC = typeof window !== "undefined" && (window.AudioContext || window.webkitAudioContext);
+  const buf = {}, log = [];
+  let ac = null;
+  if (AC) {
+    try { ac = new AC(); } catch { ac = null; }
+    if (ac) for (const n of names) {
+      fetch(new URL(dir + n + ".ogg", import.meta.url)).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then((b) => ac.decodeAudioData(b)).then((d) => { buf[n] = d; })
+        .catch(() => console.warn("Không tải được âm thanh " + n + ".ogg"));
+    }
+  }
+  const muted = () => !!(sdk.sound && sdk.sound.muted);
+  return {
+    unlock() { if (ac && ac.state === "suspended" && !muted()) ac.resume().catch(() => {}); },
+    play(n, vol = 1, delay = 0) {
+      if (muted() || !ac || !buf[n]) return false;
+      if (ac.state === "suspended") ac.resume().catch(() => {});
+      const s = ac.createBufferSource(), gn = ac.createGain();
+      s.buffer = buf[n]; gn.gain.value = vol; s.connect(gn).connect(ac.destination);
+      s.start(ac.currentTime + delay);
+      log.push({ n, t: Math.round(performance.now() + delay * 1000) });
+      if (log.length > 3000) log.shift();
+      return true;
+    },
+    get loaded() { return Object.keys(buf).length; },
+    get state() { return ac ? ac.state : "none"; },
+    log,
+    close() { if (ac) ac.close().catch(() => {}); },
+  };
+}
+
 export function mount(el, ctx = {}) {
   loadArt().catch(() => {});
   const sdk = ctx.sdk || {};
+  const sfx = makeSfx("assets/sfx/", ["tha-moc", "keo-vat", "trung-vang", "trung-kim-cuong", "trung-da", "no-tnt", "het-gio", "qua-man", "thang", "thua"], sdk);
   const players = ctx.localPlayers === 2 ? 2 : 1;
   let g = createGame({ players, seed: ctx.seed });
   let paused = false, destroyed = false, acc = 0, last = performance.now(), raf = 0;
@@ -105,7 +142,7 @@ export function mount(el, ctx = {}) {
   // ---------- Điều khiển ----------
   function advance() {
     // Khi màn kết thúc: một phím/chạm để sang màn hoặc chơi lại.
-    if (g.status === "cleared") { g = nextLevel(g); return true; }
+    if (g.status === "cleared") { g = nextLevel(g); sfx.play("qua-man"); return true; }
     if (g.status === "failed") { g = restart(g); return true; }
     return false;
   }
@@ -115,6 +152,7 @@ export function mount(el, ctx = {}) {
     fire(g, i);
   }
   function onKey(e) {
+    sfx.unlock();
     if (e.repeat) return;
     const k = e.code;
     if (k === "KeyP" || k === "Escape") { setPaused(!paused); e.preventDefault(); return; }
@@ -129,6 +167,7 @@ export function mount(el, ctx = {}) {
     act(who);
   }
   function onPointer(e) {
+    sfx.unlock();
     canvas.focus({ preventScroll: true });
     const r = canvas.getBoundingClientRect();
     const who = players === 2 && e.clientX - r.left > r.width / 2 ? 1 : 0;
@@ -164,6 +203,14 @@ export function mount(el, ctx = {}) {
     draw();
   }
   function handleEvent(ev) {
+    if (ev.type === "fire") sfx.play("tha-moc", 0.9);
+    if (ev.type === "grab") sfx.play(ev.kind === "diamond" ? "trung-kim-cuong" : ev.kind.startsWith("rock") ? "trung-da" : "trung-vang");
+    if (ev.type === "collect") sfx.play("keo-vat", 0.9);
+    if (ev.type === "boom") sfx.play("no-tnt");
+    if (ev.type === "levelEnd") {
+      const late = ev.reason === "time" ? (sfx.play("het-gio"), 0.65) : 0;
+      sfx.play(ev.status === "cleared" ? "thang" : "thua", 1, late);
+    }
     if (ev.type === "collect") {
       pops.push({ x: ev.x, y: ev.y - 40, text: "+" + ev.value, color: ev.kind === "rockS" || ev.kind === "rockL" ? COLORS.soft : COLORS.gold, t: 0 });
       sdk.reportScore && sdk.reportScore(g.score);
@@ -358,7 +405,7 @@ export function mount(el, ctx = {}) {
     pause() { setPaused(true); },
     resume() { setPaused(false); },
     destroy() {
-      destroyed = true; cancelAnimationFrame(raf); ro.disconnect();
+      destroyed = true; cancelAnimationFrame(raf); ro.disconnect(); sfx.close();
       window.removeEventListener("keydown", onKey);
       canvas.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("visibilitychange", onVis);
@@ -369,6 +416,7 @@ export function mount(el, ctx = {}) {
     set state(v) { g = v; },
     get paused() { return paused; },
     get artReady() { return art.ready; },
+    get sfx() { return { loaded: sfx.loaded, state: sfx.state, log: sfx.log.slice() }; },
   };
   return inst;
 }

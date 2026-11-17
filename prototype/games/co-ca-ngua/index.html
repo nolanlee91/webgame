@@ -36,7 +36,7 @@
   <header class="bar">
     <a href="../../homepage/">← Trang chủ</a>
     <h1>Cờ Cá Ngựa</h1>
-    <span class="tag">Bản chơi thử · hình khối tạm</span>
+    <span class="tag">Bản chơi thử · asset pixel art V4</span>
   </header>
   <main>
     <div class="stage" id="stage">
@@ -52,11 +52,12 @@
     </div>
     <div class="row" id="controls" hidden>
       <button class="linkbtn" id="pauseBtn" type="button">Tạm dừng (P)</button>
+      <button class="linkbtn" id="muteBtn" type="button" aria-pressed="false">🔊 Âm thanh: bật (M)</button>
       <button class="linkbtn" id="menuBtn" type="button">Đổi số người</button>
     </div>
     <div class="help">
       <div><b>Gieo xúc xắc:</b> chạm vào bàn / xúc xắc ở giữa, hoặc nhấn Space / Enter.</div>
-      <div><b>Chọn ngựa:</b> chạm vào ngựa có viền vàng nhấp nháy (hoặc chấm vàng nơi nó sẽ tới), hoặc nhấn phím 1–4. Chỉ có 1 nước đi thì tự đi.</div>
+      <div><b>Chọn ngựa:</b> chạm vào ngựa có vòng vàng nhấp nháy dưới chân (hoặc chấm vàng nơi nó sẽ tới), hoặc nhấn phím 1–4. Chỉ có 1 nước đi thì tự đi.</div>
       <div><b>Luật:</b> gieo 6 mới được xuất ngựa và được gieo thêm · không nhảy qua ngựa khác · dừng đúng ô đối thủ thì đá ngựa đó về chuồng · đi hết vòng phải dừng đúng cửa chuồng đích, rồi gieo đúng số để lên từng bậc (1→4) · ai đủ 4 ngựa trong chuồng đích trước thì thắng.</div>
     </div>
   </main>
@@ -71,7 +72,7 @@
       reportScore: () => {},
       gameOver: (r) => { window.__lastResult = r; },
       requestAdBreak: () => Promise.resolve(),
-      sound: { muted: true },
+      sound: { muted: localStorage.getItem("wgp.muted") === "1" }, // nút tắt tiếng bên dưới đổi giá trị này
     };
     function start(n) {
       if (inst) inst.destroy();
@@ -82,6 +83,12 @@
       stage.querySelector("canvas").focus();
     }
     for (const b of document.querySelectorAll("[data-n]")) b.onclick = () => start(Number(b.dataset.n));
+    const muteBtn = document.getElementById("muteBtn");
+    const showMute = () => { const m = sdk.sound.muted; muteBtn.textContent = (m ? "🔇 Âm thanh: tắt" : "🔊 Âm thanh: bật") + " (M)"; muteBtn.setAttribute("aria-pressed", String(m)); };
+    const toggleMute = () => { sdk.sound.muted = !sdk.sound.muted; localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0"); showMute(); };
+    muteBtn.onclick = () => { toggleMute(); const c = stage.querySelector("canvas"); c && c.focus(); };
+    window.addEventListener("keydown", (e) => { if (e.code === "KeyM" && !e.repeat && inst) toggleMute(); });
+    showMute();
     pauseBtn.onclick = () => { inst.paused ? inst.resume() : inst.pause(); stage.querySelector("canvas").focus(); };
     document.getElementById("menuBtn").onclick = () => { inst && inst.destroy(); inst = window.__game = null; menu.hidden = false; controls.hidden = true; };
     if (["2", "3", "4"].includes(params.get("players"))) start(Number(params.get("players")));

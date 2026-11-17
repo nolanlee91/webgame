@@ -76,3 +76,8 @@ Viết bằng JS thuần + Canvas 2D, chưa dùng Phaser vì tech stack chưa đ
 - Chưa có âm thanh, vật phẩm mua thêm (thuốc nổ, thuốc tăng lực), vật thể di chuyển, hay bảng xếp hạng.
 - Màn 1 đã cân bằng bằng mô phỏng, chưa thử với người chơi thật. Từ màn 2 trở đi chưa cân chỉnh.
 - Chỉ mới kiểm tra trên Chrome (desktop và giả lập điện thoại). Chưa thử trên máy thật hay Safari/iOS.
+
+## Âm thanh (`assets/sfx/`, Codex)
+Phát bằng Web Audio theo sự kiện của `logic.js` (luật không đổi): `tha-moc` khi thả móc · `trung-vang` / `trung-kim-cuong` / `trung-da` khi móc trúng
+vàng-túi / kim cương / đá · `keo-vat` khi kéo vật lên tới nơi (cộng điểm) · `no-tnt` khi trúng TNT · hết giờ phát `het-gio` rồi `thang` (đủ mục tiêu)
+hoặc `thua` · `qua-man` khi bấm sang màn mới. Tắt tiếng: nút "Âm thanh" hoặc phím M (dùng chung lựa chọn với Cá Ngựa).

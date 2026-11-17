@@ -34,7 +34,7 @@ const nav = async u => { await send('Page.navigate', { url: u }); await sleep(15
 const view = (w, h, m, dpr) => send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: dpr, mobile: m });
 const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); writeFileSync(OUT + '/' + name, Buffer.from(r.result.data, 'base64')); };
 const R = []; const check = (n, c, d = '') => { const s = (c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''); R.push(s); console.log(s); };
-const KEYS = { Space: [' ', 32], KeyP: ['p', 80], Digit1: ['1', 49], Digit2: ['2', 50], Digit3: ['3', 51], Digit4: ['4', 52] };
+const KEYS = { Space: [' ', 32], KeyP: ['p', 80], KeyM: ['m', 77], Digit1: ['1', 49], Digit2: ['2', 50], Digit3: ['3', 51], Digit4: ['4', 52] };
 const key = async code => { const [k, vk] = KEYS[code]; for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, code, key: k, windowsVirtualKeyCode: vk, text: type === 'keyDown' && k.length === 1 ? k : undefined }); };
 const tap = async (x, y) => { await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] }); await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); };
 const click = async (x, y) => { for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); };
@@ -85,6 +85,23 @@ check('trang Cờ Cá Ngựa mở được, có lựa chọn 2/3/4 người', aw
 await shot('cn-menu.png');
 await click(...await btn('[data-n="4"]')); await sleep(500);
 check('bấm "4 người" → vào bàn 4 màu, mỗi màu 4 ngựa trong chuồng', await ev('__game && __game.state.seats.length===4 && Object.values(__game.state.horses).every(a=>a.length===4&&a.every(p=>p===-1))'));
+await shot('cn-4-nguoi-bat-dau.png');
+
+// Asset thật: đã tải xong, và toạ độ ô/chuồng khớp màu trên ảnh board.webp
+{ const end = Date.now() + 4000; while (Date.now() < end && !(await ev('__game.artReady'))) await sleep(50); }
+check('asset thật (board/quan-co/xuc-xac .webp) tải xong, đang vẽ bằng ảnh', await ev('__game.artReady'));
+const geo = await ev(`import("/games/co-ca-ngua/game.js").then(M=>new Promise(ok=>{const i=new Image();i.onload=()=>{
+  const cv=document.createElement("canvas");cv.width=i.width;cv.height=i.height;const x=cv.getContext("2d");x.drawImage(i,0,0);
+  const px=(p)=>{const d=x.getImageData(Math.round(p.x)-2,Math.round(p.y)-2,5,5).data;let r=0,g=0,b=0;for(let k=0;k<d.length;k+=4){r+=d[k];g+=d[k+1];b+=d[k+2]}const n=d.length/4;return [r/n,g/n,b/n]};
+  const hue=([r,g,b])=>{const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx-mn<40||(b>=r&&b>=g&&r>b*0.55))return "grey";if(r>=g&&r>=b)return g>r*0.62?"yellow":"red";if(g>=r&&g>=b)return r>g*0.75?"yellow":"green";return "blue"};
+  const C=["red","green","yellow","blue"];let trackBad=[],stableBad=[],slotBad=[];
+  M.PATH.forEach((c,k)=>{const h=hue(px(M.cellImg(c)));if(h!=="grey"&&!(k%11===0))trackBad.push(k+":"+h)});
+  M.STABLE.forEach((a,s)=>a.forEach((c,k)=>{const h=hue(px(M.cellImg(c)));if(h!==C[s])stableBad.push(C[s]+k+":"+h)}));
+  for(let s=0;s<4;s++){const [bx,by,bw,bh]=M.ART.corner[M.ART.seatCorner[s]];const h=hue(px({x:bx+bw*0.5,y:by+8}));if(h!==C[s])slotBad.push(C[s]+":"+h)}
+  ok({trackBad,stableBad,slotBad})};i.src="/games/co-ca-ngua/assets/board.webp"}))`);
+check('44 ô đường đi rơi đúng ô đường trên ảnh, 16 ô chuồng đích đúng màu nhánh, chuồng xuất phát đặt theo góc cùng màu trên ảnh', !geo.trackBad.length && !geo.stableBad.length && !geo.slotBad.length, JSON.stringify(geo));
+const quad = await ev('(()=>{const c=document.querySelector("canvas").getBoundingClientRect();const f=(s)=>{const p=__game.screenOf(s,0);return (p.x>c.left+c.width/2?"phải":"trái")+"-"+(p.y>c.top+c.height/2?"dưới":"trên")};return [0,1,2,3].map(f).join()})()');
+check('ngựa trong chuồng nằm đúng góc cùng màu: Đỏ trên-trái, Xanh lá dưới-phải, Vàng dưới-trái, Xanh dương trên-phải', quad === 'trái-trên,phải-dưới,trái-dưới,phải-trên', quad);
 await shot('cn-4-nguoi-bat-dau.png');
 
 // Gieo bằng phím Space
@@ -162,6 +179,25 @@ await shot('cn-2-nguoi-giua-van.png');
 const rest = await play(600);
 check('ván 2 người chơi bằng phím + chuột thật tới khi có người thắng', rest.phase === 'over' && rest.winner != null, `${rest.rolls + full.rolls} lần gieo, thắng: ghế ${rest.winner}`);
 await shot('cn-2-nguoi-ket-thuc.png');
+
+// ---------- Âm thanh: phát đúng sự kiện trong ván vừa chơi ----------
+const sx = await ev('__game.sfx');
+const cnt = n => sx.log.filter(e => e.n === n).length;
+check('5 file SFX Cá Ngựa tải + giải mã được, âm thanh đang chạy', sx.loaded === 5 && sx.state === 'running', `${sx.loaded}/5, ${sx.state}`);
+check('mỗi lần gieo phát "do-xuc-xac" đúng 1 lần', cnt('do-xuc-xac') === rest.rolls, `${cnt('do-xuc-xac')} tiếng / ${rest.rolls} lần gieo (bộ đếm của ván)`);
+check('ngựa nhảy từng ô phát "buoc-nhay", đá quân phát "da-quan", vào chuồng đích phát "ve-chuong", thắng phát "thang" 1 lần', cnt('buoc-nhay') > 50 && cnt('da-quan') >= 1 && cnt('ve-chuong') >= 4 && cnt('thang') === 1,
+  `bước ${cnt('buoc-nhay')}, đá ${cnt('da-quan')}, về chuồng ${cnt('ve-chuong')}, thắng ${cnt('thang')}`);
+const lastWin = sx.log.filter(e => e.n === 'thang').pop(), lastHome = sx.log.filter(e => e.n === 've-chuong').pop();
+check('tiếng "thang" phát sau tiếng ngựa cuối về chuồng', lastWin && lastHome && lastWin.t >= lastHome.t, lastWin && lastHome ? `+${lastWin.t - lastHome.t}ms` : '');
+// Tắt tiếng
+await ev('document.querySelector("#muteBtn").scrollIntoView({block:"center"})'); await sleep(100);
+await click(...await btn('#muteBtn')); await sleep(100);
+const nBefore = (await ev('__game.sfx')).log.length;
+await key('Space'); await sleep(200); await key('Space'); await sleep(900);
+const muteTxt = await ev('document.querySelector("#muteBtn").textContent');
+check('bấm "Âm thanh" → tắt tiếng: gieo không phát tiếng nào, nút đổi chữ', (await ev('__game.sfx')).log.length === nBefore && /tắt/.test(muteTxt) && (await ev('localStorage.getItem("wgp.muted")')) === '1', muteTxt);
+await key('KeyM'); await sleep(100);
+check('phím M → bật lại tiếng', (await ev('document.querySelector("#muteBtn").textContent')).includes('bật') && (await ev('localStorage.getItem("wgp.muted")')) === '0');
 
 // ---------- 4 người, quay video 45 giây ----------
 await nav(URL0 + '?players=4&seed=5');

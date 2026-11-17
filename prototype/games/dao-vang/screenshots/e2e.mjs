@@ -34,10 +34,11 @@ const nav = async u => { await send('Page.navigate', { url: u }); await sleep(18
 const view = (w, h, m, dpr) => send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: dpr, mobile: m });
 const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); writeFileSync(OUT + '/' + name, Buffer.from(r.result.data, 'base64')); };
 const R = []; const check = (n, c, d = '') => { const s = (c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''); R.push(s); console.log(s); };
-const KEYS = { Space: [' ', 32], ArrowDown: ['ArrowDown', 40], KeyS: ['s', 83], KeyP: ['p', 80] };
+const KEYS = { Space: [' ', 32], ArrowDown: ['ArrowDown', 40], KeyS: ['s', 83], KeyP: ['p', 80], KeyM: ['m', 77] };
 const key = async code => { const [k, vk] = KEYS[code]; for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, code, key: k, windowsVirtualKeyCode: vk, text: type === 'keyDown' && k.length === 1 ? k : undefined }); };
 const tap = async (x, y) => { await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] }); await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); };
 const click = async (x, y) => { for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); };
+const btn = sel => ev(`(()=>{const r=document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()`);
 const S = () => ev('(()=>{const g=__game.state;return {status:g.status,level:g.level,score:g.score,target:g.target,time:g.time,tick:g.tick,hooks:g.hooks.map(h=>({x:h.x,y:h.y,a:h.angle,s:h.state,carry:h.carry&&h.carry.kind,earned:h.earned})),objs:g.objects.filter(o=>!o.taken).map(o=>({k:o.kind,x:o.x,y:o.y,r:o.r}))}})()');
 const GOOD = new Set(['goldL', 'goldM', 'goldS', 'diamond', 'bag']);
 // "Người chơi máy": chỉ bấm phím thật khi móc đang chỉ đúng vào vàng/kim cương (vật đầu tiên trên đường thả).
@@ -123,6 +124,22 @@ await key('Space'); await sleep(300); s = await S();
 check('Space → sang màn 2, giữ điểm, mục tiêu cao hơn, đồng hồ reset', s.level === 2 && s.score === keep && s.status === 'playing' && s.target > 650 && s.time > 59, `màn ${s.level}, mục tiêu ${s.target}`);
 check('màn 2 có thêm thùng TNT', s.objs.some(o => o.k === 'tnt'));
 
+// ---------- Âm thanh khi trúng từng loại vật (đặt 1 hàng vật cùng loại ngay dưới móc rồi thả bằng phím thật) ----------
+const sfxLog = () => ev('__game.sfx.log.map(e=>e.n)');
+async function hitRow(kind) {
+  { const end = Date.now() + 8000; while (Date.now() < end && (await S()).hooks[0].s !== 'swing') await sleep(50); }
+  await ev(`import("/games/dao-vang/logic.js").then(L=>{const g=__game.state,h=g.hooks[0],y=h.y+150;g.objects=[];for(let x=20,i=900;x<L.W;x+=46,i++)g.objects.push({id:i,kind:${JSON.stringify(kind)},x,y,r:24});g.objects.push({id:899,kind:"goldS",x:30,y:L.H-30,r:16});g.time=60})`);
+  const n0 = (await sfxLog()).length;
+  await key('Space');
+  const end = Date.now() + 9000;
+  while (Date.now() < end) { await sleep(60); const st = await S(); if (st.hooks[0].s === 'swing' && (await sfxLog()).length > n0 + 1) break; }
+  return (await sfxLog()).slice(n0);
+}
+const hv = await hitRow('goldS'), hd = await hitRow('diamond'), hrk = await hitRow('rockS'), ht = await hitRow('tnt');
+check('âm thanh: thả móc "tha-moc" → trúng vàng "trung-vang" → kéo lên "keo-vat"', hv.join() === 'tha-moc,trung-vang,keo-vat', hv.join());
+check('âm thanh: trúng kim cương "trung-kim-cuong", trúng đá "trung-da"', hd.includes('trung-kim-cuong') && hrk.includes('trung-da') && hd.includes('keo-vat') && hrk.includes('keo-vat'), hd.join() + ' | ' + hrk.join());
+check('âm thanh: trúng TNT phát "no-tnt" (không có tiếng kéo vật)', ht.join() === 'tha-moc,no-tnt', ht.join());
+
 // ---------- Hết giờ: thua ----------
 await ev('(()=>{const g=__game.state;g.score=Math.min(g.score,g.target-100);g.time=0.4})()'); await sleep(900);
 s = await S();
@@ -130,6 +147,20 @@ check('hết giờ + thiếu điểm → "Hết giờ" (thua)', s.status === 'fa
 await shot('dv-het-gio.png');
 await key('Space'); await sleep(300); s = await S();
 check('Space → chơi lại từ màn 1, điểm 0', s.level === 1 && s.score === 0 && s.status === 'playing');
+{
+  const all = (await sfxLog()).join();
+  const sx = await ev('({loaded:__game.sfx.loaded,state:__game.sfx.state})');
+  check('10 file SFX Đào Vàng tải + giải mã được, âm thanh đang chạy', sx.loaded === 10 && sx.state === 'running', `${sx.loaded}/10, ${sx.state}`);
+  check('âm thanh: hết giờ đủ điểm → "het-gio" rồi "thang"; Space sang màn → "qua-man"; hết giờ thiếu điểm → "het-gio" rồi "thua"', /het-gio,thang,qua-man/.test(all) && /het-gio,thua/.test(all), all.split(',').filter(n => /het|thang|thua|qua/.test(n)).join(','));
+  await ev('document.querySelector("#muteBtn").scrollIntoView({block:"center"})'); await sleep(100);
+  await click(...await btn('#muteBtn')); await sleep(150);
+  const n0 = (await sfxLog()).length;
+  await key('Space'); await sleep(1500);
+  const txt = await ev('document.querySelector("#muteBtn").textContent');
+  check('nút "Âm thanh" → tắt tiếng: thả móc không phát tiếng, nhớ lựa chọn', (await sfxLog()).length === n0 && /tắt/.test(txt) && (await ev('localStorage.getItem("wgp.muted")')) === '1', txt);
+  await key('KeyM'); await sleep(100);
+  check('phím M → bật lại tiếng', /bật/.test(await ev('document.querySelector("#muteBtn").textContent')));
+}
 
 // ---------- 2 người cùng máy ----------
 await nav(BASE + '?players=2&seed=5'); await sleep(300);
