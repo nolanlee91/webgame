@@ -1,0 +1,1 @@
+{"name":"game-2048-prototype","private":true,"type":"module","scripts":{"test":"node --test test/logic.test.mjs"}}

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>2048 — Lụm Kèo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%221%22 y=%221%22 width=%226%22 height=%226%22 fill=%22%23e9dcc0%22/%3E%3Crect x=%229%22 y=%221%22 width=%226%22 height=%226%22 fill=%22%23e8954a%22/%3E%3Crect x=%221%22 y=%229%22 width=%226%22 height=%226%22 fill=%22%23e0483d%22/%3E%3Crect x=%229%22 y=%229%22 width=%226%22 height=%226%22 fill=%22%23ffc94a%22/%3E%3C/svg%3E" />
+  <style>
+    /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Xếp Gạch / Nối Thú / Đào Vàng / Cờ Cá Ngựa: viền 3px (box-shadow),
+       vát 2px, bóng cứng lệch, không bo tròn, không mờ. Vàng CHỈ cho nút chính (Bắt đầu, Chơi tiếp) và ô mục tiêu 2048. */
+    :root { --bg: #11171c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
+      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
+      --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #2f8f7f; --teal-l: #6fd0bb; --teal-d: #0f3a33; --red: #e0483d;
+      --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
+      --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
+      --drop: 4px 7px 0 0 var(--shadow), 7px 4px 0 0 var(--shadow); }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+      display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #0c1014; box-shadow: inset 0 -3px 0 #000; }
+    .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
+    .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
+    .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+    .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
+
+    .wrap { flex: 1; min-height: 0; width: 100%; max-width: 1180px; margin: 0 auto; padding: 14px 16px 16px;
+      display: grid; grid-template-columns: 250px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-areas: "hud stage" "acts stage" "keys stage"; gap: 14px 22px; }
+
+    /* TẦNG 2 — tiến độ */
+    .hud { grid-area: hud; display: flex; gap: 14px; min-width: 0; }
+    .stats { flex: 1; min-width: 0; display: grid; gap: 10px; padding: 12px 14px; margin: 3px; background: var(--panel); box-shadow: var(--bevel), var(--border); }
+    .stat { display: grid; line-height: 1.1; position: relative; }
+    .stat small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+    .stat b { font: 800 20px "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; }
+    .stat.main b { font-size: 32px; text-shadow: 2px 2px 0 #000; }
+    .stat.best b { font-size: 17px; color: var(--soft); }
+    .stat .top { color: var(--teal-l); }
+    .gain { position: absolute; left: 0; top: 10px; font: 800 18px "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: rise .7s steps(7) forwards; }
+    @keyframes rise { from { transform: translate(60px, 0); opacity: 1; } to { transform: translate(60px, -26px); opacity: 0; } }
+    .goal { display: grid; gap: 4px; }
+    .px-bar { height: 12px; background: #0d0b09; box-shadow: 0 0 0 3px var(--line); position: relative; overflow: hidden; margin: 3px; }
+    .px-bar i { position: absolute; inset: 0 auto 0 0; background: var(--teal); box-shadow: inset 0 3px 0 var(--teal-l), inset 0 -3px 0 var(--teal-d); transition: width .2s steps(4); }
+    .px-bar.done i { background: var(--gold); box-shadow: inset 0 3px 0 var(--gold-l), inset 0 -3px 0 #b07a12; }
+    .hsep { height: 3px; background: var(--line); }
+    .mini { display: none; }
+
+    /* TẦNG 3 — tiện ích */
+    .acts { grid-area: acts; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 3px 7px 7px 3px; }
+    .btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 44px; padding: 8px 14px; font: 800 14px/1 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); position: relative; user-select: none; touch-action: manipulation; text-align: center; }
+    .btn:hover { background: #30281f; }
+    .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
+    .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
+    .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
+    .btn--icon { padding: 8px 12px; }
+    .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
+    .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
+    .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
+    .btn--teal { color: #e9fff9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
+    .btn--teal:hover { background: linear-gradient(#9fe6d6 0 3px, #38a291 3px); }
+    .btn--teal[disabled] { color: var(--dim); background: #1a1612; }
+    .btn .n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 4px; font-size: 12px; background: var(--teal-d); color: var(--teal-l); box-shadow: 0 0 0 2px var(--line); }
+    .btn[disabled] .n { background: #26211b; color: var(--dim); }
+    .acts .wide { grid-column: span 2; }
+    .acts .btn { white-space: nowrap; padding: 8px 10px; }
+    .keys { grid-area: keys; align-self: start; padding: 10px 12px; margin: 3px; background: var(--panel); box-shadow: var(--border); font-size: 12px; color: var(--soft); display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; }
+    .keys kbd { font: 800 11px "Be Vietnam Pro"; color: var(--ink); background: var(--panel2); padding: 1px 6px; box-shadow: 0 0 0 2px var(--line), inset 0 -2px 0 rgba(0,0,0,.4); white-space: nowrap; justify-self: start; }
+
+    /* TẦNG 1 — bàn chơi */
+    .stage { grid-area: stage; position: relative; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; touch-action: none; outline: none; }
+    .frame { position: relative; padding: var(--fr, 12px); background: #5a4632; box-shadow: inset 0 3px 0 #7d6346, inset 0 -3px 0 #3a2b1d, 0 0 0 3px var(--line), var(--drop); }
+    .board { position: relative; width: var(--bw); height: var(--bw); background: #15110d;
+      background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 2px, transparent 2px 4px); box-shadow: 0 0 0 3px var(--line); }
+    .slot { position: absolute; width: var(--cs); height: var(--cs); background: #221c16; box-shadow: inset 0 3px 0 rgba(0,0,0,.45), inset 0 -2px 0 rgba(255,255,255,.04); }
+    .tile { position: absolute; left: 0; top: 0; width: var(--cs); height: var(--cs); z-index: 1;
+      transform: translate(calc(var(--x) * var(--st) + var(--gp)), calc(var(--y) * var(--st) + var(--gp))); transition: transform 100ms linear; }
+    .tile.merged { z-index: 2; }
+    .tile.dying { z-index: 0; }
+    .board.snap .tile { transition: none; }
+    .face { position: absolute; inset: 0; display: grid; place-items: center; font: 800 var(--fs) / 1 "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+      color: var(--tc, #2c1b05); background: var(--tb, #e9dcc0); --b: var(--td, #6d5a3e);
+      box-shadow: inset calc(var(--px) * 1) calc(var(--px) * 1) 0 var(--th, rgba(255,255,255,.35)), inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--ts, rgba(0,0,0,.22)), var(--border); }
+    .face span { position: relative; text-shadow: var(--tsh, none); }
+    /* Hạt pixel lấp lánh cho ô lớn */
+    .face::before, .face::after { content: ""; position: absolute; width: var(--px); height: var(--px); background: rgba(255,255,255,.75); opacity: 0; }
+    .face::before { left: calc(var(--px) * 2.2); top: calc(var(--px) * 2.2); box-shadow: var(--px) 0 0 rgba(255,255,255,.75), 0 var(--px) 0 rgba(255,255,255,.75); }
+    .face::after { right: calc(var(--px) * 2.2); bottom: calc(var(--px) * 2.2); background: rgba(0,0,0,.25); }
+    .tile[data-t="3"] .face::before, .tile[data-t="3"] .face::after, .tile[data-t="4"] .face::before, .tile[data-t="4"] .face::after { opacity: 1; }
+    .tile[data-t="4"] .face { animation: glint 1.6s steps(1) infinite; }
+    @keyframes glint { 0%, 70% { filter: none; } 80% { filter: brightness(1.18); } 90% { filter: brightness(1.06); } }
+    .tile.spawn .face { animation: spawn 150ms steps(3) both; }
+    .tile.pop .face { animation: pop 180ms steps(3) both; }
+    @keyframes spawn { from { transform: scale(.2); } to { transform: scale(1); } }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.16); } 100% { transform: scale(1); } }
+    .part { position: absolute; width: var(--px); height: var(--px); z-index: 3; pointer-events: none; animation: burst 420ms steps(6) forwards; }
+    @keyframes burst { to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+    .float { position: absolute; z-index: 4; pointer-events: none; font: 800 calc(var(--cs) * .26) "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; animation: fup .7s steps(7) forwards; white-space: nowrap; }
+    @keyframes fup { to { transform: translateY(calc(var(--cs) * -.5)); opacity: 0; } }
+    .board.shake { animation: shake 180ms steps(4); }
+    @keyframes shake { 25% { transform: translate(-3px, 0); } 50% { transform: translate(3px, 0); } 75% { transform: translate(-2px, 0); } }
+    .board.dead .tile .face { filter: grayscale(.85) brightness(.6); transition: filter .6s steps(4); }
+    .hint { text-align: center; font-size: 12px; line-height: 16px; color: var(--dim); display: none; }
+
+    .ov { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(10, 8, 7, .72); z-index: 10; overflow: auto; }
+    .card { width: min(540px, 100%); padding: 22px 24px 26px; background: var(--panel); box-shadow: var(--bevel), var(--border), var(--drop); text-align: center; margin: 3px 7px 7px 3px; }
+    .card h2 { margin: 0 0 6px; font: 800 30px/1.15 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase; text-shadow: 3px 3px 0 #000; }
+    .card h2.gold { color: var(--gold); }
+    .card .sub { margin: 0; color: var(--soft); }
+    .how { margin: 16px 0 4px; padding: 12px 14px; text-align: left; background: var(--panel2); box-shadow: var(--border); font-size: 14px; color: var(--soft); }
+    .how b { color: var(--ink); }
+    .how ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; text-align: left; }
+    .mode { all: unset; box-sizing: border-box; cursor: pointer; padding: 10px 12px; background: var(--panel2); --b: #4a4036; box-shadow: var(--bevel), var(--border); display: grid; gap: 2px; margin: 3px; }
+    .mode b { font-weight: 800; font-size: 20px; letter-spacing: .03em; }
+    .mode em { font-style: normal; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink); }
+    .mode small { color: var(--soft); font-size: 12px; line-height: 1.35; }
+    .mode.on { --b: var(--teal-l); background: #1f2b27; }
+    .mode:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
+    .actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .result { display: grid; grid-template-columns: 1fr auto; gap: 4px 18px; max-width: 320px; margin: 14px auto 0; text-align: left; color: var(--soft); }
+    .result b { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+    .result .total { color: var(--ink); font-weight: 800; padding-top: 6px; border-top: 3px solid var(--line); }
+    .result .total + b { padding-top: 6px; border-top: 3px solid var(--line); font-size: 18px; }
+    .record { display: inline-block; margin-top: 12px; padding: 3px 10px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      background: var(--teal-d); color: var(--teal-l); box-shadow: 0 0 0 3px var(--line); }
+    .best { margin-top: 12px; font-size: 13px; color: var(--soft); }
+    .bigtile { width: 84px; height: 84px; margin: 6px auto 12px; position: relative; --cs: 84px; --px: 4px; --fs: 26px; }
+    .bigtile .tile { transform: none; position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    /* Màn hình thấp (laptop 720p): bỏ bảng phím tắt cho cột trái không tràn */
+    @media (max-height: 780px) { .keys { display: none; } .stats { gap: 8px; } }
+    /* Điện thoại cầm dọc / khung hẹp: HUD 1 hàng trên cùng, bàn giữa, nút dưới */
+    @media (max-width: 760px), (max-aspect-ratio: 1/1) {
+      .tag { display: none; }
+      .wrap { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "hud" "stage" "acts"; padding: 8px 10px 12px; gap: 10px; max-width: 640px; }
+      .hud { flex-direction: row; align-items: stretch; gap: 10px; }
+      .stats { grid-auto-flow: column; grid-template-columns: none; align-items: center; gap: 8px; padding: 6px 10px; }
+      .stat.main b { font-size: 22px; } .stat b, .stat.best b { font-size: 17px; color: var(--ink); }
+      .hsep, .goal .px-bar, .stat.moves, .stat.time, .gl, .gain { display: none; }
+      .mini { display: flex; flex-direction: column; gap: 8px; margin: 3px 7px 3px 3px; }
+      .mini .btn { min-height: 0; flex: 1; padding: 4px 10px; }
+      .acts { grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+      .acts .wide { grid-column: auto; }
+      .acts .mute { display: none; }
+      .acts .btn { min-height: 50px; padding: 6px 8px; font-size: 13px; }
+      .keys { display: none; }
+      .hint { display: block; }
+      .card { padding: 18px 16px 22px; display: flex; flex-direction: column; } .card h2 { font-size: 24px; }
+      .card .how { order: 9; margin-top: 16px; font-size: 13px; }
+      .modes { gap: 8px; } .mode { padding: 8px 8px; } .mode b { font-size: 18px; } .mode small { font-size: 11px; }
+      .actions .btn { flex: 1 1 200px; }
+    }
+    @media (max-width: 380px) { .stat small { font-size: 9px; letter-spacing: .04em; } .stat b, .stat.best b, .stat.main b { font-size: 15px; } .modes { grid-template-columns: 1fr; } }
+    /* Điện thoại xoay ngang: HUD + nút bên trái, bàn bên phải */
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+      .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .wrap { padding: 6px 12px; gap: 8px 16px; grid-template-columns: 230px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hud stage" "acts stage" ". stage"; }
+      .stats { padding: 6px 10px; gap: 4px; grid-template-columns: 1fr 1fr; } .stat.main b { font-size: 20px; } .stat b { font-size: 15px; } .hsep, .stat.time, .goal .px-bar { display: none; }
+      .acts { gap: 10px; } .acts .btn { min-height: 38px; font-size: 12px; }
+      .keys { display: none; }
+    }
+  </style>
+</head>
+<body class="is-menu">
+  <header class="bar">
+    <a href="../../homepage/">← Trang chủ</a>
+    <h1>2048</h1>
+    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+  </header>
+  <div class="wrap">
+    <aside class="hud" aria-label="Tiến độ">
+      <div class="stats">
+        <div class="stat main" id="scoreBox"><small>Điểm</small><b id="hScore">0</b></div>
+        <div class="stat best"><small>Kỷ lục</small><b id="hBest">0</b></div>
+        <div class="hsep"></div>
+        <div class="stat goal"><small>Ô lớn nhất<span class="gl" id="hTopL"> · mục tiêu 2048</span></small><b class="top" id="hTop">2</b><div class="px-bar" id="hBar"><i id="hFill" style="width:0%"></i></div></div>
+        <div class="stat moves"><small>Nước đi</small><b id="hMoves">0</b></div>
+        <div class="stat time"><small>Thời gian</small><b id="hTime">0:00</b></div>
+      </div>
+      <div class="mini">
+        <button class="btn btn--icon" id="muteBtn2" type="button" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img class="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /></button>
+      </div>
+    </aside>
+
+    <div class="acts" aria-label="Thao tác">
+      <button class="btn btn--teal wide" id="undoBtn" type="button" aria-label="Hoàn tác (Z)" title="Hoàn tác (Z)">↶ Hoàn tác <span class="n" id="undoN">3</span></button>
+      <button class="btn" id="newBtn" type="button" title="Ván mới (N)">⟳ Ván mới</button>
+      <button class="btn" id="menuBtn" type="button" title="Về menu (Esc)">☰ Menu</button>
+      <button class="btn btn--icon mute wide" id="muteBtn" type="button" aria-pressed="false" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img class="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /> <span id="muteTx">Âm thanh: bật</span></button>
+    </div>
+
+    <div class="keys" aria-label="Phím tắt">
+      <kbd>← ↑ → ↓</kbd><span>Trượt các ô</span>
+      <kbd>W A S D</kbd><span>Trượt các ô</span>
+      <kbd>Kéo chuột</kbd><span>Vuốt trên bàn</span>
+      <kbd>Z / U</kbd><span>Hoàn tác</span>
+      <kbd>N</kbd><span>Ván mới</span>
+      <kbd>Esc</kbd><span>Về menu</span>
+      <kbd>M</kbd><span>Tắt/bật tiếng</span>
+    </div>
+
+    <div class="stage" id="stage" tabindex="0" aria-label="Bàn chơi 2048. Dùng phím mũi tên hoặc vuốt để trượt các ô.">
+      <div class="frame" id="frame"><div class="board" id="board" role="grid" aria-live="polite"></div></div>
+      <div class="hint" id="hint">Vuốt trên bàn để trượt các ô</div>
+
+      <div class="ov" id="ovMenu">
+        <div class="card">
+          <h2>2048</h2>
+          <p class="sub">Vuốt cho các ô số trượt và gộp đôi. Ghép tới ô <b style="color:var(--gold)">2048</b> để thắng!</p>
+          <div class="how">
+            <ul>
+              <li>Mỗi lần trượt, <b>tất cả các ô</b> dồn về một phía. Hai ô <b>cùng số</b> chạm nhau sẽ gộp thành một (2+2=4, 4+4=8…).</li>
+              <li>Mỗi lần gộp được cộng điểm bằng số của ô mới. Sau mỗi lượt, một ô 2 hoặc 4 xuất hiện ở chỗ trống.</li>
+              <li>Bàn kín mà không còn cặp nào gộp được là <b>hết nước đi</b>. Mỗi ván có <b>3 lần hoàn tác</b>.</li>
+              <li>Máy tính: <b>phím mũi tên / WASD</b> hoặc kéo chuột. Điện thoại: <b>vuốt trên bàn</b>. Ván đang chơi được tự lưu.</li>
+            </ul>
+          </div>
+          <div class="modes" role="radiogroup" aria-label="Cỡ bàn" id="modes">
+            <button class="mode" type="button" role="radio" data-size="3"><b>3×3</b><em>Thử thách</em><small>Mục tiêu 256</small></button>
+            <button class="mode on" type="button" role="radio" data-size="4"><b>4×4</b><em>Cổ điển</em><small>Mục tiêu 2048</small></button>
+            <button class="mode" type="button" role="radio" data-size="5"><b>5×5</b><em>Rộng rãi</em><small>Mục tiêu 4096</small></button>
+          </div>
+          <div class="actions">
+            <button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button>
+            <button class="btn btn--big" id="freshBtn" type="button" hidden>Ván mới</button>
+          </div>
+          <div class="best" id="mBest"></div>
+        </div>
+      </div>
+
+      <div class="ov" id="ovWin" hidden>
+        <div class="card">
+          <div class="bigtile" id="wTile"></div>
+          <h2 class="gold" id="wTitle">Đạt 2048!</h2>
+          <p class="sub" id="wSub">Bạn đã ghép tới ô mục tiêu.</p>
+          <div class="result" id="wResult"></div>
+          <div id="wRecord"></div>
+          <div class="actions">
+            <button class="btn btn--big btn--primary" id="keepBtn" type="button">▶ Chơi tiếp</button>
+            <button class="btn btn--big" id="winNewBtn" type="button">Ván mới</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov" id="ovEnd" hidden>
+        <div class="card">
+          <h2 id="eTitle">Hết nước đi!</h2>
+          <p class="sub" id="eSub">Bàn đã kín, không còn cặp nào gộp được.</p>
+          <div class="result" id="eResult"></div>
+          <div id="eRecord"></div>
+          <div class="actions">
+            <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
+            <button class="btn btn--big btn--teal" id="endUndoBtn" type="button">↶ Hoàn tác <span class="n" id="endUndoN">3</span></button>
+            <button class="btn btn--big" id="menuBtnE" type="button">Về menu</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov" id="ovConfirm" hidden>
+        <div class="card">
+          <h2>Ván mới?</h2>
+          <p class="sub">Ván đang chơi sẽ bị bỏ. Điểm cao nhất vẫn được giữ.</p>
+          <div class="actions">
+            <button class="btn btn--big btn--primary" id="yesNewBtn" type="button">⟳ Ván mới</button>
+            <button class="btn btn--big" id="noNewBtn" type="button">Chơi tiếp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { mount } from "./game.js";
+    const params = new URLSearchParams(location.search);
+    // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
+    const sdk = {
+      reportScore: (s) => { window.__lastScore = s; },
+      gameOver: (r) => { window.__lastResult = r; },
+      requestAdBreak: () => Promise.resolve(),
+      sound: { muted: localStorage.getItem("wgp.muted") === "1" },
+    };
+    window.__game = mount(document.body, { sdk, seed: params.has("seed") ? Number(params.get("seed")) : undefined });
+  </script>
+</body>
+</html>

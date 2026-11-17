@@ -1,0 +1,58 @@
+PASS menu hiện khi mở game
+PASS Bắt đầu → ván 4×4, 2 ô đầu — [0,0,0,0,0,0,0,0,2,0,2,0,0,0,0,0]
+PASS DOM khớp bàn lúc đầu — ok
+PASS 40 lần bấm mũi tên → ô trượt/gộp, DOM luôn khớp bàn — nước=37 điểm=212
+PASS điểm ghi trên HUD đúng
+PASS phím WASD cũng trượt — 37→41
+PASS [2,2,4,4] ← → [4,8], +12 điểm — [4,8,2,0]
+PASS DOM sau gộp đúng — ok
+PASS nước không làm gì thay đổi → không tính, không sinh ô
+PASS ↓ đi được
+PASS Z hoàn tác → bàn trở lại, còn 2 lần
+PASS số lần hoàn tác hiện trên nút
+PASS hết bước để lùi → không trừ lượt
+PASS nút Hoàn tác (chuột) hoạt động
+PASS kéo chuột xuống trên bàn → trượt xuống
+PASS ghép 1024+1024 → 2048, hiện màn Đạt 2048! — won Đạt 2048!
+PASS báo SDK gameOver result=goal
+PASS Chơi tiếp → tiếp tục ván, không hỏi lại
+PASS bàn kín không còn cặp → hết nước đi
+PASS hiện bảng Hết nước đi / Kết thúc + kỷ lục
+PASS phím mũi tên bị chặn khi đã thua
+PASS Hoàn tác từ bảng thua → chơi lại được
+PASS hết lượt hoàn tác → nút mờ
+PASS mở lại trang → menu có "Chơi tiếp" kèm điểm
+PASS Chơi tiếp → đúng ván đã lưu
+PASS N giữa ván → hỏi "Ván mới?"
+PASS Esc huỷ, ván giữ nguyên
+PASS đồng ý → ván mới sạch
+PASS lưu kỷ lục 4×4 + ô lớn nhất — {"best":{"3":0,"4":4321,"5":0},"top":{"3":0,"4":2048,"5":0}}
+PASS đồng hồ chạy khi chơi
+PASS Esc → về menu, đồng hồ dừng
+PASS M tắt/bật tiếng, lưu chung wgp.muted
+PASS âm thanh tải đủ 7 file — 7
+PASS menu 5×5 chưa có ván → nút Bắt đầu
+PASS 5×5: bàn 25 ô, mục tiêu 4096, DOM khớp
+PASS 5×5 vừa khung
+PASS 3×3: ghép tới 256 là thắng
+PASS ô đến 131072 vẫn vừa chữ
+PASS desktop lớn 1440×900: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
+PASS laptop 1280×720: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
+PASS tablet ngang 1024×768: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
+PASS tablet dọc 768×1024: bàn vừa khung, không tràn, nút trong màn hình — ô 125px true,true,true,true
+PASS điện thoại 390×844: bàn vừa khung, không tràn, nút trong màn hình — ô 84px true,true,true,true
+PASS điện thoại nhỏ 360×640: bàn vừa khung, không tràn, nút trong màn hình — ô 66px true,true,true,true
+PASS điện thoại ngang 844×390: bàn vừa khung, không tràn, nút trong màn hình — ô 67px true,true,true,true
+PASS mobile: chạm Bắt đầu
+PASS mobile: vuốt trái/phải/lên/xuống đều đúng hướng
+PASS mobile: chạm/vuốt quá ngắn không tính nước
+PASS mobile: 36 lần vuốt → chơi bình thường, DOM khớp — nước=36
+PASS mobile: trang không bị cuộn khi vuốt
+PASS mobile: gộp nhiều cặp 1 lần vuốt
+PASS mobile: chạm Hoàn tác
+PASS mobile: màn Đạt 2048!
+PASS mobile: thua → bảng kết quả, nút trong màn hình
+PASS mobile: Về menu
+PASS mobile ngang: bàn + nút vừa màn hình
+PASS không có lỗi console
+57/57 PASS
