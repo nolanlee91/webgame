@@ -1,0 +1,51 @@
+PASS mở game → menu hiện, chưa có trận lưu, mặc định máy Dễ, khay nhập bị khoá
+PASS từ điển nạp đúng bản ghim (hash khớp words.json)
+PASS Bắt đầu → ván 1, bạn đi trước, chuỗi trống, thẻ Bạn sáng LƯỢT, ô nhập được focus — {"no":1,"turn":0,"chain":[],"seats":[],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS đồng hồ hiện số giây của trọng tài (≈15, khớp session.remainingMs) — [15,14856.100341796875]
+PASS từ 1 tiếng ở lượt mở đầu → báo "2 tiếng", không vào chuỗi — Cần đúng một từ ghép 2 tiếng (vd: học tập).
+PASS từ không có trong từ điển → báo lý do, ghi vào danh sách từ thiếu để duyệt — “xyz abc” chưa có trong từ điển bản thử — thử từ khác nhé.
+PASS ô nhập giữ nguyên chữ vừa gõ để sửa
+PASS gõ "BÀI HỌC" (hoa, thừa cách) → được chuẩn hoá và nối, thẻ màu Đỏ, chuyển lượt máy — {"no":1,"turn":1,"chain":["bài học"],"seats":[0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS lượt máy: hiện thẻ "máy đang nghĩ", đồng hồ chuyển màu máy, nút Nối khoá
+PASS gõ Enter khi chưa tới lượt → không gửi lệnh, báo chờ
+PASS máy nối từ hợp lệ trong ≤ 2,5 s rồi trả lượt (thẻ Xanh, âm tiết nối tô sáng) — {"no":4,"turn":0,"chain":["bài học","học sinh"],"seats":[0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,3]}
+PASS âm tiết nối giữa 2 thẻ được đánh dấu
+PASS khay nhập hiện sẵn tiếng phải nối — sinh
+PASS từ sai đầu ("an toàn") → báo phải bắt đầu bằng "sinh" — Phải bắt đầu bằng “sinh”.
+PASS đồng hồ đếm lùi theo trọng tài (giảm ~1 s, số trên màn = ceil(remainingMs)) — [[15,14501.85009765625],[14,13386.550048828125]]
+PASS chỉ gõ tiếng thứ hai ("viên") → tự ghép thành "sinh viên" — {"no":4,"turn":1,"chain":["bài học","học sinh","sinh viên"],"seats":[0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,3]}
+PASS Esc giữa ván → menu tạm dừng, phiên chơi đóng (trọng tài dừng) — Đã tạm dừng — đồng hồ đứng yên. Trận đang lưu: ván 4, tỉ số Bạn 0 – 3 Máy (ván đang dở — chơi tiếp được tính lại 15 giây).
+PASS Chơi tiếp → đúng chuỗi cũ + tỉ số, lượt đang dở được tính lại đủ 15 s — [4,14849.39990234375]
+PASS tải lại trang giữa ván → menu có "Chơi tiếp" + mô tả trận lưu — Trận đang lưu: ván 4, tỉ số Bạn 0 – 3 Máy (ván đang dở — chơi tiếp được tính lại 15 giây).
+PASS Chơi tiếp sau tải lại → dựng lại đúng chuỗi từ (không chạy lại hiệu ứng cũ)
+PASS không gõ gì 15 s → trọng tài xử thua hết giờ, máy +1 — [14934,{"no":4,"turn":0,"chain":["bài học","học sinh","sinh viên","viên kẹo"],"seats":[0,1,0,1],"over":true,"winner":1,"reason":"timeout","first":0,"score":[0,4]}]
+PASS bảng kết quả: "Máy thắng!" + lý do hết giờ + người thua đi trước — Bạn hết 15 giây mà chưa nối được. Chuỗi dài 4 từ.
+PASS Ván tiếp → ván mới, BẠN (người thua) đi trước, chuỗi trống — {"no":5,"turn":0,"chain":[],"seats":[],"over":false,"winner":null,"reason":null,"first":0,"score":[0,4]}
+PASS đánh từ cụt "ba lô" → thắng ngay (không chờ máy hết giờ), thẻ cụt gạch tiếng cuối — {"no":5,"turn":1,"chain":["ba lô"],"seats":[0],"over":true,"winner":0,"reason":"no-move","first":0,"score":[1,4]}
+PASS máy thua ⇒ ván sau MÁY đi trước, máy tự mở màn — {"no":6,"turn":1,"chain":[],"seats":[],"over":false,"winner":null,"reason":null,"first":1,"score":[1,4]}
+PASS máy mở màn bằng một từ trong ≤ 2,5 s — {"no":6,"turn":0,"chain":["số ba"],"seats":[1],"over":false,"winner":null,"reason":null,"first":1,"score":[1,4]}
+PASS bấm "Chịu thua" lần 1 → chỉ hỏi lại, ván chưa kết thúc
+PASS bấm lần 2 → thua ván (resign), bảng kết quả "Bạn đã chịu thua" — {"no":6,"turn":0,"chain":["số ba"],"seats":[1],"over":true,"winner":1,"reason":"resign","first":1,"score":[1,5]}
+PASS "Xem chuỗi từ" → đóng bảng, chuỗi còn nguyên, khay hiện nút Ván tiếp
+PASS nút Ván tiếp trong khay → mở ván mới
+PASS nút âm thanh → tắt (aria-pressed, lưu wgp.muted)
+PASS có phát âm thanh khi nối/thắng/thua — ["het-gio","qua-man","buoc-nhay","thang","do-xuc-xac","thua"]
+PASS chọn máy Khó + Trận mới → tỉ số 0–0, ván 1, tên hiện "Khó" — [[0,0],"Máy · Khó"]
+PASS desktop 1440×900: không tràn trang, khay nhập + đồng hồ trong màn
+PASS desktop 1280×720: không tràn, khay nhập trong màn
+PASS mobile: menu gọn trong màn, nút ≥ 44px — 44
+PASS mobile: không tràn trang, khay nhập + đồng hồ + 2 thẻ người chơi đều trong màn
+PASS mobile: nút công cụ + nút Nối ≥ 44px; chữ ô nhập ≥ 16px (iOS không tự phóng to) — menuBtn:48x44 muteBtn:48x44 sendBtn:52x48 resignBtn:115x44
+PASS mobile: chạm ô nhập + gõ + chạm "Nối" → từ vào chuỗi (3 lượt) — 3
+PASS mobile: chuỗi từ xuống dòng trong khung, không cuộn ngang
+PASS mũi tên nối không bị lặp: số mũi tên = số từ − 1 (+1 nếu máy đang nghĩ) — [1,2]
+PASS mobile: thanh thời gian hiện rõ (rộng > 40% khung đồng hồ)
+PASS mobile + bàn phím ảo (khung 390×440): ô nhập, đồng hồ, thẻ người chơi vẫn thấy, không tràn
+PASS mobile + bàn phím ảo: thẻ từ mới nhất vẫn thấy trong khung chuỗi
+PASS mobile: bảng kết quả gọn trong màn, nút ≥ 44px
+PASS mobile 360×740: không tràn, khay nhập trong màn — 360x740 360x740 #dock:599-723/13-343 #clock:120-164/13-221 #stage:180-583/13-347 sendBtn:52x48
+PASS mobile xoay ngang 844×390: không tràn, khay nhập + đồng hồ trong màn
+PASS chuyển app/ẩn tab giữa ván → tự tạm dừng (không bị xử thua khi không nhìn)
+PASS không có lỗi JS / console
+
+49/49 PASS

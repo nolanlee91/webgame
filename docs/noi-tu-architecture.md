@@ -1,7 +1,7 @@
 # Nối Từ — kiến trúc (bản 2, đã áp 6 điểm review của Codex)
 
 Trạng thái: **bước 1 xong** — kiến trúc + lõi + lớp phiên chơi + test hợp đồng đã code và chạy (56 test; bản 2.1 sửa 4 lỗi Codex tìm ra khi review code — xem mục 8).
-Chưa có giao diện (bước 2). Mục tiêu giữ nguyên: bản đầu chơi với máy/offline, sau này cắm online 1v1 thật
+**Bước 2 xong** — giao diện chơi offline với máy (`index.html` + `game.js`), E2E Chrome thật 49 kiểm tra (mục 9). Mục tiêu giữ nguyên: bản đầu chơi với máy/offline, sau này cắm online 1v1 thật
 **mà không sửa luật, AI hay giao diện** — chỉ thêm một transport Colyseus và phần server.
 Code: `prototype/games/noi-tu/` · Test: `npm test` trong thư mục đó.
 
@@ -15,7 +15,7 @@ Code: `prototype/games/noi-tu/` · Test: `npm test` trong thư mục đó.
 ## 2. Các lớp
 
 ```
-ui/ (bước 2)        chỉ biết MatchSession (session/client.js) — không import core/rules, core/ai
+game.js (UI)        chỉ biết MatchSession (session/client.js) — không import core/rules, core/ai
    │ intent                 ▲ snapshot / event / result / pong / presence     (mọi thứ là JSON)
    ▼                        │
 transport           memoryTransport (offline, cùng trang) │ IPC (test, tiến trình riêng) │ Colyseus (sau)
@@ -132,10 +132,21 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
 - **LocalSession** (`test/local.test.mjs`): chơi với bot, đóng tab mở lại (clockReset), đổi từ điển ⇒ ván mới,
   hai người chung máy.
 
-## 9. Còn lại cho bước 2
-- Giao diện (Art Bible V5, Lụm Kèo, desktop + mobile, asset có sẵn): chuỗi từ dạng thẻ pixel, âm tiết nối tô màu,
-  ô nhập lớn + thanh đếm ngược, khung lượt hai bên như Cờ Caro; E2E Chrome thật (gõ tiếng Việt IME, bàn phím ảo).
-- **Từ điển:** bản khởi đầu mới có 591 từ (ván máy-đấu-máy trung bình ~4 nước — quá ngắn). Cần mở rộng lên
-  3.000–5.000 từ và **người thật duyệt** trước khi phát hành.
-- Bot Dễ "thỉnh thoảng bí"; báo từ thiếu.
+## 9. Bước 2 — giao diện (đã làm)
+- `game.js` là gốc lắp ráp: import duy nhất `createDict` + `createLocalSession`; phần còn lại chỉ nói chuyện qua
+  MatchSession. Đổi sang online = thay `createLocalSession` bằng `createOnlineSession`, UI không đổi.
+- Đồng hồ: UI không giữ timer riêng; mỗi khung hình vẽ từ `session.remainingMs()` (số trên màn = ceil(ms/1000)).
+- Tạm dừng = `session.dispose()` (trọng tài dừng thật); chơi tiếp = dựng lại từ nhật ký lưu (`clockReset`) ⇒ lượt
+  dở được tính lại đủ 15 s. Ẩn tab / tắt màn hình giữa ván cũng tự tạm dừng.
+- Chuỗi từ vẽ tăng dần; hiệu ứng chỉ chạy cho sự kiện mới, không chạy lại khi dựng từ snapshot.
+- Nút “Nối” không dùng thuộc tính `disabled` (nút submit bị disabled chặn Enter trong ô nhập và làm mobile mất
+  bàn phím) — dùng `aria-disabled`, lệnh gửi bị chặn trong `submit()`.
+- Mobile: `interactive-widget=resizes-content` + `100dvh`; khung thấp (bàn phím ảo mở) chuyển bố cục gọn;
+  khung chuỗi tự cuộn tới từ mới nhất khi đổi cỡ.
+- E2E: `npm run test:e2e` (`test/browser/e2e.mjs`, tự dựng server tĩnh + Chrome headless qua CDP).
+
+## 10. Còn lại
+- **Từ điển:** bản khởi đầu mới có 591 từ (ván máy-đấu-máy trung bình ~4 nước — quá ngắn; máy hay thắng bằng
+  từ cụt). Cần mở rộng lên 3.000–5.000 từ và **người thật duyệt** nguồn gốc trước khi phát hành.
+- Từ người chơi gõ mà thiếu đã được ghi cục bộ (`noi-tu:missing`) — chưa có đường gửi về để duyệt.
 - Chưa có adapter Colyseus/WebSocket thật để chạy bộ test hợp đồng qua mạng thật (làm cùng OnlineSession).
