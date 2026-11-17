@@ -1,0 +1,161 @@
+{
+  "width": 832,
+  "height": 832,
+  "rows": 13,
+  "cols": 13,
+  "cellSize": 64,
+  "origin": [
+    0,
+    0
+  ],
+  "cellCenter": "[col*64+32, row*64+32]",
+  "reservedCenter": [
+    5,
+    5,
+    3,
+    3
+  ],
+  "homeCells": [
+    {
+      "color": "do",
+      "col": 6,
+      "row": 1
+    },
+    {
+      "color": "do",
+      "col": 6,
+      "row": 2
+    },
+    {
+      "color": "do",
+      "col": 6,
+      "row": 3
+    },
+    {
+      "color": "do",
+      "col": 6,
+      "row": 4
+    },
+    {
+      "color": "xanh-la",
+      "col": 8,
+      "row": 6
+    },
+    {
+      "color": "xanh-la",
+      "col": 9,
+      "row": 6
+    },
+    {
+      "color": "xanh-la",
+      "col": 10,
+      "row": 6
+    },
+    {
+      "color": "xanh-la",
+      "col": 11,
+      "row": 6
+    },
+    {
+      "color": "vang",
+      "col": 6,
+      "row": 8
+    },
+    {
+      "color": "vang",
+      "col": 6,
+      "row": 9
+    },
+    {
+      "color": "vang",
+      "col": 6,
+      "row": 10
+    },
+    {
+      "color": "vang",
+      "col": 6,
+      "row": 11
+    },
+    {
+      "color": "xanh-duong",
+      "col": 1,
+      "row": 6
+    },
+    {
+      "color": "xanh-duong",
+      "col": 2,
+      "row": 6
+    },
+    {
+      "color": "xanh-duong",
+      "col": 3,
+      "row": 6
+    },
+    {
+      "color": "xanh-duong",
+      "col": 4,
+      "row": 6
+    }
+  ],
+  "startCells": [
+    {
+      "col": 5,
+      "row": 0,
+      "color": "do"
+    },
+    {
+      "col": 12,
+      "row": 5,
+      "color": "xanh-la"
+    },
+    {
+      "col": 7,
+      "row": 12,
+      "color": "vang"
+    },
+    {
+      "col": 0,
+      "row": 7,
+      "color": "xanh-duong"
+    }
+  ],
+  "pavilionSteps": [
+    {
+      "color": "do",
+      "rect": [
+        338,
+        380,
+        493,
+        407
+      ]
+    },
+    {
+      "color": "xanh-duong",
+      "rect": [
+        334,
+        410,
+        497,
+        437
+      ]
+    },
+    {
+      "color": "xanh-la",
+      "rect": [
+        330,
+        440,
+        501,
+        467
+      ]
+    },
+    {
+      "color": "vang",
+      "rect": [
+        326,
+        470,
+        505,
+        497
+      ]
+    }
+  ],
+  "note": "Art layout only; Dev maps game-specific route rules separately."
+}

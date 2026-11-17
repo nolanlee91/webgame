@@ -1,0 +1,51 @@
+{
+  "frameSize": [
+    64,
+    64
+  ],
+  "sheetSize": [
+    192,
+    192
+  ],
+  "frameOrder": [
+    "dung-yen-1",
+    "dung-yen-2",
+    "nhay-1",
+    "nhay-2",
+    "nhay-3",
+    "bi-da-1",
+    "bi-da-2",
+    "mung-thang-1",
+    "mung-thang-2"
+  ],
+  "animations": {
+    "dung-yen": [
+      0,
+      1
+    ],
+    "nhay": [
+      2,
+      3,
+      4
+    ],
+    "bi-da": [
+      5,
+      6
+    ],
+    "mung-thang": [
+      7,
+      8
+    ]
+  },
+  "colors": [
+    "do",
+    "xanh-duong",
+    "xanh-la",
+    "vang"
+  ],
+  "anchor": [
+    32,
+    60
+  ],
+  "note": "Fixed cell anchors; review motion in engine before final integration."
+}

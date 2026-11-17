@@ -1,0 +1,160 @@
+/* Cờ Cá Ngựa — lớp UI/HUD pixel (spec "Hội đua ngựa làng" — mục UI/HUD).
+   Ngôn ngữ chung: góc cắt bậc 3px (viền vẽ bằng box-shadow nên góc tự khuyết), vát sáng/tối 2px,
+   bóng đổ cứng lệch 4px, không bo tròn. Vàng (--px-gold) CHỈ dùng cho lượt hiện tại + nút chính. */
+.cn-table {
+  --px-ink: #f4ead2; --px-soft: #b9ad93; --px-dim: #7d7564;
+  --px-panel: #1d1a16; --px-panel2: #262019; --px-line: #0a0807; --px-shadow: rgba(0,0,0,.6);
+  --px-gold: #ffc94a; --px-gold-d: #a8741a; --px-gold-l: #ffe9a8;
+  --red: #e0483d; --green: #3fae4a; --yellow: #f2b632; --blue: #3a7bd5;
+  --px-border: 0 -3px 0 0 var(--b, var(--px-line)), 0 3px 0 0 var(--b, var(--px-line)), -3px 0 0 0 var(--b, var(--px-line)), 3px 0 0 0 var(--b, var(--px-line));
+  --px-bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
+  --px-drop: 4px 7px 0 0 var(--px-shadow), 7px 4px 0 0 var(--px-shadow);
+  position: relative; color: var(--px-ink); user-select: none; -webkit-user-select: none;
+  font: 600 14px/1.35 "Be Vietnam Pro", system-ui, sans-serif;
+}
+.cn-table [hidden] { display: none !important; }
+.cn-table img.px-ic { width: 16px; height: 16px; image-rendering: pixelated; vertical-align: -3px; }
+.cn-table img.px-ic.x2 { width: 24px; height: 24px; vertical-align: -6px; }
+.px-panel { background: var(--px-panel); box-shadow: var(--px-bevel), var(--px-border), var(--px-drop); }
+.px-h { font: 800 15px/1.2 "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; margin: 0; }
+
+/* ---------- Nút: 3 cấp ---------- */
+.px-btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 8px 16px; font: 800 14px/1 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--px-ink); background: var(--px-panel2); --b: #6d6150;
+  box-shadow: var(--px-bevel), var(--px-border), var(--px-drop); transition: transform .05s; }
+.px-btn:hover { background: #30281f; }
+.px-btn:focus-visible { outline: 2px dashed var(--px-gold); outline-offset: 5px; }
+.px-btn:active, .px-btn.is-down { transform: translate(4px, 4px); box-shadow: var(--px-bevel), var(--px-border); }
+.px-btn.primary { color: #2c1b05; background: linear-gradient(var(--px-gold-l) 0 3px, var(--px-gold) 3px); --b: #5a3a08; text-shadow: none; }
+.px-btn.primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
+.px-btn.primary.big { min-height: 52px; font-size: 18px; padding: 12px 22px; width: 100%; }
+.px-btn.icon { width: 40px; min-height: 40px; padding: 0; }
+.px-btn.icon img { width: 24px; height: 24px; image-rendering: pixelated; }
+.px-btn[disabled] { cursor: not-allowed; filter: grayscale(1) brightness(.6); transform: none; }
+.px-btn.seg { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+.px-btn.seg[aria-pressed="true"] { color: #2c1b05; background: var(--px-ink); --b: #5a3a08; }
+.px-link { color: var(--px-soft); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Thanh trên: trạng thái (nhỏ, phụ) + nút chức năng góc phải ---------- */
+.cn-top { display: flex; align-items: center; gap: 12px; margin: 0 0 28px; min-height: 44px; }
+.cn-status { flex: 1; min-width: 0; color: var(--px-soft); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cn-tools { display: flex; gap: 12px; padding-right: 7px; }
+
+/* ---------- Sân chơi: bàn ở giữa (điểm nhấn chính), 4 thẻ ở 4 góc ngoài bàn ---------- */
+.cn-arena { display: grid; gap: 14px 22px; justify-content: center; align-items: stretch;
+  grid-template-columns: 200px auto 200px; grid-template-rows: 1fr 1fr;
+  grid-template-areas: "s0 board s3" "s1 board s2"; }
+.cn-board { grid-area: board; position: relative; width: min(calc(100svh - 170px), calc(100vw - 520px), 720px); min-width: 320px; aspect-ratio: 1;
+  box-shadow: 0 -3px 0 0 #000, 0 3px 0 0 #000, -3px 0 0 0 #000, 3px 0 0 0 #000, 6px 9px 0 0 var(--px-shadow); background: #0b0e11; }
+.cn-board canvas { display: block; width: 100%; height: 100%; }
+.cn-seat { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+.cn-seat[data-seat="0"] { grid-area: s0; } .cn-seat[data-seat="3"] { grid-area: s3; }
+.cn-seat[data-seat="2"] { grid-area: s2; justify-content: flex-end; flex-direction: column-reverse; }
+.cn-seat[data-seat="1"] { grid-area: s1; justify-content: flex-end; flex-direction: column-reverse; }
+
+/* ---------- Thẻ người chơi (tầng 2) ---------- */
+.cn-card { position: relative; padding: 14px 12px 10px; background: var(--px-panel); --b: var(--px-line);
+  box-shadow: var(--px-bevel), var(--px-border), var(--px-drop); transition: transform .15s, opacity .2s, filter .2s; }
+.cn-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--seat); box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); }
+.cn-card .who { display: flex; align-items: center; gap: 10px; }
+.cn-card canvas.av { width: 48px; height: 48px; flex: none; image-rendering: pixelated; background: #120f0c; box-shadow: inset 0 0 0 2px #000, inset 0 0 0 4px var(--seat-d); }
+.cn-card .nm { font: 800 15px/1.15 "Be Vietnam Pro"; text-transform: uppercase; letter-spacing: .04em; text-shadow: 2px 2px 0 #000; }
+.cn-card .sub { color: var(--px-soft); font-size: 12px; font-weight: 600; }
+.cn-card .slots { display: flex; gap: 5px; margin-top: 10px; align-items: center; }
+.cn-card .slot { width: 18px; height: 18px; background: #120f0c; box-shadow: inset 0 0 0 2px #3a332a; }
+.cn-card .slot.track { background: linear-gradient(transparent 50%, var(--seat) 50%); box-shadow: inset 0 0 0 2px var(--seat-d); }
+.cn-card .slot.home { background: var(--seat); box-shadow: inset 0 0 0 2px var(--seat-d), inset 0 3px 0 rgba(255,255,255,.35); }
+.cn-card .cnt { margin-left: auto; font-weight: 800; font-size: 13px; }
+.px-bar { display: flex; gap: 2px; margin-top: 8px; }
+.px-bar i { flex: 1; height: 7px; background: #120f0c; box-shadow: inset 0 0 0 1px #3a332a; }
+.px-bar i.on { background: var(--seat); box-shadow: inset 0 -2px 0 rgba(0,0,0,.3); }
+.cn-card .tab { position: absolute; top: -26px; left: 10px; padding: 3px 8px 2px; font: 800 12px/1.2 "Be Vietnam Pro"; letter-spacing: .08em; color: #2c1b05;
+  background: var(--px-gold); box-shadow: 0 -2px 0 0 #5a3a08, -2px 0 0 0 #5a3a08, 2px 0 0 0 #5a3a08; display: none; }
+.cn-seat[data-seat="1"] .cn-card .tab, .cn-seat[data-seat="2"] .cn-card .tab { top: auto; bottom: -26px; box-shadow: 0 2px 0 0 #5a3a08, -2px 0 0 0 #5a3a08, 2px 0 0 0 #5a3a08; }
+.cn-card.active { --b: var(--px-gold); transform: translate(-2px, -2px); box-shadow: var(--px-bevel), var(--px-border), 6px 9px 0 0 var(--px-shadow), 9px 6px 0 0 var(--px-shadow); }
+.cn-card.active .tab { display: block; }
+.cn-card.dim { opacity: .7; filter: saturate(.7); }
+.cn-card.empty { background: transparent; box-shadow: none; outline: 3px dashed #3a332a; outline-offset: -3px; color: var(--px-dim); padding: 22px 12px; text-align: center; }
+.cn-card.empty::before { display: none; }
+.cn-card.empty .e { font: 800 13px "Be Vietnam Pro"; letter-spacing: .08em; }
+
+/* ---------- Khay xúc xắc (tầng 1 — chỉ khay của người có lượt) ---------- */
+.cn-tray { position: relative; display: grid; justify-items: center; gap: 12px; opacity: .2; filter: grayscale(.7); transition: opacity .2s, filter .2s; }
+.cn-tray .pit { position: relative; width: 120px; aspect-ratio: 128 / 125; cursor: default; }
+.cn-tray canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.cn-tray .badge { position: absolute; right: -10px; top: -10px; min-width: 32px; height: 32px; display: grid; place-items: center; font: 800 20px/1 "Be Vietnam Pro";
+  color: #2c1b05; background: var(--px-ink); --b: #000; box-shadow: var(--px-border), 3px 3px 0 3px var(--px-shadow); }
+.cn-tray .lbl { min-height: 40px; display: grid; place-items: center; }
+.cn-tray .tag { padding: 5px 10px; font: 800 12px/1 "Be Vietnam Pro"; letter-spacing: .08em; text-transform: uppercase; color: var(--px-soft); background: #15120f; --b: #3a332a; box-shadow: var(--px-border); display: inline-flex; gap: 6px; align-items: center; }
+.cn-tray .tag.gold { color: #2c1b05; background: var(--px-gold); --b: #5a3a08; }
+.cn-tray .tag.grey { color: #d9d2c3; background: #4a4a4a; --b: #1e1e1e; }
+.cn-tray.on { opacity: 1; filter: none; }
+.cn-tray.on.can .pit { cursor: pointer; }
+.cn-tray.six .pit { animation: cnSix .45s steps(3) 2; }
+.cn-tray.arrive .pit canvas { animation: cnArrive .35s steps(6); }
+@keyframes cnSix { 50% { filter: brightness(1.6) drop-shadow(0 0 0 var(--px-gold)); } }
+@keyframes cnArrive { from { transform: translateY(-14px) scale(.7); opacity: .2; } }
+
+/* ---------- Bảng phòng chờ ---------- */
+.cn-lobby { grid-area: lobby; width: 340px; padding: 0 0 18px; align-self: start; display: none; }
+.cn-table.is-lobby .cn-arena { grid-template-columns: auto 340px; grid-template-rows: auto; grid-template-areas: "board lobby"; }
+.cn-table.is-lobby .cn-seat, .cn-table.is-lobby .cn-tools .play-only { display: none; }
+.cn-table.is-lobby .cn-lobby { display: block; }
+.cn-lobby .ttl { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #2b2118; box-shadow: inset 0 -3px 0 #000; }
+.cn-lobby .ttl .px-h { flex: 1; font-size: 14px; }
+.cn-lobby .ttl .code { color: var(--px-gold); }
+.cn-lobby .sec { padding: 14px 14px 0; }
+.cn-lobby .lb { color: var(--px-soft); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.cn-lobby .segs { display: flex; gap: 12px; padding: 0 3px; }
+.cn-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin: 0 3px 10px; background: var(--px-panel2); --b: #000; box-shadow: var(--px-border); position: relative; }
+.cn-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--seat); }
+.cn-row canvas.av { width: 32px; height: 32px; margin-left: 6px; image-rendering: pixelated; background: #120f0c; }
+.cn-row .nm { flex: 1; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.cn-row .st { font-size: 12px; font-weight: 800; letter-spacing: .06em; display: inline-flex; gap: 6px; align-items: center; color: #8fdc7a; }
+.cn-row.off { background: transparent; box-shadow: none; outline: 3px dashed #3a332a; outline-offset: -3px; }
+.cn-row.off::before { opacity: .25; }
+.cn-row.off .nm, .cn-row.off .st { color: var(--px-dim); }
+.cn-row.off canvas.av { opacity: .25; }
+.cn-lobby .act { padding: 18px 17px 0; display: grid; gap: 14px; justify-items: center; }
+.cn-lobby .note { color: var(--px-soft); font-size: 12px; text-align: center; }
+
+/* ---------- Bảng xếp hạng cuối ván ---------- */
+.cn-result { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(6,8,10,.72); padding: 12px; }
+.cn-result .box { width: min(560px, 100%); padding: 0 0 20px; }
+.cn-result .head { padding: 14px 16px 12px; background: var(--seat); box-shadow: inset 0 3px 0 rgba(255,255,255,.3), inset 0 -3px 0 rgba(0,0,0,.4); text-align: center; }
+.cn-result .head .px-h { font-size: 24px; }
+.cn-result canvas.podium { display: block; width: 100%; max-width: 480px; margin: 14px auto 6px; aspect-ratio: 320 / 184; image-rendering: pixelated; }
+.cn-result table { width: calc(100% - 32px); margin: 4px 16px 0; border-collapse: collapse; font-size: 14px; }
+.cn-result th { color: var(--px-soft); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 800; padding: 4px 6px; text-align: center; }
+.cn-result td { padding: 6px; text-align: center; font-weight: 800; border-top: 2px solid #2d2620; }
+.cn-result td.n { text-align: left; text-transform: uppercase; }
+.cn-result td.n i { display: inline-block; width: 12px; height: 12px; margin-right: 8px; background: var(--seat); box-shadow: 0 0 0 2px #000; vertical-align: -1px; }
+.cn-result .rk { color: var(--px-soft); width: 30px; }
+.cn-result .btns { display: flex; gap: 18px; justify-content: center; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+
+/* ---------- Điện thoại / màn hẹp ---------- */
+@media (max-width: 980px) {
+  .cn-top { margin-bottom: 10px; }
+  .cn-arena { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 10px; grid-template-areas: "s0 s3" "board board" "s1 s2"; }
+  .cn-board { width: 100%; min-width: 0; }
+  .cn-seat, .cn-seat[data-seat="1"], .cn-seat[data-seat="2"] { flex-direction: row; align-items: center; gap: 10px; justify-content: flex-start; }
+  .cn-seat[data-seat="3"], .cn-seat[data-seat="1"] { flex-direction: row-reverse; }
+  .cn-card { flex: 1; min-width: 0; padding: 10px 8px 7px; }
+  .cn-card canvas.av { width: 32px; height: 32px; }
+  .cn-card .who { gap: 7px; }
+  .cn-card .nm { font-size: 13px; } .cn-card .sub { display: none; }
+  .cn-card .slots { margin-top: 6px; gap: 3px; } .cn-card .slot { width: 12px; height: 12px; }
+  .cn-card .cnt { font-size: 11px; }
+  .cn-card .tab { font-size: 10px; top: -20px; } .cn-seat[data-seat="1"] .cn-card .tab, .cn-seat[data-seat="2"] .cn-card .tab { bottom: -20px; }
+  .cn-card.empty { padding: 14px 6px; }
+  .cn-tray { gap: 6px; } .cn-tray .pit { width: 64px; } .cn-tray .lbl { min-height: 0; }
+  .cn-tray .lbl .px-btn { min-height: 32px; padding: 6px 8px; font-size: 11px; }
+  .cn-tray .tag { font-size: 10px; padding: 4px 6px; }
+  .cn-tray .badge { min-width: 24px; height: 24px; font-size: 15px; right: -6px; top: -6px; }
+  .cn-table.is-lobby .cn-arena { grid-template-columns: 1fr; grid-template-areas: "board" "lobby"; }
+  .cn-lobby { width: auto; }
+}
+
+/* nút loa luôn bấm được, kể cả khi bảng xếp hạng phủ lên */
+.cn-top [data-act="mute"] { position: relative; z-index: 6; }

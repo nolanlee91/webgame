@@ -83,25 +83,24 @@ await view(1280, 900, false, 1);
 await nav(URL0);
 check('trang Cờ Cá Ngựa mở được, có lựa chọn 2/3/4 người', await ev('[...document.querySelectorAll("[data-n]")].map(b=>b.dataset.n).join()') === '2,3,4');
 await shot('cn-menu.png');
-await click(...await btn('[data-n="4"]')); await sleep(500);
-check('bấm "4 người" → vào bàn 4 màu, mỗi màu 4 ngựa trong chuồng', await ev('__game && __game.state.seats.length===4 && Object.values(__game.state.horses).every(a=>a.length===4&&a.every(p=>p===-1))'));
+await click(...await btn('[data-n="4"]')); await sleep(300);
+check('phòng chờ: chọn 4 người chưa vào ván, nút CHƠI hiện', await ev('__game.lobby') === true && await ev('!!document.querySelector("#playBtn").offsetParent'));
+await click(...await btn('#playBtn')); await sleep(500);
+check('bấm "4 người" + CHƠI → vào bàn 4 màu, mỗi màu 4 ngựa trong chuồng', await ev('__game && __game.state.seats.length===4 && Object.values(__game.state.horses).every(a=>a.length===4&&a.every(p=>p===-1))'));
 await shot('cn-4-nguoi-bat-dau.png');
 
-// Asset thật: đã tải xong, và toạ độ ô/chuồng khớp màu trên ảnh board.webp
+// Asset thật board-v5: đã tải xong; board-v5-grid.json khớp đường đi/chuồng đích; ô chuồng đích trên ảnh đúng màu ghế
 { const end = Date.now() + 4000; while (Date.now() < end && !(await ev('__game.artReady'))) await sleep(50); }
-check('asset thật (board/quan-co/xuc-xac .webp) tải xong, đang vẽ bằng ảnh', await ev('__game.artReady'));
-const geo = await ev(`import("/games/co-ca-ngua/game.js").then(M=>new Promise(ok=>{const i=new Image();i.onload=()=>{
+check('asset board-v5 (bàn + 4 bộ ngựa + manifest + grid) tải xong, đang vẽ bằng ảnh', await ev('__game.artReady'));
+const geo = await ev(`import("/games/co-ca-ngua/game.js").then(M=>fetch("/games/co-ca-ngua/"+M.ART.board.grid).then(r=>r.json()).then(grid=>new Promise(ok=>{const i=new Image();i.onload=()=>{
   const cv=document.createElement("canvas");cv.width=i.width;cv.height=i.height;const x=cv.getContext("2d");x.drawImage(i,0,0);
-  const px=(p)=>{const d=x.getImageData(Math.round(p.x)-2,Math.round(p.y)-2,5,5).data;let r=0,g=0,b=0;for(let k=0;k<d.length;k+=4){r+=d[k];g+=d[k+1];b+=d[k+2]}const n=d.length/4;return [r/n,g/n,b/n]};
-  const hue=([r,g,b])=>{const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx-mn<40||(b>=r&&b>=g&&r>b*0.55))return "grey";if(r>=g&&r>=b)return g>r*0.62?"yellow":"red";if(g>=r&&g>=b)return r>g*0.75?"yellow":"green";return "blue"};
-  const C=["red","green","yellow","blue"];let trackBad=[],stableBad=[],slotBad=[];
-  M.PATH.forEach((c,k)=>{const h=hue(px(M.cellImg(c)));if(h!=="grey"&&!(k%11===0))trackBad.push(k+":"+h)});
-  M.STABLE.forEach((a,s)=>a.forEach((c,k)=>{const h=hue(px(M.cellImg(c)));if(h!==C[s])stableBad.push(C[s]+k+":"+h)}));
-  for(let s=0;s<4;s++){const [bx,by,bw,bh]=M.ART.corner[M.ART.seatCorner[s]];const h=hue(px({x:bx+bw*0.5,y:by+8}));if(h!==C[s])slotBad.push(C[s]+":"+h)}
-  ok({trackBad,stableBad,slotBad})};i.src="/games/co-ca-ngua/assets/board.webp"}))`);
-check('44 ô đường đi rơi đúng ô đường trên ảnh, 16 ô chuồng đích đúng màu nhánh, chuồng xuất phát đặt theo góc cùng màu trên ảnh', !geo.trackBad.length && !geo.stableBad.length && !geo.slotBad.length, JSON.stringify(geo));
-const quad = await ev('(()=>{const c=document.querySelector("canvas").getBoundingClientRect();const f=(s)=>{const p=__game.screenOf(s,0);return (p.x>c.left+c.width/2?"phải":"trái")+"-"+(p.y>c.top+c.height/2?"dưới":"trên")};return [0,1,2,3].map(f).join()})()');
-check('ngựa trong chuồng nằm đúng góc cùng màu: Đỏ trên-trái, Xanh lá dưới-phải, Vàng dưới-trái, Xanh dương trên-phải', quad === 'trái-trên,phải-dưới,trái-dưới,phải-trên', quad);
+  const px=([c,r])=>{const d=x.getImageData(c*64+30,r*64+30,5,5).data;let R=0,G=0,B=0;for(let k=0;k<d.length;k+=4){R+=d[k];G+=d[k+1];B+=d[k+2]}const n=d.length/4;return [R/n,G/n,B/n]};
+  const hue=([r,g,b])=>{if(r>150&&g>150&&b<90)return "yellow";if(r>g&&r>b)return "red";if(g>r&&g>b)return "green";if(b>r&&b>g)return "blue";return "?"};
+  const stableBad=[];M.STABLE.forEach((a,s)=>a.forEach((c,k)=>{const h=hue(px(c));if(h!==M.VIEW_COLORS[s])stableBad.push(M.VIEW_COLORS[s]+k+":"+h)}));
+  ok({grid:M.gridMismatch(grid),stableBad})};i.src="/games/co-ca-ngua/"+M.ART.board.src})))`);
+check('board-v5-grid.json khớp 4 ô xuất phát + 16 ô chuồng đích của game; ô chuồng đích trên ảnh đúng màu ghế', !geo.grid.length && !geo.stableBad.length, JSON.stringify(geo));
+const quad = await ev('(()=>{const c=document.querySelector(".cn-board canvas").getBoundingClientRect();const f=(s)=>{const p=__game.screenOf(s,0);return (p.x>c.left+c.width/2?"phải":"trái")+"-"+(p.y>c.top+c.height/2?"dưới":"trên")};return [0,1,2,3].map(f).join()})()');
+check('ngựa trong chuồng nằm đúng lán cùng màu: Đỏ trên-trái, Xanh dương dưới-trái, Vàng dưới-phải, Xanh lá trên-phải', quad === 'trái-trên,trái-dưới,phải-dưới,phải-trên', quad);
 await shot('cn-4-nguoi-bat-dau.png');
 
 // Gieo bằng phím Space
@@ -125,7 +124,7 @@ let s = await S();
 check('mọi lựa chọn đều là xuất ngựa → tự xuất 1 ngựa, được gieo thêm', s.horses[0].filter(p => p === 0).length === 1 && s.seat === 0 && s.phase === 'roll');
 
 // ---------- Đá ngựa bằng chuột ----------
-// Đỏ (ghế 0) có ngựa ở bước 5 và bước 10; Xanh lá (ghế 1) đứng ở ô tuyệt đối 9 = bước 42 của ghế 1. Gieo 4: ngựa 0 tới bước 9 → đá.
+// Đỏ (ghế 0) có ngựa ở bước 5 và bước 10; Xanh dương (ghế 1) đứng ở ô tuyệt đối 9 = bước 42 của ghế 1. Gieo 4: ngựa 0 tới bước 9 → đá.
 n = await stage({ 0: [5, 10, -1, -1], 1: [42, -1, -1, -1], 2: [-1, -1, -1, -1], 3: [-1, -1, -1, -1] }, 0, 4);
 await sleep(80);
 await shot('cn-chon-ngua.png');
@@ -136,8 +135,8 @@ await record('cn-da-ngua', async () => {
   await waitIdle(); await sleep(450);
 });
 s = await S();
-check('bấm chuột vào ngựa 1 → đi 4 ô, đá ngựa Xanh lá về chuồng', s.horses[0][0] === 9 && s.horses[1][0] === -1, JSON.stringify(s.horses[0]) + ' / ' + JSON.stringify(s.horses[1]));
-check('gieo 4 → hết lượt, sang Xanh lá', s.seat === 1 && s.phase === 'roll');
+check('bấm chuột vào ngựa 1 → đi 4 ô, đá ngựa Xanh dương về chuồng', s.horses[0][0] === 9 && s.horses[1][0] === -1, JSON.stringify(s.horses[0]) + ' / ' + JSON.stringify(s.horses[1]));
+check('gieo 4 → hết lượt, sang Xanh dương', s.seat === 1 && s.phase === 'roll');
 await shot('cn-da-ngua.png');
 
 // ---------- Chặn đường ----------
@@ -190,14 +189,14 @@ check('ngựa nhảy từng ô phát "buoc-nhay", đá quân phát "da-quan", v�
 const lastWin = sx.log.filter(e => e.n === 'thang').pop(), lastHome = sx.log.filter(e => e.n === 've-chuong').pop();
 check('tiếng "thang" phát sau tiếng ngựa cuối về chuồng', lastWin && lastHome && lastWin.t >= lastHome.t, lastWin && lastHome ? `+${lastWin.t - lastHome.t}ms` : '');
 // Tắt tiếng
-await ev('document.querySelector("#muteBtn").scrollIntoView({block:"center"})'); await sleep(100);
-await click(...await btn('#muteBtn')); await sleep(100);
+await ev(`document.querySelector('[data-act="mute"]').scrollIntoView({block:"center"})`); await sleep(100);
+await click(...await btn('[data-act="mute"]')); await sleep(100);
 const nBefore = (await ev('__game.sfx')).log.length;
 await key('Space'); await sleep(200); await key('Space'); await sleep(900);
-const muteTxt = await ev('document.querySelector("#muteBtn").textContent');
-check('bấm "Âm thanh" → tắt tiếng: gieo không phát tiếng nào, nút đổi chữ', (await ev('__game.sfx')).log.length === nBefore && /tắt/.test(muteTxt) && (await ev('localStorage.getItem("wgp.muted")')) === '1', muteTxt);
+const muteTxt = await ev(`document.querySelector('[data-act="mute"]').getAttribute("aria-pressed")+" "+document.querySelector('[data-act="mute"] img').src.split("/").pop()`);
+check('bấm "Âm thanh" → tắt tiếng: gieo không phát tiếng nào, nút đổi icon', (await ev('__game.sfx')).log.length === nBefore && /^true .*am-thanh-tat/.test(muteTxt) && (await ev('localStorage.getItem("wgp.muted")')) === '1', muteTxt);
 await key('KeyM'); await sleep(100);
-check('phím M → bật lại tiếng', (await ev('document.querySelector("#muteBtn").textContent')).includes('bật') && (await ev('localStorage.getItem("wgp.muted")')) === '0');
+check('phím M → bật lại tiếng', (await ev(`document.querySelector('[data-act="mute"]').getAttribute("aria-pressed")`)) === 'false' && (await ev('localStorage.getItem("wgp.muted")')) === '0');
 
 // ---------- 4 người, quay video 45 giây ----------
 await nav(URL0 + '?players=4&seed=5');
@@ -209,9 +208,11 @@ await shot('cn-4-nguoi-giua-van.png');
 await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
 await view(390, 844, true, 2);
 await nav(URL0);
-await tap(...await btn('[data-n="3"]')); await sleep(400);
+await tap(...await btn('[data-n="3"]')); await sleep(300);
+await ev('document.querySelector("#playBtn").scrollIntoView({block:"center"})'); await sleep(100);
+await tap(...await btn('#playBtn')); await sleep(400); await ev('scrollTo(0,0)'); await sleep(100);
 check('mobile: chạm "3 người" → bàn 3 màu', await ev('__game.state.seats.join()') === '0,1,2');
-const fit = await ev('(()=>{const r=document.querySelector("canvas").getBoundingClientRect();return {w:r.width,right:r.right,bottom:r.bottom,vw:innerWidth}})()');
+const fit = await ev('(()=>{const r=document.querySelector(".cn-board canvas").getBoundingClientRect();return {w:r.width,right:r.right,bottom:r.bottom,vw:innerWidth}})()');
 check('mobile: bàn cờ vừa khít bề ngang, không tràn', fit.right <= fit.vw + 0.5 && fit.w >= 360, JSON.stringify(fit));
 const m3 = await play(25, true);
 check('mobile: chạm để gieo + chạm vào ngựa để đi', m3.rolls >= 8, `${m3.rolls} lần gieo, ${m3.picks} lần chọn ngựa`);

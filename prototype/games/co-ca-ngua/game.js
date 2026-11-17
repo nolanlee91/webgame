@@ -1,12 +1,13 @@
 // Cờ Cá Ngựa — phần hiển thị + điều khiển, theo hợp đồng Game SDK (docs/tech-architecture.md §3.3):
 //   mount(el, ctx) -> { pause, resume, destroy }
-// Vẽ bằng asset pixel art thật của Codex (assets/board.webp, quan-co.webp, xuc-xac.webp).
-// Nếu ảnh không tải được thì tự quay về hình khối tạm (lưới 13×13 đều) — vẫn chơi được.
+// Vẽ bằng bộ board-v5 của Codex (assets/board-v5/: bàn 832×832 lưới 13×13 ô 64px + ngựa 4 màu × 9 khung animation).
+// Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
-import { SEAT_COLORS, SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
+import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
+import { createHud } from "./hud.js";
 
-export const W = 720, H = 836;
-const N = 13, C = 52, BX = (W - N * C) / 2, BY = 84;   // ô 52px, bàn 676×676
+export const W = 832, H = 832;
+const N = 13, C = 64, BX = 0, BY = 0;   // canvas = đúng ảnh board-v5 (13×13 ô 64px); HUD nằm ngoài (hud.js)
 const PAL = {
   bg: "#11171c", panel: "rgba(14,18,22,.9)", ink: "#f4ead2", soft: "#b9ad93", edge: "#7a5152",
   wood: "#6b4a2e", woodDark: "#2a1a10", track: "#8f97ad", trackDark: "#4c536a", gold: "#ffc94a",
@@ -26,55 +27,47 @@ const STABLE = [
   [[6, 1], [6, 2], [6, 3], [6, 4]], [[1, 6], [2, 6], [3, 6], [4, 6]],
   [[6, 11], [6, 10], [6, 9], [6, 8]], [[11, 6], [10, 6], [9, 6], [8, 6]],
 ];
-const CORNER = [[0, 0], [0, 8], [8, 8], [8, 0]]; // Đỏ: trên-trái, Xanh lá: dưới-trái, Vàng: dưới-phải, Xanh dương: trên-phải
+const CORNER = [[0, 0], [0, 8], [8, 8], [8, 0]]; // ghế 0 trên-trái, 1 dưới-trái, 2 dưới-phải, 3 trên-phải
 const SLOT = [[1.4, 1.4], [3.6, 1.4], [1.4, 3.6], [3.6, 3.6]];
 
-// ---------- Asset thật ----------
-// board.webp (1280×960): khung bàn ở [165,5,950,950]. Ô trên ảnh KHÔNG chia đều tuyệt đối (nhánh dọc và
-// nhánh ngang lệch nhau vài px), nên dùng tâm ô đo trực tiếp trên ảnh cho từng nhánh (toạ độ ảnh gốc).
+// ---------- Asset thật: board-v5 (Codex, chủ dự án duyệt 2026-11-17) ----------
+// board-v5-grid.json: tâm ô = [col*64+32, row*64+32]. Màu nhánh trên ảnh, đi ngược chiều kim đồng hồ từ nhánh trên:
+// Đỏ (trên) → Xanh dương (trái) → Vàng (dưới) → Xanh lá (phải). logic.js đặt ghế 1 ở nhánh trái nên MÀU HIỂN THỊ
+// của từng ghế lấy theo ảnh: ghế 0 Đỏ, 1 Xanh dương, 2 Vàng, 3 Xanh lá (luật, thứ tự lượt không đổi).
+export const VIEW_COLORS = ["red", "blue", "yellow", "green"];
+export const FILE_COLOR = { red: "do", blue: "xanh-duong", green: "xanh-la", yellow: "vang" };
+const V5 = "assets/board-v5/";
 export const ART = {
-  board: { src: "assets/board.webp", crop: [165, 5, 950, 950], dst: [12, 74, 696] },
-  armX: [570.5, 640, 709.5],                 // cột 5,6,7 (nhánh trên/dưới)
-  topY: [88, 159, 231, 302, 368],            // hàng 0..4 (nhánh trên)
-  botY: [593, 661, 731, 801, 869],           // hàng 8..12 (nhánh dưới)
-  leftX: [247, 313, 379, 443, 507.5],        // cột 0..4 (nhánh trái)
-  rightX: [770, 835, 899, 965, 1033],        // cột 8..12 (nhánh phải)
-  sideY: [400, 472, 543],                    // hàng 5,6,7 (nhánh trái/phải)
-  // Khối chuồng xuất phát 4×4 ô trên ảnh: [x,y,w,h]. Màu góc trên ảnh: TL đỏ, TR xanh dương, BL vàng, BR xanh lá.
-  corner: { TL: [231, 63, 284, 288], TR: [765, 63, 284, 288], BL: [231, 603, 284, 284], BR: [765, 603, 284, 284] },
-  // Ảnh có góc xanh lá/vàng lệch so với nhánh cùng màu → ngựa trong chuồng đặt theo GÓC CÙNG MÀU trên ảnh.
-  seatCorner: ["TL", "BR", "BL", "TR"],      // ghế 0 Đỏ, 1 Xanh lá, 2 Vàng, 3 Xanh dương
-  horse: { src: "assets/quan-co.webp", red: [244, 56, 308, 384], blue: [724, 56, 308, 384], yellow: [244, 508, 308, 384], green: [724, 508, 308, 388] },
-  // xuc-xac.webp: xúc xắc isometric; mặt trên là hình thoi T-R-B-L (vẽ lại chấm theo mặt gieo được).
+  board: { src: V5 + "board-v5.webp", grid: V5 + "board-v5-grid.json" },
+  horse: { manifest: V5 + "animation-manifest.json", sheet: (c) => V5 + "ngua-" + FILE_COLOR[c] + "-animation.webp" },
   dice: { src: "assets/xuc-xac.webp", box: [304, 136, 672, 716], top: [[640, 160], [940, 327], [640, 503], [340, 327]] },
 };
-const AS = ART.board.dst[2] / ART.board.crop[2];
-const imgToScreen = (ix, iy) => ({ x: ART.board.dst[0] + (ix - ART.board.crop[0]) * AS, y: ART.board.dst[1] + (iy - ART.board.crop[1]) * AS });
-// Tâm ô [cột, hàng] trên ảnh board.webp (toạ độ ảnh gốc).
-export function cellImg([c, r]) {
-  if (c >= 5 && c <= 7) return { x: ART.armX[c - 5], y: r <= 4 ? ART.topY[r] : r >= 8 ? ART.botY[r - 8] : ART.sideY[r - 5] };
-  return { x: c <= 4 ? ART.leftX[c] : ART.rightX[c - 8], y: ART.sideY[r - 5] };
+// Chuồng xuất phát = khối 5×5 ô ở góc (CORNER); trong ảnh là cái lán 256×256 bắt đầu từ +32px. 4 ngựa đứng dưới mái lán.
+const HUT = 32, HUT_SIZE = 256;
+const SLOT_FEET = [[104, 206], [204, 206], [104, 270], [204, 270]]; // chân ngựa, toạ độ trong khối 5×5 (px)
+const FOOT = 22;                                                     // chân ngựa thấp hơn tâm ô 22px
+export { PATH, STABLE, CORNER };
+let GRID = { cellSize: C, origin: [0, 0] };
+// So board-v5-grid.json với đường đi/chuồng đích của game: trả về danh sách chỗ lệch (rỗng = khớp).
+export function gridMismatch(grid) {
+  const bad = [], same = (a, b) => a[0] === b.col && a[1] === b.row;
+  if (grid.cellSize !== C || grid.cols !== N || grid.rows !== N) bad.push("lưới " + grid.cols + "×" + grid.rows + " ô " + grid.cellSize);
+  VIEW_COLORS.forEach((c, s) => {
+    const st = grid.startCells.find((x) => x.color === FILE_COLOR[c]);
+    if (!st || !same(PATH[s * 11], st)) bad.push("ô xuất phát " + c);
+    const home = grid.homeCells.filter((x) => x.color === FILE_COLOR[c]);
+    STABLE[s].forEach((cell, k) => { if (!home.some((h) => same(cell, h))) bad.push("chuồng đích " + c + " bậc " + (k + 1)); });
+  });
+  return bad;
 }
-export function slotImg(seat, h) {
-  const [x, y, w, hh] = ART.corner[ART.seatCorner[seat]];
-  return { x: x + w * (h % 2 ? 0.72 : 0.28), y: y + hh * (h < 2 ? 0.3 : 0.74) };
-}
-export { PATH, STABLE };
-let useArt = false; // bật khi ảnh đã tải xong
-
-const cellXY = (cell) => {
-  if (useArt) { const q = cellImg(cell); return imgToScreen(q.x, q.y); }
-  const [c, r] = cell; return { x: BX + (c + 0.5) * C, y: BY + (r + 0.5) * C };
-};
-// Toạ độ màn hình của ngựa `h` ghế `seat` khi ở vị trí `pos`.
+const cellXY = ([c, r]) => ({ x: GRID.origin[0] + (c + 0.5) * GRID.cellSize, y: GRID.origin[1] + (r + 0.5) * GRID.cellSize });
+// Toạ độ màn hình (tâm "ô") của ngựa `h` ghế `seat` khi ở vị trí `pos`; chân ngựa = y + FOOT.
 function posXY(g, seat, h, pos) {
-  if (pos === BASE) {
-    if (useArt) { const q = slotImg(seat, h); return imgToScreen(q.x, q.y); }
-    const [cc, cr] = CORNER[seat], [sx, sy] = SLOT[h]; return { x: BX + (cc + sx) * C, y: BY + (cr + sy) * C };
-  }
+  if (pos === BASE) { const [cc, cr] = CORNER[seat], [fx, fy] = SLOT_FEET[h]; return { x: cc * C + fx, y: cr * C + fy - FOOT }; }
   if (isHome(g, pos)) return cellXY(STABLE[seat][stableLevel(g, pos) - 1]);
   return cellXY(PATH[(seat * 11 + pos) % 44]);
 }
+const loadJson = (src) => fetch(new URL(src, import.meta.url)).then((r) => { if (!r.ok) throw new Error("Không tải được " + src); return r.json(); });
 const loadImg = (src) => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error("Không tải được " + src)); i.src = new URL(src, import.meta.url).href; });
 const DICE_PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] };
 
@@ -114,26 +107,65 @@ function makeSfx(dir, names, sdk) {
   };
 }
 
+// Bục xếp hạng (buc-xep-hang-4-bac.webp 320×124, bậc 1 → 4 từ trái sang): tâm mặt bậc + vùng mặt trước để tô màu phường.
+const PODIUM = { src: "assets/buc-xep-hang-4-bac.webp", top: [[45, 4], [120, 22], [190, 40], [262, 58]], front: [[8, 30, 64, 92], [84, 48, 62, 74], [154, 66, 62, 56], [226, 84, 62, 38]] };
+const TRAY = { src: "assets/khay-xuc-xac.webp", grey: "assets/khay-xuc-xac-xam.webp" };
+
 export function mount(el, ctx = {}) {
   const sdk = ctx.sdk || {};
-  const players = [2, 3, 4].includes(ctx.localPlayers) ? ctx.localPlayers : 2;
-  let g = createGame({ players, seed: ctx.seed, rules: ctx.rules });
+  if (!sdk.sound) sdk.sound = { muted: false };
+  const homeHref = ctx.homeHref || "../../homepage/";
+  let players = [2, 3, 4].includes(ctx.localPlayers) ? ctx.localPlayers : 2;
+  let ruleKey = ctx.rules && ctx.rules.launchOn && ctx.rules.launchOn.includes(1) ? "16" : "6";
+  const rulesOf = () => ({ ...(ctx.rules || {}), launchOn: ruleKey === "16" ? [1, 6] : [6] });
+  let lobby = !!ctx.lobby;      // phòng chờ: chọn số người/luật trên chính bàn cờ, chưa nhận thao tác chơi
+  let g = createGame({ players, seed: ctx.seed, rules: rulesOf() });
   let paused = false, destroyed = false, raf = 0;
   // Hiệu ứng (chỉ phần vẽ, không ảnh hưởng logic):
   let diceAnim = null;      // { until, seat, face }
   let hop = null;           // { seat, horse, pts:[{x,y}], t0, kick }
-  let shownSeat = currentSeat(g), shownDice = null;
-  let msg = "Lượt " + SEAT_NAMES[SEAT_COLORS[shownSeat]] + ": chạm hoặc nhấn Space để gieo xúc xắc";
+  let kickFx = null;        // { seat, horse, x, y, t0 } — ngựa bị đá văng lên (khung "bi-da") trước khi về chuồng
+  let noMoveShow = null;    // { seat, face, until } — khay xám + ✕ trước khi xúc xắc sang người kế
+  let lastRoll = null;      // { seat, dice, noMove }
+  let stats = {};           // { [seat]: { kicks, sixes } } — cho bảng xếp hạng
+  let shownSeat = currentSeat(g), shownDice = null, msg = "";
   const pops = [];
   let autoAt = 0, autoFor = -1;
-  const art = { ready: false, board: null, horse: null, dice: null };
+  const art = { ready: false, board: null, horse: null, man: null, dice: null, tray: null, trayGrey: null, podium: null };
   const sfx = makeSfx("assets/sfx/", ["do-xuc-xac", "buoc-nhay", "da-quan", "ve-chuong", "thang"], sdk);
-  useArt = false;
-  Promise.all([loadImg(ART.board.src), loadImg(ART.horse.src), loadImg(ART.dice.src)]).then(([b, h, d]) => {
-    if (destroyed) return;
-    Object.assign(art, { ready: true, board: b, horse: h, dice: d });
-    useArt = true;
-  }).catch((e) => console.warn(e.message + " — dùng hình khối tạm"));
+  Promise.all([loadImg(ART.board.src), loadJson(ART.board.grid), loadJson(ART.horse.manifest), loadImg(ART.dice.src), ...VIEW_COLORS.map((c) => loadImg(ART.horse.sheet(c)))])
+    .then(([b, grid, man, d, ...sheets]) => {
+      if (destroyed) return;
+      const bad = gridMismatch(grid);
+      if (bad.length) console.warn("board-v5-grid.json lệch với đường đi của game: " + bad.join(", "));
+      GRID = grid;
+      const horse = {}; VIEW_COLORS.forEach((c, i) => (horse[c] = sheets[i]));
+      Object.assign(art, { ready: true, board: b, horse, man, dice: d });
+    }).catch((e) => console.warn(e.message + " — dùng hình khối tạm"));
+  // Asset UI/HUD: thiếu cái nào thì phần đó vẽ bằng hình khối, không chặn game.
+  loadImg(TRAY.src).then((i) => (art.tray = i)).catch((e) => console.warn(e.message));
+  loadImg(TRAY.grey).then((i) => (art.trayGrey = i)).catch((e) => console.warn(e.message));
+  loadImg(PODIUM.src).then((i) => (art.podium = i)).catch((e) => console.warn(e.message));
+
+  const colorOf = (seat) => VIEW_COLORS[seat];
+  const nameOf = (seat) => SEAT_NAMES[colorOf(seat)];
+  const hud = createHud(el, {
+    homeHref,
+    shareUrl: () => { const u = new URL(location.href); u.searchParams.set("players", players); if (ruleKey === "16") u.searchParams.set("rule", "16"); else u.searchParams.delete("rule"); return u.href; },
+    onPlayers(n) { if (lobby) { players = n; newGame(); } refocus(); },
+    onRule(k) { if (lobby) { ruleKey = k; newGame(); } refocus(); },
+    onPlay() { sfx.unlock(); lobby = false; newGame(); refocus(); },
+    onLobby() { lobby = true; paused = false; newGame(); },
+    onAgain() { sfx.unlock(); advanceOver(); refocus(); },
+    onMute() { sdk.sound.muted = !sdk.sound.muted; ctx.onMuteChange && ctx.onMuteChange(sdk.sound.muted); sfx.unlock(); refocus(); },
+    onPause() { setPaused(!paused); refocus(); },
+    onTray(s) {
+      sfx.unlock(); refocus();
+      if (lobby) return;
+      if (paused) { setPaused(false); return; }
+      if (s === currentSeat(g) && g.phase === "roll") doRoll();
+    },
+  });
 
   const canvas = document.createElement("canvas");
   canvas.className = "cn-canvas";
@@ -141,8 +173,9 @@ export function mount(el, ctx = {}) {
   canvas.setAttribute("aria-label", "Bàn Cờ Cá Ngựa");
   canvas.tabIndex = 0;
   canvas.style.cssText = "display:block;width:100%;height:auto;aspect-ratio:" + W + "/" + H + ";touch-action:manipulation;outline:none";
-  el.appendChild(canvas);
+  hud.boardEl.appendChild(canvas);
   const c2 = canvas.getContext("2d");
+  const refocus = () => canvas.focus({ preventScroll: true });
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const cssW = canvas.clientWidth || W;
@@ -154,28 +187,33 @@ export function mount(el, ctx = {}) {
   ro.observe(canvas);
   resize();
 
-  const busy = () => (diceAnim && performance.now() < diceAnim.until) || !!hop;
-  const colorOf = (seat) => SEAT_COLORS[seat];
-  const nameOf = (seat) => SEAT_NAMES[colorOf(seat)];
+  const busy = () => (diceAnim && performance.now() < diceAnim.until) || !!hop || (!!noMoveShow && performance.now() < noMoveShow.until);
+  function resetView() {
+    diceAnim = hop = kickFx = noMoveShow = lastRoll = null; autoAt = 0; autoFor = -1; pops.length = 0;
+    stats = {}; for (const s of g.seats) stats[s] = { kicks: 0, sixes: 0 };
+    shownSeat = currentSeat(g); shownDice = null;
+    msg = lobby ? "Phòng chờ — chọn số người, luật xuất ngựa rồi bấm CHƠI" : "Lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
+  }
+  function newGame() { g = createGame({ players, seed: ctx.seed, rules: rulesOf() }); resetView(); }
+  resetView();
 
   // ---------- Hành động ----------
   function doRoll() {
-    if (paused || busy() || g.phase !== "roll") return false;
+    if (lobby || paused || busy() || g.phase !== "roll") return false;
     const seat = currentSeat(g);
     roll(g);
     sfx.play("do-xuc-xac");
-    diceAnim = { until: performance.now() + 520, seat, face: g.dice };
+    diceAnim = { until: performance.now() + 620, seat, face: g.dice };
     shownSeat = seat;
     handleEvents();
     diceAnim.msg = msg; msg = nameOf(seat) + " đang gieo…"; // chưa lộ kết quả khi xúc xắc còn lăn
     return true;
   }
   function doMove(horse) {
-    if (paused || busy() || g.phase !== "move") return false;
+    if (lobby || paused || busy() || g.phase !== "move") return false;
     const seat = currentSeat(g), from = g.horses[seat][horse];
     const m = move(g, horse);
     if (!m) return false;
-    // Đường nhảy từng ô cho hoạt ảnh.
     const pts = [];
     if (m.kind === "launch") pts.push(posXY(g, seat, horse, BASE), posXY(g, seat, horse, 0));
     else for (let p = from; p <= m.to; p++) pts.push(posXY(g, seat, horse, p));
@@ -186,9 +224,10 @@ export function mount(el, ctx = {}) {
   function handleEvents() {
     for (const ev of drainEvents(g)) {
       const who = nameOf(ev.seat);
-      if (ev.type === "roll") msg = who + " gieo được " + ev.dice + (ev.options ? " — chọn ngựa để đi" : "");
-      if (ev.type === "noMove") msg = who + " gieo " + ev.dice + ": không đi được" + (g.rules.extraTurnOn.includes(ev.dice) ? ", được gieo thêm" : ", mất lượt");
-      if (ev.type === "kick") { msg = who + " đá ngựa " + nameOf(ev.victim) + " về chuồng!"; }
+      const st = stats[ev.seat] || (stats[ev.seat] = { kicks: 0, sixes: 0 });
+      if (ev.type === "roll") { lastRoll = { seat: ev.seat, dice: ev.dice, noMove: false }; if (ev.dice === 6) st.sixes++; msg = who + " gieo được " + ev.dice + (ev.options ? " — chọn ngựa để đi" : ""); }
+      if (ev.type === "noMove") { if (lastRoll) lastRoll.noMove = true; msg = who + " gieo " + ev.dice + ": không đi được" + (g.rules.extraTurnOn.includes(ev.dice) ? ", được gieo thêm" : ", mất lượt"); }
+      if (ev.type === "kick") { st.kicks++; msg = who + " đá ngựa " + nameOf(ev.victim) + " về chuồng!"; }
       if (ev.type === "move" && ev.kind === "enter") msg = who + " đưa ngựa vào chuồng đích (bậc " + (ev.to - g.rules.trackLen + 1) + ")";
       if (ev.type === "move" && ev.kind === "launch") msg = who + " xuất ngựa";
       if (ev.type === "extraTurn") msg += " · gieo thêm lượt";
@@ -196,13 +235,14 @@ export function mount(el, ctx = {}) {
     }
   }
   function advanceOver() {
-    if (g.phase !== "over" || busy()) return false;
+    if (lobby || g.phase !== "over" || busy()) return false;
     g = restart(g);
-    shownSeat = currentSeat(g); shownDice = null;
+    resetView();
     msg = "Ván mới — lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
     return true;
   }
   function primary() {
+    if (lobby) return;
     if (paused) { setPaused(false); return; }
     if (advanceOver()) return;
     if (g.phase === "roll") return doRoll();
@@ -214,6 +254,8 @@ export function mount(el, ctx = {}) {
     sfx.unlock();
     if (e.repeat) return;
     const k = e.code;
+    if ((k === "Space" || k === "Enter") && e.target && e.target.closest && e.target.closest("button,a,[role=button]")) return; // để nút tự xử lý
+    if (lobby) return;
     if (k === "KeyP" || k === "Escape") { setPaused(!paused); e.preventDefault(); return; }
     if (k === "Space" || k === "Enter") { e.preventDefault(); primary(); return; }
     const n = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3 }[k];
@@ -227,11 +269,11 @@ export function mount(el, ctx = {}) {
     sfx.unlock();
     canvas.focus({ preventScroll: true });
     e.preventDefault();
+    if (lobby) return;
     if (paused) { setPaused(false); return; }
     if (advanceOver()) return;
     const p = toLogic(e);
     if (g.phase === "move" && !busy()) {
-      // Chạm vào ngựa đi được, hoặc vào ô đích (chấm mờ) của nó.
       const seat = currentSeat(g);
       let best = null, bd = C * 0.75;
       for (const m of g.moves) for (const q of [posXY(g, seat, m.horse, m.from), posXY(g, seat, m.horse, m.to)]) {
@@ -243,7 +285,7 @@ export function mount(el, ctx = {}) {
     }
     if (g.phase === "roll") doRoll();
   }
-  function onVis() { if (document.hidden) setPaused(true); }
+  function onVis() { if (document.hidden && !lobby) setPaused(true); }
   window.addEventListener("keydown", onKey);
   canvas.addEventListener("pointerdown", onPointer);
   document.addEventListener("visibilitychange", onVis);
@@ -253,11 +295,13 @@ export function mount(el, ctx = {}) {
   function frame(now) {
     if (destroyed) return;
     raf = requestAnimationFrame(frame);
-    if (!paused) {
+    if (!paused && !lobby) {
       if (diceAnim && now >= diceAnim.until) {
         shownDice = diceAnim.face; msg = diceAnim.msg; diceAnim = null;
-        if (g.phase !== "move") shownSeat = currentSeat(g);
+        if (lastRoll && lastRoll.noMove) { noMoveShow = { seat: lastRoll.seat, face: lastRoll.dice, until: now + 900 }; shownSeat = lastRoll.seat; }
+        else if (g.phase !== "move") shownSeat = currentSeat(g);
       }
+      if (noMoveShow && now >= noMoveShow.until) { noMoveShow = null; shownSeat = currentSeat(g); }
       // Chỉ 1 lựa chọn (hoặc mọi lựa chọn đều là xuất ngựa giống nhau) → tự đi cho nhanh.
       if (!diceAnim && !hop && g.phase === "move" && autoFor !== g.rolls && (g.moves.length === 1 || g.moves.every((m) => m.kind === "launch"))) {
         autoFor = g.rolls; autoAt = now + 380;
@@ -269,6 +313,7 @@ export function mount(el, ctx = {}) {
         if (hop.kick) sfx.play("da-quan");
         if (hop.home) sfx.play("ve-chuong");
         if (hop.win) sfx.play("thang", 1, 0.3);
+        if (hop.kick) kickFx = { seat: hop.kick.seat, horse: hop.kick.horse, ...hop.pts[hop.pts.length - 1], t0: now };
         if (hop.kick) pops.push({ ...posXY(g, hop.seat, hop.horse, g.horses[hop.seat][hop.horse]), text: "ĐÁ!", t: now });
         hop = null;
         shownSeat = currentSeat(g);
@@ -277,8 +322,156 @@ export function mount(el, ctx = {}) {
     }
     while (pops.length && now - pops[0].t > 1100) pops.shift();
     draw(now);
+    const v = view(now);
+    hud.update(v);
+    hud.paintAvatars(paintAvatars);
+    paintTrays(now, v.tray);
+    if (v.over) paintPodium(now, v.over.order);
   }
   raf = requestAnimationFrame(frame);
+
+  // ---------- Dữ liệu cho HUD ----------
+  function trayView(now) {
+    if (lobby || g.phase === "over") return null;
+    if (diceAnim && now < diceAnim.until) return { seat: diceAnim.seat, state: "rolling" };
+    if (noMoveShow) return { seat: noMoveShow.seat, state: "nomove", face: noMoveShow.face };
+    if (hop) return { seat: hop.seat, state: "moving", face: shownDice };
+    const seat = currentSeat(g);
+    if (g.phase === "move") return { seat, state: "pick", face: shownDice };
+    if (lastRoll && lastRoll.seat === seat && g.rules.extraTurnOn.includes(lastRoll.dice)) return { seat, state: "again", face: lastRoll.dice };
+    return { seat, state: "ready", face: null };
+  }
+  const span = () => 4 * (g.rules.trackLen + g.rules.stableLen);
+  const progressOf = (s) => g.horses[s].reduce((a, p) => a + (p === BASE ? 0 : p + 1), 0) / span();
+  const homeOf = (s) => g.horses[s].filter((p) => isHome(g, p)).length;
+  function view(now) {
+    const tray = trayView(now);
+    const cards = [0, 1, 2, 3].map((s) => !g.seats.includes(s) ? null : {
+      home: homeOf(s), progress: Math.round(progressOf(s) * 100) / 100,
+      slots: g.horses[s].map((p) => (p === BASE ? "base" : isHome(g, p) ? "home" : "track")).sort((a, b) => "home track base".indexOf(a) - "home track base".indexOf(b)),
+    });
+    let over = null;
+    if (!lobby && g.phase === "over" && !hop) {
+      const order = g.seats.map((s) => ({ seat: s, home: homeOf(s), prog: progressOf(s), kicks: (stats[s] || {}).kicks || 0, sixes: (stats[s] || {}).sixes || 0 }))
+        .sort((a, b) => (b.seat === g.winner) - (a.seat === g.winner) || b.home - a.home || b.prog - a.prog);
+      over = { order };
+    }
+    return { lobby, players, rule: ruleKey, seats: g.seats, active: tray ? tray.seat : -1, cards, tray, msg, paused, muted: !!sdk.sound.muted, over };
+  }
+
+  // ---------- Vẽ HUD bằng asset: khay xúc xắc, đầu ngựa đại diện, bục xếp hạng ----------
+  function fitCanvas(cv) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), w = Math.round((cv.clientWidth || 1) * dpr), h = Math.round((cv.clientHeight || 1) * dpr);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    return [w, h];
+  }
+  function paintTrays(now, t) {
+    for (const s of g.seats) {
+      const cv = hud.trayCanvas(s);
+      if (!cv.clientWidth) continue;
+      const [w, h] = fitCanvas(cv), x = cv.getContext("2d");
+      x.clearRect(0, 0, w, h);
+      const on = t && t.seat === s, grey = on && t.state === "nomove";
+      const img = grey ? art.trayGrey : art.tray;
+      x.imageSmoothingEnabled = false;
+      if (img) x.drawImage(img, 0, 0, w, h);
+      else { x.fillStyle = grey ? "#555" : "#5a3a1e"; x.fillRect(0, 0, w, h); x.fillStyle = grey ? "#333" : "#2a1a10"; x.fillRect(w * 0.12, h * 0.12, w * 0.76, h * 0.76); }
+      if (!on) continue;
+      const rolling = t.state === "rolling";
+      const ready = t.state === "ready" || t.state === "again";
+      const face = rolling ? 1 + Math.floor((now / 70) % 6) : t.face;
+      const bob = ready ? Math.abs(Math.sin(now / 260)) * h * 0.05 : 0;
+      x.save();
+      if (grey) x.filter = "grayscale(1) brightness(.75)";
+      paintDice(x, w / 2, h * 0.52 - bob, h * 0.62, now, face, rolling);
+      x.restore();
+      if (grey) { // dấu ✕ pixel
+        x.save(); x.translate(w / 2, h / 2); x.rotate(Math.PI / 4); x.fillStyle = "#e0483d"; x.strokeStyle = "#000"; x.lineWidth = h * 0.02;
+        const a = h * 0.36, b = h * 0.07; for (const [rw, rh] of [[a, b], [b, a]]) { x.fillRect(-rw, -rh, rw * 2, rh * 2); x.strokeRect(-rw, -rh, rw * 2, rh * 2); }
+        x.restore();
+      }
+    }
+  }
+  // ---------- Ngựa board-v5: sheet 3×3 khung 64px (animation-manifest.json) ----------
+  const frameIdx = (name, t, ms) => { const a = art.man.animations[name]; return a[Math.floor(t / ms) % a.length]; };
+  // Vẽ khung `idx` của ngựa màu `color`, neo chân (anchor) tại (fx, fy), cao `size` px.
+  function drawSprite(x, color, idx, fx, fy, size, flip) {
+    const m = art.man, [fw, fh] = m.frameSize, cols = m.sheetSize[0] / fw, k = size / fh, [ax, ay] = m.anchor;
+    x.save(); x.translate(fx, fy); if (flip) x.scale(-1, 1);
+    x.imageSmoothingEnabled = false;
+    x.drawImage(art.horse[color], (idx % cols) * fw, Math.floor(idx / cols) * fh, fw, fh, -ax * k, -ay * k, fw * k, fh * k);
+    x.restore();
+  }
+  function paintAvatars(list) {
+    if (!art.ready) return false;
+    const m = art.man, [fw] = m.frameSize, cols = m.sheetSize[0] / fw, idx = m.animations["dung-yen"][0];
+    for (const cv of list) {
+      const s = Number(cv.closest("[data-seat]").dataset.seat), x = cv.getContext("2d");
+      x.clearRect(0, 0, cv.width, cv.height);
+      x.imageSmoothingEnabled = false;
+      // khung đầu ngựa (ngựa quay phải → đầu ở góc trên-phải khung đứng yên)
+      x.drawImage(art.horse[colorOf(s)], (idx % cols) * fw + 31, Math.floor(idx / cols) * fw + 9, 27, 27, 0, 0, cv.width, cv.height);
+    }
+    return true;
+  }
+  function paintPodium(now, order) {
+    const cv = hud.podiumCanvas();
+    if (!cv || !cv.clientWidth) return;
+    const x = cv.getContext("2d"), K = cv.width / 320, OY = 60; // bục cao 124, chừa 60 cho ngựa đứng trên
+    x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, cv.width, cv.height);
+    x.setTransform(K, 0, 0, K, 0, 0);
+    if (art.podium) {
+      const off = paintPodium.off || (paintPodium.off = document.createElement("canvas"));
+      off.width = 320; off.height = 124;
+      const o = off.getContext("2d");
+      o.drawImage(art.podium, 0, 0);
+      o.globalCompositeOperation = "source-atop"; o.globalAlpha = 0.55;
+      order.forEach((r, i) => { const [fx, fy, fw, fh] = PODIUM.front[i]; o.fillStyle = PAL[colorOf(r.seat)][0]; o.fillRect(fx, fy, fw, fh); });
+      o.globalCompositeOperation = "source-over"; o.globalAlpha = 1;
+      x.imageSmoothingEnabled = false; x.drawImage(off, 0, OY);
+    } else {
+      PODIUM.front.forEach(([fx, fy, fw, fh], i) => { x.fillStyle = order[i] ? PAL[colorOf(order[i].seat)][1] : "#333"; x.fillRect(fx, OY + fy - 26, fw, fh + 26); });
+    }
+    if (!art.ready) return;
+    order.forEach((r, i) => {
+      const [tx, ty] = PODIUM.top[i];
+      const idx = i === 0 ? frameIdx("mung-thang", now, 260) : art.man.animations["dung-yen"][Math.floor(now / 700 + i) % 2];
+      drawSprite(x, colorOf(r.seat), idx, tx, OY + ty + 18, i === 0 ? 84 : 68, false);
+    });
+  }
+
+  // Xúc xắc (asset xuc-xac.webp, mặt trên vẽ lại theo số gieo) — vẽ vào khay của người đang có lượt.
+  function paintDice(c, x0, y0, height, now, face, rolling) {
+    if (!art.ready) {
+      const s = height * 0.8;
+      c.save(); c.translate(x0, y0); if (rolling) c.rotate(Math.sin(now / 40) * 0.25);
+      c.fillStyle = "#fbf6ea"; c.fillRect(-s / 2, -s / 2, s, s); c.lineWidth = s * 0.06; c.strokeStyle = "#2a1a10"; c.strokeRect(-s / 2, -s / 2, s, s);
+      if (face) { c.fillStyle = "#1d1d1d"; for (const [px, py] of DICE_PIPS[face]) { c.beginPath(); c.arc(px * s * 0.27, py * s * 0.27, s * 0.09, 0, Math.PI * 2); c.fill(); } }
+      c.restore(); return;
+    }
+    const D = ART.dice, [bx, by, bw, bh] = D.box, k = height / bh;
+    c.save(); c.translate(x0, y0);
+    if (rolling) { c.rotate(Math.sin(now / 40) * 0.3); c.translate(0, -Math.abs(Math.sin(now / 60)) * height * 0.08); }
+    c.beginPath(); c.ellipse(0, height / 2 - height * 0.04, bw * k * 0.42, height * 0.08, 0, 0, Math.PI * 2); c.fillStyle = "rgba(0,0,0,.35)"; c.fill();
+    c.scale(k, k); c.translate(-(bx + bw / 2), -(by + bh / 2));
+    c.imageSmoothingEnabled = true; c.imageSmoothingQuality = "high";
+    c.drawImage(art.dice, 0, 0);
+    if (face) {
+      const [T, R, B, L] = D.top, cx = (T[0] + B[0]) / 2, cy = (T[1] + B[1]) / 2, sh = 0.93;
+      const P = (p) => [cx + (p[0] - cx) * sh, cy + (p[1] - cy) * sh];
+      const t = P(T), r = P(R), b = P(B), l = P(L);
+      c.beginPath(); c.moveTo(...t); c.lineTo(...r); c.lineTo(...b); c.lineTo(...l); c.closePath();
+      c.fillStyle = "#e1bc87"; c.fill();
+      c.beginPath(); c.moveTo(...t); c.lineTo((t[0] + r[0]) / 2, (t[1] + r[1]) / 2); c.lineTo((l[0] + b[0]) / 2, (l[1] + b[1]) / 2); c.lineTo(...l); c.closePath();
+      c.fillStyle = "#fcefbf"; c.fill();
+      c.save();
+      c.transform((R[0] - T[0]) / 2, (R[1] - T[1]) / 2, (L[0] - T[0]) / 2, (L[1] - T[1]) / 2, cx, cy);
+      c.fillStyle = "#120b08";
+      for (const [u, v] of DICE_PIPS[face]) c.fillRect(u * 0.48 - 0.15, v * 0.48 - 0.15, 0.3, 0.3);
+      c.restore();
+    }
+    c.restore();
+  }
 
   // ---------- Vẽ (hình khối tạm) ----------
   function rect(c, r, w, h, fill, stroke) {
@@ -296,7 +489,7 @@ export function mount(el, ctx = {}) {
       const [cc, cr] = CORNER[s], [col, dark, light] = PAL[colorOf(s)];
       const active = g.seats.includes(s);
       rect(cc, cr, 5, 5, active ? col : "#3a4048", active ? dark : "#22272d");
-      const glow = active && s === shownSeat && g.phase !== "over";
+      const glow = active && !lobby && s === shownSeat && g.phase !== "over";
       c2.fillStyle = active ? dark : "#2a2f36";
       c2.fillRect(BX + (cc + 0.5) * C, BY + (cr + 0.5) * C, 4 * C, 4 * C);
       for (const [sx, sy] of SLOT) {
@@ -341,8 +534,8 @@ export function mount(el, ctx = {}) {
       c2.fillStyle = PAL[colorOf(s)][0]; c2.fill(); c2.strokeStyle = "#1a2229"; c2.lineWidth = 2; c2.stroke();
     });
   }
-  function drawHorse(seat, h, x, y, ring) {
-    if (art.ready) return drawHorseArt(seat, h, x, y, ring);
+  function drawHorse(seat, h, x, y, ring, pose) {
+    if (art.ready) return drawHorseArt(seat, h, x, y, ring, pose);
     const [col, dark, light] = PAL[colorOf(seat)];
     c2.beginPath(); c2.ellipse(x, y + C * 0.28, C * 0.3, C * 0.1, 0, 0, Math.PI * 2); c2.fillStyle = "rgba(0,0,0,.35)"; c2.fill();
     c2.beginPath(); c2.arc(x, y, C * 0.34, 0, Math.PI * 2);
@@ -361,6 +554,7 @@ export function mount(el, ctx = {}) {
     }
     for (const s of g.seats) g.horses[s].forEach((pos, h) => {
       if (hop && hop.seat === s && hop.horse === h) return;
+      if (kickFx && kickFx.seat === s && kickFx.horse === h) return;
       // Ngựa bị đá: vẫn đứng ở ô cũ cho tới khi ngựa kia nhảy tới.
       let q = posXY(g, s, h, pos);
       if (hop && hop.kick && hop.kick.seat === s && hop.kick.horse === h) q = hop.pts[hop.pts.length - 1];
@@ -369,140 +563,76 @@ export function mount(el, ctx = {}) {
     if (hop) {
       const t = Math.max(0, now - hop.t0) / 110, i = Math.min(Math.floor(t), hop.pts.length - 1), f = Math.min(t - i, 1);
       const a = hop.pts[i], b = hop.pts[Math.min(i + 1, hop.pts.length - 1)];
-      drawHorse(hop.seat, hop.horse, a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f - Math.sin(f * Math.PI) * 12, 0);
+      const nh = art.ready ? art.man.animations.nhay : [];
+      drawHorse(hop.seat, hop.horse, a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f - Math.sin(f * Math.PI) * 12, 0,
+        art.ready ? { idx: nh[Math.min(Math.floor(f * nh.length), nh.length - 1)], flip: b.x < a.x - 1 } : null);
+    }
+    // ngựa bị đá: khung "bi-da", văng lên rồi mờ dần (~0,7 giây), sau đó hiện lại trong chuồng
+    if (kickFx) {
+      const k = (now - kickFx.t0) / 700;
+      if (k >= 1 || !art.ready) kickFx = null;
+      else drawHorse(kickFx.seat, kickFx.horse, kickFx.x + k * 18, kickFx.y, 0, { idx: frameIdx("bi-da", now - kickFx.t0, 140), lift: Math.round(Math.sin(k * Math.PI) * 26), alpha: 1 - k * k });
     }
   }
   // ---------- Vẽ bằng asset thật ----------
-  function imgRect([x, y, w, h], pad = 0) { const a = imgToScreen(x, y); return [a.x - pad, a.y - pad, w * AS + 2 * pad, h * AS + 2 * pad]; }
   function drawBoardArt(now) {
-    const [sx, sy, sw] = ART.board.crop, [dx, dy, dw] = ART.board.dst;
-    c2.imageSmoothingEnabled = true; c2.imageSmoothingQuality = "high";
-    c2.drawImage(art.board, sx, sy, sw, sw, dx, dy, dw, dw);
+    c2.imageSmoothingEnabled = false;
+    c2.drawImage(art.board, 0, 0, W, H);
     for (let s = 0; s < 4; s++) {
-      const r = imgRect(ART.corner[ART.seatCorner[s]]);
-      if (!g.seats.includes(s)) { c2.fillStyle = "rgba(12,14,18,.68)"; c2.fillRect(...r); continue; }
-      // ô xuất phát: tô nhạt màu của ghế + "XP" để biết ngựa ra ô nào
-      const q = cellXY(PATH[s * 11]), cs = 44;
-      c2.fillStyle = PAL[colorOf(s)][0]; c2.globalAlpha = 0.55; c2.fillRect(q.x - cs / 2, q.y - cs / 2, cs, cs); c2.globalAlpha = 1;
-      c2.strokeStyle = PAL[colorOf(s)][2]; c2.lineWidth = 3; c2.strokeRect(q.x - cs / 2, q.y - cs / 2, cs, cs);
-      c2.fillStyle = "#fff"; c2.font = "800 12px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText("XP", q.x, q.y + 1);
-      if (s === shownSeat && g.phase !== "over") {
-        c2.strokeStyle = PAL.gold; c2.lineWidth = 4 + 2 * Math.sin(now / 180); c2.strokeRect(...imgRect(ART.corner[ART.seatCorner[s]], 6));
+      const [cc, cr] = CORNER[s], r = [cc * C + HUT, cr * C + HUT, HUT_SIZE, HUT_SIZE];
+      if (!g.seats.includes(s)) { c2.fillStyle = "rgba(12,14,18,.7)"; c2.fillRect(...r); continue; }
+      if (!lobby && s === shownSeat && g.phase !== "over") {
+        const p = 4 + Math.round(2 * Math.sin(now / 180));
+        c2.fillStyle = PAL.gold;  // viền vàng pixel (4 cạnh, góc cắt bậc)
+        c2.fillRect(r[0] - p, r[1] - p - 4, r[2] + 2 * p, 4); c2.fillRect(r[0] - p, r[1] + r[3] + p, r[2] + 2 * p, 4);
+        c2.fillRect(r[0] - p - 4, r[1] - p, 4, r[3] + 2 * p); c2.fillRect(r[0] + r[2] + p, r[1] - p, 4, r[3] + 2 * p);
       }
     }
   }
-  function drawHorseArt(seat, h, x, y, ring) {
-    const [bx, by, bw, bh] = ART.horse[colorOf(seat)];
-    const hh = 52, ww = hh * bw / bh, foot = y + 16;
-    const bob = ring ? Math.abs(Math.sin(ring / 160)) * 4 : 0;
-    c2.beginPath(); c2.ellipse(x, foot, 17, 6, 0, 0, Math.PI * 2); c2.fillStyle = "rgba(0,0,0,.4)"; c2.fill();
-    if (ring) { c2.beginPath(); c2.ellipse(x, foot, 23, 9, 0, 0, Math.PI * 2); c2.strokeStyle = PAL.gold; c2.lineWidth = 3; c2.setLineDash([6, 4]); c2.lineDashOffset = -ring / 40; c2.stroke(); c2.setLineDash([]); }
-    c2.imageSmoothingEnabled = true; c2.imageSmoothingQuality = "high";
-    c2.drawImage(art.horse, bx, by, bw, bh, x - ww / 2, foot - hh - bob, ww, hh);
+  // pose: { idx, flip, lift, alpha } — mặc định đứng yên (2 khung "dung-yen" lệch nhịp theo từng con), thắng thì "mung-thang".
+  function drawHorseArt(seat, h, x, y, ring, pose) {
+    const foot = y + FOOT, now = performance.now();
+    const bob = ring ? Math.round(Math.abs(Math.sin(ring / 160)) * 4) : 0;
+    let idx = pose && pose.idx != null ? pose.idx : art.man.animations["dung-yen"][Math.floor(now / 650 + seat * 0.37 + h * 0.61) % 2];
+    if (!pose && g.phase === "over" && g.winner === seat) idx = frameIdx("mung-thang", now + h * 130, 260);
+    c2.globalAlpha = pose && pose.alpha != null ? pose.alpha : 1;
+    if (!pose || !pose.lift) { c2.beginPath(); c2.ellipse(x, foot, 24, 7, 0, 0, Math.PI * 2); c2.fillStyle = "rgba(0,0,0,.38)"; c2.fill(); }
+    if (ring) { c2.beginPath(); c2.ellipse(x, foot, 30, 10, 0, 0, Math.PI * 2); c2.strokeStyle = PAL.gold; c2.lineWidth = 3; c2.setLineDash([6, 4]); c2.lineDashOffset = -ring / 40; c2.stroke(); c2.setLineDash([]); }
+    // khung 64px: thân ngựa ~48×40, chân ở y≈52 (anchor manifest = 60) → vẽ 80px, hạ 10px cho chân chạm bóng
+    drawSprite(c2, colorOf(seat), idx, x, foot + 10 - bob - (pose && pose.lift || 0), 80, pose && pose.flip);
+    c2.globalAlpha = 1;
+    if (pose && pose.lift) return;
     // số ngựa (1–4) để chọn bằng phím
-    const nx = x + ww / 2 - 3, ny = foot - 6 - bob;
-    c2.beginPath(); c2.arc(nx, ny, 8, 0, Math.PI * 2); c2.fillStyle = "#14181c"; c2.fill(); c2.lineWidth = 2; c2.strokeStyle = ring ? PAL.gold : PAL[colorOf(seat)][2]; c2.stroke();
-    c2.fillStyle = "#fff"; c2.font = "800 11px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText(String(h + 1), nx, ny + 1);
-  }
-  function drawDiceArt(now) {
-    const D = ART.dice, [bx, by, bw, bh] = D.box;
-    const c0 = imgToScreen(640, 478), k = 92 / bh;           // xúc xắc cao 92px giữa bàn
-    const rolling = diceAnim && now < diceAnim.until;
-    const face = rolling ? 1 + Math.floor((now / 70) % 6) : shownDice;
-    const ready = g.phase === "roll" && !busy() && !paused;
-    c2.save(); c2.translate(c0.x, c0.y);
-    if (rolling) { c2.rotate(Math.sin(now / 40) * 0.3); c2.translate(0, -Math.abs(Math.sin(now / 60)) * 8); }
-    if (ready) { c2.beginPath(); c2.arc(0, 0, 50 + 3 * Math.sin(now / 200), 0, Math.PI * 2); c2.fillStyle = "rgba(255,201,74,.28)"; c2.fill(); }
-    c2.beginPath(); c2.ellipse(0, bh * k / 2 - 4, bw * k * 0.42, 8, 0, 0, Math.PI * 2); c2.fillStyle = "rgba(0,0,0,.35)"; c2.fill();
-    c2.scale(k, k); c2.translate(-(bx + bw / 2), -(by + bh / 2));
-    c2.imageSmoothingEnabled = true; c2.imageSmoothingQuality = "high";
-    c2.drawImage(art.dice, 0, 0);
-    if (face) {
-      // vẽ lại mặt trên theo số gieo được: tô mặt 2 tông như ảnh, rồi chấm vuông theo phối cảnh hình thoi
-      const [T, R, B, L] = D.top, cx = (T[0] + B[0]) / 2, cy = (T[1] + B[1]) / 2, sh = 0.93;
-      const P = (p) => [cx + (p[0] - cx) * sh, cy + (p[1] - cy) * sh];
-      const t = P(T), r = P(R), b = P(B), l = P(L);
-      c2.beginPath(); c2.moveTo(...t); c2.lineTo(...r); c2.lineTo(...b); c2.lineTo(...l); c2.closePath();
-      c2.fillStyle = "#e1bc87"; c2.fill();
-      c2.beginPath(); c2.moveTo(...t); c2.lineTo((t[0] + r[0]) / 2, (t[1] + r[1]) / 2); c2.lineTo((l[0] + b[0]) / 2, (l[1] + b[1]) / 2); c2.lineTo(...l); c2.closePath();
-      c2.fillStyle = "#fcefbf"; c2.fill();
-      c2.save();
-      c2.transform((R[0] - T[0]) / 2, (R[1] - T[1]) / 2, (L[0] - T[0]) / 2, (L[1] - T[1]) / 2, cx, cy);
-      c2.fillStyle = "#120b08";
-      for (const [u, v] of DICE_PIPS[face]) c2.fillRect(u * 0.48 - 0.15, v * 0.48 - 0.15, 0.3, 0.3);
-      c2.restore();
-    }
-    c2.restore();
-    if (!face && ready) { c2.fillStyle = "#fff"; c2.strokeStyle = "#2a1a10"; c2.lineWidth = 4; c2.font = "800 14px system-ui"; c2.textAlign = "center"; c2.strokeText("GIEO", c0.x, c0.y + 58); c2.fillText("GIEO", c0.x, c0.y + 58); }
-  }
-  function drawDice(now) {
-    const cx = BX + 6.5 * C, cy = BY + 6.5 * C, s = C * 1.5;
-    const rolling = diceAnim && now < diceAnim.until;
-    const face = rolling ? 1 + Math.floor((now / 70) % 6) : shownDice;
-    const seat = rolling ? diceAnim.seat : shownSeat;
-    const ready = g.phase === "roll" && !busy() && !paused;
-    c2.save(); c2.translate(cx, cy); if (rolling) c2.rotate(Math.sin(now / 40) * 0.25);
-    c2.fillStyle = "rgba(0,0,0,.4)"; c2.fillRect(-s / 2 + 4, -s / 2 + 6, s, s);
-    c2.fillStyle = "#fbf6ea"; c2.fillRect(-s / 2, -s / 2, s, s);
-    c2.lineWidth = 4; c2.strokeStyle = ready ? PAL.gold : PAL[colorOf(seat)][1]; c2.strokeRect(-s / 2, -s / 2, s, s);
-    if (face) {
-      const P = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }[face];
-      c2.fillStyle = face === 1 || face === 6 ? "#c22f26" : "#1d1d1d";
-      for (const [px, py] of P) { c2.beginPath(); c2.arc(px * s * 0.27, py * s * 0.27, s * 0.09, 0, Math.PI * 2); c2.fill(); }
-    } else {
-      c2.fillStyle = "#3a2508"; c2.font = "800 15px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText("GIEO", 0, 1);
-    }
-    c2.restore();
-  }
-  function hud() {
-    c2.fillStyle = PAL.panel; c2.fillRect(0, 0, W, 64);
-    c2.fillStyle = PAL.edge; c2.fillRect(0, 64, W, 2);
-    // chip từng người: màu + số ngựa đã vào chuồng đích
-    const n = g.seats.length, cw = Math.min(170, (W - 24) / n);
-    g.seats.forEach((s, i) => {
-      const x = 12 + i * cw, on = s === shownSeat && g.phase !== "over";
-      const [col, dark] = PAL[colorOf(s)];
-      c2.fillStyle = on ? col : "rgba(255,255,255,.06)"; c2.fillRect(x, 10, cw - 8, 44);
-      c2.strokeStyle = on ? PAL.gold : dark; c2.lineWidth = on ? 3 : 2; c2.strokeRect(x, 10, cw - 8, 44);
-      c2.beginPath(); c2.arc(x + 20, 32, 9, 0, Math.PI * 2); c2.fillStyle = on ? "#fff" : col; c2.fill();
-      const home = g.horses[s].filter((p) => isHome(g, p)).length;
-      c2.textAlign = "left"; c2.textBaseline = "middle"; c2.fillStyle = on ? "#14181c" : PAL.ink;
-      c2.font = "700 16px 'Be Vietnam Pro', system-ui"; c2.fillText(nameOf(s), x + 36, 25);
-      c2.font = "600 13px 'Be Vietnam Pro', system-ui"; c2.fillText("Về đích " + home + "/4", x + 36, 43);
-    });
-    // dòng thông báo dưới bàn
-    const y = BY + N * C + 16;
-    c2.fillStyle = PAL.panel; c2.fillRect(0, y, W, H - y);
-    c2.fillStyle = PAL.ink; c2.font = "600 17px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
-    c2.fillText(msg, W / 2, y + (H - y) / 2, W - 24);
+    const nx = x + 27, ny = foot - 4 - bob;
+    c2.beginPath(); c2.arc(nx, ny, 9, 0, Math.PI * 2); c2.fillStyle = "#14181c"; c2.fill(); c2.lineWidth = 2; c2.strokeStyle = ring ? PAL.gold : PAL[colorOf(seat)][2]; c2.stroke();
+    c2.fillStyle = "#fff"; c2.font = "800 12px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle"; c2.fillText(String(h + 1), nx, ny + 1);
   }
   function overlay(title, lines, color) {
     c2.fillStyle = "rgba(8,11,13,.62)"; c2.fillRect(0, 0, W, H);
-    const bw = 560, bh = 96 + lines.length * 30, bx = (W - bw) / 2, by = (H - bh) / 2;
-    c2.fillStyle = "#080b0d"; c2.fillRect(bx + 4, by + 6, bw, bh);
-    c2.fillStyle = "#1a2229"; c2.fillRect(bx, by, bw, bh);
-    c2.strokeStyle = PAL.edge; c2.lineWidth = 4; c2.strokeRect(bx, by, bw, bh);
+    const bw = 460, bh = 84 + lines.length * 30, bx = (W - bw) / 2, by = (H - bh) / 2;
+    c2.fillStyle = "rgba(0,0,0,.6)"; c2.fillRect(bx + 6, by + 9, bw, bh);       // bóng cứng
+    c2.fillStyle = "#000"; c2.fillRect(bx - 3, by, bw + 6, bh); c2.fillRect(bx, by - 3, bw, bh + 6); // viền góc cắt bậc
+    c2.fillStyle = "#1d1a16"; c2.fillRect(bx, by, bw, bh);
+    c2.fillStyle = "rgba(255,255,255,.13)"; c2.fillRect(bx, by, bw, 2);
     c2.textAlign = "center"; c2.textBaseline = "middle";
-    c2.fillStyle = color; c2.font = "800 34px 'Roboto Slab', Georgia, serif"; c2.fillText(title, W / 2, by + 46);
-    c2.font = "600 18px 'Be Vietnam Pro', system-ui";
-    lines.forEach((l, i) => { c2.fillStyle = i === lines.length - 1 ? PAL.gold : PAL.ink; c2.fillText(l, W / 2, by + 92 + i * 30); });
+    c2.font = "800 30px 'Be Vietnam Pro', system-ui"; c2.fillStyle = "#000"; c2.fillText(title.toUpperCase(), W / 2 + 2, by + 44);
+    c2.fillStyle = color; c2.fillText(title.toUpperCase(), W / 2, by + 42);
+    c2.font = "600 17px 'Be Vietnam Pro', system-ui";
+    lines.forEach((l, i) => { c2.fillStyle = PAL.soft; c2.fillText(l, W / 2, by + 86 + i * 30); });
   }
   function draw(now) {
     c2.fillStyle = PAL.bg; c2.fillRect(0, 0, W, H);
-    if (art.ready) { drawBoardArt(now); drawDiceArt(now); } else { drawBoard(now); drawDice(now); }
+    if (art.ready) drawBoardArt(now); else drawBoard(now);
     drawHorses(now);
     for (const p of pops) {
       const k = (now - p.t) / 1100;
       c2.globalAlpha = Math.max(0, 1 - k);
-      c2.fillStyle = "#fff"; c2.strokeStyle = "#7a1c17"; c2.lineWidth = 5; c2.font = "800 26px 'Roboto Slab', Georgia, serif"; c2.textAlign = "center";
+      c2.fillStyle = "#fff"; c2.strokeStyle = "#7a1c17"; c2.lineWidth = 5; c2.font = "800 26px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center";
       c2.strokeText(p.text, p.x, p.y - 30 - k * 30); c2.fillText(p.text, p.x, p.y - 30 - k * 30);
       c2.globalAlpha = 1;
     }
-    hud();
-    if (g.phase === "over" && !hop) {
-      const order = g.seats.map((s) => [s, g.horses[s].filter((p) => isHome(g, p)).length]).sort((a, b) => b[1] - a[1]);
-      overlay(nameOf(g.winner) + " thắng!", [order.map(([s, n]) => nameOf(s) + " " + n + "/4").join(" · "), "Sau " + g.rolls + " lượt gieo", "Nhấn Space hoặc chạm để chơi ván mới"], PAL[colorOf(g.winner)][2]);
-    } else if (paused) overlay("Tạm dừng", ["Nhấn P hoặc chạm để chơi tiếp"], PAL.ink);
+    if (lobby) { c2.fillStyle = "rgba(8,11,13,.25)"; c2.fillRect(0, 0, W, H); }
+    else if (paused && g.phase !== "over") overlay("Tạm dừng", ["Nhấn P hoặc chạm để chơi tiếp"], PAL.ink);
   }
 
   const inst = {
@@ -513,18 +643,21 @@ export function mount(el, ctx = {}) {
       window.removeEventListener("keydown", onKey);
       canvas.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("visibilitychange", onVis);
-      canvas.remove();
+      hud.destroy();
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return g; },
-    set state(v) { g = v; shownSeat = currentSeat(g); shownDice = g.dice; autoAt = 0; autoFor = -1; },
+    set state(v) { g = v; kickFx = null; shownSeat = currentSeat(g); shownDice = g.dice; autoAt = 0; autoFor = -1; noMoveShow = null; msg = "Lượt " + nameOf(shownSeat) + (g.phase === "move" ? ": chọn ngựa" : ": gieo xúc xắc"); for (const s of g.seats) stats[s] = stats[s] || { kicks: 0, sixes: 0 }; },
     get paused() { return paused; },
+    get lobby() { return lobby; },
     get busy() { return busy() || !!autoAt; },
     get artReady() { return art.ready; },
+    get hudArtReady() { return !!(art.tray && art.trayGrey && art.podium); },
     get sfx() { return { loaded: sfx.loaded, state: sfx.state, log: sfx.log.slice() }; },
-    // Toạ độ CSS (so với canvas) của ngựa / xúc xắc — để test bấm chuột/chạm thật.
+    // Toạ độ CSS của ngựa (seat, h) — hoặc của khay xúc xắc người đang có lượt (h = null) — để test bấm/chạm thật.
     screenOf(seat, h) {
-      const q = h == null ? (art.ready ? imgToScreen(640, 478) : { x: BX + 6.5 * C, y: BY + 6.5 * C }) : posXY(g, seat, h, g.horses[seat][h]);
+      if (h == null) { const r = hud.trayRect(currentSeat(g)); if (r.width) return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+      const q = h == null ? { x: W / 2, y: H / 2 } : posXY(g, seat, h, g.horses[seat][h]);
       const r = canvas.getBoundingClientRect();
       return { x: r.left + q.x * r.width / W, y: r.top + q.y * r.height / H };
     },
