@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nối Thú — Lụm Kèo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%232b1d14%22/%3E%3Crect x=%221%22 y=%221%22 width=%2214%22 height=%2214%22 fill=%22%23efe2c2%22/%3E%3Crect x=%224%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%232b1d14%22/%3E%3Crect x=%2210%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%232b1d14%22/%3E%3Crect x=%226%22 y=%2210%22 width=%224%22 height=%222%22 fill=%22%23d9576b%22/%3E%3C/svg%3E" />
+  <style>
+    /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Đào Vàng / Cờ Cá Ngựa: viền 3px góc khuyết (box-shadow),
+       vát 2px, bóng cứng lệch, không bo tròn, không mờ. Vàng CHỈ cho nút chính + ô đang chọn. */
+    :root { --bg: #11171c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
+      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
+      --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #2f8f7f; --teal-l: #6fd0bb; --teal-d: #0f3a33; --red: #e0483d;
+      --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
+      --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
+      --drop: 4px 7px 0 0 var(--shadow), 7px 4px 0 0 var(--shadow); }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+      display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #0c1014; box-shadow: inset 0 -3px 0 #000; }
+    .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
+    .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
+    .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+    .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
+
+    .wrap { flex: 1; min-height: 0; width: 100%; max-width: 1280px; margin: 0 auto; padding: 14px 16px 16px;
+      display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; grid-template-areas: "hud tools" "stage stage"; gap: 14px 14px; }
+    /* TẦNG 2 — thanh tiến độ: màn, điểm, đồng hồ */
+    .hud { grid-area: hud; display: flex; align-items: center; gap: 12px; padding: 8px 12px; margin: 3px;
+      background: var(--panel); box-shadow: var(--bevel), var(--border); min-width: 0; }
+    .stat { display: grid; line-height: 1.1; flex: none; }
+    .stat small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+    .stat b { font: 800 20px "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; }
+    .stat .grav { color: var(--teal-l); }
+    .sep { width: 3px; align-self: stretch; background: var(--line); flex: none; }
+    .time { flex: 1; min-width: 90px; display: grid; gap: 4px; }
+    .time .row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+    .time .row b { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+    .px-bar { height: 14px; background: #0d0b09; box-shadow: 0 0 0 3px var(--line); position: relative; overflow: hidden; }
+    .px-bar i { position: absolute; inset: 0 auto 0 0; background: var(--teal); box-shadow: inset 0 3px 0 var(--teal-l), inset 0 -3px 0 var(--teal-d); }
+    .px-bar.low i { background: var(--red); box-shadow: inset 0 3px 0 #ff8f84, inset 0 -3px 0 #7a1c17; animation: blink 1s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: .55; } }
+    .combo { position: absolute; font: 800 13px "Be Vietnam Pro"; color: var(--teal-l); text-shadow: 2px 2px 0 #000; }
+
+    /* TẦNG 3 — công cụ: gợi ý, đảo, tạm dừng, âm thanh */
+    .tools { grid-area: tools; display: flex; gap: 14px; align-items: center; margin: 3px 7px 3px 3px; }
+    .btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 44px; padding: 8px 14px; font: 800 14px/1 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); position: relative; user-select: none; }
+    .btn:hover { background: #30281f; }
+    .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
+    .btn:active, .btn.is-down { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; }
+    .btn[disabled]:active { transform: none; }
+    .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
+    .btn--icon { padding: 8px 12px; }
+    .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
+    .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
+    .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
+    .count { min-width: 22px; padding: 2px 5px; font-size: 12px; background: var(--teal-d); color: var(--teal-l); box-shadow: 0 0 0 2px var(--line); text-align: center; }
+    .btn[disabled] .count { background: #2a241d; color: var(--dim); }
+    .kb { color: var(--soft); font-weight: 700; font-size: 11px; }
+
+    /* TẦNG 1 — bàn chơi */
+    .stage { grid-area: stage; position: relative; min-height: 0; }
+    .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: manipulation; outline: none; }
+    .ov { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(10, 8, 7, .72); z-index: 2; overflow: auto; }
+    .card { width: min(560px, 100%); padding: 22px 24px 26px; background: var(--panel); box-shadow: var(--bevel), var(--border), var(--drop); text-align: center; margin: 3px 7px 7px 3px; }
+    .card h2 { margin: 0 0 6px; font: 800 30px/1.15 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase; text-shadow: 3px 3px 0 #000; }
+    .card .sub { margin: 0; color: var(--soft); }
+    .how { margin: 16px 0 4px; padding: 12px 14px; display: grid; gap: 8px; text-align: left; background: var(--panel2); box-shadow: var(--border); font-size: 14px; color: var(--soft); }
+    .how b { color: var(--ink); }
+    .how li { margin-left: -6px; }
+    .how ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+    .actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .result { display: grid; grid-template-columns: 1fr auto; gap: 4px 18px; max-width: 320px; margin: 14px auto 0; text-align: left; color: var(--soft); }
+    .result b { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+    .result .total { color: var(--ink); font-weight: 800; padding-top: 6px; border-top: 3px solid var(--line); }
+    .result .total + b { padding-top: 6px; border-top: 3px solid var(--line); font-size: 18px; }
+    .record { display: inline-block; margin-top: 10px; padding: 3px 10px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      background: var(--teal-d); color: var(--teal-l); box-shadow: 0 0 0 3px var(--line); }
+    .best { margin-top: 12px; font-size: 13px; color: var(--soft); }
+    .lvls { display: flex; gap: 6px; justify-content: center; margin-top: 12px; }
+    .lvls i { width: 14px; height: 14px; background: #2a241d; box-shadow: 0 0 0 2px var(--line); }
+    .lvls i.on { background: var(--teal); box-shadow: 0 0 0 2px var(--line), inset 0 2px 0 var(--teal-l); }
+
+    @media (max-width: 760px), (max-aspect-ratio: 1/1) {
+      .tag { display: none; }
+      .wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; grid-template-areas: "hud" "stage" "tools"; padding: 8px 10px 12px; gap: 8px; }
+      .hud { gap: 9px; padding: 6px 9px; flex-wrap: wrap; }
+      .stat b { font-size: 17px; }
+      .time { flex-basis: 100%; order: 9; }
+      .hud .sep:last-of-type { display: none; }
+      .tools { justify-content: space-between; gap: 10px; margin: 3px 7px 7px 3px; }
+      .tools .btn { flex: 1; padding: 8px 6px; font-size: 13px; }
+      .tools .btn--icon { flex: 0 0 52px; }
+      .kb { display: none; }
+      .card { padding: 18px 16px 22px; } .card h2 { font-size: 24px; }
+      .actions .btn { flex: 1 1 200px; }
+    }
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+      .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; }
+      .wrap { padding: 6px 10px; gap: 6px; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; grid-template-areas: "hud tools" "stage stage"; }
+      .hud { padding: 4px 8px; flex-wrap: nowrap; } .time { flex-basis: auto; order: 0; } .tools .btn { min-height: 36px; flex: none; } .tools .btn--icon { flex: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a href="../../homepage/">← Trang chủ</a>
+    <h1>Nối Thú</h1>
+    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+  </header>
+  <div class="wrap">
+    <section class="hud" aria-label="Tiến độ">
+      <div class="stat"><small>Màn</small><b id="hLevel">1/8</b></div>
+      <div class="sep"></div>
+      <div class="stat"><small>Điểm</small><b id="hScore">0</b></div>
+      <div class="sep"></div>
+      <div class="stat"><small>Ô dồn</small><b class="grav" id="hGrav" title="Hướng ô dồn lại sau khi nối">—</b></div>
+      <div class="sep"></div>
+      <div class="time"><div class="row"><span>Thời gian</span><b id="hTime">0:00</b></div><div class="px-bar" id="hBar"><i id="hFill" style="width:100%"></i></div></div>
+    </section>
+    <div class="tools">
+      <button class="btn" id="hintBtn" type="button" title="Gợi ý một cặp (H)">Gợi ý <span class="count" id="hintN">3</span><span class="kb">H</span></button>
+      <button class="btn" id="shufBtn" type="button" title="Đảo vị trí các ô (S)">Đảo <span class="count" id="shufN">2</span><span class="kb">S</span></button>
+      <button class="btn btn--icon" id="pauseBtn" type="button" aria-label="Tạm dừng (P)" title="Tạm dừng (P)"><img src="assets/ui/icon-tam-dung.png" alt="" /></button>
+      <button class="btn btn--icon" id="muteBtn" type="button" aria-pressed="false" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img id="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /></button>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cv" tabindex="0" aria-label="Bàn chơi Nối Thú. Dùng phím mũi tên để di chuyển, Enter để chọn ô."></canvas>
+
+      <div class="ov" id="ovMenu">
+        <div class="card">
+          <h2>Nối Thú</h2>
+          <p class="sub">Tìm 2 ô cùng hình và nối chúng lại. Dọn sạch bàn trước khi hết giờ!</p>
+          <div class="how">
+            <ul>
+              <li><b>Chạm/nhấp 2 ô giống nhau</b> để nối. Đường nối chỉ đi qua ô trống, <b>gấp khúc tối đa 2 lần</b> (≤ 3 đoạn thẳng) và được đi vòng ngoài mép bàn.</li>
+              <li>Nối liên tục trong 4 giây được <b>combo</b> cộng thêm điểm. Qua màn được thưởng điểm theo giây còn lại.</li>
+              <li><b>8 màn</b>, bàn lớn dần. Từ màn 2, ô sẽ <b>dồn theo mũi tên</b> sau mỗi lần nối. Hết nước đi thì bàn tự đảo.</li>
+              <li>Bí thì dùng <b>Gợi ý</b> (3 lần/màn) hoặc <b>Đảo</b> (2 lần/màn).</li>
+            </ul>
+          </div>
+          <div class="lvls" id="mLvls" aria-hidden="true"></div>
+          <div class="actions" id="mActions"></div>
+          <div class="best" id="mBest"></div>
+        </div>
+      </div>
+
+      <div class="ov" id="ovPause" hidden>
+        <div class="card">
+          <h2>Tạm dừng</h2>
+          <p class="sub">Bàn chơi được úp lại trong lúc dừng.</p>
+          <div class="actions">
+            <button class="btn btn--big btn--primary" id="resumeBtn" type="button">▶ Chơi tiếp</button>
+            <button class="btn btn--big" id="retryBtnP" type="button">Chơi lại màn</button>
+            <button class="btn btn--big" id="menuBtnP" type="button">Về menu</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov" id="ovEnd" hidden>
+        <div class="card">
+          <h2 id="eTitle">Qua màn!</h2>
+          <p class="sub" id="eSub"></p>
+          <div class="result" id="eResult"></div>
+          <div id="eRecord"></div>
+          <div class="actions" id="eActions"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { mount } from "./game.js";
+    const params = new URLSearchParams(location.search);
+    // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
+    const sdk = {
+      reportScore: (s) => { window.__lastScore = s; },
+      gameOver: (r) => { window.__lastResult = r; },
+      requestAdBreak: () => Promise.resolve(),
+      sound: { muted: localStorage.getItem("wgp.muted") === "1" },
+    };
+    window.__game = mount(document.body, { sdk, seed: params.has("seed") ? Number(params.get("seed")) : undefined,
+      startLevel: params.has("level") ? Number(params.get("level")) - 1 : undefined });
+  </script>
+</body>
+</html>
