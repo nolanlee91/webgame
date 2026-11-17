@@ -5,6 +5,7 @@
 // Gốc lắp ráp (composition root) duy nhất được biết đến từ điển + LocalSession là hàm openSession() bên dưới.
 import { createDict } from "./core/dict.js";
 import { createLocalSession } from "./session/local.js";
+import { guessWord } from "./core/input.js";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
 
 const STORE_KEY = "noi-tu:local";
 const PREFS_KEY = "noi-tu:prefs";
@@ -266,13 +267,14 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
 
   // ---------- người chơi ----------
   function wordFrom(raw) {
-    const typed = raw.normalize("NFC").trim().replace(/\s+/g, " ");
+    // gõ tắt một tiếng + đọc được chữ gõ khi CHƯA bật bộ gõ tiếng Việt ("hocj taapj", "ho5c ta6p5", "hoc tap").
+    // Chỉ đổi khi ra đúng một từ có trong từ điển; trọng tài vẫn kiểm đầy đủ như mọi từ khác.
     const last = state?.round?.chain.at(-1);
-    // tiện tay: đã có tiếng nối sẵn ⇒ gõ một tiếng là đủ (trọng tài vẫn kiểm đầy đủ)
-    if (last && typed && !typed.includes(" ")) return syl(last.word)[1] + " " + typed;
-    return typed;
+    lastGuess = guessWord(raw, dict, last ? syl(last.word)[1] : "");
+    return lastGuess.word;
   }
 
+  let lastGuess = null;
   async function submit() {
     const r = state?.round;
     if (!session || !r || r.over || busy) return;
@@ -286,7 +288,11 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     if (res.ok) { el.inp.value = ""; setMsg(""); }
     else if (res.reason !== "disposed" && res.reason !== "not-ready") {
       if (res.reason === "not-in-dict" && res.key) noteMissing(res.key);
-      setMsg((REASON[res.reason] || (() => "Không nhận từ này."))(res), "bad");
+      let m = (REASON[res.reason] || (() => "Không nhận từ này."))(res);
+      if (res.reason === "not-in-dict" && /^[a-z0-9\s]+$/i.test(el.inp.value.trim()))
+        m = lastGuess?.candidates?.length > 1 ? `Có nhiều từ: ${lastGuess.candidates.map((c) => `“${c}”`).join(", ")} — gõ có dấu giúp nhé.`
+          : `${m} Gõ có dấu (bật bộ gõ tiếng Việt) để chắc chắn nhé.`;
+      setMsg(m, "bad");
       sfx.play("trung-da", 0.4); shake();
     }
     render();

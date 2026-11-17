@@ -54,6 +54,11 @@ const ev = async (expr) => {
   return r.result.result.value;
 };
 await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
+// đếm hẹn giờ còn sống do lớp phiên (session/*.js: trọng tài + client) tạo ⇒ chứng minh tạm dừng không để timer chạy ngầm
+const TIMER_HOOK = `(()=>{const live=new Set(),oS=window.setTimeout.bind(window),oC=window.clearTimeout.bind(window);
+  window.setTimeout=function(fn,ms,...a){const mine=(new Error().stack||'').includes('/session/');const id=oS(function(){live.delete(id);if(typeof fn==='function')return fn.apply(this,a)},ms);if(mine)live.add(id);return id};
+  window.clearTimeout=function(id){live.delete(id);return oC(id)};window.__sessionTimers=()=>live.size;})()`;
+await send('Page.addScriptToEvaluateOnNewDocument', { source: TIMER_HOOK });
 const nav = async (u) => { await send('Page.navigate', { url: u }); await sleep(400); await waitFor('typeof __game==="object" && !!__game.dict', 8000); await sleep(150); };
 const view = (w, h, m, dpr = 1) => send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: dpr, mobile: m });
 const touch = (on) => send('Emulation.setTouchEmulationEnabled', { enabled: on, maxTouchPoints: on ? 5 : 1 });
@@ -76,10 +81,14 @@ const S = () => ev(`(()=>{const s=__game.state,r=s&&s.round;return r&&{no:r.no,t
 const PICK = `((mode)=>{const d=__game.dict,r=__game.state.round,ls=w=>w.split(' ')[1];const used=new Set(r.used);const last=r.chain.at(-1);
   const pool=(last?d.startsWith(ls(last.word)):d.all()).filter(k=>!used.has(k));
   const after=k=>{const u=new Set(used);u.add(k);return d.countNext(ls(k),u)};
+  if(mode==='any')return pool[0]||null;
   if(mode==='dead')return pool.find(k=>after(k)===0)||null;
   if(mode==='live')return pool.filter(k=>after(k)>0).sort((a,b)=>after(b)-after(a))[0]||null;
   if(mode==='wrong'){const need=last&&ls(last.word);return d.all().find(k=>k.split(' ')[0]!==need&&!used.has(k))}
 })`;
+const snap = () => ev(`({log:__game.session.host.log.length,seq:__game.state.seq,store:localStorage.getItem('noi-tu:local')})`);
+const stashHost = () => ev(`(window.__h=__game.session.host, window.__hLog=__game.session.host.log.length)`);
+const hostDead = () => ev(`__h.closed===true&&__h.timers.deadline===null&&__h.timers.bot===null&&__h.timers.grace.every(x=>x===null)&&__sessionTimers()===0`);
 const pick = (mode) => ev(`${PICK}(${JSON.stringify(mode)})`);
 const noOverflow = () => ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth && document.documentElement.scrollHeight<=document.documentElement.clientHeight+1');
 const inView = (sel) => ev(`(()=>{const r=document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect();return r.top>=-1&&r.left>=-1&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1})()`);
@@ -119,8 +128,18 @@ try {
   await typeWord('học'); await key('Enter'); await sleep(150);
   check('từ 1 tiếng ở lượt mở đầu → báo "2 tiếng", không vào chuỗi', /2 tiếng/.test(await text('#msgTxt')) && (await S()).chain.length === 0, await text('#msgTxt'));
   await typeWord('xyz abc'); await key('Enter'); await sleep(150);
+  check('từ không dấu lạ → nhắc bật bộ gõ tiếng Việt', /bật bộ gõ tiếng Việt/.test(await text('#msgTxt')), await text('#msgTxt'));
   check('từ không có trong từ điển → báo lý do, ghi vào danh sách từ thiếu để duyệt', /chưa có trong từ điển/.test(await text('#msgTxt'))
     && await ev(`JSON.parse(localStorage.getItem('noi-tu:missing')).includes('xyz abc')`), await text('#msgTxt'));
+  await typeWord('xyz abc'); await key('Enter'); await sleep(150);
+  check('gõ lại cùng từ lạ → danh sách từ thiếu không bị trùng', await ev(`JSON.parse(localStorage.getItem('noi-tu:missing')).filter(x=>x==='xyz abc').length`) === 1);
+  await ev(`localStorage.setItem('noi-tu:missing', JSON.stringify(Array.from({length:200},(_, i)=>'zz'+i+' qq')))`);
+  await typeWord('qwe rty'); await key('Enter'); await sleep(150);
+  const miss = await ev(`JSON.parse(localStorage.getItem('noi-tu:missing'))`);
+  check('danh sách từ thiếu giữ tối đa 200: bỏ từ cũ nhất, thêm từ mới ở cuối', miss.length === 200 && miss.at(-1) === 'qwe rty' && miss[0] === 'zz1 qq' && !miss.includes('zz0 qq'), [miss.length, miss[0], miss.at(-1)]);
+  await typeWord('qwe rty'); await key('Enter'); await sleep(150);
+  check('gõ lại từ lạ khi danh sách đã đầy → không thêm trùng, vẫn 200', await ev(`(l=>l.length===200&&l.filter(x=>x==='qwe rty').length===1&&l[0]==='zz1 qq')(JSON.parse(localStorage.getItem('noi-tu:missing')))`));
+  await typeWord('xyz abc'); await key('Enter'); await sleep(150);
   check('ô nhập giữ nguyên chữ vừa gõ để sửa', await ev(`document.getElementById('inp').value`) === 'xyz abc');
   const w1 = await pick('live');
   await typeWord(w1.toUpperCase().replace(' ', '   ')); await key('Enter');
@@ -143,20 +162,32 @@ try {
   const wrong = await pick('wrong');
   await typeWord(wrong); await key('Enter'); await sleep(150);
   check(`từ sai đầu ("${wrong}") → báo phải bắt đầu bằng "${need}"`, (await text('#msgTxt')).includes(`bắt đầu bằng “${need}”`) && (await S()).chain.length === s.chain.length, await text('#msgTxt'));
+  const before = await snap(), r0 = await ev('__game.t.results.length');
+  for (const bad of [wrong, need + ' qwz', 'xin chào bạn']) { await typeWord(bad); await key('Enter'); await sleep(120); }
+  const rj = await ev(`__game.t.results.slice(${r0}).map(r=>r.ok?'ok':r.reason)`), after = await snap();
+  check('3 từ bị từ chối (sai đầu / không có trong từ điển / 3 tiếng) → nhật ký, seq, bản lưu của trọng tài KHÔNG đổi',
+    rj.join() === 'wrong-link,not-in-dict,need-two-syllables' && after.log === before.log && after.seq === before.seq && after.store === before.store, [rj, before.log, after.log, before.seq, after.seq]);
+  await ev(`document.getElementById('inp').value=''`);
   const cA = await ev(`[+document.getElementById('cNum').textContent, __game.session.remainingMs()]`); await sleep(1100);
   const cB = await ev(`[+document.getElementById('cNum').textContent, __game.session.remainingMs()]`);
-  check('đồng hồ đếm lùi theo trọng tài (giảm ~1 s, số trên màn = ceil(remainingMs))', cB[1] < cA[1] - 900 && cB[0] === Math.ceil(cB[1] / 1000) || Math.abs(cB[0] - Math.ceil(cB[1] / 1000)) <= 1, [cA, cB]);
-  const w2 = await pick('live');
-  if (w2) {
-    await typeWord(w2.split(' ')[1]); await key('Enter');
-    await waitFor(`__game.state.round.chain.length===${s.chain.length + 1}`, 2000);
-    check(`chỉ gõ tiếng thứ hai ("${w2.split(' ')[1]}") → tự ghép thành "${w2}"`, (await S()).chain.at(-1) === w2, await S());
-  }
+  const shows = (c) => c[0] === Math.ceil(c[1] / 1000) || c[0] === Math.ceil((c[1] + 40) / 1000); // số được vẽ ở khung hình trước (≤ 1 frame)
+  check('đồng hồ đếm lùi theo trọng tài: remainingMs giảm 0,9–1,6 s VÀ số trên màn giảm VÀ = ceil(remainingMs)',
+    cB[1] < cA[1] - 900 && cB[1] > cA[1] - 1600 && cB[0] < cA[0] && shows(cA) && shows(cB), [cA, cB]);
+  // lượt mình và ván chưa kết thúc ⇒ từ máy vừa đánh không cụt ⇒ chắc chắn có ≥ 1 từ nối được (không có nhánh bỏ qua)
+  const w2 = await pick('any');
+  check('có từ nối được để thử gõ tắt (lượt mình, ván chưa kết thúc)', !!w2, w2);
+  await typeWord(w2.split(' ')[1]); await key('Enter');
+  await waitFor(`__game.state.round.chain.length===${s.chain.length + 1}`, 2000);
+  const sw = await S();
+  check(`chỉ gõ tiếng thứ hai ("${w2.split(' ')[1]}") → tự ghép thành "${w2}", đúng ghế mình`, sw.chain.at(-1) === w2 && sw.seats.at(-1) === 0, sw);
   await shot('noitu-desktop-choi.png');
 
   // ----- tạm dừng thật: đồng hồ trọng tài dừng -----
   s = await untilMyTurn(true);
+  check('đang chơi: lớp phiên có hẹn giờ sống (bộ đếm timer hoạt động)', await ev('__sessionTimers()>0'), await ev('__sessionTimers()'));
+  await stashHost();
   await key('Escape'); await sleep(150);
+  check('Esc → trọng tài đóng, mọi hẹn giờ (hết lượt/bot/chờ kết nối/ping/sync) đã huỷ', await hostDead(), await ev('__sessionTimers()'));
   check('Esc giữa ván → menu tạm dừng, phiên chơi đóng (trọng tài dừng)', await visible('#ovMenu') && await ev('__game.session===null') && await visible('#resumeBtn')
     && /tạm dừng/i.test(await text('#mNote')), await text('#mNote'));
   await sleep(1500);
@@ -164,7 +195,50 @@ try {
   await waitFor('__game.session && __game.session.status==="live" && __game.state');
   const s2 = await S(), rem = await ev('__game.session.remainingMs()');
   check('Chơi tiếp → đúng chuỗi cũ + tỉ số, lượt đang dở được tính lại đủ 15 s', JSON.stringify(s2.chain) === JSON.stringify(s.chain) && s2.turn === 0 && rem > 14000, [s2.chain.length, rem]);
+  // ----- (3a) tạm dừng sát hạn chót -----
+  s = await untilMyTurn(true);
+  check('chờ tới sát hạn chót (< 0,7 s)', await waitFor('__game.session && __game.session.remainingMs() < 700', 16000), await ev('__game.session&&__game.session.remainingMs()'));
+  await stashHost(); const stA = await ev(`localStorage.getItem('noi-tu:local')`);
+  await key('Escape'); await sleep(40);
+  const pausedLate = await ev('__game.session===null && !__h.state.round.over');
+  await sleep(1500); // vượt quá hạn chót cũ
+  check('tạm dừng sát hạn chót: không bị xử thua sau đó, nhật ký + bản lưu không đổi, không còn timer', pausedLate && await hostDead()
+    && await ev('__h.log.length===__hLog && !__h.state.round.over') && await ev(`localStorage.getItem('noi-tu:local')`) === stA, await ev('[__h.log.length,__hLog,__h.state.round.over,__sessionTimers()]'));
+  await pressSel('#resumeBtn'); await waitFor('__game.session && __game.session.status==="live" && __game.state');
+  let s3 = await S();
+  check('chơi tiếp sau tạm dừng sát hạn chót → chuỗi + tỉ số y nguyên, vẫn lượt mình, được đủ 15 s', JSON.stringify(s3.chain) === JSON.stringify(s.chain)
+    && JSON.stringify(s3.score) === JSON.stringify(s.score) && !s3.over && s3.turn === 0 && await ev('__game.session.remainingMs()') > 14000, [s3, await ev('__game.session.remainingMs()')]);
+  // ----- (3b) tạm dừng nhiều lần liên tiếp -----
+  const logStart = await ev('__game.session.host.log.length');
+  for (let k = 0; k < 4; k++) {
+    await stashHost(); await key('Escape'); await sleep(80);
+    check(`tạm dừng liên tiếp lần ${k + 1}: trọng tài cũ đóng, không còn timer`, await ev('__game.session===null') && await hostDead(), await ev('__sessionTimers()'));
+    await pressSel('#resumeBtn'); await waitFor('__game.session && __game.session.status==="live" && __game.state', 3000);
+  }
+  s3 = await S();
+  const tail = await ev(`__game.session.host.log.slice(${logStart}).map(e=>e.type)`);
+  check('sau 4 lần dừng/chơi tiếp: chuỗi + tỉ số + số ván y nguyên; nhật ký chỉ thêm đúng 4 sự kiện clockReset', JSON.stringify(s3.chain) === JSON.stringify(s.chain)
+    && JSON.stringify(s3.score) === JSON.stringify(s.score) && s3.no === s.no && tail.length === 4 && tail.every((t) => t === 'clockReset'), tail);
+  // ----- (3c) tạm dừng khi máy đang nghĩ -----
+  const w3 = (await pick('live')) || (await pick('any'));
+  await typeWord(w3); await key('Enter');
+  await waitFor('__game.state.round.turn===1 || __game.state.round.over', 2000);
+  s3 = await S();
+  check('đã sang lượt máy (từ vừa đánh không cụt) để thử tạm dừng khi máy nghĩ', !s3.over && s3.turn === 1, s3);
+  await stashHost(); await key('Escape'); await sleep(30);
+  const stB = await ev(`localStorage.getItem('noi-tu:local')`);
+  await sleep(3200); // > thời gian máy nghĩ tối đa (2,5 s)
+  check('tạm dừng khi máy đang nghĩ: máy KHÔNG đánh ngầm, nhật ký + bản lưu không đổi, không còn timer', await ev('__game.session===null') && await hostDead()
+    && await ev('__h.log.length===__hLog') && await ev(`localStorage.getItem('noi-tu:local')`) === stB, await ev('[__h.log.length,__hLog,__sessionTimers()]'));
+  await pressSel('#resumeBtn'); await waitFor('__game.session && __game.session.status==="live" && __game.state');
+  const s4 = await S();
+  check('chơi tiếp → vẫn lượt máy, chuỗi + tỉ số y nguyên, hiện "máy đang nghĩ"', s4.turn === 1 && JSON.stringify(s4.chain) === JSON.stringify(s3.chain)
+    && JSON.stringify(s4.score) === JSON.stringify(s3.score) && await visible('.w.ghost'), s4);
+  check('máy đánh tiếp sau khi chơi lại (≤ 3,5 s)', await waitFor(`__game.state.round.chain.length>${s3.chain.length} || __game.state.round.over`, 3500), await S());
+
   // ----- tải lại trang giữa ván -----
+  await waitFor('__game.state.round.over || __game.state.round.turn===0', 3000);
+  s = await S();
   await nav(BASE);
   check('tải lại trang giữa ván → menu có "Chơi tiếp" + mô tả trận lưu', await visible('#resumeBtn') && /ván [0-9]+, tỉ số/.test(await text('#mNote')), await text('#mNote'));
   await pressSel('#resumeBtn');
@@ -239,6 +313,21 @@ try {
   check('mobile: không tràn trang, khay nhập + đồng hồ + 2 thẻ người chơi đều trong màn', await noOverflow() && await inView('#dock') && await inView('#clock') && await inView('#pl0') && await inView('#pl1'));
   check('mobile: nút công cụ + nút Nối ≥ 44px; chữ ô nhập ≥ 16px (iOS không tự phóng to)', await minBtn('.tools .btn, #sendBtn, #resignBtn') >= 44
     && await ev(`parseFloat(getComputedStyle(document.getElementById('inp')).fontSize)>=16`), await btnSizes('.tools .btn, #sendBtn, #resignBtn'));
+  // ----- gõ khi CHƯA bật bộ gõ tiếng Việt (lỗi chủ dự án báo: "từ nào cũng không có trong từ điển") -----
+  await typeWord('hocj taapj'); await pressSel('#sendBtn');
+  check('chưa bật bộ gõ: gõ Telex thô "hocj taapj" → nhận "học tập", đúng ghế mình', await waitFor(`__game.state.round.chain[0]?.word==='học tập'`, 2000), await S());
+  await waitFor('__game.state.round.over || (__game.state.round.turn===0 && __game.state.round.chain.length>=2)', 4000);
+  s = await S();
+  if (!s.over && s.chain.length >= 2) {
+    // gõ tắt + không dấu: chỉ tiếng thứ hai, bỏ dấu (chọn từ mà dạng không dấu ứng đúng 1 từ)
+    const wp = await ev(`import('./core/input.js').then(m=>{const need=__game.state.round.chain.at(-1).word.split(' ')[1],used=new Set(__game.state.round.chain.map(c=>c.word));
+      for(const w of __game.dict.startsWith(need)){if(used.has(w))continue;const p=m.stripMarks(w.split(' ')[1]);if(p!==w.split(' ')[1]&&m.guessWord(p,__game.dict,need).word===w)return [w,p]}return null})`);
+    if (wp) {
+      const n0 = s.chain.length;
+      await typeWord(wp[1]); await pressSel('#sendBtn');
+      check(`chưa bật bộ gõ: gõ tắt không dấu "${wp[1]}" → nhận "${wp[0]}"`, await waitFor(`__game.state.round.chain.length>${n0} && __game.state.round.chain[${n0}].word===${JSON.stringify(wp[0])}`, 2000), await S());
+    }
+  }
   // chơi vài lượt bằng chạm: chạm ô nhập, gõ, chạm nút Nối
   let played = 0;
   for (let k = 0; k < 6 && played < 3; k++) {

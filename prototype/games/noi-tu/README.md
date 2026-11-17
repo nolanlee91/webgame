@@ -23,7 +23,7 @@ là thua ván · đánh được từ cụt là thắng ngay · tỉ số giữ 
 - Từ bị báo “chưa có trong từ điển” được lưu cục bộ (`localStorage["noi-tu:missing"]`, tối đa 200) để sau này duyệt bổ sung.
 
 ## Test
-- `npm test` — 56 test: hợp đồng trọng tài (tiến trình riêng + cùng tiến trình), lõi, LocalSession.
-- `npm run test:e2e` — 49 kiểm tra trên Chrome headless thật (chuột/chạm/gõ, đồng hồ thật, ~2 phút):
+- `npm test` — 62 test: hợp đồng trọng tài (tiến trình riêng + cùng tiến trình), lõi, LocalSession, đọc chữ gõ khi chưa bật bộ gõ (`core/input.js`).
+- `npm run test:e2e` — 70–71 kiểm tra (1 kiểm tra gõ tắt không dấu chỉ chạy khi máy không đánh từ cụt) trên Chrome headless thật (chuột/chạm/gõ, đồng hồ thật, ~2 phút):
   desktop 1440×900 / 1280×720, mobile 390×844 / 360×740 / ngang 844×390 / bàn phím ảo mở (390×440).
   Ảnh + `e2e-ket-qua.txt` vào `screenshots/`.

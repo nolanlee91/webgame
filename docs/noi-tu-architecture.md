@@ -145,6 +145,15 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
   khung chuỗi tự cuộn tới từ mới nhất khi đổi cỡ.
 - E2E: `npm run test:e2e` (`test/browser/e2e.mjs`, tự dựng server tĩnh + Chrome headless qua CDP).
 
+### 9.1 Gõ khi chưa bật bộ gõ tiếng Việt
+- Lỗi chủ dự án gặp ("từ nào cũng báo không có trong từ điển"): không bật Unikey/bộ gõ ⇒ chữ đi vào là Telex thô
+  ("hocj taapj"), VNI thô ("ho5c ta6p5") hoặc không dấu ("hoc tap") ⇒ mọi từ đều không khớp từ điển.
+- `core/input.js` `guessWord(raw, dict, need)`: thử nguyên văn → Telex → VNI → bỏ dấu; **chỉ đổi khi ra đúng MỘT từ
+  có trong từ điển và đúng tiếng nối**, không thì gửi nguyên chữ. Chữ đã có dấu được tôn trọng nguyên văn.
+  Chỉ là trợ giúp nhập phía người chơi: trọng tài vẫn kiểm đầy đủ ⇒ không đổi luật, không mở đường gian lận.
+- Từ lạ gõ không dấu ⇒ nhắc "bật bộ gõ tiếng Việt"; nhiều khả năng ⇒ liệt kê tối đa 3 từ.
+- E2E đếm hẹn giờ của lớp phiên bằng cách bọc `setTimeout` (chỉ trong test) để chứng minh tạm dừng không để timer chạy ngầm.
+
 ## 10. Còn lại
 - **Từ điển:** bản khởi đầu mới có 591 từ (ván máy-đấu-máy trung bình ~4 nước — quá ngắn; máy hay thắng bằng
   từ cụt). Cần mở rộng lên 3.000–5.000 từ và **người thật duyệt** nguồn gốc trước khi phát hành.
