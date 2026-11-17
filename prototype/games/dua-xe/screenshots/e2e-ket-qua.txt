@@ -1,0 +1,57 @@
+E2E Đua Xe Vượt Đồi — Chrome headless (CDP), 2026-11-17T23:39:32.199Z
+PASS menu hiện khi mở game: 3 thẻ nâng cấp, ví 0 xu → nút mua bị khoá
+PASS canvas vẽ cảnh đồi pixel (nhiều màu) — 42
+PASS bấm "Lên đường" → bắt đầu ván, overlay tắt, xăng đầy — {"status":"run","reason":null,"dist":0,"fuel":99.83666666666682,"coins":0,"picked":0,"fuels":0,"x":6.023347030196247,"vx":-0.011002866035529945,"a":0.0037784172990346,"mode":"play"}
+PASS giữ phím → xe tăng tốc tới trước — {"status":"run","reason":null,"dist":6,"fuel":94.52916666666616,"coins":0,"picked":0,"fuels":0,"x":12.905656631275711,"vx":8.52055187657671,"a":0.021681295316273396,"mode":"play"}
+PASS bàn đạp GA sáng lên khi giữ phím
+PASS quãng đường + HUD cập nhật — 8 / 8 m
+PASS xăng tiêu hao khi ga — 93.99
+PASS giữ phím ← → phanh, xe chậm lại — 0.77
+PASS giữ chuột trên bàn đạp GA → ga — 7.48
+PASS nhả chuột → hết ga
+PASS giữ chuột trên bàn đạp PHANH → phanh
+PASS chạy qua xu → cộng tiền, HUD tiền cập nhật — 0 → 25
+PASS xăng thấp → thanh xăng đỏ nhấp nháy
+PASS chạy qua can xăng → đổ đầy bình, có thông báo — fuel 98.1
+PASS phím P → tạm dừng, xe đứng yên
+PASS phím P lần nữa → chơi tiếp
+PASS phím M → tắt tiếng (lưu lại)
+PASS nút loa → bật tiếng lại
+PASS xe lộn ngược chạm đầu → "Xe lật!", hiện bảng kết thúc — {"status":"over","reason":"lat","dist":263,"fuel":97.39250000000038,"coins":25,"picked":5,"fuels":1,"x":269.3811176901797,"vx":-0.009481229592183138,"a":-2.42181693639571,"mode":"over"}
+PASS quãng đường ≥ 260 m và là kỷ lục mới, báo điểm cho SDK — best 263
+PASS tiền ván này cộng vào ví + đếm số ván
+PASS âm thanh có phát (xu, can xăng, va chạm) — ["trung-vang","trung-kim-cuong","buoc-nhay","no-tnt","thang"]
+PASS Enter → chơi lại ván mới
+PASS hết xăng và xe dừng → "Hết xăng!" — {"status":"over","reason":"xang","dist":0,"fuel":0,"coins":0,"picked":0,"fuels":0,"x":6.023249653624369,"vx":0.0009129520309570966,"a":0.002680908587645624,"mode":"over"}
+PASS không phá kỷ lục → hiện kỷ lục cũ
+PASS tải lại trang: kỷ lục + ví còn nguyên
+PASS đủ tiền → nút mua mở khoá
+PASS mua Động cơ cấp 1 → trừ 150 xu, sáng 1 vạch, lưu lại
+PASS không đủ tiền mua cấp 2 (350 xu, còn 450 → còn 100) thì khoá nút
+PASS xe đã nâng cấp: tốc độ tối đa tăng — 16.1
+PASS ẩn tab → tự tạm dừng
+PASS Esc → chơi tiếp
+PASS desktop 1440×900: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":1440,"h":900,"view":{"W":360,"H":216,"P":4,"ppm":24}}
+PASS mobile: menu không tràn ngang
+PASS chạm "Lên đường" → vào ván
+PASS mobile 390×844: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":390,"h":844,"view":{"W":195,"H":407,"P":2,"ppm":21}}
+PASS chạm giữ GA → xe chạy — 8.59
+PASS chạm thêm ngón thứ 2 vào PHANH → giữ cả hai cùng lúc
+PASS nhấc ngón GA, còn PHANH
+PASS nhấc hết ngón → không ga không phanh
+PASS mobile: lật xe → bảng kết thúc vừa màn hình
+PASS nút "Nâng cấp xe" → về menu có cửa hàng
+PASS mobile 360×640: menu + nút Lên đường nằm gọn
+PASS mobile 360×640: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":360,"h":640,"view":{"W":180,"H":305,"P":2,"ppm":19}}
+PASS mobile 412×915: menu + nút Lên đường nằm gọn
+PASS mobile 412×915: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":412,"h":915,"view":{"W":206,"H":442,"P":2,"ppm":22}}
+PASS mobile ngang 844×390: menu + nút Lên đường nằm gọn
+PASS mobile ngang 844×390: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":844,"h":390,"view":{"W":422,"H":180,"P":2,"ppm":20}}
+PASS tablet 768×1024: menu + nút Lên đường nằm gọn
+PASS tablet 768×1024: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":768,"h":1024,"view":{"W":192,"H":247,"P":4,"ppm":20}}
+PASS laptop 1280×720: menu + nút Lên đường nằm gọn
+PASS laptop 1280×720: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":1280,"h":720,"view":{"W":427,"H":227,"P":3,"ppm":25}}
+PASS desktop 1920×1080: menu + nút Lên đường nằm gọn
+PASS desktop 1920×1080: không tràn trang, HUD + bàn đạp nằm trong màn hình và không đè nhau — {"w":1920,"h":1080,"view":{"W":480,"H":261,"P":4,"ppm":29}}
+PASS không có lỗi console / exception
+55/55 PASS
