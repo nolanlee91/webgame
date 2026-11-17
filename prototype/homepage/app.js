@@ -1,7 +1,10 @@
 (function () {
   "use strict";
-  var GAMES = window.GAMES, CATS = window.CATEGORIES, FEAT = window.FEATURED || { picks: [] };
-  var RECENT_KEY = "wgp.recent";
+  // Lụm Kèo — trang chủ "The Grand Arcade Lobby" (docs/homepage-redesign-spec.md).
+  // 4 tầng: (1) game tiêu điểm + sảnh chờ trực tiếp · (2) chơi tiếp · (3) kệ Đối kháng + Thư viện chơi nhanh · (4) footer.
+  var GAMES = window.GAMES, CATS = window.CATEGORIES, FEAT = window.FEATURED || {};
+  var ROOMS = window.LOBBY_ROOMS || [], DUELS = window.DUELS || [];
+  var RECENT_KEY = "wgp.recent", MUTE_KEY = "wgp.muted";
   var state = { cat: "all", q: "" };
 
   var $ = function (id) { return document.getElementById(id); };
@@ -11,35 +14,20 @@
   function fold(s) {
     return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
   }
-
-  // Icon tạm cho game chưa có ảnh (SVG nét, lưới 24).
-  var ICONS = {
-    snake: '<path d="M4 18c3 0 3-4 6-4s3 4 6 4 4-3 4-6-2-6-6-6H9"/><circle cx="9" cy="6" r="1.5"/>',
-    bubble: '<circle cx="8" cy="9" r="4"/><circle cx="16" cy="8" r="3"/><circle cx="13" cy="16" r="4"/>',
-    "2048": '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>',
-    dice: '<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/>',
-    bomb: '<circle cx="11" cy="14" r="7"/><path d="m16 9 3-3M19 3v2M21 5h-2"/>',
-    bow: '<path d="M5 3c9 3 13 7 16 16"/><path d="M5 3 21 19"/><path d="M17 21h4v-4"/>',
-    blocks: '<path d="M3 21h6v-6H3zM9 21h6v-6H9zM9 15h6V9H9zM15 21h6v-6h-6z"/>',
-    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6M11 8v6"/>',
-    car: '<path d="M3 16h18l-2-5-4-1-3-3H7l-2 4-2 1z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
-    sprout: '<path d="M12 21V11M12 11c0-4-3-6-7-6 0 4 3 6 7 6zM12 13c0-3 3-5 7-5 0 3-3 5-7 5z"/>',
-    candy: '<circle cx="12" cy="12" r="5"/><path d="m7 8-4-2 1 5M17 16l4 2-1-5"/>',
-    sudoku: '<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>'
-  };
-  var PEOPLE1 = '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>';
-  var PEOPLE2 = '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>';
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
   function byId(id) { return GAMES.filter(function (g) { return g.id === id; })[0]; }
   // Game đã có bản chơi thật thì mở thẳng (field url trong games.js); game chưa làm vẫn vào trang chờ play.html.
   function href(g) { return g.url || "play.html?game=" + encodeURIComponent(g.id); }
+  var duelIds = DUELS.map(function (d) { return d.id; });
 
-  function thumbHTML(g, src) {
-    if (src || g.thumb) {
-      return '<img src="' + (src || g.thumb) + '" alt="" loading="lazy" decoding="async" />';
-    }
-    return '<div class="ph" style="--h:' + (g.hue || 200) + '" aria-hidden="true">' +
-      '<svg viewBox="0 0 24 24">' + (ICONS[g.icon] || "") + "</svg></div>";
+  // Icon người chơi pixel 16×16 (vẽ bằng ô vuông, không nét cong).
+  var P1 = '<path d="M6 1h4v1H6zM5 2h1v4H5zM10 2h1v4h-1zM6 6h4v1H6zM4 8h8v1H4zM3 9h1v5H3zM12 9h1v5h-1zM4 14h8v1H4z"/>';
+  var P2 = '<path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/>';
+  function pxIcon(path) { return '<svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true">' + path + "</svg>"; }
+
+  function imgHTML(g, src) {
+    return '<img src="' + (src || g.thumb) + '" alt="" loading="lazy" decoding="async" />';
   }
   function badgeHTML(g) {
     if (!g.badge) return "";
@@ -47,87 +35,56 @@
   }
   function metaHTML(g) {
     var multi = g.mode !== "solo";
-    return '<p class="meta' + (multi ? " meta--multi" : "") + '">' +
-      '<svg viewBox="0 0 24 24" aria-hidden="true">' + (multi ? PEOPLE2 : PEOPLE1) + "</svg>" +
+    return '<p class="meta' + (multi ? " meta--multi" : "") + '">' + pxIcon(multi ? P2 : P1) +
       "<span>" + g.players + (multi ? '<span class="sr-only">, chơi cùng bạn được</span>' : "") + "</span></p>";
   }
 
-  // 1) Thẻ chính (lớn nhất trang)
+  // ---------- TẦNG 1: game tiêu điểm ----------
   function heroHTML(g) {
-    return '<a class="card hero frame" href="' + href(g) + '" data-id="' + g.id + '">' +
-      '<span class="hero__art">' + thumbHTML(g, FEAT.heroImage) + "</span>" +
+    return '<a class="card hero px-panel" href="' + href(g) + '" data-id="' + g.id + '">' +
+      '<span class="hero__art">' + imgHTML(g, FEAT.heroImage) + "</span>" +
       '<span class="hero__info">' +
-        '<span class="hero__tags">' + badgeHTML(g) + '<span class="hero__kicker">Game của tuần</span></span>' +
+        '<span class="hero__tags"><span class="kicker">Tựa game của tuần</span>' + badgeHTML(g) + "</span>" +
         '<h3 class="hero__name">' + g.name + "</h3>" +
         '<span class="hero__text">' + (FEAT.heroText || "") + "</span>" +
-        '<span class="hero__row">' + metaHTML(g) + '<span class="btn btn--gold btn--lg" aria-hidden="true">' +
-          '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Chơi ngay</span></span>' +
+        '<span class="hero__row">' +
+          '<span class="btn btn--gold btn--lg" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span>' +
+          '<span class="hero__stats">' + metaHTML(g) + '<span class="hero__stat"><span class="live" aria-hidden="true"></span>' + (FEAT.stat || "") + "</span></span>" +
+        "</span>" +
       "</span></a>";
   }
-
-  // 2) Thẻ nổi bật (vừa) — tên + nút "Chơi ngay" xanh ngọc như concept V4
-  function pickHTML(g) {
-    return '<a class="card pick frame" href="' + href(g) + '" data-id="' + g.id + '">' +
-      '<span class="pick__art">' + thumbHTML(g) + badgeHTML(g) + "</span>" +
-      '<span class="pick__body"><span class="pick__text"><h3 class="card__name">' + g.name + "</h3>" + metaHTML(g) + "</span>" +
-      '<span class="btn btn--teal btn--sm" aria-hidden="true">Chơi ngay</span></span></a>';
-  }
-
-  // 3) Ô game thường (nhỏ, dễ quét mắt)
-  function tileHTML(g) {
-    return '<a class="card tile" href="' + href(g) + '" data-id="' + g.id + '">' +
-      '<span class="tile__art">' + thumbHTML(g) + badgeHTML(g) +
-        '<span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>' +
-      '<span class="tile__body"><h3 class="card__name">' + g.name + "</h3>" + metaHTML(g) + "</span></a>";
-  }
-
-  // 4) "Chơi tiếp" — thẻ mini, điểm nhấn phụ
-  function miniHTML(g) {
-    return '<a class="card mini" href="' + href(g) + '" data-id="' + g.id + '">' +
-      '<span class="mini__art">' + thumbHTML(g) + "</span>" +
-      '<span class="mini__name">' + g.name + "</span></a>";
-  }
-
-  function matches(g) {
-    if (state.cat === "multi" && g.mode === "solo") return false;
-    if (state.cat !== "all" && state.cat !== "multi" && g.cat !== state.cat) return false;
-    if (state.q && fold(g.name).indexOf(fold(state.q)) === -1) return false;
-    return true;
-  }
-
   function renderFeatured() {
     var hero = byId(FEAT.hero);
-    var picks = (FEAT.picks || []).map(byId).filter(Boolean);
-    $("featured").innerHTML = (hero ? heroHTML(hero) : "") + '<div class="picks">' + picks.map(pickHTML).join("") + "</div>";
+    $("featured").innerHTML = hero ? heroHTML(hero) : "";
     $("featuredSection").hidden = !!state.q;
   }
 
-  function renderChips() {
-    chips.innerHTML = CATS.map(function (c) {
-      return '<button type="button" class="tab" data-cat="' + c.id + '" aria-pressed="' + (c.id === state.cat) + '">' + c.label + "</button>";
+  // ---------- TẦNG 1: sảnh chờ trực tiếp (số giả) ----------
+  function roomHref(r) { var g = byId(r.game); return g && g.url ? g.url : "play.html?room=" + r.code; }
+  function seatsHTML(r) {
+    var s = "";
+    for (var i = 0; i < r.max; i++) s += '<i class="' + (i < r.have ? "on" : "") + '"></i>';
+    return '<span class="seats" aria-hidden="true">' + s + "</span>";
+  }
+  function renderRooms() {
+    $("rooms").innerHTML = ROOMS.map(function (r) {
+      var g = byId(r.game); if (!g) return "";
+      return '<li class="room">' +
+        '<span class="room__art">' + imgHTML(g) + "</span>" +
+        '<span class="room__info"><span class="room__name">' + g.name + ' <span class="room__no">#' + r.no + "</span></span>" +
+          '<span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" />' + esc(r.host) + "</span></span>" +
+        '<span class="room__side">' + seatsHTML(r) + '<span class="room__cnt">' + r.have + "/" + r.max + '<span class="sr-only"> người</span></span></span>' +
+        '<a class="btn btn--teal btn--sm room__go" href="' + roomHref(r) + '" data-room="' + r.code + '" aria-label="Vào phòng ' + g.name + " số " + r.no + ", " + r.have + " trên " + r.max + ' người">Vào</a>' +
+      "</li>";
     }).join("");
   }
 
-  function renderGrid() {
-    var list = GAMES.filter(matches);
-    var html;
-    if (state.cat === "all" && !state.q) {
-      // Xem tất cả: chia nhóm theo loại để dễ quét mắt, có khoảng nghỉ giữa các nhóm.
-      html = CATS.filter(function (c) { return c.id !== "all" && c.id !== "multi"; }).map(function (c) {
-        var items = list.filter(function (g) { return g.cat === c.id; });
-        return '<div class="group"><h3 class="group__title">' + c.label + ' <span class="count">' + items.length + "</span></h3>" +
-          '<div class="tiles">' + items.map(tileHTML).join("") + "</div></div>";
-      }).join("");
-    } else {
-      html = '<div class="tiles">' + list.map(tileHTML).join("") + "</div>";
-    }
-    grid.innerHTML = list.length ? html : "";
-    count.textContent = list.length;
-    var label = CATS.filter(function (c) { return c.id === state.cat; })[0].label;
-    $("gamesTitle").firstChild.textContent = (state.q ? "Kết quả tìm kiếm " : state.cat === "all" ? "Tất cả game " : label + " ");
-    empty.hidden = list.length > 0;
+  // ---------- TẦNG 2: chơi tiếp ----------
+  function miniHTML(g) {
+    return '<a class="card mini" href="' + href(g) + '" data-id="' + g.id + '">' +
+      '<span class="mini__art">' + imgHTML(g) + "</span>" +
+      '<span class="mini__name">' + g.name + "</span></a>";
   }
-
   function getRecent() {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) { return []; }
   }
@@ -142,7 +99,58 @@
     $("recent").innerHTML = list.map(miniHTML).join("");
   }
 
-  function renderAll() { renderChips(); renderFeatured(); renderGrid(); renderRecent(); }
+  // ---------- TẦNG 3: kệ game ----------
+  // Thẻ Đối kháng (3:2): huy hiệu nhiều người + số phòng đang mở + nút "Rủ bạn".
+  function duelHTML(g) {
+    var d = DUELS.filter(function (x) { return x.id === g.id; })[0] || {};
+    return '<a class="card duel px-panel" href="' + href(g) + '" data-id="' + g.id + '">' +
+      '<span class="duel__art">' + imgHTML(g) + badgeHTML(g) +
+        '<span class="duel__mp">' + pxIcon(P2) + "Nhiều người</span></span>" +
+      '<span class="duel__body"><span class="duel__text"><h3 class="card__name">' + g.name + "</h3>" +
+        '<span class="duel__meta">' + metaHTML(g) + '<span class="duel__rooms"><span class="live" aria-hidden="true"></span>' + (d.rooms || 0) + " phòng mở</span></span></span>" +
+        '<span class="btn btn--teal btn--sm" aria-hidden="true">Rủ bạn</span></span></a>';
+  }
+  // Ô Thư viện chơi nhanh (4:3, gọn).
+  function tileHTML(g) {
+    return '<a class="card tile" href="' + href(g) + '" data-id="' + g.id + '">' +
+      '<span class="tile__art">' + imgHTML(g) + badgeHTML(g) + "</span>" +
+      '<span class="tile__body"><h3 class="card__name">' + g.name + "</h3>" + metaHTML(g) + "</span></a>";
+  }
+
+  function matches(g) {
+    if (state.cat === "multi" && g.mode === "solo") return false;
+    if (state.cat !== "all" && state.cat !== "multi" && g.cat !== state.cat) return false;
+    if (state.q && fold(g.name).indexOf(fold(state.q)) === -1) return false;
+    return true;
+  }
+  function countIn(catId) {
+    return GAMES.filter(function (g) {
+      return catId === "all" ? true : catId === "multi" ? g.mode !== "solo" : g.cat === catId;
+    }).length;
+  }
+  function renderChips() {
+    chips.innerHTML = CATS.map(function (c) {
+      return '<button type="button" class="tab" data-cat="' + c.id + '" aria-pressed="' + (c.id === state.cat) + '">' +
+        c.label + ' <span class="tab__n">' + countIn(c.id) + "</span></button>";
+    }).join("");
+  }
+  function renderGrid() {
+    var list = GAMES.filter(matches);
+    var duels = duelIds.map(byId).filter(function (g) { return g && matches(g); });
+    var lib = list.filter(function (g) { return duelIds.indexOf(g.id) === -1; });
+    var html = "";
+    if (duels.length) html += '<div class="shelf shelf--duel"><h3 class="shelf__title">Đối kháng đông người <span class="count">' + duels.length +
+      '</span><span class="shelf__hint">Rủ bạn vào phòng, chơi ngay trên trình duyệt</span></h3><div class="duels">' + duels.map(duelHTML).join("") + "</div></div>";
+    if (lib.length) html += '<div class="shelf shelf--lib"><h3 class="shelf__title">Thư viện chơi nhanh <span class="count">' + lib.length +
+      '</span><span class="shelf__hint">Một mình cũng vui, bấm là chơi</span></h3><div class="tiles">' + lib.map(tileHTML).join("") + "</div></div>";
+    grid.innerHTML = html;
+    count.textContent = list.length;
+    var label = CATS.filter(function (c) { return c.id === state.cat; })[0].label;
+    $("gamesTitle").firstChild.textContent = (state.q ? "Kết quả tìm kiếm " : state.cat === "all" ? "Tất cả game " : label + " ");
+    empty.hidden = list.length > 0;
+  }
+
+  function renderAll() { renderChips(); renderFeatured(); renderRooms(); renderGrid(); renderRecent(); }
 
   chips.addEventListener("click", function (e) {
     var b = e.target.closest(".tab");
@@ -168,12 +176,12 @@
   var mq = window.matchMedia("(max-width: 720px)");
   function placeSearch() {
     if (mq.matches) $("mobileSearchSlot").appendChild(searchEl);
-    else topInner.insertBefore(searchEl, $("roomInline"));
+    else topInner.insertBefore(searchEl, document.querySelector(".topbar__actions"));
   }
   (mq.addEventListener ? mq.addEventListener("change", placeSearch) : mq.addListener(placeSearch));
   placeSearch();
 
-  // Mã phòng: 6 ký tự chữ + số (theo ux-ui-spec). Dùng chung cho ô trên thanh trên (desktop) và hộp thoại (mobile).
+  // Mã phòng: 6 ký tự chữ + số. Dùng chung cho ô PIN ở sảnh chờ và hộp thoại "Nhập mã".
   function cleanCode(input) {
     input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
   }
@@ -191,14 +199,27 @@
   $("roomInline").addEventListener("submit", function (e) { e.preventDefault(); tryJoin(inl, inlErr); });
 
   var dlg = $("roomDialog"), code = $("roomCode"), err = $("roomError");
-  $("openRoom").addEventListener("click", function () {
-    err.textContent = ""; code.value = "";
-    dlg.showModal(); code.focus();
-  });
+  function openDlg() { err.textContent = ""; code.value = ""; dlg.showModal(); code.focus(); }
+  $("openRoom").addEventListener("click", openDlg);
+  $("openRoom2").addEventListener("click", openDlg);
   $("roomCancel").addEventListener("click", function () { dlg.close(); });
   dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
   code.addEventListener("input", function () { cleanCode(code); err.textContent = ""; });
   $("roomForm").addEventListener("submit", function (e) { e.preventDefault(); tryJoin(code, err); });
+
+  // Âm thanh portal: dùng chung khóa "wgp.muted" với các game (Đào Vàng, Cờ Cá Ngựa đọc khóa này).
+  function isMuted() { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch (e) { return false; } }
+  function showSound() {
+    var m = isMuted();
+    $("soundTx").textContent = m ? "Âm thanh: tắt" : "Âm thanh: bật";
+    $("soundIc").src = "assets/ui/icon-am-thanh-" + (m ? "tat" : "bat") + ".png";
+    $("soundBtn").setAttribute("aria-pressed", String(m));
+  }
+  $("soundBtn").addEventListener("click", function () {
+    try { localStorage.setItem(MUTE_KEY, isMuted() ? "0" : "1"); } catch (e) {}
+    showSound();
+  });
+  showSound();
 
   renderAll();
 })();

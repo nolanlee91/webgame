@@ -23,14 +23,30 @@ window.GAMES = [
   { id: "sudoku",    name: "Sudoku",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/sudoku.webp", icon: "sudoku", hue: 225 },
 ];
 
-// Khu "Mới & Hot" đầu trang: 1 game chính (thẻ lớn) + 4 game nổi bật. Chỉ chọn game đã có ảnh thật.
-// heroImage: cảnh Đào Vàng cắt từ concept V4 (đã có sẵn, không tạo ảnh mới).
+// TẦNG 1 — game tiêu điểm (cột trái 60%). heroImage: cảnh Đào Vàng cắt từ concept V4 (có sẵn, không tạo ảnh mới).
+// stat: số minh họa (bản thử nghiệm).
 window.FEATURED = {
   hero: "dao-vang",
   heroImage: "assets/thumbs/dao-vang-scene.webp",
-  heroText: "Thả móc, gom vàng và kim cương trước khi hết giờ. Chơi một mình hoặc đấu với bạn.",
-  picks: ["co-caro", "noi-thu", "noi-tu", "co-tuong"]
+  heroText: "Thả móc, gom vàng và kim cương trước khi hết giờ. Chơi một mình hoặc rủ bạn chung máy.",
+  stat: "84 trận đang diễn ra"
 };
+
+// TẦNG 1 — sảnh chờ trực tiếp (cột phải 40%): phòng công khai đang thiếu người.
+// SỐ GIẢ (placeholder) — chủ dự án duyệt giữ số minh họa cho bản thử nghiệm, chưa có multiplayer online thật.
+window.LOBBY_ROOMS = [
+  { game: "co-ca-ngua", code: "CN4920", no: "492", host: "Tèo", have: 3, max: 4 },
+  { game: "co-caro",    code: "CR1080", no: "108", host: "Bé Na", have: 1, max: 2 },
+  { game: "dat-bom",    code: "DB3150", no: "315", host: "Khoa", have: 2, max: 4 },
+];
+
+// TẦNG 3 — kệ "Đối kháng đông người": 4 game nhiều người nổi bật (thẻ 3:2). rooms = số phòng đang mở (số giả).
+window.DUELS = [
+  { id: "co-ca-ngua", rooms: 24 },
+  { id: "co-caro",    rooms: 41 },
+  { id: "dat-bom",    rooms: 12 },
+  { id: "noi-tu",     rooms: 9 },
+];
 
 window.CATEGORIES = [
   { id: "all",       label: "Tất cả" },

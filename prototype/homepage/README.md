@@ -1,23 +1,25 @@
-# Homepage prototype — "Rich Visuals, Simple UX"
+# Lụm Kèo — trang chủ "The Grand Arcade Lobby"
 
-Prototype tĩnh (HTML/CSS/JS thuần, không cần cài gì), theo Art Direction V4 – Premium Detailed Pixel Art.
-Chưa chọn framework: khi kiến trúc được duyệt, các phần này chuyển thành component (GameCard, FilterChips, RoomCodeDialog).
+Tên thương hiệu **Lụm Kèo**, slogan **"Rủ bạn vào chơi"**. Prototype tĩnh (HTML/CSS/JS thuần, không cần cài gì),
+bố cục theo `docs/homepage-redesign-spec.md`, Pixel UI theo Art Bible V5 (cùng ngôn ngữ với Cờ Cá Ngựa / Đào Vàng).
 
-## Bố cục (V2 — có phân cấp thị giác, Pixel UI Kit theo V4)
-Ba cấp rõ ràng, không thêm banner quảng cáo:
-1. **Mới & Hot** (bento): 1 thẻ lớn "Game của tuần" (Đào Vàng, cảnh cắt từ concept V4) + 4 thẻ vừa có nút "Chơi ngay" xanh ngọc. Dòng "đang online" là số giả tĩnh.
-2. **Chơi tiếp**: hàng thẻ mini (chỉ hiện khi đã chơi), điểm nhấn phụ.
-3. **Tất cả game**: ô nhỏ 4:3, chia nhóm Trí tuệ / Giải đố / Hành động, có khoảng nghỉ; tab lọc liền khối.
+## Bố cục 4 tầng
+- **Thanh trên**: logo + slogan · tìm game (không dấu) · [+ Tạo phòng] (xanh ngọc) · [Nhập mã] (mở hộp thoại).
+- **Tầng 1 — Arena** (desktop ≥1024 chia 60/40): trái là "Tựa game của tuần" (Đào Vàng, nút vàng "Chơi ngay");
+  phải là **Sảnh chờ trực tiếp**: ô nhập mã 6 ký tự, 3 phòng đang chờ (ghế trống, nút "Vào"), nút "Tạo phòng mới".
+- **Tầng 2 — Chơi tiếp**: dải thấp các game vừa chơi (`localStorage wgp.recent`), chỉ hiện khi đã có lịch sử.
+- **Tầng 3 — Kệ game**: tab lọc liền khối; kệ **Đối kháng đông người** (4 thẻ lớn ảnh 3:2: Cờ Cá Ngựa, Cờ Caro, Đặt Bom, Nối Từ,
+  nhãn "Nhiều người", số phòng mở, nút "Rủ bạn") và **Thư viện chơi nhanh** (14 ô 4:3, lưới 6 cột).
+- **Tầng 4 — Footer**: banner tài trợ SpeakUp Kids, bản quyền, bật/tắt âm thanh (`wgp.muted`, dùng chung với game).
 
-Thanh trên 1 hàng: logo · tìm kiếm (không dấu) · ô mã phòng + "Vào phòng" (desktop, 1 bước). Bấm 1 lần vào thẻ = vào chơi.
+Mobile (<720px): thanh trên 1 hàng (logo + slogan, Nhập mã), ô tìm ở đầu trang, khối tiêu điểm xếp dọc,
+ngay dưới là thanh to [+ Tạo phòng][Nhập mã], phòng chờ thành dải vuốt ngang, kệ đối kháng 2 cột, thư viện 3 cột.
 
-Mobile có bố cục riêng: thanh trên chỉ logo + nút "Mã phòng" (mở hộp thoại), ô tìm ở đầu trang, thẻ lớn tràn ngang,
-4 game nổi bật thành dải vuốt ngang, Tất cả game 3 cột.
+Quy ước màu: **vàng chỉ dùng cho nút chính "Chơi ngay"**; mọi hành động phòng (Tạo phòng, Vào, Rủ bạn) là xanh ngọc;
+"Nhập mã" là nút tối phụ. Pixel UI: viền đen 3px góc khuyết, vát sáng/tối 2px, bóng đổ cứng, bấm lún 4px; không bo góc, không blur.
 
-Pixel UI Kit (styles.css): góc ≤ 4px (không pill), khung gỗ 2 lớp + bóng "bậc" pixel, nút vát sáng trên/tối dưới và lún khi bấm,
-ô nhập lõm, nhãn HOT/MỚI cắt góc pixel. Tiêu đề Roboto Slab, chữ thường Be Vietnam Pro — không dùng pixel font cho văn bản.
-
-Đã bỏ: sidebar, cây cảnh/sách/khung trang trí, banner, chuông/thư/avatar ở header.
+Số người online, số phòng và các phòng chờ là **số minh họa** (`LOBBY_ROOMS`, `DUELS` trong `games.js`) — chưa có multiplayer thật.
+"Tạo phòng" hiện mở Cờ Cá Ngựa (game duy nhất đã có sảnh tạo phòng).
 
 ## Chạy
 ```
@@ -38,3 +40,4 @@ Kiểm tra tự động (Chrome headless): chạy server cổng 8766 từ `proto
 ## Giới hạn
 - 6 ảnh thumbnail cắt từ `assets/concepts-v4/direction-premium-pixel-art.png`; 12 game còn lại dùng bộ thumbnail 4:3 riêng đã duyệt (`assets/thumbs/`). Hình vẽ bằng code (icon/hue) chỉ còn làm dự phòng.
 - `play.html` chỉ là trang giữ chỗ (chưa có gameplay/lobby).
+- Icon UI 16×16 trong `assets/ui/` lấy lại từ bộ Cờ Cá Ngựa; không tạo ảnh mới.

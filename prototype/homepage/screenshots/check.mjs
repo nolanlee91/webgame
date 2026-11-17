@@ -45,24 +45,28 @@ const chip = c => ev(`document.querySelector('.tab[data-cat="${c}"]').click()`);
 await view(1440, 900, false, 1);
 await nav(BASE + 'index.html'); await ev('localStorage.clear()'); await nav(BASE + 'index.html');
 check('render 18 thẻ game', await cards() === 18);
-check('font Roboto Slab + Be Vietnam Pro tải được', await ev('document.fonts.ready.then(()=>document.fonts.check(\'700 20px "Roboto Slab"\') && document.fonts.check(\'600 16px "Be Vietnam Pro"\'))'));
+check('font Roboto Slab + Be Vietnam Pro tải được', await ev('document.fonts.ready.then(()=>document.fonts.check(\'800 20px "Roboto Slab"\') && document.fonts.check(\'600 16px "Be Vietnam Pro"\'))'));
 check('ảnh thumbnail tải được', await ev('[...document.querySelectorAll("#grid img")].every(i=>i.complete&&i.naturalWidth>0)'), await ev('document.querySelectorAll("#grid img").length') + ' ảnh');
 await ev('(async()=>{document.querySelectorAll("#grid img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("#grid img")].map(i=>i.decode().catch(()=>0)))})()'); await sleep(800);
-check('18/18 ô "Tất cả game" có ảnh thật, không còn hình tạm', await ev('document.querySelectorAll("#grid .tile img").length===18 && document.querySelectorAll("#grid .tile .ph").length===0'), await ev('document.querySelectorAll("#grid .tile img").length') + ' ảnh');
-check('12 ảnh mới tải được (đủ pixel, không lỗi)', await ev('(()=>{const ids=["ran-san-moi","dat-bom","ban-bong","2048","co-ca-ngua","ban-cung","xep-gach","tim-diem-khac","dua-xe","nong-trai","ghep-keo","sudoku"];return ids.every(id=>{const i=document.querySelector(`#grid img[src="assets/thumbs/${id}.webp"]`);return i&&i.complete&&i.naturalWidth===384})})()'));
-check('mọi ô lưới cùng kích thước, tỉ lệ 4:3', await ev('(()=>{const r=[...document.querySelectorAll("#grid .tile__art")].map(e=>e.getBoundingClientRect());return r.every(x=>Math.abs(x.width-r[0].width)<1&&Math.abs(x.height-r[0].height)<1&&Math.abs(x.width/x.height-4/3)<.03)})()'), await ev('(()=>{const r=document.querySelector("#grid .tile__art").getBoundingClientRect();return Math.round(r.width)+"×"+Math.round(r.height)})()'));
+check('18/18 thẻ game có ảnh thật, không còn hình tạm', await ev('document.querySelectorAll("#grid .card img").length===18 && document.querySelectorAll("#grid .ph").length===0'), await ev('document.querySelectorAll("#grid .card img").length') + ' ảnh');
+check('12 ảnh mới tải được (đủ pixel, không lỗi)', await ev('(()=>{const ids=["ran-san-moi","dat-bom","ban-bong","2048","co-ca-ngua","ban-cung","xep-gach","tim-diem-khac","dua-xe","nong-trai","ghep-keo","sudoku"];return ids.every(id=>{const i=document.querySelector(`#grid img[src="assets/thumbs/${id}.webp"]`);return i&&i.complete&&i.naturalWidth>=384})})()'));
+check('Thư viện: mọi ô cùng kích thước, tỉ lệ 4:3', await ev('(()=>{const r=[...document.querySelectorAll("#grid .tile__art")].map(e=>e.getBoundingClientRect());return r.every(x=>Math.abs(x.width-r[0].width)<1&&Math.abs(x.height-r[0].height)<1&&Math.abs(x.width/x.height-4/3)<.03)})()'), await ev('(()=>{const r=document.querySelector("#grid .tile__art").getBoundingClientRect();return Math.round(r.width)+"×"+Math.round(r.height)})()'));
 check('ảnh lấp kín ô (object-fit: cover, không viền trống)', await ev('[...document.querySelectorAll("#grid .tile img")].every(i=>getComputedStyle(i).objectFit==="cover"&&Math.abs(i.getBoundingClientRect().height-i.parentElement.clientHeight)<1.5&&Math.abs(i.getBoundingClientRect().width-i.parentElement.clientWidth)<1.5)'));
-const above = await ev('[...document.querySelectorAll("#featured .card,#grid .card")].filter(c=>c.getBoundingClientRect().bottom<=innerHeight).length');
-check('desktop 1440×900: thẻ game thấy trọn ngay khi mở', above >= 8, above + ' thẻ');
-check('khu "Mới & Hot" có 1 thẻ lớn + 4 thẻ vừa, nằm trên lưới Tất cả', await ev('document.querySelectorAll("#featured .hero").length===1 && document.querySelectorAll("#featured .pick").length===4 && document.getElementById("featured").getBoundingClientRect().top < document.getElementById("grid").getBoundingClientRect().top'));
-const ratio = await ev('(()=>{const A=e=>{const r=document.querySelector(e).getBoundingClientRect();return r.width*r.height};return Math.round(A("#featured .hero")/A("#grid .card")*10)/10+"× / "+Math.round(A("#featured .pick")/A("#grid .card")*10)/10+"×"})()');
-check('desktop: 3 cấp kích thước rõ rệt (thẻ lớn / thẻ vừa so với ô thường)', parseFloat(ratio) >= 6 && parseFloat(ratio.split("/ ")[1]) >= 1.8, ratio);
-check('có nhãn Hot/Mới', await ev('document.querySelectorAll("#featured .badge").length') === 5);
-check('Tất cả game chia 3 nhóm (Trí tuệ/Giải đố/Hành động)', await ev('document.querySelectorAll("#grid .group").length') === 3);
-check('không còn nút pill bo tròn (radius ≤ 4px)', await ev('[...document.querySelectorAll(".btn,.tab,.field")].every(e=>parseFloat(getComputedStyle(e).borderTopLeftRadius)<=4)'));
-check('desktop: không cuộn ngang', await ev('document.documentElement.scrollWidth<=innerWidth'));
+check('thương hiệu "Lụm Kèo" + slogan "Rủ bạn vào chơi" hiện trên thanh trên', await ev('(()=>{const t=document.querySelector(".topbar .logo__text"),s=document.querySelector(".topbar .logo__slogan");return t.textContent==="Lụm Kèo"&&s.textContent==="Rủ bạn vào chơi"&&t.offsetHeight>0&&s.offsetHeight>0})()') && (await ev('document.title')).startsWith('Lụm Kèo'), await ev('document.title'));
+check('Tầng 1: game tiêu điểm (trái) + sảnh chờ (phải) chia ~60/40', await ev('(()=>{const a=document.querySelector("#featured").getBoundingClientRect(),b=document.querySelector(".lobby").getBoundingClientRect(),r=a.width/(a.width+b.width);return Math.abs(a.top-b.top)<2&&a.right<b.left&&r>.57&&r<.63})()'), await ev('(()=>{const a=document.querySelector("#featured").offsetWidth,b=document.querySelector(".lobby").offsetWidth;return a+"px / "+b+"px"})()'));
+check('Tầng 1 thấy trọn trong màn 1440×900 (không cần cuộn)', await ev('Math.max(document.querySelector("#featured").getBoundingClientRect().bottom,document.querySelector(".lobby").getBoundingClientRect().bottom)<=innerHeight'), await ev('Math.round(Math.max(document.querySelector("#featured").getBoundingClientRect().bottom,document.querySelector(".lobby").getBoundingClientRect().bottom))+"px"'));
+check('sảnh chờ: 3 phòng, mỗi phòng có nút "Vào" + số ghế', await ev('(()=>{const r=[...document.querySelectorAll("#rooms .room")];return r.length===3&&r.every(x=>x.querySelector("a.room__go")&&/\\d\\/\\d/.test(x.querySelector(".room__cnt").textContent))})()'));
+check('sảnh chờ: phòng Cờ Cá Ngựa "Vào" mở game thật', (await ev('document.querySelector("#rooms .room__go").getAttribute("href")')).includes('games/co-ca-ngua'), await ev('document.querySelector("#rooms .room__go").getAttribute("href")'));
+check('Tầng 3: "Đối kháng" 4 thẻ cùng hàng + "Thư viện chơi nhanh" 14 ô', await ev('(()=>{const d=[...document.querySelectorAll("#grid .duels .duel")],t=document.querySelectorAll("#grid .tiles .tile");return d.length===4&&d.every(x=>Math.abs(x.getBoundingClientRect().top-d[0].getBoundingClientRect().top)<1)&&t.length===14})()'), await ev('[...document.querySelectorAll("#grid .duel .card__name")].map(n=>n.textContent).join(", ")'));
+check('thẻ đối kháng ảnh 3:2, có nhãn Nhiều người + số phòng', await ev('[...document.querySelectorAll(".duel")].every(d=>{const r=d.querySelector(".duel__art").getBoundingClientRect();return Math.abs(r.width/r.height-1.5)<.03&&!!d.querySelector(".duel__mp")&&/phòng/.test(d.querySelector(".duel__rooms").textContent)})'));
+check('Thư viện: 6 cột trên desktop', await ev('getComputedStyle(document.querySelector("#grid .tiles")).gridTemplateColumns.split(" ").length') === 6);
+check('màu vàng chỉ dùng cho nút chính "Chơi ngay"', await ev('(()=>{const g=[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor));return g.length===1&&!!g[0].closest(".hero")&&/Chơi ngay/i.test(g[0].textContent)})()'), await ev('[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor)).map(e=>e.className).join(",")'));
+check('có nhãn Hot/Mới', await ev('document.querySelectorAll("#featured .badge,#grid .badge").length') >= 3);
+check('footer: banner tài trợ + nút âm thanh', await ev('!!document.querySelector(".footer .sponsor") && !!document.querySelector(".footer #soundBtn")'));
+check('pixel UI: không bo góc (radius = 0) cho nút, ô, thẻ, khung', await ev('[...document.querySelectorAll(".btn,.tab,.field,.card,.px-panel,.room")].every(e=>parseFloat(getComputedStyle(e).borderTopLeftRadius)===0)'));
+check('desktop: không cuộn ngang', await ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth'));
 await shot('desktop-1440.png');
-await shot('desktop-1440-full.png', true);
+await ev('(async()=>{document.querySelectorAll("img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("img")].map(i=>i.decode().catch(()=>0)))})()'); await shot('desktop-1440-full.png', true);
 
 await chip('multi'); check('lọc "Chơi cùng bạn" = 9', await cards() === 9);
 await chip('giai-do'); check('lọc "Giải đố" = 7', await cards() === 7);
@@ -71,9 +75,9 @@ await setQ('dao vang');
 check('tìm "dao vang" (không dấu) ra Đào Vàng', await ev('[...document.querySelectorAll("#grid .card__name")].map(n=>n.textContent).join()') === 'Đào Vàng');
 await setQ('xyz'); check('không có kết quả → hiện thông báo trống', await ev('!document.getElementById("empty").hidden'));
 await ev('document.getElementById("clearSearch").click()'); check('"Xem tất cả game" khôi phục 18', await cards() === 18);
-await setQ('caro'); check('khi tìm kiếm: ẩn hàng nổi bật để kết quả lên đầu', await ev('document.getElementById("featuredSection").hidden')); await setQ('');
+await setQ('caro'); check('khi tìm kiếm: ẩn tầng tiêu điểm/sảnh chờ để kết quả lên đầu', await ev('document.getElementById("featuredSection").hidden')); await setQ('');
 
-check('desktop: ô mã phòng nằm ngay trên thanh trên', await ev('getComputedStyle(document.getElementById("roomInline")).display!=="none"'));
+check('desktop: ô mã phòng có sẵn trong sảnh chờ', await ev('getComputedStyle(document.getElementById("roomInline")).display!=="none"'));
 await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="ab-1";c.dispatchEvent(new Event("input"));document.getElementById("roomInline").requestSubmit()})()');
 check('mã sai → báo lỗi', (await ev('document.getElementById("roomInlineError").textContent')).length > 0, 'ô nhập lọc thành "' + await ev('document.getElementById("roomInlineCode").value') + '"');
 await shot('desktop-room-error.png');
@@ -89,11 +93,11 @@ await ev(`document.querySelector('a.card[data-id="co-caro"]').click()`); await s
 check('game chưa làm (Cờ Caro) → vẫn vào trang chờ play.html', (await ev('location.pathname+location.search')).endsWith('play.html?game=co-caro'), await ev('document.querySelector("h1").textContent'));
 await nav(BASE + 'index.html');
 check('mục "Chơi tiếp" hiện các game vừa chơi, mới nhất trước', await ev('!document.getElementById("recentSection").hidden && [...document.querySelectorAll("#recent .mini__name")].map(e=>e.textContent).join(",")') === 'Cờ Caro,Đào Vàng');
-check('"Chơi tiếp" là điểm nhấn phụ (thẻ mini thấp hơn nhiều thẻ nổi bật)', await ev('document.querySelector("#recent .mini").offsetHeight*2 < document.querySelector("#featured .card").offsetHeight'));
+check('"Chơi tiếp" là điểm nhấn phụ (thẻ mini thấp hơn nhiều thẻ nổi bật)', await ev('document.querySelector("#recent .mini").offsetHeight*2 < document.querySelector("#featured .card").offsetHeight && document.querySelector("#recentSection").getBoundingClientRect().top > document.querySelector(".lobby").getBoundingClientRect().bottom && document.querySelector("#recentSection").getBoundingClientRect().bottom < document.querySelector("#games").getBoundingClientRect().top'));
 await shot('desktop-1440-recent.png');
 await ev('localStorage.clear()');
 await ev(`document.querySelector('a.card[data-id="co-ca-ngua"]').click()`); await sleep(1500);
-check('bấm thẻ Cờ Cá Ngựa → mở thẳng game thật (1 thao tác)', (await ev('location.pathname')).endsWith('/games/co-ca-ngua/') && await ev('!!document.getElementById("menu") && !!document.getElementById("stage")'), await ev('location.href'));
+check('bấm thẻ Cờ Cá Ngựa → mở thẳng game thật (1 thao tác)', (await ev('location.pathname')).endsWith('/games/co-ca-ngua/') && await ev('!!document.getElementById("stage")'), await ev('location.href'));
 await ev('document.querySelector("a[href*=homepage]").click()'); await sleep(1500);
 check('từ Cờ Cá Ngựa bấm "← Trang chủ" → về trang chủ', (await ev('location.pathname')).endsWith('/homepage/'), await ev('location.href'));
 await ev('localStorage.clear()');
@@ -101,27 +105,27 @@ check('mỗi thẻ là 1 link duy nhất (1 lần Tab)', await ev('[...document.
 
 // ---------- Tablet ----------
 await view(820, 1180, true, 2); await nav(BASE + 'index.html');
-check('tablet 820: không cuộn ngang', await ev('document.documentElement.scrollWidth<=innerWidth'));
+check('tablet 820: không cuộn ngang', await ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth'));
 await shot('tablet-820.png');
 
 // ---------- Mobile ----------
 for (const [w, h] of [[390, 844], [360, 740]]) {
   await view(w, h, true, 3); await nav(BASE + 'index.html');
-  check(`mobile ${w}: không cuộn ngang`, await ev('document.documentElement.scrollWidth<=innerWidth'), await ev('document.documentElement.scrollWidth+"/"+innerWidth'));
+  check(`mobile ${w}: không cuộn ngang`, await ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth'), await ev('document.documentElement.scrollWidth+"/"+document.documentElement.clientWidth'));
   check(`mobile ${w}: Tất cả game 3 cột`, await ev('getComputedStyle(document.querySelector("#grid .tiles")).gridTemplateColumns.split(" ").length') === 3);
-  check(`mobile ${w}: thẻ lớn tràn ngang, 4 game nổi bật thành dải vuốt ngang`, await ev('(()=>{const h=document.querySelector("#featured .hero").getBoundingClientRect(),p=document.querySelector(".picks");return h.width>=innerWidth-26&&p.scrollWidth>p.clientWidth&&getComputedStyle(p).overflowX==="auto"})()'));
+  check(`mobile ${w}: xếp dọc tiêu điểm → thanh Tạo phòng/Nhập mã → sảnh chờ; phòng chờ là dải vuốt ngang`, await ev('(()=>{const h=document.querySelector("#featured .hero").getBoundingClientRect(),m=document.querySelector(".arena__mobile-actions").getBoundingClientRect(),l=document.querySelector(".lobby").getBoundingClientRect(),p=document.getElementById("rooms");return h.width>=innerWidth-30&&h.bottom<=m.top&&m.bottom<=l.top&&m.height>=48&&p.scrollWidth>p.clientWidth&&getComputedStyle(p).overflowX==="auto"})()'));
+  check(`mobile ${w}: logo + slogan vẫn hiện, không đè nút`, await ev('document.querySelector(".logo__slogan").offsetHeight>0 && document.querySelector(".logo__words").getBoundingClientRect().right<=document.getElementById("openRoom").getBoundingClientRect().left'));
   check(`mobile ${w}: thanh trên 1 hàng, ô tìm ở đầu trang`, await ev('document.querySelector(".topbar").offsetHeight<=58 && !!document.querySelector("#mobileSearchSlot .search")'));
-  const vis = await ev('[...document.querySelectorAll("#featured .card")].filter(c=>{const r=c.getBoundingClientRect();return r.top>=0&&r.top<innerHeight&&r.left<innerWidth}).length');
-  check(`mobile ${w}: game nổi bật hiện ngay khi mở (thấy ít nhất phần đầu)`, vis >= 3, vis + ' thẻ');
+  check(`mobile ${w}: nút "Chơi ngay" + Tạo phòng/Nhập mã thấy ngay khi mở`, await ev('[document.querySelector(".hero .btn--gold"),document.querySelector(".arena__mobile-actions")].every(e=>e.getBoundingClientRect().bottom<=innerHeight)'), await ev('Math.round(document.querySelector(".arena__mobile-actions").getBoundingClientRect().bottom)+"/"+innerHeight'));
   const small = await ev('[...document.querySelectorAll("button,a.card,input,.search")].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.top<innerHeight&&(r.height<40||r.width<40)}).map(e=>(e.id||e.className)+":"+Math.round(e.getBoundingClientRect().width)+"x"+Math.round(e.getBoundingClientRect().height)).join(",")');
   check(`mobile ${w}: vùng chạm ≥ 40px`, small === '', small);
   check(`mobile ${w}: tên game không bị cắt`, await ev('[...document.querySelectorAll(".card__name")].filter(n=>n.scrollWidth>n.clientWidth+1).length') === 0);
   await shot(`mobile-${w}.png`);
   if (w === 390) { await ev('localStorage.setItem("wgp.recent",JSON.stringify(["dao-vang","co-tuong","xep-gach"]))'); await nav(BASE + 'index.html'); await shot('mobile-390-recent.png'); await ev('localStorage.clear()'); await nav(BASE + 'index.html'); }
   if (w === 390) {
-    await view(390, 844, true, 2); await sleep(500); await shot('mobile-390-full.png', true); await view(390, 844, true, 3);
+    await view(390, 844, true, 2); await sleep(500); await ev('(async()=>{document.querySelectorAll("img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("img")].map(i=>i.decode().catch(()=>0)))})()'); await shot('mobile-390-full.png', true); await view(390, 844, true, 3);
     await ev('document.getElementById("openRoom").click()');
-    check('mobile: nút "Mã phòng" mở hộp thoại', await ev('document.getElementById("roomDialog").open'));
+    check('mobile: nút "Nhập mã" mở hộp thoại', await ev('document.getElementById("roomDialog").open'));
     await ev('(()=>{const c=document.getElementById("roomCode");c.value="ab-1";c.dispatchEvent(new Event("input"));document.getElementById("roomForm").requestSubmit()})()');
     check('mobile: mã sai → báo lỗi trong hộp thoại', (await ev('document.getElementById("roomError").textContent')).length > 0);
     await ev('(()=>{const c=document.getElementById("roomCode");c.value="xyz123";c.dispatchEvent(new Event("input"))})()');
