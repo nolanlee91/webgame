@@ -19,6 +19,11 @@
   function byId(id) { return GAMES.filter(function (g) { return g.id === id; })[0]; }
   // Game đã có bản chơi thật thì mở thẳng (field url trong games.js); game chưa làm vẫn vào trang chờ play.html.
   function href(g) { return g.url || "play.html?game=" + encodeURIComponent(g.id); }
+  // Game chưa có bản chơi thật → thẻ mờ ảnh + nhãn "Đang cập nhật".
+  function soon(g) { return !g.url; }
+  function soonCls(g) { return soon(g) ? " is-soon" : ""; }
+  var SOON = '<span class="soon" aria-hidden="true">Đang cập nhật</span>';
+  function soonSr(g) { return soon(g) ? '<span class="sr-only"> (đang cập nhật)</span>' : ""; }
   var duelIds = DUELS.map(function (d) { return d.id; });
 
   // Icon người chơi pixel 16×16 (vẽ bằng ô vuông, không nét cong).
@@ -30,6 +35,7 @@
     return '<img src="' + (src || g.thumb) + '" alt="" loading="lazy" decoding="async" />';
   }
   function badgeHTML(g) {
+    if (soon(g)) return SOON;
     if (!g.badge) return "";
     return '<span class="badge badge--' + (g.badge === "Hot" ? "hot" : "new") + '">' + g.badge + "</span>";
   }
@@ -41,7 +47,7 @@
 
   // ---------- TẦNG 1: game tiêu điểm ----------
   function heroHTML(g) {
-    return '<a class="card hero px-panel" href="' + href(g) + '" data-id="' + g.id + '">' +
+    return '<a class="card hero px-panel' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '">' +
       '<span class="hero__art">' + imgHTML(g, FEAT.heroImage) + "</span>" +
       '<span class="hero__info">' +
         '<span class="hero__tags"><span class="kicker">Tựa game của tuần</span>' + badgeHTML(g) + "</span>" +
@@ -69,21 +75,21 @@
   function renderRooms() {
     $("rooms").innerHTML = ROOMS.map(function (r) {
       var g = byId(r.game); if (!g) return "";
-      return '<li class="room">' +
+      return '<li class="room' + soonCls(g) + '">' +
         '<span class="room__art">' + imgHTML(g) + "</span>" +
         '<span class="room__info"><span class="room__name">' + g.name + ' <span class="room__no">#' + r.no + "</span></span>" +
           '<span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" />' + esc(r.host) + "</span></span>" +
         '<span class="room__side">' + seatsHTML(r) + '<span class="room__cnt">' + r.have + "/" + r.max + '<span class="sr-only"> người</span></span></span>' +
-        '<a class="btn btn--teal btn--sm room__go" href="' + roomHref(r) + '" data-room="' + r.code + '" aria-label="Vào phòng ' + g.name + " số " + r.no + ", " + r.have + " trên " + r.max + ' người">Vào</a>' +
+        '<a class="btn btn--teal btn--sm room__go" href="' + roomHref(r) + '" data-room="' + r.code + '" aria-label="Vào phòng ' + g.name + " số " + r.no + ", " + r.have + " trên " + r.max + ' người' + (soon(g) ? ", đang cập nhật" : "") + '">' + (soon(g) ? "Sắp có" : "Vào") + "</a>" +
       "</li>";
     }).join("");
   }
 
   // ---------- TẦNG 2: chơi tiếp ----------
   function miniHTML(g) {
-    return '<a class="card mini" href="' + href(g) + '" data-id="' + g.id + '">' +
+    return '<a class="card mini' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '">' +
       '<span class="mini__art">' + imgHTML(g) + "</span>" +
-      '<span class="mini__name">' + g.name + "</span></a>";
+      '<span class="mini__name">' + g.name + soonSr(g) + "</span></a>";
   }
   function getRecent() {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) { return []; }
@@ -103,18 +109,18 @@
   // Thẻ Đối kháng (3:2): huy hiệu nhiều người + số phòng đang mở + nút "Rủ bạn".
   function duelHTML(g) {
     var d = DUELS.filter(function (x) { return x.id === g.id; })[0] || {};
-    return '<a class="card duel px-panel" href="' + href(g) + '" data-id="' + g.id + '">' +
+    return '<a class="card duel px-panel' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '">' +
       '<span class="duel__art">' + imgHTML(g) + badgeHTML(g) +
         '<span class="duel__mp">' + pxIcon(P2) + "Nhiều người</span></span>" +
-      '<span class="duel__body"><span class="duel__text"><h3 class="card__name">' + g.name + "</h3>" +
+      '<span class="duel__body"><span class="duel__text"><h3 class="card__name">' + g.name + soonSr(g) + "</h3>" +
         '<span class="duel__meta">' + metaHTML(g) + '<span class="duel__rooms"><span class="live" aria-hidden="true"></span>' + (d.rooms || 0) + " phòng mở</span></span></span>" +
-        '<span class="btn btn--teal btn--sm" aria-hidden="true">Rủ bạn</span></span></a>';
+        '<span class="btn btn--sm ' + (soon(g) ? "btn--off" : "btn--teal") + '" aria-hidden="true">' + (soon(g) ? "Sắp có" : "Rủ bạn") + "</span></span></a>";
   }
   // Ô Thư viện chơi nhanh (4:3, gọn).
   function tileHTML(g) {
-    return '<a class="card tile" href="' + href(g) + '" data-id="' + g.id + '">' +
+    return '<a class="card tile' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '">' +
       '<span class="tile__art">' + imgHTML(g) + badgeHTML(g) + "</span>" +
-      '<span class="tile__body"><h3 class="card__name">' + g.name + "</h3>" + metaHTML(g) + "</span></a>";
+      '<span class="tile__body"><h3 class="card__name">' + g.name + soonSr(g) + "</h3>" + metaHTML(g) + "</span></a>";
   }
 
   function matches(g) {
@@ -168,7 +174,8 @@
   });
   document.addEventListener("click", function (e) {
     var a = e.target.closest("a.card");
-    if (a) pushRecent(a.dataset.id);
+    // Chỉ ghi "chơi tiếp" cho game chơi được thật.
+    if (a && !a.classList.contains("is-soon")) pushRecent(a.dataset.id);
   });
 
   // Mobile: chuyển ô tìm kiếm từ thanh trên xuống đầu trang để thanh trên chỉ còn 1 hàng gọn.

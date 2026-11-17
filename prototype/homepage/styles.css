@@ -73,6 +73,16 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .badge--hot { background: var(--px-hot); }
 .badge--new { background: var(--px-new); }
 
+/* Game chưa có bản chơi thật: ảnh mờ + nhãn "Đang cập nhật" giữa ảnh */
+.soon { position: absolute; left: 50%; top: 50%; z-index: 2; transform: translate(-50%, -50%); padding: 5px 9px 4px; white-space: nowrap; font: 800 12px/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--px-ink); background: #2a231b; --b: #000; box-shadow: var(--px-border), 3px 3px 0 0 rgba(0,0,0,.5); }
+.tile__art .soon { font-size: 10px; padding: 4px 6px 3px; }
+.is-soon img:not(.room__host img) { filter: grayscale(.75) blur(1.5px) brightness(.6); transform: scale(1.04); }
+.is-soon .card__name, .is-soon .mini__name, .is-soon .room__name { color: var(--px-soft); }
+.is-soon .meta { opacity: .7; }
+.is-soon:hover img:not(.room__host img) { filter: grayscale(.6) blur(1.5px) brightness(.7); }
+.btn--off { color: var(--px-soft); background: #3a332a; --b: #1a1612; }
+.room.is-soon .room__go { color: var(--px-soft); background: #3a332a; --b: #1a1612; text-shadow: none; }
+
 .live { display: inline-block; width: 8px; height: 8px; flex: none; background: var(--px-live); box-shadow: 0 0 0 2px #1c3a17; animation: live 1.2s steps(2) infinite; }
 @keyframes live { 50% { opacity: .35; } }
 
