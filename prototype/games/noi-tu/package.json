@@ -1,0 +1,1 @@
+{ "name": "noi-tu", "private": true, "type": "module", "scripts": { "test": "node --test --test-timeout=20000 test/*.test.mjs", "build:dict": "node data/build.mjs" } }

@@ -1,106 +1,135 @@
-# Nối Từ — phác thảo kiến trúc (chờ Codex review)
+# Nối Từ — kiến trúc (bản 2, đã áp 6 điểm review của Codex)
 
-Trạng thái: **bản nháp bước 1**, chưa code. Mục tiêu: bản đầu chơi với máy (offline), sau này cắm online 1v1 thật
-**mà không sửa luật, AI hay giao diện** — chỉ thêm một module phiên chơi mới và phía server.
-Dựa trên `docs/tech-architecture-v2.md` (engine E3 Đố chữ, E5 RoomShell + TurnController, mục 2.3 license từ điển).
+Trạng thái: **bước 1 xong** — kiến trúc + lõi + lớp phiên chơi + test hợp đồng đã code và chạy (43 test).
+Chưa có giao diện (bước 2). Mục tiêu giữ nguyên: bản đầu chơi với máy/offline, sau này cắm online 1v1 thật
+**mà không sửa luật, AI hay giao diện** — chỉ thêm một transport Colyseus và phần server.
+Code: `prototype/games/noi-tu/` · Test: `npm test` trong thư mục đó.
 
 ## 1. Luật (bản đầu)
-- Mỗi từ là **từ ghép đúng 2 âm tiết** có trong từ điển. Từ sau phải bắt đầu bằng **âm tiết cuối của từ trước**,
-  khớp đúng cả dấu (học tập → tập vở → vở ...). Không lặp từ đã dùng trong ván.
-- Mỗi lượt **15 giây** (cấu hình được; catalog ghi 10 s, chọn 15 s cho người mới/trẻ em). Gõ sai từ thì báo lý do,
-  được gõ lại đến khi hết giờ. Hết giờ hoặc bỏ cuộc → thua ván. Tỉ số giữ qua các ván, người thua đi trước.
-- Từ "cụt" (không còn từ nào nối tiếp) được phép — đó là đòn chiến thuật. Có tùy chọn luật cấm từ cụt (`rules.noDeadEnd`).
+- Mỗi từ là **từ ghép đúng 2 âm tiết** có trong từ điển; từ sau bắt đầu bằng **âm tiết cuối của từ trước**,
+  khớp cả dấu (sau chuẩn hóa — mục 7). Không lặp từ trong ván. Mỗi lượt **15 s** (cấu hình được).
+- Gõ sai thì báo lý do, gõ lại đến hết giờ. Hết giờ / bỏ cuộc → thua ván. Tỉ số giữ qua các ván, người thua đi trước.
+- **Từ cụt** (mục 7): mặc định được phép và **kết thúc ván ngay, người đánh từ cụt thắng** (không bắt đối thủ chờ 15 s);
+  `config.noDeadEnd = true` thì từ cụt bị từ chối.
 
-## 2. Các lớp và hướng phụ thuộc
+## 2. Các lớp
 
 ```
-ui/  (game.js, index.html)          ← chỉ biết MatchSession, không import rules/ai
-  │  intent: submit(word) / resign() / rematch()      ▲ state + event
-  ▼                                                   │
-session/  MatchSession (interface)
-  ├─ local.js     LocalSession   — "trọng tài" chạy ngay trong trình duyệt (bot hoặc 2 người chung máy)
-  ├─ loopback.js  LoopbackSession — giả lập mạng: JSON + độ trễ + đứt kết nối (để test, bản đầu có luôn)
-  └─ online.js    OnlineSession  — (sau) WebSocket tới server
-  │
-core/  (thuần JS, không DOM, không Date.now, không fetch — chạy được cả trình duyệt lẫn Node server)
-  ├─ normalize.js  chuẩn hóa tiếng Việt: NFC, chữ thường, gộp khoảng trắng, tách âm tiết, đổi dấu kiểu cũ/mới (hoà/hòa)
-  ├─ dict.js       createDict(words) → has(w), startsWith(syl), countNext(syl, used)  (chỉ nhận dữ liệu, không tự tải)
-  ├─ rules.js      initRound(config, seed), validate(state, seat, word, dict) → {ok, reason}, reduce(state, event)
-  └─ ai.js         pickWord(state, dict, level, rng) → word | null
-data/words.json    từ điển tự xây + dictVersion
+ui/ (bước 2)        chỉ biết MatchSession (session/client.js) — không import core/rules, core/ai
+   │ intent                 ▲ snapshot / event / result / pong / presence     (mọi thứ là JSON)
+   ▼                        │
+transport           memoryTransport (offline, cùng trang) │ IPC (test, tiến trình riêng) │ Colyseus (sau)
+   │                        ▲
+   ▼                        │
+session/referee.js  RefereeHost — TRỌNG TÀI, nguồn sự thật duy nhất: log sự kiện, đồng hồ, bot, chờ kết nối lại
+   │
+core/  thuần (không DOM, không Date.now, không fetch): normalize · dict · rules (validate/reduce) · ai · rng
+data/  words-src.txt (tự soạn) → build.mjs → words.json (+ contentHash), blocklist.txt
 ```
 
-Quy tắc cứng: `core/` không import gì ngoài `core/`; `ui/` không import `core/rules` hay `core/ai`
-(trừ `normalize`/`validate` để báo đỏ/xanh tức thì khi gõ — chỉ là gợi ý, quyết định cuối là của trọng tài).
+Điểm khác bản 1: **không còn LocalSession tự làm trọng tài**. Offline cũng là `MatchClient` ↔ `RefereeHost`
+qua transport trong bộ nhớ, mọi thông điệp vẫn đi qua `JSON.stringify` ⇒ UI chỉ có **một** đường code cho offline
+và online; online chỉ đổi transport và chuyển `RefereeHost` lên server.
 
-## 3. Trạng thái = gộp dần các sự kiện
-`state = events.reduce(reduce, initial)`. State là dữ liệu thuần, JSON được:
-`{ v, rulesVersion, dictVersion, seats:[{id,name,kind:'human'|'bot'}], round, first, turn, chain:[{seat,word,at}],
-used:Set→array, turnStartedAt, turnMs, winner, reason, score, seq }`.
+## 3. Hợp đồng intent / event (điểm 1 của Codex)
 
-Sự kiện (do **trọng tài** phát, có `seq` tăng dần):
+**Intent** (client → trọng tài): `{ t:'intent', type:'submit'|'resign'|'rematch', commandId, matchId, roundId, expectedSeq?, word? }`
+- `commandId` duy nhất mỗi lệnh. Client **gửi lại nguyên lệnh (cùng commandId)** mỗi 1 s và sau khi kết nối lại,
+  đến khi có `result`. Trọng tài lưu kết quả theo `ghế:commandId` (500 lệnh gần nhất) ⇒ trùng lệnh / mất ACK
+  **trả lại kết quả cũ, không đánh hai lần**.
+- `submit` bắt buộc `expectedSeq === state.seq` (từ được chọn theo chuỗi người chơi đang thấy) — lệch thì `stale`.
+  `resign`/`rematch` chỉ cần đúng `matchId` + `roundId`.
+
+**Kết quả** `{ t:'result', commandId, res:{ ok, reason?, key?, need?, seq } }` — chỉ gửi cho người ra lệnh.
+`rejected` **không phải sự kiện**, không vào log, **không tốn số seq** ⇒ đối thủ không bao giờ thấy hụt số.
+
+**Sự kiện** (trọng tài phát cho cả phòng, `seq` tăng liên tục 1,2,3…). **Mọi** thay đổi state đều là sự kiện:
+
 | Sự kiện | Ý nghĩa |
 |---|---|
-| `roundStart {first, seed, at, rulesVersion, dictVersion}` | bắt đầu ván; seed cho bot |
-| `played {seat, word, at}` | từ hợp lệ đã nối |
-| `timeout {seat, at}` · `resigned {seat, at}` | kết thúc ván |
-| `rejected {seat, word, reason}` | **không đổi state**, chỉ gửi cho người gõ (sai luật/không có trong từ điển/đã dùng) |
+| `matchCreated {matchId, pin, config, seats}` | tạo trận; `pin` ghim từ điển + luật (mục 6) |
+| `roundStarted {roundId, first, at, deadlineAt}` | bắt đầu ván |
+| `played {roundId, seat, word, at, deadlineAt}` | từ hợp lệ (đã chuẩn hóa) |
+| `roundEnded {roundId, winner, reason: timeout/resign/no-move, at}` | kết thúc ván, cộng điểm |
+| `seatChanged {seat, kind: human/bot, id, name}` | bot thay ghế / người cũ lấy lại ghế |
+| `rematchRequested {seat}` | một bên đồng ý chơi lại (đủ hai bên ⇒ `roundStarted`) |
+| `configChanged {config}` | đổi cấu hình lượt — chỉ giữa các ván |
+| `clockReset {roundId, deadlineAt}` | chỉ offline: mở lại tab giữa ván thì tính giờ lại lượt đang dở |
 
-Thời gian luôn nằm **trong sự kiện** (`at`), không đọc đồng hồ trong `core/`. Trọng tài sở hữu đồng hồ và tự phát `timeout`.
-Giao diện chỉ hiển thị đếm ngược từ `turnStartedAt + turnMs` (online: cộng độ lệch giờ với server).
+`state = fold(reduce, log)`; `snapshot = { snapshotSeq, state }`. Test kiểm tra `fold(log) == state server == state mỗi client`.
 
-## 4. Interface MatchSession (điểm cắm online)
-```js
-session.mySeat            // 0 | 1 — UI vẽ theo góc nhìn này, không giả định "người = ghế 0"
-session.state             // snapshot hiện tại (chỉ đọc)
-session.submit(word)      // ý định, không phải sự kiện; trả Promise<{ok, reason}>
-session.resign(); session.rematch()
-session.on('state', fn)   // sau mỗi sự kiện được áp dụng
-session.on('event', fn)   // để chạy hiệu ứng (từ bay vào chuỗi, rung khi rejected, hết giờ...)
-session.on('status', fn)  // 'connecting' | 'live' | 'opponent-left' | 'reconnecting' | 'closed'
-session.dispose()
-```
-- **LocalSession**: giữ log sự kiện, chạy `validate` + `reduce`, giữ đồng hồ, khi tới lượt bot thì gọi `ai.pickWord`
-  sau 0,8–2,5 s "suy nghĩ" (độ trễ do session quyết định, AI vẫn thuần). Lưu log vào localStorage để mở lại ván dở.
-- **LoopbackSession**: một "server" giả chạy cùng trang, mọi intent/sự kiện đi qua `JSON.stringify` + trễ ngẫu nhiên,
-  có thể cắt kết nối. Chạy chung bộ test với LocalSession ⇒ chứng minh UI không phụ thuộc vào chuyện ai làm trọng tài.
-- **OnlineSession (sau)**: gửi intent qua WebSocket, nhận sự kiện có `seq`; mất kết nối thì xin lại snapshot + các sự kiện
-  sau `seq` cuối. Không đổi gì ở `ui/` và `core/`.
+**Client áp sự kiện:** `seq ≤ hiện tại` ⇒ bỏ (trùng) · `seq = hiện tại + 1` ⇒ áp + chạy hiệu ứng ·
+`seq > hiện tại + 1` ⇒ giữ trong bộ đệm và **xin snapshot** (`sync`), không đòi phát lại từng sự kiện.
+Snapshot cũ hơn state hiện có thì bỏ; sự kiện đến muộn đã nằm trong snapshot thì bỏ.
+Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lại từ state), chỉ sự kiện mới sau snapshot mới có hiệu ứng.
 
-## 5. Khi làm online (chưa làm bây giờ)
-- Server Node dùng **nguyên `core/`** (ES module) làm trọng tài: room type `noi-tu` trên TurnController của RoomShell
-  (Colyseus đã ghi trong kiến trúc v2, hoặc `ws` thuần nếu Codex thấy nhẹ hơn cho giai đoạn này).
-- Server có từ điển riêng, là nguồn quyết định; client vẫn có bản sao để báo tức thì và để chơi offline.
-  Nối Từ không có thông tin ẩn nên client có từ điển không tạo lỗ gian lận.
-- Đối thủ thoát giữa ván → server cho **bot thay ghế** bằng cùng `ai.js` (đúng giả định ở catalog v2 mục rủi ro).
-- `rulesVersion` + `dictVersion` trong `roundStart`: hai bên lệch bản thì server từ chối vào phòng thay vì chơi sai luật.
-- Chống gian lận: chỉ server phát `played`/`timeout`; client gửi từ, không gửi "tôi thắng".
+## 4. Đồng hồ, rớt mạng, mở lại tab (điểm 2)
+- Trọng tài dùng đồng hồ **monotonic** (`performance.timeOrigin + performance.now()` — đơn vị ms, gốc kiểu epoch để
+  hai bên so được). Mỗi lượt có `deadlineAt` trong sự kiện. Trọng tài tự phát `timeout` đúng `deadlineAt`.
+- Trọng tài **chỉ nhận từ khi giờ của chính nó lúc nhận < deadlineAt**; không có trường thời gian nào từ client
+  được tin. Không bù trễ mạng (lag compensation) ở bản đầu.
+- Client ping mỗi 3 s, giữ 8 mẫu, lấy **mẫu RTT nhỏ nhất** để ước lượng lệch giờ
+  `offset = serverTime − (t0+t1)/2`; đếm ngược hiển thị = `deadlineAt − (giờ client + offset)`. Chỉ để hiển thị.
+- **Rớt mạng:** trọng tài báo `presence offline` + `graceUntil`; **đồng hồ lượt vẫn chạy**. Chờ `graceMs` (mặc định
+  **30 s**) mới cho bot thay ghế (`seatChanged`). Quay lại trong 30 s ⇒ không có gì thay đổi.
+  Quay lại sau khi bot đã vào ⇒ được xem ván, **lấy lại ghế khi ván đó kết thúc** (không giật ghế giữa ván).
+- **Đóng tab rồi mở lại (online):** client lưu `{matchId, token}`; mở lại ⇒ `join` với token ⇒ nhận snapshot,
+  dựng lại toàn bộ ván, không chạy lại hiệu ứng cũ; tab cũ (nếu còn) bị `kicked`. Trong 30 s thì vẫn giữ ghế.
+- **Đóng tab rồi mở lại (offline):** log sự kiện lưu localStorage; mở lại ⇒ dựng trọng tài từ log, phát `clockReset`
+  cho lượt đang dở (người chơi một mình không bị xử thua vì lúc tab đóng). Log có ghim lệch từ điển ⇒ bỏ, mở ván mới.
 
-## 6. Từ điển
-- **Tự xây** theo khuyến nghị mục 2.3 kiến trúc v2 (nguồn mở tìm được đều GPL): mục tiêu bản đầu **~3.000–5.000 từ ghép
-  2 âm tiết thông dụng**, lọc từ nhạy cảm cho trẻ em, thêm cờ `kid`/`common` để bot Dễ chỉ dùng từ quen.
-- Định dạng: `words.json` = `{dictVersion, words:[...]}` (~60–90 KB, nén gzip còn ~25 KB). Dựng chỉ mục theo âm tiết đầu khi tải.
-- Rủi ro chính của game là **người chơi gõ từ đúng mà từ điển thiếu**. Bản đầu: báo "Từ này chưa có trong từ điển",
-  ghi lại các từ bị thiếu vào localStorage (sau này gửi lên server để duyệt bổ sung). Cần người thật duyệt danh sách.
+## 5. Hạ tầng phòng online (điểm 3) — Colyseus
+- Dùng **Colyseus** (theo kiến trúc v2: RoomShell + TurnController), **bọc hoàn toàn sau transport**: một room
+  `noi-tu` chứa đúng một `RefereeHost`; `onJoin/onLeave/onMessage` của room chỉ chuyển tiếp sang
+  `host.connect / host.disconnect / host.message`; `host` gửi lại qua `client.send`.
+- **Nguồn sự thật duy nhất là log của RefereeHost.** **Không dùng Colyseus Schema state** cho ván (room state để
+  trống hoặc chỉ metadata ngoài ván như số người trong phòng) ⇒ không có hai nguồn trạng thái độc lập.
+  Reconnect của Colyseus (`allowReconnection`) chỉ dùng như kênh mới; đồng bộ ván vẫn bằng `join` + snapshot ở trên.
+- Idempotency, `expectedSeq`, xử lý hụt/trùng sự kiện là của ta (đã có test), không phụ thuộc Colyseus.
 
-## 7. AI
-- Chỉ chọn từ trong từ điển, chưa dùng, nối đúng. Hết từ → chịu thua (để hết giờ).
-- **Dễ**: chọn ngẫu nhiên trong từ `common`, thỉnh thoảng "bí" khi còn ít lựa chọn.
-- **Khó**: ưu tiên từ có âm tiết cuối ít đường nối tiếp nhất cho đối thủ (`countNext` thấp), dùng từ cụt khi luật cho phép,
-  tránh tự để mình vào thế ít lựa chọn ở lượt sau (nhìn trước 1 bước).
-- Thuần, có `rng` truyền vào ⇒ test lặp lại được, và server dùng lại y nguyên.
+## 6. Từ điển gửi xuống máy người chơi (điểm 4)
+- Mỗi trận ghim `pin = { dictHash, normVersion, rulesVersion }` trong `matchCreated`. `dictHash` là **hash nội dung**
+  (FNV-1a 64 trên danh sách khóa đã chuẩn hóa + sắp xếp + danh sách từ hiếm) — không phải chuỗi phiên bản đặt tay.
+  Client gửi pin khi `join`; lệch ⇒ `joinRejected: pin-mismatch` (sau này: client tải đúng file
+  `words.<hash>.json` bất biến rồi vào lại).
+- **Đo thật** (`node data/build.mjs`, bản khởi đầu): **591 từ → 8.069 B JSON, gzip 3.111 B, brotli 2.841 B
+  (5,26 B/từ gzip)**. Ngoại suy tuyến tính cho 5.000 từ ≈ **26 KB gzip** — sẽ đo lại khi đủ danh sách.
+- Danh sách tự soạn ⇒ không vướng GPL. **Không có endpoint công khai thêm từ.** Từ người chơi gõ mà thiếu chỉ được
+  ghi lại (localStorage; sau này gửi lên kèm trận) để người duyệt bổ sung thủ công vào `words-src.txt`.
+- `blocklist.txt`: build **dừng** nếu từ điển chứa âm tiết/từ bị chặn (lọc cho trẻ em).
 
-## 8. Test (bước 2)
-- Unit `core/`: chuẩn hóa (dấu, hoa thường, khoảng trắng, "hoà/hòa"), luật nối, lặp từ, hết giờ, tỉ số, replay log.
-- **Bộ test hợp đồng MatchSession** chạy cho cả LocalSession và LoopbackSession (trễ, mất gói, reconnect).
-- AI đấu AI hàng trăm ván: luôn từ hợp lệ, đủ nhanh trên điện thoại.
-- E2E Chrome thật desktop + mobile như Cờ Caro (bàn phím ảo trên mobile không che ô nhập, gõ tiếng Việt có dấu bằng IME).
+## 7. Hai quyết định đã chốt (điểm 6)
+- **Chuẩn hóa (NORM_VERSION 1):** NFC → chữ thường → bỏ ký tự không phải chữ → gộp khoảng trắng → **tách dấu thanh
+  khỏi từng âm tiết rồi đặt lại theo một luật cố định "kiểu cũ"** (mặc định của Unikey/bàn phím điện thoại):
+  `hoà/hòa → hòa`, `khoẻ/khỏe → khỏe`, `thuý/thúy → thúy`; có phụ âm cuối hoặc nguyên âm có mũ/móc thì hai kiểu
+  vốn giống nhau (`hoàng`, `thuyền`, `quý`, `người`). Từ hiển thị trong chuỗi là dạng chuẩn này.
+- **"Không còn đường nối tiếp"** được tính **sau khi đã thêm từ vừa đánh vào danh sách đã dùng**
+  (vd. `số ba → ba ba`: đường nối duy nhất của "ba" chính là "ba ba" ⇒ sau khi đánh là cụt). Kiểm tra ngay trong
+  `validate` của lượt đánh; mặc định ⇒ `played` + `roundEnded(no-move)` cùng lúc, `noDeadEnd` ⇒ từ chối `dead-end`.
 
-## 9. Cần Codex xem kỹ
-1. Ranh giới intent/sự kiện và việc `rejected` không đi vào log có hợp lý cho reconnect không.
-2. Đồng hồ do trọng tài giữ, client chỉ hiển thị — đủ chưa, hay cần thêm bù trễ mạng cho lượt 15 s.
-3. Colyseus hay `ws` thuần cho room 1v1 theo lượt ở giai đoạn đầu online.
-4. Từ điển gửi xuống client (cần cho offline) — có vấn đề gì về license/kích thước không, khi danh sách là tự xây.
+## 8. Test (điểm 5) — `npm test`, 43 test
+- **Hợp đồng, 17 kịch bản × 2 backend** (`test/contract.test.mjs`): backend `process` chạy trọng tài trong
+  **tiến trình Node riêng** (`test/referee-proc.mjs`, tự dựng từ điển của nó, chỉ trao đổi chuỗi JSON qua IPC);
+  backend `inproc` là đường của bản offline. Giữa hai phía có đường truyền lỗi lập trình được (rơi / nhân đôi /
+  giữ rồi thả muộn). Đồng hồ server và client tách riêng, lệch nhau ~995 s.
+  Kịch bản: vào phòng + bù lệch giờ · từ bị từ chối không làm đối thủ hụt seq · **gửi trùng lệnh** · **mất ACK** ·
+  mất cả lệnh lẫn ACK nhiều lần · expectedSeq cũ · **sự kiện trùng** · **sự kiện hụt** (xin snapshot, không chạy
+  lại hiệu ứng) · **snapshot chồng lấn sự kiện đến muộn** · sự kiện đảo thứ tự · **sát deadline** (còn 1 ms nhận,
+  đúng deadline thì không) · lệnh kẹt mạng quá deadline bị từ chối · từ cụt (3 trường hợp) · **rematch** (cần hai bên,
+  lệnh trùng không thừa sự kiện, người thua đi trước) · **bot thay thế** (29 s không thay, 30 s thay, bot đánh đúng
+  luật, người cũ lấy lại ghế ván sau) · đóng tab mở lại · lệch từ điển/token sai bị từ chối.
+  Mỗi kịch bản kết thúc bằng kiểm tra chung: `fold(log) == state server == state từng client`, seq liên tục,
+  không hiệu ứng nào chạy hai lần.
+- **Kiểm tra chéo bằng cố ý gây lỗi**: tắt idempotency, bỏ lọc sự kiện trùng, nhận từ đúng deadline, thay bot ngay,
+  bỏ expectedSeq, tính từ cụt trước khi trừ từ vừa dùng ⇒ mỗi lỗi đều làm 2–6 test đỏ.
+- **Lõi** (`test/core.test.mjs`): chuẩn hóa, hash từ điển, luật, replay mọi loại sự kiện, AI đấu AI 200 ván
+  (mọi nước hợp lệ, nước chậm nhất ~5 ms).
+- **LocalSession** (`test/local.test.mjs`): chơi với bot, đóng tab mở lại (clockReset), đổi từ điển ⇒ ván mới,
+  hai người chung máy.
 
-Giao diện (bước 2, tóm tắt): chuỗi từ dạng thẻ pixel V5 cuộn ngang/dọc, âm tiết nối được tô màu,
-ô nhập lớn có đếm ngược dạng thanh, khung lượt của hai bên như Cờ Caro; dùng asset có sẵn, không tạo ảnh AI mới.
+## 9. Còn lại cho bước 2
+- Giao diện (Art Bible V5, Lụm Kèo, desktop + mobile, asset có sẵn): chuỗi từ dạng thẻ pixel, âm tiết nối tô màu,
+  ô nhập lớn + thanh đếm ngược, khung lượt hai bên như Cờ Caro; E2E Chrome thật (gõ tiếng Việt IME, bàn phím ảo).
+- **Từ điển:** bản khởi đầu mới có 591 từ (ván máy-đấu-máy trung bình ~4 nước — quá ngắn). Cần mở rộng lên
+  3.000–5.000 từ và **người thật duyệt** trước khi phát hành.
+- Bot Dễ "thỉnh thoảng bí"; báo từ thiếu.

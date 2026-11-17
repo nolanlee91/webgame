@@ -1,0 +1,6 @@
+# Âm tiết/từ không được xuất hiện trong từ điển trẻ em. Build sẽ dừng nếu gặp. (Danh sách tối thiểu, cần bổ sung khi duyệt.)
+dâm
+đĩ
+chết tiệt
+ma túy
+cờ bạc
