@@ -20,7 +20,7 @@ window.GAMES = [
   { id: "tim-diem-khac", name: "Tìm Điểm Khác", cat: "giai-do", mode: "solo",  players: "1 người", thumb: "assets/thumbs/tim-diem-khac.webp", icon: "search", hue: 180 },
   { id: "dua-xe",    name: "Đua Xe Vượt Đồi",  cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dua-xe.webp", icon: "car", hue: 55 },
   { id: "nong-trai", name: "Nông Trại",        cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/nong-trai.webp", icon: "sprout", hue: 110 },
-  { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320 },
+  { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320, url: "../games/ghep-keo/" },
   { id: "sudoku",    name: "Sudoku",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/sudoku.webp", icon: "sudoku", hue: 225, url: "../games/sudoku/" },
 ];
 
