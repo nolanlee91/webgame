@@ -329,36 +329,67 @@ export function mount(el, ctx = {}) {
     c2.fillStyle = i === 0 ? COLORS.p1 : COLORS.p2; c2.fillRect(-4, -4, 8, 8);
     c2.restore();
   }
+  // ---- Lớp UI pixel (Art Bible V5): viền đen 3px góc khuyết, vát sáng/tối 2px, bóng cứng lệch 4px, không bo/không mờ.
+  // Vàng chỉ dùng cho lời nhắc hành động chính (nút "tiếp tục") — điểm số dùng màu chữ thường.
+  const PX = { panel: "#1d1a16", panel2: "#262019", line: "#0a0807", ink: "#f4ead2", soft: "#b9ad93", dim: "#7d7564",
+    gold: "#ffc94a", goldL: "#ffe9a8", goldD: "#5a3a08", shadow: "rgba(0,0,0,.6)" };
+  const FONT = (w, s) => w + " " + s + "px 'Be Vietnam Pro', system-ui, sans-serif";
+  function pxBox(x, y, w, h, fill, edge, drop) {
+    if (drop) { c2.fillStyle = PX.shadow; c2.fillRect(x + 4, y + 7, w, h); c2.fillRect(x + 7, y + 4, w, h); }
+    c2.fillStyle = edge || PX.line; // viền 4 cạnh, chừa góc → góc khuyết bậc
+    c2.fillRect(x, y - 3, w, 3); c2.fillRect(x, y + h, w, 3); c2.fillRect(x - 3, y, 3, h); c2.fillRect(x + w, y, 3, h);
+    c2.fillStyle = fill; c2.fillRect(x, y, w, h);
+    c2.fillStyle = "rgba(255,255,255,.13)"; c2.fillRect(x, y, w, 2);
+    c2.fillStyle = "rgba(0,0,0,.35)"; c2.fillRect(x, y + h - 2, w, 2);
+  }
+  function pxText(t, x, y, col, font) { c2.font = font; c2.fillStyle = "#000"; c2.fillText(t, x + 2, y + 2); c2.fillStyle = col; c2.fillText(t, x, y); }
+  function clockIcon(x, y, col) { // đồng hồ pixel 16×16
+    c2.fillStyle = col; c2.fillRect(x + 4, y, 8, 2); c2.fillRect(x + 4, y + 14, 8, 2); c2.fillRect(x, y + 4, 2, 8); c2.fillRect(x + 14, y + 4, 2, 8);
+    c2.fillRect(x + 2, y + 2, 2, 2); c2.fillRect(x + 12, y + 2, 2, 2); c2.fillRect(x + 2, y + 12, 2, 2); c2.fillRect(x + 12, y + 12, 2, 2);
+    c2.fillRect(x + 7, y + 4, 2, 5); c2.fillRect(x + 9, y + 7, 3, 2);
+  }
   function hud() {
-    c2.fillStyle = COLORS.panel; c2.fillRect(0, 0, W, 44);
-    c2.fillStyle = COLORS.edge; c2.fillRect(0, 44, W, 2);
-    c2.textBaseline = "middle"; c2.font = "700 18px 'Be Vietnam Pro', system-ui";
+    c2.fillStyle = PX.panel; c2.fillRect(0, 0, W, 44);
+    c2.fillStyle = "rgba(255,255,255,.13)"; c2.fillRect(0, 0, W, 2);
+    c2.fillStyle = PX.line; c2.fillRect(0, 44, W, 3);
+    c2.textBaseline = "middle";
     const reached = g.score >= g.target;
     c2.textAlign = "left";
-    c2.fillStyle = COLORS.soft; c2.fillText("Điểm", 16, 22);
-    c2.fillStyle = COLORS.gold; c2.fillText(String(g.score), 66, 22);
-    c2.fillStyle = COLORS.soft; c2.fillText("Mục tiêu", 170, 22);
-    c2.fillStyle = reached ? COLORS.ok : COLORS.ink; c2.fillText(g.target + (reached ? " ✓" : ""), 254, 22);
+    pxText("ĐIỂM", 16, 23, PX.soft, FONT(800, 13));
+    pxText(String(g.score), 62, 22, PX.ink, FONT(800, 20));
+    pxText("MỤC TIÊU", 170, 23, PX.soft, FONT(800, 13));
+    pxText(g.target + (reached ? " ✓" : ""), 250, 22, reached ? COLORS.ok : PX.ink, FONT(800, 20));
     c2.textAlign = "center";
-    c2.fillStyle = COLORS.ink; c2.fillText("Màn " + g.level + (players === 2 ? " · 2 người" : ""), W / 2, 22);
+    pxText("MÀN " + g.level + (players === 2 ? " · 2 NGƯỜI" : ""), W / 2, 23, PX.ink, FONT(800, 15));
     c2.textAlign = "right";
-    const low = g.time <= 10;
-    c2.fillStyle = low ? COLORS.bad : COLORS.ink;
-    c2.fillText("⏱ " + Math.ceil(g.time) + " giây", W - 16, 22);
-    // thanh thời gian
-    c2.fillStyle = "#0b0e11"; c2.fillRect(0, 46, W, 4);
-    c2.fillStyle = low ? COLORS.bad : COLORS.p2; c2.fillRect(0, 46, W * (g.time / CFG.levelTime), 4);
+    const low = g.time <= 10, tc = low ? COLORS.bad : PX.ink;
+    pxText(Math.ceil(g.time) + " giây", W - 16, 22, tc, FONT(800, 18));
+    clockIcon(W - 16 - c2.measureText(Math.ceil(g.time) + " giây").width - 26, 14, tc);
+    // thanh thời gian chia ô (pixel), nằm dưới viền HUD
+    const n = 40, cw = W / n, on = Math.ceil(n * Math.max(0, g.time) / CFG.levelTime);
+    c2.fillStyle = PX.line; c2.fillRect(0, 47, W, 7);
+    for (let i = 0; i < n; i++) {
+      c2.fillStyle = i < on ? (low ? COLORS.bad : COLORS.p2) : "#120f0c";
+      c2.fillRect(i * cw + 1, 47, cw - 2, 5);
+      if (i < on) { c2.fillStyle = "rgba(0,0,0,.3)"; c2.fillRect(i * cw + 1, 50, cw - 2, 2); }
+    }
   }
   function overlay(title, lines, color) {
-    c2.fillStyle = "rgba(8,11,13,.62)"; c2.fillRect(0, 0, W, H);
-    const bw = 520, bh = 96 + lines.length * 30, bx = (W - bw) / 2, by = (H - bh) / 2;
-    c2.fillStyle = "#080b0d"; c2.fillRect(bx + 4, by + 6, bw, bh);
-    c2.fillStyle = "#1a2229"; c2.fillRect(bx, by, bw, bh);
-    c2.strokeStyle = COLORS.edge; c2.lineWidth = 4; c2.strokeRect(bx, by, bw, bh);
+    c2.fillStyle = "rgba(8,7,6,.62)"; c2.fillRect(0, 0, W, H);
+    const bw = 540, bh = 112 + lines.length * 30, bx = Math.round((W - bw) / 2), by = Math.round((H - bh) / 2);
+    pxBox(bx, by, bw, bh, PX.panel, PX.line, true);
+    c2.fillStyle = color; c2.fillRect(bx, by, bw, 6); // dải màu trạng thái (như thẻ Cờ Cá Ngựa)
+    c2.fillStyle = "rgba(0,0,0,.35)"; c2.fillRect(bx, by + 4, bw, 2);
     c2.textAlign = "center"; c2.textBaseline = "middle";
-    c2.fillStyle = color; c2.font = "800 34px 'Roboto Slab', Georgia, serif"; c2.fillText(title, W / 2, by + 46);
-    c2.font = "600 18px 'Be Vietnam Pro', system-ui";
-    lines.forEach((l, i) => { c2.fillStyle = i === lines.length - 1 ? COLORS.gold : COLORS.ink; c2.fillText(l, W / 2, by + 92 + i * 30); });
+    pxText(title.toUpperCase(), W / 2, by + 48, color, FONT(800, 32));
+    const body = lines.slice(0, -1), cta = lines[lines.length - 1];
+    body.forEach((l, i) => pxText(l, W / 2, by + 92 + i * 30, PX.ink, FONT(600, 18)));
+    // lời nhắc hành động chính = "nút" vàng
+    c2.font = FONT(800, 15); const tw = Math.ceil(c2.measureText(cta.toUpperCase()).width) + 32;
+    const cy = by + bh - 50, cx = Math.round(W / 2 - tw / 2);
+    pxBox(cx, cy, tw, 34, PX.gold, PX.goldD, true);
+    c2.fillStyle = PX.goldL; c2.fillRect(cx, cy, tw, 3);
+    c2.fillStyle = "#2c1b05"; c2.fillText(cta.toUpperCase(), W / 2, cy + 18);
   }
   function draw() {
     c2.save();
@@ -379,8 +410,8 @@ export function mount(el, ctx = {}) {
     g.hooks.forEach((h, i) => { drawHook(h, i); if (h.carry) drawObject(h.carry); });
     for (const p of pops) {
       c2.globalAlpha = Math.max(0, 1 - p.t / 1.2);
-      c2.fillStyle = p.color; c2.font = "800 24px 'Roboto Slab', Georgia, serif"; c2.textAlign = "center";
-      c2.fillText(p.text, p.x, p.y - p.t * 40);
+      c2.textAlign = "center"; c2.textBaseline = "middle";
+      pxText(p.text, p.x, p.y - p.t * 40, p.color, FONT(800, 24));
       c2.globalAlpha = 1;
     }
     c2.restore();
@@ -388,8 +419,9 @@ export function mount(el, ctx = {}) {
     hud();
     const keyHint = players === 2 ? "P1: phím S · P2: phím ↓ · hoặc chạm nửa màn hình" : "Space / ↓ hoặc chạm màn hình để thả móc";
     if (g.status === "playing" && g.tick < 240 && !paused) {
-      c2.fillStyle = "rgba(14,18,22,.8)"; c2.fillRect(W / 2 - 250, H - 44, 500, 32);
-      c2.fillStyle = COLORS.ink; c2.font = "600 16px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center"; c2.fillText(keyHint, W / 2, H - 28);
+      c2.font = FONT(700, 15); const kw = Math.ceil(c2.measureText(keyHint).width) + 32;
+      pxBox(Math.round(W / 2 - kw / 2), H - 48, kw, 32, PX.panel, PX.line, true);
+      c2.textAlign = "center"; c2.textBaseline = "middle"; pxText(keyHint, W / 2, H - 31, PX.ink, FONT(700, 15));
     }
     if (g.status === "cleared") {
       const extra = players === 2 ? ["P1 gom " + g.hooks[0].earned + " · P2 gom " + g.hooks[1].earned] : [];
@@ -397,7 +429,7 @@ export function mount(el, ctx = {}) {
     } else if (g.status === "failed") {
       overlay("Hết giờ!", ["Thiếu " + (g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + g.score, "Nhấn Space hoặc chạm để chơi lại"], COLORS.bad);
     } else if (paused) {
-      overlay("Tạm dừng", ["Nhấn P hoặc chạm để chơi tiếp"], COLORS.ink);
+      overlay("Tạm dừng", ["Trò chơi đang dừng", "Nhấn P hoặc chạm để chơi tiếp"], PX.ink);
     }
   }
 
