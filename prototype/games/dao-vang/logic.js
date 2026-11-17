@@ -50,18 +50,19 @@ export function rand(g) {
 }
 const between = (g, a, b) => a + rand(g) * (b - a);
 
-function placeObjects(g, plan) {
+function placeObjects(g, plan, level = 2, existing = []) {
   const out = [];
   let id = 1;
   for (const [kind, count] of plan) {
     const k = KINDS[kind];
     for (let c = 0; c < count; c++) {
       // Vật to/quý nằm sâu hơn; thử nhiều vị trí, bỏ qua nếu không còn chỗ.
-      const deep = kind === "goldL" || kind === "diamond" || kind === "rockL";
+      // Màn 1: vàng vừa nằm sâu, vàng nhỏ và đá rải mọi độ sâu (đá che bớt đường, phải canh góc).
+      const deep = level === 1 ? kind === "goldM" : kind === "goldL" || kind === "diamond" || kind === "rockL";
       for (let tries = 0; tries < 200; tries++) {
         const x = between(g, 30 + k.r, W - 30 - k.r);
         const y = between(g, deep ? 330 : CFG.groundY + 50 + k.r, H - 14 - k.r);
-        if (out.every((o) => Math.hypot(o.x - x, o.y - y) > o.r + k.r + 8)) {
+        if (out.concat(existing).every((o) => Math.hypot(o.x - x, o.y - y) > o.r + k.r + 8)) {
           out.push({ id: id++, kind, x, y, r: k.r });
           break;
         }
@@ -71,8 +72,14 @@ function placeObjects(g, plan) {
   return out;
 }
 
+// Màn 1 riêng: không có vàng lớn/kim cương/túi/TNT; 4 vàng vừa nằm sâu, 12 vàng nhỏ xen 9 viên đá.
+// Mô phỏng 300 màn, người chơi bình thường (nghĩ 0,35–0,85 s mỗi lượt, bấm lệch ±70 ms) cần ~40 s
+// (đa số 33–45 s) mới đủ 650 điểm, thay vì ~16 s như trước.
+// Từ màn 2 giữ nguyên công thức cũ.
+const LEVEL1_PLAN = [["goldM", 4], ["goldS", 12], ["rockL", 4], ["rockS", 5]];
+
 export function generateLevel(g, level) {
-  const plan = [
+  const plan = level === 1 ? LEVEL1_PLAN : [
     ["goldL", Math.min(1 + Math.floor(level / 2), 3)],
     ["diamond", Math.min(Math.max(level - 1, 0), 3)],
     ["goldM", 3],
@@ -82,13 +89,13 @@ export function generateLevel(g, level) {
     ["bag", 2],
     ["tnt", level >= 2 ? Math.min(level - 1, 2) : 0],
   ];
-  let objects = placeObjects(g, plan);
-  // Bảo đảm màn chơi luôn đủ điểm để qua (ít nhất 1.6 lần số điểm cần thêm).
-  const need = (targetFor(level) - targetFor(level - 1)) * 1.6;
+  let objects = placeObjects(g, plan, level);
+  // Bảo đảm màn chơi luôn đủ điểm để qua (màn 1: ≥1.3 lần mục tiêu; các màn sau: ≥1.6 lần số điểm cần thêm).
+  const need = (targetFor(level) - targetFor(level - 1)) * (level === 1 ? 1.3 : 1.6);
   const sum = () => objects.reduce((s, o) => s + (o.kind === "bag" ? 150 : KINDS[o.kind].value), 0);
   let guard = 0;
   while (sum() < need && guard++ < 10) {
-    const extra = placeObjects(g, [["goldM", 1]]);
+    const extra = placeObjects(g, [["goldM", 1]], level, objects);
     if (extra.length) objects.push({ ...extra[0], id: objects.length + 100 + guard });
   }
   return objects;

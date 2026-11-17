@@ -26,8 +26,15 @@ python -m http.server 8765
 ```
 Mở http://127.0.0.1:8765/
 
-Kiểm tra tự động (Chrome headless): chạy server như trên rồi `node screenshots/check.mjs <thư-mục-ra-ảnh>`.
+Muốn bấm "Chơi ngay" ở Đào Vàng để vào game thật (`../games/dao-vang/`) thì chạy server từ thư mục `prototype/`:
+```
+cd prototype
+python -m http.server 8766
+```
+rồi mở http://127.0.0.1:8766/homepage/. Game nào có field `url` trong `games.js` sẽ mở thẳng game đó; game chưa làm vẫn vào trang chờ `play.html`.
+
+Kiểm tra tự động (Chrome headless): chạy server cổng 8766 từ `prototype/` như trên rồi `node screenshots/check.mjs <thư-mục-ra-ảnh>`.
 
 ## Giới hạn
-- 6 ảnh thumbnail cắt từ `assets/concepts-v4/direction-premium-pixel-art.png`; 12 game còn lại dùng hình tạm vẽ bằng code.
+- 6 ảnh thumbnail cắt từ `assets/concepts-v4/direction-premium-pixel-art.png`; 12 game còn lại dùng bộ thumbnail 4:3 riêng đã duyệt (`assets/thumbs/`). Hình vẽ bằng code (icon/hue) chỉ còn làm dự phòng.
 - `play.html` chỉ là trang giữ chỗ (chưa có gameplay/lobby).

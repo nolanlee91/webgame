@@ -28,6 +28,7 @@
     var p = new URLSearchParams(location.search), id = p.get("game"), room = p.get("room");
     var g = (window.GAMES || []).filter(function (x) { return x.id === id; })[0];
     var t = document.getElementById("title");
+    if (g && g.url) { location.replace(g.url); }  // link cũ play.html?game=… của game đã có bản chơi thật
     if (g) {
       t.textContent = g.name;
       document.title = g.name + " — Cổng Game Việt";

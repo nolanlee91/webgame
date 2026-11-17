@@ -48,6 +48,7 @@ python -m http.server 8766
 - **Màn chơi:**
   - Mỗi màn có 60 giây.
   - Mục tiêu điểm cộng dồn: 650 → 1400 → 2250 → …
+  - **Màn 1 đã cân bằng lại** cho người mới: chỉ có 4 vàng vừa (nằm sâu) + 12 vàng nhỏ xen 9 viên đá (4 lớn, 5 nhỏ), không có vàng lớn, kim cương, túi hay TNT. Theo mô phỏng 300 màn (`node tools/sim-man1.mjs`; người chơi nghĩ 0,35–0,85 giây mỗi lượt, bấm lệch ±70 ms), người chơi bình thường cần khoảng 40 giây (đa số 33–45 giây) để đạt 650 điểm, khoảng 12% không kịp. Trước khi chỉnh là khoảng 16 giây. Từ màn 2 giữ nguyên công thức cũ.
   - Hết giờ mà đủ mục tiêu thì qua màn và giữ điểm. Thiếu điểm thì thua, chơi lại từ màn 1.
   - Gom hết vàng, kim cương và túi trước khi hết giờ thì màn kết thúc sớm.
   - Màn chơi được sinh ngẫu nhiên theo seed. Vật thể không chồng lên nhau, và màn nào cũng đủ điểm để qua (đã có test).
@@ -63,7 +64,7 @@ python -m http.server 8766
   - RNG có seed, nên kết quả tất định.
 - `game.js`: phần vẽ trên canvas và điều khiển. Tuân theo hợp đồng Game SDK `mount(el, ctx) → { pause, resume, destroy }` (docs/tech-architecture.md §3.3), gọi `sdk.reportScore` và `sdk.gameOver`.
 - `index.html`: trang chơi thử độc lập, có SDK giả lập.
-- `test/logic.test.mjs`: 20 test cho logic.
+- `test/logic.test.mjs`: 22 test cho logic.
 - `screenshots/`: ảnh chụp, 2 video ngắn và script E2E.
 
 Viết bằng JS thuần + Canvas 2D, chưa dùng Phaser vì tech stack chưa được cài hoặc duyệt. Phần logic đã tách riêng, nên sau này có thể bọc vào một scene Phaser (engine E2 trong tech-architecture-v2) mà không phải viết lại.
@@ -71,5 +72,5 @@ Viết bằng JS thuần + Canvas 2D, chưa dùng Phaser vì tech stack chưa đ
 ## Chưa làm / chưa kiểm chứng
 
 - Chưa có âm thanh, vật phẩm mua thêm (thuốc nổ, thuốc tăng lực), vật thể di chuyển, hay bảng xếp hạng.
-- Độ khó chưa được cân chỉnh. Màn 1 đang dễ: bot thử nghiệm gom hết vật trong khoảng 17 giây.
+- Màn 1 đã cân bằng bằng mô phỏng, chưa thử với người chơi thật. Từ màn 2 trở đi chưa cân chỉnh.
 - Chỉ mới kiểm tra trên Chrome (desktop và giả lập điện thoại). Chưa thử trên máy thật hay Safari/iOS.

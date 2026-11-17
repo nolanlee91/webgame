@@ -165,6 +165,84 @@ check('mobile 2 người: chạm nửa trái → móc P1 thả', s.hooks[0].s !=
 await sleep(800);
 await shot('dv-mobile-doc-2p.png');
 
+// ---------- Màn 1 sau cân bằng: "người chơi bình thường" bấm phím thật ----------
+// Khác autoplay (bấm ngay khi móc chĩa vào vàng): sau mỗi lần móc về sẽ nghĩ 0,35–0,85 s, chọn 1 cục vàng,
+// rồi bấm lệch ngẫu nhiên ±70 ms quanh lúc móc chĩa đúng (sớm hoặc trễ) — cùng mô hình "normal" với tools/sim-man1.mjs.
+// Ghi lại thời điểm đạt 650 điểm.
+await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+await view(1280, 860, false, 1);
+let hs = 7; const hr = () => ((hs = (hs * 1103515245 + 12345) >>> 0) / 4294967296);
+const HV = { goldS: 50, goldM: 150, goldL: 500, diamond: 600, bag: 150 }, HW = { goldS: 1.4, goldM: 2.6, goldL: 5.5, diamond: 1, bag: 1.5, rockS: 3.2, rockL: 6 };
+const firstOn = (h, a, objs) => { const dx = Math.sin(a), dy = Math.cos(a); let b = null, bd = 1e9;
+  for (const o of objs) { const px = o.x - h.x, py = o.y - h.y, d = px * dx + py * dy; if (d > 0 && Math.abs(px * dy - py * dx) <= o.r + 10 && d < bd) { bd = d; b = o; } } return b; };
+async function humanLevel1(seed, maxSec) {
+  await nav(BASE + '?players=1&seed=' + seed); await sleep(200);
+  const tStart = (await S()).time; let readyAt = Date.now() + 600, aim = null, pressAt = null, hitAt = null, presses = 0;
+  const end = Date.now() + maxSec * 1000;
+  while (Date.now() < end) {
+    const st = await S(), h = st.hooks[0];
+    if (hitAt == null && st.score >= st.target) hitAt = tStart - st.time;
+    if (st.status !== 'playing') break;
+    if (h.s !== 'swing') { aim = null; pressAt = null; readyAt = Date.now() + 350 + hr() * 500; await sleep(10); continue; }
+    if (Date.now() >= readyAt && aim == null) {
+      const vis = st.objs.filter(o => o.k !== 'tnt' && Math.abs(Math.atan2(o.x - h.x, o.y - h.y)) < 1.2 && firstOn(h, Math.atan2(o.x - h.x, o.y - h.y), st.objs) === o);
+      const gold = vis.filter(o => HV[o.k]), pool = gold.length ? gold : vis;
+      const sc = o => { const d = Math.hypot(o.x - h.x, o.y - h.y); return (HV[o.k] || 20) / (d / 430 + d / Math.max(70, 560 / HW[o.k]) + 1.6) * (0.7 + hr() * 0.6); };
+      const o = pool.sort((a, b) => sc(b) - sc(a))[0];
+      if (o) {
+        aim = Math.atan2(o.x - h.x, o.y - h.y);
+        // Đoán lúc móc chĩa đúng hướng (người chơi nhìn nhịp lắc), rồi cộng sai số canh nhịp.
+        let ph = await ev('__game.state.hooks[0].phase'), prev = 1.2566 * Math.sin(ph), k = 1;
+        for (; k < 600; k++) { ph += 1.9 / 60; const a = 1.2566 * Math.sin(ph); if ((prev - aim) * (a - aim) <= 0) break; prev = a; }
+        const jitter = Math.sqrt(-2 * Math.log(hr() + 1e-9)) * Math.cos(2 * Math.PI * hr()) * 70;
+        pressAt = Date.now() + Math.max(0, k * 1000 / 60 + jitter - 12);
+      }
+    }
+    if (pressAt != null && Date.now() >= pressAt) { await key('Space'); presses++; aim = null; pressAt = null; }
+    await sleep(4);
+  }
+  const st = await S();
+  return { hitAt, score: st.score, target: st.target, status: st.status, presses, left: st.time };
+}
+const runs = [];
+for (const seed of [11, 21, 33]) {
+  const r = seed === 11 ? await record('dao-vang-man1-can-bang', () => humanLevel1(seed, 64)) : await humanLevel1(seed, 64);
+  runs.push(r); console.log(`  seed ${seed}: đạt mục tiêu ở giây ${r.hitAt?.toFixed(1) ?? '— (không đạt)'}, cuối màn ${r.score}/${r.target}, ${r.presses} lần thả, ${r.status}`);
+  if (seed === 11) await shot('dv-man1-ket-thuc.png');
+}
+const hits = runs.map(r => r.hitAt).filter(x => x != null);
+check('màn 1 (người chơi bình thường, phím thật, 3 màn): không còn qua màn trong ~17 giây; lượt đạt mục tiêu rơi vào 30–55 giây',
+  hits.length >= 2 && hits.every(t => t >= 30 && t <= 55), runs.map(r => r.hitAt == null ? 'không đạt' : r.hitAt.toFixed(1) + ' s').join(' · '));
+
+// ---------- Trang chủ → "Chơi ngay" ở ô Đào Vàng → game thật ----------
+const HOME = 'http://127.0.0.1:8766/homepage/';
+await nav(HOME); await sleep(400);
+const links = await ev('[...document.querySelectorAll("a.card[data-id=dao-vang]")].map(a=>a.getAttribute("href"))');
+check('trang chủ: mọi thẻ Đào Vàng (thẻ chính + ô trong lưới) trỏ tới game thật', links.length >= 2 && links.every(h => h === '../games/dao-vang/'), links.join(', '));
+check('trang chủ: game chưa làm vẫn vào trang chờ play.html', await ev('document.querySelector("a.card[data-id=co-caro]").getAttribute("href").startsWith("play.html?game=")'));
+await shot('dv-trang-chu.png');
+const playBtn = await ev('(()=>{const b=document.querySelector("a.card.hero[data-id=dao-vang] .btn");b.scrollIntoView({block:"center"});const r=b.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2,b.textContent.trim()]})()');
+await sleep(200); await click(playBtn[0], playBtn[1]); await sleep(1800);
+check(`trang chủ: bấm "${playBtn[2]}" ở thẻ Đào Vàng → mở game thật`, await ev('location.pathname==="/games/dao-vang/" && !!document.getElementById("play1")'), await ev('location.href'));
+await shot('dv-tu-trang-chu-vao-game.png');
+const backHref = await ev('(()=>{const a=document.querySelector(".bar a");return a.href})()');
+check('trong game: nút "← Trang chủ" quay lại đúng trang chủ', backHref === HOME, backHref);
+await nav(HOME); await sleep(400);
+const tile = await ev('(()=>{const a=document.querySelector(".tiles a.card[data-id=dao-vang]")||[...document.querySelectorAll("a.card[data-id=dao-vang]")].pop();a.scrollIntoView({block:"center"});const r=a.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/3]})()');
+await sleep(200); await click(tile[0], tile[1]); await sleep(1800);
+check('trang chủ: bấm ô Đào Vàng trong lưới "Tất cả game" → mở game thật', await ev('location.pathname==="/games/dao-vang/"'));
+await nav('http://127.0.0.1:8766/homepage/play.html?game=dao-vang'); await sleep(600);
+check('link cũ play.html?game=dao-vang tự chuyển sang game thật', await ev('location.pathname==="/games/dao-vang/"'));
+// Mobile: chạm vào thẻ Đào Vàng
+await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
+await view(390, 844, true, 2);
+await nav(HOME); await sleep(500);
+const mt = await ev('(()=>{const a=document.querySelector("a.card.hero[data-id=dao-vang]");a.scrollIntoView({block:"center"});const r=a.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()');
+await sleep(200); await shot('dv-trang-chu-mobile.png');
+await tap(mt[0], mt[1]); await sleep(1800);
+check('mobile 390: chạm thẻ Đào Vàng ở trang chủ → mở game thật', await ev('location.pathname==="/games/dao-vang/"'));
+await shot('dv-tu-trang-chu-vao-game-mobile.png');
+
 check('không có lỗi JS / console', errors.length === 0, errors.join(' | '));
 console.log('\n' + R.filter(x => x.startsWith('PASS')).length + '/' + R.length + ' PASS');
 ws.close(); chrome.kill(); process.exit(0);

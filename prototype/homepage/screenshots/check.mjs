@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-const OUT = process.argv[2], BASE = 'http://127.0.0.1:8765/';
+// Chạy server từ thư mục prototype/ (cổng 8766) để link sang game thật (../games/…) mở được.
+const OUT = process.argv[2], BASE = process.argv[3] || 'http://127.0.0.1:8766/homepage/';
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9333', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -82,9 +83,12 @@ check('mã đúng → play.html?room=ABC789', (await ev('location.search')) === 
 
 await nav(BASE + 'index.html');
 await ev(`document.querySelector('a.card[data-id="dao-vang"]').click()`); await sleep(1500);
-check('bấm thẻ Đào Vàng → mở trang chơi (1 thao tác)', (await ev('location.pathname+location.search')).endsWith('play.html?game=dao-vang'), await ev('document.querySelector("h1").textContent'));
+check('bấm thẻ Đào Vàng → mở thẳng game thật (1 thao tác)', (await ev('location.pathname')).endsWith('/games/dao-vang/') && await ev('!!document.getElementById("play1")'), await ev('location.href'));
 await nav(BASE + 'index.html');
-check('mục "Chơi tiếp" hiện game vừa chơi', await ev('!document.getElementById("recentSection").hidden && document.querySelector("#recent .mini__name").textContent') === 'Đào Vàng');
+await ev(`document.querySelector('a.card[data-id="co-caro"]').click()`); await sleep(1500);
+check('game chưa làm (Cờ Caro) → vẫn vào trang chờ play.html', (await ev('location.pathname+location.search')).endsWith('play.html?game=co-caro'), await ev('document.querySelector("h1").textContent'));
+await nav(BASE + 'index.html');
+check('mục "Chơi tiếp" hiện các game vừa chơi, mới nhất trước', await ev('!document.getElementById("recentSection").hidden && [...document.querySelectorAll("#recent .mini__name")].map(e=>e.textContent).join(",")') === 'Cờ Caro,Đào Vàng');
 check('"Chơi tiếp" là điểm nhấn phụ (thẻ mini thấp hơn nhiều thẻ nổi bật)', await ev('document.querySelector("#recent .mini").offsetHeight*2 < document.querySelector("#featured .card").offsetHeight'));
 await shot('desktop-1440-recent.png');
 await ev('localStorage.clear()');

@@ -31,7 +31,8 @@
   var PEOPLE2 = '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>';
 
   function byId(id) { return GAMES.filter(function (g) { return g.id === id; })[0]; }
-  function href(g) { return "play.html?game=" + encodeURIComponent(g.id); }
+  // Game đã có bản chơi thật thì mở thẳng (field url trong games.js); game chưa làm vẫn vào trang chờ play.html.
+  function href(g) { return g.url || "play.html?game=" + encodeURIComponent(g.id); }
 
   function thumbHTML(g, src) {
     if (src || g.thumb) {

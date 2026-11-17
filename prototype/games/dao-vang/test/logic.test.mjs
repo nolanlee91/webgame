@@ -1,4 +1,4 @@
-// Chạy: node --test prototype/games/dao-vang/test/
+// Chạy: cd prototype/games/dao-vang && npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { W, H, CFG, KINDS, createGame, step, fire, nextLevel, restart, tipOf, targetFor, drainEvents } from "../logic.js";
@@ -193,4 +193,35 @@ test("đầu móc tính đúng theo góc và độ dài dây", () => {
   const h = { x: 100, y: 100, angle: Math.PI / 2, len: 50 };
   const t = tipOf(h);
   assert.ok(Math.abs(t.x - 150) < 1e-9 && Math.abs(t.y - 100) < 1e-9);
+});
+
+test("màn 1 cân bằng lại: không vàng lớn/kim cương/túi/TNT, vàng vừa nằm sâu, tổng điểm vừa đủ dư", () => {
+  for (let seed = 1; seed <= 50; seed++) {
+    const g = createGame({ seed });
+    const kinds = new Set(g.objects.map((o) => o.kind));
+    for (const k of ["goldL", "diamond", "bag", "tnt"]) assert.ok(!kinds.has(k), `seed ${seed}: có ${k}`);
+    for (const o of g.objects) if (o.kind === "goldM") assert.ok(o.y >= 330, `seed ${seed}: vàng vừa nằm nông y=${o.y}`);
+    const total = g.objects.reduce((s, o) => s + (o.kind.startsWith("gold") ? KINDS[o.kind].value : 0), 0);
+    assert.ok(total >= g.target * 1.5 && total <= g.target * 2.2, `seed ${seed}: tổng vàng ${total}`);
+  }
+});
+
+test("màn 1: cách chơi tối ưu (không trễ, không lệch) vẫn cần > 15 s mới đủ mục tiêu", () => {
+  // Thả móc đúng lúc móc chĩa vào vàng có lợi nhất — giới hạn dưới, người thật chậm hơn nhiều.
+  for (const seed of [1, 2, 3, 4, 5]) {
+    const g = createGame({ seed }), h = g.hooks[0];
+    let t = 0, hit = null;
+    while (g.status === "playing" && t < 60) {
+      if (h.state === "swing") {
+        const ang = h.angle, dx = Math.sin(ang), dy = Math.cos(ang);
+        let first = null, bd = 1e9;
+        for (const o of g.objects) { const px = o.x - h.x, py = o.y - h.y, d = px * dx + py * dy;
+          if (d > 0 && Math.abs(px * dy - py * dx) <= o.r + CFG.tipR && d < bd) { bd = d; first = o; } }
+        if (first && first.kind.startsWith("gold")) fire(g);
+      }
+      step(g, DT); t += DT;
+      if (hit == null && g.score >= g.target) hit = t;
+    }
+    assert.ok(hit == null || hit > 15, `seed ${seed}: đạt mục tiêu sau ${hit?.toFixed(1)} s`);
+  }
 });
