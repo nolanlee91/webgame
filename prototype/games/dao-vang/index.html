@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đào Vàng — bản chơi thử cơ chế (hình khối tạm)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Crect width=%2224%22 height=%2224%22 rx=%224%22 fill=%22%2311171c%22/%3E%3Cpath d=%22M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15.4A3 3 0 0 0 5 19c1 0 1.9-.5 2.4-1.3L9 15h6l1.6 2.7c.5.8 1.4 1.3 2.4 1.3a3 3 0 0 0 3-3.6l-.7-6.8A4 4 0 0 0 17.3 5Z%22 fill=%22none%22 stroke=%22%23ffd27a%22 stroke-width=%222%22/%3E%3C/svg%3E" />
+  <style>
+    :root { --bg: #11171c; --panel: #1a2229; --edge: #7a5152; --ink: #f4ead2; --soft: #b9ad93; --gold: #ffc94a; --gold-edge: #a8741a; --teal: #2f8f7f; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif; }
+    .bar { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 2px solid #2a1a10; }
+    .bar a { color: var(--soft); text-decoration: none; font-weight: 600; }
+    .bar h1 { margin: 0; font: 800 20px "Roboto Slab", Georgia, serif; }
+    .tag { margin-left: auto; font-size: 12px; color: var(--soft); border: 1px solid #3a4a55; padding: 2px 8px; border-radius: 3px; }
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+    /* Khung chơi luôn vừa chiều cao màn hình (điện thoại xoay ngang) */
+    .stage { margin: 0 auto; max-width: min(100%, calc((100svh - 70px) * 1.6)); border: 3px solid var(--edge); border-radius: 4px; box-shadow: 0 5px 0 2px #080b0d; background: #0b0e11; overflow: hidden; }
+    .menu { display: grid; place-items: center; gap: 14px; padding: 48px 16px; text-align: center; }
+    .menu h2 { margin: 0; font: 800 34px "Roboto Slab", Georgia, serif; color: var(--gold); }
+    .menu p { margin: 0; color: var(--soft); max-width: 520px; }
+    .modes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { font: 700 17px "Be Vietnam Pro", system-ui; padding: 12px 22px; min-height: 48px; border-radius: 3px; cursor: pointer;
+           color: #3a2508; background: linear-gradient(#ffe08a, var(--gold)); border: 2px solid var(--gold-edge); box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 4px 0 #6e4a10; }
+    .btn--teal { color: #eafff8; background: linear-gradient(#45b3a0, var(--teal)); border-color: #1d5c52; box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 4px 0 #123d36; }
+    .btn:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 2px 0 #333; }
+    .help { margin-top: 14px; display: grid; gap: 4px; color: var(--soft); font-size: 14px; }
+    .help b { color: var(--ink); }
+    .row { display: flex; gap: 10px; margin-top: 12px; }
+    .linkbtn { background: none; border: 1px solid #3a4a55; color: var(--soft); font: inherit; padding: 6px 12px; border-radius: 3px; cursor: pointer; min-height: 40px; }
+    table.legend { border-collapse: collapse; font-size: 13px; color: var(--soft); }
+    @media (max-width: 560px) { .tag { display: none; } .bar h1 { font-size: 18px; } main { padding: 12px 10px; } }
+    @media (max-height: 500px) { .bar { padding: 4px 12px; } .bar h1 { font-size: 16px; } main { padding: 6px 10px; } .stage { max-width: min(100%, calc((100svh - 50px) * 1.6)); } .menu { padding: 20px 16px; } }
+    table.legend td { padding: 2px 10px 2px 0; }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a href="../../homepage/">← Trang chủ</a>
+    <h1>Đào Vàng</h1>
+    <span class="tag">Bản thử cơ chế · hình khối tạm</span>
+  </header>
+  <main>
+    <div class="stage" id="stage">
+      <div class="menu" id="menu">
+        <h2>Đào Vàng</h2>
+        <p>Thả móc, gom vàng và kim cương trước khi hết giờ. Đạt đủ điểm mục tiêu để qua màn.</p>
+        <div class="modes">
+          <button class="btn" id="play1" type="button">▶ 1 người</button>
+          <button class="btn btn--teal" id="play2" type="button">▶ 2 người cùng máy</button>
+        </div>
+      </div>
+    </div>
+    <div class="row" id="controls" hidden>
+      <button class="linkbtn" id="pauseBtn" type="button">Tạm dừng (P)</button>
+      <button class="linkbtn" id="menuBtn" type="button">Đổi chế độ</button>
+    </div>
+    <div class="help">
+      <div><b>1 người:</b> Space, ↓ hoặc chạm màn hình để thả móc khi móc lắc đúng hướng.</div>
+      <div><b>2 người cùng máy (chung phe):</b> P1 bấm <b>S</b> (móc trái), P2 bấm <b>↓</b> (móc phải). Trên điện thoại: chạm nửa trái / nửa phải.</div>
+      <div>Vật nặng kéo lên chậm (vàng lớn, đá) — vật nhẹ mà quý (kim cương) kéo lên nhanh. Thùng TNT nổ phá hủy vật thể xung quanh. Túi “?” cho điểm ngẫu nhiên.</div>
+      <table class="legend" aria-label="Bảng điểm vật thể">
+        <tr><td>Vàng nhỏ / vừa / lớn</td><td>50 / 150 / 500</td><td>Kim cương</td><td>600</td></tr>
+        <tr><td>Đá nhỏ / lớn</td><td>20 / 60 (rất nặng)</td><td>Túi bí ẩn</td><td>30–700</td></tr>
+      </table>
+    </div>
+  </main>
+  <script type="module">
+    import { mount } from "./game.js";
+    const stage = document.getElementById("stage"), menu = document.getElementById("menu");
+    const controls = document.getElementById("controls"), pauseBtn = document.getElementById("pauseBtn");
+    const params = new URLSearchParams(location.search);
+    let inst = null;
+    // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
+    const sdk = {
+      reportScore: (s) => { window.__lastScore = s; },
+      gameOver: (r) => { window.__lastResult = r; },
+      requestAdBreak: () => Promise.resolve(),
+      sound: { muted: true },
+    };
+    function start(n) {
+      if (inst) inst.destroy();
+      menu.hidden = true; controls.hidden = false;
+      const seed = params.has("seed") ? Number(params.get("seed")) : undefined;
+      inst = mount(stage, { mode: "single", locale: "vi", localPlayers: n, seed, sdk, player: { id: "guest", name: "Khách" } });
+      window.__game = inst;
+      stage.querySelector("canvas").focus();
+    }
+    document.getElementById("play1").onclick = () => start(1);
+    document.getElementById("play2").onclick = () => start(2);
+    pauseBtn.onclick = () => { inst.paused ? inst.resume() : inst.pause(); stage.querySelector("canvas").focus(); };
+    document.getElementById("menuBtn").onclick = () => { inst && inst.destroy(); inst = null; menu.hidden = false; controls.hidden = true; };
+    if (params.get("players") === "1" || params.get("players") === "2") start(Number(params.get("players")));
+  </script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+// Đào Vàng — phần hiển thị + điều khiển, theo hợp đồng Game SDK (docs/tech-architecture.md §3.3):
+//   mount(el, ctx) -> { pause, resume, destroy }
+// Hình vẽ ở đây là HÌNH KHỐI TẠM; asset thật thay vào sau khi Art Bible áp dụng cho game này.
+import { W, H, CFG, KINDS, createGame, step, fire, nextLevel, restart, tipOf, drainEvents } from "./logic.js";
+
+const DT = 1 / 60;
+const COLORS = {
+  sky: "#1d2a35", skyLow: "#2c3b45", ground: "#5a3a26", dirt: "#4a2f1f", dirtDeep: "#3a2418", edge: "#7a5152",
+  rope: "#d9c9a3", hook: "#c9ccd1", ink: "#f4ead2", soft: "#b9ad93", gold: "#ffc94a", goldDark: "#a8741a",
+  diamond: "#7fe7ff", diamondDark: "#2b8fb0", rock: "#8a8f96", rockDark: "#4d5258", bag: "#c9a46a", bagDark: "#7a5a2c",
+  tnt: "#d8433a", tntDark: "#7a1c17", p1: "#ffd27a", p2: "#7fe0c8", panel: "rgba(14,18,22,.86)", ok: "#7fe0a0", bad: "#ff8a7a",
+};
+
+export function mount(el, ctx = {}) {
+  const sdk = ctx.sdk || {};
+  const players = ctx.localPlayers === 2 ? 2 : 1;
+  let g = createGame({ players, seed: ctx.seed });
+  let paused = false, destroyed = false, acc = 0, last = performance.now(), raf = 0;
+  const pops = [];   // điểm bay lên
+  let shake = 0, flash = 0;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "dv-canvas";
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", "Màn chơi Đào Vàng");
+  canvas.tabIndex = 0;
+  canvas.style.cssText = "display:block;width:100%;height:auto;aspect-ratio:" + W + "/" + H + ";touch-action:manipulation;outline:none;image-rendering:pixelated";
+  el.appendChild(canvas);
+  const c2 = canvas.getContext("2d");
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = canvas.clientWidth || W;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round((cssW * H / W) * dpr);
+    c2.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    c2.imageSmoothingEnabled = false;
+  }
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
+  resize();
+
+  // ---------- Điều khiển ----------
+  function advance() {
+    // Khi màn kết thúc: một phím/chạm để sang màn hoặc chơi lại.
+    if (g.status === "cleared") { g = nextLevel(g); return true; }
+    if (g.status === "failed") { g = restart(g); return true; }
+    return false;
+  }
+  function act(i) {
+    if (paused) { setPaused(false); return; }
+    if (advance()) return;
+    fire(g, i);
+  }
+  function onKey(e) {
+    if (e.repeat) return;
+    const k = e.code;
+    if (k === "KeyP" || k === "Escape") { setPaused(!paused); e.preventDefault(); return; }
+    let who = -1;
+    if (players === 1 && ["Space", "ArrowDown", "KeyS", "Enter"].includes(k)) who = 0;
+    if (players === 2) {
+      if (k === "KeyS" || k === "Space") who = 0;
+      if (k === "ArrowDown" || k === "Enter") who = 1;
+    }
+    if (who < 0) return;
+    e.preventDefault();
+    act(who);
+  }
+  function onPointer(e) {
+    canvas.focus({ preventScroll: true });
+    const r = canvas.getBoundingClientRect();
+    const who = players === 2 && e.clientX - r.left > r.width / 2 ? 1 : 0;
+    e.preventDefault();
+    act(who);
+  }
+  function onVis() { if (document.hidden) setPaused(true); }
+  window.addEventListener("keydown", onKey);
+  canvas.addEventListener("pointerdown", onPointer);
+  document.addEventListener("visibilitychange", onVis);
+
+  function setPaused(v) {
+    paused = v;
+    last = performance.now();
+  }
+
+  // ---------- Vòng lặp: bước logic cố định 1/60 s, vẽ theo khung hình ----------
+  let reported = null;
+  function frame(now) {
+    if (destroyed) return;
+    raf = requestAnimationFrame(frame);
+    let dt = Math.min((now - last) / 1000, 0.25);
+    last = now;
+    if (!paused) {
+      acc += dt;
+      while (acc >= DT) { step(g, DT); acc -= DT; }
+      for (const ev of drainEvents(g)) handleEvent(ev);
+    }
+    for (const p of pops) p.t += paused ? 0 : dt;
+    while (pops.length && pops[0].t > 1.2) pops.shift();
+    shake = Math.max(0, shake - dt);
+    flash = Math.max(0, flash - dt);
+    draw();
+  }
+  function handleEvent(ev) {
+    if (ev.type === "collect") {
+      pops.push({ x: ev.x, y: ev.y - 40, text: "+" + ev.value, color: ev.kind === "rockS" || ev.kind === "rockL" ? COLORS.soft : COLORS.gold, t: 0 });
+      sdk.reportScore && sdk.reportScore(g.score);
+    }
+    if (ev.type === "boom") { shake = 0.35; flash = 0.18; pops.push({ x: ev.x, y: ev.y - 20, text: "BÙM!", color: COLORS.tnt, t: 0 }); }
+    if (ev.type === "levelEnd" && reported !== g) {
+      reported = g;
+      if (ev.status === "failed" && sdk.gameOver) sdk.gameOver({ score: g.score, level: g.level, players });
+    }
+  }
+  raf = requestAnimationFrame(frame);
+
+  // ---------- Vẽ (hình khối tạm) ----------
+  function poly(x, y, r, n, rot, fill, stroke) {
+    c2.beginPath();
+    for (let i = 0; i < n; i++) {
+      const a = rot + (i / n) * Math.PI * 2;
+      c2.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+    }
+    c2.closePath();
+    c2.fillStyle = fill; c2.fill();
+    c2.lineWidth = 3; c2.strokeStyle = stroke; c2.stroke();
+  }
+  function drawObject(o) {
+    const { x, y, r } = o;
+    switch (o.kind) {
+      case "goldS": case "goldM": case "goldL":
+        poly(x, y, r, 8, 0.3, COLORS.gold, COLORS.goldDark);
+        c2.fillStyle = "#fff4c2"; c2.fillRect(x - r * 0.45, y - r * 0.5, r * 0.3, r * 0.22);
+        break;
+      case "diamond":
+        poly(x, y, r * 1.25, 4, 0, COLORS.diamond, COLORS.diamondDark);
+        c2.fillStyle = "#e9fbff"; c2.fillRect(x - 3, y - r * 0.6, 4, 4);
+        break;
+      case "rockS": case "rockL":
+        poly(x, y, r, 7, 0.9, COLORS.rock, COLORS.rockDark);
+        c2.fillStyle = "#a6abb2"; c2.fillRect(x - r * 0.4, y - r * 0.45, r * 0.35, r * 0.2);
+        break;
+      case "bag":
+        c2.fillStyle = COLORS.bag; c2.strokeStyle = COLORS.bagDark; c2.lineWidth = 3;
+        c2.fillRect(x - r, y - r * 0.7, r * 2, r * 1.7); c2.strokeRect(x - r, y - r * 0.7, r * 2, r * 1.7);
+        c2.fillRect(x - r * 0.5, y - r * 1.1, r, r * 0.45);
+        c2.fillStyle = COLORS.bagDark; c2.font = "bold 16px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
+        c2.fillText("?", x, y + 2);
+        break;
+      case "tnt":
+        c2.fillStyle = COLORS.tnt; c2.strokeStyle = COLORS.tntDark; c2.lineWidth = 3;
+        c2.fillRect(x - r, y - r, r * 2, r * 2); c2.strokeRect(x - r, y - r, r * 2, r * 2);
+        c2.fillStyle = "#fff"; c2.font = "bold 11px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
+        c2.fillText("TNT", x, y + 1);
+        break;
+    }
+  }
+  function drawMiner(h, i) {
+    const col = i === 0 ? COLORS.p1 : COLORS.p2;
+    // bệ tời
+    c2.fillStyle = "#6b4a2e"; c2.fillRect(h.x - 34, CFG.groundY - 26, 68, 26);
+    c2.strokeStyle = "#2a1a10"; c2.lineWidth = 3; c2.strokeRect(h.x - 34, CFG.groundY - 26, 68, 26);
+    // trục tời
+    c2.fillStyle = "#3b2a1c"; c2.fillRect(h.x - 18, h.y - 14, 36, 22);
+    c2.fillStyle = "#9a7b52"; c2.fillRect(h.x - 14, h.y - 10, 28, 6);
+    // người thợ (khối)
+    const bob = h.state === "back" ? Math.sin(performance.now() / 70) * 2 : 0;
+    c2.fillStyle = "#3a4f6a"; c2.fillRect(h.x + 22, h.y - 6 + bob, 20, 26);
+    c2.fillStyle = "#f0c79a"; c2.fillRect(h.x + 24, h.y - 24 + bob, 16, 16);
+    c2.fillStyle = col; c2.fillRect(h.x + 21, h.y - 30 + bob, 22, 8);
+    c2.fillStyle = "#14181c"; c2.font = "bold 13px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
+    if (players === 2) {
+      c2.fillStyle = col; c2.fillRect(h.x - 14, CFG.groundY - 20, 28, 16);
+      c2.fillStyle = "#14181c"; c2.fillText("P" + (i + 1), h.x, CFG.groundY - 11);
+    }
+  }
+  function drawHook(h, i) {
+    const t = tipOf(h);
+    c2.strokeStyle = COLORS.rope; c2.lineWidth = 2;
+    c2.beginPath(); c2.moveTo(h.x, h.y); c2.lineTo(t.x, t.y); c2.stroke();
+    // càng móc
+    c2.save(); c2.translate(t.x, t.y); c2.rotate(-h.angle);
+    c2.strokeStyle = COLORS.hook; c2.lineWidth = 4;
+    const open = h.carry ? 6 : 12;
+    c2.beginPath(); c2.moveTo(0, 0); c2.lineTo(-open, 8); c2.lineTo(-open + 3, 16); c2.stroke();
+    c2.beginPath(); c2.moveTo(0, 0); c2.lineTo(open, 8); c2.lineTo(open - 3, 16); c2.stroke();
+    c2.fillStyle = i === 0 ? COLORS.p1 : COLORS.p2; c2.fillRect(-4, -4, 8, 8);
+    c2.restore();
+  }
+  function hud() {
+    c2.fillStyle = COLORS.panel; c2.fillRect(0, 0, W, 44);
+    c2.fillStyle = COLORS.edge; c2.fillRect(0, 44, W, 2);
+    c2.textBaseline = "middle"; c2.font = "700 18px 'Be Vietnam Pro', system-ui";
+    const reached = g.score >= g.target;
+    c2.textAlign = "left";
+    c2.fillStyle = COLORS.soft; c2.fillText("Điểm", 16, 22);
+    c2.fillStyle = COLORS.gold; c2.fillText(String(g.score), 66, 22);
+    c2.fillStyle = COLORS.soft; c2.fillText("Mục tiêu", 170, 22);
+    c2.fillStyle = reached ? COLORS.ok : COLORS.ink; c2.fillText(g.target + (reached ? " ✓" : ""), 254, 22);
+    c2.textAlign = "center";
+    c2.fillStyle = COLORS.ink; c2.fillText("Màn " + g.level + (players === 2 ? " · 2 người" : ""), W / 2, 22);
+    c2.textAlign = "right";
+    const low = g.time <= 10;
+    c2.fillStyle = low ? COLORS.bad : COLORS.ink;
+    c2.fillText("⏱ " + Math.ceil(g.time) + " giây", W - 16, 22);
+    // thanh thời gian
+    c2.fillStyle = "#0b0e11"; c2.fillRect(0, 46, W, 4);
+    c2.fillStyle = low ? COLORS.bad : COLORS.p2; c2.fillRect(0, 46, W * (g.time / CFG.levelTime), 4);
+  }
+  function overlay(title, lines, color) {
+    c2.fillStyle = "rgba(8,11,13,.62)"; c2.fillRect(0, 0, W, H);
+    const bw = 520, bh = 96 + lines.length * 30, bx = (W - bw) / 2, by = (H - bh) / 2;
+    c2.fillStyle = "#080b0d"; c2.fillRect(bx + 4, by + 6, bw, bh);
+    c2.fillStyle = "#1a2229"; c2.fillRect(bx, by, bw, bh);
+    c2.strokeStyle = COLORS.edge; c2.lineWidth = 4; c2.strokeRect(bx, by, bw, bh);
+    c2.textAlign = "center"; c2.textBaseline = "middle";
+    c2.fillStyle = color; c2.font = "800 34px 'Roboto Slab', Georgia, serif"; c2.fillText(title, W / 2, by + 46);
+    c2.font = "600 18px 'Be Vietnam Pro', system-ui";
+    lines.forEach((l, i) => { c2.fillStyle = i === lines.length - 1 ? COLORS.gold : COLORS.ink; c2.fillText(l, W / 2, by + 92 + i * 30); });
+  }
+  function draw() {
+    c2.save();
+    if (shake > 0) c2.translate((Math.random() - 0.5) * 10 * shake / 0.35, (Math.random() - 0.5) * 10 * shake / 0.35);
+    // nền: bầu trời + các lớp đất
+    c2.fillStyle = COLORS.sky; c2.fillRect(-10, -10, W + 20, CFG.groundY + 10);
+    c2.fillStyle = COLORS.skyLow; c2.fillRect(-10, CFG.groundY - 50, W + 20, 50);
+    c2.fillStyle = COLORS.ground; c2.fillRect(-10, CFG.groundY, W + 20, 14);
+    c2.fillStyle = COLORS.dirt; c2.fillRect(-10, CFG.groundY + 14, W + 20, 200);
+    c2.fillStyle = COLORS.dirtDeep; c2.fillRect(-10, CFG.groundY + 214, W + 20, H);
+    c2.fillStyle = "rgba(0,0,0,.12)";
+    for (let y = CFG.groundY + 30; y < H; y += 36) for (let x = (y / 36 % 2) * 40; x < W; x += 80) c2.fillRect(x, y, 10, 4);
+    for (const o of g.objects) if (!o.taken) drawObject(o);
+    g.hooks.forEach((h, i) => drawMiner(h, i));
+    g.hooks.forEach((h, i) => { drawHook(h, i); if (h.carry) drawObject(h.carry); });
+    for (const p of pops) {
+      c2.globalAlpha = Math.max(0, 1 - p.t / 1.2);
+      c2.fillStyle = p.color; c2.font = "800 24px 'Roboto Slab', Georgia, serif"; c2.textAlign = "center";
+      c2.fillText(p.text, p.x, p.y - p.t * 40);
+      c2.globalAlpha = 1;
+    }
+    c2.restore();
+    if (flash > 0) { c2.fillStyle = "rgba(255,220,160," + flash * 2 + ")"; c2.fillRect(0, 0, W, H); }
+    hud();
+    const keyHint = players === 2 ? "P1: phím S · P2: phím ↓ · hoặc chạm nửa màn hình" : "Space / ↓ hoặc chạm màn hình để thả móc";
+    if (g.status === "playing" && g.tick < 240 && !paused) {
+      c2.fillStyle = "rgba(14,18,22,.8)"; c2.fillRect(W / 2 - 250, H - 44, 500, 32);
+      c2.fillStyle = COLORS.ink; c2.font = "600 16px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center"; c2.fillText(keyHint, W / 2, H - 28);
+    }
+    if (g.status === "cleared") {
+      const extra = players === 2 ? ["P1 gom " + g.hooks[0].earned + " · P2 gom " + g.hooks[1].earned] : [];
+      overlay("Qua màn " + g.level + "!", ["Điểm " + g.score + " / mục tiêu " + g.target, ...extra, "Nhấn Space hoặc chạm để sang màn " + (g.level + 1)], COLORS.ok);
+    } else if (g.status === "failed") {
+      overlay("Hết giờ!", ["Thiếu " + (g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + g.score, "Nhấn Space hoặc chạm để chơi lại"], COLORS.bad);
+    } else if (paused) {
+      overlay("Tạm dừng", ["Nhấn P hoặc chạm để chơi tiếp"], COLORS.ink);
+    }
+  }
+
+  const inst = {
+    pause() { setPaused(true); },
+    resume() { setPaused(false); },
+    destroy() {
+      destroyed = true; cancelAnimationFrame(raf); ro.disconnect();
+      window.removeEventListener("keydown", onKey);
+      canvas.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("visibilitychange", onVis);
+      canvas.remove();
+    },
+    // Dành cho test/debug — không phải API cho core.
+    get state() { return g; },
+    set state(v) { g = v; },
+    get paused() { return paused; },
+  };
+  return inst;
+}
