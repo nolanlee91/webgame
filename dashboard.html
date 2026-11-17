@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Webgame Portal — Tiến độ dự án</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --surface:#ffffff; --ink:#15181f; --ink-soft:#5b6270;
+    --border:#e3e6eb; --accent:#4f46e5; --accent-soft:#eef0ff;
+    --ok-bg:#e8f7ee; --ok-ink:#16793f;
+    --wait-bg:#fff6e5; --wait-ink:#946200;
+    --todo-bg:#eef0f3; --todo-ink:#5b6270;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f111a; --surface:#171a24; --ink:#eef0f6; --ink-soft:#9aa1b1;
+      --border:#262b3a; --accent:#8b85ff; --accent-soft:#1e2140;
+      --ok-bg:#103523; --ok-ink:#4ade80;
+      --wait-bg:#3a2c05; --wait-ink:#f5b942;
+      --todo-bg:#1c2030; --todo-ink:#9aa1b1;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:32px 16px 64px;}
+  header{margin-bottom:24px;}
+  h1{font-size:24px; font-weight:700; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--ink-soft); font-size:14px;}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; margin-bottom:20px;
+  }
+  h2{font-size:16px; font-weight:600; margin:0 0 16px;}
+  .steps{display:grid; grid-template-columns:repeat(6,1fr); gap:8px;}
+  @media (max-width:720px){ .steps{grid-template-columns:repeat(3,1fr);} }
+  .step{
+    border:1px solid var(--border); border-radius:10px; padding:10px 8px; text-align:center; font-size:12px;
+  }
+  .step .n{font-size:11px; color:var(--ink-soft); margin-bottom:4px;}
+  .badge{
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .badge.ok{background:var(--ok-bg); color:var(--ok-ink);}
+  .badge.wait{background:var(--wait-bg); color:var(--wait-ink);}
+  .badge.todo{background:var(--todo-bg); color:var(--todo-ink);}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th,td{text-align:left; padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:top;}
+  th{color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.02em;}
+  tr:last-child td{border-bottom:none;}
+  td a{color:var(--accent); text-decoration:none;}
+  td a:hover{text-decoration:underline;}
+  .agent{display:inline-block; padding:2px 8px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:12px; font-weight:600;}
+  .callout{
+    background:var(--wait-bg); color:var(--wait-ink); border-radius:10px; padding:14px 16px; font-size:13px; font-weight:500;
+  }
+  .footer{color:var(--ink-soft); font-size:12px; margin-top:24px;}
+  ul{margin:8px 0 0; padding-left:20px;}
+  li{margin-bottom:4px; font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎮 Webgame Portal — Tiến độ dự án</h1>
+    <div class="sub">Cổng webgame tiếng Việt · single + multiplayer · quảng cáo SpeakUp Kids &nbsp;·&nbsp; Cập nhật: 17/11/2026</div>
+  </header>
+
+  <div class="card">
+    <h2>Quy trình dự án</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div>Tạo folder &amp; Git<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">2</div>Bàn giao &amp; truy cập<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">3</div>Phân tích &amp; kiến trúc<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">4</div>UX, phản biện, review<br/><span class="badge ok">Hoàn tất</span></div>
+      <div class="step"><div class="n">5</div>Duyệt kế hoạch<br/><span class="badge wait">Chờ duyệt</span></div>
+      <div class="step"><div class="n">6</div>Triển khai tuần tự<br/><span class="badge todo">Chưa bắt đầu</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Task &amp; Agent phụ trách</h2>
+    <table>
+      <thead>
+        <tr><th>Task</th><th>Agent</th><th>Trạng thái</th><th>Kết quả</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tạo project folder + khởi tạo Git</td>
+          <td><span class="agent">Mama</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td>Repo tại <code>C:\Projects\Webgame-Portal</code>, commit đầu <code>1662476</code></td>
+        </tr>
+        <tr>
+          <td>Bàn giao vai trò + kiểm tra truy cập folder</td>
+          <td><span class="agent">Mama</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td>Gehihi, Dev, Codex đều xác nhận đọc được <code>README.md</code> và hiểu vai trò</td>
+        </tr>
+        <tr>
+          <td>Nghiên cứu &amp; đặc tả UX/UI (Poki × Đấu Trí, ads SpeakUp Kids, design direction)</td>
+          <td><span class="agent">Gehihi</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/ux-ui-spec.md">docs/ux-ui-spec.md</a></td>
+        </tr>
+        <tr>
+          <td>Đề xuất kiến trúc kỹ thuật, modular Game SDK, open-source, danh sách MVP</td>
+          <td><span class="agent">Dev</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/tech-architecture.md">docs/tech-architecture.md</a></td>
+        </tr>
+        <tr>
+          <td>Review độc lập: scalability, bảo mật, realtime sync, chống gian lận, phạm vi MVP</td>
+          <td><span class="agent">Codex</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/architecture-review.md">docs/architecture-review.md</a> — đồng ý có điều kiện với Phương án A; đề nghị thu hẹp MVP còn 2048 + Caro + Rắn</td>
+        </tr>
+        <tr>
+          <td>Tổng hợp kế hoạch thống nhất (MVP/Phase 2/dài hạn, kiến trúc, KPI, giả định, quyết định cần duyệt)</td>
+          <td><span class="agent">Mama</span></td>
+          <td><span class="badge ok">Hoàn tất</span></td>
+          <td><a href="docs/plan.md">docs/plan.md</a></td>
+        </tr>
+        <tr>
+          <td>Phê duyệt kiến trúc &amp; phạm vi MVP</td>
+          <td>Chủ dự án</td>
+          <td><span class="badge wait">Chờ duyệt</span></td>
+          <td>7 quyết định cần chốt — xem <a href="docs/plan.md#7-quyết-định-cần-chủ-dự-án-phê-duyệt">docs/plan.md §7</a></td>
+        </tr>
+        <tr>
+          <td>Lập trình nền móng + Mốc 1 MVP (2048 + portal)</td>
+          <td><span class="agent">Dev</span></td>
+          <td><span class="badge todo">Chưa bắt đầu</span></td>
+          <td>Chờ phê duyệt kiến trúc &amp; MVP trước khi code</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="callout">
+      ⏸️ Đang tạm dừng ở bước 5 — chờ chủ dự án phê duyệt kiến trúc &amp; phạm vi MVP. Chưa có code sản phẩm, chưa deploy, chưa dùng dịch vụ trả phí.
+    </div>
+  </div>
+
+  <div class="footer">
+    Nguồn: docs/plan.md, docs/tech-architecture.md, docs/ux-ui-spec.md, docs/architecture-review.md · Cập nhật thủ công bởi Mama sau mỗi giai đoạn.
+  </div>
+</div>
+</body>
+</html>
