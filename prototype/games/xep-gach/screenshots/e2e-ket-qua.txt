@@ -1,0 +1,46 @@
+PASS menu hiện khi mở game
+PASS chọn cấp 3 + Bắt đầu → ván Vô tận cấp 3 — {"status":"playing","mode":"endless","level":3,"score":0,"lines":0,"time":0.3500000000000003,"pieces":0,"hold":null,"holdUsed":false,"cur":{"kind":"I","rot":0,"x":3,"y":1},"clearing":false}
+PASS ← dời khối sang trái 1 ô — 3→2
+PASS → dời sang phải
+PASS ↑ xoay phải
+PASS Z xoay trái về lại
+PASS giữ ← (tự lặp) → khối chạm tường trái — cột 0
+PASS Space thả rơi → khoá khối, +điểm, ra khối mới — {"status":"playing","mode":"endless","level":3,"score":36,"lines":0,"time":1.1500000000000006,"pieces":1,"hold":null,"holdUsed":false,"cur":{"kind":"O","rot":0,"x":4,"y":1},"clearing":false}
+PASS C giữ khối → ô Giữ có khối
+PASS giữ lần 2 cùng lượt bị chặn
+PASS giữ ↓ rơi nhanh (+1 điểm/ô) — y=11
+PASS xếp I vào khe → ăn 4 hàng, điểm 800 × cấp — +2432
+PASS P tạm dừng → đồng hồ đứng, hiện hộp Tạm dừng
+PASS Chơi tiếp → đồng hồ chạy lại
+PASS nút tạm dừng trên HUD hoạt động
+PASS Esc bỏ tạm dừng
+PASS M tắt/bật tiếng, lưu chung wgp.muted
+PASS âm thanh tải đủ 8 file — 8
+PASS gạch chạm nóc → thua
+PASS hiện bảng kết quả Hết chỗ + Kỷ lục mới
+PASS lưu kỷ lục Vô tận — {"best":{"endless":2478,"sprint":0},"mode":"endless","startLevel":3}
+PASS Chơi lại → ván mới sạch
+PASS Về menu
+PASS chọn Về đích → ẩn chọn cấp
+PASS ván Về đích 40 hàng, cấp 1
+PASS đạt 40 hàng → Về đích, đồng hồ dừng
+PASS bảng Về đích + lưu thời gian kỷ lục
+PASS desktop 1440×900: ô gạch ≥ 34px, bố cục 2 bên — ô 38px A
+PASS thu về mobile dọc giữa ván → bố cục cột phải, ván giữ nguyên — ô 25px
+PASS mobile 390×844: ô gạch ≥ 24px — ô 25px
+PASS mobile: không tràn ngang, khay nút nằm trong màn hình
+PASS mobile xoay ngang 844×390: bàn vừa khung, khay nút bên phải — ô 16px
+PASS mở lại trang → menu nhớ chế độ + kỷ lục
+PASS mobile: chạm Bắt đầu → vào ván
+PASS chạm bàn → xoay khối
+PASS kéo ngang 2 ô → dời 2 cột — 3→5
+PASS vuốt nhanh xuống → thả rơi
+PASS vuốt lên → giữ khối
+PASS nút ◀ dời trái
+PASS giữ nút ▶ → tự lặp tới tường phải — cột 9
+PASS nút Xoay
+PASS nút Thả (vàng) thả rơi
+PASS spam chạm bàn + nút → không lỗi
+PASS mobile: nút tạm dừng → che bàn
+PASS mobile: thua → bảng kết quả
+PASS không có lỗi console
