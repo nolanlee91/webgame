@@ -1,0 +1,12 @@
+{
+  "name": "webgame-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Webgame Portal — bản chơi thử (trang chủ + game HTML5) phục vụ tĩnh để test online",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

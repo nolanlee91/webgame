@@ -23,3 +23,10 @@ Cổng webgame miễn phí bằng tiếng Việt cho thị trường Việt Nam,
 
 ## Trạng thái
 Đang ở giai đoạn phân tích yêu cầu / đề xuất kiến trúc. Chưa có code sản phẩm.
+
+## Chạy thử / đưa lên Railway
+Repo có server tĩnh không cần gói ngoài: `server.js` phục vụ thư mục `prototype/`, mở `/` sẽ chuyển sang trang chủ `/homepage/`;
+game nằm ở `/games/<id>/` nên các link "Chơi ngay" và "← Trang chủ" giữ nguyên.
+- Chạy máy mình: `npm start` (mặc định http://localhost:8080, đổi bằng biến `PORT`).
+- Railway: tạo service từ repo GitHub này. Railway tự nhận `package.json` (Node ≥ 18) và chạy `node server.js` theo `railway.json`,
+  kiểm tra sống ở `/healthz`, cổng lấy từ biến `PORT` Railway cấp. Bấm "Generate Domain" để có link test.
