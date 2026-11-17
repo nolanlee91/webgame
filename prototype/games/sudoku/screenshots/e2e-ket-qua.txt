@@ -1,0 +1,69 @@
+PASS menu hiện khi mở game, có 3 mức độ
+PASS lưới vẽ đủ 81 ô trong 9 khối
+PASS chọn Dễ → Bắt đầu: đề Dễ 36–38 số cho sẵn — de 37 số, cấp 1
+PASS DOM khớp đề (ô cho sẵn in đậm) — ok
+PASS HUD hiện mức Dễ, 0 lỗi, 3 gợi ý
+PASS bấm chuột vào ô → ô được chọn, hàng/cột/khối sáng lên
+PASS gõ số đúng → điền vào ô, không tính lỗi
+PASS các ô cùng số được tô
+PASS gõ số sai → ô đỏ, tính 1 lỗi, HUD cập nhật
+PASS Delete xóa số sai
+PASS ô cho sẵn không sửa được
+PASS phím mũi tên di chuyển ô chọn
+PASS WASD cũng di chuyển
+PASS đi quá mép thì vòng sang phía bên kia
+PASS N bật chế độ ghi chú (nút sáng, phím số đổi màu)
+PASS ghi chú: bật 2 số, bấm 5 hai lần thì tắt lại — 6
+PASS ghi chú hiện số nhỏ trong ô
+PASS Shift + số ghi chú nhanh khi đang ở chế độ điền — 2
+PASS điền số → tự xóa ghi chú cùng số ở hàng/cột/khối
+PASS Ctrl+Z hoàn tác: ô trống lại, ghi chú quay về
+PASS nút Hoàn tác hoạt động
+PASS nút Xóa xóa ghi chú
+PASS bấm phím số trên màn hình → điền
+PASS H gợi ý: điền đúng ô đang chọn, còn 2 lượt, ô khóa lại
+PASS ô gợi ý không xóa được
+PASS điền xong 1 hàng → cả hàng nháy sáng + âm thanh
+PASS đủ 9 ô một số → phím số đó mờ đi
+PASS số trùng trong hàng → gạch đỏ cả 2 ô
+PASS đồng hồ chạy khi chơi
+PASS Esc → menu, đồng hồ dừng, menu báo đề đang giải dở
+PASS ô cuối → giải xong, bàn chạy hiệu ứng sóng
+PASS hiện bảng Giải xong + kỷ lục lần đầu
+PASS báo SDK gameOver (solved) + điểm — {"result":"solved","diff":"de","time":6,"mistakes":2,"hints":1,"score":729}
+PASS lưu kỷ lục thời gian mức Dễ, xoá ván đã giải — {"best":{"de":6},"wins":{"de":1}}
+PASS phím số bị chặn sau khi thắng
+PASS Đề mới → đề Dễ khác, sạch
+PASS menu: mức Dễ có kỷ lục
+PASS đề Khó: ≤30 số cho sẵn, cần suy luận sâu (cấp 3) — 28 số, cấp 3
+PASS mở lại trang → menu có "Giải tiếp" ở mức Khó
+PASS Giải tiếp → đúng đề, số, ghi chú, lỗi, thời gian
+PASS hoàn tác vẫn dùng được sau khi nạp lại
+PASS Đề mới giữa ván → hỏi lại
+PASS Esc huỷ, ván giữ nguyên
+PASS đồng ý → đề Khó mới
+PASS M tắt/bật tiếng, lưu chung wgp.muted
+PASS âm thanh tải đủ 6 file — 6
+PASS đề Vừa: 29–32 số cho sẵn, cấp 2 — 30 số, cấp 2
+PASS desktop lớn 1440×900: bàn + phím số vừa màn hình, không chồng, không tràn — ô 71px true,true,true,true,true,true
+PASS laptop 1280×720: bàn + phím số vừa màn hình, không chồng, không tràn — ô 53px true,true,true,true,true,true
+PASS tablet ngang 1024×768: bàn + phím số vừa màn hình, không chồng, không tràn — ô 58px true,true,true,true,true,true
+PASS tablet dọc 768×1024: bàn + phím số vừa màn hình, không chồng, không tràn — ô 63px true,true,true,true,true,true
+PASS điện thoại 390×844: bàn + phím số vừa màn hình, không chồng, không tràn — ô 36px true,true,true,true,true,true
+PASS điện thoại nhỏ 360×640: bàn + phím số vừa màn hình, không chồng, không tràn — ô 33px true,true,true,true,true,true
+PASS điện thoại ngang 844×390: bàn + phím số vừa màn hình, không chồng, không tràn — ô 33px true,true,true,true,true,true
+PASS mobile: chạm Bắt đầu (mặc định mức Vừa)
+PASS mobile: chạm ô → chọn
+PASS mobile: chạm phím số → điền
+PASS mobile: điền sai → đỏ + lỗi
+PASS mobile: chạm Xóa
+PASS mobile: Ghi chú + chạm số → ghi chú
+PASS mobile: chạm Gợi ý
+PASS mobile: trang không cuộn, không tràn
+PASS mobile: giải xong → bảng kết quả, nút trong màn hình
+PASS mobile: Đổi mức → về menu
+PASS mobile: nút ☰ trên HUD mở menu
+PASS mobile ngang: chạm ô + phím số vẫn điền được
+PASS mobile ngang: bàn + phím số vừa màn hình
+PASS không có lỗi console
+68/68 PASS
