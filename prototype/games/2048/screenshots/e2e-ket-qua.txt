@@ -6,6 +6,8 @@ PASS điểm ghi trên HUD đúng
 PASS phím WASD cũng trượt — 37→41
 PASS [2,2,4,4] ← → [4,8], +12 điểm — [4,8,2,0]
 PASS DOM sau gộp đúng — ok
+PASS chữ "+điểm" bay mượt: vị trí đổi mỗi khung hình, chỉ dùng transform, tự dọn khi xong — {"n":42,"distinct":41,"mono":true,"left":"","maxOp":1,"gone":true}
+PASS gộp liên tiếp 10 lần: tối đa 3 chữ bay, 1 chữ ở ô điểm, dọn sạch sau đó — float≤3 gain≤1 còn 0
 PASS nước không làm gì thay đổi → không tính, không sinh ô
 PASS ↓ đi được
 PASS Z hoàn tác → bàn trở lại, còn 2 lần
@@ -40,7 +42,7 @@ PASS desktop lớn 1440×900: bàn vừa khung, không tràn, nút trong màn h�
 PASS laptop 1280×720: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
 PASS tablet ngang 1024×768: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
 PASS tablet dọc 768×1024: bàn vừa khung, không tràn, nút trong màn hình — ô 125px true,true,true,true
-PASS điện thoại 390×844: bàn vừa khung, không tràn, nút trong màn hình — ô 84px true,true,true,true
+PASS điện thoại 390×844: bàn vừa khung, không tràn, nút trong màn hình — ô 80px true,true,true,true
 PASS điện thoại nhỏ 360×640: bàn vừa khung, không tràn, nút trong màn hình — ô 66px true,true,true,true
 PASS điện thoại ngang 844×390: bàn vừa khung, không tràn, nút trong màn hình — ô 67px true,true,true,true
 PASS mobile: chạm Bắt đầu
@@ -55,4 +57,4 @@ PASS mobile: thua → bảng kết quả, nút trong màn hình
 PASS mobile: Về menu
 PASS mobile ngang: bàn + nút vừa màn hình
 PASS không có lỗi console
-57/57 PASS
+59/59 PASS

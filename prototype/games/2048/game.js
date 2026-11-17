@@ -163,19 +163,34 @@ export function mount(root, ctx = {}) {
       setTimeout(() => p.remove(), 460);
     }
   }
+  // Chữ bay: vị trí đặt qua biến CSS trong transform (không dùng left/top → không reflow),
+  // tối đa 3 chữ cùng lúc trên bàn, gỡ khi animation kết thúc (có hẹn giờ dự phòng).
+  const floats = [];
+  function dropFloat(f) { const k = floats.indexOf(f); if (k >= 0) floats.splice(k, 1); f.remove(); }
   function floatText(at, text) {
+    while (floats.length >= 3) dropFloat(floats[0]);
     const f = document.createElement("div"); f.className = "float"; f.textContent = text;
-    f.style.left = (at % G.n) * G.st + G.gp + G.cs * 0.12 + "px";
-    f.style.top = Math.floor(at / G.n) * G.st + G.gp - G.cs * 0.05 + "px";
+    f.style.setProperty("--fx", Math.round((at % G.n) * G.st + G.gp + G.cs * 0.12) + "px");
+    f.style.setProperty("--fy", Math.round(Math.floor(at / G.n) * G.st + G.gp - G.cs * 0.05) + "px");
+    f.addEventListener("animationend", () => dropFloat(f), { once: true });
+    setTimeout(() => dropFloat(f), 1200);
+    floats.push(f);
     board.appendChild(f);
-    setTimeout(() => f.remove(), 720);
   }
+  let gainEl = null;
   function scoreGain(n) {
+    // một chữ duy nhất: gộp liên tiếp thì cộng dồn và chạy lại animation thay vì chồng nhiều chữ
     const box = $("scoreBox");
-    box.querySelectorAll(".gain").forEach((e) => e.remove());
-    const g = document.createElement("span"); g.className = "gain"; g.textContent = "+" + fmt(n);
+    if (gainEl && gainEl.isConnected) {
+      gainEl.dataset.n = n;
+      gainEl.textContent = "+" + fmt(+gainEl.dataset.n);
+      gainEl.style.animation = "none"; void gainEl.offsetWidth; gainEl.style.animation = "";
+      return;
+    }
+    const g = document.createElement("span"); g.className = "gain"; g.dataset.n = n; g.textContent = "+" + fmt(n);
+    g.addEventListener("animationend", () => { g.remove(); if (gainEl === g) gainEl = null; });
+    gainEl = g;
     box.appendChild(g);
-    setTimeout(() => g.remove(), 720);
   }
 
   // ---------- Một nước đi ----------

@@ -96,6 +96,24 @@ await key('ArrowLeft', 0); await sleep(60); await shot('g2048-desktop-dang-gop.p
 s = await S();
 check('[2,2,4,4] ← → [4,8], +12 điểm', s.cells[0] === 4 && s.cells[1] === 8 && s.score - sc0 === 12, JSON.stringify(s.cells.slice(0, 4)));
 check('DOM sau gộp đúng', (await domOk()) === 'ok', await domOk());
+// Độ mượt chữ "+điểm": lấy mẫu từng khung hình, phải đổi vị trí liên tục (không nhảy bậc), chỉ dùng transform
+await sleep(900);
+await setBoard([16, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+const smooth = ev(`new Promise(res=>{const ys=[],ops=[];let f0=null,t0=performance.now();const tick=()=>{const f=document.querySelector('#board .float');if(f){f0=f0||f;const m=new DOMMatrix(getComputedStyle(f).transform);ys.push(Math.round(m.m42*10)/10);ops.push(+getComputedStyle(f).opacity)}if(performance.now()-t0<1100)requestAnimationFrame(tick);else res({n:ys.length,distinct:new Set(ys).size,mono:ys.slice(3).every((y,i,a)=>i===0||y<=a[i-1]+0.01),left:f0&&f0.style.left,maxOp:Math.max(...ops),gone:!document.querySelector('#board .float')})};requestAnimationFrame(tick)})`);
+await key('ArrowLeft', 0);
+const sm = await smooth;
+check('chữ "+điểm" bay mượt: vị trí đổi mỗi khung hình, chỉ dùng transform, tự dọn khi xong', sm.distinct >= 15 && sm.mono && !sm.left && sm.maxOp === 1 && sm.gone, JSON.stringify(sm));
+// Gộp dồn dập: không chồng quá 3 chữ trên bàn, chỉ 1 chữ ở ô điểm
+let maxF = 0, maxG = 0;
+for (let i = 0; i < 10; i++) {
+  await setBoard([8, 8, 8, 8, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  await key(i % 2 ? 'ArrowRight' : 'ArrowLeft', 0); await sleep(130);
+  const c = await ev(`[document.querySelectorAll('#board .float').length, document.querySelectorAll('#scoreBox .gain').length]`);
+  maxF = Math.max(maxF, c[0]); maxG = Math.max(maxG, c[1]);
+}
+await sleep(1300);
+const left = await ev(`document.querySelectorAll('#board .float, #scoreBox .gain, #board .part').length`);
+check('gộp liên tiếp 10 lần: tối đa 3 chữ bay, 1 chữ ở ô điểm, dọn sạch sau đó', maxF <= 3 && maxF >= 1 && maxG === 1 && left === 0, `float≤${maxF} gain≤${maxG} còn ${left}`);
 // Nước không đổi gì
 const before = JSON.stringify((await S()).cells); m0 = (await S()).moves;
 await setBoard([2, 4, 8, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);

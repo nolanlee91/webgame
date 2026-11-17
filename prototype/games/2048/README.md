@@ -61,7 +61,7 @@ Cách mở: ở gốc repo chạy `PORT=8768 node server.js`, rồi vào `http:/
 ## Test
 - Unit test luật chơi: `node --test test/logic.test.mjs`. Hiện 13/13 đạt.
   - Có cả fuzz 2000 nước × 3 cỡ bàn × 4 seed để kiểm tra tổng giá trị trên bàn luôn khớp.
-- E2E: mở server ở cổng 8768, rồi chạy `node screenshots/e2e.mjs <thư-mục-ra>`. Hiện 57/57 đạt.
+- E2E: mở server ở cổng 8768, rồi chạy `node screenshots/e2e.mjs <thư-mục-ra>`. Hiện 59/59 đạt.
   - Script chạy Chrome headless qua CDP, cổng 9344.
-  - Có kiểm tra: bàn phím, vuốt, hoạt ảnh gộp, thắng / chơi tiếp, thua / hoàn tác, lưu rồi tải lại trang, tắt tiếng, không tràn màn hình ở 7 kích thước, không có lỗi console.
+  - Có kiểm tra: bàn phím, vuốt, hoạt ảnh gộp, thắng / chơi tiếp, thua / hoàn tác, lưu rồi tải lại trang, tắt tiếng, không tràn màn hình ở 7 kích thước, không có lỗi console, chữ "+điểm" bay mượt (lấy mẫu từng khung hình) và không chồng chữ khi gộp liên tiếp.
   - Kết quả lưu ở `screenshots/e2e-ket-qua.txt`.

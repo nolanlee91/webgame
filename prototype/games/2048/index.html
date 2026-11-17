@@ -40,8 +40,10 @@
     .stat.main b { font-size: 32px; text-shadow: 2px 2px 0 #000; }
     .stat.best b { font-size: 17px; color: var(--soft); }
     .stat .top { color: var(--teal-l); }
-    .gain { position: absolute; left: 0; top: 10px; font: 800 18px "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: rise .7s steps(7) forwards; }
-    @keyframes rise { from { transform: translate(60px, 0); opacity: 1; } to { transform: translate(60px, -26px); opacity: 0; } }
+    /* Chữ "+điểm": chỉ animate transform + opacity (không gây reflow), có lớp riêng (will-change), chạy mượt — không nhảy bậc */
+    .gain { position: absolute; left: 60px; top: 10px; font: 800 18px "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none;
+      will-change: transform, opacity; animation: rise .65s cubic-bezier(.2, .7, .3, 1) forwards; }
+    @keyframes rise { 0% { transform: translate3d(0, 4px, 0); opacity: 0; } 15% { transform: translate3d(0, 0, 0); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate3d(0, -26px, 0); opacity: 0; } }
     .goal { display: grid; gap: 4px; }
     .px-bar { height: 12px; background: #0d0b09; box-shadow: 0 0 0 3px var(--line); position: relative; overflow: hidden; margin: 3px; }
     .px-bar i { position: absolute; inset: 0 auto 0 0; background: var(--teal); box-shadow: inset 0 3px 0 var(--teal-l), inset 0 -3px 0 var(--teal-d); transition: width .2s steps(4); }
@@ -95,14 +97,17 @@
     .tile[data-t="3"] .face::before, .tile[data-t="3"] .face::after, .tile[data-t="4"] .face::before, .tile[data-t="4"] .face::after { opacity: 1; }
     .tile[data-t="4"] .face { animation: glint 1.6s steps(1) infinite; }
     @keyframes glint { 0%, 70% { filter: none; } 80% { filter: brightness(1.18); } 90% { filter: brightness(1.06); } }
-    .tile.spawn .face { animation: spawn 150ms steps(3) both; }
-    .tile.pop .face { animation: pop 180ms steps(3) both; }
-    @keyframes spawn { from { transform: scale(.2); } to { transform: scale(1); } }
+    .tile.spawn .face { animation: spawn 160ms cubic-bezier(.2, .8, .3, 1.2) both; }
+    .tile.pop .face { animation: pop 170ms ease-out both; }
+    @keyframes spawn { from { transform: scale(.2); opacity: .4; } to { transform: scale(1); opacity: 1; } }
     @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.16); } 100% { transform: scale(1); } }
-    .part { position: absolute; width: var(--px); height: var(--px); z-index: 3; pointer-events: none; animation: burst 420ms steps(6) forwards; }
-    @keyframes burst { to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
-    .float { position: absolute; z-index: 4; pointer-events: none; font: 800 calc(var(--cs) * .26) "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; animation: fup .7s steps(7) forwards; white-space: nowrap; }
-    @keyframes fup { to { transform: translateY(calc(var(--cs) * -.5)); opacity: 0; } }
+    .part { position: absolute; width: var(--px); height: var(--px); z-index: 3; pointer-events: none; will-change: transform, opacity; animation: burst 420ms cubic-bezier(.15, .7, .35, 1) forwards; }
+    @keyframes burst { to { transform: translate3d(var(--dx), var(--dy), 0); opacity: 0; } }
+    .float { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; font: 800 calc(var(--cs) * .26) / 1 "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; white-space: nowrap;
+      will-change: transform, opacity; contain: layout style; animation: fup .7s cubic-bezier(.2, .7, .3, 1) forwards; }
+    @keyframes fup { 0% { transform: translate3d(var(--fx), calc(var(--fy) + var(--cs) * .06), 0) scale(.85); opacity: 0; }
+      14% { transform: translate3d(var(--fx), var(--fy), 0) scale(1.06); opacity: 1; } 28% { transform: translate3d(var(--fx), calc(var(--fy) - var(--cs) * .1), 0) scale(1); }
+      72% { opacity: 1; } 100% { transform: translate3d(var(--fx), calc(var(--fy) - var(--cs) * .55), 0) scale(1); opacity: 0; } }
     .board.shake { animation: shake 180ms steps(4); }
     @keyframes shake { 25% { transform: translate(-3px, 0); } 50% { transform: translate(3px, 0); } 75% { transform: translate(-2px, 0); } }
     .board.dead .tile .face { filter: grayscale(.85) brightness(.6); transition: filter .6s steps(4); }
