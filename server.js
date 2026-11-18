@@ -93,6 +93,13 @@ if (on(process.env.COCARO_ONLINE, true)) {
   console.log("Cờ Caro online: đường /ws/co-caro");
 }
 
+// Cờ Vua online 1v1 (phòng qua mã + chat, máy chủ kiểm tra từng nước bằng luật đầy đủ trong logic.js) — mặc định BẬT;
+// tắt bằng COVUA_ONLINE=0.
+if (on(process.env.COVUA_ONLINE, true)) {
+  require("./games-server/co-vua/host").createCoVuaHost(server);
+  console.log("Cờ Vua online: đường /ws/co-vua");
+}
+
 // Cờ Tướng online 1v1 (phòng qua mã, máy chủ xác thực từng nước bằng logic.js) — mặc định BẬT; tắt bằng COTUONG_ONLINE=0.
 if (on(process.env.COTUONG_ONLINE, true)) {
   require("./games-server/co-tuong/host").createCoTuongHost(server);

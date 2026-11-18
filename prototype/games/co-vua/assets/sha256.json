@@ -1,0 +1,21 @@
+{
+  "asset-manifest.json": "14ad914997074ed6baf89420ebbbe90378e9d31e2dc61b61edcdd35ae1c9f206",
+  "board-grid.webp": "0a59efbb21f8bbcc1a22d8a768400ba8e223fa736cfb173ebbf5cc333cceb7cd",
+  "board.webp": "90486d2c568e74d03f2a8c116e2e17d90b4ca6a02513431f7ff73af680d2676f",
+  "generation-prompts.json": "bf0b3a924aae2d3b570de45adf45f0962cddbaadaede8e6d514e38c7b8491495",
+  "HANDOFF.md": "84d933c43cc9b81cad1d970a70681eecca900ec0cdae9203aa127e4d6cf33738",
+  "initial-position.json": "9c13824b7728673593bdde3ef5b528d823647904b3e8883145d680bfb2098dc3",
+  "pieces\\black-bishop.png": "9a7047e4bbd99ed7f5dec97f339e18236cd1b1c4c1d4d9ea1621e34ac4ee5675",
+  "pieces\\black-king.png": "e72bb2de57befe9863e41ca6b5086b60a1246f0f28cbb2d24e291da52ef7656c",
+  "pieces\\black-knight.png": "9cdb0c4cf7b7a55bd32d9c370cbb8960a776fa2b20ee7a49096a950ac2e6d449",
+  "pieces\\black-pawn.png": "f4253040a250c876d5ebad4ce02dc450dc7fca441c8355ec80b07992c3ad6634",
+  "pieces\\black-queen.png": "ae1e9767bb23cce266ee3c0c298882e765562d9fe69a676a2918e0f02d658876",
+  "pieces\\black-rook.png": "52365a0121219f7059182e4b171edcf508dd786e78224fb2ecd42565a7b3419b",
+  "pieces\\white-bishop.png": "4a70f0b603bb06ba71a97e791ad8d6f8f578151dcf0789b66ac97cb634bf8425",
+  "pieces\\white-king.png": "70936fbaf5c0563d04a2d3567eefc792243ce96260e7641b8d73e2a37d20347d",
+  "pieces\\white-knight.png": "998eb8e945ede42e5cf76ea0b1da90c1600fdbd216255b85689e088135a581f0",
+  "pieces\\white-pawn.png": "b8c0fae4fc3af57df105ee42485d0784ebe3b368fa0baeff31d20821e86eb5c8",
+  "pieces\\white-queen.png": "cb4745780168fe543a609870d25379b05ce4dfb43efb9da607f0f099a5743aec",
+  "pieces\\white-rook.png": "3b9ff8c250d31befb903f7d30d32a48c267e25db5789a4a1e89aaaacc9c66a81",
+  "pieces.png": "32cb7dbf379e0e069e185329f16890c99582000300e2349ac587eb404c66a10b"
+}

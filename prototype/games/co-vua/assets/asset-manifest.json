@@ -1,0 +1,238 @@
+{
+  "game": "co-vua",
+  "board": {
+    "file": "board.webp",
+    "width": 1254,
+    "height": 1254,
+    "kind": "cells",
+    "files": 8,
+    "ranks": 8,
+    "xBoundaries": [
+      65,
+      206,
+      346,
+      486,
+      626.5,
+      767,
+      907,
+      1048,
+      1191
+    ],
+    "yBoundaries": [
+      65,
+      217,
+      362.5,
+      505,
+      647.5,
+      788.5,
+      931.5,
+      1065.5,
+      1190.5
+    ],
+    "orientation": "a8 top-left LIGHT, a1 bottom-left DARK; white bottom",
+    "note": "Measured raster boundaries; normalized board-grid.webp supplied separately."
+  },
+  "atlas": {
+    "file": "pieces.png",
+    "width": 384,
+    "height": 128,
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 6,
+    "rows": 2
+  },
+  "sprites": {
+    "white-king": {
+      "file": "pieces/white-king.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Vua"
+    },
+    "white-queen": {
+      "file": "pieces/white-queen.png",
+      "rect": [
+        64,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Hậu"
+    },
+    "white-rook": {
+      "file": "pieces/white-rook.png",
+      "rect": [
+        128,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Xe"
+    },
+    "white-bishop": {
+      "file": "pieces/white-bishop.png",
+      "rect": [
+        192,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Tượng"
+    },
+    "white-knight": {
+      "file": "pieces/white-knight.png",
+      "rect": [
+        256,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Mã"
+    },
+    "white-pawn": {
+      "file": "pieces/white-pawn.png",
+      "rect": [
+        320,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Tốt"
+    },
+    "black-king": {
+      "file": "pieces/black-king.png",
+      "rect": [
+        0,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Vua"
+    },
+    "black-queen": {
+      "file": "pieces/black-queen.png",
+      "rect": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Hậu"
+    },
+    "black-rook": {
+      "file": "pieces/black-rook.png",
+      "rect": [
+        128,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Xe"
+    },
+    "black-bishop": {
+      "file": "pieces/black-bishop.png",
+      "rect": [
+        192,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Tượng"
+    },
+    "black-knight": {
+      "file": "pieces/black-knight.png",
+      "rect": [
+        256,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Mã"
+    },
+    "black-pawn": {
+      "file": "pieces/black-pawn.png",
+      "rect": [
+        320,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        60
+      ],
+      "label": "Tốt"
+    }
+  },
+  "instancesPerSide": {
+    "king": 1,
+    "queen": 1,
+    "rook": 2,
+    "bishop": 2,
+    "knight": 2,
+    "pawn": 8
+  },
+  "totalInstances": 32,
+  "normalizedBoard": {
+    "file": "board-grid.webp",
+    "width": 576,
+    "height": 576,
+    "origin": [
+      32,
+      32
+    ],
+    "spacing": 64,
+    "kind": "cells",
+    "files": 8,
+    "ranks": 8,
+    "positionFormula": "[64+64*col,64+64*row]",
+    "note": "Crop and nearest-neighbor resize/pack each AI-art grid interval; exact geometry, not another AI generation."
+  }
+}
