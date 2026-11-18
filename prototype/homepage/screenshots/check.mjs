@@ -130,7 +130,10 @@ await ev(`document.querySelector('a.card[data-id="co-tuong"]').click()`); await 
 check('bấm thẻ Cờ Tướng → mở thẳng game thật', (await ev('location.pathname')).endsWith('/games/co-tuong/') && await ev('!!document.getElementById("stage")'), await ev('location.href'));
 await nav(BASE + 'index.html');
 await ev(`document.querySelector('a.card[data-id="dat-bom"]').click()`); await sleep(1500);
-check('game đang cập nhật (Đặt Bom) → vào trang chờ play.html', (await ev('location.pathname+location.search')).endsWith('play.html?game=dat-bom'), await ev('document.querySelector("h1").textContent'));
+check('bấm thẻ Đặt Bom → mở thẳng game thật', (await ev('location.pathname')).endsWith('/games/dat-bom/') && await ev('!!document.getElementById("createBtn")'), await ev('location.href'));
+await nav(BASE + 'index.html');
+await ev(`document.querySelector('a.card[data-id="nong-trai"]').click()`); await sleep(1500);
+check('game đang cập nhật (Nông Trại) → vào trang chờ play.html', (await ev('location.pathname+location.search')).endsWith('play.html?game=nong-trai'), await ev('document.querySelector("h1").textContent'));
 await nav(BASE + 'index.html');
 check('đã bỏ mục "Chơi tiếp" (kể cả khi có lịch sử chơi)', await ev('!document.getElementById("recentSection") && !document.querySelector(".mini")'));
 await ev('localStorage.clear()');

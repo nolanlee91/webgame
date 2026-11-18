@@ -116,5 +116,9 @@ if (on(process.env.COTUONG_ONLINE, true)) {
   console.log(`Ai Là Nội Gián online: đường /ws/ai-la-noi-gian (thời gian mỗi pha x${speed})`);
 }
 
+// Đặt Bom online (phòng 2–4 người + chat, máy chủ chạy bom/lửa/điểm 20 nhịp/giây bằng logic.js) — luôn chạy, không có biến bật/tắt.
+require("./games-server/dat-bom/host").createDatBomHost(server);
+console.log("Đặt Bom online: đường /ws/dat-bom");
+
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
 module.exports = server;
