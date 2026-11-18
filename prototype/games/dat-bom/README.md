@@ -9,4 +9,4 @@ Game đấu trường 2–4 người online: đặt bom phá gạch, nhặt vậ
 
 Điều khiển: phím mũi tên hoặc WASD để đi, Space/Enter để đặt bom. Trên màn cảm ứng: giữ và kéo trên D-pad, bấm BOM.
 
-Đồ hoạ hiện là khối pixel vẽ bằng code, tạm thời. `assets/` là bộ ảnh Codex bàn giao (xem `assets/HANDOFF.md`), đang chờ chủ dự án duyệt và chưa nối vào renderer.
+Đồ hoạ: bộ sprite Pixel V5 của Codex trong `assets/` (tọa độ trong `assets/HANDOFF.md`, hash trong `assets/asset-manifest.json`). Canvas 64 px mỗi ô, đúng cỡ sprite. Lửa: pha tính từ lúc ô bắt đầu cháy, hình tâm/ngang/dọc/đầu nhánh suy từ ô kề. Ghế 4 là màu xanh lá theo bộ ảnh.

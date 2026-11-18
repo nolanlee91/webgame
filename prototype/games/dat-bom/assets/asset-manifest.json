@@ -1,0 +1,686 @@
+{
+  "generationRequests": 11,
+  "deliveredImages": 9,
+  "undeliveredAttempts": 2,
+  "tileSize": 64,
+  "files": [
+    {
+      "file": "map-tiles.webp",
+      "width": 128,
+      "height": 128,
+      "mode": "RGB",
+      "bytes": 25754,
+      "sha256": "eb2aa4fedeefee726d75a0d3a9ce5772ad0cfc2c87542871693c1b8f674a17b0"
+    },
+    {
+      "file": "player-red.png",
+      "width": 192,
+      "height": 256,
+      "mode": "RGBA",
+      "bytes": 37605,
+      "sha256": "c053cf0e59765c1c0bcd1511cd201e0fd6a441d1d9c10405568b7ec0057a6275",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "player-blue.png",
+      "width": 192,
+      "height": 256,
+      "mode": "RGBA",
+      "bytes": 36252,
+      "sha256": "1b9da92c4ad7b169166c813f01e9d335a0b4f834fc282e0cdde3b5cc9beb5541",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "player-green.png",
+      "width": 192,
+      "height": 256,
+      "mode": "RGBA",
+      "bytes": 38706,
+      "sha256": "749d04aa613500d89baf47b76553624155a1df45fa2223a378658cc65b9c8ff9",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "player-yellow.png",
+      "width": 192,
+      "height": 256,
+      "mode": "RGBA",
+      "bytes": 39424,
+      "sha256": "fc3cbbc1dd2207ed88e72e66524845b070a96068237a8f547b3bfe5ca2669a59",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "poster-dat-bom.webp",
+      "width": 960,
+      "height": 640,
+      "mode": "RGB",
+      "bytes": 885602,
+      "sha256": "a82ff3847dd46440e86b8e8f4251b63dc55d2f779c800d220d43eb9b67a2cf3f"
+    },
+    {
+      "file": "bomb-sprite.png",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA",
+      "bytes": 10928,
+      "sha256": "a94f94e18ea5f4f775d99d29f265654cb8f9453ea17cc466a2d6eb52c2059d41",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "explosion-sprite.png",
+      "width": 256,
+      "height": 192,
+      "mode": "RGBA",
+      "bytes": 42586,
+      "sha256": "f3387c2ec766ea94fdf3c83da6f76f262ccef7624538f6bfdc9b61d12a63d0eb",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "powerups-sprite.png",
+      "width": 96,
+      "height": 32,
+      "mode": "RGBA",
+      "bytes": 4354,
+      "sha256": "0dc65f89926067636c5cd20e3d1da126c7b7ac49ddd4a55fabe7991d1f24d5e0",
+      "alphaExtrema": [
+        0,
+        254
+      ]
+    }
+  ],
+  "sprites": {
+    "map-tiles.webp": {
+      "floor": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "solid-wall": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "breakable-brick-a": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "breakable-brick-b": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "player-red.png": {
+      "down-step-a": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-idle": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-step-b": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-a": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-idle": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-b": {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-a": {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-idle": {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-b": {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-a": {
+        "x": 0,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-idle": {
+        "x": 64,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-b": {
+        "x": 128,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "player-blue.png": {
+      "down-step-a": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-idle": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-step-b": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-a": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-idle": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-b": {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-a": {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-idle": {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-b": {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-a": {
+        "x": 0,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-idle": {
+        "x": 64,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-b": {
+        "x": 128,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "player-green.png": {
+      "down-step-a": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-idle": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-step-b": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-a": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-idle": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-b": {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-a": {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-idle": {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-b": {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-a": {
+        "x": 0,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-idle": {
+        "x": 64,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-b": {
+        "x": 128,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "player-yellow.png": {
+      "down-step-a": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-idle": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "down-step-b": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-a": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-idle": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "left-step-b": {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-a": {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-idle": {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "right-step-b": {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-a": {
+        "x": 0,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-idle": {
+        "x": 64,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "up-step-b": {
+        "x": 128,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "bomb-sprite.png": {
+      "idle": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "amber-flash": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "red-flash": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "white-flash": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "explosion-sprite.png": {
+      "ignite-center": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "ignite-horizontal": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "ignite-vertical": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "ignite-cap-right": {
+        "x": 192,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "peak-center": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "peak-horizontal": {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "peak-vertical": {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "peak-cap-right": {
+        "x": 192,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "fade-center": {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "fade-horizontal": {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "fade-vertical": {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "fade-cap-right": {
+        "x": 192,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      }
+    },
+    "powerups-sprite.png": {
+      "speed-up": {
+        "x": 0,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "bomb-count-up": {
+        "x": 32,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "blast-range-up": {
+        "x": 64,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      }
+    }
+  },
+  "animations": {
+    "player-red": {
+      "file": "player-red.png",
+      "anchor": [
+        32,
+        60
+      ],
+      "idleColumn": 1,
+      "rows": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "walkColumns": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "frameDurationMs": 110,
+      "loop": true
+    },
+    "player-blue": {
+      "file": "player-blue.png",
+      "anchor": [
+        32,
+        60
+      ],
+      "idleColumn": 1,
+      "rows": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "walkColumns": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "frameDurationMs": 110,
+      "loop": true
+    },
+    "player-green": {
+      "file": "player-green.png",
+      "anchor": [
+        32,
+        60
+      ],
+      "idleColumn": 1,
+      "rows": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "walkColumns": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "frameDurationMs": 110,
+      "loop": true
+    },
+    "player-yellow": {
+      "file": "player-yellow.png",
+      "anchor": [
+        32,
+        60
+      ],
+      "idleColumn": 1,
+      "rows": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "walkColumns": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "frameDurationMs": 110,
+      "loop": true
+    },
+    "bomb": {
+      "file": "bomb-sprite.png",
+      "frames": [
+        "idle",
+        "amber-flash",
+        "red-flash",
+        "white-flash"
+      ],
+      "frameDurationMs": 180,
+      "loop": true,
+      "note": "Suggested display cadence only; actual fuse/deadline belongs to game logic."
+    },
+    "explosion": {
+      "file": "explosion-sprite.png",
+      "phases": [
+        "ignite",
+        "peak",
+        "fade"
+      ],
+      "frameDurationMs": 100,
+      "loop": false,
+      "columnShapes": [
+        "center",
+        "horizontal",
+        "vertical",
+        "cap-right"
+      ],
+      "endCapRotationDegreesClockwise": {
+        "right": 0,
+        "down": 90,
+        "left": 180,
+        "up": 270
+      },
+      "rotationPivot": [
+        32,
+        32
+      ],
+      "note": "Cropping transparent gutters + axis-normalized resizing makes straight segments reach tile edges. Check joints in actual renderer; collision/range comes from server/game state, never sprite alpha."
+    }
+  },
+  "processing": "Asset extraction only: equal-grid crop, nearest-neighbor scaling, player alpha-bounds alignment to shared foot anchor; explosion modules cropped and resized along connection axes. Generated alpha preserved. No gameplay code.",
+  "qa": {
+    "status": "File/coordinate checks and visual review complete; final art approval and in-game integration pending",
+    "limits": "AI walk poses may vary subtly; gait/joins need integrated renderer check. Tiles are not guaranteed mathematically seamless."
+  }
+}

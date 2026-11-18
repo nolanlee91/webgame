@@ -1,15 +1,14 @@
 // Đặt Bom — client. Máy chủ (games-server/dat-bom) giữ bom, lửa, gạch, vật phẩm, sống/chết, điểm.
 // Client tự đi nhân vật của mình bằng đúng hàm move() của logic.js (mượt, không chờ mạng) rồi gửi vị trí lên;
 // máy chủ kiểm tra lại, sai thì gửi "fix" để kéo về. Người khác được nội suy giữa các khung 20 lần/giây.
-// Đồ hoạ trong bản đồ là khối tạm vẽ bằng canvas — sẽ thay bằng sprite khi có asset.
+// Đồ hoạ trong bản đồ: sprite Pixel V5 của Codex ở assets/ (ô 64 px).
 import * as L from "./logic.js";
 
 const $ = (id) => document.getElementById(id);
 const SESS = "dat-bom:sess", NAME = "dat-bom:name";
-const T = 16; // điểm ảnh mỗi ô trên canvas (canvas phóng to bằng CSS, giữ nét pixel)
-const COLORS = ["#e74c3c", "#4a90e2", "#f5d77f", "#b06ee0"];
-const DARK = ["#8e2a20", "#24548f", "#a8741a", "#64338a"];
-const CNAME = ["Đỏ", "Xanh", "Vàng", "Tím"];
+const T = 64; // điểm ảnh mỗi ô trên canvas = đúng kích thước sprite; CSS co giãn canvas theo màn hình
+const COLORS = ["#e74c3c", "#4a90e2", "#f5d77f", "#5cb85c"]; // theo 4 bộ đồ: đỏ, xanh dương, vàng, xanh lá
+const CNAME = ["Đỏ", "Xanh dương", "Vàng", "Xanh lá"];
 const ITEM_NAME = { b: "Thêm bom", f: "Lửa dài hơn", s: "Chạy nhanh hơn" };
 const ERR = {
   started: "Ván đã bắt đầu, chờ ván sau nhé.", full: "Phòng đã đủ 4 người.", name: "Hãy nhập tên (tối đa 16 ký tự).",
@@ -233,7 +232,7 @@ function onFrame(m) {
   }
   if (p && !p[3]) me = null;
   for (const e of m.ev) {
-    if (e.k === "boom") { sfx.play("boom", 0.8); shake = 6; }
+    if (e.k === "boom") { sfx.play("boom", 0.8); shake = 6; boomAt.set(L.idx(e.x, e.y), performance.now()); }
     else if (e.k === "bomb") sfx.play("bomb", 0.6);
     else if (e.k === "pick" && e.i === v.you) { sfx.play("pick"); banner(ITEM_NAME[e.kind] + "!"); }
     else if (e.k === "die") {
@@ -307,6 +306,7 @@ function toast(t) { if ($("game").hidden) return homeMsg(t); banner(t); }
 // ---------------- vòng lặp: đi + vẽ ----------------
 const cv = $("cv"), ctx = cv.getContext("2d");
 cv.width = L.W * T; cv.height = L.H * T;
+ctx.imageSmoothingEnabled = false; // sprite vẽ đúng 1:1, giữ nét pixel
 let lastT = performance.now(), shake = 0;
 
 function bombsNow() { return f ? f.b.map((b) => ({ x: b[0], y: b[1], pass: b[5] })) : []; }
@@ -355,85 +355,92 @@ function hud() {
   }
 }
 
-// ---- vẽ bằng khối pixel (đồ hoạ tạm) ----
-function rect(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
-function drawFloor(x, y) {
-  const X = x * T, Y = y * T;
-  rect(X, Y, T, T, (x + y) % 2 ? "#3f7a3a" : "#46853f");
-  rect(X + 3, Y + 4, 1, 2, "#5a9a4c"); rect(X + 11, Y + 10, 1, 2, "#5a9a4c");
-}
-function drawWall(x, y) {
-  const X = x * T, Y = y * T;
-  rect(X, Y, T, T, "#1b1d24"); rect(X + 1, Y + 1, T - 2, T - 2, "#646b7c");
-  rect(X + 1, Y + 1, T - 2, 2, "#8a92a6"); rect(X + 1, Y + T - 4, T - 2, 3, "#40454f");
-  rect(X + 4, Y + 6, 3, 2, "#575d6c"); rect(X + 9, Y + 8, 3, 2, "#575d6c");
-}
-function drawBrick(x, y) {
-  const X = x * T, Y = y * T;
-  rect(X, Y, T, T, "#3d1d0d"); rect(X + 1, Y + 1, T - 2, T - 2, "#a65a2e");
-  for (let r = 0; r < 4; r++) {
-    const yy = Y + 1 + r * 4; rect(X + 1, yy + 3, T - 2, 1, "#6b3519");
-    const off = r % 2 ? 4 : 0;
-    for (let c = off; c < T; c += 8) rect(X + c, yy, 1, 3, "#6b3519");
-    rect(X + 1, yy, T - 2, 1, "#c27443");
+// ---- vẽ bằng sprite Pixel V5 (assets/, bố cục xem assets/HANDOFF.md) ----
+const IMG = {};
+let imgReady = false;
+{
+  const files = { tiles: "map-tiles.webp", bomb: "bomb-sprite.png", boom: "explosion-sprite.png", items: "powerups-sprite.png",
+    p0: "player-red.png", p1: "player-blue.png", p2: "player-yellow.png", p3: "player-green.png" };
+  let n = 0; const all = Object.keys(files).length;
+  for (const [k, file] of Object.entries(files)) {
+    const im = new Image();
+    im.onload = () => { if (++n === all) imgReady = true; };
+    im.onerror = () => { if (!IMG.failed) { IMG.failed = true; banner("Không tải được hình ảnh game, thử tải lại trang."); } };
+    im.src = "assets/" + file; IMG[k] = im;
   }
 }
-function drawItem(x, y, k, t) {
-  const X = x * T, Y = y * T, bob = Math.floor(t / 250) % 2;
-  const bg = { b: "#2a3346", f: "#c0392b", s: "#1b5b53" }[k];
-  rect(X + 1, Y + 1 + bob, 14, 14, "#000"); rect(X + 2, Y + 2 + bob, 12, 12, bg); rect(X + 2, Y + 2 + bob, 12, 1, "rgba(255,255,255,.35)");
-  const Z = Y + bob;
-  if (k === "b") { rect(X + 5, Z + 6, 6, 6, "#111"); rect(X + 4, Z + 7, 8, 4, "#111"); rect(X + 6, Z + 7, 2, 2, "#666"); rect(X + 9, Z + 4, 2, 2, "#f5d77f"); }
-  else if (k === "f") { rect(X + 6, Z + 4, 4, 9, "#f39c12"); rect(X + 5, Z + 7, 6, 6, "#f39c12"); rect(X + 7, Z + 8, 2, 4, "#ffe066"); }
-  else { rect(X + 4, Z + 5, 2, 6, "#f4ead2"); rect(X + 6, Z + 6, 2, 4, "#f4ead2"); rect(X + 9, Z + 5, 2, 6, "#f4ead2"); rect(X + 11, Z + 6, 2, 4, "#f4ead2"); }
+const spr = (im, sx, sy, s, dx, dy, d = s) => ctx.drawImage(im, sx, sy, s, s, dx, dy, d, d);
+function rect(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
+function drawCell(x, y, c) {
+  const X = x * T, Y = y * T;
+  if (!imgReady) { rect(X, Y, T, T, c === "#" ? "#5d6470" : c === "+" ? "#a65a2e" : "#46853f"); return; }
+  if (c === "#") return spr(IMG.tiles, 64, 0, 64, X, Y);
+  spr(IMG.tiles, 0, 0, 64, X, Y);
+  if (c === "+") spr(IMG.tiles, (x * 7 + y * 3) % 2 ? 64 : 0, 64, 64, X, Y); // 2 kiểu gạch, cùng luật
 }
+const ITEM_SX = { s: 0, b: 32, f: 64 };
+function drawItem(x, y, k, t) {
+  const X = x * T, Y = y * T, bob = Math.floor(t / 250) % 2 ? -3 : 0;
+  ctx.fillStyle = "rgba(255,240,180,.28)"; ctx.beginPath(); ctx.arc(X + 32, Y + 34, 22, 0, Math.PI * 2); ctx.fill();
+  if (imgReady) spr(IMG.items, ITEM_SX[k], 0, 32, X + 12, Y + 12 + bob, 40);
+}
+const BOMB_FR = [[0, 0], [64, 0], [0, 64], [64, 64]]; // idle, cam, đỏ, trắng
 function drawBomb(b, t) {
   const X = b[0] * T, Y = b[1] * T, left = b[3] - now();
-  const pulse = left < 800 ? Math.floor(t / 80) % 2 : Math.floor(t / 240) % 2;
-  const s = pulse ? 1 : 0;
-  rect(X + 3, Y + 13, 10, 2, "rgba(0,0,0,.35)");
-  rect(X + 4 - s, Y + 5 - s, 8 + 2 * s, 8 + 2 * s, "#0d0d10");
-  rect(X + 3 - s, Y + 6 - s, 10 + 2 * s, 6 + 2 * s, "#0d0d10");
-  rect(X + 5, Y + 6, 2, 2, "#5a5f6e");
-  rect(X + 9, Y + 3, 2, 2, "#a8741a");
-  rect(X + 10, Y + 1, 2, 2, Math.floor(t / 60) % 2 ? "#ffe066" : "#e74c3c");
-  if (b[2] === you()) rect(X + 7, Y + 14, 2, 1, COLORS[b[2]]);
+  const fr = BOMB_FR[Math.floor(t / (left < 800 ? 80 : 180)) % 4];
+  if (imgReady) spr(IMG.bomb, fr[0], fr[1], 64, X, Y); else rect(X + 16, Y + 16, 32, 32, "#111");
+  if (b[2] === you()) rect(X + 26, Y + 58, 12, 4, COLORS[b[2]]); // vạch màu: bom của bạn
 }
-function drawFlame(x, y, t) {
-  const X = x * T, Y = y * T, fl = Math.floor(t / 70) % 2;
-  rect(X, Y, T, T, "#e74c3c"); rect(X + 1 + fl, Y + 1 + fl, T - 2 - 2 * fl, T - 2 - 2 * fl, "#f39c12");
-  rect(X + 4 - fl, Y + 4 - fl, 8 + 2 * fl, 8 + 2 * fl, "#ffe066"); rect(X + 6, Y + 6, 4, 4, "#fffbe8");
+// Lửa: máy chủ chỉ gửi các ô đang cháy. Pha (bùng/đỉnh/tàn) tính từ lúc thấy ô, hình (tâm/ngang/dọc/đầu nhánh) từ ô kề.
+const flameSeen = new Map(), boomAt = new Map();
+function drawFlames(list, t) {
+  const on = new Set(list.map((q) => L.idx(q[0], q[1])));
+  for (const k of flameSeen.keys()) if (!on.has(k)) flameSeen.delete(k);
+  for (const [k, at] of boomAt) if (t - at > 1000) boomAt.delete(k);
+  const has = (x, y) => L.inside(x, y) && on.has(L.idx(x, y));
+  for (const [x, y] of list) {
+    const k = L.idx(x, y);
+    if (!flameSeen.has(k)) flameSeen.set(k, t);
+    const X = x * T, Y = y * T;
+    if (!imgReady) { rect(X, Y, T, T, "#f39c12"); continue; }
+    const row = Math.min(2, Math.floor((t - flameSeen.get(k)) / (L.RULES.flame / 3))) * 64;
+    const l = has(x - 1, y), r = has(x + 1, y), u = has(x, y - 1), d = has(x, y + 1);
+    let col = 0, rot = 0;
+    if (boomAt.has(k) || ((l || r) && (u || d)) || !(l || r || u || d)) col = 0;
+    else if (l && r) col = 64;
+    else if (u && d) col = 128;
+    else { col = 192; rot = l ? 0 : r ? Math.PI : u ? Math.PI / 2 : -Math.PI / 2; } // đầu nhánh quay ra ngoài
+    if (!rot) { spr(IMG.boom, col, row, 64, X, Y); continue; }
+    ctx.save(); ctx.translate(X + 32, Y + 32); ctx.rotate(rot); spr(IMG.boom, col, row, 64, -32, -32); ctx.restore();
+  }
 }
+const DIR_ROW = { d: 0, l: 64, r: 128, u: 192 }, WALK = [0, 64, 128, 64];
 function drawPlayer(i, x, y, dir, alpha, t, moving) {
   const X = Math.round(x * T), Y = Math.round(y * T);
   ctx.globalAlpha = alpha;
-  const bob = moving ? Math.floor(t / 110) % 2 : 0;
-  rect(X + 3, Y + 13, 10, 2, "rgba(0,0,0,.35)");
-  rect(X + 3, Y + 2 - bob, 10, 12, "#000");                 // viền
-  rect(X + 4, Y + 3 - bob, 8, 10, COLORS[i]);              // thân
-  rect(X + 4, Y + 10 - bob, 8, 3, DARK[i]);                // chân/áo
-  rect(X + 5, Y + 4 - bob, 6, 5, "#f1c9a0");               // mặt
-  const ex = dir === "l" ? -1 : dir === "r" ? 1 : 0, ey = dir === "u" ? -1 : dir === "d" ? 1 : 0;
-  if (dir !== "u") { rect(X + 6 + ex, Y + 6 - bob + ey, 1, 2, "#111"); rect(X + 9 + ex, Y + 6 - bob + ey, 1, 2, "#111"); }
-  else rect(X + 5, Y + 4 - bob, 6, 3, DARK[i]);           // quay lưng: thấy tóc/mũ
-  rect(X + 4, Y + 2 - bob, 8, 2, DARK[i]);                 // mũ
-  if (i === you()) { rect(X + 7, Y - 3 - bob, 2, 2, "#f5d77f"); rect(X + 6, Y - 4 - bob, 4, 1, "#f5d77f"); } // mũi tên đánh dấu "bạn"
+  ctx.fillStyle = "rgba(0,0,0,.32)"; ctx.beginPath(); ctx.ellipse(X + 32, Y + 59, 18, 6, 0, 0, Math.PI * 2); ctx.fill();
+  if (imgReady) spr(IMG["p" + i], moving ? WALK[Math.floor(t / 110) % 4] : 64, DIR_ROW[dir] ?? 0, 64, X, Y); // chân ở [32,60]
+  else rect(X + 16, Y + 8, 32, 48, COLORS[i]);
+  if (i === you()) { // mũi tên vàng đánh dấu "bạn"
+    const b = Math.floor(t / 300) % 2 * 2;
+    ctx.fillStyle = "#1b1d24"; ctx.beginPath(); ctx.moveTo(X + 22, Y - 10 + b); ctx.lineTo(X + 42, Y - 10 + b); ctx.lineTo(X + 32, Y + 2 + b); ctx.fill();
+    ctx.fillStyle = "#f5d77f"; ctx.beginPath(); ctx.moveTo(X + 25, Y - 8 + b); ctx.lineTo(X + 39, Y - 8 + b); ctx.lineTo(X + 32, Y - 1 + b); ctx.fill();
+  }
   ctx.globalAlpha = 1;
 }
 const prevPos = [];
 const EMPTY = L.makeGrid(() => 0.9).join(""); // nền khi chưa có ván: chỉ tường + cột
 function draw(t) {
   ctx.save();
-  if (shake > 0) { ctx.translate(Math.round((Math.random() - 0.5) * shake * 0.5), Math.round((Math.random() - 0.5) * shake * 0.5)); shake = Math.max(0, shake - 0.6); }
+  if (shake > 0) { ctx.translate(Math.round((Math.random() - 0.5) * shake * 2), Math.round((Math.random() - 0.5) * shake * 2)); shake = Math.max(0, shake - 0.6); }
   const grid = f ? f.g : EMPTY;
   for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W; x++) {
-    const c = grid[L.idx(x, y)];
-    if (c === "#") drawWall(x, y); else { drawFloor(x, y); if (c === "+") drawBrick(x, y); }
+    drawCell(x, y, grid[L.idx(x, y)]);
   }
   if (f) {
     for (const it of f.it) drawItem(it[0], it[1], it[2], t);
     for (const b of f.b) drawBomb(b, t);
-    for (const fl of f.fl) drawFlame(fl[0], fl[1], t);
+    drawFlames(f.fl, t);
     const order = f.p.map((q, i) => i).sort((a, b) => (disp[a]?.y ?? 0) - (disp[b]?.y ?? 0));
     for (const i of order) {
       const q = f.p[i], o = disp[i]; if (!o) continue;

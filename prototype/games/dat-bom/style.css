@@ -1,5 +1,5 @@
 /* Đặt Bom — pixel UI theo Art Bible V5 (viền 3px bằng box-shadow, vát 2px, bóng cứng lệch, không bo tròn, không gradient mềm).
-   Phần khung (thanh trên, nút, ô nhập, màn đầu) cùng bộ với Ai Là Nội Gián; đồ hoạ trong bản đồ là khối tạm vẽ bằng canvas. */
+   Phần khung (thanh trên, nút, ô nhập, màn đầu) cùng bộ với Ai Là Nội Gián; đồ hoạ trong bản đồ là sprite ở assets/ (canvas 64 px mỗi ô, co mượt theo màn hình). */
 :root {
   --ink: #f4ead2; --soft: #c4b79a; --dim: #857a66; --line: #0a0807; --shadow: rgba(0,0,0,.6);
   --gold: #f5d77f; --gold-d: #a8741a; --green: #3a7d44; --teal: #2f8f83; --teal-d: #1b5b53;
@@ -88,7 +88,7 @@ kbd { font: 700 11px/1 ui-monospace, monospace; padding: 2px 5px; background: #0
 .hud__score { margin-left: auto; font-size: 14px; color: var(--soft); }
 .hud__score b { color: var(--ink); font-size: 18px; }
 .board { position: relative; width: 100%; max-width: max(300px, calc((100dvh - 230px) * 13 / 11)); margin: 0 auto; aspect-ratio: 13 / 11; --b: var(--line); box-shadow: var(--border), var(--drop); }
-#cv { display: block; width: 100%; height: 100%; image-rendering: pixelated; background: #24402a; touch-action: none; }
+#cv { display: block; width: 100%; height: 100%; image-rendering: auto; background: #24402a; touch-action: none; }
 .ov { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(5,6,10,.6); z-index: 2; }
 .ov--count { background: none; pointer-events: none; }
 .ov--count b { font: 800 clamp(56px, 14vw, 120px)/1 "Be Vietnam Pro", system-ui; color: var(--gold); text-shadow: 5px 6px 0 #000; }

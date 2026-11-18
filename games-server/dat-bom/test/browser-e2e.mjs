@@ -199,6 +199,13 @@ try {
   await A.shot('06-play-desktop.png');
   await C.shot('07-play-mobile.png');
   ok(await A.noOverflow() && await C.noOverflow(), 'đang chơi: không tràn ngang');
+  { // chụp ngay lúc lửa đang cháy (0,5 s) để xem sprite nổ trên renderer thật
+    const t0 = Date.now(); while (!(B.last?.fl?.length) && Date.now() - t0 < 6000) await sleep(20);
+    ok(B.last?.fl?.length > 0, `bom nổ: máy chủ gửi ${B.last?.fl?.length || 0} ô lửa`);
+    await sleep(120);
+    const r = await B.cmd('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(join(OUT, '06b-boom-desktop.png'), Buffer.from(r.result.data, 'base64')); console.log('  📷 06b-boom-desktop.png');
+  }
   await Promise.all(tabs.map((t) => t.waitFor(`!document.getElementById('ovEnd').hidden`, 8000)));
   ok(await B.ev(`document.getElementById('endTitle').textContent`) === 'Bạn thắng!', 'người sống sót cuối cùng: "Bạn thắng!"');
   ok(await A.ev(`document.getElementById('endTitle').textContent`) === 'Tí thắng!', 'người thua thấy tên người thắng');
