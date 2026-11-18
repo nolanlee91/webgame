@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%235a3a22%22/%3E%3Crect x=%227%22 y=%226%22 width=%222%22 height=%227%22 fill=%22%233fae4a%22/%3E%3Crect x=%223%22 y=%224%22 width=%224%22 height=%223%22 fill=%22%238be08f%22/%3E%3Crect x=%229%22 y=%223%22 width=%224%22 height=%223%22 fill=%22%233fae4a%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Rắn Săn Mồi / Đào Vàng: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
-       không bo tròn. Vàng CHỈ cho nút chính. Cây / đất hiện vẽ bằng code (khối pixel); khi có bộ sprite sẽ thay trong game.js (ART). */
+       không bo tròn. */
     :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --blue: #4aa8e0;
@@ -29,7 +29,7 @@
     .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
 
     .wrap { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 14px 16px 18px;
-      display: grid; grid-template-columns: 236px minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "hud field" "hud seeds"; gap: 14px 18px; align-content: start; }
+      display: grid; grid-template-columns: 236px minmax(0, 1fr); grid-template-areas: "hud world"; gap: 14px 18px; align-content: start; }
 
     /* bảng chỉ số */
     .hud { grid-area: hud; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
@@ -64,11 +64,15 @@
     .keys kbd { font: 800 11px "Be Vietnam Pro"; color: var(--ink); background: var(--panel2); padding: 1px 6px; box-shadow: 0 0 0 2px var(--line), inset 0 -2px 0 rgba(0,0,0,.4); white-space: nowrap; justify-self: start; }
     @media (pointer: coarse) { .keys { display: none; } }
 
-    /* ruộng 5×5 */
-    /* khung ruộng = hàng rào gỗ (nan dọc) bao quanh bãi cỏ */
-    .field { grid-area: field; position: relative; justify-self: center; width: min(100%, 560px, calc(100svh - 300px)); min-width: 280px; aspect-ratio: 1; padding: 12px; margin: 3px;
-      background: linear-gradient(var(--grass), var(--grass)) content-box, repeating-linear-gradient(90deg, #8a6440 0 9px, #6e4e30 9px 11px, #a07650 11px 13px); --b: #3a2716; box-shadow: var(--bevel), var(--border), var(--drop);
-      display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; }
+    .farm-world { grid-area: world; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .farm { position: relative; width: min(100%, 620px); aspect-ratio: 32 / 51; margin: 3px;
+      background: var(--grass); --b: #3a2716; box-shadow: var(--border), 0 -5px 0 #775437, 0 5px 0 #503823, var(--drop); isolation: isolate; }
+    .scenery { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+    .field { position: absolute; inset: 35.294% 5.3% 21.569%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 5px; }
+    .map-stop { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; }
+    #orchard { top: 0; }
+    #pasture { top: 84%; }
+    .field, .map-stop { scroll-margin-top: 154px; }
     /* đất: luống cày ngang (sọc tối/sáng xen kẽ) thay cho chấm bi */
     .plot { all: unset; box-sizing: border-box; position: relative; cursor: pointer; display: grid; place-items: center; min-width: 0; min-height: 0; touch-action: manipulation;
       background: url(assets/tiles.webp) 0% 0 / 400% 100% no-repeat, var(--soil); image-rendering: pixelated; --b: var(--soil-d); /* tiles.webp: đất khô */
@@ -85,23 +89,41 @@
     .plot.locked.far { filter: brightness(.72); cursor: default; }
     .plot:focus-visible, .plot.cursor { outline: 3px solid var(--gold); outline-offset: 2px; z-index: 1; }
     .plot:hover:not(.far) { filter: brightness(1.12); }
-    .plot canvas { width: 78%; height: 78%; image-rendering: pixelated; pointer-events: none; }
+    .plot canvas { width: 78%; height: 86%; image-rendering: pixelated; object-fit: contain; pointer-events: none; }
     .plot .bar2 { position: absolute; left: 10%; right: 10%; bottom: 8%; height: 7px; background: #0d0b09; box-shadow: 0 0 0 2px var(--line); }
     .plot .bar2 i { position: absolute; inset: 0 auto 0 0; background: var(--gold); }
     .plot .lbl { position: absolute; left: 0; right: 0; top: 6%; text-align: center; font: 800 11px/1 "Be Vietnam Pro"; color: var(--ink); text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000; pointer-events: none; }
-    .plot.ready { animation: bob 1s steps(2) infinite; }
-    .plot.ready::after { content: ""; position: absolute; inset: -3px; box-shadow: 0 0 0 3px var(--gold); pointer-events: none; }
+    .plot.ready::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 2px #e4ba68; pointer-events: none; }
+    .plot.ready .lbl { color: #ffe9a8; }
     .plot.confirm::after { content: ""; position: absolute; inset: -3px; box-shadow: 0 0 0 3px var(--gold); pointer-events: none; animation: blink .5s steps(2) infinite; }
     .plot .drop { position: absolute; right: 6%; bottom: calc(8% + 11px); width: 18px; height: 18px; background: url(assets/icons.png) 33.333% 0 / 400% 100% no-repeat; image-rendering: pixelated; } /* giọt nước: cây chưa tưới */
     .ico { display: inline-block; width: 22px; height: 22px; vertical-align: -3px; margin-right: 4px; background: url(assets/icons.png) 0 0 / 400% 100% no-repeat; image-rendering: pixelated; }
     .ico--coin { background-position: 0% 0; } .ico--xp { background-position: 66.667% 0; }
-    @keyframes bob { 50% { transform: translateY(-3px); } }
     @keyframes blink { 50% { opacity: 0; } }
-    .float { position: absolute; z-index: 3; font: 800 16px "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: up 1s ease-out forwards; white-space: nowrap; }
-    @keyframes up { to { transform: translateY(-36px); opacity: 0; } }
+    .float { position: absolute; left: 50%; top: 4px; z-index: 3; font: 800 clamp(11px, 2.6vw, 16px) "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: up 1s ease-out forwards; white-space: nowrap; }
+    @keyframes up { from { transform: translateX(-50%); } to { transform: translate(-50%, -28px); opacity: 0; } }
+    .plot-effect { position: absolute; inset: 0; pointer-events: none; color: #c7965c; }
+    .plot-effect i { position: absolute; top: 62%; left: 50%; width: 4px; height: 4px; background: currentColor; box-shadow: 1px 1px #31281c; animation: scatter .44s steps(7) both; }
+    .plot-effect--water { color: #9fd8ff; }
+    .plot-effect--harvest { color: #ffe09a; }
+    .plot-effect--till i { top: 50%; width: 6px; height: 4px; animation-duration: .58s; }
+    @keyframes scatter {
+      45% { transform: translate(var(--dx), var(--dy)); opacity: 1; }
+      100% { transform: translate(var(--dx), 4px); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .plot-effect { display: none; }
+      .plot.confirm::after { animation: none; }
+      .float { animation: none; transform: translateX(-50%); }
+    }
 
     /* khay hạt giống */
-    .seeds { grid-area: seeds; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; max-width: 640px; width: 100%; justify-self: center; margin: 3px 7px 7px 3px; }
+    .farm-controls { width: min(100%, 620px); position: sticky; top: 0; z-index: 5; background: #201c12; padding: 3px; }
+    .farm-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 4px 0 0; }
+    .farm-nav a { display: grid; place-items: center; min-height: 36px; padding: 0 3px; color: var(--ink); background: #383524; box-shadow: inset 0 -2px #1a1a11; font-size: 12px; font-weight: 800; text-align: center; text-decoration: none; }
+    .farm-nav a:hover, .farm-nav a:focus-visible { background: #4c5630; outline: 2px solid var(--gold); outline-offset: -2px; }
+    .seeds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
+      padding: 7px; background: #503823; --b: #251a13; box-shadow: inset 0 2px #886043, inset 0 -3px #3c291d, var(--border); }
     .seed { all: unset; box-sizing: border-box; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 9px; text-align: center; background: var(--panel); --b: #4a3f33; box-shadow: var(--bevel), var(--border); touch-action: manipulation; min-width: 0; }
     .seed canvas { width: 36px; height: 36px; image-rendering: pixelated; }
     .seed b { font-size: 13px; line-height: 1.15; }
@@ -126,7 +148,7 @@
 
     /* Điện thoại / khung hẹp: HUD thành 1 hàng trên cùng, ruộng giữa, khay hạt dưới (gần ngón cái) */
     @media (max-width: 760px) {
-      .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "field" "seeds"; padding: 10px 12px 16px; gap: 12px; }
+      .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "world"; padding: 10px 12px 16px; gap: 12px; }
       .hud { flex-direction: row; align-items: stretch; gap: 10px; }
       .keys, .xpTxt, .stats .hsep, .stat.plots { display: none; }
       .stats { flex: 1; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: 6px 12px; padding: 8px 10px; }
@@ -134,14 +156,23 @@
       .stat.main b { font-size: 22px; } .stat b { font-size: 17px; }
       .tools { flex-wrap: nowrap; gap: 8px; margin: 3px 7px 7px 0; align-items: stretch; }
       .tools .btn { min-height: 44px; padding: 6px 10px; font-size: 12px; }
-      /* ruộng vuông nhưng chừa chỗ cho thanh trên + HUD + khay hạt ⇒ khay hạt luôn thấy ngay không phải cuộn */
-      .field { width: min(100%, calc(100svh - 290px)); min-width: 240px; padding: 7px; gap: 5px; }
-      .seeds { gap: 7px; margin: 3px 3px 7px; }
+      .field { gap: 4px; }
+      .seeds { gap: 7px; padding: 5px; }
       .seed { padding: 6px 2px 7px; } .seed canvas { width: 30px; height: 30px; } .seed b { font-size: 12px; } .seed small { font-size: 10px; }
       .plot .lbl { font-size: 10px; }
     }
     @media (max-width: 520px) { .tag { display: none; } .bar { white-space: nowrap; } }
-    @media (max-width: 360px) { .stat small { font-size: 9px; letter-spacing: .03em; } .seed small { font-size: 9px; } }
+    @media (max-width: 360px) {
+      .hud { gap: 7px; }
+      .stats { column-gap: 7px; padding-inline: 7px; }
+      .stat.main b { font-size: 18px; }
+      .tools .btn { padding-inline: 7px; }
+      .stat small { font-size: 9px; letter-spacing: .03em; }
+      .seed small { font-size: 9px; }
+    }
+    @media (max-width: 760px) and (max-height: 620px) {
+      .wrap { gap: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -173,8 +204,22 @@
       </div>
     </aside>
 
-    <section class="field" id="field" aria-label="Ruộng 5 × 5"></section>
-    <div class="seeds" id="seeds" role="radiogroup" aria-label="Hạt giống"></div>
+    <div class="farm-world">
+      <div class="farm-controls">
+        <div class="seeds" id="seeds" role="radiogroup" aria-label="Hạt giống"></div>
+        <nav class="farm-nav" aria-label="Các khu trong nông trại">
+          <a href="#orchard">Vườn cây</a>
+          <a href="#field">Ruộng</a>
+          <a href="#pasture">Đồng cỏ</a>
+        </nav>
+      </div>
+      <section class="farm" aria-label="Bản đồ nông trại">
+        <canvas id="scenery" class="scenery" width="320" height="510" aria-hidden="true"></canvas>
+        <span id="orchard" class="map-stop" aria-hidden="true"></span>
+        <div class="field" id="field" role="group" aria-label="Ruộng 5 × 5"></div>
+        <span id="pasture" class="map-stop" aria-hidden="true"></span>
+      </section>
+    </div>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -197,7 +242,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=farm-world1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

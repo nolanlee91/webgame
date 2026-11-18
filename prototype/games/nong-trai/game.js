@@ -1,5 +1,6 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh. Luật trong logic.js.
 import * as L from "./logic.js";
+import { drawFarm } from "./scenery.js?v=3";
 
 const SAVE_KEY = "wgp.nongtrai.v1";
 const MUTE_KEY = "wgp.muted";
@@ -248,6 +249,7 @@ export function mount(root, ctx = {}) {
   let pick = L.CROPS[0].id, cursor = 12, confirmAt = -1, confirmT = 0, toastT = 0, destroyed = false, raf = 0, lastSave = 0;
 
   // ---------- dựng DOM ----------
+  drawFarm($("scenery"));
   const cells = s.plots.map((_, i) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "plot"; b.dataset.i = i;
@@ -289,10 +291,25 @@ export function mount(root, ctx = {}) {
     clearTimeout(toastT); toastT = setTimeout(() => (ui.toast.hidden = true), ms);
   }
   function float(i, text, color) {
-    const r = cells[i].b.getBoundingClientRect(), f = document.createElement("span");
+    const f = document.createElement("span");
     f.className = "float"; f.textContent = text; if (color) f.style.color = color;
-    f.style.left = r.left + r.width / 2 - 20 + scrollX + "px"; f.style.top = r.top + 4 + scrollY + "px"; f.style.position = "absolute";
-    document.body.append(f); setTimeout(() => f.remove(), 1000);
+    f.setAttribute("aria-hidden", "true");
+    cells[i].b.append(f);
+    setTimeout(() => f.remove(), 1000);
+  }
+  function plotEffect(i, kind) {
+    const effect = document.createElement("span");
+    effect.className = `plot-effect plot-effect--${kind}`;
+    effect.setAttribute("aria-hidden", "true");
+    for (const [x, y] of [[-17, -10], [-10, -21], [-3, -14], [5, -22], [12, -13], [18, -8]]) {
+      const particle = document.createElement("i");
+      particle.style.setProperty("--dx", `${x}px`);
+      particle.style.setProperty("--dy", `${y}px`);
+      effect.append(particle);
+    }
+    cells[i].b.querySelector(".plot-effect")?.remove();
+    cells[i].b.append(effect);
+    setTimeout(() => effect.remove(), 600);
   }
   function renderHud() {
     ui.coins.textContent = fmtNum(s.coins);
@@ -350,6 +367,7 @@ export function mount(root, ctx = {}) {
   }
   function fail(code) { toast(ERR[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
   function afterHarvest(r, i) {
+    plotEffect(i, "harvest");
     float(i, `+${r.coins} xu`);
     sfx.play("trung-kim-cuong", 0.7, 0.95 + Math.random() * 0.1);
     if (r.levelUp) levelUp(r.levelUp, r.unlocked);
@@ -371,15 +389,17 @@ export function mount(root, ctx = {}) {
       confirmAt = -1;
       const r = L.buyPlot(s, i);
       if (r.err) return fail(r.err);
+      plotEffect(i, "till");
       float(i, `−${r.cost} xu`, "#ffe9a8"); sfx.play("thang", 0.6); toast("Đã mở thêm một ô ruộng!");
     } else if (!p.crop) {
       const r = L.plant(s, i, pick, t);
       if (r.err) return fail(r.err);
+      plotEffect(i, "plant");
       sfx.play("buoc-nhay", 0.6);
     } else if (L.isReady(p, t)) {
       afterHarvest(L.harvest(s, i, t), i);
     } else if (!p.watered) {
-      L.water(s, i, t); sfx.play("buoc-nhay", 0.5, 1.4); float(i, "Tưới!", "#9fd8ff");
+      L.water(s, i, t); plotEffect(i, "water"); sfx.play("buoc-nhay", 0.5, 1.4); float(i, "Tưới!", "#9fd8ff");
     } else {
       toast(`${L.CROP[p.crop].name} còn ${fmtLeft(p.readyAt - t)} nữa mới chín.`); sfx.play("trung-da", 0.25);
     }
@@ -390,7 +410,10 @@ export function mount(root, ctx = {}) {
     const crops = s.plots.map((p) => p.crop); // ghi lại trước khi thu (thu xong ô trống)
     const r = L.harvestAll(s, now());
     if (!r.count) { sfx.play("trung-da", 0.3); return toast("Chưa có ô nào chín."); }
-    r.plots.forEach((i) => float(i, `+${L.CROP[crops[i]].sell} xu`));
+    r.plots.forEach((i) => {
+      plotEffect(i, "harvest");
+      float(i, `+${L.CROP[crops[i]].sell} xu`);
+    });
     toast(`Thu ${r.count} ô: +${fmtNum(r.coins)} xu, +${r.xp} XP.`);
     sfx.play("trung-kim-cuong", 0.8);
     if (r.levelUp) levelUp(r.levelUp, r.unlocked);
@@ -412,7 +435,7 @@ export function mount(root, ctx = {}) {
   ui.helpOk.addEventListener("click", () => showHelp(false));
   function onKey(e) {
     if (!ui.ovHelp.hidden) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); showHelp(false); } return; }
-    if (e.target && e.target.closest && e.target.closest(".seed, .tools button") && (e.key === "Enter" || e.key === " ")) return; // để nút tự xử lý
+    if (e.target?.closest?.(".seed, .tools button, .farm-nav a") && (e.key === "Enter" || e.key === " ")) return;
     const mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (mv) {
       e.preventDefault();
