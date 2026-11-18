@@ -355,6 +355,7 @@ function renderAct() {
   if (canDispatch()) txt = dispatchTo === null ? "Liên Lạc Viên: chọn người nhận tin riêng trên bàn chơi." : `Người nhận tin riêng: <b>${esc(nameOf(dispatchTo))}</b>.`;
   if (my?.alive && v.signal?.ready && (ph === "day" || ph === "dawn")) btns = '<button class="btn" data-a="verify">Xác thực lượt quét</button>';
   if (v.signal?.report) txt += `<br><span class="soft">Quét đêm ${v.signal.report.round}: ${v.signal.report.jammed ? "kết quả đã bị nhiễu" : "kết quả xác thực"}.</span>`;
+  if (ph !== "lobby") btns += `<button class="btn" data-a="leave">Rời phòng</button>`; // lobby đã có nút rời ở trên
   $("actTxt").innerHTML = txt; row.innerHTML = btns;
   $("dispatchForm").hidden = !canDispatch();
   $("dispatchSend").disabled = dispatchTo === null;
@@ -376,7 +377,10 @@ $("actRow").addEventListener("click", async (e) => {
   else if (a === "jam") send({ t: a, enabled: !v.night?.jam?.armed });
   else if (a === "verify") send({ t: a });
   else if (a === "skip") send({ t: "vote", target: null });
-  else if (a === "leave") send({ t: "leave" });
+  else if (a === "leave") {
+    if (v.phase !== "lobby" && v.phase !== "end" && !confirm("Rời ván đang chơi? Ghế của bạn sẽ ở lại như người mất kết nối.")) return;
+    send({ t: "leave" });
+  }
   else if (a === "result") { endHidden = false; renderEnd(); }
   else if (a === "copy") {
     const link = `${location.origin}${location.pathname}?p=${v.code}`;

@@ -372,7 +372,7 @@ function setConnecting(on) {
   $("#mkRoom").textContent = on ? "Đang kết nối…" : "Tạo phòng online";
 }
 function showEntry(msg = "", code = "") {
-  mode = "solo"; room = null; chat.show(false); clearBoard(); setConnecting(false);
+  mode = "solo"; room = null; chat.show(false); $("#quitBtn").hidden = true; clearBoard(); setConnecting(false);
   $("#tagline").textContent = "Lụm Kèo Đại Phú · 2–4 người";
   $("#entryErr").textContent = msg; if (code) $("#codeIn").value = code;
   lobbyView("entry");
@@ -452,6 +452,10 @@ $("#again").onclick = () => {
   $("#endOv").hidden = true; lobbyView("solo"); renderLobby();
 };
 $("#endLeave").onclick = () => net.leave();
+$("#quitBtn").onclick = () => {
+  if (room?.phase === "play" && !confirm("Rời ván đang chơi? Máy sẽ đi thay phần của bạn.")) return;
+  net.leave();
+};
 $("#goSolo").onclick = () => { $("#entryErr").textContent = ""; lobbyView("solo"); renderLobby(); };
 $("#mkRoom").onclick = () => { $("#entryErr").textContent = ""; setConnecting(true); net.create(readName()); };
 function joinRoom() {
@@ -475,7 +479,7 @@ $("#copyLink").onclick = async () => {
   chat = createChat({ box: $("#chat"), button: $("#chatBtn"), send: (o) => net.send(o), onNew: () => SFX.msg(),
     colorOf: (name) => { const p = room && room.players.find((x) => x.name === name); return p ? TOKENS[p.tok].color : ""; } });
   net = createNet({
-    onJoined: () => { mode = "online"; chat.show(true); setConnecting(false); $("#entryErr").textContent = ""; },
+    onJoined: () => { mode = "online"; chat.show(true); $("#quitBtn").hidden = false; setConnecting(false); $("#entryErr").textContent = ""; },
     onState: netState,
     onExit: (msg, code) => showEntry(msg, code),
   });

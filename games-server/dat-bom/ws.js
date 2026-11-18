@@ -5,12 +5,13 @@ const crypto = require("crypto");
 const { EventEmitter } = require("events");
 
 const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+const PING_MS = 20000, DEAD_MS = 60000;
 const MAX_FRAGS = 16, FRAME_BURST = 80, FRAME_PER_SEC = 45;
 
 class Socket extends EventEmitter {
   constructor(sock, maxBytes) {
     super();
-    this.sock = sock; this.maxBytes = maxBytes; this.buf = Buffer.alloc(0); this.frag = null; this.fragBytes = 0; this.open = true;
+    this.sock = sock; this.maxBytes = maxBytes; this.buf = Buffer.alloc(0); this.frag = null; this.fragBytes = 0; this.open = true; this.rxAt = Date.now();
     // ngân sách khung: mọi khung (kể cả ping/mảnh rỗng) đều tính — chặn spam khung nhỏ né giới hạn lệnh ở tầng trên
     this.frames = FRAME_BURST; this.framesAt = Date.now();
     sock.setNoDelay(true);
@@ -32,9 +33,10 @@ class Socket extends EventEmitter {
     try { this.sock.write(Buffer.concat([Buffer.from([0x88, 2]), b])); } catch {}
     this.sock.end(); this._closed();
   }
+  ping() { if (this.open) try { this.sock.write(Buffer.from([0x89, 0])); } catch {} }
   _closed() { if (!this.open) return; this.open = false; this.sock.destroy(); this.emit("close"); }
   _data(d) {
-    this.buf = Buffer.concat([this.buf, d]);
+    this.buf = Buffer.concat([this.buf, d]); this.rxAt = Date.now();
     // nhiều khung nhỏ có thể dồn chung một gói TCP (Đặt Bom gửi vị trí 20 lần/giây, mạng chập chờn là dồn) ⇒ cho bộ đệm chờ
     // tới 8 khung tối đa; từng khung vẫn bị giới hạn maxBytes ở dưới, số khung bị giới hạn bởi FRAME_BURST / FRAME_PER_SEC
     if (this.buf.length > (this.maxBytes + 14) * 8) return this.close(1009);
@@ -70,7 +72,15 @@ class Socket extends EventEmitter {
 }
 
 /** Gắn WebSocket vào http.Server tại đường dẫn `path`. onConnection(socket, req). */
-function attachWs(server, path, onConnection, { maxBytes = 4096, allowOrigin = null } = {}) {
+function attachWs(server, path, onConnection, { maxBytes = 4096, allowOrigin = null, pingMs = PING_MS, deadMs = DEAD_MS } = {}) {
+  // Nhịp tim: máy chủ gửi ping, trình duyệt tự trả pong. Kết nối im lặng quá deadMs (điện thoại ngủ, mạng chết
+  // không báo) bị đóng ⇒ phòng nhận "rời" và hẹn giờ xoá phòng chạy đúng, không treo trong RAM tới lần deploy sau.
+  const live = new Set();
+  const beat = setInterval(() => {
+    const t = Date.now();
+    for (const s of live) { if (!s.open) live.delete(s); else if (t - s.rxAt > deadMs) s.close(1001); else s.ping(); }
+  }, pingMs);
+  beat.unref?.();
   server.on("upgrade", (req, sock) => {
     let url; try { url = new URL(req.url, "http://x"); } catch { return sock.destroy(); }
     if (url.pathname !== path) return; // để handler khác (nếu có) xử lý
@@ -81,7 +91,8 @@ function attachWs(server, path, onConnection, { maxBytes = 4096, allowOrigin = n
     if (origin && !(allowOrigin ? allowOrigin(origin, req) : sameHost(origin, req))) return sock.end("HTTP/1.1 403 Forbidden\r\n\r\n");
     const accept = crypto.createHash("sha1").update(key + GUID).digest("base64");
     sock.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " + accept + "\r\n\r\n");
-    onConnection(new Socket(sock, maxBytes), req);
+    const s = new Socket(sock, maxBytes); live.add(s); s.on("close", () => live.delete(s));
+    onConnection(s, req);
   });
 }
 function sameHost(origin, req) { try { return new URL(origin).host === req.headers.host; } catch { return false; } }

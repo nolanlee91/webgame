@@ -334,6 +334,7 @@ function renderAct() {
   else if (ph === "end") { txt = v.winner === "wolf" ? "Bầy Sói đã thắng." : "Dân làng đã thắng."; btns = `<button class="btn" data-a="result">Xem kết quả</button>`; }
   if (ph === "vote" && my?.alive && v.mayorReady) txt += " Nếu đúng hai người hòa dẫn đầu, lá phiếu của bạn có thể phân xử.";
   if (v.gateReport) txt += `<br><span class="soft">Đêm ${v.gateReport.round}: ${v.gateReport.targeted ? "Có hành động tác động tới bạn." : "Không có hành động nào tác động tới bạn."}</span>`;
+  if (ph !== "lobby") btns += `<button class="btn" data-a="leave">Rời phòng</button>`; // lobby đã có nút rời ở trên
   $("actTxt").innerHTML = txt; row.innerHTML = btns;
 
   const log = $("seerLog");
@@ -345,7 +346,10 @@ $("actRow").addEventListener("click", async (e) => {
   if (a === "start") send({ t: "start" });
   else if (a === "brew" || a === "watch") send({ t: a, enabled: !v.night?.armed });
   else if (a === "skip") send({ t: "vote", target: null });
-  else if (a === "leave") send({ t: "leave" });
+  else if (a === "leave") {
+    if (v.phase !== "lobby" && v.phase !== "end" && !confirm("Rời ván đang chơi? Ghế của bạn sẽ ở lại như người mất kết nối.")) return;
+    send({ t: "leave" });
+  }
   else if (a === "result") { endHidden = false; renderEnd(); }
   else if (a === "copy") {
     const link = `${location.origin}${location.pathname}?p=${v.code}`;
