@@ -93,5 +93,11 @@ if (on(process.env.COCARO_ONLINE, true)) {
   console.log("Cờ Caro online: đường /ws/co-caro");
 }
 
+// Cờ Tướng online 1v1 (phòng qua mã, máy chủ xác thực từng nước bằng logic.js) — mặc định BẬT; tắt bằng COTUONG_ONLINE=0.
+if (on(process.env.COTUONG_ONLINE, true)) {
+  require("./games-server/co-tuong/host").createCoTuongHost(server);
+  console.log("Cờ Tướng online: đường /ws/co-tuong");
+}
+
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
 module.exports = server;

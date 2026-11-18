@@ -1,0 +1,322 @@
+{
+  "game": "co-tuong",
+  "board": {
+    "file": "board.webp",
+    "width": 1196,
+    "height": 1315,
+    "kind": "intersections",
+    "files": 9,
+    "ranks": 10,
+    "x": [
+      75,
+      206.5,
+      336.5,
+      467,
+      597.5,
+      728,
+      859.5,
+      990.5,
+      1120
+    ],
+    "y": [
+      45.5,
+      179.5,
+      314.5,
+      451.5,
+      587.5,
+      725.5,
+      862.5,
+      999.5,
+      1132.5,
+      1267
+    ],
+    "riverBetweenRanks": [
+      4,
+      5
+    ],
+    "palaces": [
+      [
+        3,
+        0,
+        3,
+        3
+      ],
+      [
+        3,
+        7,
+        3,
+        3
+      ]
+    ],
+    "orientation": "black top / red bottom",
+    "note": "Measured actual raster line centers. AI artwork spacing is not an exact64px grid; use x[col],y[row]."
+  },
+  "atlas": {
+    "file": "pieces.png",
+    "width": 448,
+    "height": 128,
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 7,
+    "rows": 2
+  },
+  "sprites": {
+    "red-general": {
+      "file": "pieces/red-general.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "帥 = Tướng",
+      "glyph": "帥"
+    },
+    "red-advisor": {
+      "file": "pieces/red-advisor.png",
+      "rect": [
+        64,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "仕 = Sĩ",
+      "glyph": "仕"
+    },
+    "red-elephant": {
+      "file": "pieces/red-elephant.png",
+      "rect": [
+        128,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "相 = Tượng",
+      "glyph": "相"
+    },
+    "red-horse": {
+      "file": "pieces/red-horse.png",
+      "rect": [
+        192,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "馬 = Mã",
+      "glyph": "馬"
+    },
+    "red-rook": {
+      "file": "pieces/red-rook.png",
+      "rect": [
+        256,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "車 = Xe",
+      "glyph": "車"
+    },
+    "red-cannon": {
+      "file": "pieces/red-cannon.png",
+      "rect": [
+        320,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "炮 = Pháo",
+      "glyph": "炮"
+    },
+    "red-pawn": {
+      "file": "pieces/red-pawn.png",
+      "rect": [
+        384,
+        0,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "兵 = Tốt",
+      "glyph": "兵"
+    },
+    "black-general": {
+      "file": "pieces/black-general.png",
+      "rect": [
+        0,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "將 = Tướng",
+      "glyph": "將"
+    },
+    "black-advisor": {
+      "file": "pieces/black-advisor.png",
+      "rect": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "士 = Sĩ",
+      "glyph": "士"
+    },
+    "black-elephant": {
+      "file": "pieces/black-elephant.png",
+      "rect": [
+        128,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "象 = Tượng",
+      "glyph": "象"
+    },
+    "black-horse": {
+      "file": "pieces/black-horse.png",
+      "rect": [
+        192,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "馬 = Mã",
+      "glyph": "馬"
+    },
+    "black-rook": {
+      "file": "pieces/black-rook.png",
+      "rect": [
+        256,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "車 = Xe",
+      "glyph": "車"
+    },
+    "black-cannon": {
+      "file": "pieces/black-cannon.png",
+      "rect": [
+        320,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "砲 = Pháo",
+      "glyph": "砲"
+    },
+    "black-pawn": {
+      "file": "pieces/black-pawn.png",
+      "rect": [
+        384,
+        64,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "label": "卒 = Tốt",
+      "glyph": "卒"
+    }
+  },
+  "instancesPerSide": {
+    "general": 1,
+    "advisor": 2,
+    "elephant": 2,
+    "horse": 2,
+    "rook": 2,
+    "cannon": 2,
+    "pawn": 5
+  },
+  "totalInstances": 32,
+  "normalizedBoard": {
+    "file": "board-grid.webp",
+    "width": 577,
+    "height": 641,
+    "origin": [
+      32,
+      32
+    ],
+    "spacing": 64,
+    "kind": "intersections",
+    "files": 9,
+    "ranks": 10,
+    "positionFormula": "[32+64*col,32+64*row]",
+    "note": "Crop and nearest-neighbor resize/pack each AI-art grid interval; exact geometry, not another AI generation."
+  },
+  "inscriptions": {
+    "red": [
+      "帥",
+      "仕",
+      "相",
+      "馬",
+      "車",
+      "炮",
+      "兵"
+    ],
+    "black": [
+      "將",
+      "士",
+      "象",
+      "馬",
+      "車",
+      "砲",
+      "卒"
+    ],
+    "style": "traditional Chinese xiangqi glyphs; red/black share 馬 and 車",
+    "revision": "hanzi-2026-11-18"
+  }
+}
