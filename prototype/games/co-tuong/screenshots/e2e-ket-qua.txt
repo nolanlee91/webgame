@@ -31,7 +31,7 @@ PASS mobile: nút xin thua / cầu hòa / đi lại hiển thị trong màn hìn
 PASS mobile ngang: bàn cờ vẫn nằm gọn
 PASS mobile không có lỗi JS
 PASS chọn Online → ô tên, Tạo phòng, ô mã
-PASS tạo phòng → mã 5 ký tự, có ?room=, hiện phòng chờ, Bắt đầu khoá — EFGWD
+PASS tạo phòng → mã 5 ký tự, có ?room=, hiện phòng chờ, Bắt đầu khoá — WT7QG
 PASS link mời → chọn sẵn Online + điền mã
 PASS điện thoại vào phòng → cả 2 thấy 2 người
 PASS chat máy tính → điện thoại nhận đúng tên

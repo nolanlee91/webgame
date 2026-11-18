@@ -22,9 +22,10 @@ const GLYPH_FONT = '"Noto Serif SC","Noto Serif CJK SC","Source Han Serif SC","S
 // Chưa tải xong / lỗi tải thì vẽ tạm bằng code (giữ nguyên chơi được).
 const PIECE_FILE = { K: "general", A: "advisor", B: "elephant", N: "horse", R: "rook", C: "cannon", P: "pawn" };
 const ATLAS_COL = "KABNRCP";
-const pieceSrc = (pc) => "assets/pieces/" + (sideOf(pc) === RED ? "red-" : "black-") + PIECE_FILE[pc.toUpperCase()] + ".png";
+const PIECE_VER = "han1"; // bộ quân chữ Hán (thay bộ ký hiệu Latin cũ cùng tên file) — đổi số này khi Codex giao bộ ảnh mới để trình duyệt bỏ ảnh cũ đã lưu
+const pieceSrc = (pc) => "assets/pieces/" + (sideOf(pc) === RED ? "red-" : "black-") + PIECE_FILE[pc.toUpperCase()] + ".png?v=" + PIECE_VER;
 function loadImg(src) { const im = new Image(); im.decoding = "async"; im.src = new URL(src, import.meta.url).href; return im; }
-const IMG = { board: loadImg("assets/board-grid.webp"), atlas: loadImg("assets/pieces.png") };
+const IMG = { board: loadImg("assets/board-grid.webp"), atlas: loadImg("assets/pieces.png?v=" + PIECE_VER) };
 const ready = (im) => im.complete && im.naturalWidth > 0;
 function pieceHtml(pc) { return `<img src="${pieceSrc(pc)}" alt="" width="64" height="64" style="display:block;width:100%;height:100%;image-rendering:pixelated">`; }
 function pieceSvg(pc) {
