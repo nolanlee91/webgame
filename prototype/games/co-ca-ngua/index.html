@@ -30,8 +30,9 @@
   <main>
     <div id="stage"></div>
     <div class="help">
+      <div><b>Chơi với máy:</b> bạn cầm phường Đỏ, đấu với 1–3 máy (chọn ở phòng chờ). Tới lượt máy thì máy tự gieo và tự đi — bạn chờ tới lượt mình.</div>
       <div><b>Chơi online:</b> tạo phòng rồi gửi mã phòng (hoặc link) cho bạn bè; 2–4 người, mỗi người một máy. Máy chủ gieo xúc xắc và kiểm tra lượt đi.</div>
-      <div><b>Gieo xúc xắc:</b> chạm khay xúc xắc đang sáng (hoặc chạm bàn), hoặc nhấn Space / Enter.</div>
+      <div><b>Gieo xúc xắc:</b> tới lượt bạn, xúc xắc nằm trong sân (góc chuồng) của bạn: cầm nó bằng chuột / ngón tay, kéo đi rồi thả để tung — vuốt mạnh thì tung mạnh. Chạm nhẹ vào sân, chạm khay xúc xắc, hoặc nhấn Space / Enter thì tung nhẹ. Mặt xúc xắc vẫn do luật (online: máy chủ) gieo; số hiện to màu vàng khi xúc xắc nằm yên.</div>
       <div><b>Chọn ngựa:</b> chạm vào ngựa có vòng vàng dưới chân (hoặc chấm vàng nơi nó sẽ tới), hoặc phím 1–4. Chỉ có 1 nước đi thì tự đi.</div>
       <div><b>Luật:</b> gieo 6 (hoặc 1/6 nếu chọn ở phòng chờ) mới được xuất ngựa · gieo 6 được gieo thêm · không nhảy qua ngựa khác · dừng đúng ô đối thủ thì đá ngựa đó về chuồng · vào chuồng đích bằng đúng số bậc · ai đủ 4 ngựa trong chuồng đích trước thì thắng.</div>
     </div>
@@ -49,7 +50,7 @@
       sound: { muted: localStorage.getItem("wgp.muted") === "1" }, // nút loa trên HUD / phím M đổi giá trị này
     };
     const n = Number(params.get("players"));
-    const direct = [2, 3, 4].includes(n); // ?players=2|3|4 → vào bàn chung máy luôn (test / link cũ); không có → màn vào phòng online
+    const direct = [2, 3, 4].includes(n); // ?players=2|3|4 → vào thẳng ván chơi với máy (bạn + n−1 máy; test / link cũ); không có → màn vào phòng
     const ctx = {
       mode: direct ? "single" : "online", locale: "vi", sdk, player: { id: "guest", name: "Khách" },
       localPlayers: direct ? n : 2, lobby: !direct,
@@ -62,7 +63,7 @@
       if (e.code !== "KeyM" || e.repeat || (e.target && e.target.closest && e.target.closest("input"))) return;
       sdk.sound.muted = !sdk.sound.muted; localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0");
     });
-    if (direct || params.get("local") === "1") { window.__game = mount(stage, ctx); if (direct) stage.querySelector("canvas").focus(); } // ?local=1 → phòng chờ chung máy
+    if (direct || params.get("bot") === "1" || params.get("local") === "1") { window.__game = mount(stage, ctx); if (direct) stage.querySelector("canvas").focus(); } // ?bot=1 (hoặc ?local=1 cũ) → phòng chờ chơi với máy
     else startOnline(stage, ctx);
   </script>
 </body>

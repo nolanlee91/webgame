@@ -5,6 +5,8 @@
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
 import { createHud } from "./hud.js";
+import { botMove, makeRng } from "./ai.js";
+import { simulateThrow, sampleThrow, releaseVelocity } from "./dice-throw.js";
 
 export const W = 832, H = 832;
 const N = 13, C = 64, BX = 0, BY = 0;   // canvas = đúng ảnh board-v5 (13×13 ô 64px); HUD nằm ngoài (hud.js)
@@ -90,13 +92,16 @@ function makeSfx(dir, names, sdk) {
   const muted = () => !!(sdk.sound && sdk.sound.muted);
   return {
     unlock() { if (ac && ac.state === "suspended" && !muted()) ac.resume().catch(() => {}); },
-    play(n, vol = 1, delay = 0) {
+    // opt: { rate, offset, dur, tag } — đổi cao độ, chỉ phát một đoạn ngắn (tiếng "cộp" khi xúc xắc nảy), tên ghi log riêng
+    play(n, vol = 1, delay = 0, opt = {}) {
       if (muted() || !ac || !buf[n]) return false;
       if (ac.state === "suspended") ac.resume().catch(() => {});
       const s = ac.createBufferSource(), gn = ac.createGain();
       s.buffer = buf[n]; gn.gain.value = vol; s.connect(gn).connect(ac.destination);
-      s.start(ac.currentTime + delay);
-      log.push({ n, t: Math.round(performance.now() + delay * 1000) });
+      if (opt.rate) s.playbackRate.value = opt.rate;
+      if (opt.dur) s.start(ac.currentTime + delay, Math.min(opt.offset || 0, Math.max(0, buf[n].duration - opt.dur)), opt.dur);
+      else s.start(ac.currentTime + delay);
+      log.push({ n: opt.tag || n, t: Math.round(performance.now() + delay * 1000) });
       if (log.length > 3000) log.shift();
       return true;
     },
@@ -127,9 +132,21 @@ export function mount(el, ctx = {}) {
   const inbox = [];
   const mySeat = () => (room && room.players[room.you] ? room.players[room.you].seat : -1);
   const myTurn = () => !!net && !lobby && g.phase !== "over" && currentSeat(g) === mySeat();
+  // ---- Chơi với máy (không online): người chơi cầm ghế HUMAN (Đỏ), các ghế còn lại là máy (ai.js) ----
+  const HUMAN = 0;
+  const isBot = (s) => !net && s !== HUMAN;
+  const meSeat = () => (net ? mySeat() : HUMAN);
+  const botTurn = () => !lobby && g.phase !== "over" && isBot(currentSeat(g));
+  const botRng = makeRng(ctx.seed != null ? ctx.seed * 7 + 3 : Date.now());
+  let botAt = 0, botKey = "";
   let paused = false, destroyed = false, raf = 0;
   // Hiệu ứng (chỉ phần vẽ, không ảnh hưởng logic):
-  let diceAnim = null;      // { until, seat, face }
+  let diceAnim = null;      // { until, seat, face, sim, t0, land, bi } — xúc xắc đang bay trong sân của ghế `seat` (dice-throw.js)
+  let pendThrow = null;     // online: đã tung, đang chờ máy chủ báo mặt → xúc xắc cứ lăn tiếp { seat, sim, t0, at, bi }
+  let drag = null;          // người chơi đang cầm xúc xắc { id, x, y, sx, sy, a, samples }
+  let restDie = null;       // chỗ xúc xắc nằm sau lần tung trước { seat, x, y, a }
+  let throwsDone = 0;       // số lần người chơi tự tung — 3 lần đầu hiện gợi ý "Kéo để tung"
+  const reduced = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   let hop = null;           // { seat, horse, pts:[{x,y}], t0, kick }
   let kickFx = null;        // { seat, horse, x, y, t0 } — ngựa bị đá văng lên (khung "bi-da") trước khi về chuồng
   let noMoveShow = null;    // { seat, face, until } — khay xám + ✕ trước khi xúc xắc sang người kế
@@ -139,7 +156,7 @@ export function mount(el, ctx = {}) {
   const pops = [];
   let autoAt = 0, autoFor = -1;
   const art = { ready: false, board: null, horse: null, man: null, dice: null, tray: null, trayGrey: null, podium: null };
-  const sfx = makeSfx("assets/sfx/", ["do-xuc-xac", "buoc-nhay", "da-quan", "ve-chuong", "thang", "tin-nhan", "qua-man"], sdk);
+  const sfx = makeSfx("assets/sfx/", ["do-xuc-xac", "buoc-nhay", "da-quan", "ve-chuong", "thang", "tin-nhan", "qua-man", "thua"], sdk);
   Promise.all([loadImg(ART.board.src), loadJson(ART.board.grid), loadJson(ART.horse.manifest), loadImg(ART.dice.src), ...VIEW_COLORS.map((c) => loadImg(ART.horse.sheet(c)))])
     .then(([b, grid, man, d, ...sheets]) => {
       if (destroyed) return;
@@ -156,7 +173,7 @@ export function mount(el, ctx = {}) {
 
   const colorOf = (seat) => VIEW_COLORS[seat];
   const playerAt = (seat) => (room && room.game ? room.players[room.game.seats.indexOf(seat)] : null);
-  const nameOf = (seat) => { const p = net && playerAt(seat); return p ? (seat === mySeat() ? "Bạn" : p.name) : SEAT_NAMES[colorOf(seat)]; };
+  const nameOf = (seat) => { const p = net && playerAt(seat); return p ? (seat === mySeat() ? "Bạn" : p.name) : net ? SEAT_NAMES[colorOf(seat)] : seat === HUMAN ? "Bạn" : "Máy " + SEAT_NAMES[colorOf(seat)]; };
   const hud = createHud(el, {
     homeHref,
     shareUrl: () => { if (net && room) { const u = new URL(location.href); u.search = "?room=" + room.code; u.hash = ""; return u.href; } const u = new URL(location.href); u.searchParams.set("players", players); if (ruleKey === "16") u.searchParams.set("rule", "16"); else u.searchParams.delete("rule"); return u.href; },
@@ -181,7 +198,7 @@ export function mount(el, ctx = {}) {
   canvas.setAttribute("role", "img");
   canvas.setAttribute("aria-label", "Bàn Cờ Cá Ngựa");
   canvas.tabIndex = 0;
-  canvas.style.cssText = "display:block;width:100%;height:auto;aspect-ratio:" + W + "/" + H + ";touch-action:manipulation;outline:none";
+  canvas.style.cssText = "display:block;width:100%;height:auto;aspect-ratio:" + W + "/" + H + ";touch-action:none;outline:none";
   hud.boardEl.appendChild(canvas);
   const c2 = canvas.getContext("2d");
   const refocus = () => canvas.focus({ preventScroll: true });
@@ -198,32 +215,64 @@ export function mount(el, ctx = {}) {
 
   const busy = () => (diceAnim && performance.now() < diceAnim.until) || !!hop || (!!noMoveShow && performance.now() < noMoveShow.until);
   function resetView() {
-    diceAnim = hop = kickFx = noMoveShow = lastRoll = null; autoAt = 0; autoFor = -1; pops.length = 0;
+    diceAnim = hop = kickFx = noMoveShow = lastRoll = pendThrow = drag = restDie = null; autoAt = 0; autoFor = -1; pops.length = 0; botAt = 0; botKey = "";
     stats = {}; for (const s of g.seats) stats[s] = { kicks: 0, sixes: 0 };
     shownSeat = currentSeat(g); shownDice = null;
-    msg = lobby ? (net ? lobbyMsg() : "Phòng chờ — chọn số người, luật xuất ngựa rồi bấm CHƠI") : "Lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
+    msg = lobby ? (net ? lobbyMsg() : "Chơi với máy — chọn số đối thủ, luật xuất ngựa rồi bấm CHƠI") : "Lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
   }
   function newGame() { g = createGame({ players, seed: ctx.seed, rules: rulesOf() }); resetView(); }
   resetView();
 
   // ---------- Hành động ----------
-  function doRoll() {
-    if (lobby || paused || busy() || g.phase !== "roll") return false;
-    if (net) { if (!myTurn() || inbox.length) return false; net.send({ t: "roll" }); return true; }
-    return applyRoll();
+  // spec = { x, y, vx, vy } từ cú kéo-thả (toạ độ bàn cờ); không có → tung nhẹ ngẫu nhiên từ chỗ xúc xắc đang nằm.
+  const canRoll = () => !lobby && !paused && !busy() && g.phase === "roll" && !botTurn() && !pendThrow && (!net || (myTurn() && !inbox.length));
+  function doRoll(spec) {
+    if (!canRoll()) return false; // lượt của máy / người khác: không gieo hộ được
+    throwsDone++;
+    if (net) {
+      if (!net.send({ t: "roll" })) return false;
+      // tung ngay trên màn hình, mặt xúc xắc chờ máy chủ báo về (lăn tiếp nếu chậm)
+      pendThrow = { seat: mySeat(), sim: makeThrow(mySeat(), spec), t0: performance.now(), at: performance.now(), bi: 0 };
+      sfx.play("do-xuc-xac", 0.6);
+      return true;
+    }
+    return applyRoll(undefined, spec);
   }
-  function applyRoll(dice) {
+  // ---------- Xúc xắc tung trong sân (khối 5×5 ô ở góc) của từng ghế ----------
+  const DIE = 60, DIE_R = 26;
+  function yardOf(seat) { const [cc, cr] = CORNER[seat]; return [cc * C + 16, cr * C + 44, (cc + 5) * C - 16, (cr + 5) * C - 8]; } // chừa phía trên cho xúc xắc bay cao
+  function idleDie(seat) {
+    if (restDie && restDie.seat === seat) return restDie;
+    const [x0, y0, x1, y1] = yardOf(seat);
+    return { seat, x: (x0 + x1) / 2, y: y0 + (y1 - y0) * 0.66, a: 0 };
+  }
+  function makeThrow(seat, spec, gentle = false) {
+    const st = spec && spec.x != null ? spec : idleDie(seat);
+    return simulateThrow({ x: st.x, y: st.y, vx: spec && spec.vx, vy: spec && spec.vy, bounds: yardOf(seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, gentle });
+  }
+  function bounceSfx(o, now) { // tiếng "cộp" mỗi lần xúc xắc nảy / dội mép — to nhỏ, cao thấp theo lực
+    const b = o.sim.bounces;
+    while (o.bi < b.length && b[o.bi].t <= now - o.t0) { const k = b[o.bi++].k; sfx.play("do-xuc-xac", 0.25 + 0.6 * k, 0, { rate: 0.85 + Math.random() * 0.4, offset: Math.random() * 0.15, dur: 0.09, tag: "do-xuc-xac:nay" }); }
+  }
+  function applyRoll(dice, spec) {
     const seat = currentSeat(g);
     roll(g, dice);
-    sfx.play("do-xuc-xac");
-    diceAnim = { until: performance.now() + 620, seat, face: g.dice };
+    const now = performance.now();
+    let sim, t0 = now, bi = 0;
+    if (pendThrow && pendThrow.seat === seat) { // online: tiếp tục đúng cú tung của mình, chỉ đáp xuống mặt máy chủ gieo
+      ({ sim, t0, bi } = pendThrow);
+      if (t0 + sim.duration - now < 220) { const e = sampleThrow(sim, now - t0); sim = simulateThrow({ x: e.x, y: e.y, bounds: yardOf(seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, gentle: true }); t0 = now; bi = 0; }
+      pendThrow = null;
+    } else { sim = makeThrow(seat, spec); sfx.play("do-xuc-xac", 0.6); } // tiếng tung: đúng 1 lần mỗi lần gieo
+    const land = t0 + sim.duration;
+    diceAnim = { until: land + (reduced ? 150 : 420), land, seat, face: g.dice, sim, t0, bi };
     shownSeat = seat;
     handleEvents();
     diceAnim.msg = msg; msg = nameOf(seat) + " đang gieo…"; // chưa lộ kết quả khi xúc xắc còn lăn
     return true;
   }
   function doMove(horse) {
-    if (lobby || paused || busy() || g.phase !== "move") return false;
+    if (lobby || paused || busy() || g.phase !== "move" || botTurn()) return false;
     if (net) { if (!myTurn() || inbox.length || !g.moves.some((m) => m.horse === horse)) return false; net.send({ t: "move", horse }); return true; }
     return applyMove(horse);
   }
@@ -248,7 +297,7 @@ export function mount(el, ctx = {}) {
       if (ev.type === "move" && ev.kind === "enter") msg = who + " đưa ngựa vào chuồng đích (bậc " + (ev.to - g.rules.trackLen + 1) + ")";
       if (ev.type === "move" && ev.kind === "launch") msg = who + " xuất ngựa";
       if (ev.type === "extraTurn") msg += " · gieo thêm lượt";
-      if (ev.type === "win") { msg = who + " thắng!"; sdk.gameOver && sdk.gameOver({ winner: colorOf(ev.seat), players, rolls: g.rolls }); }
+      if (ev.type === "win") { msg = who + " thắng!"; sdk.gameOver && sdk.gameOver({ winner: colorOf(ev.seat), players, rolls: g.rolls, won: ev.seat === meSeat() }); }
     }
   }
   function advanceOver() {
@@ -275,6 +324,7 @@ export function mount(el, ctx = {}) {
   }
   function adopt(v) {   // nhận nguyên trạng thái (vào giữa ván, nối lại, hoặc phát hiện lệch)
     const G = v.game;
+    pendThrow = null;
     g = createGame({ players: G.players, seed: 0, rules: G.rules });
     Object.assign(g, { turn: G.turn, phase: G.phase, dice: G.dice, moves: structuredClone(G.moves), horses: structuredClone(G.horses), winner: G.winner, rolls: G.rolls });
     netGid = v.gid; netSeq = v.seq; inbox.length = 0;
@@ -349,6 +399,16 @@ export function mount(el, ctx = {}) {
     if (paused) { setPaused(false); return; }
     if (advanceOver()) return;
     const p = toLogic(e);
+    if (canRoll() && !drag) { // tới lượt mình gieo: chạm trong sân mình → cầm xúc xắc (kéo-thả để tung, chạm nhẹ = tung nhẹ)
+      const seat = currentSeat(g), [x0, y0, x1, y1] = yardOf(seat), d = idleDie(seat);
+      if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1 || Math.hypot(p.x - d.x, p.y - d.y) < DIE) {
+        drag = { id: e.pointerId, x: d.x, y: d.y, ox: d.x - p.x, oy: d.y - p.y, sx: p.x, sy: p.y, a: d.a || 0, samples: [{ x: p.x, y: p.y, t: performance.now() }] };
+        if (Math.hypot(p.x - d.x, p.y - d.y) > DIE) { drag.ox = 0; drag.oy = 0; drag.x = p.x; drag.y = p.y; } // chạm chỗ khác trong sân: xúc xắc nhảy vào tay
+        try { canvas.setPointerCapture(e.pointerId); } catch {}
+        canvas.style.cursor = "grabbing";
+        return;
+      }
+    }
     if (g.phase === "move" && !busy()) {
       const seat = currentSeat(g);
       let best = null, bd = C * 0.75;
@@ -361,39 +421,90 @@ export function mount(el, ctx = {}) {
     }
     if (g.phase === "roll") doRoll();
   }
+  function clampYard(seat, x, y) { const [x0, y0, x1, y1] = yardOf(seat); return [Math.max(x0 + DIE_R, Math.min(x1 - DIE_R, x)), Math.max(y0 + DIE_R, Math.min(y1 - DIE_R, y))]; }
+  function onPointerMove(e) {
+    const p = toLogic(e);
+    if (drag && e.pointerId === drag.id) {
+      if (!canRoll()) { drag = null; return; }
+      const [x, y] = clampYard(currentSeat(g), p.x + drag.ox, p.y + drag.oy);
+      drag.a += (x - drag.x) * 0.02; drag.x = x; drag.y = y;
+      drag.samples.push({ x: p.x, y: p.y, t: performance.now() }); if (drag.samples.length > 12) drag.samples.shift();
+      return;
+    }
+    // con trỏ "cầm" khi rê vào sân của mình lúc tới lượt gieo
+    let cur = "";
+    if (canRoll()) { const [x0, y0, x1, y1] = yardOf(currentSeat(g)); if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) cur = "grab"; }
+    else if (g.phase === "move" && !busy() && !botTurn() && (!net || myTurn())) cur = "pointer";
+    if (canvas.style.cursor !== cur) canvas.style.cursor = cur;
+  }
+  function onPointerUp(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null; canvas.style.cursor = "";
+    if (e.type === "pointercancel" || !canRoll()) return;
+    const p = toLogic(e), now = performance.now();
+    d.samples.push({ x: p.x, y: p.y, t: now });
+    const moved = Math.hypot(p.x - d.sx, p.y - d.sy) > 10;
+    const v = moved ? releaseVelocity(d.samples, now) : { vx: 0, vy: 0 };
+    doRoll({ x: d.x, y: d.y, vx: v.vx, vy: v.vy });
+  }
   function onVis() { if (document.hidden && !lobby && !net) setPaused(true); }
   window.addEventListener("keydown", onKey);
   canvas.addEventListener("pointerdown", onPointer);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
   document.addEventListener("visibilitychange", onVis);
-  function setPaused(v) { if (paused !== v) sfx.play("buoc-nhay", 0.35); paused = v; }
+  function setPaused(v) { if (paused !== v) sfx.play("buoc-nhay", 0.35); paused = v; botKey = ""; botAt = 0; } // máy cũng dừng; chơi tiếp thì máy đợi lại một nhịp
 
   // ---------- Vòng lặp ----------
   function frame(now) {
     if (destroyed) return;
     raf = requestAnimationFrame(frame);
     if (!paused && !lobby) {
+      if (diceAnim && diceAnim.sim) bounceSfx(diceAnim, now);
       if (diceAnim && now >= diceAnim.until) {
+        if (diceAnim.sim) restDie = { seat: diceAnim.seat, ...diceAnim.sim.end };
         shownDice = diceAnim.face; msg = diceAnim.msg; diceAnim = null;
         if (lastRoll && lastRoll.noMove) { noMoveShow = { seat: lastRoll.seat, face: lastRoll.dice, until: now + 900 }; shownSeat = lastRoll.seat; sfx.play("da-quan", 0.3); } // gieo mà không đi được
         else if (g.phase !== "move") shownSeat = currentSeat(g);
       }
       if (noMoveShow && now >= noMoveShow.until) { noMoveShow = null; shownSeat = currentSeat(g); }
       // Chỉ 1 lựa chọn (hoặc mọi lựa chọn đều là xuất ngựa giống nhau) → tự đi cho nhanh.
-      if (!net && !diceAnim && !hop && g.phase === "move" && autoFor !== g.rolls && (g.moves.length === 1 || g.moves.every((m) => m.kind === "launch"))) {
+      if (!net && !diceAnim && !hop && g.phase === "move" && !botTurn() && autoFor !== g.rolls && (g.moves.length === 1 || g.moves.every((m) => m.kind === "launch"))) {
         autoFor = g.rolls; autoAt = now + 380;
       }
       if (autoAt && now >= autoAt && !busy()) { autoAt = 0; if (g.phase === "move") doMove(g.moves[0].horse); }
+      // Lượt của máy: chờ hoạt ảnh trước khép lại, ngừng một nhịp (gieo ~0,5 s, "nghĩ" 0,4–0,7 s) rồi gieo / đi
+      // bằng đúng đường của người chơi (applyRoll / applyMove) → cùng xúc xắc, bước nhảy, đá quân, về chuồng, âm thanh.
+      if (botTurn() && !busy() && !autoAt) {
+        const key = g.rolls + ":" + g.phase + ":" + g.turn;
+        if (botKey !== key) { botKey = key; botAt = now + (g.phase === "roll" ? 450 + botRng() * 250 : 400 + botRng() * 300); }
+        else if (botAt && now >= botAt) {
+          botAt = 0;
+          if (g.phase === "roll") applyRoll();
+          else { const m = botMove(g, botRng); if (m) applyMove(m.horse); }
+        }
+      }
       // tiếng bước: mỗi lần ngựa đáp xuống một ô (hoạt ảnh 110ms/ô)
       if (hop) { const landed = Math.min(Math.floor((now - hop.t0) / 110), hop.pts.length - 1); while (hop.stepped < landed) { hop.stepped++; sfx.play("buoc-nhay", 0.8); } }
       if (hop && now - hop.t0 >= (hop.pts.length - 1) * 110 + 60) {
         if (hop.kick) sfx.play("da-quan");
         if (hop.home) sfx.play("ve-chuong");
-        if (hop.win) sfx.play(!net || hop.seat === mySeat() ? "thang" : "qua-man", 1, 0.3); // online: người thua không nghe nhạc thắng
+        if (hop.win) sfx.play(hop.seat === meSeat() ? "thang" : net ? "qua-man" : "thua", 1, 0.3); // người thua (online / thua máy) không nghe nhạc thắng
         if (hop.kick) kickFx = { seat: hop.kick.seat, horse: hop.kick.horse, ...hop.pts[hop.pts.length - 1], t0: now };
         if (hop.kick) pops.push({ ...posXY(g, hop.seat, hop.horse, g.horses[hop.seat][hop.horse]), text: "ĐÁ!", t: now });
         hop = null;
         shownSeat = currentSeat(g);
         if (g.phase === "roll") msg = msg.split(" — ")[0] + " — lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
+      }
+    }
+    if (pendThrow) { // online: máy chủ chưa báo mặt → xúc xắc nảy tiếp vài cú nhẹ; quá 5 s thì thôi (máy chủ từ chối / mất mạng)
+      bounceSfx(pendThrow, now);
+      if (now - pendThrow.at > 5000) pendThrow = null;
+      else if (now >= pendThrow.t0 + pendThrow.sim.duration) {
+        const e = pendThrow.sim.end;
+        pendThrow.sim = simulateThrow({ x: e.x, y: e.y, bounds: yardOf(pendThrow.seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, gentle: true });
+        pendThrow.t0 = now; pendThrow.bi = 0;
       }
     }
     if (net && !lobby) pumpNet();   // sau khi hoạt ảnh trước đã khép lại mới phát lại hành động kế
@@ -411,9 +522,10 @@ export function mount(el, ctx = {}) {
   function trayView(now) {
     if (lobby || g.phase === "over") return null;
     if (diceAnim && now < diceAnim.until) return { seat: diceAnim.seat, state: "rolling" };
+    if (pendThrow) return { seat: pendThrow.seat, state: "rolling" };
     if (noMoveShow) return { seat: noMoveShow.seat, state: "nomove", face: noMoveShow.face };
     if (hop) return { seat: hop.seat, state: "moving", face: shownDice };
-    const seat = currentSeat(g), other = !!net && seat !== mySeat();
+    const seat = currentSeat(g), other = net ? seat !== mySeat() : isBot(seat);
     if (g.phase === "move") return { seat, state: other ? "otherpick" : "pick", face: shownDice };
     if (lastRoll && lastRoll.seat === seat && g.rules.extraTurnOn.includes(lastRoll.dice)) return { seat, state: other ? "wait" : "again", face: lastRoll.dice };
     return { seat, state: other ? "wait" : "ready", face: null };
@@ -438,7 +550,7 @@ export function mount(el, ctx = {}) {
       const list = room.players.map((p, i) => ({ seat: lobby ? g.seats[i] : p.seat, name: p.name, away: p.left ? "left" : p.connected ? "" : "away", me: i === room.you, host: i === room.host }));
       online = { code: room.code, host: room.you === room.host, count: room.players.length, me: list[room.you] ? list[room.you].seat : -1, list, left: room.deadline && !inbox.length ? Math.max(0, Math.ceil((room.deadline - Date.now() - (room.skew || 0)) / 1000)) : null };
     }
-    return { lobby, players, rule: ruleKey, seats: g.seats, active: tray ? tray.seat : -1, cards, tray, msg, paused, muted: !!sdk.sound.muted, over, online };
+    return { lobby, players, rule: ruleKey, seats: g.seats, active: tray ? tray.seat : -1, cards, tray, msg, paused, muted: !!sdk.sound.muted, over, online, vsBot: !net, me: meSeat() };
   }
 
   // ---------- Vẽ HUD bằng asset: khay xúc xắc, đầu ngựa đại diện, bục xếp hạng ----------
@@ -460,6 +572,7 @@ export function mount(el, ctx = {}) {
       else { x.fillStyle = grey ? "#555" : "#5a3a1e"; x.fillRect(0, 0, w, h); x.fillStyle = grey ? "#333" : "#2a1a10"; x.fillRect(w * 0.12, h * 0.12, w * 0.76, h * 0.76); }
       if (!on) continue;
       const rolling = t.state === "rolling";
+      if (rolling) continue; // xúc xắc đang bay trên sân (bàn cờ) — khay chỉ ghi "Đang gieo…"
       const ready = t.state === "ready" || t.state === "again";
       const face = rolling ? 1 + Math.floor((now / 70) % 6) : t.face;
       const bob = ready ? Math.abs(Math.sin(now / 260)) * h * 0.05 : 0;
@@ -702,10 +815,60 @@ export function mount(el, ctx = {}) {
     c2.font = "600 17px 'Be Vietnam Pro', system-ui";
     lines.forEach((l, i) => { c2.fillStyle = PAL.soft; c2.fillText(l, W / 2, by + 86 + i * 30); });
   }
+  // Xúc xắc trên sân: đang bay (diceAnim / pendThrow), đang bị cầm (drag), hoặc nằm chờ ở sân người tới lượt.
+  const tumbleFace = (o, t) => 1 + (((o.sim.seed >>> 0) + Math.floor(t / 90) * 2654435761) >>> 0) % 6;
+  function drawDie(now) {
+    if (lobby) return;
+    let d = null;
+    if (diceAnim && diceAnim.sim) {
+      const t = now - diceAnim.t0, q = sampleThrow(diceAnim.sim, t), landed = now >= diceAnim.land;
+      d = { ...q, face: landed || t > diceAnim.sim.duration - 140 ? diceAnim.face : tumbleFace(diceAnim, t), pop: landed ? Math.min(1, (now - diceAnim.land) / (diceAnim.until - diceAnim.land)) : -1 };
+    } else if (pendThrow) {
+      const t = now - pendThrow.t0; d = { ...sampleThrow(pendThrow.sim, t), face: tumbleFace(pendThrow, now - pendThrow.at), pop: -1 };
+    } else if (drag) d = { x: drag.x, y: drag.y, z: 14, a: drag.a, face: null, pop: -1, held: true };
+    else if (g.phase !== "over") {
+      const seat = noMoveShow ? noMoveShow.seat : hop ? hop.seat : currentSeat(g), r = idleDie(seat), showFace = restDie && restDie.seat === seat && (g.phase === "move" || noMoveShow || hop);
+      const mine = canRoll();
+      d = { x: r.x, y: r.y, z: mine ? Math.abs(Math.sin(now / 260)) * 6 : 0, a: r.a || 0, face: showFace ? shownDice || g.dice : null, pop: showFace && g.phase === "move" ? 2 : -1, idle: mine };
+      if (noMoveShow) d.grey = true;
+    }
+    if (!d) return;
+    const size = d.held ? DIE * 1.12 : DIE;
+    // bóng: nhỏ + mờ dần khi xúc xắc bay cao
+    const sh = Math.max(0.35, 1 - d.z / 120);
+    c2.beginPath(); c2.ellipse(d.x, d.y + size * 0.36, size * 0.42 * sh, size * 0.12 * sh, 0, 0, Math.PI * 2); c2.fillStyle = "rgba(0,0,0," + (0.42 * sh).toFixed(3) + ")"; c2.fill();
+    if (d.idle && !d.held) { // sân sáng nhẹ: chỗ được tung
+      c2.save(); c2.strokeStyle = "rgba(255,201,74,.55)"; c2.lineWidth = 3; c2.setLineDash([10, 8]); c2.lineDashOffset = -now / 40;
+      const [x0, y0, x1, y1] = yardOf(currentSeat(g)); c2.strokeRect(x0 + 4, y0 + 4, x1 - x0 - 8, y1 - y0 - 8); c2.restore();
+    }
+    let k = 1;
+    if (d.pop >= 0 && d.pop <= 1) k = 1 + 0.28 * Math.sin(d.pop * Math.PI);
+    if (d.pop >= 0) { // mặt cuối: vòng sáng vàng quanh xúc xắc
+      const glow = d.pop <= 1 ? 1 - d.pop * 0.5 : 0.5 + 0.15 * Math.sin(now / 200);
+      c2.beginPath(); c2.arc(d.x, d.y - d.z, size * 0.62 * k, 0, Math.PI * 2); c2.fillStyle = "rgba(255,201,74," + (0.28 * glow).toFixed(3) + ")"; c2.fill();
+      c2.lineWidth = 4; c2.strokeStyle = "rgba(255,201,74," + (0.9 * glow).toFixed(3) + ")"; c2.stroke();
+    }
+    c2.save(); c2.translate(d.x, d.y - d.z); c2.rotate(d.a); c2.scale(k, k);
+    if (d.grey) c2.filter = "grayscale(1) brightness(.75)";
+    paintDice(c2, 0, 0, size, now, d.face, false);
+    c2.restore();
+    if (d.pop >= 0 && d.face) { // số to phía trên xúc xắc
+      const yy = d.y - d.z - size * 0.75 * k - (d.pop <= 1 ? 10 * Math.sin(d.pop * Math.PI) : 0);
+      c2.font = "800 " + Math.round(34 * (d.pop <= 1 ? k : 1)) + "px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
+      c2.lineWidth = 6; c2.strokeStyle = "#000"; c2.strokeText(String(d.face), d.x, yy); c2.fillStyle = PAL.gold; c2.fillText(String(d.face), d.x, yy);
+    }
+    if (d.idle && !d.held && throwsDone < 3) { // gợi ý 3 lần đầu
+      c2.font = "800 15px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
+      const yy = d.y + size * 0.72, txt = "KÉO ĐỂ TUNG";
+      const tw = c2.measureText(txt).width + 18; c2.fillStyle = "rgba(0,0,0,.72)"; c2.fillRect(d.x - tw / 2, yy - 12, tw, 24);
+      c2.fillStyle = PAL.gold; c2.fillText(txt, d.x, yy + 1);
+    }
+  }
   function draw(now) {
     c2.fillStyle = PAL.bg; c2.fillRect(0, 0, W, H);
     if (art.ready) drawBoardArt(now); else drawBoard(now);
     drawHorses(now);
+    drawDie(now);
     for (const p of pops) {
       const k = (now - p.t) / 1100;
       c2.globalAlpha = Math.max(0, 1 - k);
@@ -724,16 +887,24 @@ export function mount(el, ctx = {}) {
       destroyed = true; cancelAnimationFrame(raf); sfx.close(); ro.disconnect();
       window.removeEventListener("keydown", onKey);
       canvas.removeEventListener("pointerdown", onPointer);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerUp);
       document.removeEventListener("visibilitychange", onVis);
       hud.destroy();
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return g; },
-    set state(v) { g = v; kickFx = null; shownSeat = currentSeat(g); shownDice = g.dice; autoAt = 0; autoFor = -1; noMoveShow = null; msg = "Lượt " + nameOf(shownSeat) + (g.phase === "move" ? ": chọn ngựa" : ": gieo xúc xắc"); for (const s of g.seats) stats[s] = stats[s] || { kicks: 0, sixes: 0 }; },
+    set state(v) { g = v; kickFx = null; shownSeat = currentSeat(g); shownDice = g.dice; autoAt = 0; autoFor = -1; botAt = 0; botKey = ""; noMoveShow = null; msg = "Lượt " + nameOf(shownSeat) + (g.phase === "move" ? ": chọn ngựa" : ": gieo xúc xắc"); for (const s of g.seats) stats[s] = stats[s] || { kicks: 0, sixes: 0 }; },
     get paused() { return paused; },
     netState, chatSfx() { sfx.play("tin-nhan", 0.6); }, get room() { return room; }, get netSeq() { return netSeq; }, get desyncs() { return desyncs; }, get inbox() { return inbox.length; }, get mySeat() { return mySeat(); },
     get lobby() { return lobby; },
-    get busy() { return busy() || !!autoAt; },
+    get busy() { return busy() || !!autoAt || !!pendThrow; },
+    // toạ độ CSS của xúc xắc đang nằm chờ ở sân người tới lượt (để test kéo-thả thật)
+    dieScreen() { const d = drag || idleDie(currentSeat(g)), r = canvas.getBoundingClientRect(); return { x: r.left + d.x * r.width / W, y: r.top + d.y * r.height / H }; },
+    get diceFlight() { return diceAnim && diceAnim.sim ? { seat: diceAnim.seat, face: diceAnim.face, duration: diceAnim.sim.duration, bounces: diceAnim.sim.bounces.length, start: diceAnim.sim.frames[0], end: diceAnim.sim.end, yard: yardOf(diceAnim.seat) } : null; },
+    get botTurn() { return botTurn(); },
+    get humanSeat() { return meSeat(); },
     get artReady() { return art.ready; },
     get hudArtReady() { return !!(art.tray && art.trayGrey && art.podium); },
     get sfx() { return { loaded: sfx.loaded, state: sfx.state, log: sfx.log.slice() }; },

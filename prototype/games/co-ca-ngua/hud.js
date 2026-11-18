@@ -41,7 +41,7 @@ export function createHud(root, cb) {
       </div>`).join("")}
       <div class="cn-board"></div>
       <aside class="cn-lobby px-panel" aria-label="Phòng chờ">
-        <div class="ttl"><h2 class="px-h">Phòng · <span class="code">Chơi chung máy</span></h2>
+        <div class="ttl"><h2 class="px-h">Phòng · <span class="code">Chơi với máy</span></h2>
           <button class="px-btn icon" data-act="copy" type="button" title="Sao chép link phòng" aria-label="Sao chép link phòng">${ic("copy-link").replace("px-ic", "")}</button></div>
         <div class="sec sec-n"><div class="lb">Số người</div>
           <div class="segs">${[2, 3, 4].map((n) => `<button class="px-btn seg" data-n="${n}" type="button" aria-pressed="false">${n} người</button>`).join("")}</div></div>
@@ -52,7 +52,7 @@ export function createHud(root, cb) {
           <div class="segs"><button class="px-btn seg" data-rule="6" type="button">Gieo 6</button><button class="px-btn seg" data-rule="16" type="button">Gieo 1 hoặc 6</button></div></div>
         <div class="act">
           <button class="px-btn primary big" id="playBtn" data-act="play" type="button">Chơi</button>
-          <div class="note">Chơi chung một máy, chuyền tay nhau theo lượt.</div>
+          <div class="note"></div>
           <button class="px-btn net-only" data-act="leave-room" type="button">${ic("roi-phong")} Rời phòng</button>
           <a class="px-link local-only" data-act="home" href="${cb.homeHref}">Rời phòng</a>
         </div>
@@ -117,15 +117,16 @@ export function createHud(root, cb) {
   }
   function cardName(v, s) {
     const p = who(v, s);
+    if (!p && v.vsBot) return s === v.me ? `<div class="nm">Bạn</div><div class="sub">Phường ${NAMES[s]}</div>` : `<div class="nm">Máy</div><div class="sub">Phường ${NAMES[s]} · máy đi</div>`;
     if (!p) return `<div class="nm">${NAMES[s]}</div><div class="sub">Người chơi ${v.seats.indexOf(s) + 1}</div>`;
     const sub = p.away === "left" ? `<span class="off">Đã rời · máy đi thay</span>` : p.away ? `${ic("mat-ket-noi")} <span class="off">Mất kết nối</span>` : (p.me ? "Bạn · " : "") + "Phường " + NAMES[s];
     return `<div class="nm" title="${esc(p.name)}">${esc(p.name)}${p.host ? " " + ic("chu-phong") : ""}</div><div class="sub">${sub}</div>`;
   }
   function trayLabel(t, v) {
-    const p = v && who(v, t.seat), nm = p ? esc(p.name) : "";
+    const p = v && who(v, t.seat), nm = p ? esc(p.name) : v && v.vsBot && t.seat !== v.me ? "Máy" : "";
     const left = v && v.online && v.online.left != null && v.online.left <= 10 ? ` · ${v.online.left}s` : "";
     switch (t.state) {
-      case "wait": return `<span class="tag">Chờ ${nm} gieo${left}</span>`;
+      case "wait": return `<span class="tag">${v && v.vsBot ? "Máy sắp gieo…" : "Chờ " + nm + " gieo"}${left}</span>`;
       case "otherpick": return `<span class="tag">${nm} chọn ngựa${left}</span>`;
       case "ready": return `<button class="px-btn primary" data-roll type="button">Chạm để gieo${left}</button>`;
       case "again": return `<button class="px-btn primary" data-roll type="button">${ic("xuc-xac-6")} Gieo tiếp</button>`;
@@ -138,7 +139,7 @@ export function createHud(root, cb) {
   }
 
   function update(v) {
-    const key = JSON.stringify([v.lobby, v.players, v.rule, v.seats, v.active, v.cards, v.tray, v.paused, v.muted, v.msg, !!v.over, v.online]);
+    const key = JSON.stringify([v.lobby, v.players, v.rule, v.seats, v.active, v.cards, v.tray, v.paused, v.muted, v.msg, !!v.over, v.online, v.vsBot, v.me]);
     if (key === lastKey) return;
     lastKey = key;
     online = v.online ? { ...v.online, over: !!v.over } : null;
@@ -156,7 +157,8 @@ export function createHud(root, cb) {
     if (!v.online) root.querySelectorAll(".cn-row").forEach((r) => {
       const s = Number(r.dataset.seat), on = v.seats.includes(s);
       r.classList.toggle("off", !on);
-      r.querySelector(".st").innerHTML = on ? `${ic("san-sang")} Sẵn sàng` : "Chỗ trống";
+      r.querySelector(".nm").innerHTML = s === v.me ? "Bạn · " + NAMES[s] : on ? "Máy · " + NAMES[s] : NAMES[s];
+      r.querySelector(".st").innerHTML = !on ? "Chỗ trống" : s === v.me ? `${ic("san-sang")} Sẵn sàng` : "Máy";
     });
     // thẻ + khay
     for (const s of [0, 1, 2, 3]) {
@@ -185,16 +187,18 @@ export function createHud(root, cb) {
       const w = v.over.order[0].seat;
       result.querySelector(".head").setAttribute("style", seatVars(w));
       const pw = who(v, w);
-      result.querySelector(".head .px-h").textContent = pw ? (pw.me ? "Bạn thắng!" : pw.name + " thắng!") : "Phường " + NAMES[w] + " thắng!";
+      result.querySelector(".head .px-h").textContent = pw ? (pw.me ? "Bạn thắng!" : pw.name + " thắng!") : v.vsBot ? (w === v.me ? "Bạn thắng!" : "Máy (phường " + NAMES[w] + ") thắng!") : "Phường " + NAMES[w] + " thắng!";
       result.querySelector('[data-act="room"]').textContent = v.online ? "Rời phòng" : "Về phòng";
-      result.querySelector("tbody").innerHTML = v.over.order.map((r, i) => `<tr style="${seatVars(r.seat)}"><td class="rk">#${i + 1}</td><td class="n"><i></i>${who(v, r.seat) ? esc(who(v, r.seat).name) : NAMES[r.seat]}</td><td>${r.home}/4</td><td>${r.sixes}</td><td>${r.kicks}</td></tr>`).join("");
+      result.querySelector("tbody").innerHTML = v.over.order.map((r, i) => `<tr style="${seatVars(r.seat)}"><td class="rk">#${i + 1}</td><td class="n"><i></i>${who(v, r.seat) ? esc(who(v, r.seat).name) : v.vsBot ? (r.seat === v.me ? "Bạn · " : "Máy · ") + NAMES[r.seat] : NAMES[r.seat]}</td><td>${r.home}/4</td><td>${r.sixes}</td><td>${r.kicks}</td></tr>`).join("");
     }
   }
 
   // Phòng chờ online: mã phòng, tên người đã vào, chỉ chủ phòng đổi luật / bắt đầu.
   function lobbyOnline(v) {
     const o = v.online, code = $(".cn-lobby .code"), play = $("#playBtn"), note = $(".cn-lobby .note");
-    if (!o) { code.textContent = "Chơi chung máy"; play.textContent = "Chơi"; play.disabled = false; note.textContent = "Chơi chung một máy, chuyền tay nhau theo lượt."; $(".host-only-note").textContent = ""; root.querySelectorAll("[data-rule]").forEach((b) => (b.disabled = false)); return; }
+    root.querySelectorAll("[data-n]").forEach((b) => (b.textContent = o ? b.dataset.n + " người" : (b.dataset.n - 1) + " máy"));
+    $(".sec-n .lb").textContent = o ? "Số người" : "Số đối thủ (máy)";
+    if (!o) { code.textContent = "Chơi với máy"; play.textContent = "Chơi"; play.disabled = false; note.textContent = "Bạn cầm phường " + NAMES[v.me] + ", máy cầm các phường còn lại."; $(".host-only-note").textContent = ""; root.querySelectorAll("[data-rule]").forEach((b) => (b.disabled = false)); return; }
     code.textContent = o.code;
     $('[data-act="copy"]').title = "Sao chép link mời vào phòng " + o.code;
     root.querySelectorAll("[data-rule]").forEach((b) => (b.disabled = !o.host));

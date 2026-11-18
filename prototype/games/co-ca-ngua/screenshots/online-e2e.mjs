@@ -69,8 +69,8 @@ const C = await newPage('C', 1280, 900, false);
 
 // ---------- Màn vào phòng + tạo phòng ----------
 await A.nav(URL0);
-check('màn vào phòng hiện: ô tên, Tạo phòng online, ô mã, Chơi chung 1 máy',
-  await A.ev(`!!document.querySelector('#cnName') && !!document.querySelector('[data-e=create]') && !!document.querySelector('#cnCode') && !!document.querySelector('[data-e=local]')`));
+check('màn vào phòng hiện: ô tên, Tạo phòng online, ô mã, Chơi với máy (không còn Chơi chung 1 máy)',
+  await A.ev(`!!document.querySelector('#cnName') && !!document.querySelector('[data-e=create]') && !!document.querySelector('#cnCode') && !!document.querySelector('[data-e=bot]') && !document.body.textContent.includes('Chơi chung')`));
 await A.shot('online-vao-phong-desktop.png');
 await A.press('[data-e=create]'); await sleep(200);
 check('chưa nhập tên → báo lỗi, chưa kết nối', (await A.ev(`document.querySelector('.err').textContent`)).includes('Nhập tên'));
@@ -210,7 +210,7 @@ await A.shot('online-nguoi-roi-desktop.png');
 
 // ---------- Hai tab cùng một người: tab cũ bị thay ----------
 const seatB = JSON.parse(await Bm.ev(`sessionStorage.getItem('wgp.co-ca-ngua.seat')`));
-await C.nav(URL0 + '?local=1'); // C dùng làm "tab khác" của B: ghép token của B rồi tải lại
+await C.nav(URL0 + '?bot=1'); // C dùng làm "tab khác" của B: ghép token của B rồi tải lại
 await C.ev(`sessionStorage.setItem('wgp.co-ca-ngua.seat', ${JSON.stringify(JSON.stringify(seatB))})`);
 await C.nav(URL0 + '?room=' + code);
 const replaced = await until(() => Bm.ev(`(document.querySelector('.err')?.textContent||'').includes('tab khác')`), 6000);
@@ -222,10 +222,10 @@ if (process.env.OFFPORT) {
   await D.nav(`http://127.0.0.1:${process.env.OFFPORT}/games/co-ca-ngua/index.html`);
   await D.type('#cnName', 'Dũng'); await D.press('[data-e=create]');
   const off = await until(() => D.ev(`(document.querySelector('.err')?.textContent||'').includes('Chưa kết nối được máy chủ')`), 6000);
-  check('máy chủ chưa bật online → báo rõ, vẫn còn nút Chơi chung 1 máy', !!off && await D.ev(`!!document.querySelector('[data-e=local]')`));
+  check('máy chủ chưa bật online → báo rõ, vẫn còn nút Chơi với máy', !!off && await D.ev(`!!document.querySelector('[data-e=bot]')`));
   await D.shot('online-may-chu-tat-mobile.png');
-  await D.press('[data-e=local]'); await sleep(600);
-  check('"Chơi chung 1 máy" → phòng chờ chung máy cũ', await D.ev('__game.lobby === true && !!document.querySelector("[data-n]").offsetParent'));
+  await D.press('[data-e=bot]'); await sleep(600);
+  check('"Chơi với máy" → phòng chờ chơi với máy', await D.ev('__game.lobby === true && !!document.querySelector("[data-n]").offsetParent'));
 }
 
 const errs = [A, Bm, C].flatMap((p) => p.P.errors.map((e) => p.name + ': ' + e));

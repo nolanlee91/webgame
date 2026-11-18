@@ -1,6 +1,6 @@
 // Cờ Cá Ngựa — màn vào phòng + kết nối online (WebSocket /ws/co-ca-ngua).
 // Máy chủ (games-server/co-ca-ngua/) giữ ván, gieo xúc xắc và xác thực lượt; file này chỉ:
-//   • cho tạo phòng / nhập mã phòng / chọn "chơi chung 1 máy",
+//   • cho tạo phòng / nhập mã phòng / chọn "Chơi với máy" (đấu với 1–3 máy, không cần mạng),
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi).
 import { mount } from "./game.js";
@@ -26,7 +26,7 @@ const ERR = {
   "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
 const SEAT_HEX = ["#e0483d", "#3a7bd5", "#f2b632", "#3fae4a"]; // đỏ, xanh dương, vàng, xanh lá — trùng màu ghế trên bàn (hud.js)
-const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ chưa bật hoặc mạng có vấn đề). Bạn vẫn có thể chơi chung 1 máy.";
+const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ chưa bật hoặc mạng có vấn đề). Bạn vẫn có thể chơi với máy.";
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
@@ -77,7 +77,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
             </div>
             <div class="err" role="alert"></div>
             <div class="or"><span>hoặc</span></div>
-            <button class="px-btn" data-e="local" type="button">Chơi chung 1 máy</button>
+            <button class="px-btn" data-e="bot" type="button">Chơi với máy</button>
             ${invite ? `<button class="px-link as-btn" data-e="fresh" type="button">Tạo phòng mới thay vì vào phòng ${code}</button>` : ""}
             <p class="hint">${icon("san-sang")} Mỗi người chơi trên máy (hoặc tab) của mình. Phòng 2–4 người, chủ phòng bấm Bắt đầu.</p>
           </div>
@@ -91,7 +91,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     codeIn.addEventListener("input", () => { codeIn.value = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
     const go = (kind) => {
       const nm = nameIn.value.trim();
-      if (kind === "local") return startLocal();
+      if (kind === "bot") return startBots();
       if (kind === "fresh") { setRoomParam(""); return showEntry(); }
       if (!nm) { errEl.textContent = "Nhập tên của bạn trước nhé."; nameIn.focus(); return; }
       localStorage.setItem(NAME_KEY, nm);
@@ -109,7 +109,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     (name ? (invite ? $('[data-e="join"]') : $('[data-e="create"]')) : nameIn).focus();
   }
 
-  function startLocal() {
+  function startBots() {
     stopNet(); saveSeat(null); setRoomParam(""); chatOff();
     stage.innerHTML = "";
     inst = mount(stage, { ...baseCtx, lobby: true });
