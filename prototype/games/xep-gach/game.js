@@ -8,8 +8,8 @@ const PAL = [null,
   ["#2f9e8f", "#6fd0bb", "#0f3a33"], ["#f2b632", "#ffe08a", "#7a5410"], ["#8a5cc2", "#c49bf0", "#3e2363"],
   ["#3fae4a", "#8be08f", "#17521c"], ["#e0483d", "#ff8f84", "#7a1c17"], ["#3a7bd5", "#8fb8f0", "#163a73"],
   ["#d9762b", "#f7b072", "#6b3410"], ["#5b5348", "#7d7564", "#2a241d"]];
-const C = { bg: "#11171c", board: "#15120f", dither: "#1b1713", guide: "#100d0b", line: "#0a0807", frame: "#4a3b2c", frameHi: "#6d5a44", frameD: "#2b2118",
-  panel: "#1d1a16", ink: "#f4ead2", soft: "#b9ad93", dim: "#7d7564", teal: "#6fd0bb", red: "#e0483d", gold: "#ffc94a" };
+const C = { bg: "#17110c", board: "#15120f", dither: "#1b1713", guide: "#100d0b", line: "#0a0807", frame: "#4a3b2c", frameHi: "#6d5a44", frameD: "#2b2118",
+  panel: "#1d1a16", ink: "#f4ead2", soft: "#b9ad93", dim: "#7d7564", teal: "#7fd47f", red: "#e0483d", gold: "#ffc94a" };
 const DAS = 0.16, ARR = 0.045, SOFT_INT = 0.035;
 const LV_CHOICES = [1, 3, 5, 7, 10, 15];
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
@@ -184,7 +184,7 @@ export function mount(root, ctx = {}) {
     const d = L.dpr, cs = L.cs;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.imageSmoothingEnabled = false;
-    g.fillStyle = C.bg; g.fillRect(0, 0, cv.width, cv.height);
+    g.clearRect(0, 0, cv.width, cv.height);
     let sx = 0, sy = 0;
     if (fx.shake) {
       const k = 1 - (now - fx.shake.t0) / fx.shake.dur;
@@ -351,14 +351,14 @@ export function mount(root, ctx = {}) {
           const [fxp, fyp] = cellPoint(4.5, midY);
           fx.floats.push({ str: "+" + fmtNum(e.points), x: fxp, y: fyp, size: Math.min(L.cs * 0.75, 24), c: C.ink, t0: now, life: 900 });
           if (e.combo > 0) fx.floats.push({ str: "COMBO ×" + e.combo, x: fxp, y: fyp + L.cs * 1.1, size: Math.min(L.cs * 0.5, 16), c: C.teal, t0: now + 0, life: 900 });
-          if (e.perfect) fx.banner = { str: "SẠCH BÀN!", sub: "+" + fmtNum(2000 * s.level) + " thưởng", bg: "#2f8f7f", t0: now, life: 1500 };
+          if (e.perfect) fx.banner = { str: "SẠCH BÀN!", sub: "+" + fmtNum(2000 * s.level) + " thưởng", bg: "#3f9a45", t0: now, life: 1500 };
           else if (e.count === 4) fx.banner = { str: e.b2b ? "XẾP 4 LIÊN TIẾP!" : "XẾP 4 HÀNG!", sub: e.b2b ? "điểm ×1,5" : "", bg: "#8a5cc2", t0: now, life: 1300 };
           if (e.count === 4 || e.perfect) { fx.shake = { t0: now, dur: 260, amp: 5 }; sfx.play("qua-man", 0.6); }
           else sfx.play("trung-kim-cuong", 0.55, 1 + Math.min(e.combo, 6) * 0.06);
           break;
         }
         case "level":
-          fx.banner = { str: "LÊN CẤP " + e.level, sub: "Gạch rơi nhanh hơn", bg: "#2f8f7f", t0: now + 380, life: 1400 };
+          fx.banner = { str: "LÊN CẤP " + e.level, sub: "Gạch rơi nhanh hơn", bg: "#3f9a45", t0: now + 380, life: 1400 };
           setTimeout(() => sfx.play("thang", 0.5), 380);
           break;
         case "over":
@@ -367,7 +367,7 @@ export function mount(root, ctx = {}) {
           break;
         case "win":
           sfx.play("thang", 0.7);
-          fx.banner = { str: "VỀ ĐÍCH!", sub: fmtTime(s.time, true), bg: "#2f8f7f", t0: now, life: 1600 };
+          fx.banner = { str: "VỀ ĐÍCH!", sub: fmtTime(s.time, true), bg: "#3f9a45", t0: now, life: 1600 };
           endTimer = setTimeout(() => showEnd(), 1300);
           break;
       }

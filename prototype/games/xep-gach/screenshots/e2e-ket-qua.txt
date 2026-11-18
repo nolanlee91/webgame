@@ -1,11 +1,11 @@
 PASS menu hiện khi mở game
-PASS chọn cấp 3 + Bắt đầu → ván Vô tận cấp 3 — {"status":"playing","mode":"endless","level":3,"score":0,"lines":0,"time":0.3500000000000003,"pieces":0,"hold":null,"holdUsed":false,"cur":{"kind":"I","rot":0,"x":3,"y":1},"clearing":false}
+PASS chọn cấp 3 + Bắt đầu → ván Vô tận cấp 3 — {"status":"playing","mode":"endless","level":3,"score":0,"lines":0,"time":0.3665999999999999,"pieces":0,"hold":null,"holdUsed":false,"cur":{"kind":"I","rot":0,"x":3,"y":1},"clearing":false}
 PASS ← dời khối sang trái 1 ô — 3→2
 PASS → dời sang phải
 PASS ↑ xoay phải
 PASS Z xoay trái về lại
 PASS giữ ← (tự lặp) → khối chạm tường trái — cột 0
-PASS Space thả rơi → khoá khối, +điểm, ra khối mới — {"status":"playing","mode":"endless","level":3,"score":36,"lines":0,"time":1.1500000000000006,"pieces":1,"hold":null,"holdUsed":false,"cur":{"kind":"O","rot":0,"x":4,"y":1},"clearing":false}
+PASS Space thả rơi → khoá khối, +điểm, ra khối mới — {"status":"playing","mode":"endless","level":3,"score":36,"lines":0,"time":1.1835,"pieces":1,"hold":null,"holdUsed":false,"cur":{"kind":"O","rot":0,"x":4,"y":1},"clearing":false}
 PASS C giữ khối → ô Giữ có khối
 PASS giữ lần 2 cùng lượt bị chặn
 PASS giữ ↓ rơi nhanh (+1 điểm/ô) — y=11
