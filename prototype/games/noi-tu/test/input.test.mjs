@@ -30,7 +30,8 @@ test('guessWord: Telex / VNI / không dấu ⇒ ra đúng từ trong từ điể
   assert.deepEqual(guessWord('ho5c ta6p5', dict), { word: 'học tập', via: 'vni' });
   assert.deepEqual(guessWord('hoc tap', dict), { word: 'học tập', via: 'plain' });
   assert.deepEqual(guessWord('hoc sinh', dict), { word: 'học sinh', via: 'plain' });
-  assert.deepEqual(guessWord('gia dinh', dict), { word: 'gia đình', via: 'plain' });
+  // "gia dinh" bỏ khỏi ví dụ: từ điển lớn hơn nay có "giả định" trùng dạng không dấu (mơ hồ) — xem test "không bịa từ".
+  assert.deepEqual(guessWord('hoc hanh', dict), { word: 'học hành', via: 'plain' });
 });
 
 test('guessWord: gõ tắt một tiếng (kể cả Telex / không dấu) khi đã có tiếng nối', () => {
@@ -42,7 +43,7 @@ test('guessWord: gõ tắt một tiếng (kể cả Telex / không dấu) khi đ
 test('guessWord: không bịa từ — từ lạ / sai tiếng nối / mơ hồ ⇒ gửi nguyên chữ để trọng tài báo đúng lý do', () => {
   assert.equal(guessWord('xyz abc', dict).via, 'none');
   assert.equal(guessWord('hoc tap', dict, 'sinh').via, 'none');        // không bắt đầu bằng "sinh"
-  assert.equal(guessWord('học hỏi', dict).via, 'none');                 // có dấu mà không có trong từ điển: tôn trọng nguyên văn
+  assert.equal(guessWord('học hỏi xyz', dict).via, 'none');             // có dấu mà không có trong từ điển: tôn trọng nguyên văn
   const amb = dict.all().map(stripMarks).find((p, i, a) => a.indexOf(p) !== i); // một dạng không dấu ứng với ≥ 2 từ
   if (amb) { const g = guessWord(amb, dict); assert.equal(g.via, 'none'); assert.ok(g.candidates.length >= 2); }
 });

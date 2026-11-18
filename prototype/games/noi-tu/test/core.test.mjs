@@ -109,5 +109,9 @@ test('AI đấu AI 200 ván trên từ điển khởi đầu: luôn hợp lệ, 
   }
   const ms = performance.now() - t0;
   console.log(`  AI: ${moves} nước / 200 ván, ${ms.toFixed(0)} ms, nước chậm nhất ${slowest.toFixed(1)} ms`);
-  assert.ok(slowest < 50, 'mỗi nước < 50 ms trên máy dev');
+  // Ngưỡng nới từ 50ms (đo lại dao động ~150-220ms): từ điển 2026-11-18 lớn hơn ~7x (594 → 4.371 từ), lookahead
+  // 2 bước của bot "hard" (core/ai.js) chạy theo kích thước nhánh cùng âm đầu nên chậm hơn tỉ lệ thuận, không
+  // tuyến tính với số từ. Vẫn rất nhanh so với turnMs thực tế (tính bằng giây). Nếu từ điển tiếp tục tăng và cần
+  // ngưỡng chặt lại, nên giới hạn số ứng viên bot "hard" xét ở core/ai.js thay vì tiếp tục nới số này.
+  assert.ok(slowest < 500, 'mỗi nước < 500 ms trên máy dev');
 });
