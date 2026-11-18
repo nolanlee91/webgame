@@ -43,9 +43,16 @@
     <!-- Mobile: ô tìm kiếm nằm đầu trang để thanh trên chỉ 1 hàng -->
     <div class="mobile-search-slot" id="mobileSearchSlot"></div>
 
-    <!-- TẦNG 1: Game tiêu điểm (60%) + Sảnh chờ trực tiếp (40%) -->
-    <section class="arena" id="featuredSection" data-name="arena" aria-label="Game tiêu điểm và sảnh chờ">
-      <div id="featured" class="arena__hero"></div>
+    <!-- TẦNG 1: Hero trượt nhiều game (gọn, bên trái) + Sảnh chờ trực tiếp (rộng, bên phải) -->
+    <section class="arena" id="featuredSection" data-name="arena" aria-label="Game nổi bật và sảnh chờ">
+      <div id="featured" class="arena__hero">
+        <div class="hero px-panel" role="region" aria-roledescription="băng chuyền" aria-label="Game nổi bật" data-name="hero">
+          <div class="hero__viewport"><div class="hero__track" id="heroTrack" aria-live="off"></div></div>
+          <button class="hero__nav hero__nav--prev" id="heroPrev" type="button" aria-label="Game trước"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2h2v2h-2zM8 4h2v2H8zM6 6h2v4H6zM8 10h2v2H8zM10 12h2v2h-2z"/></svg></button>
+          <button class="hero__nav hero__nav--next" id="heroNext" type="button" aria-label="Game tiếp theo"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h2v2H4zM6 4h2v2H6zM8 6h2v4H8zM6 10h2v2H6zM4 12h2v2H4z"/></svg></button>
+          <div class="hero__dots" id="heroDots" role="group" aria-label="Chọn game nổi bật"></div>
+        </div>
+      </div>
 
       <!-- Mobile: thanh hành động to cho ngón cái, ngay dưới game tiêu điểm -->
       <div class="arena__mobile-actions" data-name="mobile-actions">
@@ -59,31 +66,30 @@
           <span class="lobby__stat"><strong>1.248</strong> đấu thủ online</span>
         </div>
 
-        <form class="pin" id="roomInline" novalidate data-name="room-inline">
-          <label class="pin__label" for="roomInlineCode">Có mã phòng bạn gửi?</label>
-          <div class="pin__row">
-            <input class="field pin__input" id="roomInlineCode" autocomplete="off" spellcheck="false" autocapitalize="characters"
-                   maxlength="6" placeholder="ABC789" aria-describedby="roomInlineError" />
-            <button class="btn btn--teal" type="submit">Vào phòng</button>
-          </div>
-          <p class="pin__error" id="roomInlineError" role="alert"></p>
-        </form>
+        <div class="lobby__bar">
+          <form class="pin" id="roomInline" novalidate data-name="room-inline">
+            <label class="pin__label" for="roomInlineCode">Có mã phòng bạn gửi?</label>
+            <div class="pin__row">
+              <input class="field pin__input" id="roomInlineCode" autocomplete="off" spellcheck="false" autocapitalize="characters"
+                     maxlength="6" placeholder="ABC789" aria-describedby="roomInlineError" />
+              <button class="btn btn--teal" type="submit">Vào phòng</button>
+            </div>
+            <p class="pin__error" id="roomInlineError" role="alert"></p>
+          </form>
+          <a class="btn btn--teal lobby__create" href="../games/co-ca-ngua/"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
+        </div>
 
-        <h3 class="lobby__sub">Phòng đang chờ người</h3>
+        <div class="lobby__subrow">
+          <h3 class="lobby__sub">Phòng đang chờ người <span class="count" id="roomCount"></span></h3>
+          <nav class="lobby__games" id="roomGames" aria-label="Lọc phòng theo game"></nav>
+        </div>
         <ul class="rooms" id="rooms"></ul>
 
-        <a class="btn btn--teal btn--block" href="../games/co-ca-ngua/"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
         <p class="lobby__note">Số phòng và người chơi là số minh họa của bản thử nghiệm.</p>
       </aside>
     </section>
 
-    <!-- TẦNG 2: Chơi tiếp (chỉ hiện khi đã có lịch sử chơi) -->
-    <section class="recent" id="recentSection" hidden data-name="recent" aria-labelledby="recentTitle">
-      <h2 class="recent__title" id="recentTitle">Chơi tiếp</h2>
-      <div class="recent-row" id="recent"></div>
-    </section>
-
-    <!-- TẦNG 3: Kho game có tổ chức -->
+    <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng) -->
     <section class="shelves" id="games" data-name="games" aria-labelledby="gamesTitle">
       <div class="shelves__head">
         <h2 class="section__title" id="gamesTitle">Tất cả game <span class="count" id="count"></span></h2>
@@ -94,7 +100,7 @@
     </section>
   </main>
 
-  <!-- TẦNG 4: Footer + nhà tài trợ -->
+  <!-- TẦNG 3: Footer + nhà tài trợ -->
   <footer class="footer" data-name="footer">
     <div class="footer__inner">
       <a class="sponsor px-panel" href="#" rel="sponsored" data-name="sponsor">

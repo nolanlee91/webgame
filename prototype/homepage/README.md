@@ -3,17 +3,19 @@
 Tên thương hiệu **Lụm Kèo**, slogan **"Rủ bạn vào chơi"**. Prototype tĩnh (HTML/CSS/JS thuần, không cần cài gì),
 bố cục theo `docs/homepage-redesign-spec.md`, Pixel UI theo Art Bible V5 (cùng ngôn ngữ với Cờ Cá Ngựa / Đào Vàng).
 
-## Bố cục 4 tầng
+## Bố cục 3 tầng
 - **Thanh trên**: logo + slogan · tìm game (không dấu) · [+ Tạo phòng] (xanh ngọc) · [Nhập mã] (mở hộp thoại).
-- **Tầng 1 — Arena** (desktop ≥1024 chia 60/40): trái là "Tựa game của tuần" (Đào Vàng, nút vàng "Chơi ngay");
-  phải là **Sảnh chờ trực tiếp**: ô nhập mã 6 ký tự, 3 phòng đang chờ (ghế trống, nút "Vào"), nút "Tạo phòng mới".
-- **Tầng 2 — Chơi tiếp**: dải thấp các game vừa chơi (`localStorage wgp.recent`), chỉ hiện khi đã có lịch sử.
-- **Tầng 3 — Kệ game**: tab lọc liền khối; kệ **Đối kháng đông người** (4 thẻ lớn ảnh 3:2: Cờ Cá Ngựa, Cờ Caro, Đặt Bom, Nối Từ,
-  nhãn "Nhiều người", số phòng mở, nút "Rủ bạn") và **Thư viện chơi nhanh** (14 ô 4:3, lưới 6 cột).
-- **Tầng 4 — Footer**: banner tài trợ SpeakUp Kids, bản quyền, bật/tắt âm thanh (`wgp.muted`, dùng chung với game).
+- **Tầng 1 — Arena** (desktop ≥1024 chia ~42/58): trái là **carousel** các game nổi bật (`HERO_SLIDES`, tự chuyển,
+  nút ‹ › + chấm, vuốt trên mobile; ảnh 4:3 hiện trọn bằng `object-fit: contain`, nút vàng "Chơi ngay");
+  phải là **Sảnh chờ trực tiếp** (rộng hơn): ô nhập mã 6 ký tự, "Tạo phòng mới", tab lọc theo game,
+  12 phòng đang chờ xếp 2 cột (ghế trống, nút "Vào").
+- **Tầng 2 — Kệ game**: tab lọc liền khối; xem "Tất cả" thì có kệ **Đối kháng đông người** (`DUELS`, nhãn số phòng mở)
+  rồi các kệ **Giải đố / Hành động / Trí tuệ** (`SHELVES`). Mọi kệ dùng cùng một kiểu ô 4:3, lưới 6 ô/dòng.
+  Đã bỏ mục "Chơi tiếp".
+- **Tầng 3 — Footer**: banner tài trợ SpeakUp Kids, bản quyền, bật/tắt âm thanh (`wgp.muted`, dùng chung với game).
 
 Mobile (<720px): thanh trên 1 hàng (logo + slogan, Nhập mã), ô tìm ở đầu trang, khối tiêu điểm xếp dọc,
-ngay dưới là thanh to [+ Tạo phòng][Nhập mã], phòng chờ thành dải vuốt ngang, kệ đối kháng 2 cột, thư viện 3 cột.
+ngay dưới là thanh to [+ Tạo phòng][Nhập mã], phòng chờ thành dải vuốt ngang (3 hàng), mọi kệ 3 cột; nút ‹ › và chấm carousel có vùng chạm ≥ 40px.
 
 Quy ước màu: **vàng chỉ dùng cho nút chính "Chơi ngay"**; mọi hành động phòng (Tạo phòng, Vào, Rủ bạn) là xanh ngọc;
 "Nhập mã" là nút tối phụ. Pixel UI: viền đen 3px góc khuyết, vát sáng/tối 2px, bóng đổ cứng, bấm lún 4px; không bo góc, không blur.

@@ -6,7 +6,7 @@ const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9333', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
-for (let i = 0; i < 60; i++) {
+for (let i = 0; i < 240; i++) {
   try {
     const l = await (await fetch('http://127.0.0.1:9333/json')).json();
     const p = l.find(x => x.type === 'page');
@@ -44,23 +44,31 @@ const chip = c => ev(`document.querySelector('.tab[data-cat="${c}"]').click()`);
 // ---------- Desktop ----------
 await view(1440, 900, false, 1);
 await nav(BASE + 'index.html'); await ev('localStorage.clear()'); await nav(BASE + 'index.html');
-check('render 18 thẻ game', await cards() === 18);
+const NG = await ev('GAMES.length');
+check('render đủ ' + NG + ' thẻ game (mỗi game 1 lần, không lặp giữa các kệ)', await cards() === NG && await ev('new Set([...document.querySelectorAll("#grid .card")].map(c=>c.dataset.id)).size') === NG);
 check('font Roboto Slab + Be Vietnam Pro tải được', await ev('document.fonts.ready.then(()=>document.fonts.check(\'800 20px "Roboto Slab"\') && document.fonts.check(\'600 16px "Be Vietnam Pro"\'))'));
 check('ảnh thumbnail tải được', await ev('[...document.querySelectorAll("#grid img")].every(i=>i.complete&&i.naturalWidth>0)'), await ev('document.querySelectorAll("#grid img").length') + ' ảnh');
 await ev('(async()=>{document.querySelectorAll("#grid img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("#grid img")].map(i=>i.decode().catch(()=>0)))})()'); await sleep(800);
-check('18/18 thẻ game có ảnh thật, không còn hình tạm', await ev('document.querySelectorAll("#grid .card img").length===18 && document.querySelectorAll("#grid .ph").length===0'), await ev('document.querySelectorAll("#grid .card img").length') + ' ảnh');
+check('mọi thẻ game có ảnh thật, không còn hình tạm', await ev('document.querySelectorAll("#grid .card img").length===GAMES.length && document.querySelectorAll("#grid .ph").length===0'), await ev('document.querySelectorAll("#grid .card img").length') + ' ảnh');
 check('12 ảnh mới tải được (đủ pixel, không lỗi)', await ev('(()=>{const ids=["ran-san-moi","dat-bom","ban-bong","2048","co-ca-ngua","ban-cung","xep-gach","tim-diem-khac","dua-xe","nong-trai","ghep-keo","sudoku"];return ids.every(id=>{const i=document.querySelector(`#grid img[src="assets/thumbs/${id}.webp"]`);return i&&i.complete&&i.naturalWidth>=384})})()'));
 check('Thư viện: mọi ô cùng kích thước, tỉ lệ 4:3', await ev('(()=>{const r=[...document.querySelectorAll("#grid .tile__art")].map(e=>e.getBoundingClientRect());return r.every(x=>Math.abs(x.width-r[0].width)<1&&Math.abs(x.height-r[0].height)<1&&Math.abs(x.width/x.height-4/3)<.03)})()'), await ev('(()=>{const r=document.querySelector("#grid .tile__art").getBoundingClientRect();return Math.round(r.width)+"×"+Math.round(r.height)})()'));
 check('ảnh lấp kín ô (object-fit: cover, không viền trống)', await ev('[...document.querySelectorAll("#grid .tile img")].every(i=>getComputedStyle(i).objectFit==="cover"&&Math.abs(i.offsetHeight-i.parentElement.clientHeight)<1.5&&Math.abs(i.offsetWidth-i.parentElement.clientWidth)<1.5)'));
 check('thương hiệu "Lụm Kèo" + slogan "Rủ bạn vào chơi" hiện trên thanh trên', await ev('(()=>{const t=document.querySelector(".topbar .logo__text"),s=document.querySelector(".topbar .logo__slogan");return t.textContent==="Lụm Kèo"&&s.textContent==="Rủ bạn vào chơi"&&t.offsetHeight>0&&s.offsetHeight>0})()') && (await ev('document.title')).startsWith('Lụm Kèo'), await ev('document.title'));
-check('Tầng 1: game tiêu điểm (trái) + sảnh chờ (phải) chia ~60/40', await ev('(()=>{const a=document.querySelector("#featured").getBoundingClientRect(),b=document.querySelector(".lobby").getBoundingClientRect(),r=a.width/(a.width+b.width);return Math.abs(a.top-b.top)<2&&a.right<b.left&&r>.57&&r<.63})()'), await ev('(()=>{const a=document.querySelector("#featured").offsetWidth,b=document.querySelector(".lobby").offsetWidth;return a+"px / "+b+"px"})()'));
+check('Tầng 1: carousel (trái, nhỏ hơn) + sảnh chờ (phải, rộng hơn) cùng hàng', await ev('(()=>{const a=document.querySelector("#featured").getBoundingClientRect(),b=document.querySelector(".lobby").getBoundingClientRect();return Math.abs(a.top-b.top)<2&&a.right<b.left&&b.width>a.width*1.2})()'), await ev('(()=>{const a=document.querySelector("#featured").offsetWidth,b=document.querySelector(".lobby").offsetWidth;return a+"px / "+b+"px"})()'));
+check('carousel: ' + await ev('HERO_SLIDES.length') + ' trang, ảnh 4:3 hiện TRỌN (object-fit: contain, không cắt)', await ev('(()=>{const s=document.querySelectorAll("#heroTrack .slide");const a=document.querySelector(".slide .hero__art").getBoundingClientRect(),i=document.querySelector(".slide .hero__art img");return s.length===HERO_SLIDES.length&&getComputedStyle(i).objectFit==="contain"&&Math.abs(a.width/a.height-4/3)<.03})()'), await ev('(()=>{const a=document.querySelector(".slide .hero__art").getBoundingClientRect();return Math.round(a.width)+"×"+Math.round(a.height)})()'));
+{ const d0 = await ev('document.querySelector(".hero__dot[aria-current=true]").dataset.i'); await ev('document.getElementById("heroNext").click()'); await sleep(700);
+  check('carousel: nút › chuyển sang trang kế, chấm chỉ trang cập nhật', await ev('document.querySelector(".hero__dot[aria-current=true]").dataset.i') === String((+d0 + 1) % await ev('HERO_SLIDES.length')));
+  await ev('document.getElementById("heroPrev").click()'); await sleep(700); }
 check('Tầng 1 thấy trọn trong màn 1440×900 (không cần cuộn)', await ev('Math.max(document.querySelector("#featured").getBoundingClientRect().bottom,document.querySelector(".lobby").getBoundingClientRect().bottom)<=innerHeight'), await ev('Math.round(Math.max(document.querySelector("#featured").getBoundingClientRect().bottom,document.querySelector(".lobby").getBoundingClientRect().bottom))+"px"'));
-check('sảnh chờ: 3 phòng, mỗi phòng có nút "Vào" + số ghế', await ev('(()=>{const r=[...document.querySelectorAll("#rooms .room")];return r.length===3&&r.every(x=>x.querySelector("a.room__go")&&/\\d\\/\\d/.test(x.querySelector(".room__cnt").textContent))})()'));
+check('sảnh chờ: ' + await ev('LOBBY_ROOMS.length') + ' phòng, xếp 2 cột, mỗi phòng có nút "Vào" + số ghế', await ev('(()=>{const r=[...document.querySelectorAll("#rooms .room")];return r.length===LOBBY_ROOMS.length&&r.length>=10&&getComputedStyle(document.getElementById("rooms")).gridTemplateColumns.split(" ").length===2&&r.every(x=>x.querySelector("a.room__go")&&/\\d\\/\\d/.test(x.querySelector(".room__cnt").textContent))})()'));
+await ev(`document.querySelector('#roomGames .chip[data-g="ma-soi"]').click()`);
+check('sảnh chờ: lọc phòng theo game (Ma Sói)', await ev('[...document.querySelectorAll("#rooms .room__name")].every(n=>n.textContent.startsWith("Ma Sói"))&&document.querySelectorAll("#rooms .room").length===LOBBY_ROOMS.filter(r=>r.game==="ma-soi").length'));
+await ev(`document.querySelector('#roomGames .chip[data-g="all"]').click()`);
 check('sảnh chờ: phòng Cờ Cá Ngựa "Vào" mở game thật', (await ev('document.querySelector("#rooms .room__go").getAttribute("href")')).includes('games/co-ca-ngua'), await ev('document.querySelector("#rooms .room__go").getAttribute("href")'));
-check('Tầng 3: "Đối kháng" 4 thẻ cùng hàng + "Thư viện chơi nhanh" 14 ô', await ev('(()=>{const d=[...document.querySelectorAll("#grid .duels .duel")],t=document.querySelectorAll("#grid .tiles .tile");return d.length===4&&d.every(x=>Math.abs(x.getBoundingClientRect().top-d[0].getBoundingClientRect().top)<1)&&t.length===14})()'), await ev('[...document.querySelectorAll("#grid .duel .card__name")].map(n=>n.textContent).join(", ")'));
-check('thẻ đối kháng ảnh 3:2, có nhãn Nhiều người + số phòng', await ev('[...document.querySelectorAll(".duel")].every(d=>{const r=d.querySelector(".duel__art").getBoundingClientRect();return Math.abs(r.width/r.height-1.5)<.03&&!!d.querySelector(".duel__mp")&&/phòng/.test(d.querySelector(".duel__rooms").textContent)})'));
+check('Tầng 2: kệ đầu "Đối kháng đông người" (' + await ev('DUELS.length') + ' game) rồi các kệ danh mục, không còn mục "Chơi tiếp"', await ev('(()=>{const t=[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim());return t[0]==="Đối kháng đông người"&&document.querySelectorAll("#grid .shelf--duel .tile").length===DUELS.length&&t.length>=3&&!document.getElementById("recentSection")&&!document.getElementById("recent")})()'), await ev('[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim()).join(" | ")'));
+check('mọi kệ cùng 1 kiểu lưới 6 ô/dòng; ô đối kháng có nhãn số phòng', await ev('[...document.querySelectorAll("#grid .tiles")].every(t=>getComputedStyle(t).gridTemplateColumns.split(" ").length===6) && [...document.querySelectorAll(".shelf--duel .tile:not(.is-soon)")].every(d=>/phòng/.test(d.querySelector(".tile__rooms")?.textContent||""))'));
 check('Thư viện: 6 cột trên desktop', await ev('getComputedStyle(document.querySelector("#grid .tiles")).gridTemplateColumns.split(" ").length') === 6);
-check('màu vàng chỉ dùng cho nút chính "Chơi ngay"', await ev('(()=>{const g=[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor));return g.length===1&&!!g[0].closest(".hero")&&/Chơi ngay/i.test(g[0].textContent)})()'), await ev('[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor)).map(e=>e.className).join(",")'));
+check('màu vàng chỉ dùng cho nút chính "Chơi ngay" (trong carousel)', await ev('(()=>{const g=[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor));return g.length===HERO_SLIDES.length&&g.every(e=>!!e.closest(".hero")&&/Chơi ngay/i.test(e.textContent))})()'), await ev('[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor)).length') + ' nút vàng');
 check('Nối Thú có link game thật', await ev(`document.querySelector('#grid a.card[data-id="noi-thu"]').getAttribute('href')`) === '../games/noi-thu/');
 check('game chưa có bản chơi: thẻ có nhãn "Đang cập nhật" + ảnh mờ (mọi nơi)', await ev('(()=>{const ids=GAMES.filter(g=>!g.url).map(g=>g.id);const c=[...document.querySelectorAll("#grid a.card")];const soon=c.filter(a=>a.classList.contains("is-soon"));return soon.length===ids.length&&soon.every(a=>ids.includes(a.dataset.id)&&/Đang cập nhật/.test(a.querySelector(".soon")?.textContent||"")&&/blur/.test(getComputedStyle(a.querySelector("img")).filter))})()'), await ev('GAMES.filter(g=>!g.url).length') + ' game đang cập nhật');
 check('game chơi được: ảnh rõ, không nhãn "Đang cập nhật"', await ev('[...document.querySelectorAll("#grid a.card")].filter(a=>GAMES.find(g=>g.id===a.dataset.id).url).every(a=>!a.classList.contains("is-soon")&&!a.querySelector(".soon")&&getComputedStyle(a.querySelector("img")).filter==="none")'), await ev('GAMES.filter(g=>g.url).map(g=>g.name).join(", ")'));
@@ -72,13 +80,13 @@ check('desktop: không cuộn ngang', await ev('document.documentElement.scrollW
 await shot('desktop-1440.png');
 await ev('(async()=>{document.querySelectorAll("img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("img")].map(i=>i.decode().catch(()=>0)))})()'); await shot('desktop-1440-full.png', true);
 
-await chip('multi'); check('lọc "Chơi cùng bạn" = 9', await cards() === 9);
-await chip('giai-do'); check('lọc "Giải đố" = 7', await cards() === 7);
+await chip('multi'); check('lọc "Chơi cùng bạn" = ' + await ev('GAMES.filter(g=>g.mode!=="solo").length'), await cards() === await ev('GAMES.filter(g=>g.mode!=="solo").length'));
+await chip('giai-do'); check('lọc "Giải đố" = ' + await ev('GAMES.filter(g=>g.cat==="giai-do").length'), await cards() === await ev('GAMES.filter(g=>g.cat==="giai-do").length'));
 await chip('all');
 await setQ('dao vang');
 check('tìm "dao vang" (không dấu) ra Đào Vàng', await ev('[...document.querySelectorAll("#grid .card__name")].map(n=>n.textContent).join()') === 'Đào Vàng');
 await setQ('xyz'); check('không có kết quả → hiện thông báo trống', await ev('!document.getElementById("empty").hidden'));
-await ev('document.getElementById("clearSearch").click()'); check('"Xem tất cả game" khôi phục 18', await cards() === 18);
+await ev('document.getElementById("clearSearch").click()'); check('"Xem tất cả game" khôi phục đủ ' + NG, await cards() === NG);
 await setQ('caro'); check('khi tìm kiếm: ẩn tầng tiêu điểm/sảnh chờ để kết quả lên đầu', await ev('document.getElementById("featuredSection").hidden')); await setQ('');
 
 check('desktop: ô mã phòng có sẵn trong sảnh chờ', await ev('getComputedStyle(document.getElementById("roomInline")).display!=="none"'));
@@ -99,9 +107,7 @@ await nav(BASE + 'index.html');
 await ev(`document.querySelector('a.card[data-id="co-tuong"]').click()`); await sleep(1500);
 check('game đang cập nhật (Cờ Tướng) → vào trang chờ play.html', (await ev('location.pathname+location.search')).endsWith('play.html?game=co-tuong'), await ev('document.querySelector("h1").textContent'));
 await nav(BASE + 'index.html');
-check('mục "Chơi tiếp" chỉ ghi game chơi được, mới nhất trước', await ev('!document.getElementById("recentSection").hidden && [...document.querySelectorAll("#recent .mini__name")].map(e=>e.textContent).join(",")') === 'Nối Thú,Đào Vàng', await ev('[...document.querySelectorAll("#recent .mini__name")].map(e=>e.textContent).join(",")'));
-check('"Chơi tiếp" là điểm nhấn phụ (thẻ mini thấp hơn nhiều thẻ nổi bật)', await ev('document.querySelector("#recent .mini").offsetHeight*2 < document.querySelector("#featured .card").offsetHeight && document.querySelector("#recentSection").getBoundingClientRect().top > document.querySelector(".lobby").getBoundingClientRect().bottom && document.querySelector("#recentSection").getBoundingClientRect().bottom < document.querySelector("#games").getBoundingClientRect().top'));
-await shot('desktop-1440-recent.png');
+check('đã bỏ mục "Chơi tiếp" (kể cả khi có lịch sử chơi)', await ev('!document.getElementById("recentSection") && !document.querySelector(".mini")'));
 await ev('localStorage.clear()');
 await ev(`document.querySelector('a.card[data-id="co-ca-ngua"]').click()`); await sleep(1500);
 check('bấm thẻ Cờ Cá Ngựa → mở thẳng game thật (1 thao tác)', (await ev('location.pathname')).endsWith('/games/co-ca-ngua/') && await ev('!!document.getElementById("stage")'), await ev('location.href'));
@@ -128,7 +134,6 @@ for (const [w, h] of [[390, 844], [360, 740]]) {
   check(`mobile ${w}: vùng chạm ≥ 40px`, small === '', small);
   check(`mobile ${w}: tên game không bị cắt`, await ev('[...document.querySelectorAll(".card__name")].filter(n=>n.scrollWidth>n.clientWidth+1).length') === 0);
   await shot(`mobile-${w}.png`);
-  if (w === 390) { await ev('localStorage.setItem("wgp.recent",JSON.stringify(["dao-vang","co-tuong","xep-gach"]))'); await nav(BASE + 'index.html'); await shot('mobile-390-recent.png'); await ev('localStorage.clear()'); await nav(BASE + 'index.html'); }
   if (w === 390) {
     await view(390, 844, true, 2); await sleep(500); await ev('(async()=>{document.querySelectorAll("img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("img")].map(i=>i.decode().catch(()=>0)))})()'); await shot('mobile-390-full.png', true); await view(390, 844, true, 3);
     await ev('document.getElementById("openRoom").click()');

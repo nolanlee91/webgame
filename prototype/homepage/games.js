@@ -25,24 +25,34 @@ window.GAMES = [
   { id: "ma-soi",    name: "Ma Sói",           cat: "tri-tue",  mode: "multi", players: "6–8 người", thumb: "assets/thumbs/ma-soi.webp", icon: "quiz", hue: 230, badge: "Mới", url: "../games/ma-soi/" },
 ];
 
-// TẦNG 1 — game tiêu điểm (cột trái 60%). Chủ dự án chọn Cờ Cá Ngựa (2026-11-17); heroImage dùng thumbnail có sẵn, không tạo ảnh mới.
-// stat: số minh họa (bản thử nghiệm).
-window.FEATURED = {
-  hero: "co-ca-ngua",
-  heroImage: "assets/thumbs/co-ca-ngua.webp",
-  heroText: "Gieo xúc xắc, xuất chuồng và đua ngựa về lầu giữa. Rủ 2–4 người chơi chung một máy, chuyền tay theo lượt.",
-  stat: "84 trận đang diễn ra"
-};
-
-// TẦNG 1 — sảnh chờ trực tiếp (cột phải 40%): phòng công khai đang thiếu người.
-// SỐ GIẢ (placeholder) — chủ dự án duyệt giữ số minh họa cho bản thử nghiệm, chưa có multiplayer online thật.
-window.LOBBY_ROOMS = [
-  { game: "co-ca-ngua", code: "CN4920", no: "492", host: "Tèo", have: 3, max: 4 },
-  { game: "co-caro",    code: "CR1080", no: "108", host: "Bé Na", have: 1, max: 2 },
-  { game: "dat-bom",    code: "DB3150", no: "315", host: "Khoa", have: 2, max: 4 },
+// TẦNG 1 — hero trượt (carousel): các game đã chơi được thay phiên giới thiệu, tự chuyển sau vài giây.
+// Ảnh = thumbnail 4:3 có sẵn (khung hero cũng 4:3 nên thấy trọn ảnh, không cắt, không tạo ảnh mới). stat: số minh họa.
+window.HERO_SLIDES = [
+  { id: "co-ca-ngua", kicker: "Tựa game của tuần", text: "Gieo xúc xắc, xuất chuồng và đua ngựa về lầu giữa. Rủ 2–4 người cùng chơi.", stat: "84 trận đang diễn ra" },
+  { id: "ma-soi",     kicker: "Đông người · Mới",   text: "Đêm Sói đi săn, ngày cả làng bàn bạc bỏ phiếu. 6–8 người vào chung một phòng.", stat: "8 phòng đang mở" },
+  { id: "noi-tu",     kicker: "Đấu trí 1v1 · Mới",  text: "Nối từ tiếng Việt, 15 giây mỗi lượt. Đấu với bạn qua mã phòng hoặc đấu với máy.", stat: "9 phòng đang mở" },
+  { id: "dao-vang",   kicker: "Chơi nhanh",          text: "Thả móc kéo vàng, né đá tảng, đủ chỉ tiêu là qua màn. Một mình hoặc 2 người.", stat: "312 người đang chơi" },
+  { id: "co-caro",    kicker: "Đối kháng",           text: "5 quân liền một hàng là thắng. Đấu với bạn bè hoặc thử sức với máy.", stat: "41 phòng đang mở" },
 ];
 
-// TẦNG 3 — kệ "Đối kháng đông người": mọi game chỉ chơi nhiều người (mode "multi") (thẻ 3:2). rooms = số phòng đang mở (số giả).
+// TẦNG 1 — sảnh chờ trực tiếp (bên phải, rộng): phòng công khai đang thiếu người, lọc được theo game.
+// SỐ GIẢ (placeholder) — chủ dự án duyệt giữ số minh họa cho bản thử nghiệm.
+window.LOBBY_ROOMS = [
+  { game: "co-ca-ngua", code: "CN4920", no: "492", host: "Tèo",     have: 3, max: 4 },
+  { game: "ma-soi",     code: "MS2071", no: "207", host: "Út Mập",  have: 5, max: 8 },
+  { game: "noi-tu",     code: "NT1550", no: "155", host: "Minh Thư", have: 1, max: 2 },
+  { game: "co-caro",    code: "CR1080", no: "108", host: "Bé Na",   have: 1, max: 2 },
+  { game: "co-ca-ngua", code: "CN5310", no: "531", host: "Hùng",    have: 2, max: 4 },
+  { game: "ma-soi",     code: "MS3384", no: "338", host: "Lan Anh", have: 6, max: 8 },
+  { game: "dao-vang",   code: "DV0420", no: "042", host: "Tí Nị",   have: 1, max: 2 },
+  { game: "noi-tu",     code: "NT2816", no: "281", host: "Quân",    have: 1, max: 2 },
+  { game: "co-caro",    code: "CR6650", no: "665", host: "Bảo",     have: 1, max: 2 },
+  { game: "co-tuong",   code: "CT7010", no: "701", host: "Ông Sáu", have: 1, max: 2 },
+  { game: "dat-bom",    code: "DB3150", no: "315", host: "Khoa",    have: 2, max: 4 },
+  { game: "do-vui",     code: "DQ9020", no: "902", host: "Thảo",    have: 4, max: 8 },
+];
+
+// TẦNG 3 — kệ "Đối kháng đông người" (kệ đầu tiên): game chỉ chơi nhiều người. rooms = số phòng đang mở (số giả).
 window.DUELS = [
   { id: "co-ca-ngua", rooms: 24 },
   { id: "co-caro",    rooms: 41 },
@@ -50,6 +60,13 @@ window.DUELS = [
   { id: "noi-tu",     rooms: 9 },
   { id: "ma-soi",     rooms: 8 },
   { id: "co-tuong",   rooms: 17 },
+];
+
+// Kệ theo danh mục (sau kệ Đối kháng) khi xem "Tất cả": cùng 1 kiểu lưới 6 ô/dòng.
+window.SHELVES = [
+  { cat: "giai-do",   title: "Giải đố",   hint: "Thư giãn đầu óc, chơi một mình" },
+  { cat: "hanh-dong", title: "Hành động", hint: "Nhanh tay, bấm là chơi" },
+  { cat: "tri-tue",   title: "Trí tuệ",   hint: "Suy nghĩ từng nước" },
 ];
 
 window.CATEGORIES = [
