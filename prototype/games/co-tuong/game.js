@@ -484,8 +484,8 @@ export function mount(root, ctx = {}) {
     error(code, inRoom) {
       const text = ERR[code] || "Có lỗi xảy ra (" + code + ").";
       if (!inRoom) { busyMenu(false); ui.mErr.textContent = text; return; }
-      if (code === "illegal" || code === "not-turn") { sent = false; net.send({ t: "sync" }); }
-      if (code !== "phase") toast(text);
+      if (code === "illegal" || code === "not-turn" || code === "stale") { sent = false; net.send({ t: "sync" }); }
+      if (code !== "phase" && code !== "stale") toast(text); // lệnh từ ván/thế cờ cũ bị bỏ: chỉ đồng bộ lại, không báo lỗi
       hud();
     },
     offline(text) { busyMenu(false); if (room) { s = null; showMenu(text); } else ui.mErr.textContent = text; },
@@ -617,8 +617,8 @@ export function mount(root, ctx = {}) {
     try { await navigator.clipboard.writeText(u.href); toast("Đã chép link mời: " + u.href); }
     catch { toast("Link mời: " + u.href, 6000); }
   };
-  ui.offerYes.onclick = () => net.send({ t: "draw" });
-  ui.offerNo.onclick = () => net.send({ t: "draw-no" });
+  ui.offerYes.onclick = () => room && net.send({ t: "draw", gid: room.gid });
+  ui.offerNo.onclick = () => room && net.send({ t: "draw-no", gid: room.gid });
 
   function start(game) {
     if (game) { s = game; opts = { mode: s.mode, aiLevel: s.aiLevel }; }
@@ -677,7 +677,7 @@ export function mount(root, ctx = {}) {
     if (!canAct()) return false;
     if (online()) {
       if (!legalFrom(s.board, f).includes(t) || !mine(f)) return false;
-      sent = net.send({ t: "move", f, to: t });
+      sent = net.send({ t: "move", f, to: t, gid: room.gid, seq: room.seq });
       if (!sent) toast("Đang nối lại máy chủ…");
       resetSel(); hud();
       return sent;
@@ -734,7 +734,7 @@ export function mount(root, ctx = {}) {
     if (!s || s.winner) return false;
     if (online()) {
       if (!ctx.noConfirm && !confirm("Xin thua ván này?")) return false;
-      return net.send({ t: "resign" });
+      return net.send({ t: "resign", gid: room.gid });
     }
     const side = s.mode === "ai" ? RED : s.turn;
     if (!ctx.noConfirm && !confirm(s.mode === "ai" ? "Xin thua ván này?" : "Bên " + SIDE[side] + " (đang tới lượt) xin thua?")) return false;
@@ -744,7 +744,7 @@ export function mount(root, ctx = {}) {
   }
   function doDraw() {
     if (!s || s.winner) return false;
-    if (online()) return net.send({ t: "draw" });
+    if (online()) return net.send({ t: "draw", gid: room.gid });
     if (s.mode === "ai") {
       if (thinking || drawAsked === s.moves.length) return false;
       drawAsked = s.moves.length;
@@ -759,7 +759,7 @@ export function mount(root, ctx = {}) {
   }
   function doNext() {
     if (!s) return;
-    if (room) { if (s.winner) net.send({ t: "again" }); return; }
+    if (room) { if (s.winner) net.send({ t: "again", gid: room.gid }); return; }
     clearTimers();
     s = s.winner ? nextRound(s) : newRound({ ...s, round: s.round - 1 });
     drawAsked = -1; resetSel(); fx = { move: null, bad: null, check: 0 };

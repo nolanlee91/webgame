@@ -15,9 +15,11 @@ const DEFAULT_TIMINGS = {
 const hex4 = (c) => "\\" + "u" + c.toString(16).padStart(4, "0");
 const BAD_CHARS = new RegExp("[" + [[0, 0x1f], [0x7f, 0x9f], [0x61c, 0x61c], [0x200b, 0x200f], [0x2028, 0x202e], [0x2060, 0x2069], [0xfeff, 0xfeff]].map(([a, b]) => hex4(a) + "-" + hex4(b)).join("") + "<>]", "g");
 function cleanName(raw, fallback) {
-  const s = String(raw ?? "").replace(BAD_CHARS, "").replace(/\s+/g, " ").trim();
+  if (typeof raw !== "string") return fallback; // chỉ nhận chuỗi — object có toString lạ không được làm máy chủ ném lỗi
+  const s = raw.replace(BAD_CHARS, "").replace(/\s+/g, " ").trim();
   return [...s].slice(0, 16).join("") || fallback;
 }
+const GAME_CMDS = new Set(["move", "resign", "draw", "draw-no", "again"]);
 const isSq = (k) => Number.isInteger(k) && k >= 0 && k < 90;
 
 class Room {
@@ -91,6 +93,11 @@ class Room {
   handle(i, m) {
     if (this.closed) return { err: "no-room" };
     if (!this.players[i]) return { err: "no-seat" };
+    // hết hạn mà callback hẹn giờ chưa kịp chạy → máy chủ đi thay NGAY, không nhận nước trễ
+    if (this.phase === "play" && this.deadline && this.clock.now() >= this.deadline) this.timeout();
+    // lệnh gắn với một ván (gid) / một nước (seq) cụ thể: gửi từ ván cũ hoặc thế cờ cũ → bỏ, không áp sang ván mới
+    if (GAME_CMDS.has(m.t) && m.gid !== undefined && m.gid !== this.gid) return { err: "stale" };
+    if (m.t === "move" && m.seq !== undefined && m.seq !== this.seq) return { err: "stale" };
     switch (m.t) {
       case "start":
         if (this.phase !== "lobby") return { err: "phase" };
@@ -158,7 +165,8 @@ class Room {
     this.schedule(); this.changed();
   }
 
-  /** Hẹn giờ máy chủ đi thay. fresh=true khi bắt đầu một nước mới; false khi chỉ đổi kết nối — khi đó hạn chỉ có thể ngắn lại. */
+  /** Hẹn giờ máy chủ đi thay. fresh=true khi bắt đầu một nước mới; false khi chỉ đổi kết nối — khi đó hạn không bao giờ vượt hạn gốc
+ *  (actAt + turn): mất kết nối thì rút về 15 s, nối lại thì trả về hạn gốc chứ không cộng thêm. */
   schedule(fresh = true) {
     this.clock.clearTimeout(this.timer); this.timer = null; this.deadline = 0;
     if (this.phase !== "play" || this.closed) return;

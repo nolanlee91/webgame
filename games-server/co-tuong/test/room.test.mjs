@@ -355,3 +355,77 @@ test('chat: tên người gửi do máy chủ gắn; làm sạch; giới hạn �
     for (const x of [a, b, z]) x.close();
   } finally { await S.stop(); }
 });
+
+// ——— Các lỗi Codex tìm ra khi review e08125d ———
+test('review: tên tạo phòng không phải chuỗi không để lại phòng rác; IP đó vẫn tạo phòng hợp lệ được', async () => {
+  const S = await startServer();
+  try {
+    for (let i = 0; i < 3; i++) {
+      const c = await new Client(S.url, 'x' + i).open();
+      c.send({ t: 'create', name: { toString: null } }); await c.next((m) => m.t === 'joined' || m.t === 'err');
+      c.close(); await c.closed;
+    }
+    await sleep(400); // hết ân hạn phòng chờ (200 ms trong test) → phòng không còn ai bị xoá
+    assert.equal(S.host.rooms.size, 0, 'không còn phòng mồ côi');
+    const ok = await new Client(S.url, 'ok').open();
+    ok.send({ t: 'create', name: 'Hợp lệ' });
+    const r = await ok.next((m) => m.t === 'joined' || m.t === 'err');
+    assert.equal(r.t, 'joined', 'không bị busy');
+
+    for (const e of S.host.rooms.values()) assert.ok(e.room.players.length >= 1, 'không có phòng rỗng');
+    ok.close();
+  } finally { await S.stop(); }
+});
+
+test('review: lệnh xin thua / cầu hòa / nước đi gửi từ ván cũ không áp sang ván mới', async () => {
+  const S = await startServer({ timings: { turn: 60000, away: 60000 } });
+  try {
+    const [a, b] = await started(S.url);
+    const oldGid = a.v.gid;
+    b.send({ t: 'resign', gid: oldGid }); await a.next(st((v) => v.phase === 'over'));
+    b.send({ t: 'again', gid: oldGid }); await a.next(st((v) => v.phase === 'play' && v.gid !== oldGid));
+    await b.next(st((v) => v.phase === 'play' && v.gid !== oldGid));
+    assert.equal(await a.tryCmd({ t: 'resign', gid: oldGid }), 'stale');
+    assert.equal(await a.tryCmd({ t: 'draw', gid: oldGid }), 'stale');
+    assert.equal(await b.tryCmd({ t: 'again', gid: oldGid }), 'stale');
+    assert.equal(a.v.phase, 'play'); assert.equal(a.v.drawOffer, -1);
+    // ván 2: B cầm Đỏ. Nước gửi với seq cũ bị bỏ
+    const g = b.v.gid;
+    b.send({ t: 'move', f: sq('b2'), to: sq('e2'), gid: g, seq: 0 }); await a.next(st((v) => v.seq === 1));
+    assert.equal(await a.tryCmd({ t: 'move', f: sq('b7'), to: sq('e7'), gid: g, seq: 0 }), 'stale');
+    a.send({ t: 'move', f: sq('b7'), to: sq('e7'), gid: g, seq: 1 }); await b.next(st((v) => v.seq === 2));
+    a.close(); b.close();
+  } finally { await S.stop(); }
+});
+
+test('review: hết hạn mà hẹn giờ chưa chạy → không nhận nước trễ, máy chủ đi thay ngay', () => {
+  let now = 0; const clock = { now: () => now, setTimeout: () => ({}), clearTimeout: () => {} }; // hẹn giờ không bao giờ tự chạy
+  const r = new Room({ code: 'ABCDE', L, A, clock, timings: { turn: 60000, away: 15000 } });
+  r.join('A', 'ta'); r.join('B', 'tb'); r.handle(0, { t: 'start' });
+  now = 60001;
+  assert.deepEqual(r.handle(0, { t: 'move', f: sq('b2'), to: sq('e2') }), { err: 'not-turn' });
+  assert.equal(r.seq, 1); assert.equal(r.lastAct.auto, true);
+  assert.equal(r.deadline, 120001);
+});
+
+test('review: hai khung hợp lệ ~600 byte gộp trong một lần ghi TCP không bị đóng 1009', async () => {
+  const S = await startServer();
+  try {
+    const net = await import('node:net');
+    const port = new URL(S.url).port;
+    const sock = net.connect(port, '127.0.0.1');
+    let got = '';
+    sock.on('data', (d) => { got += d.toString('latin1'); });
+    await new Promise((r) => sock.on('connect', r));
+    sock.write(`GET /ws/co-tuong HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n`);
+    await sleep(100);
+    const frame = (txt) => { const p = Buffer.from(txt), m = Buffer.from([1, 2, 3, 4]); const h = Buffer.from([0x81, 0x80 | 126, p.length >> 8, p.length & 255]); const x = Buffer.from(p); for (let i = 0; i < x.length; i++) x[i] ^= m[i & 3]; return Buffer.concat([h, m, x]); };
+    const msg = JSON.stringify({ t: 'ping', pad: 'x'.repeat(580) });
+    assert.ok(msg.length > 590 && msg.length < 1024);
+    sock.write(Buffer.concat([frame(msg), frame(msg)]));
+    await sleep(200);
+    assert.equal((got.match(/"pong"/g) || []).length, 2, 'nhận đủ 2 pong');
+    assert.ok(!sock.destroyed && !got.includes('\x88\x02\x03\xf1'), 'không bị đóng 1009');
+    sock.destroy();
+  } finally { await S.stop(); }
+});
