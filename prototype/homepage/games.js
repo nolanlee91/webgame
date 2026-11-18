@@ -1,19 +1,19 @@
 // Danh sách 18 game theo docs/game-catalog-v2.md (thứ tự theo điểm ưu tiên).
 // thumb: 6 game đầu cắt từ concept V4; 12 game còn lại là ảnh thumbnail 4:3 riêng (đã được chủ dự án duyệt). icon/hue giữ làm dự phòng.
 // mode: "solo" | "multi" | "both" — dùng cho nhãn số người chơi trên thẻ.
-// url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Xếp Gạch, 2048, Sudoku).
+// url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Xếp Gạch, 2048, Sudoku, Đố Vui, Rắn Săn Mồi).
 // Game CHƯA có url: thẻ hiện nhãn "Đang cập nhật" + ảnh mờ, bấm vào vẫn mở trang chờ play.html.
 window.GAMES = [
   { id: "co-ca-ngua", name: "Cờ Cá Ngựa",      cat: "tri-tue",  mode: "multi", players: "2–4 người", thumb: "assets/thumbs/co-ca-ngua.webp", icon: "dice", hue: 0, badge: "Hot", url: "../games/co-ca-ngua/" },
   { id: "co-caro",   name: "Cờ Caro",          cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-caro.webp",  icon: "caro", badge: "Hot", url: "../games/co-caro/" },
-  { id: "ran-san-moi", name: "Rắn Săn Mồi",    cat: "hanh-dong", mode: "both", players: "1–8 người", thumb: "assets/thumbs/ran-san-moi.webp", icon: "snake", hue: 140 },
+  { id: "ran-san-moi", name: "Rắn Săn Mồi",    cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/ran-san-moi.webp", icon: "snake", hue: 140, url: "../games/ran-san-moi/" },
   { id: "noi-thu",   name: "Nối Thú",          cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/noi-thu.webp",  icon: "paw", badge: "Mới", url: "../games/noi-thu/" },
   { id: "dao-vang",  name: "Đào Vàng",         cat: "hanh-dong", mode: "both", players: "1–2 người", thumb: "assets/thumbs/dao-vang.webp", icon: "gold", badge: "Hot", url: "../games/dao-vang/" },
   { id: "noi-tu",    name: "Nối Từ",           cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/noi-tu.webp",   icon: "word", badge: "Mới", url: "../games/noi-tu/" },
   { id: "ban-bong",  name: "Bắn Bóng Khủng Long", cat: "giai-do", mode: "solo", players: "1 người", thumb: "assets/thumbs/ban-bong.webp", icon: "bubble", hue: 200, url: "../games/ban-bong/" },
   { id: "co-tuong",  name: "Cờ Tướng",         cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-tuong.webp", icon: "xiangqi", badge: "Hot", url: "../games/co-tuong/" },
   { id: "co-vua",    name: "Cờ Vua",           cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-vua.webp",   icon: "xiangqi", badge: "Mới", url: "../games/co-vua/" },
-  { id: "do-vui",    name: "Đố Vui",           cat: "tri-tue",  mode: "both",  players: "1–8 người", thumb: "assets/thumbs/do-vui.webp",  icon: "quiz" },
+  { id: "do-vui",    name: "Đố Vui",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/do-vui.webp",  icon: "quiz", url: "../games/do-vui-nhanh/" },
   { id: "2048",      name: "2048",             cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/2048.webp", icon: "2048", hue: 35, url: "../games/2048/" },
   { id: "dat-bom",   name: "Đặt Bom",          cat: "hanh-dong", mode: "multi", players: "2–4 người", thumb: "assets/thumbs/dat-bom.webp", icon: "bomb", hue: 15 },
   { id: "ban-cung",  name: "Bắn Cung",         cat: "hanh-dong", mode: "both", players: "1–2 người", thumb: "assets/thumbs/ban-cung.webp", icon: "bow", hue: 95 },
