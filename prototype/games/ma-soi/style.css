@@ -281,3 +281,7 @@ body.is-lobby .me { display: none; }
   .chip { font-size: 10px; padding: 4px 5px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Ảnh minh hoạ lớn (poster, cảnh làng, thẻ vai 768×1024) luôn bị THU NHỎ khi hiện (×0,1–0,8): "pixelated" khi thu nhỏ
+   bỏ điểm ảnh lởm chởm ⇒ trông nhoè/răng cưa. Vẽ mượt cho các ảnh này; "pixelated" chỉ giữ cho sprite nhỏ được phóng to. */
+.home__poster, .scene, .me__card img, .rcard__img img, .flip img, .end__cards img { image-rendering: auto; }

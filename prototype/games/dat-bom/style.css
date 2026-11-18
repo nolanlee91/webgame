@@ -161,3 +161,6 @@ body.is-touch .keys { display: none; }
   .bombBtn { width: 88px; height: 88px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* poster 960×640 luôn bị thu nhỏ khi hiện ⇒ vẽ mượt (pixelated khi thu nhỏ làm ảnh lởm chởm) */
+.home__poster { image-rendering: auto; }
