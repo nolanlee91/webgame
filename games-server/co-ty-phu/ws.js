@@ -35,7 +35,8 @@ class Socket extends EventEmitter {
   _closed() { if (!this.open) return; this.open = false; this.sock.destroy(); this.emit("close"); }
   _data(d) {
     this.buf = Buffer.concat([this.buf, d]);
-    if (this.buf.length > this.maxBytes + 14) return this.close(1009);
+    // KHÔNG giới hạn cả bộ đệm thô: một lần ghi TCP có thể gộp nhiều khung hợp lệ. Mỗi khung bị chặn riêng
+    // (len ≤ maxBytes trước khi chờ đủ dữ liệu) ⇒ phần chưa xử lý luôn ≤ một khung (maxBytes + 14 byte).
     for (;;) {
       const b = this.buf;
       if (b.length < 2) return;
