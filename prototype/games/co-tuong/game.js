@@ -63,6 +63,7 @@ function makeSfx(dir, names, sdk) {
   };
 }
 
+// Chỉ còn "ai" (chơi với máy) và "online" — bỏ chế độ 2 người chung máy.
 const DEFAULT_OPTS = { mode: "ai", aiLevel: "easy" };
 const ERR = {
   "no-room": "Không tìm thấy phòng — kiểm tra lại mã phòng.",
@@ -87,10 +88,12 @@ function loadSave() {
     const v = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!v || typeof v !== "object") return { opts: { ...DEFAULT_OPTS }, game: null };
     const o = v.opts || {};
-    const opts = { mode: ["pvp", "ai", "online"].includes(o.mode) ? o.mode : DEFAULT_OPTS.mode, aiLevel: o.aiLevel === "normal" ? "normal" : "easy" };
+    // Bản lưu cũ có mode "pvp" (2 người chung máy, đã bỏ) → chuyển sang chơi với máy.
+    const opts = { mode: o.mode === "online" ? "online" : "ai", aiLevel: o.aiLevel === "normal" ? "normal" : "easy" };
     let game = null;
     const g = v.game;
-    if (g && isMoves(g.moves)) {
+    // Ván dở của chế độ chung máy cũ thì bỏ (không ép thành ván với máy giữa chừng).
+    if (g && g.mode === "ai" && isMoves(g.moves)) {
       // Dựng lại từ danh sách nước đi (kiểm tra luật từng nước) để không tin bàn cờ đã lưu.
       const base = { ...newMatch({ mode: g.mode, aiLevel: g.aiLevel }), score: { 1: g.score?.[1] | 0, 2: g.score?.[2] | 0, draw: g.score?.draw | 0 }, round: Math.max(1, g.round | 0) };
       game = replay(base, g.moves);

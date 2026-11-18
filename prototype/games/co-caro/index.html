@@ -70,6 +70,7 @@
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
+    .btn--primary[disabled] { color: var(--dim); background: #1a1612; --b: #6d6150; } /* cảm ứng giữ :hover sau khi chạm — nút khoá vẫn phải trông khoá */
     .kb { color: var(--soft); font-weight: 700; font-size: 11px; }
     .btn--primary .kb { color: #6b4a12; }
 
@@ -147,6 +148,13 @@
     .chat-f .inp { font-size: 15px; min-height: 42px; }
     .chat-f .btn { min-height: 42px; padding: 8px 12px; margin-right: 7px; }
     #chatBtn { display: none; }
+
+    /* Nút ĐẶT cho cảm ứng — hàng riêng dưới bàn cờ (máy ngang thấp: cột bên phải bàn), không đè lên bàn */
+    .place { grid-area: place; display: none; min-width: 0; margin: 3px 7px 7px 3px; }
+    .place .btn { width: 100%; }
+    body.touch.in-game .place { display: flex; }
+    body.touch.in-game .wrap { grid-template-rows: auto 1fr auto; grid-template-areas: "hud tools" "stage stage" "place place"; }
+    body.touch.in-game.has-chat .wrap { grid-template-areas: "hud tools" "stage chat" "place chat"; }
     #chatBtn .badge { min-width: 18px; padding: 1px 4px; font-size: 11px; line-height: 16px; color: #2c1b05; background: var(--gold); box-shadow: 0 0 0 2px var(--gold-d); }
 
     @media (max-width: 760px), (max-aspect-ratio: 1/1) {
@@ -177,11 +185,18 @@
       .chat { position: fixed; left: 0; right: 0; bottom: 0; height: min(62svh, 460px); z-index: 40; margin: 0; box-shadow: var(--bevel), 0 -3px 0 var(--gold), var(--drop); }
       body:not(.chat-open) .chat { display: none; }
       .chat-hd .btn { display: inline-flex; }
+      body.touch.in-game .wrap, body.touch.in-game.has-chat .wrap { grid-template-rows: auto 1fr auto auto; grid-template-areas: "hud" "stage" "place" "tools"; }
+      .place { margin: 0 7px 0 3px; }
+      body.touch.in-game .toast { bottom: calc(146px + env(safe-area-inset-bottom)); } /* không che nút Đặt */
     }
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
       .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; }
       .wrap { padding: 12px 10px 6px; gap: 8px; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; grid-template-areas: "hud tools" "stage stage"; }
       .pl { padding: 3px 8px; } .tools .btn { min-height: 36px; flex: none; } .tools .btn--icon { flex: none; }
+      body.touch.in-game .wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr; grid-template-areas: "hud tools" "stage place"; }
+      body.touch.in-game.has-chat .wrap { grid-template-columns: minmax(0, 1fr) auto 260px; grid-template-areas: "hud hud tools" "stage place chat"; }
+      .place { align-items: center; margin: 3px 7px 7px 3px; } .place .btn { width: auto; min-width: 112px; padding: 12px 14px; }
+      body.touch .tip { display: none !important; } /* máy ngang thấp: gợi ý đè lên hàng cuối bàn — đã có nút Đặt bên cạnh */
     }
   </style>
 </head>
@@ -209,9 +224,11 @@
       <ol class="chat-log" id="chatLog" aria-live="polite"></ol>
       <form class="chat-f" id="chatF" autocomplete="off"><input class="inp" id="chatIn" maxlength="200" placeholder="Nhắn cho đối thủ…" enterkeyhint="send" aria-label="Nội dung tin nhắn" /><button class="btn btn--primary" type="submit">Gửi</button></form>
     </aside>
+    <!-- Cảm ứng: chạm ô để chọn, bấm Đặt để xác nhận (chỉ hiện trên máy cảm ứng khi đang trong ván) -->
+    <div class="place" id="placeBar"><button class="btn btn--big btn--primary" id="placeBtn" type="button" disabled>Đặt quân</button></div>
     <div class="stage" id="stage">
       <canvas id="cv" tabindex="0" aria-label="Bàn cờ Caro. Dùng phím mũi tên để di chuyển, Enter để đặt quân."></canvas>
-      <div class="tip" id="tip" hidden>Chạm lần nữa để đặt quân</div>
+      <div class="tip" id="tip" hidden>Chạm ô khác để đổi · bấm ĐẶT để đặt quân</div>
 
       <div class="ov" id="ovMenu">
         <div class="card">
@@ -220,13 +237,13 @@
           <div class="how">
             <ul>
               <li>Hai bên lần lượt đặt <b>X</b> và <b>O</b> vào ô trống. Ai có <b>5 quân liên tiếp</b> (ngang, dọc hoặc chéo) trước là thắng.</li>
-              <li><b>2 người chung máy:</b> đánh xong thì đưa máy cho bạn. <b>Online:</b> tạo phòng rồi gửi mã cho bạn bè, mỗi người chơi trên máy của mình. Trên điện thoại, <b>chạm 2 lần</b> vào một ô để đặt quân (tránh bấm nhầm).</li>
+              <li><b>Chơi với máy</b> (Dễ / Khó) hoặc <b>Online:</b> tạo phòng rồi gửi mã cho bạn bè, mỗi người chơi trên máy của mình. Trên điện thoại, <b>chạm một ô</b> để chọn (chạm ô khác để đổi) rồi bấm <b>Đặt</b> để đặt quân — tránh bấm nhầm.</li>
               <li>Luật <b>Chặn 2 đầu</b>: 5 quân bị quân đối thủ chặn cả hai đầu thì chưa thắng. Ván sau người thua được đi trước.</li>
             </ul>
           </div>
           <div class="opts">
             <div class="opt"><span>Chế độ</span><div class="seg" role="radiogroup" aria-label="Chế độ" data-k="mode">
-              <button type="button" role="radio" data-v="pvp">2 người<small>chung máy</small></button><button type="button" role="radio" data-v="ai">Chơi với máy<small>bạn cầm X</small></button><button type="button" role="radio" data-v="online">Online<small>mỗi người 1 máy</small></button></div></div>
+              <button type="button" role="radio" data-v="ai">Chơi với máy<small>bạn cầm X</small></button><button type="button" role="radio" data-v="online">Online<small>mỗi người 1 máy</small></button></div></div>
             <div class="opt" id="optName" hidden><span>Tên bạn</span><input class="inp" id="nameIn" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Caro" /></div>
             <div class="opt" id="optAi"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="aiLevel">
               <button type="button" role="radio" data-v="easy">Dễ</button><button type="button" role="radio" data-v="hard">Khó</button></div></div>

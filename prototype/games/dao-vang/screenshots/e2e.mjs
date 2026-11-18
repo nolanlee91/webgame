@@ -75,11 +75,11 @@ async function record(name, fn) {
 // ---------- Desktop: menu ----------
 await view(1280, 860, false, 1);
 await nav(BASE);
-check('trang Đào Vàng mở được, có 2 chế độ chơi', await ev('!!document.getElementById("play1") && !!document.getElementById("play2")'));
+check('trang Đào Vàng mở được, chỉ chơi 1 người (không còn nút "2 người cùng máy")', await ev('!!document.getElementById("play1") && !document.getElementById("play2") && !/2 người/.test(document.getElementById("menu").textContent + document.querySelector(".help").textContent)'));
 await shot('dv-menu.png');
 const b1 = await ev('(()=>{const r=document.getElementById("play1").getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()');
 await click(...b1); await sleep(600);
-check('bấm "1 người" → vào game, có canvas, ẩn màn chọn chế độ', await ev('!!document.querySelector("#stage canvas") && __game.state.players===1 && getComputedStyle(document.getElementById("menu")).display==="none"'));
+check('bấm "Bắt đầu chơi" → vào game, có canvas, ẩn màn chọn chế độ', await ev('!!document.querySelector("#stage canvas") && __game.state.players===1 && getComputedStyle(document.getElementById("menu")).display==="none"'));
 check('desktop 1280×860: thấy trọn khung chơi không cần cuộn', await ev('document.querySelector("#stage canvas").getBoundingClientRect().bottom<=innerHeight'));
 
 // ---------- 1 người: chơi bằng phím thật ----------
@@ -162,22 +162,12 @@ check('Space → chơi lại từ màn 1, điểm 0', s.level === 1 && s.score =
   check('phím M → bật lại tiếng', /bật/.test(await ev('document.querySelector("#muteBtn").textContent')));
 }
 
-// ---------- 2 người cùng máy ----------
+// ---------- Link cũ ?players=2 (2 người cùng máy đã bỏ) → vào ván 1 người ----------
 await nav(BASE + '?players=2&seed=5'); await sleep(300);
 s = await S();
-check('2 người: 2 móc, 2 thợ mỏ', s.hooks.length === 2);
+check('link cũ ?players=2 → vào ván 1 người: 1 móc, ẩn menu', s.hooks.length === 1 && await ev('__game.state.players===1 && getComputedStyle(document.getElementById("menu")).display==="none"'));
 await key('KeyS'); await sleep(120); s = await S();
-check('P1 bấm S → chỉ móc trái thả, móc phải vẫn lắc', s.hooks[0].s !== 'swing' && s.hooks[1].s === 'swing');
-await key('ArrowDown'); await sleep(120); s = await S();
-check('P2 bấm ↓ → móc phải thả', s.hooks[1].s !== 'swing');
-await sleep(3000);
-let both = false;
-s = await record('dao-vang-2-nguoi', () => autoplay(16, ['KeyS', 'ArrowDown'], async st => {
-  if (!both && st.hooks.every(h => h.s !== 'swing') && st.hooks.some(h => h.carry)) { both = true; await shot('dv-2p-ca-hai-cung-tha.png'); }
-}));
-check('2 người: cả hai cùng gom điểm, chung tổng điểm', s.hooks[0].earned > 0 && s.hooks[1].earned > 0 && s.score === s.hooks[0].earned + s.hooks[1].earned, `P1 ${s.hooks[0].earned} + P2 ${s.hooks[1].earned} = ${s.score}`);
-await ev('(()=>{const g=__game.state;g.score=Math.max(g.score,g.target+10);g.time=0.3})()'); await sleep(800);
-await shot('dv-2p-qua-man.png');
+check('phím S vẫn thả móc (1 người)', s.hooks[0].s !== 'swing');
 
 // ---------- Mobile: chạm ----------
 await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
@@ -191,15 +181,13 @@ await sleep(1600);
 await shot('dv-mobile-ngang.png');
 
 await view(390, 844, true, 3);
-await nav(BASE + '?players=2&seed=8'); await sleep(300);
+await nav(BASE + '?players=1&seed=8'); await sleep(300);
 check('mobile dọc 390: không cuộn ngang, canvas vừa màn hình', await ev('document.documentElement.scrollWidth<=innerWidth && document.querySelector("#stage canvas").getBoundingClientRect().width<=390'));
 const cp = await ev('(()=>{const r=document.querySelector("#stage canvas").getBoundingClientRect();return [r.x,r.y,r.width,r.height]})()');
 await tap(cp[0] + cp[2] * 0.8, cp[1] + cp[3] / 2); await sleep(150); s = await S();
-check('mobile 2 người: chạm nửa phải → chỉ móc P2 thả', s.hooks[1].s !== 'swing' && s.hooks[0].s === 'swing');
-await tap(cp[0] + cp[2] * 0.2, cp[1] + cp[3] / 2); await sleep(150); s = await S();
-check('mobile 2 người: chạm nửa trái → móc P1 thả', s.hooks[0].s !== 'swing');
+check('mobile dọc: chạm bất kỳ chỗ nào (nửa phải) → thả móc', s.hooks.length === 1 && s.hooks[0].s !== 'swing');
 await sleep(800);
-await shot('dv-mobile-doc-2p.png');
+await shot('dv-mobile-doc.png');
 
 // ---------- Màn 1 sau cân bằng: "người chơi bình thường" bấm phím thật ----------
 // Khác autoplay (bấm ngay khi móc chĩa vào vàng): sau mỗi lần móc về sẽ nghĩ 0,35–0,85 s, chọn 1 cục vàng,

@@ -15,7 +15,8 @@ const REASON = {
   mate: "chiếu bí", resign: "xin thua", stalemate: "hết nước đi mà Vua không bị chiếu", material: "không còn đủ quân để chiếu bí",
   fifty: "50 nước liền không ăn quân, không đi Tốt", repeat: "lặp lại cùng thế cờ 3 lần", agreed: "hai bên đồng ý hòa",
 };
-const DEFAULT_OPTS = { mode: "pvp", aiLevel: "easy" };
+// Chỉ còn "ai" (chơi với máy) và "online" — bỏ chế độ 2 người chung máy.
+const DEFAULT_OPTS = { mode: "ai", aiLevel: "easy" };
 const ERR = {
   "no-room": "Không tìm thấy phòng — kiểm tra lại mã phòng.",
   full: "Phòng đã đủ 2 người.",
@@ -73,11 +74,13 @@ function loadSave() {
     const v = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!v || typeof v !== "object") return { opts: { ...DEFAULT_OPTS }, game: null };
     const o = v.opts || {};
-    const opts = { mode: o.mode === "ai" || o.mode === "online" ? o.mode : "pvp", aiLevel: o.aiLevel === "normal" ? "normal" : "easy" };
+    // Bản lưu cũ có mode "pvp" (2 người chung máy, đã bỏ) → chuyển sang chơi với máy.
+    const opts = { mode: o.mode === "online" ? "online" : "ai", aiLevel: o.aiLevel === "normal" ? "normal" : "easy" };
     let game = null;
     const g = v.game;
     // Dựng lại từ danh sách nước đi bằng luật (không tin bàn cờ đã lưu — chống lỗi/sửa tay).
-    if (g && Array.isArray(g.moves)) game = L.replay(baseOf(g), g.moves.map((m) => ({ from: m[0], to: m[1], promo: m[2] || undefined })));
+    // Ván dở của chế độ chung máy cũ thì bỏ (không ép thành ván với máy giữa chừng).
+    if (g && g.mode === "ai" && Array.isArray(g.moves)) game = L.replay(baseOf(g), g.moves.map((m) => ({ from: m[0], to: m[1], promo: m[2] || undefined })));
     return { opts, game };
   } catch { return { opts: { ...DEFAULT_OPTS }, game: null }; }
 }
@@ -119,7 +122,7 @@ export function mount(root, ctx = {}) {
   const myColor = () => (s ? L.colorOfSeat(s, mySeat()) : "w");
   const turnSeat = () => (s ? L.seatOf(s, s.turn) : 0);
   const blocked = () => !s || !!s.result || thinking || L.isAiTurn(s) || (online() && (s.turn !== myColor() || sent));
-  // bên ở phía dưới bàn: online/với máy = màu của mình; 2 người chung máy = Trắng
+  // bên ở phía dưới bàn: online/với máy = màu của mình (chưa vào ván = Trắng)
   const bottom = () => (!s ? "w" : online() || s.mode === "ai" ? myColor() : "w");
   const flip = () => bottom() === "b";
   const disp = (i) => (flip() ? 63 - i : i); // chỉ số ô logic ↔ vị trí hiển thị (đối xứng nên dùng 2 chiều)

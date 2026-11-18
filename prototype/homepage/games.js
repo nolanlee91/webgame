@@ -8,7 +8,7 @@ window.GAMES = [
   { id: "co-caro",   name: "Cờ Caro",          cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-caro.webp",  icon: "caro", badge: "Hot", url: "../games/co-caro/" },
   { id: "ran-san-moi", name: "Rắn Săn Mồi",    cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/ran-san-moi.webp", icon: "snake", hue: 140, url: "../games/ran-san-moi/" },
   { id: "noi-thu",   name: "Nối Thú",          cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/noi-thu.webp",  icon: "paw", badge: "Mới", url: "../games/noi-thu/" },
-  { id: "dao-vang",  name: "Đào Vàng",         cat: "hanh-dong", mode: "both", players: "1–2 người", thumb: "assets/thumbs/dao-vang.webp", icon: "gold", badge: "Hot", url: "../games/dao-vang/" },
+  { id: "dao-vang",  name: "Đào Vàng",         cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dao-vang.webp", icon: "gold", badge: "Hot", url: "../games/dao-vang/" },
   { id: "noi-tu",    name: "Nối Từ",           cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/noi-tu.webp",   icon: "word", badge: "Mới", url: "../games/noi-tu/" },
   { id: "ban-bong",  name: "Bắn Bóng Khủng Long", cat: "giai-do", mode: "solo", players: "1 người", thumb: "assets/thumbs/ban-bong.webp", icon: "bubble", hue: 200, url: "../games/ban-bong/" },
   { id: "co-tuong",  name: "Cờ Tướng",         cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-tuong.webp", icon: "xiangqi", badge: "Hot", url: "../games/co-tuong/" },
@@ -32,7 +32,7 @@ window.HERO_SLIDES = [
   { id: "co-ca-ngua", kicker: "Tựa game của tuần", text: "Gieo xúc xắc, xuất chuồng và đua ngựa về lầu giữa. Rủ 2–4 người cùng chơi.", stat: "84 trận đang diễn ra" },
   { id: "ma-soi",     kicker: "Đông người · Mới",   text: "Đêm Sói đi săn, ngày cả làng bàn bạc bỏ phiếu. 6–8 người vào chung một phòng.", stat: "8 phòng đang mở" },
   { id: "noi-tu",     kicker: "Đấu trí 1v1 · Mới",  text: "Nối từ tiếng Việt, 15 giây mỗi lượt. Đấu với bạn qua mã phòng hoặc đấu với máy.", stat: "9 phòng đang mở" },
-  { id: "dao-vang",   kicker: "Chơi nhanh",          text: "Thả móc kéo vàng, né đá tảng, đủ chỉ tiêu là qua màn. Một mình hoặc 2 người.", stat: "312 người đang chơi" },
+  { id: "dao-vang",   kicker: "Chơi nhanh",          text: "Thả móc kéo vàng, né đá tảng, đủ chỉ tiêu là qua màn.", stat: "312 người đang chơi" },
   { id: "co-caro",    kicker: "Đối kháng",           text: "5 quân liền một hàng là thắng. Đấu với bạn bè hoặc thử sức với máy.", stat: "41 phòng đang mở" },
 ];
 
@@ -45,7 +45,7 @@ window.LOBBY_ROOMS = [
   { game: "co-caro",    code: "CR1080", no: "108", host: "Bé Na",   have: 1, max: 2 },
   { game: "co-ca-ngua", code: "CN5310", no: "531", host: "Hùng",    have: 2, max: 4 },
   { game: "ma-soi",     code: "MS3384", no: "338", host: "Lan Anh", have: 6, max: 8 },
-  { game: "dao-vang",   code: "DV0420", no: "042", host: "Tí Nị",   have: 1, max: 2 },
+  { game: "co-caro",    code: "CR0420", no: "042", host: "Tí Nị",   have: 1, max: 2 },
   { game: "noi-tu",     code: "NT2816", no: "281", host: "Quân",    have: 1, max: 2 },
   { game: "co-caro",    code: "CR6650", no: "665", host: "Bảo",     have: 1, max: 2 },
   { game: "co-tuong",   code: "CT7010", no: "701", host: "Ông Sáu", have: 1, max: 2 },

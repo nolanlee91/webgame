@@ -49,49 +49,59 @@ const noOverflow = () => ev('document.documentElement.scrollWidth<=document.docu
 const boardIn = () => ev(`(()=>{const L=__game.layout,c=document.getElementById('cv').getBoundingClientRect();const x0=c.left+(L.ox-L.pad)/L.dpr,x1=c.left+(L.ox+L.cs*8+L.pad)/L.dpr,y0=c.top+(L.oy-L.pad)/L.dpr,y1=c.top+(L.oy+L.cs*8+L.pad)/L.dpr;return x0>=c.left-1&&y0>=c.top-1&&x1<=c.right+1&&y1<=c.bottom+1&&y1<=innerHeight})()`);
 const waitFor = async (expr, ms = 4000) => { for (let t = 0; t < ms; t += 100) { if (await ev(expr).catch(() => false)) return true; await sleep(100); } return false; };
 
-// ===== 1. Desktop, chuột — 2 người chung máy =====
+// Dựng sẵn thế cờ: ghi ván dở (chơi với máy, bạn cầm Trắng) vào localStorage rồi tải lại → "Chơi tiếp ván dở"
+const saveGame = (moves) => ev(`localStorage.setItem('wgp.covua.v1', ${JSON.stringify(JSON.stringify({ opts: { mode: 'ai', aiLevel: 'easy' }, game: { mode: 'ai', aiLevel: 'easy', score: [0, 0], draws: 0, round: 1, white: 0, moves: moves.map(([a, b]) => [SQ(a), SQ(b)]) } }))})`);
+const resumeSaved = async (moves) => { await saveGame(moves); await nav(BASE); await pressSel('#resumeGameBtn'); };
+
+// ===== 1. Desktop, chuột — chơi với máy (mặc định) =====
 await view(1440, 900, false, 1); await touch(false); press = click;
-await nav(BASE); await ev('localStorage.clear();sessionStorage.clear()'); await nav(BASE);
-check('menu hiện, mặc định 2 người chung máy', await visible('#ovMenu') && await ev(`document.querySelector('.seg[data-k=mode] [aria-checked=true]').dataset.v`) === 'pvp' && !(await visible('#optAi')));
+await nav(BASE); await ev('localStorage.clear();sessionStorage.clear()');
+// Bản lưu cũ còn chế độ "2 người chung máy" (pvp) → chuyển sang chơi với máy, bỏ ván dở chung máy
+await ev(`localStorage.setItem('wgp.covua.v1', JSON.stringify({opts:{mode:'pvp',aiLevel:'normal'},game:{mode:'pvp',aiLevel:'easy',score:[1,0],draws:0,round:2,white:1,moves:[[${SQ('e2')},${SQ('e4')}]]}}))`);
+await nav(BASE);
+check('bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy', await ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,normal' && await visible('#optAi') && !(await visible('#resumeGameBtn')));
+await ev('localStorage.clear()'); await nav(BASE);
+check('menu hiện, mặc định Chơi với máy (Dễ), chỉ còn Chơi với máy + Online', await visible('#ovMenu') && await ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,easy' && await visible('#optAi') && await ev(`[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()`) === 'ai,online' && !/chung máy/.test(await text('#ovMenu')));
 await shot('covua-desktop-menu.png');
 await pressSel('#startBtn');
 let s = await S();
-check('Bắt đầu → thế xuất phát, Trắng đi trước, khung người 1 sáng LƯỢT', s && s.n === 0 && s.turn === 'w' && await ev(`document.getElementById('plA').classList.contains('on')`));
+check('Bắt đầu → thế xuất phát, bạn cầm Trắng đi trước, khung người 1 sáng LƯỢT', s && s.mode === 'ai' && s.white === 0 && s.n === 0 && s.turn === 'w' && await ev(`document.getElementById('plA').classList.contains('on')`));
 check('bàn cờ nằm gọn trong khung, không tràn trang', await boardIn() && await noOverflow());
 await press(...await sqPt('e2')); await sleep(100);
 check('bấm Tốt e2 → chọn, có 2 ô đi được (e3, e4)', await ev('__game.selected') === SQ('e2') && await ev('__game.targets.length') === 2);
 await press(...await sqPt('e4')); await sleep(100); s = await S();
-check('bấm e4 → đi e4, tới lượt Đen', s.n === 1 && s.turn === 'b' && s.last === 'e4');
-await mv('e7', 'e5'); await mv('d1', 'h5'); await mv('b8', 'c6');
+check('bấm e4 → đi e4, tới lượt máy (Đen)', s.n === 1 && s.turn === 'b' && s.last === 'e4');
+check('máy trả lời, trả lượt cho bạn', await waitFor('__game.state.moves.length===2', 3000));
+await sleep(150);
 await press(...await sqPt('a1')); await sleep(80); s = await S();
-check('bấm quân không đi được (Xe a1) → không chọn', await ev('__game.selected') === -1 && s.n === 4);
-await mv('f1', 'c4');
-await press(...await sqPt('e8')); await sleep(80); await press(...await sqPt('e6')); await sleep(80); s = await S();
-check('bấm ô đi sai luật (Vua e8→e6) → không đi', s.n === 5 && s.turn === 'b');
-await mv('g8', 'f6');
+check('bấm quân không đi được (Xe a1) → không chọn', await ev('__game.selected') === -1 && s.n === 2);
+// Thế "Scholar's mate" dựng sẵn: 1.e4 e5 2.Qh5 Nc6 3.Bc4 Nf6 — tới lượt bạn
+await resumeSaved([['e2', 'e4'], ['e7', 'e5'], ['d1', 'h5'], ['b8', 'c6'], ['f1', 'c4'], ['g8', 'f6']]);
+s = await S();
+check('chơi tiếp ván dở dựng sẵn → 6 nước, tới lượt Trắng (bạn)', s && s.n === 6 && s.turn === 'w', JSON.stringify(s));
+await press(...await sqPt('e1')); await sleep(80); await press(...await sqPt('e3')); await sleep(80); s = await S();
+check('bấm ô đi sai luật (Vua e1→e3) → không đi', s.n === 6 && s.turn === 'w');
 await shot('covua-desktop-choi.png');
 await mv('h5', 'f7'); s = await S();
-check('chiếu bí "Scholar\'s mate" → Trắng thắng, lí do chiếu bí, tỉ số 1-0', s.res && s.res.winner === 'w' && s.res.reason === 'mate' && s.score[0] === 1 && s.last === 'Qxf7#', JSON.stringify(s));
-check('màn kết thúc hiện "Trắng thắng!" + lí do', await waitFor(`!document.getElementById('ovEnd').hidden`) && /Trắng thắng/.test(await text('#eTitle')) && /chiếu bí/.test(await text('#eSub')), await text('#eSub'));
+check('chiếu bí "Scholar\'s mate" → Trắng (bạn) thắng, lí do chiếu bí, tỉ số 1-0', s.res && s.res.winner === 'w' && s.res.reason === 'mate' && s.score[0] === 1 && s.last === 'Qxf7#', JSON.stringify(s));
+check('màn kết thúc hiện "Bạn thắng!" + lí do', await waitFor(`!document.getElementById('ovEnd').hidden`) && /Bạn thắng/.test(await text('#eTitle')) && /chiếu bí/.test(await text('#eSub')), await text('#eSub'));
 await shot('covua-desktop-ket-thuc.png');
 await pressSel('#nextBtn'); s = await S();
-check('Ván tiếp → ván 2, người 1 đổi sang Đen (Trắng thuộc người 2)', s.round === 2 && s.white === 1 && s.n === 0);
+check('Ván tiếp → ván 2, bạn đổi sang Đen, máy cầm Trắng đi trước', s.round === 2 && s.white === 1 && await waitFor('__game.state.moves.length===1', 3000));
 
-// Phong cấp + đi lại (2 người chung máy) — dựng thế qua __game không được, nên đi thật bằng chuỗi nước ngắn
-await pressSel('#menuBtn'); await pressSel('#menuBtnP');
-await pressSel('#startBtn'); // trận mới từ menu (ván dở rỗng)
-for (const [a, b] of [['h2', 'h4'], ['g7', 'g5'], ['h4', 'g5'], ['g8', 'f6'], ['g5', 'g6'], ['f8', 'g7'], ['g6', 'h7'], ['f6', 'g8']]) await mv(a, b);
+// Phong cấp + đi lại — thế dựng sẵn: Tốt trắng h7 sắp ăn g8
+await resumeSaved([['h2', 'h4'], ['g7', 'g5'], ['h4', 'g5'], ['g8', 'f6'], ['g5', 'g6'], ['f8', 'g7'], ['g6', 'h7'], ['f6', 'g8']]);
 s = await S();
-check('đi tới thế Tốt h7 sắp phong cấp', s.n === 8 && await ev(`__game.state.board[${SQ('h7')}]==='P'`), JSON.stringify(s));
+check('đi tới thế Tốt h7 sắp phong cấp', s.n === 8 && s.turn === 'w' && await ev(`__game.state.board[${SQ('h7')}]==='P'`), JSON.stringify(s));
 await press(...await sqPt('h7')); await sleep(80); await press(...await sqPt('g8')); await sleep(150);
 check('Tốt h7 ăn g8 → hiện bảng chọn phong cấp 4 quân', await ev('__game.promoOpen') && await ev(`document.querySelectorAll('#promoBox button').length`) === 4);
 await shot('covua-desktop-phong-cap.png');
 await pressSel('#promoBox button[data-p="n"]'); s = await S();
 check('chọn Mã → phong thành Mã, chiếu Vua f8? (SAN có =N)', /=N/.test(s.last) && await ev(`__game.state.board[${SQ('g8')}]==='N'`), s.last);
 await pressSel('#undoBtn'); s = await S();
-check('Đi lại → Tốt về h7', s.n === 8 && await ev(`__game.state.board[${SQ('h7')}]==='P'`));
+check('Đi lại → Tốt về h7 (bỏ cả nước máy nếu máy đã đi)', s.n === 8 && await ev(`__game.state.board[${SQ('h7')}]==='P'`));
 await ev('location.reload()'); await sleep(1200); await waitFor('typeof __game==="object"');
-check('tải lại trang → có "Chơi tiếp ván dở"', await visible('#resumeGameBtn'));
+check('tải lại trang → có "Chơi tiếp ván dở" (với máy)', await visible('#resumeGameBtn') && /với máy/.test(await text('#mResume')));
 await pressSel('#resumeGameBtn'); s = await S();
 check('chơi tiếp → khôi phục đúng 8 nước', s && s.n === 8);
 
@@ -120,9 +130,13 @@ check('mobile: menu không tràn ngang', await noOverflow());
 await pressSel('#startBtn');
 check('mobile: bàn cờ vừa khung, không tràn', await boardIn() && await noOverflow());
 check('mobile: ô cờ đủ to để chạm (≥ 40px)', await ev('__game.layout.cs/__game.layout.dpr') >= 40, String(await ev('__game.layout.cs/__game.layout.dpr')));
-await mv('e2', 'e4'); await mv('d7', 'd5'); await mv('e4', 'd5'); s = await S();
-check('mobile: chạm chọn + chạm đích → đi được, ăn quân (exd5)', s.n === 3 && s.last === 'exd5', s.last);
-await press(...await sqPt('d8')); await sleep(120);
+await mv('e2', 'e4'); s = await S();
+check('mobile: chạm chọn + chạm đích → đi được, máy trả lời', s.n === 1 && s.last === 'e4' && await waitFor('__game.state.moves.length===2', 3000));
+await resumeSaved([['e2', 'e4'], ['d7', 'd5']]);
+await mv('e4', 'd5'); s = await S();
+check('mobile: chạm Tốt e4 + chạm d5 → ăn quân (exd5)', s.n === 3 && s.last === 'exd5', s.last);
+await waitFor('__game.state.moves.length===4', 3000); await sleep(150);
+await press(...await sqPt('d1')); await sleep(120);
 await shot('covua-mobile-choi.png');
 const toolsOk = await ev(`[...document.querySelectorAll('.tools .btn')].filter(b=>b.offsetParent).every(b=>{const r=b.getBoundingClientRect();return r.right<=innerWidth&&r.bottom<=innerHeight&&r.height>=40})`);
 check('mobile: hàng nút nằm gọn trong màn hình, cao ≥ 40px', toolsOk);

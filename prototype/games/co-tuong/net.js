@@ -39,7 +39,7 @@ export function createNet(on, { url } = {}) {
         retryTimer = setTimeout(() => connect(null), ms);
         return;
       }
-      on.offline(opened ? "Mất kết nối với máy chủ, thử lại nhé." : "Chưa kết nối được máy chủ chơi online (máy chủ chưa bật hoặc mạng có vấn đề). Bạn vẫn có thể chơi 2 người chung máy hoặc với máy.");
+      on.offline(opened ? "Mất kết nối với máy chủ, thử lại nhé." : "Chưa kết nối được máy chủ chơi online (máy chủ chưa bật hoặc mạng có vấn đề). Bạn vẫn có thể chơi với máy.");
     };
   }
   function onMsg(m) {

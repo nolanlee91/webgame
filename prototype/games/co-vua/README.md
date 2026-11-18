@@ -9,7 +9,7 @@ không đủ quân, 50 nước, lặp 3 lần, xin thua, hòa thỏa thuận. M�
 - `game.js` + `index.html` — canvas, HUD, menu, phong cấp, chat, lưu ván dở (`localStorage` `wgp.covua.v1`, dựng lại từ danh sách nước).
 - Ảnh: `assets/board-grid.webp` + `assets/pieces.png` (Codex, xem `assets/HANDOFF.md`); âm thanh + icon UI chép từ Cờ Caro.
 
-Chế độ: 2 người chung máy · chơi với máy (Dễ/Vừa) · online qua mã phòng + chat.
+Chế độ: chơi với máy (Dễ/Vừa, mặc định) · online qua mã phòng + chat. Không còn chế độ 2 người chung một máy (bản lưu cũ có chế độ này tự chuyển sang chơi với máy, ván dở chung máy bị bỏ).
 
 ## Test
 

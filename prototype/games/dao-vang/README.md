@@ -12,17 +12,16 @@ python -m http.server 8766
 # mở http://127.0.0.1:8766/games/dao-vang/
 ```
 
-- Có thể vào thẳng một chế độ: `?players=1` hoặc `?players=2`.
+- Có thể vào thẳng ván chơi: `?players=1` (link cũ `?players=2` cũng vào ván 1 người — chế độ 2 người cùng máy đã bỏ).
 - Thêm `&seed=11` để luôn ra cùng một màn chơi, tiện so sánh và báo lỗi.
 - Test logic: `cd prototype/games/dao-vang && npm test` (dùng Node ≥ 20, không cần cài gói nào).
 - Test trên trình duyệt (Chrome headless, điều khiển bằng phím và chạm thật): `node screenshots/e2e.mjs <thư-mục-output>`. Lệnh này cần server cổng 8766 đang chạy.
 
 ## Cách chơi
 
-| Chế độ | Thả móc |
-|---|---|
-| 1 người | Space, ↓ hoặc chạm/nhấp vào khung chơi |
-| 2 người cùng máy (chung phe, chung điểm) | P1: **S** (móc trái) · P2: **↓** (móc phải) · điện thoại: chạm nửa trái hoặc nửa phải |
+Chỉ chơi 1 người (đã bỏ chế độ 2 người cùng máy).
+
+- Thả móc: **Space**, **↓** hoặc chạm/nhấp vào khung chơi.
 
 - **P** hoặc **Esc**: tạm dừng. Game cũng tự dừng khi chuyển tab.
 - Khi kết thúc màn: nhấn Space hoặc chạm để sang màn tiếp theo, hoặc để chơi lại.
@@ -54,10 +53,7 @@ python -m http.server 8766
   - Hết giờ mà đủ mục tiêu thì qua màn và giữ điểm. Thiếu điểm thì thua, chơi lại từ màn 1.
   - Gom hết vàng, kim cương và túi trước khi hết giờ thì màn kết thúc sớm.
   - Màn chơi được sinh ngẫu nhiên theo seed. Vật thể không chồng lên nhau, và màn nào cũng đủ điểm để qua (đã có test).
-- **2 người:**
-  - Hai móc độc lập, chung đồng hồ và chung tổng điểm.
-  - Mỗi người được ghi riêng số điểm mình gom, hiện ở màn "Qua màn".
-  - Hai móc không gắp trùng một vật.
+- `logic.js` vẫn hỗ trợ `createGame({ players: 2 })` (hai móc, chung điểm, không gắp trùng — có test), nhưng giao diện chỉ mở 1 người.
 
 ## Cấu trúc
 

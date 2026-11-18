@@ -3,6 +3,7 @@
 Luật đầy đủ (`logic.js`): đi quân đúng luật 7 loại quân, chặn chân Mã / mắt Tượng, Pháo cần ngòi, Tướng không đối mặt, không được tự để bị chiếu;
 chiếu bí, hết nước (bên hết nước thua), chiếu mãi lặp 3 lần bị xử thua, lặp thế 3 lần hòa, 60 lượt mỗi bên không ăn quân hòa, hai bên hết quân tấn công hòa.
 Máy (`ai.js`): mức Dễ / Thường. Online 1v1 qua mã phòng (máy chủ ở `games-server/co-tuong/`, mặc định bật).
+Chỉ có 2 chế độ: **Chơi với máy** (mặc định, bạn cầm Đỏ) và **Online** — không còn chế độ 2 người chung một máy (bản lưu cũ có chế độ này tự chuyển sang chơi với máy, ván dở chung máy bị bỏ).
 
 - `game.js` — vẽ canvas, chạm/nhấp chọn quân rồi chạm ô sáng để đi, bàn phím (mũi tên + Enter, U đi lại, N ván mới, M tắt tiếng), biên bản nước đi,
   cầu hòa / xin thua, lưu ván dở (dựng lại từ danh sách nước, kiểm luật từng nước), online + chat qua `net.js`. Cầm Đen online thì bàn xoay.

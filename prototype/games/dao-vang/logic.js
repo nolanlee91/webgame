@@ -105,7 +105,7 @@ function makeHook(x, phase) {
   return { x, y: CFG.pivotY, phase, angle: CFG.maxAngle * Math.sin(phase), state: "swing", len: CFG.ropeMin, pull: 0, carry: null, earned: 0 };
 }
 
-// players: 1 = một người, 2 = hai người cùng máy (chung điểm, chung đồng hồ, mỗi người một móc).
+// players: 1 = một người (giao diện chỉ dùng chế độ này); 2 = hai móc chung điểm, chung đồng hồ — luật còn giữ, có test, nhưng không mở trên giao diện.
 export function createGame({ players = 1, seed = Date.now() >>> 0, level = 1, score = 0 } = {}) {
   const g = { players, seed, rng: seed >>> 0, level, score, levelStartScore: score, target: targetFor(level), time: CFG.levelTime, status: "playing", objects: [], hooks: [], events: [], tick: 0 };
   g.objects = generateLevel(g, level);

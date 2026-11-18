@@ -69,19 +69,17 @@
         <h2>Đào Vàng</h2>
         <p>Thả móc, gom vàng và kim cương trước khi hết giờ. Đạt đủ điểm mục tiêu để qua màn.</p>
         <div class="modes">
-          <button class="btn btn--big btn--primary" id="play1" type="button">▶ 1 người</button>
-          <button class="btn btn--big" id="play2" type="button">▶ 2 người cùng máy</button>
+          <button class="btn btn--big btn--primary" id="play1" type="button">▶ Bắt đầu chơi</button>
         </div>
       </div>
     </div>
     <div class="row" id="controls" hidden>
       <button class="btn" id="pauseBtn" type="button"><img src="assets/ui/icon-tam-dung.png" alt="" /> Tạm dừng<span class="kb">(P)</span></button>
       <button class="btn" id="muteBtn" type="button" aria-pressed="false"><img id="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /> <span id="muteTx">Âm thanh: bật<span class="kb"> (M)</span></span></button>
-      <button class="btn" id="menuBtn" type="button"><img src="assets/ui/icon-roi-phong.png" alt="" /> Đổi chế độ</button>
+      <button class="btn" id="menuBtn" type="button"><img src="assets/ui/icon-roi-phong.png" alt="" /> Về menu</button>
     </div>
     <div class="help">
-      <div><b>1 người:</b> Space, ↓ hoặc chạm màn hình để thả móc khi móc lắc đúng hướng.</div>
-      <div><b>2 người cùng máy (chung phe):</b> P1 bấm <b>S</b> (móc trái), P2 bấm <b>↓</b> (móc phải). Trên điện thoại: chạm nửa trái / nửa phải.</div>
+      <div><b>Cách chơi:</b> Space, ↓ hoặc chạm màn hình để thả móc khi móc lắc đúng hướng.</div>
       <div>Vật nặng kéo lên chậm (vàng lớn, đá) — vật nhẹ mà quý (kim cương) kéo lên nhanh. Thùng TNT nổ phá hủy vật thể xung quanh. Túi “?” cho điểm ngẫu nhiên.</div>
       <div class="legend-box"><div class="lb">Bảng điểm</div>
       <table class="legend" aria-label="Bảng điểm vật thể">
@@ -109,12 +107,11 @@
       if (inst) inst.destroy();
       menu.hidden = true; controls.hidden = false;
       const seed = params.has("seed") ? Number(params.get("seed")) : undefined;
-      inst = mount(stage, { mode: "single", locale: "vi", localPlayers: n, seed, sdk, player: { id: "guest", name: "Khách" } });
+      inst = mount(stage, { mode: "single", locale: "vi", localPlayers: 1, seed, sdk, player: { id: "guest", name: "Khách" } });
       window.__game = inst;
       stage.querySelector("canvas").focus();
     }
     document.getElementById("play1").onclick = () => start(1);
-    document.getElementById("play2").onclick = () => start(2);
     const muteBtn = document.getElementById("muteBtn");
     const showMute = () => { const m = sdk.sound.muted; document.getElementById("muteTx").innerHTML = (m ? "Âm thanh: tắt" : "Âm thanh: bật") + '<span class="kb"> (M)</span>'; document.getElementById("muteIc").src = "assets/ui/icon-am-thanh-" + (m ? "tat" : "bat") + ".png"; muteBtn.setAttribute("aria-pressed", String(m)); };
     const toggleMute = () => { sdk.sound.muted = !sdk.sound.muted; localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0"); showMute(); };
@@ -123,7 +120,8 @@
     showMute();
     pauseBtn.onclick = () => { inst.paused ? inst.resume() : inst.pause(); stage.querySelector("canvas").focus(); };
     document.getElementById("menuBtn").onclick = () => { inst && inst.destroy(); inst = null; menu.hidden = false; controls.hidden = true; };
-    if (params.get("players") === "1" || params.get("players") === "2") start(Number(params.get("players")));
+    // Chỉ còn 1 người chơi: link cũ ?players=2 (2 người cùng máy, đã bỏ) cũng vào thẳng ván 1 người.
+    if (params.get("players") === "1" || params.get("players") === "2") start(1);
   </script>
 </body>
 </html>

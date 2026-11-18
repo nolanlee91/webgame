@@ -112,7 +112,7 @@ export function mount(el, ctx = {}) {
   loadArt().catch(() => {});
   const sdk = ctx.sdk || {};
   const sfx = makeSfx("assets/sfx/", ["tha-moc", "keo-vat", "trung-vang", "trung-kim-cuong", "trung-da", "no-tnt", "het-gio", "qua-man", "thang", "thua"], sdk);
-  const players = ctx.localPlayers === 2 ? 2 : 1;
+  const players = 1; // chỉ chơi 1 người (đã bỏ chế độ 2 người cùng máy; ctx.localPlayers cũ = 2 cũng thành 1 người)
   let g = createGame({ players, seed: ctx.seed });
   let paused = false, destroyed = false, acc = 0, last = performance.now(), raf = 0;
   const pops = [];   // điểm bay lên
@@ -156,23 +156,15 @@ export function mount(el, ctx = {}) {
     if (e.repeat) return;
     const k = e.code;
     if (k === "KeyP" || k === "Escape") { setPaused(!paused); e.preventDefault(); return; }
-    let who = -1;
-    if (players === 1 && ["Space", "ArrowDown", "KeyS", "Enter"].includes(k)) who = 0;
-    if (players === 2) {
-      if (k === "KeyS" || k === "Space") who = 0;
-      if (k === "ArrowDown" || k === "Enter") who = 1;
-    }
-    if (who < 0) return;
+    if (!["Space", "ArrowDown", "KeyS", "Enter"].includes(k)) return;
     e.preventDefault();
-    act(who);
+    act(0);
   }
   function onPointer(e) {
     sfx.unlock();
     canvas.focus({ preventScroll: true });
-    const r = canvas.getBoundingClientRect();
-    const who = players === 2 && e.clientX - r.left > r.width / 2 ? 1 : 0;
     e.preventDefault();
-    act(who);
+    act(0);
   }
   function onVis() { if (document.hidden) setPaused(true); }
   window.addEventListener("keydown", onKey);
@@ -287,11 +279,6 @@ export function mount(el, ctx = {}) {
     if (art.ready) {
       const bob = h.state === "back" ? Math.round(Math.sin(performance.now() / 70)) : 0;
       drawAnchored("station", h.x, h.y + bob, 0);
-      if (players === 2) {
-        c2.fillStyle = col; c2.fillRect(h.x - 66, CFG.groundY - 22, 28, 16);
-        c2.fillStyle = "#14181c"; c2.font = "bold 13px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
-        c2.fillText("P" + (i + 1), h.x - 52, CFG.groundY - 13);
-      }
       return;
     }
     // bệ tời
@@ -305,11 +292,6 @@ export function mount(el, ctx = {}) {
     c2.fillStyle = "#3a4f6a"; c2.fillRect(h.x + 22, h.y - 6 + bob, 20, 26);
     c2.fillStyle = "#f0c79a"; c2.fillRect(h.x + 24, h.y - 24 + bob, 16, 16);
     c2.fillStyle = col; c2.fillRect(h.x + 21, h.y - 30 + bob, 22, 8);
-    c2.fillStyle = "#14181c"; c2.font = "bold 13px system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
-    if (players === 2) {
-      c2.fillStyle = col; c2.fillRect(h.x - 14, CFG.groundY - 20, 28, 16);
-      c2.fillStyle = "#14181c"; c2.fillText("P" + (i + 1), h.x, CFG.groundY - 11);
-    }
   }
   function drawHook(h, i) {
     const t = tipOf(h);
@@ -361,7 +343,7 @@ export function mount(el, ctx = {}) {
     pxText("MỤC TIÊU", 170, 23, PX.soft, FONT(800, 13));
     pxText(g.target + (reached ? " ✓" : ""), 250, 22, reached ? COLORS.ok : PX.ink, FONT(800, 20));
     c2.textAlign = "center";
-    pxText("MÀN " + g.level + (players === 2 ? " · 2 NGƯỜI" : ""), W / 2, 23, PX.ink, FONT(800, 15));
+    pxText("MÀN " + g.level, W / 2, 23, PX.ink, FONT(800, 15));
     c2.textAlign = "right";
     const low = g.time <= 10, tc = low ? COLORS.bad : PX.ink;
     if (low && g.time > 0 && !g._lowWarned) { g._lowWarned = true; sfx.play("het-gio", 0.45); } // còn 10 giây (cờ gắn vào màn hiện tại)
@@ -419,15 +401,14 @@ export function mount(el, ctx = {}) {
     c2.restore();
     if (flash > 0) { c2.fillStyle = "rgba(255,220,160," + flash * 2 + ")"; c2.fillRect(0, 0, W, H); }
     hud();
-    const keyHint = players === 2 ? "P1: phím S · P2: phím ↓ · hoặc chạm nửa màn hình" : "Space / ↓ hoặc chạm màn hình để thả móc";
+    const keyHint = "Space / ↓ hoặc chạm màn hình để thả móc";
     if (g.status === "playing" && g.tick < 240 && !paused) {
       c2.font = FONT(700, 15); const kw = Math.ceil(c2.measureText(keyHint).width) + 32;
       pxBox(Math.round(W / 2 - kw / 2), H - 48, kw, 32, PX.panel, PX.line, true);
       c2.textAlign = "center"; c2.textBaseline = "middle"; pxText(keyHint, W / 2, H - 31, PX.ink, FONT(700, 15));
     }
     if (g.status === "cleared") {
-      const extra = players === 2 ? ["P1 gom " + g.hooks[0].earned + " · P2 gom " + g.hooks[1].earned] : [];
-      overlay("Qua màn " + g.level + "!", ["Điểm " + g.score + " / mục tiêu " + g.target, ...extra, "Nhấn Space hoặc chạm để sang màn " + (g.level + 1)], COLORS.ok);
+      overlay("Qua màn " + g.level + "!", ["Điểm " + g.score + " / mục tiêu " + g.target, "Nhấn Space hoặc chạm để sang màn " + (g.level + 1)], COLORS.ok);
     } else if (g.status === "failed") {
       overlay("Hết giờ!", ["Thiếu " + (g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + g.score, "Nhấn Space hoặc chạm để chơi lại"], COLORS.bad);
     } else if (paused) {

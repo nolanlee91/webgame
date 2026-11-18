@@ -74,16 +74,23 @@ async function newPage(name, w, h, mobile) {
 }
 async function until(fn, ms = 6000, step = 60) { const end = Date.now() + ms; while (Date.now() < end) { try { const v = await fn(); if (v) return v; } catch {} await sleep(step); } return null; }
 
-// ===================== 1. Desktop, chuột — 2 người chung máy =====================
+// Dựng sẵn thế cờ: ghi ván dở (chơi với máy, bạn cầm Đỏ) vào localStorage rồi tải lại → "Chơi tiếp ván dở"
+const saveGame = (pg, moves) => pg.ev(`localStorage.setItem('wgp.tuong.v1', ${JSON.stringify(JSON.stringify({ opts: { mode: 'ai', aiLevel: 'easy' }, game: { mode: 'ai', aiLevel: 'easy', score: { 1: 0, 2: 0, draw: 0 }, round: 1, moves: moves.map(([a, b]) => [sq(a), sq(b)]) } }))})`);
+const waitAi = async (pg, n) => until(async () => { const v = await pg.S(); return v.moves === n && !v.thinking ? v : null; }, 5000);
+
+// ===================== 1. Desktop, chuột — chơi với máy (mặc định) =====================
 const D = await newPage('desktop', 1440, 900, false);
-await D.nav(URL0); await D.ev('localStorage.clear()'); await D.nav(URL0);
-check('mở game → hiện menu, mặc định Chơi với máy · Dễ', await D.vis('#ovMenu') && await D.ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,easy');
+await D.nav(URL0); await D.ev('localStorage.clear()');
+// Bản lưu cũ còn chế độ "2 người chung máy" (pvp) → chuyển sang chơi với máy, bỏ ván dở chung máy
+await D.ev(`localStorage.setItem('wgp.tuong.v1', JSON.stringify({opts:{mode:'pvp',aiLevel:'normal'},game:{mode:'pvp',aiLevel:'easy',score:{1:1,2:0,draw:0},round:2,moves:[[${sq('h2')},${sq('e2')}]]}}))`);
+await D.nav(URL0);
+check('bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy', await D.ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,normal' && await D.vis('#optAi') && !(await D.vis('#resumeGameBtn')));
+await D.ev('localStorage.clear()'); await D.nav(URL0);
+check('mở game → hiện menu, mặc định Chơi với máy · Dễ, chỉ còn Chơi với máy + Online', await D.vis('#ovMenu') && await D.ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,easy' && await D.ev(`[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()`) === 'ai,online' && !/chung máy/.test(await D.text('#ovMenu')));
 await D.shot('tuong-desktop-menu.png');
-await D.press('.seg[data-k=mode] [data-v=pvp]');
-check('chọn 2 người → ẩn mức độ máy', !(await D.vis('#optAi')));
 await D.press('#startBtn');
 let s = await D.S();
-check('Bắt đầu → 32 quân đúng chỗ, Đỏ đi trước, HUD Đỏ sáng', s.moves === 0 && s.turn === 1 && await D.ev(`__game.state.board.filter(x=>x!=='.').length===32&&document.getElementById('plR').classList.contains('on')`));
+check('Bắt đầu → 32 quân đúng chỗ, Đỏ (bạn) đi trước, HUD Đỏ sáng', s.mode === 'ai' && s.moves === 0 && s.turn === 1 && await D.ev(`__game.state.board.filter(x=>x!=='.').length===32&&document.getElementById('plR').classList.contains('on')`));
 check('desktop: bàn cờ nằm gọn, không tràn trang, ô ≥ 40px', await D.boardIn() && await D.fits() && (await D.cs()) >= 40, String(await D.cs()));
 await D.at('h2'); s = await D.S();
 check('nhấp Pháo h2 → chọn quân, hiện ô đi được', s.sel === sq('h2') && s.dests.includes(sq('e2')) && s.dests.length > 5, JSON.stringify(s.dests));
@@ -92,37 +99,39 @@ check('nhấp lại quân đang chọn → bỏ chọn', s.sel === -1);
 await D.at('e7'); s = await D.S();
 check('Đỏ nhấp vào quân Đen → không chọn được', s.sel === -1 && s.moves === 0);
 await D.go('h2', 'e2'); s = await D.S();
-check('Pháo h2 → e2 (Pháo đầu): đi được, tới lượt Đen', s.moves === 1 && s.turn === 2 && /Lượt Đen/.test(await D.text('#hStatus')));
+check('Pháo h2 → e2 (Pháo đầu): đi được, tới lượt máy (Đen)', s.moves === 1 && s.turn === 2);
+s = await waitAi(D, 2);
+check('máy (Đen) tự đi lại, trả lượt cho bạn', !!s && s.turn === 1, JSON.stringify(s));
 await D.go('h0', 'h3'); s = await D.S();
-check('Mã đi sai luật (h0 → h3) không được', s.moves === 1 && s.turn === 2);
-await D.go('h7', 'e7'); s = await D.S();
-check('Đen: Pháo h7 → e7', s.moves === 2 && s.turn === 1);
+check('Mã đi sai luật (h0 → h3) không được', s.moves === 2 && s.turn === 1);
+// Thế dựng sẵn: 1. Pháo h2-e2, Pháo h7-e7 — tới lượt Đỏ
+await saveGame(D, [['h2', 'e2'], ['h7', 'e7']]); await D.nav(URL0); await D.press('#resumeGameBtn');
+s = await D.S();
+check('chơi tiếp ván dở dựng sẵn → 2 nước, tới lượt Đỏ', s.moves === 2 && s.turn === 1 && s.mode === 'ai', JSON.stringify(s));
 await D.go('e2', 'e6'); s = await D.S();
 check('Pháo e2 ăn Tốt e6 → CHIẾU (Pháo e7 làm ngòi), báo "Chiếu!"', s.moves === 3 && s.check && /Chiếu/.test(await D.text('#hStatus')) && await D.ev(`document.getElementById('plB').classList.contains('chk')`), await D.text('#hStatus'));
 await D.shot('tuong-desktop-chieu.png');
-await D.go('b9', 'c7'); s = await D.S();
-check('đang bị chiếu: đi Mã không giải chiếu → không được', s.moves === 3 && s.turn === 2);
-check('nhật ký nước đi ghi đúng tên nước', (await D.text('#logList')).includes('Pháo 2-5') && (await D.text('#logN')).includes('3 nước'), await D.text('#logList'));
+check('nhật ký nước đi ghi đúng tên nước (gồm nước chiếu Pháo 5↑4)', (await D.text('#logList')).includes('Pháo 2-5') && (await D.text('#logList')).includes('Pháo 5↑4') && /[34] nước/.test(await D.text('#logN')), await D.text('#logList'));
 await D.key('KeyU', 'u', 85); s = await D.S();
-check('phím U → đi lại 1 nước, hết chiếu', s.moves === 2 && !s.check && s.turn === 1);
+check('phím U → đi lại (bỏ nước của bạn, cả nước máy nếu máy đã đi), hết chiếu', s.moves === 2 && !s.check && s.turn === 1);
 await D.press('#resignBtn'); await sleep(500);
 s = await D.S();
-check('Xin thua (bên đang tới lượt = Đỏ) → Đen thắng, hiện bảng kết quả', s.winner === 2 && s.reason === 'resign' && await until(() => D.vis('#ovEnd'), 2000) && (await D.text('#eTitle')).includes('Đen thắng'), await D.text('#eTitle'));
+check('Xin thua → Máy (Đen) thắng, hiện bảng kết quả', s.winner === 2 && s.reason === 'resign' && await until(() => D.vis('#ovEnd'), 2000) && (await D.text('#eTitle')).includes('Máy thắng'), await D.text('#eTitle'));
 await D.shot('tuong-desktop-ket-thuc.png');
 await D.press('#nextBtn'); s = await D.S();
-check('Ván tiếp → ván 2, bàn mới, tỉ số Đen 1', s.round === 2 && s.moves === 0 && s.score[2] === 1 && (await D.text('#sB')) === '1');
+check('Ván tiếp → ván 2, bàn mới, tỉ số Máy 1', s.round === 2 && s.moves === 0 && s.score[2] === 1 && (await D.text('#sB')) === '1');
 await D.ev(`document.getElementById('cv').focus()`);
 for (let i = 0; i < 3; i++) await D.key('ArrowUp', 'ArrowUp', 38);
 await D.key('Enter', 'Enter', 13); await D.key('ArrowUp', 'ArrowUp', 38); await D.key('Enter', 'Enter', 13); s = await D.S();
 check('bàn phím: mũi tên + Enter chọn Tốt e3 rồi tiến e4', s.moves === 1 && await D.ev(`__game.state.board[${sq('e4')}]==='P'`));
-await D.press('#drawBtn'); s = await D.S();
-check('2 người: Cầu hòa (xác nhận) → hòa', s.winner === 3 && s.reason === 'agreed');
-await until(() => D.vis('#ovEnd'), 2000); await D.press('#menuBtnE'); await sleep(200);
+await waitAi(D, 2);
+await D.press('#menuBtn'); await D.press('#menuBtnP'); await sleep(200);
 
 // ---- chơi với máy ----
 await D.press('.seg[data-k=mode] [data-v=ai]');
 check('chọn Chơi với máy → hiện mức độ', await D.vis('#optAi'));
-await D.press('#startBtn');
+await D.press('#startBtn'); s = await D.S();
+check('Trận mới → bàn mới, chế độ máy', s.moves === 0 && s.mode === 'ai');
 await D.go('h2', 'e2');
 s = await until(async () => { const v = await D.S(); return v.moves === 2 && !v.thinking ? v : null; }, 5000);
 check('chơi với máy: Đỏ đi → máy (Đen) tự đi lại', !!s && s.turn === 1, JSON.stringify(s));
@@ -141,16 +150,18 @@ check('desktop không có lỗi JS', D.errors.length === 0, D.errors.join(' | ')
 const T = await newPage('mobile', 390, 844, true);
 await T.nav(URL0); await T.ev('localStorage.clear()'); await T.nav(URL0);
 await T.shot('tuong-mobile-menu.png');
-await T.press('.seg[data-k=mode] [data-v=pvp]'); await T.press('#startBtn');
+await T.press('#startBtn');
 check('mobile dọc: bàn cờ nằm gọn, không tràn, ô ≥ 34px', await T.boardIn() && await T.fits() && (await T.cs()) >= 34, String(await T.cs()));
 await T.at('b0'); s = await T.S();
 check('chạm Mã b0 → chọn, hiện ô đi + gợi ý chạm', s.sel === sq('b0') && s.dests.length === 2 && await T.vis('#tip'));
 await T.shot('tuong-mobile-chon-quan.png');
 await T.at('c2'); s = await T.S();
 check('chạm ô sáng c2 → Mã đi', s.moves === 1 && await T.ev(`__game.state.board[${sq('c2')}]==='N'`));
-await T.go('b7', 'b0'); s = await T.S();
-check('chạm nước sai (Pháo Đen b7 → b0: qua ngòi mà ô đích trống) → không đi', s.moves === 1);
-await T.go('h9', 'g7'); await T.go('h2', 'h6'); s = await T.S();
+s = await waitAi(T, 2);
+check('máy (Đen) trả lời', !!s && s.turn === 1, JSON.stringify(s));
+await T.go('h0', 'h3'); s = await T.S();
+check('chạm nước sai (Mã h0 → h3) → không đi', s.moves === 2);
+await T.go('h2', 'h4'); await waitAi(T, 4); s = await T.S();
 check('mobile: nút xin thua / cầu hòa / đi lại hiển thị trong màn hình', await T.vis('#resignBtn') && await T.vis('#drawBtn') && await T.vis('#undoBtn') && await T.fits());
 await T.shot('tuong-mobile-choi.png');
 await T.view(844, 390, true);

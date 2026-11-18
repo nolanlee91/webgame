@@ -66,7 +66,8 @@ function makeSfx(dir, names, sdk) {
   };
 }
 
-const DEFAULT_OPTS = { mode: "pvp", aiLevel: "hard", size: 15, rule: "free" };
+// Chỉ còn "ai" (chơi với máy) và "online" — bỏ chế độ 2 người chung máy.
+const DEFAULT_OPTS = { mode: "ai", aiLevel: "hard", size: 15, rule: "free" };
 const NAME_KEY = "wgp.caro.name";
 const ERR = {
   "no-room": "Không tìm thấy phòng — kiểm tra lại mã phòng.",
@@ -90,10 +91,12 @@ function loadSave() {
     const v = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!v || typeof v !== "object") return { opts: { ...DEFAULT_OPTS }, game: null };
     const o = v.opts || {};
-    const opts = { mode: o.mode === "ai" || o.mode === "online" ? o.mode : "pvp", aiLevel: o.aiLevel === "easy" ? "easy" : "hard", size: o.size === 19 ? 19 : 15, rule: o.rule === "block2" ? "block2" : "free" };
+    // Bản lưu cũ có mode "pvp" (2 người chung máy, đã bỏ) → chuyển sang chơi với máy.
+    const opts = { mode: o.mode === "online" ? "online" : "ai", aiLevel: o.aiLevel === "easy" ? "easy" : "hard", size: o.size === 19 ? 19 : 15, rule: o.rule === "block2" ? "block2" : "free" };
     let game = null;
     const g = v.game;
-    if (g && Array.isArray(g.moves) && [15, 19].includes(g.size)) {
+    // Ván dở của chế độ chung máy cũ thì bỏ (không ép thành ván với máy giữa chừng).
+    if (g && g.mode === "ai" && Array.isArray(g.moves) && [15, 19].includes(g.size)) {
       // Dựng lại từ danh sách nước đi để không tin dữ liệu bàn cờ đã lưu (chống lỗi/sửa tay).
       const base = { ...newMatch(g), score: { 1: g.score?.[1] | 0, 2: g.score?.[2] | 0, draw: g.score?.draw | 0 }, round: Math.max(1, g.round | 0), first: g.first === 2 ? 2 : 1 };
       game = replay(base, g.moves);
@@ -113,7 +116,7 @@ export function mount(root, ctx = {}) {
     eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), pSub: $("pSub"),
     optName: $("optName"), nameIn: $("nameIn"), mJoin: $("mJoin"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
     ovRoom: $("ovRoom"), rCode: $("rCode"), rOpts: $("rOpts"), rSeats: $("rSeats"), rNote: $("rNote"), rStart: $("rStart"), rCopy: $("rCopy"), rLeave: $("rLeave"),
-    toast: $("toast"), menuP: $("menuBtnP"), menuE: $("menuBtnE"),
+    toast: $("toast"), menuP: $("menuBtnP"), menuE: $("menuBtnE"), place: $("placeBtn"),
     chat: $("chat"), chatLog: $("chatLog"), chatF: $("chatF"), chatIn: $("chatIn"), chatBtn: $("chatBtn"), chatN: $("chatN"), chatX: $("chatX"),
   };
   root.querySelectorAll(".pcX").forEach((e) => { e.innerHTML = pieceSvg(1); });
@@ -260,7 +263,7 @@ export function mount(root, ctx = {}) {
       if (k >= 1) fx.bad = null;
       else { g2.fillStyle = `rgba(224,72,61,${0.55 * (1 - k)})`; g2.fillRect(ox + fx.bad.c * cs, oy + fx.bad.r * cs, cs, cs); }
     }
-    // Ô chờ xác nhận (chạm lần 1) / con trỏ bàn phím / rê chuột
+    // Ô đang chọn chờ bấm Đặt (cảm ứng) / con trỏ bàn phím / rê chuột
     const canAct = !s.winner && !blocked();
     const mark = pending || cursor;
     if (canAct && mark && s.board[mark[0] * n + mark[1]] === 0) drawPiece(s.turn, ox + mark[1] * cs, oy + mark[0] * cs, cs, 0.5);
@@ -281,6 +284,7 @@ export function mount(root, ctx = {}) {
     const nm = names();
     ui.nX.textContent = nm[1]; ui.nO.textContent = nm[2];
     document.body.classList.toggle("is-online", online());
+    document.body.classList.toggle("in-game", !!s);
     if (online()) {
       const tag = (k) => "Quân " + SYM[k] + (mySide() === k ? " · Bạn" : "") + (room.players[k - 1] && !room.players[k - 1].connected ? " · mất kết nối" : "");
       ui.plX.querySelector("small").textContent = tag(1); ui.plO.querySelector("small").textContent = tag(2);
@@ -308,7 +312,10 @@ export function mount(root, ctx = {}) {
     ui.next.classList.toggle("btn--primary", !!s.winner);
     ui.next.firstChild.textContent = s.winner ? "Ván tiếp ▶" : "Ván mới";
     ui.tip.hidden = !pending;
+    ui.place.disabled = !canConfirm();
   }
+  // Nút Đặt (cảm ứng) chỉ bấm được khi đã chọn ô trống, đang tới lượt mình và máy không đang nghĩ.
+  const canConfirm = () => !!(s && pending && !s.winner && !blocked() && s.board[pending[0] * s.size + pending[1]] === 0);
   function showMute() {
     const m = !!sdk.sound.muted;
     ui.mute.setAttribute("aria-pressed", String(m));
@@ -565,6 +572,7 @@ export function mount(root, ctx = {}) {
       if (!canPlay(s, r, c)) { if (s.board[r * s.size + c]) { fx.bad = { r, c, t: performance.now() }; sfx.play("trung-da", 0.35); } return false; }
       sent = net.send({ t: "move", r, c }); pending = null;
       if (!sent) toast("Đang nối lại máy chủ…");
+      hud();
       return sent;
     }
     return apply(r, c);
@@ -633,13 +641,15 @@ export function mount(root, ctx = {}) {
   }
 
   // ---------- Nhập liệu ----------
-  // Chuột: một lần bấm là đặt. Cảm ứng/bút: chạm lần 1 chọn ô (hiện quân mờ), chạm lại đúng ô đó mới đặt — chống bấm nhầm ô nhỏ.
+  // Chuột: một lần bấm là đặt. Cảm ứng/bút: chạm ô để chọn (hiện quân mờ), chạm ô khác để đổi, bấm nút ĐẶT để đặt — chống bấm nhầm ô nhỏ.
+  const markTouch = () => document.body.classList.add("touch");
+  try { if (matchMedia("(any-pointer: coarse)").matches) markTouch(); } catch {}
   function onPointerDown(e) {
     if (e.button > 0) return;
+    if (e.pointerType !== "mouse") markTouch();
     const cell = cellAt(e.clientX, e.clientY);
     if (!cell || !s) return;
     if (e.pointerType === "mouse") { cursor = null; place(cell[0], cell[1]); hover = null; }
-    else if (pending && pending[0] === cell[0] && pending[1] === cell[1]) place(cell[0], cell[1]);
     else if (s && !s.winner && !blocked() && ui.ovPause.hidden && ui.ovEnd.hidden) {
       if (s.board[cell[0] * s.size + cell[1]]) { fx.bad = { r: cell[0], c: cell[1], t: performance.now() }; pending = null; }
       else pending = cell;
@@ -650,6 +660,7 @@ export function mount(root, ctx = {}) {
   cv.addEventListener("pointerdown", onPointerDown);
   cv.addEventListener("pointermove", onPointerMove);
   cv.addEventListener("pointerleave", () => { hover = null; });
+  ui.place.onclick = () => { if (canConfirm()) place(pending[0], pending[1]); cv.focus({ preventScroll: true }); };
   ui.undo.onclick = doUndo;
   ui.next.onclick = doNext;
   ui.menu.onclick = () => setPause(ui.ovPause.hidden);

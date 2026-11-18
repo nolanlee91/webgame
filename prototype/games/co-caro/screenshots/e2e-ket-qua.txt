@@ -1,30 +1,34 @@
-PASS menu hiện khi mở game, mặc định 2 người · 15×15 · Tự do
-PASS Bắt đầu → bàn 15×15 trống, X đi trước, khung X sáng "LƯỢT" — {"size":15,"rule":"free","mode":"pvp","turn":1,"moves":0,"winner":0,"line":null,"score":{"1":0,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
-PASS nhấp ô (7,7) → đặt X, chuyển lượt O, HUD đổi sang O — Lượt O · Người 2
+PASS bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy
+PASS menu hiện khi mở game, mặc định Chơi với máy (khó) · 15×15 · Tự do, không còn "2 người chung máy"
+PASS Bắt đầu → bàn 15×15 trống, X (Bạn) đi trước, khung X sáng "LƯỢT" — {"size":15,"rule":"free","mode":"ai","turn":1,"moves":0,"winner":0,"line":null,"score":{"1":0,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
+PASS desktop chuột: không hiện nút Đặt (một lần nhấp là đặt)
+PASS nhấp ô (7,7) → đặt X ngay (1 lần nhấp), máy đang nghĩ — Máy đang nghĩ…
+PASS máy trả lời, trả lượt cho bạn
 PASS nhấp lại ô đã có quân → không đổi gì (báo đỏ)
 PASS nhấp ra ngoài bàn → không đổi gì
 PASS nhấp nhanh 6 lần vào 1 ô trống → chỉ đặt 1 quân
-PASS phím U → đi lại 1 nước
+PASS phím U → đi lại cả nước của bạn và của máy
 PASS nút Đi lại → về bàn trống, nút bị khoá
 PASS bàn phím: mũi tên + Enter đặt quân — [[7,8,1]]
-PASS 4 quân X liền nhau chưa thắng
-PASS X đủ 5 quân chéo → X thắng, tỉ số 1–0, có đường thắng 5 ô — {"size":15,"rule":"free","mode":"pvp","turn":2,"moves":9,"winner":1,"line":5,"score":{"1":1,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
+PASS 4 quân X liền nhau chưa thắng, tới lượt bạn
+PASS X đủ 5 quân chéo → Bạn thắng, tỉ số 1–0, có đường thắng 5 ô — {"size":15,"rule":"free","mode":"ai","turn":2,"moves":9,"winner":1,"line":5,"score":{"1":1,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
 PASS spam 30 lần nhấp sau khi thắng → bàn khoá, không thêm quân
-PASS màn hình thắng hiện: "X thắng!", tỉ số, nút Ván tiếp — Người 1 xếp 5 quân theo đường chéo sau 9 nước. Ván sau Người 2 đi trước.
-PASS âm thanh: tải được và phát tiếng đặt quân + tiếng thắng — 6 file
+PASS màn hình thắng hiện: "Bạn thắng!", tỉ số, nút Ván tiếp — Bạn xếp 5 quân theo đường chéo sau 9 nước. Ván sau Máy (khó) đi trước.
+PASS âm thanh: tải được và phát tiếng đặt quân + tiếng thắng — 7 file
 PASS "Xem bàn cờ" đóng bảng, nút công cụ thành "Ván tiếp"
-PASS Ván tiếp → ván 2, bàn trống, người thua (O) đi trước, giữ tỉ số — {"size":15,"rule":"free","mode":"pvp","turn":2,"moves":0,"winner":0,"line":null,"score":{"1":1,"2":0,"draw":0},"round":2,"first":2,"thinking":false,"pending":null}
+PASS Ván tiếp → ván 2, người thua (máy, O) đi trước và tự đánh, giữ tỉ số — {"size":15,"rule":"free","mode":"ai","turn":1,"moves":1,"winner":0,"line":null,"score":{"1":1,"2":0,"draw":0},"round":2,"first":2,"thinking":false,"pending":null}
 PASS phím M tắt tiếng (lưu chung wgp.muted)
 PASS nút âm thanh bật lại
 PASS Esc → bảng Tạm dừng
 PASS đang tạm dừng: nhấp bàn không đặt quân
 PASS Chơi tiếp → đóng bảng
-PASS tải lại trang → menu có "Chơi tiếp ván dở" (ván 2, 2 nước, 1–0) — Ván 2 đang dở · 2 nước · tỉ số 1 – 0
-PASS chơi tiếp ván dở → đúng bàn, đúng lượt, đúng tỉ số — {"size":15,"rule":"free","mode":"pvp","turn":2,"moves":2,"winner":0,"line":null,"score":{"1":1,"2":0,"draw":0},"round":2,"first":2,"thinking":false,"pending":null}
+PASS tải lại trang → menu có "Chơi tiếp ván dở" (ván 2, 3 nước, 1–0, với máy) — Ván 2 đang dở · 3 nước · tỉ số 1 – 0 (với máy)
+PASS chơi tiếp ván dở → đúng bàn, đúng lượt, đúng tỉ số — {"size":15,"rule":"free","mode":"ai","turn":1,"moves":3,"winner":0,"line":null,"score":{"1":1,"2":0,"draw":0},"round":2,"first":2,"thinking":false,"pending":null}
+PASS dựng thế 224 nước, chưa ai thắng, tới lượt bạn — {"size":15,"rule":"free","mode":"ai","turn":1,"moves":224,"winner":0,"line":null,"score":{"1":0,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
 PASS bàn kín không ai đủ 5 → "Hòa!", cộng 1 ván hòa — 3
 PASS luật Chặn 2 đầu: 5 quân bị chặn 2 đầu → chưa thắng
-PASS luật Chặn 2 đầu: 5 quân chéo thoáng → thắng — {"size":15,"rule":"block2","mode":"pvp","turn":2,"moves":17,"winner":1,"line":5,"score":{"1":1,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
-PASS chọn "Chơi với máy" → hiện lựa chọn Dễ/Khó
+PASS luật Chặn 2 đầu: 5 quân chéo thoáng → thắng — {"size":15,"rule":"block2","mode":"ai","turn":2,"moves":9,"winner":1,"line":5,"score":{"1":1,"2":0,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
+PASS Chơi với máy → có lựa chọn Dễ/Khó
 PASS HUD: "Bạn" (X) vs "Máy (khó)" (O)
 PASS bạn đánh → máy "đang nghĩ", bàn khoá
 PASS nhấp trong lúc máy nghĩ → không đặt được
@@ -33,20 +37,27 @@ PASS Đi lại khi chơi với máy → bỏ cả nước của bạn và của 
 PASS đánh với máy đến hết ván → có kết quả, không lỗi — người thắng: 2 sau 18 nước
 PASS màn hình kết thúc hiện "Bạn thắng!" / "Máy thắng!" — Máy thắng!
 PASS ván tiếp với máy: nếu máy thua thì máy đi trước (tự đánh) — {"size":15,"rule":"free","mode":"ai","turn":1,"moves":0,"winner":0,"line":null,"score":{"1":0,"2":1,"draw":0},"round":2,"first":1,"thinking":false,"pending":null}
+PASS Trận mới từ menu → ván với máy, bàn trống
 PASS thu nhỏ về mobile dọc giữa ván → vẫn bấm trúng ô
 PASS mobile dọc: bàn nằm gọn trong khung, không cuộn trang
 PASS xoay ngang → vẫn bấm trúng ô, bàn gọn trong màn — ô 17.3px
 PASS về desktop 1280×720 → vẫn đúng ô, bàn gọn — ô 36.0px
 PASS mobile: menu không tràn, nút ≥ 44px
 PASS mobile: chạm "Bắt đầu" → vào ván — [844,0,true]
-PASS mobile 15×15: ô ≥ 22px (có chạm 2 lần xác nhận), bàn gọn trong màn — 22.7px/ô
+PASS mobile 15×15: ô ≥ 22px, bàn gọn trong màn — 22.7px/ô
 PASS mobile: nút công cụ ≥ 44px, không đè bàn cờ
-PASS chạm lần 1 → chỉ chọn ô (quân mờ + gợi ý "chạm lần nữa"), chưa đặt
+PASS mobile: nút "Đặt quân" hiện dưới bàn, cao ≥ 44px, không đè bàn, trong màn hình, đang khoá (chưa chọn ô) — {"l":13,"t":716,"r":373,"b":768,"h":52,"w":360}
+PASS chạm 1 ô → chỉ chọn ô (quân mờ + gợi ý), chưa đặt; nút Đặt bấm được
 PASS chạm sang ô khác → đổi ô chọn, vẫn chưa đặt
-PASS chạm lần 2 đúng ô → đặt X, chuyển lượt
-PASS chạm nhanh 8 lần 1 ô → đúng 1 quân
-PASS mobile: O đủ 5 quân dọc → O thắng — {"size":15,"rule":"free","mode":"pvp","turn":1,"moves":10,"winner":2,"line":5,"score":{"1":0,"2":1,"draw":0},"round":1,"first":1,"thinking":false,"pending":null}
-PASS mobile: bảng kết quả "O thắng!" gọn trong màn
-PASS mobile 19×19: bàn gọn, chạm 2 lần vẫn đặt đúng ô — 18.0px/ô
-PASS mobile 360×740: không tràn, bàn gọn — 16.7px/ô
+PASS chạm lại đúng ô đang chọn → vẫn chưa đặt (chỉ nút Đặt mới đặt)
+PASS bấm "Đặt quân" → đặt X vào ô đã chọn, máy nghĩ, nút Đặt khoá
+PASS chạm trong lúc máy nghĩ → không chọn được ô
+PASS máy trả lời → tới lượt bạn, nút Đặt vẫn khoá tới khi chọn ô
+PASS chạm nhanh 8 lần 1 ô → chỉ chọn, không tự đặt
+PASS bấm nhanh 5 lần nút Đặt → đúng 1 quân
+PASS mobile: đánh với máy bằng chạm + Đặt đến hết ván → có kết quả — người thắng: 2 sau 10 nước
+PASS mobile: bảng kết quả gọn trong màn
+PASS mobile 19×19: bàn gọn, chạm + Đặt vẫn đặt đúng ô — 18.0px/ô
+PASS điện thoại ngang: nút Đặt bên phải bàn, ≥ 44px, không đè bàn, không tràn — {"l":484.5625,"t":214.9375,"r":614.03125,"b":266.9375,"h":52,"w":129.46875}
+PASS mobile 360×740: không tràn, bàn gọn, nút Đặt không đè bàn — 16.7px/ô
 PASS không có lỗi JS / console

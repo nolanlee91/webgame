@@ -1,4 +1,4 @@
-// Cờ Vua — luật chơi thuần (không DOM, không canvas). Dùng chung cho client (chơi chung máy / với máy)
+// Cờ Vua — luật chơi thuần (không DOM, không canvas). Dùng chung cho client (chơi với máy)
 // và máy chủ online (games-server/co-vua/room.js nạp file này để kiểm tra từng nước đi).
 //
 // Bàn: mảng 64 ô, chỉ số = r*8 + c; r = 0 là hàng 8 (phía Đen, trên cùng), c = 0 là cột a.
@@ -24,7 +24,7 @@ export const sqName = (i) => FILES[i & 7] + (8 - (i >> 3));
 const inB = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
 export const isSq = (i) => Number.isInteger(i) && i >= 0 && i < 64;
 
-/** Trận mới. mode: "pvp" (2 người chung máy / online) | "ai". aiLevel: "easy" | "normal". */
+/** Trận mới. mode: "pvp" (2 người — dùng cho ván online) | "ai". aiLevel: "easy" | "normal". */
 export function newMatch(opts = {}) {
   const mode = opts.mode === "ai" ? "ai" : "pvp";
   const aiLevel = opts.aiLevel === "normal" ? "normal" : "easy";
@@ -252,7 +252,7 @@ export function replay(base, moves) {
   return s;
 }
 
-/** Hoàn tác `count` nước (chơi chung máy / với máy). Không hoàn tác ván đã xong. */
+/** Hoàn tác `count` nước (chơi với máy). Không hoàn tác ván đã xong. */
 export function undo(s, count = 1) {
   if (s.result || !s.moves.length) return null;
   return replay(s, s.moves.slice(0, Math.max(0, s.moves.length - count)));

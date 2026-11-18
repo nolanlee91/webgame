@@ -47,15 +47,15 @@ async function newPage(name, w, h, mobile) {
   };
   const pg = {
     name, mobile, P, ev, tapAt,
-    nav: async (u) => { await P.send('Page.navigate', { url: u }); await sleep(1200); },
-    reload: async () => { await P.send('Page.reload', { ignoreCache: true }); await sleep(1400); },
+    nav: async (u) => { await P.send('Page.navigate', { url: u }); await sleep(1200); await until(() => ev('typeof window.__game==="object"'), 8000); },
+    reload: async () => { await P.send('Page.reload', { ignoreCache: true }); await sleep(1400); await until(() => ev('typeof window.__game==="object"'), 8000); },
     shot: async (f) => { await P.send('Emulation.resetPageScaleFactor'); await sleep(200); const r = await P.send('Page.captureScreenshot', { format: 'png' }); writeFileSync(OUT + '/' + f, Buffer.from(r.result.data, 'base64')); },
     rect: (sel) => ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||!e.getClientRects().length)return null;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()`),
     async press(sel) { const p = await pg.rect(sel); if (!p) throw new Error(name + ': không thấy ' + sel); await tapAt(p[0], p[1]); },
     async type(sel, text) { await ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});e.focus();e.select&&e.select()})()`); await P.send('Input.insertText', { text }); },
     async enter() { for (const type of ['keyDown', 'keyUp']) await P.send('Input.dispatchKeyEvent', { type, code: 'Enter', key: 'Enter', windowsVirtualKeyCode: 13, text: type === 'keyDown' ? '\r' : undefined }); },
-    // đặt quân thật: chuột 1 lần; cảm ứng chạm 2 lần cùng ô
-    async cell(r, c) { const p = await ev(`window.__game.cellPoint(${r},${c})`); await tapAt(p.x, p.y); if (mobile) { await sleep(60); await tapAt(p.x, p.y); } },
+    // đặt quân thật: chuột 1 lần; cảm ứng chạm chọn ô rồi bấm nút Đặt (nút khoá thì chạm không có tác dụng)
+    async cell(r, c) { const p = await ev(`window.__game.cellPoint(${r},${c})`); await tapAt(p.x, p.y); if (mobile) { await sleep(60); const b = await pg.rect('#placeBtn'); if (b) await tapAt(b[0], b[1]); } },
     S: () => ev(`(()=>{const G=window.__game,s=G.state,r=G.room;return {room:r&&{code:r.code,phase:r.phase,you:r.you,host:r.host,gid:r.gid,seq:r.seq,n:r.players.length,oppLeft:r.oppLeft,chat:(r.chat||[]).map(c=>[c.name,c.text,c.mine])},side:G.mySide,turn:s&&s.turn,moves:s?s.moves.length:-1,winner:s&&s.winner,score:s&&s.score,first:s&&s.first}})()`),
     vis: (sel) => ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});return !!e&&!e.closest('[hidden]')&&e.getClientRects().length>0&&getComputedStyle(e).display!=='none'})()`),
     text: (sel) => ev(`(document.querySelector(${JSON.stringify(sel)})||{}).textContent||''`),
@@ -124,7 +124,7 @@ const mid = Math.floor(sz / 2);
 
 // ---------- Đánh ----------
 await M.cell(mid, mid); await sleep(300);
-check('chưa tới lượt (O) → chạm không gửi nước', (await A.S()).moves === 0);
+check('chưa tới lượt (O) → chạm không gửi nước, nút Đặt khoá', (await A.S()).moves === 0 && await M.vis('#placeBtn') && await M.ev(`document.querySelector('#placeBtn').disabled`));
 check('trạng thái: A "Lượt bạn", B "Chờ … đánh"', (await A.text('#hStatus')).includes('Lượt bạn') && (await M.text('#hStatus')).includes('Chờ'));
 const X = [[mid, mid - 2], [mid, mid - 1], [mid, mid], [mid, mid + 1], [mid, mid + 2]];
 const O = [[mid + 2, mid - 2], [mid + 2, mid - 1], [mid + 2, mid], [mid + 2, mid + 1]];
@@ -138,6 +138,7 @@ for (let k = 0; k < 4; k++) {
   }
   await M.cell(...O[k]); await until(async () => (await A.S()).moves === 2 * k + 2);
 }
+await until(async () => (await M.S()).moves === 8, 3000); // điện thoại nhận lại nước của chính mình có thể chậm hơn máy tính vài ms
 const mids = await A.S();
 check('8 nước luân phiên, 2 máy thấy cùng bàn', mids.moves === 8 && (await M.S()).moves === 8 && JSON.stringify(await A.ev('window.__game.state.board')) === JSON.stringify(await M.ev('window.__game.state.board')));
 await A.type('#chatIn', 'Coi chừng nha'); await A.enter();
@@ -191,15 +192,16 @@ if (process.env.OFFPORT) {
   await M.nav(`http://127.0.0.1:${process.env.OFFPORT}/games/co-caro/index.html`);
   await M.press('.seg[data-k=mode] [data-v=online]'); await sleep(100);
   await M.type('#nameIn', 'Bình'); await M.press('#createBtn');
-  check('máy chủ chưa bật Caro online → báo rõ, vẫn chơi được chung máy/với máy', (await until(async () => (await M.text('#mErr')).includes('Chưa kết nối được'))) && !(await M.ev(`[...document.querySelectorAll('#ovMenu .btn')].some(b=>b.disabled)`)), await M.text('#mErr'));
+  check('máy chủ chưa bật Caro online → báo rõ, vẫn chơi được với máy', (await until(async () => (await M.text('#mErr')).includes('Chưa kết nối được'))) && !(await M.ev(`[...document.querySelectorAll('#ovMenu .btn')].some(b=>b.disabled)`)), await M.text('#mErr'));
   await M.shot('online-may-chu-tat-mobile.png');
 }
 
-// ---------- 2 người chung máy / với máy vẫn như cũ ----------
+// ---------- Chơi với máy vẫn như cũ (không còn chế độ 2 người chung máy) ----------
 await A.nav(URL0);
-await A.press('.seg[data-k=mode] [data-v=pvp]'); await sleep(100); await A.press('#startBtn'); await sleep(300);
-await A.cell(mid, mid); await A.cell(mid, mid + 1); await sleep(300);
-check('chế độ 2 người chung máy vẫn chơi được, không có ô chat', (await A.S()).moves === 2 && !(await A.vis('#chat')) && await A.vis('#undoBtn'));
+check('menu chỉ còn Chơi với máy + Online', await A.ev(`[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()`) === 'ai,online');
+await A.press('.seg[data-k=mode] [data-v=ai]'); await sleep(100); await A.press('#startBtn'); await sleep(300);
+await A.cell(mid, mid); await until(async () => (await A.S()).moves === 2, 3000);
+check('chơi với máy vẫn chơi được, không có ô chat', (await A.S()).moves === 2 && !(await A.vis('#chat')) && await A.vis('#undoBtn'));
 
 check('không có lỗi JS trên cả 2 trình duyệt', !A.P.errors.length && !M.P.errors.length, [...A.P.errors, ...M.P.errors].join(' | ').slice(0, 300));
 const pass = R.filter((x) => x.startsWith('PASS')).length;
