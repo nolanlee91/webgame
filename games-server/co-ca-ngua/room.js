@@ -53,14 +53,15 @@ class Room {
     if (this.phase === "lobby") this.players.splice(i, 1);
     else { p.left = true; p.connected = false; p.token = null; }
     if (!this.players.some((x) => !x.left)) return this.close();
-    this.schedule();
+    this.schedule(false);
     this.changed();
   }
 
   setConnected(i, on) {
     const p = this.players[i]; if (!p || p.left || p.connected === on) return;
     p.connected = on;
-    if (this.phase === "play") this.schedule(); // đổi hạn chờ (mất kết nối thì đi thay sớm hơn)
+    // chỉ người đang có lượt mới làm đổi hạn chờ, và hạn không bao giờ dài quá hạn gốc của hành động (chống kéo dài lượt)
+    if (this.phase === "play" && this.g.turn === i) this.schedule(false);
     this.changed();
   }
 
@@ -129,13 +130,22 @@ class Room {
   }
 
   /** Hẹn giờ máy chủ tự đi: nước bắt buộc, hoặc người có lượt im lặng / mất kết nối / đã rời. */
-  schedule() {
+  //  fresh=true khi bắt đầu một hành động mới (ván mới / sau mỗi nước); false khi chỉ đổi kết nối — khi đó hạn chỉ có thể ngắn lại.
+  schedule(fresh = true) {
     this.clock.clearTimeout(this.timer); this.timer = null; this.deadline = 0;
     if (this.phase !== "play" || this.closed) return;
-    const g = this.g, who = this.players[g.turn];
+    const g = this.g, who = this.players[g.turn], now = this.clock.now();
+    if (fresh || this.actAt == null) this.actAt = now;
     const forced = g.phase === "move" && (g.moves.length === 1 || g.moves.every((x) => x.kind === "launch"));
-    const ms = forced ? this.t.auto : who.left ? this.t.left : !who.connected ? this.t.away : this.t.turn;
-    if (!forced) this.deadline = this.clock.now() + ms;
+    let end;
+    if (forced) end = this.actAt + this.t.auto;
+    else {
+      end = this.actAt + this.t.turn;
+      if (who.left) end = Math.min(end, now + this.t.left);
+      else if (!who.connected) end = Math.min(end, now + this.t.away);
+    }
+    const ms = Math.max(0, end - now);
+    if (!forced) this.deadline = end;
     this.timer = this.clock.setTimeout(() => this.timeout(), ms);
     this.timer?.unref?.();
   }

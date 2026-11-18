@@ -290,3 +290,26 @@ test('server.js chỉ gắn Cờ Cá Ngựa khi COCANGUA_ONLINE=1', async () => 
   assert.equal(probe({ COCANGUA_ONLINE: '1' }), 'on');
   assert.equal(probe({ COCANGUA_ONLINE: '' }), 'off');
 });
+
+test('người không có lượt ngắt/nối liên tục không kéo dài được hạn của lượt người khác (đồng hồ giả)', () => {
+  const { Room } = require('../room.js');
+  let now = 0, timers = [], id = 0;
+  const clock = { now: () => now, setTimeout: (f, ms) => { const t = { id: ++id, at: now + ms, f }; timers.push(t); return t; }, clearTimeout: (t) => { timers = timers.filter((x) => x !== t); } };
+  const tick = (to) => { while (true) { const t = timers.filter((x) => x.at <= to).sort((a, b) => a.at - b.at)[0]; if (!t) break; timers = timers.filter((x) => x !== t); now = t.at; t.f(); } now = to; };
+  const r = new Room({ code: 'ABCDE', L, clock, randInt: () => 2, timings: { auto: 1100, turn: 30000, away: 8000, left: 1200 } });
+  r.join('A', 'ta'); r.join('B', 'tb'); r.handle(0, { t: 'start' });
+  assert.equal(r.g.turn, 0); assert.equal(r.deadline, 30000);
+  for (let t = 29000; t < 29900; t += 100) { tick(t); r.setConnected(1, false); r.setConnected(1, true); }
+  assert.equal(r.deadline, 30000, 'hạn không bị đẩy lùi');
+  tick(30001);
+  assert.equal(r.seq, 1, 'máy chủ đã gieo thay đúng hạn');
+  // người có lượt mất kết nối → hạn chỉ ngắn lại; nối lại không vượt hạn gốc
+  const base = r.deadline - 0; // hạn gốc của hành động mới
+  if (r.phase === 'play' && r.g.phase === 'roll') {
+    const turn = r.g.turn;
+    tick(now + 25000); r.setConnected(turn, false);
+    assert.equal(r.deadline, base, 'mất kết nối gần hết hạn không làm hạn dài thêm');
+    r.setConnected(turn, true); assert.equal(r.deadline, base);
+  }
+  r.close();
+});

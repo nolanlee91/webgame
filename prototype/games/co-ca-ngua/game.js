@@ -303,7 +303,8 @@ export function mount(el, ctx = {}) {
     while (inbox.length && !busy()) {
       const v = inbox.shift();
       if (v.seq <= netSeq) continue;
-      if (v.seq !== netSeq + 1 || !v.act) { adopt(v); continue; }
+      // thiếu gói / không có act → nhận snapshot MỚI NHẤT đang chờ (không bỏ rơi các trạng thái đến sau)
+      if (v.seq !== netSeq + 1 || !v.act) { adopt(inbox.reduce((x, y) => (y.seq > x.seq ? y : x), v)); continue; }
       const ok = v.act.k === "roll" ? (g.phase === "roll" && applyRoll(v.act.dice) !== false) : (g.phase === "move" && applyMove(v.act.horse) !== false);
       netSeq = v.seq;
       if (!ok || !same(v)) { desyncs++; console.warn("Cờ Cá Ngựa online: lệch trạng thái — nhận lại từ máy chủ"); adopt(v); net.send({ t: "sync" }); }
