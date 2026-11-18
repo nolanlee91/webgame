@@ -16,6 +16,7 @@ const MIN_PLAYERS = 6, MAX_PLAYERS = 8;
 const DEFAULT_TIMINGS = { reveal: 6000, night: 30000, dawn: 7000, day: 60000, vote: 20000, verdict: 6000 };
 const QUICK = ["Tôi là dân!", "Nghi ngờ quá…", "Cứu tôi!", "Đồng ý", "Không phải tôi", "Bỏ phiếu đi!"];
 const CHAT_MAX = 200, CHAT_KEEP = 60;
+const CHAT_BURST = 5, CHAT_PER_SEC = 1; // chống spam: mỗi người dồn tối đa 5 tin, hồi 1 tin/giây (riêng chat, ngoài giới hạn lệnh chung)
 
 /** Bộ vai theo số người: 6 → 2 Sói, 1 Tiên tri, 1 Bảo vệ, 2 Dân; 7 → 3 Dân; 8 → 4 Dân. */
 function roleSet(n) {
@@ -172,7 +173,14 @@ class Room {
     const s = cleanText(text, CHAT_MAX);
     if (!s) return { err: "empty" };
     if (!p.alive) return { err: "dead" };
-    const msg = { seat: p.seat, text: s, ts: this.clock.now() };
+    const now = this.clock.now();
+    if (!["lobby", "day", "vote", "verdict", "dawn", "end"].includes(this.phase) && !(this.phase === "night" && p.role === ROLES.wolf))
+      return { err: this.phase === "night" ? "night" : "phase" };
+    // xô token riêng của người gửi (không bao giờ đưa vào viewFor) — lỗi chỉ phụ thuộc chính người gửi
+    p.chatTok = Math.min(CHAT_BURST, (p.chatTok ?? CHAT_BURST) + ((now - (p.chatAt ?? now)) / 1000) * CHAT_PER_SEC); p.chatAt = now;
+    if (p.chatTok < 1) return { err: "chat-slow" };
+    p.chatTok -= 1;
+    const msg = { seat: p.seat, text: s, ts: now };
     if (this.phase === "night") {
       if (p.role !== ROLES.wolf) return { err: "night" };
       this.wolfChat.push(msg); if (this.wolfChat.length > CHAT_KEEP) this.wolfChat.shift();

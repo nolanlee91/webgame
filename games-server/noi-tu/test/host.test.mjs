@@ -342,3 +342,29 @@ test('cleanName bỏ ký tự điều khiển/định hướng, tối đa 16 ký
   assert.equal(cleanName('x'.repeat(30)).length, 16);
   assert.equal(cleanName(42), '');
 });
+
+test('chat: qua máy chủ, phát cho cả 2 ghế kèm tên do server gắn; lọc ký tự lạ + cắt 200; chặn spam theo ghế; vào lại nhận lịch sử', async () => {
+  const S = await startServer();
+  try {
+    const [a, b] = await pair(S.url);
+    a.send({ t: 'chat', text: '  chào‮  bạn\u0000 ', seat: 1, name: 'Giả mạo' });
+    const ma = await a.next((m) => m.t === 'chat'), mb = await b.next((m) => m.t === 'chat');
+    assert.deepEqual([ma.seat, ma.name, ma.text], [a.seat, 'An', 'chào bạn']);
+    assert.deepEqual(mb, { ...ma, _used: true });
+    b.send({ t: 'chat', text: 'x'.repeat(300) });
+    assert.equal((await a.next((m) => m.t === 'chat' && m.seat === b.seat)).text.length, 200);
+    a.send({ t: 'chat', text: '   ' }); assert.equal((await a.next((m) => m.t === 'err')).code, 'chat-empty');
+    // a đã dùng 1/5 tin (tin rỗng không tính) ⇒ thêm 4 tin qua, tin thứ 5 bị chặn
+    for (let i = 0; i < 5; i++) a.send({ t: 'chat', text: `spam ${i}` });
+    assert.equal((await a.next((m) => m.t === 'err')).code, 'chat-slow');
+    await sleep(100);
+    assert.equal(b.msgs.filter((m) => m.t === 'chat' && m.text.startsWith('spam')).length, 4);
+    // người ngoài phòng không chat được
+    const x = await new P(S.url, 'X').open(); x.send({ t: 'chat', text: 'hi' });
+    assert.equal((await x.next((m) => m.t === 'err')).code, 'no-room');
+    // b tải lại trang (resume) ⇒ nhận lại lịch sử chat của phòng
+    const b2 = await new P(S.url, 'B2').open(); b2.send({ t: 'resume', code: a.code, token: b.token });
+    const log = await b2.next((m) => m.t === 'chatlog');
+    assert.equal(log.items.length, 6); assert.equal(log.items[0].text, 'chào bạn');
+  } finally { await S.stop(); }
+});

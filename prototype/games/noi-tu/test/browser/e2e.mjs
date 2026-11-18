@@ -114,7 +114,7 @@ try {
   await nav(BASE); await ev('localStorage.clear()'); await nav(BASE);
   check('mở game → menu hiện, chưa có trận lưu, mặc định máy Dễ, khay nhập bị khoá', await visible('#ovMenu') && !(await visible('#resumeBtn'))
     && await ev(`document.querySelector('.seg[data-k=level] button[aria-checked=true]').dataset.v`) === 'easy' && await ev('document.getElementById("dock").inert'));
-  check('từ điển nạp đúng bản ghim (hash khớp words.json)', await ev(`fetch('data/words.json').then(r=>r.json()).then(j=>j.contentHash===__game.dict.contentHash&&__game.dict.size===591)`));
+  check('từ điển nạp đúng bản ghim (hash khớp words.json)', await ev(`fetch('data/words.json').then(r=>r.json()).then(j=>j.contentHash===__game.dict.contentHash&&__game.dict.size===j.words.length)`));
   await shot('noitu-desktop-menu.png');
   await pressSel('#startBtn');
   await waitFor('__game.session && __game.session.status==="live" && __game.state && __game.state.round');

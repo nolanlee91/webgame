@@ -28,6 +28,12 @@ button, input { font: inherit; color: inherit; }
 .bar__code { margin-left: auto; color: var(--soft); font-size: 13px; }
 .bar__code b { color: var(--accent); letter-spacing: .12em; font-size: 15px; }
 .net { color: var(--red); font-weight: 700; font-size: 13px; }
+.bar__snd { margin-left: auto; display: inline-grid; place-items: center; width: 40px; height: 36px; padding: 0; border: 0; cursor: pointer; color: var(--ink);
+  background: var(--panel2); --b: var(--line); box-shadow: var(--bevel), var(--border); }
+.bar__code:not([hidden]) ~ .bar__snd { margin-left: 8px; }
+.bar__snd .snd-off, .bar__snd.is-off .snd-on { display: none; }
+.bar__snd.is-off .snd-off { display: inline; }
+.bar__snd.is-off { color: var(--soft); }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed var(--accent); outline-offset: 3px; }
 
 .btn { border: 0; cursor: pointer; padding: 10px 16px; min-height: 44px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; font-size: 14px;
@@ -47,8 +53,15 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed
 .home__poster { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; min-height: 260px; }
 .home__body { padding: 22px; display: grid; gap: 14px; align-content: start; }
 .home__body p { margin: 0; }
-.home__join { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px; }
-.home__join input { text-transform: uppercase; letter-spacing: .2em; }
+.home__opt { display: grid; gap: 8px; }
+.home__step { margin: 0; font-size: 13px; color: var(--soft); }
+.home__step b { color: var(--ink); }
+.home__create { width: calc(100% - 6px); min-height: 52px; font-size: 16px; }
+.home__or { display: flex; align-items: center; gap: 12px; color: var(--soft); font: 800 12px/1 "Be Vietnam Pro", system-ui; letter-spacing: .14em; text-transform: uppercase; }
+.home__or::before, .home__or::after { content: ""; flex: 1; height: 3px; background: #000; box-shadow: 0 3px 0 rgba(255,255,255,.06); }
+.home__join { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px; padding: 10px 12px 12px; margin: 3px; background: rgba(0,0,0,.25); --b: var(--line); box-shadow: var(--border); }
+.home__join input { text-transform: uppercase; letter-spacing: .2em; min-width: 0; }
+.home__join .btn { white-space: nowrap; }
 .home__msg { min-height: 1.5em; color: var(--gold); font-weight: 700; }
 @media (max-width: 720px) { .home__card { grid-template-columns: 1fr; } .home__poster { max-height: 34vh; min-height: 0; } }
 

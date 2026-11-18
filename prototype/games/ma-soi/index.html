@@ -14,6 +14,12 @@
     <h1>Ma Sói</h1>
     <span class="bar__code" id="barCode" hidden>Phòng <b id="barCodeTxt"></b></span>
     <span class="net" id="net" hidden>Đang kết nối lại…</span>
+    <button class="bar__snd" id="sndBtn" type="button" aria-pressed="false" aria-label="Tắt âm thanh" title="Tắt âm thanh">
+      <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">
+        <path fill="currentColor" d="M1 4h2v2H1zM3 3h1v4H3zM4 2h1v6H4z"/>
+        <path class="snd-on" fill="currentColor" d="M6 4h1v2H6zM7 3h1v1H7zM7 6h1v1H7zM8 2h1v1H8zM8 7h1v1H8zM9 3h1v4H9z"/>
+        <path class="snd-off" fill="currentColor" d="M6 3h1v1H6zM9 3h1v1H9zM7 4h2v2H7zM6 6h1v1H6zM9 6h1v1H9z"/>
+      </svg></button>
   </header>
 
   <!-- ===== Màn đầu: tạo / vào phòng ===== -->
@@ -26,11 +32,13 @@
         <label class="field">Tên của bạn
           <input id="nameInp" maxlength="16" autocomplete="nickname" placeholder="VD: Tí Còi" />
         </label>
-        <div class="home__row">
-          <button class="btn btn--gold" id="createBtn">Tạo phòng mới</button>
+        <div class="home__opt">
+          <p class="home__step"><b>Chưa có phòng?</b> Tạo phòng rồi gửi mã cho bạn bè.</p>
+          <button class="btn btn--gold home__create" id="createBtn">Tạo phòng mới</button>
         </div>
+        <div class="home__or" role="separator"><span>hoặc</span></div>
         <div class="home__join">
-          <label class="field">Có mã phòng?
+          <label class="field">Đã có mã phòng? Nhập mã:
             <input id="codeInp" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC23" />
           </label>
           <button class="btn btn--teal" id="joinBtn">Vào phòng</button>

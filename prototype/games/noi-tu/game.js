@@ -13,6 +13,8 @@ const PREFS_KEY = "noi-tu:prefs";
 const MISSING_KEY = "noi-tu:missing";      // từ người chơi gõ mà từ điển chưa có ⇒ người duyệt bổ sung sau (không tự thêm)
 const ROOM_KEY = "noi-tu:room";            // phòng online đang chơi {code, token} — để tải lại trang vẫn vào lại đúng ghế
 const ME = 0;                               // offline: người chơi luôn ngồi ghế 0 (Đỏ), máy ghế 1 (Xanh dương)
+const CHAT_KEEP = 50;
+const CHAT_ERR = { "chat-slow": "Bạn nhắn nhanh quá — chờ một giây rồi gửi tiếp.", "chat-empty": "Tin nhắn trống." };
 const ONLINE_ERR = {
   offline: "Không kết nối được máy chủ online (chế độ online có thể chưa bật trên máy chủ này).",
   "no-room": "Không thấy phòng — kiểm tra lại mã (phòng bỏ trống 5 phút sẽ tự đóng).",
@@ -82,7 +84,9 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     ovEnd: $("ovEnd"), eAv: $("eAv"), eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), eNext: $("eNext"), next: $("nextBtn"), view: $("viewBtn"),
     menuBtn: $("menuBtn"), muteBtn: $("muteBtn"), muteIc: $("muteIc"),
     mPick: $("mPick"), mLevel: $("mLevel"), mOnline: $("mOnline"), oName: $("oName"), oCode: $("oCode"), enter: $("enterBtn"), create: $("createBtn"),
-    mLobby: $("mLobby"), lCode: $("lCode"), lWait: $("lWait"), copy: $("copyBtn"), cancel: $("cancelBtn"), mRoom: $("mRoom"), mCard: $("mCard"), back: $("backBtn"), leave: $("leaveBtn") };
+    mLobby: $("mLobby"), lCode: $("lCode"), lWait: $("lWait"), copy: $("copyBtn"), cancel: $("cancelBtn"), mRoom: $("mRoom"), mCard: $("mCard"), back: $("backBtn"), leave: $("leaveBtn"),
+    wrap: root.querySelector(".wrap"), chat: $("chat"), chatLog: $("chatLog"), chatForm: $("chatForm"), chatInp: $("chatInp"), chatNote: $("chatNote"),
+    chatWho: $("chatWho"), chatBtn: $("chatBtn"), chatBadge: $("chatBadge"), chatClose: $("chatClose") };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "thang", "thua", "qua-man", "het-gio", "do-xuc-xac"], sdk);
   const prefs = { level: "easy", mode: "bot", name: "", ...loadJSON(PREFS_KEY, {}) };   // level: chọn cho trận mới · matchLevel: của trận đang lưu
   const invite = (new URLSearchParams(location.search).get("p") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
@@ -93,6 +97,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   let dict = null, session = null, state = null, offs = [];
   let mode = "bot";           // chế độ của ván đang mở: "bot" | "online"
   let online = null;          // kết nối phòng online (openOnline) — còn sống cả lúc ở phòng chờ
+  let chatItems = [], unread = 0;   // tin nhắn của phòng hiện tại (chỉ trong bộ nhớ, mất khi rời phòng)
   let fxWord = null;          // seq của sự kiện "played" mới (để chỉ thẻ đó có hiệu ứng rơi; snapshot thì không)
   let busy = false;           // đang chờ kết quả submit
   let armTimer = null, raf = 0, destroyed = false, lastSec = null, endShownFor = null, viewing = false;
@@ -146,17 +151,29 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
         if (o !== online) return;
         ss.set(ROOM_KEY, { code: room.code, token: room.token });
         setBusyMenu(false);
+        setChat(true); renderChatWho();
         if (!room.started) showLobby(room);
       },
       onStart(sess) { if (o !== online) return; history.replaceState(null, "", location.pathname); attach(sess); },
       onError(code) {
         if (o !== online) return;
-        online = null; ss.remove(ROOM_KEY); setBusyMenu(false);
+        online = null; ss.remove(ROOM_KEY); setBusyMenu(false); setChat(false);
         closeSession(); mode = "online"; showMenu(ONLINE_ERR[code] || `Lỗi online (${code}).`, true);
       },
+      onChatLog(items) { if (o !== online) return; chatItems = items.slice(-CHAT_KEEP); renderChat(); },
+      onChat(m) {
+        if (o !== online) return;
+        chatItems.push(m); if (chatItems.length > CHAT_KEEP) chatItems.shift();
+        renderChat();
+        if (m.seat !== online.room?.seat) {
+          sfx.play("buoc-nhay", 0.6);
+          if (!chatVisible()) { unread++; showUnread(); }
+        }
+      },
+      onChatErr(code) { if (o !== online) return; flashChatNote(CHAT_ERR[code] || "Không gửi được tin nhắn."); },
       onEnd(reason) {
         if (o !== online) return;
-        online = null; closeSession(); mode = "online";
+        online = null; setChat(false); closeSession(); mode = "online";
         showMenu(reason === "replaced" ? "Bạn đã mở ván này ở tab/máy khác — tab này dừng lại." : "Đã rời phòng.", true);
       },
     });
@@ -165,7 +182,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   /** Rời phòng hẳn (báo máy chủ). Đang giữa ván ⇒ sau 30 giây máy sẽ thay ghế cho bạn kia chơi tiếp. */
   function leaveRoom() {
     if (!online) return;
-    const o = online; online = null; ss.remove(ROOM_KEY);
+    const o = online; online = null; ss.remove(ROOM_KEY); setChat(false);
     if (session && mode === "online") closeSession(); else o.leave();
   }
 
@@ -176,6 +193,37 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     el.lWait.textContent = `Bạn là ${room.names[room.seat]} — đang chờ bạn kia vào phòng… (giữ trang này mở)`;
     el.mNote.textContent = "";
   }
+
+  // ---------- trò chuyện (online) — tin đi qua máy chủ; tên/ghế người gửi do máy chủ gắn ----------
+  function chatVisible() { return !el.chat.hidden && getComputedStyle(el.chat).display !== "none"; }
+  function setChat(on) {
+    el.chat.hidden = !on; el.wrap.classList.toggle("has-chat", on);
+    if (!on) { chatItems = []; unread = 0; el.chatLog.textContent = ""; el.wrap.classList.remove("chat-open"); el.chatBtn.setAttribute("aria-expanded", "false"); }
+    showUnread(); renderChat();
+  }
+  function openChat(open) {
+    el.wrap.classList.toggle("chat-open", open); el.chatBtn.setAttribute("aria-expanded", String(open));
+    if (open) { unread = 0; showUnread(); el.chatLog.scrollTop = el.chatLog.scrollHeight; el.chatInp.focus({ preventScroll: true }); }
+    else el.chatBtn.focus({ preventScroll: true });
+  }
+  function showUnread() { el.chatBadge.hidden = !unread; el.chatBadge.textContent = unread > 9 ? "9+" : String(unread); }
+  function renderChatWho() {
+    const r = online?.room; if (!r) return;
+    const other = r.names[1 - r.seat];
+    el.chatWho.textContent = other ? `với ${other}` : "chờ bạn kia vào…";
+  }
+  function renderChat() {
+    if (el.chat.hidden) return;
+    const mine = online?.room?.seat;
+    el.chatLog.replaceChildren(...(chatItems.length ? chatItems.map((m) => {
+      const li = document.createElement("li"); li.className = `s${m.seat}${m.seat === mine ? " me" : ""}`;
+      const b = document.createElement("b"); b.textContent = m.seat === mine ? "Bạn" : m.name;
+      li.append(b, document.createTextNode(m.text)); return li;    // textContent ⇒ không chèn được HTML
+    }) : [Object.assign(document.createElement("li"), { className: "sys", textContent: "Chưa có tin nhắn. Chào bạn kia một câu nhé!" })]));
+    el.chatLog.scrollTop = el.chatLog.scrollHeight;
+  }
+  let noteT = null;
+  function flashChatNote(s) { el.chatNote.textContent = s; clearTimeout(noteT); noteT = setTimeout(() => { el.chatNote.textContent = ""; }, 3000); }
 
   function setBusyMenu(on) { for (const b of [el.create, el.enter]) b.setAttribute("aria-disabled", on ? "true" : "false"); }
   function myName() { const n = el.oName.value.trim(); prefs.name = n; savePrefs(); return n; }
@@ -501,10 +549,18 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   el.back.addEventListener("click", () => { hide(el.ovMenu); setInert(false); });
   el.leave.addEventListener("click", () => { leaveRoom(); showMenu("Đã rời phòng.", true); });
   el.muteBtn.addEventListener("click", toggleMute);
+  el.chatBtn.addEventListener("click", () => openChat(!el.wrap.classList.contains("chat-open")));
+  el.chatClose.addEventListener("click", () => openChat(false));
+  el.chatForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = el.chatInp.value.trim(); if (!text || !online) return;
+    if (online.chat(text)) el.chatInp.value = ""; else flashChatNote("Mất kết nối — đang nối lại, gửi lại sau nhé.");
+  });
   el.resume.addEventListener("click", () => openSession(false));
   el.start.addEventListener("click", () => openSession(true));
   for (const b of root.querySelectorAll('.seg[data-k="level"] button')) b.addEventListener("click", () => { prefs.level = b.dataset.v; savePrefs(); syncSeg(); });
   const onKey = (e) => {
+    if (e.key === "Escape" && el.wrap.classList.contains("chat-open")) { e.preventDefault(); openChat(false); return; }
     if (e.key === "Escape") { e.preventDefault(); if (el.ovMenu.hidden) showMenu(); else if (session) { hide(el.ovMenu); setInert(false); } }
   };
   window.addEventListener("keydown", onKey);

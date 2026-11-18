@@ -164,6 +164,15 @@ try {
   // ---- hết ván ----
   await Promise.all(tabs.map((t) => t.waitFor(`!document.getElementById('ovEnd').hidden`, 20000)));
   ok(/Dân làng/.test(await host.ev(`document.getElementById('endTitle').textContent`)), 'Dân làng thắng');
+  // ---- âm thanh: mỗi tab phát đúng các mốc theo góc nhìn của mình; nút tắt/mở dùng chung khoá wgp.muted với trang chủ ----
+  const hostLog = await host.ev(`window.__sfx.log.join(',')`);
+  const need = ['lat-the', 'hu-dem', 'chieng-sang', 'trong-phieu', 'trung-da', 'thang'];
+  ok(need.every((n) => hostLog.includes(n)), `âm thanh các mốc (lật vai, đêm, sáng, bỏ phiếu, có người chết, thắng): ${hostLog}`);
+  ok((await wolves[1].ev(`window.__sfx.log.join(',')`)).includes('thua'), 'phe thua (Sói) nghe tiếng thua');
+  await host.click('#sndBtn');
+  ok(await host.ev(`localStorage.getItem('wgp.muted')==='1' && document.getElementById('sndBtn').getAttribute('aria-pressed')==='true'`), 'bấm nút loa ⇒ tắt tiếng (wgp.muted=1)');
+  await host.click('#sndBtn');
+  ok(await host.ev(`localStorage.getItem('wgp.muted')==='0'`), 'bấm lại ⇒ bật tiếng');
   await host.shot('11-end-desktop.png');
   await villagers[1].shot('12-end-mobile.png');
 

@@ -13,6 +13,15 @@ const GAME_DIR = path.join(__dirname, "..", "..", "prototype", "games", "noi-tu"
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
 const FORWARD = new Set(["join", "ping", "sync", "intent"]); // thông điệp chuyển cho trọng tài
 const INTENTS = new Set(["submit", "resign", "rematch"]);
+// Chat trong phòng: đi qua máy chủ (lọc + giới hạn) rồi phát lại cho các ghế — 2 máy không bao giờ nói chuyện trực tiếp.
+const CHAT = { max: 200, keep: 50, burst: 5, perSec: 1 }; // ≤200 ký tự/tin; mỗi ghế dồn tối đa 5 tin, hồi 1 tin/giây
+
+/** Tin nhắn: bỏ ký tự điều khiển/định hướng/vô hình, gộp khoảng trắng, tối đa CHAT.max ký tự. */
+function cleanChat(raw) {
+  if (typeof raw !== "string") return "";
+  const s = raw.normalize("NFC").replace(/[\p{C}\p{Zl}\p{Zp}]/gu, " ").replace(/\s+/g, " ").trim();
+  return [...s].slice(0, CHAT.max).join("");
+}
 
 /** Tên hiển thị: bỏ ký tự điều khiển/định hướng/vô hình, gộp khoảng trắng, tối đa 16 ký tự. */
 function cleanName(raw) {
@@ -92,6 +101,22 @@ function createNoiTuHost(server, opts = {}) {
     e.idleTimer.unref?.();
   }
 
+  // Chat: chỉ người đã có ghế trong phòng (token từ kết nối, không tin client). Xô token theo GHẾ (vào lại không hồi xô).
+  function chat(conn, e, raw) {
+    const seat = seatOf(e, conn.token);
+    if (seat < 0) return reply(conn, { t: "err", code: "no-seat" });
+    const text = cleanChat(raw);
+    if (!text) return reply(conn, { t: "err", code: "chat-empty" });
+    const now = Date.now(), b = e.chatRate[seat];
+    b.tok = Math.min(CHAT.burst, b.tok + ((now - b.at) / 1000) * CHAT.perSec); b.at = now;
+    if (b.tok < 1) return reply(conn, { t: "err", code: "chat-slow" });
+    b.tok -= 1;
+    const msg = { seat, name: e.seats[seat].name, text, ts: now };
+    e.chat.push(msg); if (e.chat.length > CHAT.keep) e.chat.shift(); // chỉ giữ trong bộ nhớ của phòng, mất khi phòng đóng
+    const out = JSON.stringify({ t: "chat", ...msg });
+    for (const c of e.conns) if (c.token) c.ws.send(out);
+  }
+
   function bindRef(e, conn) { e.ref.connect(conn.id, (msg) => conn.ws.send(JSON.stringify(msg))); }
 
   function startMatch(e) {
@@ -114,6 +139,7 @@ function createNoiTuHost(server, opts = {}) {
     clearTimeout(e.graceTimers[seat]); e.graceTimers[seat] = null;
     if (e.ref) bindRef(e, conn);
     reply(conn, { t: "room", code: e.code, token, seat, names: names(e), started: !!e.ref });
+    reply(conn, { t: "chatlog", items: e.chat });
   }
 
   function onMessage(conn, raw) {
@@ -131,7 +157,8 @@ function createNoiTuHost(server, opts = {}) {
         const name = cleanName(m.name); if (!name) return reply(conn, { t: "err", code: "name" });
         if (rooms.size >= maxRooms || [...rooms.values()].filter((x) => x.ip === conn.ip).length >= perIp.rooms) return reply(conn, { t: "err", code: "busy" });
         const code = newCode(); if (!code) return reply(conn, { t: "err", code: "busy" });
-        const e = { code, ip: conn.ip, seats: [{ token: crypto.randomBytes(16).toString("hex"), name }, null], conns: new Set(), ref: null, idleTimer: null, graceTimers: [null, null] };
+        const e = { code, ip: conn.ip, seats: [{ token: crypto.randomBytes(16).toString("hex"), name }, null], conns: new Set(), ref: null, idleTimer: null, graceTimers: [null, null],
+          chat: [], chatRate: [0, 1].map(() => ({ tok: CHAT.burst, at: Date.now() })) };
         rooms.set(code, e);
         return enter(conn, e, e.seats[0].token);
       }
@@ -150,6 +177,7 @@ function createNoiTuHost(server, opts = {}) {
       if (e.seats[1]) return reply(conn, { t: "err", code: "full" });
       if (name.toLowerCase() === e.seats[0].name.toLowerCase()) return reply(conn, { t: "err", code: "name-taken" });
       e.seats[1] = { token: crypto.randomBytes(16).toString("hex"), name };
+      e.chatRate[1] = { tok: CHAT.burst, at: Date.now() };
       enter(conn, e, e.seats[1].token);
       startMatch(e);
       return;
@@ -158,6 +186,7 @@ function createNoiTuHost(server, opts = {}) {
     const e = conn.entry;
     if (!e || !conn.token) return reply(conn, { t: "err", code: "no-room" });
     if (m.t === "leave") { leave(conn, e); return reply(conn, { t: "left" }); }
+    if (m.t === "chat") return chat(conn, e, m.text);
     if (!FORWARD.has(m.t)) return reply(conn, { t: "err", code: "bad" });
     if (!e.ref) return reply(conn, { t: "err", code: "not-started" });
     const msg = sanitize(m, conn.token); // token luôn lấy từ kết nối, không tin token client tự gửi kèm
@@ -176,7 +205,7 @@ function createNoiTuHost(server, opts = {}) {
     if (!e.ref) {
       // phòng chờ: chủ phòng rời ⇒ đóng phòng; người thứ hai chưa thể có (vào là bắt đầu ngay)
       if (seat === 0) return dropRoom(e);
-      e.seats[seat] = null; lobbyPush(e);
+      e.seats[seat] = null; e.chatRate[seat] = { tok: CHAT.burst, at: Date.now() }; lobbyPush(e);
     }
     checkIdle(e);
   }

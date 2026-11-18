@@ -127,6 +127,18 @@ try {
   ok(ca.chain.length === 6 && JSON.stringify(ca.chain) === JSON.stringify(cb.chain) && ca.seq === cb.seq, `6 nước, hai tab cùng chuỗi: ${ca.chain.join(' → ')}`);
   await B.shot('04-B-cung-chuoi.png');
 
+  // ---- trò chuyện: đi qua máy chủ, hiện ở cả hai tab, không chèn được HTML ----
+  const say = (t, msg) => t.ev(`(()=>{document.getElementById('chatInp').value=${JSON.stringify(msg)}; document.getElementById('chatSend').click(); return true})()`);
+  ok(!(await A.ev(`document.getElementById('chat').hidden`)) && (await A.ev(`getComputedStyle(document.getElementById('chat')).display`)) !== 'none', 'desktop: khung chat hiện cạnh bàn chơi');
+  await say(A, 'Chào Minh <img src=x onerror=alert(1)>');
+  await B.waitFor(`document.querySelector('#chatLog li:not(.sys)')?.textContent.includes('Chào Minh')`, 5000);
+  ok(!(await B.ev(`!!document.querySelector('#chatLog img')`)), 'tin nhắn hiện dạng chữ thuần (không chèn HTML)');
+  ok((await B.text('#chatLog li:last-child b')) === 'Lan', 'B thấy tên người gửi "Lan" (máy chủ gắn tên)');
+  await say(B, 'Chào Lan, chơi tiếp nào!');
+  await A.waitFor(`document.querySelectorAll('#chatLog li:not(.sys)').length===2`, 5000);
+  ok((await A.text('#chatLog li.me b')) === 'Bạn', 'tin của chính mình ghi "Bạn", căn phải');
+  await A.shot('04b-A-chat.png');
+
   // ---- từ sai luật ----
   const r2 = await p.ev(`window.__game.session.submit(window.__game.state.round.chain.at(-1).word.split(' ')[1] + ' qqq')`);
   ok(r2.ok === false && r2.reason === 'not-in-dict', `từ không có trong từ điển ⇒ từ chối (${r2.reason})`);
@@ -137,6 +149,8 @@ try {
   await B.waitFor(`window.__game.state?.round && window.__game.session?.status==='live'`);
   const rb = await B.st();
   ok(rb.seat === seatB && JSON.stringify(rb.chain) === JSON.stringify(ca.chain), 'B tải lại trang ⇒ vào lại đúng ghế, đủ chuỗi');
+  await B.waitFor(`document.querySelectorAll('#chatLog li:not(.sys)').length===2`, 5000);
+  ok(true, 'B tải lại trang ⇒ vẫn thấy lại tin nhắn trong phòng');
 
   // ---- mở menu online không dừng ván ----
   await A.click('#menuBtn');
@@ -161,6 +175,15 @@ try {
   // ---- điện thoại ----
   await B.size(390, 844, true); await sleep(300);
   await B.shot('07-B-mobile.png');
+  ok((await B.ev(`getComputedStyle(document.getElementById('chat')).display`)) === 'none' && (await B.ev(`getComputedStyle(document.getElementById('chatBtn')).display`)) !== 'none',
+    'điện thoại: chat thu vào nút 💬, không che bàn chơi');
+  await say(A, 'Bạn đang dùng điện thoại à?');
+  await B.waitFor(`!document.getElementById('chatBadge').hidden && document.getElementById('chatBadge').textContent==='1'`, 5000);
+  ok(true, 'điện thoại: có tin mới ⇒ nút chat hiện số 1');
+  await B.click('#chatBtn'); await sleep(200);
+  ok((await B.ev(`getComputedStyle(document.getElementById('chat')).display`)) !== 'none' && (await B.ev(`document.getElementById('chatBadge').hidden`)), 'bấm nút ⇒ mở khung chat, xoá số tin chưa đọc');
+  await B.shot('08-B-mobile-chat.png');
+  await B.click('#chatClose');
 
   // ---- rời phòng ----
   await A.click('#menuBtn'); await A.click('#leaveBtn');

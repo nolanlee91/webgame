@@ -21,7 +21,7 @@ const ERR = {
   "need-players": "Cần ít nhất 6 người để bắt đầu.", dead: "Bạn đã bị loại, chỉ được xem.", target: "Không chọn được người này.",
   done: "Đêm nay bạn đã soi rồi.", "same-guard": "Không được bảo vệ cùng một người hai đêm liền.", "no-action": "Vai của bạn không có hành động ban đêm.",
   night: "Ban đêm cả làng phải im lặng.", empty: "Tin nhắn trống.", bad: "Yêu cầu không hợp lệ.", gone: "Phòng đã đóng.",
-  slow: "Bạn thao tác nhanh quá, chờ một chút.", already: "Bạn đã ở trong phòng.", busy: "Máy chủ đang bận, thử lại sau.",
+  slow: "Bạn thao tác nhanh quá, chờ một chút.", "chat-slow": "Bạn nhắn nhanh quá — chờ một giây rồi gửi tiếp.", already: "Bạn đã ở trong phòng.", busy: "Máy chủ đang bận, thử lại sau.",
   "no-room": "Không tìm thấy phòng với mã này.", "no-seat": "Phiên cũ đã hết hạn.", server: "Máy chủ gặp lỗi, thử lại.",
 };
 const STATE_ICON = { eliminated: 0, sleeping: 1, discuss: 2, vote: 3, suspicion: 4, revealed: 5, victory: 6, ready: 7 };
@@ -43,6 +43,57 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const nameOf = (s) => v?.players[s]?.name ?? "?";
 const me = () => v?.players[v.seat];
 
+// ---------------- âm thanh ----------------
+// Dùng chung khoá "wgp.muted" với trang chủ (#soundBtn) và các game khác. Trình duyệt chỉ cho phát sau lần chạm/bấm đầu tiên.
+// Mọi tiếng đều suy ra từ góc nhìn CỦA CHÍNH ghế này (viewFor) ⇒ không lộ thêm gì về vai người khác.
+const MUTE_KEY = "wgp.muted";
+const sfx = (() => {
+  const names = ["hu-dem", "chieng-sang", "lat-the", "trong-phieu", "tin-nhan", "thang", "thua", "buoc-nhay", "trung-da", "het-gio"];
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ac = null; const buf = {};
+  const muted = () => { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch { return false; } };
+  function init() {
+    if (ac || !AC) return;
+    ac = new AC();
+    for (const n of names) fetch(`assets/sfx/${n}.ogg`).then((r) => r.arrayBuffer()).then((b) => ac.decodeAudioData(b)).then((d) => { buf[n] = d; }).catch(() => {});
+  }
+  const unlock = () => { init(); if (ac?.state === "suspended") ac.resume().catch(() => {}); };
+  for (const e of ["pointerdown", "keydown"]) window.addEventListener(e, unlock, { capture: true, passive: true });
+  return {
+    muted,
+    log: [],
+    play(n, vol = 1, delay = 0) {
+      this.log.push(n); if (this.log.length > 200) this.log.shift();
+      if (muted() || !ac || !buf[n]) return false;
+      const src = ac.createBufferSource(), g = ac.createGain();
+      src.buffer = buf[n]; g.gain.value = vol; src.connect(g).connect(ac.destination); src.start(ac.currentTime + delay / 1000);
+      return true;
+    },
+  };
+})();
+window.__sfx = sfx; // cho test E2E đọc nhật ký tiếng
+function showSnd() {
+  const m = sfx.muted(), b = $("sndBtn");
+  b.setAttribute("aria-pressed", String(m)); b.setAttribute("aria-label", m ? "Bật âm thanh" : "Tắt âm thanh"); b.title = m ? "Bật âm thanh" : "Tắt âm thanh";
+  b.classList.toggle("is-off", m);
+}
+/** So góc nhìn cũ ↔ mới của CHÍNH MÌNH để phát tiếng cho các mốc: vào phòng, lật vai, đêm/ngày, bỏ phiếu, có người chết, tin nhắn, hết ván. */
+function soundFor(a, b) {
+  if (!a || !b || a.code !== b.code) return; // lần đầu nhận trạng thái (mới vào / tải lại) ⇒ im lặng
+  const last = b.events[b.events.length - 1];
+  if (a.phase !== b.phase) {
+    if (b.phase === "lobby") sfx.play("buoc-nhay");
+    else if (b.phase === "reveal") sfx.play("lat-the", 1, 350);
+    else if (b.phase === "night") sfx.play("hu-dem", 0.8);
+    else if (b.phase === "dawn") { sfx.play("chieng-sang", 0.8); if (last?.kind === "bite") sfx.play("trung-da", 1, 1200); }
+    else if (b.phase === "vote") sfx.play("trong-phieu");
+    else if (b.phase === "verdict" && last?.kind === "hang") sfx.play("trung-da");
+    else if (b.phase === "end") { const my = b.players[b.seat]; sfx.play(my?.role && (my.role === "wolf") === (b.winner === "wolf") ? "thang" : "thua"); }
+  } else if (b.phase === "lobby" && b.players.length > a.players.length) sfx.play("buoc-nhay", 0.7);
+  const fresh = (x, y) => { const t = x?.length ? x[x.length - 1].ts : -1; return (y || []).some((c) => c.ts > t && c.seat !== b.seat); };
+  if (fresh(a.chat, b.chat) || fresh(a.wolfChat, b.wolfChat)) sfx.play("tin-nhan", 0.7);
+}
+
 // ---------------- kết nối ----------------
 function connect() {
   const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/ma-soi`;
@@ -63,6 +114,7 @@ function connect() {
 }
 function offline() { homeMsg("Máy chủ Ma Sói chưa bật ở bản này. Khi chạy thử: npm run dev:ma-soi"); }
 function send(o) {
+  if (o.t === "act" || o.t === "vote") sfx.play("buoc-nhay", 0.8);
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(o));
   else if (o.t === "create" || o.t === "join") { pending = o; if (!ws) connect(); }
 }
@@ -70,7 +122,7 @@ function send(o) {
 function onMsg(m) {
   switch (m.t) {
     case "joined": save({ code: m.code, token: m.token }); history.replaceState(null, "", `?p=${m.code}`); break;
-    case "state": offset = m.now - Date.now(); v = m.v; render(); break;
+    case "state": { offset = m.now - Date.now(); const prev = v; v = m.v; render(); soundFor(prev, v); break; }
     case "err":
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
       toast(ERR[m.code] || "Có lỗi xảy ra."); break;
@@ -142,11 +194,14 @@ function tick() {
     const left = Math.max(0, v.endsAt - now());
     if (!total || left > total) total = left;
     $("secTxt").textContent = Math.ceil(left / 1000);
+    // còn 5 giây bàn bạc / bỏ phiếu ⇒ nhắc một tiếng (mỗi pha một lần)
+    const wk = `${v.phase}:${v.round}:${v.endsAt}`;
+    if ((v.phase === "day" || v.phase === "vote") && left > 0 && left <= 5000 && warned !== wk) { warned = wk; sfx.play("het-gio", 0.7); }
     $("secBar").style.width = `${total ? (left / total) * 100 : 0}%`;
   } else if (v) { $("secTxt").textContent = ""; $("secBar").style.width = "0"; total = 0; }
   requestAnimationFrame(tick);
 }
-let lastEnds = 0;
+let lastEnds = 0, warned = "";
 setInterval(() => { if (v && v.endsAt !== lastEnds) { lastEnds = v.endsAt; total = 0; } }, 100);
 requestAnimationFrame(tick);
 
@@ -319,6 +374,13 @@ function renderEnd() {
 $("againBtn").onclick = () => send({ t: "again" });
 $("endClose").onclick = () => { endHidden = true; $("ovEnd").hidden = true; };
 
+$("sndBtn").onclick = () => {
+  try { localStorage.setItem(MUTE_KEY, sfx.muted() ? "0" : "1"); } catch { /* bỏ qua */ }
+  showSnd(); if (!sfx.muted()) sfx.play("buoc-nhay");
+};
+window.addEventListener("storage", (e) => { if (e.key === MUTE_KEY) showSnd(); }); // tắt/mở ở trang chủ (tab khác) ⇒ đồng bộ
+showSnd();
+
 let toastT;
 function toast(t) { if ($("game").hidden) return homeMsg(t); banner(t); clearTimeout(toastT); }
 
@@ -329,5 +391,7 @@ else {
   if (last?.code && last?.token) {
     const b = document.createElement("button"); b.className = "btn"; b.textContent = `Quay lại phòng ${last.code}`;
     b.onclick = () => { sess = last; sessionStorage.setItem(SESS, JSON.stringify(last)); homeMsg("Đang quay lại phòng…"); ws ? send({ t: "resume", ...last }) : connect(); };
-    document.querySelector(".home__row").append(b);
+    b.classList.add("btn--teal", "home__create");
+    const row = document.createElement("div"); row.className = "home__row"; row.append(b);   // phòng đang chơi dở ⇒ lựa chọn nổi bật nhất, đặt trên cùng
+    document.querySelector(".home__opt").before(row);
   } $("createBtn").addEventListener("pointerenter", () => { if (!ws) connect(); }, { once: true }); }

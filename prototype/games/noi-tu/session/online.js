@@ -9,7 +9,7 @@ const FATAL = new Set(['name', 'name-taken', 'full', 'no-room', 'no-seat', 'busy
 
 /**
  * opts: { dict, url, action: {t:'create',name}|{t:'enter',code,name}|{t:'resume',code,token},
- *         onRoom(room), onStart(session), onError(code), onEnd(reason) }
+ *         onRoom(room), onStart(session), onError(code), onEnd(reason), onChat(msg), onChatLog(items), onChatErr(code) }
  * room = { code, token, seat, names:[a,b], started }
  */
 export function openOnline(opts) {
@@ -42,7 +42,10 @@ export function openOnline(opts) {
           opts.onRoom?.(room);
           if (m.started) start(false);
           return;
+        case 'chat': opts.onChat?.(m); return;        // {seat, name, text, ts} — tên/ghế do máy chủ gắn
+        case 'chatlog': opts.onChatLog?.(m.items || []); return;
         case 'err':
+          if (m.code?.startsWith('chat-')) { opts.onChatErr?.(m.code); return; }
           if (FATAL.has(m.code) && (!client || m.code === 'no-room' || m.code === 'no-seat')) { finish(); opts.onError?.(m.code); }
           return;
         case 'replaced': finish(); opts.onEnd?.('replaced'); return;
@@ -73,5 +76,8 @@ export function openOnline(opts) {
   function leave() { if (closed) return; transport.send({ t: 'leave' }); finish(); }
 
   connect();
-  return { leave: () => { if (client) client.dispose(); else leave(); }, get room() { return room; } };
+  return {
+    leave: () => { if (client) client.dispose(); else leave(); }, get room() { return room; },
+    chat(text) { if (!ws || ws.readyState !== 1) return false; ws.send(JSON.stringify({ t: 'chat', text })); return true; },
+  };
 }

@@ -298,3 +298,13 @@ test('khung có bit RSV (extension chưa thương lượng) bị đóng 1002', a
     assert.equal(await a.closed, 1002);
   } finally { await S2.stop(); }
 });
+
+test('chống spam chat: mỗi người dồn tối đa 5 tin rồi bị chặn "chat-slow"; người khác vẫn chat được', async () => {
+  const cs = await table(S.url, 3);
+  const codes = [];
+  for (let i = 0; i < 7; i++) codes.push(await cs[0].tryCmd({ t: 'chat', text: `spam ${i}` }, 40));
+  assert.equal(codes.filter((c) => c === 'chat-slow').length, 2, JSON.stringify(codes));
+  assert.equal(await cs[1].tryCmd({ t: 'chat', text: 'xin chào' }, 40), null);
+  await sleep(150);
+  assert.equal(cs[2].v.chat.filter((c) => c.text.startsWith('spam')).length, 5);
+});
