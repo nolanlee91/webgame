@@ -99,7 +99,7 @@ export function mount(root, ctx = {}) {
     chat: $("chat"), chatLog: $("chatLog"), chatF: $("chatF"), chatIn: $("chatIn"), chatBtn: $("chatBtn"), chatN: $("chatN"), chatX: $("chatX"),
   };
   root.querySelectorAll("[data-icon]").forEach((e) => { const [c, t] = e.dataset.icon.split(""); e.outerHTML = icon(c, t); });
-  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "do-xuc-xac", "thang", "thua", "qua-man"], sdk);
+  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "do-xuc-xac", "thang", "thua", "qua-man", "tin-nhan"], sdk);
   const img = { board: new Image(), pieces: new Image() };
   img.board.src = new URL("assets/board-grid.webp", import.meta.url).href;
   img.pieces.src = new URL("assets/pieces.png", import.meta.url).href;
@@ -446,6 +446,7 @@ export function mount(root, ctx = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào đối thủ một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) ui.chatLog.scrollTop = ui.chatLog.scrollHeight;
       const last = list.at(-1);
+      if (isNew && last && !last.mine) sfx.play("tin-nhan", 0.6); // có tin mới từ người khác: kêu cả khi đang mở khung chat
       if (isNew && last && !last.mine && !chatOpen()) toast(last.name + ": " + last.text, 3500);
     }
     if (chatOpen()) chatSeen = top;
@@ -476,9 +477,21 @@ export function mount(root, ctx = {}) {
     const humanSeat = online() ? mySeat() : s.mode === "ai" ? 0 : -1;
     sfx.play(!r.winner ? "qua-man" : humanSeat < 0 || L.seatOf(s, r.winner) === humanSeat ? "thang" : "thua", 0.8);
   }
+  // Tiếng vào/rời phòng: so danh sách người chơi lần trước với lần này (không kêu cho chính mình).
+  function presenceSfx(prev, v) {
+    if (!prev || prev.code !== v.code) return;
+    let join = false, gone = (prev.players || []).length > (v.players || []).length || (!prev.oppLeft && !!v.oppLeft);
+    (v.players || []).forEach((p, i) => {
+      if (i === v.you || !p) return;
+      const o = prev.players[i];
+      if (!o || o.name !== p.name || (!o.connected && p.connected)) join = true;
+      else if (o.connected && !p.connected) gone = true;
+    });
+    if (join) sfx.play("buoc-nhay", 0.6); else if (gone) sfx.play("trung-da", 0.4);
+  }
   function netState(v) {
     const prev = room; room = v;
-    renderChat(v);
+    renderChat(v); presenceSfx(prev, v);
     if (v.phase === "lobby") {
       clearTimers(); s = null; sent = false; sel = -1; targets = []; fx = { anim: null, bad: null }; closePromo();
       if (v.oppLeft && prev && prev.phase !== "lobby") toast("Đối thủ đã rời phòng — gửi mã cho người khác vào chơi tiếp.", 4000);

@@ -139,7 +139,7 @@ export function mount(el, ctx = {}) {
   const pops = [];
   let autoAt = 0, autoFor = -1;
   const art = { ready: false, board: null, horse: null, man: null, dice: null, tray: null, trayGrey: null, podium: null };
-  const sfx = makeSfx("assets/sfx/", ["do-xuc-xac", "buoc-nhay", "da-quan", "ve-chuong", "thang"], sdk);
+  const sfx = makeSfx("assets/sfx/", ["do-xuc-xac", "buoc-nhay", "da-quan", "ve-chuong", "thang", "tin-nhan", "qua-man"], sdk);
   Promise.all([loadImg(ART.board.src), loadJson(ART.board.grid), loadJson(ART.horse.manifest), loadImg(ART.dice.src), ...VIEW_COLORS.map((c) => loadImg(ART.horse.sheet(c)))])
     .then(([b, grid, man, d, ...sheets]) => {
       if (destroyed) return;
@@ -286,8 +286,22 @@ export function mount(el, ctx = {}) {
     const G = v.game;
     return g.turn === G.turn && g.phase === G.phase && g.dice === G.dice && JSON.stringify(g.horses) === JSON.stringify(G.horses) && g.winner === G.winner;
   }
+  // Tiếng vào/rời phòng: so danh sách người chơi lần trước với lần này (không kêu cho chính mình).
+  function presenceSfx(prev, v) {
+    if (!prev || prev.code !== v.code) return;
+    let join = false, gone = (prev.players || []).length > (v.players || []).length;
+    (v.players || []).forEach((p, i) => {
+      if (i === v.you || !p) return;
+      const o = prev.players[i];
+      if (!o || o.name !== p.name || (!o.connected && p.connected && !p.left)) join = true;
+      else if ((o.connected && !p.connected) || (!o.left && p.left)) gone = true;
+    });
+    if (join) sfx.play("buoc-nhay", 0.6); else if (gone) sfx.play("da-quan", 0.35);
+  }
   function netState(v) {
     const prev = room; room = v;
+    presenceSfx(prev, v);
+    if (prev && prev.phase === "lobby" && v.phase !== "lobby") sfx.play("qua-man", 0.5); // ván bắt đầu
     if (v.phase === "lobby") {
       ruleKey = v.rule; players = Math.max(2, v.players.length);
       if (!lobby || !prev || prev.phase !== "lobby" || prev.rule !== v.rule || prev.players.length !== v.players.length) {
@@ -717,7 +731,7 @@ export function mount(el, ctx = {}) {
     get state() { return g; },
     set state(v) { g = v; kickFx = null; shownSeat = currentSeat(g); shownDice = g.dice; autoAt = 0; autoFor = -1; noMoveShow = null; msg = "Lượt " + nameOf(shownSeat) + (g.phase === "move" ? ": chọn ngựa" : ": gieo xúc xắc"); for (const s of g.seats) stats[s] = stats[s] || { kicks: 0, sixes: 0 }; },
     get paused() { return paused; },
-    netState, get room() { return room; }, get netSeq() { return netSeq; }, get desyncs() { return desyncs; }, get inbox() { return inbox.length; }, get mySeat() { return mySeat(); },
+    netState, chatSfx() { sfx.play("tin-nhan", 0.6); }, get room() { return room; }, get netSeq() { return netSeq; }, get desyncs() { return desyncs; }, get inbox() { return inbox.length; }, get mySeat() { return mySeat(); },
     get lobby() { return lobby; },
     get busy() { return busy() || !!autoAt; },
     get artReady() { return art.ready; },

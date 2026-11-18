@@ -39,6 +39,7 @@ const sfx = (() => {
     win: [[523, 0.1, "square"], [659, 0.1, "square"], [784, 0.1, "square"], [1046, 0.3, "square"]],
     lose: [[392, 0.16, "triangle"], [330, 0.16, "triangle"], [262, 0.4, "triangle"]],
     msg: [[1320, 0.04, "triangle"], [1760, 0.05, "triangle"]],
+    join: [[440, 0.06, "triangle"], [660, 0.09, "triangle"]], leave: [[523, 0.07, "triangle"], [330, 0.11, "triangle"]],
     tick: [[880, 0.06, "square"]], go: [[1320, 0.18, "square"]],
   };
   function boom(vol) { // tiếng nổ = nhiễu trắng qua lọc thấp, tắt dần
@@ -154,7 +155,20 @@ const you = () => (v ? v.you : -1);
 const myP = () => (f && v ? f.p[v.you] : null);
 const isHost = () => v && v.you === v.host;
 
+// Tiếng vào/rời phòng: so danh sách người chơi lần trước với lần này (không kêu cho chính mình).
+function presenceSfx(prev, v) {
+  if (!prev || prev.code !== v.code) return;
+  let join = false, gone = (prev.players || []).length > (v.players || []).length;
+  (v.players || []).forEach((p, i) => {
+    if (i === v.you || !p) return;
+    const o = prev.players[i];
+    if (!o || o.name !== p.name || (!o.connected && p.connected && !p.left)) join = true;
+    else if ((o.connected && !p.connected) || (!o.left && p.left)) gone = true;
+  });
+  if (join) sfx.play("join", 0.8); else if (gone) sfx.play("leave", 0.8);
+}
 function render(prev) {
+  presenceSfx(prev, v);
   $("home").hidden = true; $("game").hidden = false;
   $("barCode").hidden = false; $("barCodeTxt").textContent = v.code;
   if (lastPhase !== v.phase) {

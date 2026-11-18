@@ -112,7 +112,7 @@ export function createNet(h, { wsUrl } = {}) {
 
 // ---------- Trò chuyện trong phòng ----------
 // Máy rộng: khung nằm ở cột phải giữa 2 thẻ người chơi. Màn hẹp: nút "Chat" trên thanh đầu trang mở bảng trượt từ dưới lên.
-export function createChat({ box, button, send, colorOf }) {
+export function createChat({ box, button, send, colorOf, onNew }) {
   let last = -1, seen = 0, view = null;
   const log = box.querySelector(".log"), input = box.querySelector("input"), badge = button.querySelector(".n");
   // đang thấy khung chat: máy rộng = khung nằm sẵn cạnh bàn; màn hẹp = khung ẩn (display:none) cho tới khi mở bảng trượt
@@ -146,6 +146,7 @@ export function createChat({ box, button, send, colorOf }) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) log.scrollTop = log.scrollHeight;
       const lt = list.at(-1);
+      if (isNew && lt && !lt.mine && onNew) onNew(); // tin mới từ người khác: kêu cả khi đang mở khung chat
       if (isNew && lt && !lt.mine && !visible()) toast(lt.name + ": " + lt.text, 3500);
     }
     if (visible()) seen = top;

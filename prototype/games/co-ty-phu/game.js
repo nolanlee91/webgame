@@ -27,7 +27,13 @@ function beep(freq, dur = 0.06, type = "square", vol = 0.05) {
 }
 const SFX = { hop: () => beep(520, 0.04), dice: () => beep(220 + Math.random() * 200, 0.03, "triangle"), coin: () => { beep(988, 0.07); setTimeout(() => beep(1319, 0.1), 70); },
   bad: () => { beep(220, 0.12, "sawtooth"); setTimeout(() => beep(160, 0.16, "sawtooth"), 110); }, build: () => { beep(660, 0.06); setTimeout(() => beep(880, 0.08), 60); setTimeout(() => beep(1100, 0.1), 130); },
-  win: () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.14), i * 140)) };
+  win: () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.14), i * 140)),
+  // online: tin chat mới, người vào / rời phòng, tới lượt mình, ván bắt đầu
+  msg: () => { beep(1175, 0.05, "triangle", 0.04); setTimeout(() => beep(1568, 0.07, "triangle", 0.04), 60); },
+  join: () => { beep(440, 0.06, "triangle"); setTimeout(() => beep(660, 0.08, "triangle"), 80); },
+  leave: () => { beep(523, 0.07, "triangle"); setTimeout(() => beep(330, 0.1, "triangle"), 90); },
+  turn: () => { beep(784, 0.06); setTimeout(() => beep(1047, 0.09), 90); },
+  start: () => [392, 523, 659].forEach((f, i) => setTimeout(() => beep(f, 0.1), i * 110)) };
 $("#mute").textContent = muted ? "🔇" : "🔊";
 $("#mute").onclick = () => { muted = !muted; localStorage.setItem("cotyphu-muted", muted ? "1" : "0"); $("#mute").textContent = muted ? "🔇" : "🔊"; };
 
@@ -251,7 +257,7 @@ async function playOne(e) {
     case "sellLand": syncCash(e); news(`${nameOf(e.pid)} cầm cố ${TILES[e.tile].name} cho ngân hàng`); renderTiles(); await sleep(600); break;
     case "bankrupt": syncCash(e); SFX.bad(); news(`💥 ${nameOf(e.pid)} <b>PHÁ SẢN!</b>`); renderTiles(); placeTokens(); renderPlayers(); await sleep(1400); break;
     case "round": $("#round").textContent = `Vòng ${e.round}/${g.rules.maxRounds}`; if (e.round >= g.rules.maxRounds - 2) news(`⚠ Vòng <b>${e.round}</b>/${g.rules.maxRounds} — sắp chốt sổ!`); break;
-    case "turn": renderPlayers(); break;
+    case "turn": renderPlayers(); if (mode === "online" && room && e.pid === room.you) SFX.turn(); break;
   }
 }
 function hlTile(i) { const el = tileEls[i]; el.classList.remove("hl"); void el.offsetWidth; el.classList.add("hl"); }
@@ -386,8 +392,22 @@ function showRoom() {
 }
 
 // ---------- Nhận trạng thái từ máy chủ ----------
+// Tiếng vào/rời phòng: so danh sách người chơi lần trước với lần này (không kêu cho chính mình).
+function presenceSfx(prev, v) {
+  if (!prev || prev.code !== v.code) return;
+  let join = false, gone = (prev.players || []).length > (v.players || []).length;
+  (v.players || []).forEach((p, i) => {
+    if (i === v.you || !p) return;
+    const o = prev.players[i];
+    if (!o || o.name !== p.name || (!o.connected && p.connected && !p.left)) join = true;
+    else if ((o.connected && !p.connected) || (!o.left && p.left)) gone = true;
+  });
+  if (join) SFX.join(); else if (gone) SFX.leave();
+}
 function netState(v) {
-  room = v; chat.render(v);
+  const prev = room;
+  room = v; chat.render(v); presenceSfx(prev, v);
+  if (prev && prev.phase === "lobby" && v.phase !== "lobby") SFX.start(); // ván bắt đầu
   $("#tagline").textContent = "Phòng " + v.code + " · online";
   if (v.phase === "lobby") { if (g) clearBoard(); showRoom(); return; }
   queue.push(v); pump();
@@ -449,7 +469,7 @@ $("#copyLink").onclick = async () => {
   await loadManifest();
   buildBoard(); renderLobby(); setDice([5, 6]);
   try { $("#nmIn").value = localStorage.getItem(NAME_KEY) || ""; } catch {}
-  chat = createChat({ box: $("#chat"), button: $("#chatBtn"), send: (o) => net.send(o),
+  chat = createChat({ box: $("#chat"), button: $("#chatBtn"), send: (o) => net.send(o), onNew: () => SFX.msg(),
     colorOf: (name) => { const p = room && room.players.find((x) => x.name === name); return p ? TOKENS[p.tok].color : ""; } });
   net = createNet({
     onJoined: () => { mode = "online"; chat.show(true); setConnecting(false); $("#entryErr").textContent = ""; },

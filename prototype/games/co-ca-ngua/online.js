@@ -188,6 +188,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) log.scrollTop = log.scrollHeight;
       const last = list.at(-1);
+      if (isNew && last && !last.mine && inst && inst.chatSfx) inst.chatSfx(); // tin mới từ người khác
       if (isNew && last && !last.mine && !chatVisible()) toast(last.name + ": " + last.text, 3500);
     }
     if (chatVisible()) chatSeen = top;

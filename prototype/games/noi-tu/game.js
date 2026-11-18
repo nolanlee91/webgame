@@ -87,7 +87,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     mLobby: $("mLobby"), lCode: $("lCode"), lWait: $("lWait"), copy: $("copyBtn"), cancel: $("cancelBtn"), mRoom: $("mRoom"), mCard: $("mCard"), back: $("backBtn"), leave: $("leaveBtn"),
     wrap: root.querySelector(".wrap"), chat: $("chat"), chatLog: $("chatLog"), chatForm: $("chatForm"), chatInp: $("chatInp"), chatNote: $("chatNote"),
     chatWho: $("chatWho"), chatBtn: $("chatBtn"), chatBadge: $("chatBadge"), chatClose: $("chatClose") };
-  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "thang", "thua", "qua-man", "het-gio", "do-xuc-xac"], sdk);
+  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "thang", "thua", "qua-man", "het-gio", "do-xuc-xac", "tin-nhan"], sdk);
   const prefs = { level: "easy", mode: "bot", name: "", ...loadJSON(PREFS_KEY, {}) };   // level: chọn cho trận mới · matchLevel: của trận đang lưu
   const invite = (new URLSearchParams(location.search).get("p") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
   if (invite) prefs.mode = "online";
@@ -154,7 +154,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
         setChat(true); renderChatWho();
         if (!room.started) showLobby(room);
       },
-      onStart(sess) { if (o !== online) return; history.replaceState(null, "", location.pathname); attach(sess); },
+      onStart(sess) { if (o !== online) return; history.replaceState(null, "", location.pathname); attach(sess); sfx.play("qua-man", 0.5); }, // bạn kia vào ⇒ ván bắt đầu
       onError(code) {
         if (o !== online) return;
         online = null; ss.remove(ROOM_KEY); setBusyMenu(false); setChat(false);
@@ -166,7 +166,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
         chatItems.push(m); if (chatItems.length > CHAT_KEEP) chatItems.shift();
         renderChat();
         if (m.seat !== online.room?.seat) {
-          sfx.play("buoc-nhay", 0.6);
+          sfx.play("tin-nhan", 0.6);
           if (!chatVisible()) { unread++; showUnread(); }
         }
       },

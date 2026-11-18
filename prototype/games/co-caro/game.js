@@ -118,7 +118,7 @@ export function mount(root, ctx = {}) {
   };
   root.querySelectorAll(".pcX").forEach((e) => { e.innerHTML = pieceSvg(1); });
   root.querySelectorAll(".pcO").forEach((e) => { e.innerHTML = pieceSvg(2); });
-  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "do-xuc-xac", "thang", "thua", "qua-man"], sdk);
+  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "do-xuc-xac", "thang", "thua", "qua-man", "tin-nhan"], sdk);
 
   const saved = loadSave();
   let opts = saved.opts;
@@ -461,6 +461,7 @@ export function mount(root, ctx = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào đối thủ một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) ui.chatLog.scrollTop = ui.chatLog.scrollHeight;
       const last = list.at(-1);
+      if (isNew && last && !last.mine) sfx.play("tin-nhan", 0.6); // có tin mới từ người khác: kêu cả khi đang mở khung chat
       if (isNew && last && !last.mine && !chatOpen()) toast(last.name + ": " + last.text, 3500);
     }
     if (chatOpen()) chatSeen = top;
@@ -481,9 +482,21 @@ export function mount(root, ctx = {}) {
     if (net.send({ t: "chat", text })) ui.chatIn.value = ""; else toast("Đang nối lại máy chủ — chưa gửi được tin.");
   });
 
+  // Tiếng vào/rời phòng: so danh sách người chơi lần trước với lần này (không kêu cho chính mình).
+  function presenceSfx(prev, v) {
+    if (!prev || prev.code !== v.code) return;
+    let join = false, gone = (prev.players || []).length > (v.players || []).length || (!prev.oppLeft && !!v.oppLeft);
+    (v.players || []).forEach((p, i) => {
+      if (i === v.you || !p) return;
+      const o = prev.players[i];
+      if (!o || o.name !== p.name || (!o.connected && p.connected)) join = true;
+      else if (o.connected && !p.connected) gone = true;
+    });
+    if (join) sfx.play("buoc-nhay", 0.6); else if (gone) sfx.play("trung-da", 0.4);
+  }
   function netState(v) {
     const prev = room; room = v;
-    renderChat(v);
+    renderChat(v); presenceSfx(prev, v);
     if (v.phase === "lobby") {
       clearTimers(); s = null; sent = false; fx = { drop: null, win: null, bad: null };
       if (v.oppLeft && prev && prev.phase !== "lobby") toast("Đối thủ đã rời phòng — gửi mã cho người khác vào chơi tiếp.", 4000);
