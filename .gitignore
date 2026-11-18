@@ -1,0 +1,12 @@
+# Ảnh / video chụp khi test (bằng chứng cho bot, ~80 MB) — giữ trên máy, không đưa lên git và Railway.
+# Script test (*.mjs) và kết quả chữ (*.txt) trong screenshots/ VẪN được theo dõi.
+**/screenshots/**/*.png
+**/screenshots/**/*.jpg
+**/screenshots/**/*.jpeg
+**/screenshots/**/*.webp
+**/screenshots/**/*.gif
+**/screenshots/**/*.mp4
+**/screenshots/**/*.webm
+
+# Chứa đường dẫn máy / tên tài khoản Windows
+prototype/games/dat-bom/assets/generation-prompts.json
