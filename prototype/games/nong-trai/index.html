@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nông Trại — Lụm Kèo</title>
+  <meta name="description" content="Nông Trại: trồng rau muống, cà rốt, bắp, bí đỏ, dưa hấu; tưới nước, thu hoạch, bán lấy xu và mở rộng ruộng. Cây vẫn lớn khi bạn tắt máy." />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%235a3a22%22/%3E%3Crect x=%227%22 y=%226%22 width=%222%22 height=%227%22 fill=%22%233fae4a%22/%3E%3Crect x=%223%22 y=%224%22 width=%224%22 height=%223%22 fill=%22%238be08f%22/%3E%3Crect x=%229%22 y=%223%22 width=%224%22 height=%223%22 fill=%22%233fae4a%22/%3E%3C/svg%3E" />
+  <style>
+    /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Rắn Săn Mồi / Đào Vàng: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
+       không bo tròn. Vàng CHỈ cho nút chính. Cây / đất hiện vẽ bằng code (khối pixel); khi có bộ sprite sẽ thay trong game.js (ART). */
+    :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
+      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
+      --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --blue: #4aa8e0;
+      --soil: #6b4428; --soil-l: #86583a; --soil-d: #3f2716; --wet: #4a2e1a; --wet-l: #5e3b22; --grass: #2f5a24; --grass-l: #3d7230;
+      --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
+      --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
+      --drop: 4px 7px 0 0 var(--shadow), 7px 4px 0 0 var(--shadow); }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
+    body { margin: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 4px, transparent 4px 64px), radial-gradient(120% 90% at 50% 35%, #2c3a1a 0%, #1c2412 55%, #0f130a 100%) var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+      display: flex; flex-direction: column; min-height: 100svh; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #1d1a16; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255,255,255,.08); }
+    .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
+    .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
+    .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+    .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
+
+    .wrap { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 14px 16px 18px;
+      display: grid; grid-template-columns: 236px minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "hud field" "hud seeds"; gap: 14px 18px; align-content: start; }
+
+    /* bảng chỉ số */
+    .hud { grid-area: hud; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .stats { display: grid; gap: 10px; padding: 12px 14px; margin: 3px; background: var(--panel); box-shadow: var(--bevel), var(--border); }
+    .stat { display: grid; line-height: 1.1; }
+    .stat small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+    .stat b { font: 800 20px "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; }
+    .stat.main b { font-size: 30px; color: var(--gold); text-shadow: 2px 2px 0 #000; }
+    .stat .lv { color: var(--teal-l); }
+    .px-bar { height: 12px; margin-top: 4px; background: #0d0b09; box-shadow: 0 0 0 3px var(--line); position: relative; overflow: hidden; }
+    .px-bar i { position: absolute; inset: 0 auto 0 0; background: var(--teal); box-shadow: inset 0 3px 0 var(--teal-l), inset 0 -3px 0 var(--teal-d); transition: width .2s steps(4); }
+    .xpTxt { font-size: 12px; color: var(--soft); margin-top: 3px; }
+    .hsep { height: 3px; background: var(--line); }
+    .tools { display: flex; flex-wrap: wrap; gap: 14px; margin: 3px 7px 7px 3px; }
+
+    .btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 44px; padding: 8px 14px; font: 800 14px/1 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); position: relative; touch-action: manipulation; }
+    .btn:hover { background: #30281f; }
+    .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
+    .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
+    .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
+    .btn--icon { padding: 8px 12px; }
+    .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
+    .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
+    .btn--primary:hover { background: linear-gradient(#fff3c8 0 3px, #ffd36a 3px); }
+    .btn--teal { color: #f4ffe9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
+    .btn--teal:hover { background: linear-gradient(#a8e8a0 0 3px, #4aae50 3px); }
+    .btn--teal[disabled] { color: var(--dim); background: #1a1612; }
+    .keys { padding: 10px 12px; margin: 3px; background: var(--panel); box-shadow: var(--border); font-size: 12px; color: var(--soft); display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; align-content: start; }
+    .keys kbd { font: 800 11px "Be Vietnam Pro"; color: var(--ink); background: var(--panel2); padding: 1px 6px; box-shadow: 0 0 0 2px var(--line), inset 0 -2px 0 rgba(0,0,0,.4); white-space: nowrap; justify-self: start; }
+    @media (pointer: coarse) { .keys { display: none; } }
+
+    /* ruộng 5×5 */
+    /* khung ruộng = hàng rào gỗ (nan dọc) bao quanh bãi cỏ */
+    .field { grid-area: field; position: relative; justify-self: center; width: min(100%, 560px, calc(100svh - 300px)); min-width: 280px; aspect-ratio: 1; padding: 12px; margin: 3px;
+      background: linear-gradient(var(--grass), var(--grass)) content-box, repeating-linear-gradient(90deg, #8a6440 0 9px, #6e4e30 9px 11px, #a07650 11px 13px); --b: #3a2716; box-shadow: var(--bevel), var(--border), var(--drop);
+      display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; }
+    /* đất: luống cày ngang (sọc tối/sáng xen kẽ) thay cho chấm bi */
+    .plot { all: unset; box-sizing: border-box; position: relative; cursor: pointer; display: grid; place-items: center; min-width: 0; min-height: 0; touch-action: manipulation;
+      background: radial-gradient(circle at 30% 40%, #9a6a44 0 1.5px, transparent 2px) 0 0 / 13px 11px, radial-gradient(circle at 75% 70%, #3f2716 0 1.5px, transparent 2px) 0 0 / 17px 11px,
+        repeating-linear-gradient(180deg, #7a4f30 0 2px, var(--soil) 2px 8px, #563520 8px 11px); --b: var(--soil-d);
+      box-shadow: inset 0 3px 0 rgba(255,255,255,.10), inset 0 -4px 0 rgba(0,0,0,.35), var(--border); }
+    .plot.wet { background: radial-gradient(circle at 30% 40%, #6e4a2c 0 1.5px, transparent 2px) 0 0 / 13px 11px, radial-gradient(circle at 60% 55%, rgba(120,180,230,.35) 0 2px, transparent 2.5px) 0 0 / 19px 15px,
+      repeating-linear-gradient(180deg, var(--wet-l) 0 2px, var(--wet) 2px 8px, #2c1a0d 8px 11px); }
+    /* ô chưa mở: cỏ (2 tông + vài cọng), không ổ khoá; ô mở được có thẻ giá, ô xa chỉ là cỏ tối */
+    .plot.locked { --b: #1c3a15; box-shadow: inset 0 3px 0 rgba(255,255,255,.06), inset 0 -4px 0 rgba(0,0,0,.25);
+      background: radial-gradient(circle at 25% 30%, #4d8a3a 0 2px, transparent 2.5px) 0 0 / 18px 16px, radial-gradient(circle at 70% 75%, #26491d 0 2px, transparent 2.5px) 0 0 / 18px 16px, var(--grass); }
+    .plot.locked canvas { display: none; }
+    .plot.locked .lbl { top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); padding: 4px 7px; background: rgba(10,8,7,.78); box-shadow: 0 0 0 2px var(--gold-d); color: var(--gold-l); text-shadow: none; white-space: nowrap; }
+    .plot.locked .lbl:empty { display: none; }
+    .plot.locked:not(.far):hover .lbl { box-shadow: 0 0 0 2px var(--gold); }
+    .plot.locked.far { filter: brightness(.72); cursor: default; }
+    .plot:focus-visible, .plot.cursor { outline: 3px solid var(--gold); outline-offset: 2px; z-index: 1; }
+    .plot:hover:not(.far) { filter: brightness(1.12); }
+    .plot canvas { width: 78%; height: 78%; image-rendering: pixelated; pointer-events: none; }
+    .plot .bar2 { position: absolute; left: 10%; right: 10%; bottom: 8%; height: 7px; background: #0d0b09; box-shadow: 0 0 0 2px var(--line); }
+    .plot .bar2 i { position: absolute; inset: 0 auto 0 0; background: var(--gold); }
+    .plot .lbl { position: absolute; left: 0; right: 0; top: 6%; text-align: center; font: 800 11px/1 "Be Vietnam Pro"; color: var(--ink); text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000; pointer-events: none; }
+    .plot.ready { animation: bob 1s steps(2) infinite; }
+    .plot.ready::after { content: ""; position: absolute; inset: -3px; box-shadow: 0 0 0 3px var(--gold); pointer-events: none; }
+    .plot.confirm::after { content: ""; position: absolute; inset: -3px; box-shadow: 0 0 0 3px var(--gold); pointer-events: none; animation: blink .5s steps(2) infinite; }
+    .plot .drop { position: absolute; right: 9%; bottom: calc(8% + 13px); width: 7px; height: 9px; background: var(--blue); box-shadow: 0 0 0 2px var(--line); } /* chấm xanh: cây chưa tưới */
+    @keyframes bob { 50% { transform: translateY(-3px); } }
+    @keyframes blink { 50% { opacity: 0; } }
+    .float { position: absolute; z-index: 3; font: 800 16px "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: up 1s ease-out forwards; white-space: nowrap; }
+    @keyframes up { to { transform: translateY(-36px); opacity: 0; } }
+
+    /* khay hạt giống */
+    .seeds { grid-area: seeds; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; max-width: 640px; width: 100%; justify-self: center; margin: 3px 7px 7px 3px; }
+    .seed { all: unset; box-sizing: border-box; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 9px; text-align: center; background: var(--panel); --b: #4a3f33; box-shadow: var(--bevel), var(--border); touch-action: manipulation; min-width: 0; }
+    .seed canvas { width: 36px; height: 36px; image-rendering: pixelated; }
+    .seed b { font-size: 13px; line-height: 1.15; }
+    .seed small { font-size: 11px; color: var(--soft); line-height: 1.2; }
+    .seed[aria-checked="true"] { background: #2d3a1c; --b: var(--gold); }
+    .seed:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
+    .seed.locked { cursor: default; opacity: .55; }
+    .seed.locked canvas { filter: grayscale(1) brightness(.6); }
+    .seed .need { color: var(--gold); font-weight: 800; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 9; max-width: min(92vw, 520px); padding: 10px 16px; background: var(--panel2); --b: var(--gold-d); box-shadow: var(--border), var(--drop); font-weight: 700; text-align: center; }
+
+    .ov { position: fixed; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(10, 8, 7, .72); z-index: 8; overflow: auto; }
+    .card { width: min(560px, 100%); padding: 22px 24px 26px; background: var(--panel); box-shadow: var(--bevel), var(--border), var(--drop); text-align: center; margin: 3px 7px 7px 3px; }
+    .card h2 { margin: 0 0 6px; font: 800 30px/1.15 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase; text-shadow: 3px 3px 0 #000; }
+    .card .sub { margin: 0; color: var(--soft); }
+    .how { margin: 16px 0 4px; padding: 12px 14px; text-align: left; background: var(--panel2); box-shadow: var(--border); font-size: 14px; color: var(--soft); }
+    .how b { color: var(--ink); }
+    .how ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+    .actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Điện thoại / khung hẹp: HUD thành 1 hàng trên cùng, ruộng giữa, khay hạt dưới (gần ngón cái) */
+    @media (max-width: 760px) {
+      .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "field" "seeds"; padding: 10px 12px 16px; gap: 12px; }
+      .hud { flex-direction: row; align-items: stretch; gap: 10px; }
+      .keys, .xpTxt, .stats .hsep, .stat.plots { display: none; }
+      .stats { flex: 1; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: 6px 12px; padding: 8px 10px; }
+      .stat small { white-space: nowrap; }
+      .stat.main b { font-size: 22px; } .stat b { font-size: 17px; }
+      .tools { flex-wrap: nowrap; gap: 8px; margin: 3px 7px 7px 0; align-items: stretch; }
+      .tools .btn { min-height: 44px; padding: 6px 10px; font-size: 12px; }
+      /* ruộng vuông nhưng chừa chỗ cho thanh trên + HUD + khay hạt ⇒ khay hạt luôn thấy ngay không phải cuộn */
+      .field { width: min(100%, calc(100svh - 290px)); min-width: 240px; padding: 7px; gap: 5px; }
+      .seeds { gap: 7px; margin: 3px 3px 7px; }
+      .seed { padding: 6px 2px 7px; } .seed canvas { width: 30px; height: 30px; } .seed b { font-size: 12px; } .seed small { font-size: 10px; }
+      .plot .lbl { font-size: 10px; }
+    }
+    @media (max-width: 520px) { .tag { display: none; } .bar { white-space: nowrap; } }
+    @media (max-width: 360px) { .stat small { font-size: 9px; letter-spacing: .03em; } .seed small { font-size: 9px; } }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a href="../../homepage/">← Trang chủ</a>
+    <h1>Nông Trại</h1>
+    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+  </header>
+  <main class="wrap">
+    <aside class="hud" aria-label="Trang trại của bạn">
+      <div class="stats">
+        <div class="stat main"><small>Xu</small><b id="hCoins">0</b></div>
+        <div class="stat"><small>Cấp</small><b class="lv" id="hLevel">1</b><div class="px-bar" aria-hidden="true"><i id="hXp" style="width:0%"></i></div><span class="xpTxt" id="hXpTxt"></span></div>
+        <div class="stat"><small>Đã thu</small><b id="hHarvested">0</b></div>
+        <div class="hsep"></div>
+        <div class="stat plots"><small>Ô ruộng</small><b id="hPlots">9/25</b></div>
+      </div>
+      <div class="tools">
+        <button class="btn btn--teal" id="allBtn" type="button" title="Thu hoạch mọi ô đã chín (H)">Thu hết</button>
+        <button class="btn btn--icon" id="muteBtn" type="button" aria-pressed="false" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img id="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /></button>
+        <button class="btn btn--icon" id="helpBtn" type="button" aria-label="Cách chơi" title="Cách chơi">?</button>
+      </div>
+      <div class="keys" aria-label="Phím tắt">
+        <kbd>← ↑ → ↓</kbd><span>Chọn ô</span>
+        <kbd>Enter / Space</kbd><span>Trồng · tưới · thu</span>
+        <kbd>1 – 5</kbd><span>Chọn hạt giống</span>
+        <kbd>H</kbd><span>Thu hoạch hết</span>
+        <kbd>M</kbd><span>Tắt/bật tiếng</span>
+      </div>
+    </aside>
+
+    <section class="field" id="field" aria-label="Ruộng 5 × 5"></section>
+    <div class="seeds" id="seeds" role="radiogroup" aria-label="Hạt giống"></div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <div class="ov" id="ovHelp" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">Nông Trại</h2>
+      <p class="sub">Trồng cây, tưới nước, thu hoạch rồi bán lấy xu để mở rộng ruộng.</p>
+      <div class="how">
+        <ul>
+          <li>Chọn <b>hạt giống</b> ở khay dưới, rồi bấm vào <b>ô đất trống</b> để gieo.</li>
+          <li>Bấm vào cây đang lớn để <b>tưới nước</b> (mỗi cây 1 lần) — cây lớn nhanh hơn 30%.</li>
+          <li>Cây chín sẽ <b>nhún nhảy, viền vàng</b>: bấm để thu hoạch, nhận xu và kinh nghiệm. Lên cấp để mở khoá cây mới.</li>
+          <li>Bấm vào ô cỏ cạnh ruộng để <b>mở thêm ô</b> (bấm 2 lần để xác nhận).</li>
+          <li>Cây <b>vẫn lớn khi bạn tắt máy</b> — tiến trình lưu ngay trên trình duyệt này.</li>
+        </ul>
+      </div>
+      <div class="actions"><button class="btn btn--big btn--primary" id="helpOk" type="button">▶ Vào ruộng</button></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { mount } from "./game.js";
+    // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
+    const sdk = {
+      reportScore: (s) => { window.__lastScore = s; },
+      gameOver: (r) => { window.__lastResult = r; },
+      requestAdBreak: () => Promise.resolve(),
+      sound: { muted: localStorage.getItem("wgp.muted") === "1" },
+    };
+    window.__game = mount(document.body, { sdk });
+  </script>
+</body>
+</html>

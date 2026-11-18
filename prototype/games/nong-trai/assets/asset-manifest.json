@@ -1,0 +1,664 @@
+{
+  "version": 1,
+  "coordinates": {
+    "origin": "top-left",
+    "units": "pixels",
+    "anchor": "frame-local",
+    "bounds": "right and bottom exclusive"
+  },
+  "files": {
+    "crops.png": {
+      "width": 256,
+      "height": 320,
+      "mode": "RGBA",
+      "bytes": 25852,
+      "sha256": "58580e9e2909c858e5c660dbf83681df6dc406faea2b813508527df2e5401f89",
+      "frameSize": [
+        64,
+        64
+      ],
+      "grid": [
+        4,
+        5
+      ],
+      "rowOrder": [
+        {
+          "id": "rau-muong",
+          "name": "Rau Muống"
+        },
+        {
+          "id": "ca-rot",
+          "name": "Cà Rốt"
+        },
+        {
+          "id": "bap",
+          "name": "Bắp"
+        },
+        {
+          "id": "bi-do",
+          "name": "Bí Đỏ"
+        },
+        {
+          "id": "dua-hau",
+          "name": "Dưa Hấu"
+        }
+      ],
+      "columnOrder": [
+        {
+          "id": "seed",
+          "name": "Hạt vừa gieo"
+        },
+        {
+          "id": "sprout",
+          "name": "Mầm"
+        },
+        {
+          "id": "growing",
+          "name": "Đang lớn"
+        },
+        {
+          "id": "ripe",
+          "name": "Chín"
+        }
+      ],
+      "frames": [
+        {
+          "id": "rau-muong/seed",
+          "row": 0,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 25,
+            "top": 46,
+            "right": 39,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "rau-muong/sprout",
+          "row": 0,
+          "column": 1,
+          "rect": {
+            "x": 64,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 21,
+            "top": 41,
+            "right": 43,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "rau-muong/growing",
+          "row": 0,
+          "column": 2,
+          "rect": {
+            "x": 128,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 13,
+            "top": 28,
+            "right": 51,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "rau-muong/ripe",
+          "row": 0,
+          "column": 3,
+          "rect": {
+            "x": 192,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 5,
+            "top": 14,
+            "right": 59,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "ca-rot/seed",
+          "row": 1,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 64,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 26,
+            "top": 46,
+            "right": 38,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "ca-rot/sprout",
+          "row": 1,
+          "column": 1,
+          "rect": {
+            "x": 64,
+            "y": 64,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 21,
+            "top": 42,
+            "right": 43,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "ca-rot/growing",
+          "row": 1,
+          "column": 2,
+          "rect": {
+            "x": 128,
+            "y": 64,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 13,
+            "top": 24,
+            "right": 51,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "ca-rot/ripe",
+          "row": 1,
+          "column": 3,
+          "rect": {
+            "x": 192,
+            "y": 64,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 5,
+            "top": 5,
+            "right": 59,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bap/seed",
+          "row": 2,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 128,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 25,
+            "top": 46,
+            "right": 38,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bap/sprout",
+          "row": 2,
+          "column": 1,
+          "rect": {
+            "x": 64,
+            "y": 128,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 21,
+            "top": 44,
+            "right": 43,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bap/growing",
+          "row": 2,
+          "column": 2,
+          "rect": {
+            "x": 128,
+            "y": 128,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 13,
+            "top": 23,
+            "right": 51,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bap/ripe",
+          "row": 2,
+          "column": 3,
+          "rect": {
+            "x": 192,
+            "y": 128,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 5,
+            "top": 2,
+            "right": 58,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bi-do/seed",
+          "row": 3,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 192,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 25,
+            "top": 46,
+            "right": 39,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bi-do/sprout",
+          "row": 3,
+          "column": 1,
+          "rect": {
+            "x": 64,
+            "y": 192,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 21,
+            "top": 43,
+            "right": 43,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bi-do/growing",
+          "row": 3,
+          "column": 2,
+          "rect": {
+            "x": 128,
+            "y": 192,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 13,
+            "top": 28,
+            "right": 51,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "bi-do/ripe",
+          "row": 3,
+          "column": 3,
+          "rect": {
+            "x": 192,
+            "y": 192,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 5,
+            "top": 16,
+            "right": 59,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "dua-hau/seed",
+          "row": 4,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 256,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 25,
+            "top": 46,
+            "right": 38,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "dua-hau/sprout",
+          "row": 4,
+          "column": 1,
+          "rect": {
+            "x": 64,
+            "y": 256,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 21,
+            "top": 43,
+            "right": 43,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "dua-hau/growing",
+          "row": 4,
+          "column": 2,
+          "rect": {
+            "x": 128,
+            "y": 256,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 13,
+            "top": 31,
+            "right": 51,
+            "bottom": 56
+          }
+        },
+        {
+          "id": "dua-hau/ripe",
+          "row": 4,
+          "column": 3,
+          "rect": {
+            "x": 192,
+            "y": 256,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 32,
+            "y": 56
+          },
+          "opaqueBounds": {
+            "left": 5,
+            "top": 17,
+            "right": 59,
+            "bottom": 56
+          }
+        }
+      ]
+    },
+    "tiles.webp": {
+      "width": 256,
+      "height": 64,
+      "mode": "RGB",
+      "bytes": 26502,
+      "sha256": "470ca386f1868f8b9130e39477c14090e6a859c26cc2545ab74efb024ea0bd60",
+      "frameSize": [
+        64,
+        64
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "columnOrder": [
+        "soil-dry",
+        "soil-watered",
+        "grass-a",
+        "grass-b"
+      ],
+      "frames": [
+        {
+          "id": "soil-dry",
+          "row": 0,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "soil-watered",
+          "row": 0,
+          "column": 1,
+          "rect": {
+            "x": 64,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "grass-a",
+          "row": 0,
+          "column": 2,
+          "rect": {
+            "x": 128,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "grass-b",
+          "row": 0,
+          "column": 3,
+          "rect": {
+            "x": 192,
+            "y": 0,
+            "width": 64,
+            "height": 64
+          },
+          "anchor": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "edgeMatching": [
+        [
+          "soil-dry",
+          "soil-watered"
+        ],
+        [
+          "grass-a",
+          "grass-b"
+        ]
+      ]
+    },
+    "icons.png": {
+      "width": 128,
+      "height": 32,
+      "mode": "RGBA",
+      "bytes": 5192,
+      "sha256": "6ab9507d96c0e8db7933ea98eccd47fc25a54eb58a85e3c7488686389830c8ab",
+      "frameSize": [
+        32,
+        32
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "columnOrder": [
+        "coin",
+        "water",
+        "xp-star",
+        "seed-bag"
+      ],
+      "frames": [
+        {
+          "id": "coin",
+          "row": 0,
+          "column": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          },
+          "anchor": {
+            "x": 16,
+            "y": 16
+          }
+        },
+        {
+          "id": "water",
+          "row": 0,
+          "column": 1,
+          "rect": {
+            "x": 32,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          },
+          "anchor": {
+            "x": 16,
+            "y": 16
+          }
+        },
+        {
+          "id": "xp-star",
+          "row": 0,
+          "column": 2,
+          "rect": {
+            "x": 64,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          },
+          "anchor": {
+            "x": 16,
+            "y": 16
+          }
+        },
+        {
+          "id": "seed-bag",
+          "row": 0,
+          "column": 3,
+          "rect": {
+            "x": 96,
+            "y": 0,
+            "width": 32,
+            "height": 32
+          },
+          "anchor": {
+            "x": 16,
+            "y": 16
+          }
+        }
+      ]
+    }
+  }
+}
