@@ -1,0 +1,148 @@
+// Máy chủ phòng Ma Sói: gắn WebSocket vào http.Server có sẵn, quản lý mã phòng + phiên người chơi.
+// Danh tính = token ngẫu nhiên 128 bit do server cấp (không tin tên / số ghế client gửi lên).
+// Mỗi kết nối chỉ nhận góc nhìn của CHÍNH ghế mình (room.viewFor), và chỉ khi góc nhìn đó đổi.
+"use strict";
+const crypto = require("crypto");
+const { attachWs } = require("./ws");
+const { Room } = require("./room");
+
+const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
+const realClock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (t) => clearTimeout(t) };
+const randInt = (n) => crypto.randomInt(n);
+
+function createMaSoiHost(server, opts = {}) {
+  const path = opts.path || "/ws/ma-soi";
+  const timings = opts.timings;
+  const clock = opts.clock || realClock;
+  const maxRooms = opts.maxRooms || 200;
+  const rooms = new Map();           // code → { room, conns:Set<conn> }
+  const sockets = new Set();         // mọi kết nối đang mở (để tắt máy chủ gọn)
+  const RATE = { burst: 12, perSec: 4 };
+
+  const newCode = () => {
+    for (let k = 0; k < 50; k++) {
+      let c = ""; for (let i = 0; i < 5; i++) c += CODE_ABC[crypto.randomInt(CODE_ABC.length)];
+      if (!rooms.has(c)) return c;
+    }
+    return null;
+  };
+
+  function makeRoom() {
+    if (rooms.size >= maxRooms) return null;
+    const code = newCode(); if (!code) return null;
+    const entry = { conns: new Set(), idleTimer: null };
+    entry.room = new Room({ code, timings, clock, randInt, onChange: () => push(entry) });
+    rooms.set(code, entry);
+    return entry;
+  }
+
+  function dropRoom(entry) {
+    entry.room.close();
+    clearTimeout(entry.idleTimer);
+    rooms.delete(entry.room.code);
+    for (const c of entry.conns) c.ws.close(1000);
+  }
+
+  // Phòng không còn ai kết nối ⇒ xoá sau 5 phút (giữ cho người rớt mạng quay lại).
+  function checkIdle(entry) {
+    clearTimeout(entry.idleTimer);
+    if ([...entry.conns].some((c) => c.token)) return;
+    entry.idleTimer = setTimeout(() => dropRoom(entry), opts.idleMs ?? 5 * 60 * 1000);
+    entry.idleTimer.unref?.();
+  }
+
+  const seatOf = (entry, token) => entry.room.players.findIndex((p) => p.token === token);
+
+  /** Gửi góc nhìn mới cho từng kết nối — CHỈ khi nội dung góc nhìn của ghế đó thay đổi. */
+  function push(entry) {
+    for (const c of entry.conns) {
+      if (!c.token) continue;
+      const seat = seatOf(entry, c.token);
+      if (seat < 0) { c.ws.send(JSON.stringify({ t: "kicked" })); c.token = null; continue; }
+      const v = JSON.stringify(entry.room.viewFor(seat));
+      if (v === c.last) continue;
+      c.last = v;
+      c.ws.send(`{"t":"state","now":${clock.now()},"v":${v}}`);
+    }
+  }
+
+  function onMessage(conn, raw) {
+    // giới hạn tốc độ: xô token, 12 lệnh dồn, hồi 4 lệnh/giây
+    const now = clock.now();
+    conn.bucket = Math.min(RATE.burst, conn.bucket + ((now - conn.at) / 1000) * RATE.perSec); conn.at = now;
+    if (conn.bucket < 1) return reply(conn, { t: "err", code: "slow" });
+    conn.bucket -= 1;
+    let m; try { m = JSON.parse(raw); } catch { return reply(conn, { t: "err", code: "bad" }); }
+    if (!m || typeof m !== "object" || Array.isArray(m)) return reply(conn, { t: "err", code: "bad" });
+
+    if (m.t === "ping") return reply(conn, { t: "pong", now: clock.now() });
+    if (m.t === "create" || m.t === "join" || m.t === "resume") {
+      if (conn.entry) return reply(conn, { t: "err", code: "already" });
+      let entry;
+      if (m.t === "create") { entry = makeRoom(); if (!entry) return reply(conn, { t: "err", code: "busy" }); }
+      else {
+        entry = rooms.get(String(m.code || "").toUpperCase().trim());
+        if (!entry) return reply(conn, { t: "err", code: "no-room" });
+      }
+      let token;
+      if (m.t === "resume") {
+        token = typeof m.token === "string" && /^[0-9a-f]{32}$/.test(m.token) ? m.token : "";
+        if (!token || seatOf(entry, token) < 0) return reply(conn, { t: "err", code: "no-seat" });
+        // một ghế chỉ một kết nối: kết nối cũ (tab cũ) bị thay
+        for (const c of entry.conns) if (c.token === token && c !== conn) { c.token = null; c.ws.send(JSON.stringify({ t: "replaced" })); c.ws.close(4000); }
+      } else {
+        token = crypto.randomBytes(16).toString("hex");
+        const r = entry.room.join(m.name, token);
+        if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
+      }
+      conn.entry = entry; conn.token = token; conn.last = null;
+      entry.conns.add(conn); clearTimeout(entry.idleTimer);
+      reply(conn, { t: "joined", code: entry.room.code, token });
+      entry.room.setConnected(seatOf(entry, token), true);
+      push(entry);
+      return;
+    }
+    const entry = conn.entry;
+    if (!entry || !conn.token) return reply(conn, { t: "err", code: "no-room" });
+    const seat = seatOf(entry, conn.token);
+    if (seat < 0) return reply(conn, { t: "err", code: "no-seat" });
+    if (m.t === "leave") {
+      entry.room.leave(seat);
+      conn.token = null; entry.conns.delete(conn); conn.entry = null;
+      if (entry.room.closed) dropRoom(entry); else checkIdle(entry);
+      return reply(conn, { t: "left" });
+    }
+    const r = entry.room.handle(seat, m);
+    if (r?.err) reply(conn, { t: "err", code: r.err, req: m.t });
+  }
+
+  function reply(conn, o) { conn.ws.send(JSON.stringify(o)); }
+
+  attachWs(server, path, (ws) => {
+    const conn = { ws, entry: null, token: null, last: null, bucket: RATE.burst, at: clock.now() };
+    sockets.add(ws);
+    ws.on("message", (raw) => { try { onMessage(conn, raw); } catch (e) { console.error("[ma-soi]", e); reply(conn, { t: "err", code: "server" }); } });
+    ws.on("close", () => {
+      sockets.delete(ws);
+      const entry = conn.entry; if (!entry) return;
+      entry.conns.delete(conn);
+      if (conn.token) {
+        const seat = seatOf(entry, conn.token);
+        // phòng chờ: rời hẳn sau 20 s nếu không quay lại; đang chơi: giữ ghế
+        if (seat >= 0) entry.room.setConnected(seat, false);
+        const token = conn.token;
+        if (entry.room.phase === "lobby") {
+          const t = setTimeout(() => {
+            const s = seatOf(entry, token);
+            if (s >= 0 && !entry.room.players[s].connected && entry.room.phase === "lobby") { entry.room.leave(s); if (entry.room.closed) dropRoom(entry); }
+          }, opts.lobbyGraceMs ?? 20000); t.unref?.();
+        }
+      }
+      checkIdle(entry);
+    });
+  }, { maxBytes: 2048, allowOrigin: opts.allowOrigin });
+
+  return { rooms, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
+}
+
+module.exports = { createMaSoiHost };

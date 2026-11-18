@@ -1,0 +1,51 @@
+{
+  "calls": 8,
+  "sources": [
+    {
+      "id": "role-ma-soi",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-c7c6c575-e689-44d6-b3b7-783a0109dbd1.png"
+    },
+    {
+      "id": "role-tien-tri",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-cf26edf2-ddec-4b53-8106-8494710504bc.png"
+    },
+    {
+      "id": "role-bao-ve",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-da138fa7-0b0c-4841-9d84-8eeb7f49be61.png"
+    },
+    {
+      "id": "role-dan-lang",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-d414b7ef-9281-43ad-ae63-42f4a9415bbc.png"
+    },
+    {
+      "id": "village-day",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-75d4b8c2-04f7-4cfc-8313-ff9af74dbdbb.png"
+    },
+    {
+      "id": "village-night",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-28f3312f-f683-438f-bcb3-0231eacf1831.png"
+    },
+    {
+      "id": "hud-icons",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-6193d63d-7d8d-4dbd-aa91-97bb5b571cab.png"
+    },
+    {
+      "id": "poster-ma-soi",
+      "path": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-30362c89-4327-4cff-83c1-ffe57484dc7e.png"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "role-ma-soi",
+      "prompt": "Use case: stylized-concept. Production role card illustration for Vietnamese village social game Ma Sói, brand Lụm Kèo. One portrait 3:4 card, no lettering, no logos. An imposing mature humanoid werewolf with dark charcoal fur, red eyes #e03c3c, rustic indigo waistcoat, in a Vietnamese thatched village at night. Intense cunning expression, adult realistic proportions, waist-up framed with hands visible. Restrained carved dark wood stepped-corner border, same border thickness and composition to be reused on four cards. Night blue #0b0e14, moon silver #7ea7e0, warm earth #2c221b, ivory #f4ead2. Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. 3:4 portrait framing overrides landscape. Rich material texture built from sharp square pixels, dark one-block outline, hard offset shadows. Original village folklore interpretation, not copying existing Werewolf/Mafia games."
+    },
+    {
+      "id": "hud-icons",
+      "prompt": "Use case: stylized-concept. Production HUD sprite atlas for Vietnamese folklore social game Ma Sói / Lụm Kèo. TRUE transparent background. Exactly SIX icons, regular 3 columns by 2 rows, equally sized square cells without borders or labels. Order LEFT TO RIGHT: top row SUN, CRESCENT MOON, WOODEN GUARDIAN SHIELD; bottom row CRYSTAL ORB, WOLF CLAW (three claw marks), EMPTY HANGMAN NOOSE (rope loop only, no person). Each is designed at EXACTLY 32x32 source pixels with 3px transparent padding, centered in its own cell, crisp readable bold silhouette. Render atlas as nearest-neighbor enlarged 96x64 base pixels, landscape3:2 ratio. Premium authentic 16-bit chunky pixel art, strict restrained palette dithering, dark one-pixel outline #0a0807, ivory #f4ead2, wood browns #2c221b #b9ad93, sunlight #f5d77f, moon/orb #7ea7e0, shield green #3a7d44, claws muted red #e03c3c. Pixel-cut hard edges and hard shadow contained in cell. No letters, no text, no grid lines, no duplicate icons, no smooth gradient, no antialiasing, no blur, no painterly work."
+    },
+    {
+      "id": "village-night",
+      "prompt": "Use case: lighting-weather. Edit the supplied village-day background into the NIGHT version for an in-game day/night crossfade. ABSOLUTE invariants: exact same canvas dimensions and framing, exact same camera, exact same geometry and silhouettes and pixel coordinates of all 8 stools, central fire stone ring, all houses, stairs, fences, plants, ground markings. Do not add, remove, move, enlarge, redraw or crop any object. Change ONLY color/illumination: night base #0b0e14, moonlit bands #7ea7e0 instead of warm sun bands, dark soaked wood #12161f, deep desaturated foliage. Campfire retains small hard-edged orange pixels, tiny red eyes #e03c3c may be in existing upper distant dark foliage without altering silhouette. Hard-edge coarse 16-bit pixel grid and ordered dithering exactly preserved, no gradient/blur/soft glow/painting. No text, no people, no moon disk because no sky in this camera. Output 16:9."
+    }
+  ]
+}

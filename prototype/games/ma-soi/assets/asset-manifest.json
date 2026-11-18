@@ -1,0 +1,106 @@
+{
+  "generationCalls": 8,
+  "icons": {
+    "sun": {
+      "x": 0,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    },
+    "moon": {
+      "x": 32,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    },
+    "shield": {
+      "x": 64,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    },
+    "crystal-orb": {
+      "x": 0,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    },
+    "wolf-claw": {
+      "x": 32,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    },
+    "noose": {
+      "x": 64,
+      "y": 32,
+      "width": 32,
+      "height": 32
+    }
+  },
+  "files": [
+    {
+      "file": "role-ma-soi.webp",
+      "width": 768,
+      "height": 1024,
+      "bytes": 890888,
+      "mode": "RGB"
+    },
+    {
+      "file": "role-tien-tri.webp",
+      "width": 768,
+      "height": 1024,
+      "bytes": 1044588,
+      "mode": "RGB"
+    },
+    {
+      "file": "role-bao-ve.webp",
+      "width": 768,
+      "height": 1024,
+      "bytes": 1072380,
+      "mode": "RGB"
+    },
+    {
+      "file": "role-dan-lang.webp",
+      "width": 768,
+      "height": 1024,
+      "bytes": 1182790,
+      "mode": "RGB"
+    },
+    {
+      "file": "village-day.webp",
+      "width": 1280,
+      "height": 720,
+      "bytes": 972512,
+      "mode": "RGB"
+    },
+    {
+      "file": "village-night.webp",
+      "width": 1280,
+      "height": 720,
+      "bytes": 863678,
+      "mode": "RGB"
+    },
+    {
+      "file": "hud-icons.png",
+      "width": 96,
+      "height": 64,
+      "bytes": 13015,
+      "mode": "RGBA"
+    },
+    {
+      "file": "poster-ma-soi.webp",
+      "width": 960,
+      "height": 640,
+      "bytes": 859824,
+      "mode": "RGB"
+    }
+  ],
+  "transition": {
+    "durationMs": 2000,
+    "method": "crossfade or ordered-dither mask",
+    "day": "village-day.webp",
+    "night": "village-night.webp",
+    "note": "Same camera and major landmarks; AI relighting is not a pixel-exact geometry guarantee."
+  }
+}

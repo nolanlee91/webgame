@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>Ma Sói — Lụm Kèo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230b0e14%22/%3E%3Crect x=%229%22 y=%222%22 width=%225%22 height=%225%22 fill=%22%237ea7e0%22/%3E%3Crect x=%223%22 y=%229%22 width=%222%22 height=%222%22 fill=%22%23e03c3c%22/%3E%3Crect x=%227%22 y=%229%22 width=%222%22 height=%222%22 fill=%22%23e03c3c%22/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="is-day">
+  <header class="bar">
+    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">← Lụm Kèo</a>
+    <h1>Ma Sói</h1>
+    <span class="bar__code" id="barCode" hidden>Phòng <b id="barCodeTxt"></b></span>
+    <span class="net" id="net" hidden>Đang kết nối lại…</span>
+  </header>
+
+  <!-- ===== Màn đầu: tạo / vào phòng ===== -->
+  <main class="home" id="home">
+    <div class="home__card px-panel">
+      <img class="home__poster" src="assets/poster-ma-soi.webp" alt="Ma Sói — làng quê về đêm, đôi mắt sói đỏ trong bóng tối" width="960" height="640" />
+      <div class="home__body">
+        <h2 class="px-h">Rủ 6–8 người vào làng</h2>
+        <p class="soft">Mỗi người một vai bí mật. Đêm xuống, Sói đi săn; trời sáng, cả làng bàn bạc và bỏ phiếu tìm Sói.</p>
+        <label class="field">Tên của bạn
+          <input id="nameInp" maxlength="16" autocomplete="nickname" placeholder="VD: Tí Còi" />
+        </label>
+        <div class="home__row">
+          <button class="btn btn--gold" id="createBtn">Tạo phòng mới</button>
+        </div>
+        <div class="home__join">
+          <label class="field">Có mã phòng?
+            <input id="codeInp" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC23" />
+          </label>
+          <button class="btn btn--teal" id="joinBtn">Vào phòng</button>
+        </div>
+        <p class="home__msg" id="homeMsg" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Trong phòng ===== -->
+  <main class="game" id="game" hidden>
+    <section class="stage" id="stage" aria-label="Sân làng">
+      <div class="world" id="world">
+        <img class="scene scene--day" src="assets/village-day.webp" alt="" width="1280" height="720" />
+        <img class="scene scene--night" src="assets/village-night.webp" alt="" width="1280" height="720" />
+        <div class="dither" aria-hidden="true"></div>
+        <div class="fog" aria-hidden="true"></div>
+        <div class="seats" id="seats"></div>
+      </div>
+      <div class="dial px-panel" id="dial" aria-live="polite">
+        <span class="hud hud--sun" id="dialIcon" aria-hidden="true"></span>
+        <span class="dial__txt"><b id="phaseTxt">Phòng chờ</b><span id="phaseSub"></span></span>
+        <span class="dial__sec" id="secTxt"></span>
+        <span class="dial__bar"><i id="secBar"></i></span>
+      </div>
+      <div class="banner" id="banner" hidden></div>
+    </section>
+
+    <aside class="side">
+      <div class="me px-panel" id="mePanel">
+        <button class="me__card" id="meCard" aria-label="Xem thẻ vai của bạn"><img id="meImg" src="assets/role-card-back.png" alt="" /></button>
+        <div class="me__info">
+          <span class="kicker" id="meKicker">Vai của bạn</span>
+          <b class="me__role" id="meRole">Chưa phát thẻ</b>
+          <span class="me__desc soft" id="meDesc">Chờ đủ 6 người, chủ phòng bấm Bắt đầu.</span>
+        </div>
+      </div>
+
+      <div class="act px-panel" id="actPanel">
+        <p class="act__txt" id="actTxt"></p>
+        <div class="act__row" id="actRow"></div>
+        <ul class="seerlog" id="seerLog" hidden></ul>
+      </div>
+
+      <div class="chat px-panel">
+        <div class="chat__tabs" role="tablist">
+          <button role="tab" id="tabVillage" aria-selected="true">Làng</button>
+          <button role="tab" id="tabWolf" aria-selected="false" hidden>Kênh Sói</button>
+        </div>
+        <ol class="chat__log" id="chatLog" aria-live="polite"></ol>
+        <div class="quick" id="quick"></div>
+        <form class="chat__form" id="chatForm" autocomplete="off">
+          <input id="chatInp" maxlength="200" placeholder="Nói gì đó với cả làng…" aria-label="Tin nhắn" />
+          <button class="btn btn--teal" id="chatBtn">Gửi</button>
+        </form>
+      </div>
+    </aside>
+  </main>
+
+  <!-- lật thẻ vai lúc phát bài -->
+  <div class="ov" id="ovReveal" hidden>
+    <div class="flip" id="flip"><div class="flip__in">
+      <img class="flip__back" src="assets/role-card-back.png" alt="" />
+      <img class="flip__front" id="flipFront" alt="" />
+    </div></div>
+    <p class="ov__cap" id="revealCap"></p>
+  </div>
+
+  <!-- kết thúc ván -->
+  <div class="ov" id="ovEnd" hidden>
+    <div class="end px-panel">
+      <h2 class="end__title" id="endTitle"></h2>
+      <p class="soft" id="endSub"></p>
+      <div class="end__cards" id="endCards"></div>
+      <div class="end__row"><button class="btn btn--gold" id="againBtn">Chơi ván mới</button><button class="btn" id="endClose">Xem lại sân</button></div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

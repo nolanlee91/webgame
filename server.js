@@ -56,4 +56,15 @@ function serveFile(file, req, res, st) {
   fs.stat(file, (err, s) => (err || !s.isFile() ? send(res, 404, "Not Found") : go(s)));
 }
 
-server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
+// Ma Sói online (phòng nhiều người qua WebSocket) — CHỈ bật khi MASOI_ONLINE=1 (môi trường dev).
+// Production chưa bật: bật = một lần deploy cần chủ dự án duyệt riêng.
+if (process.env.MASOI_ONLINE === "1") {
+  const speed = Number(process.env.MASOI_SPEED) || 1; // 0.2 = nhanh gấp 5 để thử
+  const { DEFAULT_TIMINGS } = require("./games-server/ma-soi/room");
+  const timings = Object.fromEntries(Object.entries(DEFAULT_TIMINGS).map(([k, v]) => [k, Math.round(v * speed)]));
+  require("./games-server/ma-soi/host").createMaSoiHost(server, { timings });
+  console.log(`Ma Sói online: đường /ws/ma-soi (thời gian mỗi pha x${speed})`);
+}
+
+if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
+module.exports = server;

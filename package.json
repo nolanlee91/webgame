@@ -4,7 +4,10 @@
   "private": true,
   "description": "Webgame Portal — bản chơi thử (trang chủ + game HTML5) phục vụ tĩnh để test online",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev:ma-soi": "node games-server/ma-soi/dev.js",
+    "test:ma-soi": "node --test --test-concurrency=1 games-server/ma-soi/test/*.test.mjs",
+    "test:ma-soi:e2e": "node games-server/ma-soi/test/browser-e2e.mjs"
   },
   "engines": {
     "node": ">=18"

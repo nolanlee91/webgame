@@ -1,0 +1,193 @@
+{
+  "generationCalls": 5,
+  "files": [
+    {
+      "file": "player-avatars.png",
+      "size": [
+        256,
+        128
+      ],
+      "mode": "RGB",
+      "bytes": 72679
+    },
+    {
+      "file": "night-actions.png",
+      "size": [
+        192,
+        64
+      ],
+      "mode": "RGBA",
+      "bytes": 22196
+    },
+    {
+      "file": "player-states.png",
+      "size": [
+        128,
+        64
+      ],
+      "mode": "RGBA",
+      "bytes": 14363
+    },
+    {
+      "file": "vote-panel.png",
+      "size": [
+        384,
+        512
+      ],
+      "mode": "RGBA",
+      "bytes": 173520
+    },
+    {
+      "file": "role-card-back.png",
+      "size": [
+        384,
+        512
+      ],
+      "mode": "RGB",
+      "bytes": 415563
+    }
+  ],
+  "atlases": {
+    "player-avatars": {
+      "columns": 4,
+      "rows": 2,
+      "cell": 64,
+      "sprites": {
+        "avatar-01": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-02": {
+          "x": 64,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-03": {
+          "x": 128,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-04": {
+          "x": 192,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-05": {
+          "x": 0,
+          "y": 64,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-06": {
+          "x": 64,
+          "y": 64,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-07": {
+          "x": 128,
+          "y": 64,
+          "width": 64,
+          "height": 64
+        },
+        "avatar-08": {
+          "x": 192,
+          "y": 64,
+          "width": 64,
+          "height": 64
+        }
+      }
+    },
+    "night-actions": {
+      "columns": 3,
+      "rows": 1,
+      "cell": 64,
+      "sprites": {
+        "bite": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        },
+        "inspect": {
+          "x": 64,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        },
+        "protect": {
+          "x": 128,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        }
+      }
+    },
+    "player-states": {
+      "columns": 4,
+      "rows": 2,
+      "cell": 32,
+      "sprites": {
+        "eliminated": {
+          "x": 0,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "sleeping": {
+          "x": 32,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "discuss": {
+          "x": 64,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "vote": {
+          "x": 96,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "suspicion": {
+          "x": 0,
+          "y": 32,
+          "width": 32,
+          "height": 32
+        },
+        "revealed": {
+          "x": 32,
+          "y": 32,
+          "width": 32,
+          "height": 32
+        },
+        "victory": {
+          "x": 64,
+          "y": 32,
+          "width": 32,
+          "height": 32
+        },
+        "ready": {
+          "x": 96,
+          "y": 32,
+          "width": 32,
+          "height": 32
+        }
+      }
+    }
+  },
+  "notes": [
+    "Avatars are role-neutral. Never use role-card portraits as public player avatars.",
+    "All atlas rectangles are exact; display with image-rendering:pixelated.",
+    "Private inspect/protect information must be shown only to authorized players.",
+    "Day/night scenes and existing HUD icons are reused; this pack does not add game logic or transitions."
+  ]
+}
