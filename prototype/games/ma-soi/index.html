@@ -67,6 +67,19 @@
       <div class="banner" id="banner" hidden></div>
     </section>
 
+    <!-- phòng chờ: ai đang có mặt + bộ vai sẽ chia (chỉ hiện khi phase = lobby) -->
+    <section class="lobby" id="lobby" hidden aria-label="Phòng chờ">
+      <div class="lobby__ppl px-panel">
+        <h2 class="lobby__h">Người trong phòng <span class="lobby__n" id="pplCount"></span></h2>
+        <ul class="plist" id="plist"></ul>
+      </div>
+      <div class="lobby__roles px-panel">
+        <h2 class="lobby__h">Bộ vai ván này <span class="rsum" id="roleSum"></span></h2>
+        <div class="rcards" id="rcards"></div>
+        <p class="rwarn" id="roleWarn" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
     <aside class="side">
       <div class="me px-panel" id="mePanel">
         <button class="me__card" id="meCard" aria-label="Xem thẻ vai của bạn"><img id="meImg" src="assets/role-card-back.png" alt="" /></button>
@@ -87,6 +100,7 @@
         <div class="chat__tabs" role="tablist">
           <button role="tab" id="tabVillage" aria-selected="true">Làng</button>
           <button role="tab" id="tabWolf" aria-selected="false" hidden>Kênh Sói</button>
+          <button type="button" class="chat__fold" id="chatFold" aria-expanded="false" aria-controls="chatLog">Mở rộng ▲</button>
         </div>
         <ol class="chat__log" id="chatLog" aria-live="polite"></ol>
         <div class="quick" id="quick"></div>

@@ -66,7 +66,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed
 @media (max-width: 720px) { .home__card { grid-template-columns: 1fr; } .home__poster { max-height: 34vh; min-height: 0; } }
 
 /* ---------- trong phòng ---------- */
-.game { flex: 1; min-height: 0; width: 100%; max-width: 1360px; margin: 0 auto; padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 12px; align-items: start; }
+.game { flex: 1 0 auto; width: 100%; max-width: 1360px; margin: 0 auto; padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 12px; align-items: start; }
 .stage { position: relative; overflow: hidden; --b: var(--line); box-shadow: var(--border), var(--drop); margin: 3px; background: #000; }
 .world { position: relative; width: 100%; aspect-ratio: 16 / 9; }
 .scene { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; }
@@ -158,6 +158,60 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 .chat__form input { min-width: 0; }
 .chat--off .chat__form, .chat--off .quick { opacity: .45; pointer-events: none; }
 
+/* ---------- phòng chờ ---------- */
+/* .game không được co (flex-shrink 0): khung cảnh overflow:hidden có min-content = 0 nên nếu co, hàng lưới của nó
+   sụp và nội dung hàng dưới đè lên (từng làm nút Bắt đầu / Rời phòng bị che trên điện thoại). */
+.game > .stage { grid-column: 1; grid-row: 1; }
+.game > .side { grid-column: 2; grid-row: 1 / span 2; }
+.lobby { grid-column: 1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 12px; align-items: start; min-width: 0; }
+.lobby > .px-panel { padding: 12px; display: grid; gap: 10px; min-width: 0; }
+.lobby__h { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 800 13px/1.2 "Be Vietnam Pro", system-ui; letter-spacing: .08em; text-transform: uppercase; }
+.lobby__n { color: var(--accent); letter-spacing: .04em; }
+.plist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.prow { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; background: rgba(0,0,0,.22); box-shadow: inset 0 -2px 0 rgba(0,0,0,.3); }
+.prow--me { background: rgba(245,215,127,.1); box-shadow: inset 3px 0 0 var(--gold), inset 0 -2px 0 rgba(0,0,0,.3); }
+.prow__av { width: 36px; height: 36px; background: url(assets/player-avatars.png) 0 0 / 400% 200% no-repeat; image-rendering: pixelated; --b: var(--line); box-shadow: var(--border); margin: 3px; }
+.prow__name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow__name i { font-style: normal; font-weight: 600; color: var(--gold); }
+.prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.chip { font: 800 11px/1 "Be Vietnam Pro", system-ui; padding: 5px 7px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; --b: var(--line); box-shadow: var(--border); margin: 3px 2px; }
+.chip--host { background: var(--gold); color: #2b1c08; }
+.chip--ok { background: var(--green); color: #fff; }
+.chip--off { background: var(--red); color: #fff; animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .55; } }
+.prow--off .prow__av { filter: grayscale(1) brightness(.55); }
+.prow--off .prow__name { color: var(--dim); }
+.prow--empty { background: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,.12); grid-template-columns: 36px 1fr; }
+.prow--empty .prow__av { background: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+.prow--empty .prow__name { color: var(--dim); font-weight: 600; font-style: italic; }
+
+.rsum { margin-left: auto; padding: 4px 8px; font-size: 12px; letter-spacing: .04em; --b: var(--line); box-shadow: var(--border); }
+.rsum--ok { background: var(--green); color: #fff; }
+.rsum--bad { background: var(--red); color: #fff; }
+.rcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rcard { margin: 0; display: grid; gap: 6px; text-align: center; }
+.rcard__img { position: relative; display: block; aspect-ratio: 3 / 4; --b: var(--line); box-shadow: var(--border), 3px 4px 0 0 var(--shadow); margin: 3px; background: #000; }
+.rcard__img img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+.rcard__n { position: absolute; right: -6px; top: -8px; min-width: 34px; padding: 4px 6px; background: var(--gold); color: #2b1c08; font: 800 16px/1 "Be Vietnam Pro", system-ui; --b: var(--line); box-shadow: var(--border), 2px 3px 0 0 var(--shadow); }
+.rcard--wolf .rcard__n { background: var(--red); color: #fff; }
+.rcard figcaption { display: grid; line-height: 1.2; }
+.rcard figcaption b { font-size: 14px; text-shadow: 2px 2px 0 #000; }
+.rcard--wolf figcaption b { color: var(--red); }
+.rcard figcaption span { font-size: 11px; color: var(--soft); }
+.rwarn { margin: 0; padding: 8px 10px; font-weight: 700; font-size: 13px; line-height: 1.4; --b: var(--line); box-shadow: var(--border); margin: 3px; }
+.rwarn--ok { background: rgba(58,125,68,.28); color: #bfe6c4; }
+.rwarn--warn { background: rgba(245,215,127,.16); color: var(--gold); }
+.rwarn--bad { background: rgba(224,60,60,.22); color: #ffb3b3; box-shadow: var(--border), inset 4px 0 0 var(--red); }
+
+/* màn hình rộng: cột phải (chat) neo dính khi cuộn, chat kéo dài hết phần còn lại */
+body.is-lobby .me { display: none; }
+.chat__fold { display: none; }
+@media (min-width: 981px) {
+  body.is-lobby .side { position: sticky; top: 12px; display: flex; flex-direction: column; height: calc(100dvh - 88px); min-height: 460px; }
+  body.is-lobby .side > .act { flex: none; }
+  body.is-lobby .chat { flex: 1; height: auto; min-height: 0; }
+}
+
 /* ---------- lớp phủ ---------- */
 .ov { position: fixed; inset: 0; z-index: 20; background: rgba(5,6,10,.82); display: grid; place-items: center; align-content: center; gap: 14px; padding: 16px; }
 .ov__cap { margin: 0; text-align: center; font-weight: 700; max-width: 420px; }
@@ -180,7 +234,19 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 /* ---------- mobile ---------- */
 @media (max-width: 980px) {
   .game { grid-template-columns: 1fr; padding: 8px; gap: 8px; }
+  .game > .stage, .game > .side, .lobby { grid-column: 1; grid-row: auto; }
+  .game > .side { order: 1; } .lobby { order: 2; }
   .chat { height: 340px; }
+  .lobby { grid-template-columns: 1fr; gap: 8px; }
+  /* phòng chờ: chat neo đáy màn hình — gọn 2 dòng, bấm "Mở rộng" để xem nhiều hơn; chừa chỗ để không che nội dung */
+  body.is-lobby .game { padding-bottom: 190px; }
+  body.is-lobby .chat { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; margin: 0; height: auto; padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    grid-template-rows: auto auto auto auto; box-shadow: 0 -3px 0 0 var(--line), 0 -8px 0 0 rgba(0,0,0,.35); }
+  body.is-lobby .chat__log { height: 64px; }
+  body.is-lobby .chat--open .chat__log { height: 42dvh; }
+  body.is-lobby .chat:not(.chat--open) .quick { display: none; }
+  body.is-lobby .chat__fold { display: block; flex: none; border: 0; background: none; color: var(--accent); font-weight: 800; font-size: 12px; padding: 0 14px; min-height: 44px; cursor: pointer; }
+  body.is-lobby .chat__tabs button[role="tab"] { text-align: left; padding-left: 14px; }
 }
 @media (max-width: 640px) {
   .bar { padding: 8px 10px; gap: 10px; }
@@ -195,5 +261,10 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
   .dial__sec { font-size: 22px; }
   .me { grid-template-columns: 60px 1fr; }
   .me__card { width: 60px; }
+  .rcards { gap: 6px; }
+  .rcard figcaption b { font-size: 12px; }
+  .rcard figcaption span { font-size: 10px; }
+  .rcard__n { font-size: 13px; min-width: 28px; right: -4px; }
+  .chip { font-size: 10px; padding: 4px 5px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

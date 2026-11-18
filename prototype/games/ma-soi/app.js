@@ -162,7 +162,8 @@ function render() {
   setTheme(ph === "night" || ph === "reveal" ? "night" : "day");
   const changed = ph !== lastPhase; lastPhase = ph;
   if (changed) onPhase(ph);
-  renderDial(); renderSeats(); renderMe(); renderAct(); renderChat();
+  document.body.classList.toggle("is-lobby", ph === "lobby");
+  renderDial(); renderSeats(); renderMe(); renderAct(); renderChat(); renderLobby();
   if (ph === "end" && !endHidden) renderEnd(); else if (ph !== "end") { $("ovEnd").hidden = true; endHidden = false; }
   if (ph === "reveal" && revealShown !== v.round && my?.role) showReveal(my.role);
   if (ph !== "reveal") $("ovReveal").hidden = true;
@@ -316,6 +317,50 @@ $("actRow").addEventListener("click", async (e) => {
   }
 });
 
+// ---------------- phòng chờ: danh sách người + bộ vai ----------------
+// Bộ vai giống hệt roleSet() của server: 2 Sói, 1 Tiên Tri, 1 Bảo Vệ, còn lại là Dân Làng. Chỉ là bản xem trước công khai,
+// không chứa vai của ai — vai thật do server xáo và chia lúc bấm Bắt đầu.
+const ROLE_ORDER = ["wolf", "seer", "guard", "villager"];
+const roleCount = (n) => ({ wolf: 2, seer: 1, guard: 1, villager: Math.max(0, n - 4) });
+const thumb = (k) => `assets/thumbs/${ROLE[k].img.replace(".webp", "-sm.webp")}`;
+let lastLobbyKey = "";
+function renderLobby() {
+  const box = $("lobby"), on = v.phase === "lobby";
+  box.hidden = !on; if (!on) { lastLobbyKey = ""; return; }
+  const n = v.players.length, off = v.players.filter((p) => !p.connected).length;
+  const key = JSON.stringify([v.seat, v.host, v.players.map((p) => [p.name, p.avatar, p.connected])]);
+  if (key === lastLobbyKey) return; lastLobbyKey = key;
+
+  $("pplCount").textContent = `${n}/${v.max}`;
+  let rows = v.players.map((p) => {
+    const av = `${(p.avatar % 4) * (100 / 3)}% ${Math.floor(p.avatar / 4) * 100}%`;
+    const chips = [];
+    if (v.host === p.seat) chips.push(`<span class="chip chip--host">★ Chủ phòng</span>`);
+    chips.push(p.connected ? `<span class="chip chip--ok">Sẵn sàng</span>` : `<span class="chip chip--off">Mất kết nối</span>`);
+    return `<li class="prow${p.connected ? "" : " prow--off"}${p.seat === v.seat ? " prow--me" : ""}">
+      <span class="prow__av" style="background-position:${av}"></span>
+      <span class="prow__name">${esc(p.name)}${p.seat === v.seat ? ` <i>(bạn)</i>` : ""}</span>
+      <span class="prow__chips">${chips.join("")}</span></li>`;
+  }).join("");
+  const empty = v.max - n;
+  if (empty > 0) rows += `<li class="prow prow--empty"><span class="prow__av"></span><span class="prow__name">Còn ${empty} ghế trống</span></li>`;
+  $("plist").innerHTML = rows;
+
+  // bộ vai: tính cho tối thiểu v.min người để luôn thấy đủ 4 loại vai; lệch số người ⇒ báo đỏ
+  const size = Math.min(v.max, Math.max(n, v.min)), cnt = roleCount(size);
+  const total = ROLE_ORDER.reduce((a, k) => a + cnt[k], 0), match = total === n;
+  $("rcards").innerHTML = ROLE_ORDER.map((k) => `<figure class="rcard rcard--${k}">
+      <span class="rcard__img"><img src="${thumb(k)}" alt="" width="192" height="256" loading="lazy" /><b class="rcard__n">×${cnt[k]}</b></span>
+      <figcaption><b>${ROLE[k].name}</b><span>${ROLE[k].team}</span></figcaption></figure>`).join("");
+  const sum = $("roleSum");
+  sum.textContent = `${total} vai / ${n} người`;
+  sum.className = `rsum ${match ? "rsum--ok" : "rsum--bad"}`;
+  const warn = $("roleWarn");
+  if (!match) { warn.className = "rwarn rwarn--bad"; warn.textContent = `Không khớp: bộ vai cần ${total} người, phòng mới có ${n}. Mời thêm ${total - n} người nữa mới bắt đầu được.`; }
+  else if (off) { warn.className = "rwarn rwarn--warn"; warn.textContent = `Khớp ${total} vai cho ${n} người — nhưng ${off} người đang mất kết nối, quá 20 giây không vào lại sẽ tự rời phòng.`; }
+  else { warn.className = "rwarn rwarn--ok"; warn.textContent = `Khớp: ${total} vai cho ${n} người. ${n < v.max ? `Thêm người thì có thêm Dân Làng (tối đa ${v.max}).` : "Phòng đã đủ."}`; }
+}
+
 // ---------------- trò chuyện ----------------
 let lastLogKey = "";
 function renderChat() {
@@ -342,6 +387,12 @@ function renderChat() {
 }
 $("tabVillage").onclick = () => { tab = "village"; render(); };
 $("tabWolf").onclick = () => { tab = "wolf"; render(); };
+// điện thoại, phòng chờ: khung chat neo đáy màn hình, gập/mở để không che danh sách người và bộ vai
+$("chatFold").onclick = () => {
+  const open = document.querySelector(".chat").classList.toggle("chat--open");
+  $("chatFold").setAttribute("aria-expanded", open); $("chatFold").textContent = open ? "Thu gọn ▼" : "Mở rộng ▲";
+  const log = $("chatLog"); log.scrollTop = log.scrollHeight;
+};
 $("quick").addEventListener("click", (e) => { const b = e.target.closest("[data-q]"); if (b) send({ t: "quick", id: +b.dataset.q }); });
 $("chatForm").addEventListener("submit", (e) => {
   e.preventDefault(); const t = $("chatInp").value.trim(); if (!t) return;
