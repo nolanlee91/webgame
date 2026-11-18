@@ -64,13 +64,18 @@ test('kiểm tra di chuyển của máy chủ: chặn chạy quá tốc độ, d
   const g = game();
   assert.ok(!L.tryMove(g, 0, 3, 1, 'r', 50), 'nhảy 2 ô trong 50 ms');
   assert.ok(L.tryMove(g, 0, 1.16, 1, 'r', 100), 'đi đúng tốc độ (3,2 ô/s × 0,05 s)');
-  // giả gói 20 lần/giây, mỗi gói đi gấp đôi tốc độ ⇒ phải bị chặn trong vòng 1 giây
+  // giả gói 20 lần/giây, mỗi gói đi gấp đôi tốc độ ⇒ phải bị chặn trong vòng 2 giây
   let t = 100, x = 1.16, rejected = false;
-  for (let k = 0; k < 20; k++) { t += 50; const nx = Math.min(11, x + 0.32); if (!L.tryMove(g, 0, nx, 1, 'r', t)) { rejected = true; break; } x = nx; }
+  for (let k = 0; k < 40; k++) { t += 50; const nx = Math.min(11, x + 0.32); if (!L.tryMove(g, 0, nx, 1, 'r', t)) { rejected = true; break; } x = nx; }
   assert.ok(rejected, 'chạy x2 tốc độ phải bị phát hiện');
   // tốc độ thật (có rung mạng ±20 ms) thì không bị chặn
   const h = game(); t = 0; x = 1;
   for (let k = 0; k < 40; k++) { const dt = 50 + (k % 2 ? 20 : -20); t += dt; const nx = Math.min(11, x + 3.2 * dt / 1000); assert.ok(L.tryMove(h, 0, nx, 1, 'r', t), `bước ${k}`); x = nx; }
+  // mạng khựng 600 ms rồi 12 gói tới cùng lúc (chạy đúng tốc độ) ⇒ không bị kéo lùi
+  const j = game(); t = 0; x = 1;
+  for (let k = 0; k < 6; k++) { t += 50; x += 3.2 * 0.05; assert.ok(L.tryMove(j, 0, x, 1, 'r', t), `trước khựng ${k}`); }
+  const at = t + 600;
+  for (let k = 0; k < 12; k++) { x = Math.min(11, x + 3.2 * 0.05); assert.ok(L.tryMove(j, 0, x, 1, 'r', at), `gói dồn ${k}`); }
   // không xuyên cột
   const c = game(); c.players[0].x = 2; c.players[0].y = 1;
   assert.ok(!L.tryMove(c, 0, 2, 1.15, 'd', 1000));

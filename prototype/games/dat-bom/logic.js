@@ -104,7 +104,9 @@ export function createGame({ players, rand, now, rules }) {
   return g;
 }
 
-const budgetCap = (p) => p.speed * 0.35 + 0.35;
+// Hạn mức quãng đường tích luỹ: đủ chịu ~0,7 s mạng khựng (gói vị trí tới dồn cục, mạng VN → Railway trễ ~180 ms),
+// vẫn không cho chạy nhanh hơn 25% lâu dài (tốc độ nạp ×1,25), không nhảy ô / xuyên tường (kiểm bên dưới).
+const budgetCap = (p) => p.speed * 0.6 + 0.6;
 
 /** Client gửi vị trí mới. Hợp lệ ⇒ nhận; sai ⇒ false (máy chủ gửi lại vị trí đúng cho client). */
 export function tryMove(g, i, x, y, dir, now) {
