@@ -30,7 +30,7 @@ Trạng thái: bản dev, chưa bật ở production. Máy chủ chỉ chạy kh
 - **Vai của một người** chỉ hiện trong các trường hợp:
   - đó là vai của chính mình;
   - ván đã kết thúc;
-  - người đó đã chết (vai lộ khi chết);
+  - người đó đã chết (vai lộ khi chết — cả bị cắn lẫn bị treo; chủ dự án xác nhận 2026-11-18 là luật chuẩn);
   - mình là Sói và người đó cũng là Sói.
 - **Phiếu cắn của bầy (`night.pack`) và Kênh Sói:** chỉ Sói thấy.
 - **Kết quả soi:** chỉ Tiên Tri thấy, và chỉ ghi phe chứ không ghi vai.
