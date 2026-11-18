@@ -21,9 +21,9 @@ window.GAMES = [
   { id: "nong-trai", name: "Nông Trại",        cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/nong-trai.webp", icon: "sprout", hue: 110 },
   { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320, url: "../games/ghep-keo/" },
   { id: "sudoku",    name: "Sudoku",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/sudoku.webp", icon: "sudoku", hue: 225, url: "../games/sudoku/" },
-  { id: "co-ty-phu", name: "Cờ Tỷ Phú",        cat: "tri-tue",  mode: "both",  players: "2–4 người", thumb: "../games/co-ty-phu/assets/poster-co-ty-phu.webp", icon: "dice", hue: 45, badge: "Mới", url: "../games/co-ty-phu/" },
+  { id: "co-ty-phu", name: "Cờ Tỷ Phú",        cat: "tri-tue",  mode: "both",  players: "2–4 người", thumb: "assets/thumbs/co-ty-phu.webp", icon: "dice", hue: 45, badge: "Mới", url: "../games/co-ty-phu/" },
   { id: "ma-soi",    name: "Ma Sói",           cat: "tri-tue",  mode: "multi", players: "6–8 người", thumb: "assets/thumbs/ma-soi.webp", icon: "quiz", hue: 230, badge: "Mới", url: "../games/ma-soi/" },
-  { id: "ai-la-noi-gian", name: "Ai Là Nội Gián", cat: "tri-tue", mode: "multi", players: "6–8 người", thumb: "../games/ai-la-noi-gian/assets/poster-ai-la-noi-gian.webp", icon: "search", hue: 210, badge: "Mới", url: "../games/ai-la-noi-gian/" },
+  { id: "ai-la-noi-gian", name: "Ai Là Nội Gián", cat: "tri-tue", mode: "multi", players: "6–8 người", thumb: "assets/thumbs/ai-la-noi-gian.webp", icon: "search", hue: 210, badge: "Mới", url: "../games/ai-la-noi-gian/" },
 ];
 
 // TẦNG 1 — hero trượt (carousel): các game đã chơi được thay phiên giới thiệu, tự chuyển sau vài giây.
