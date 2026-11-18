@@ -8,7 +8,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%224%22 y=%222%22 width=%228%22 height=%2212%22 fill=%22%23fff4e0%22/%3E%3Crect x=%223%22 y=%224%22 width=%2210%22 height=%228%22 fill=%22%23fff4e0%22/%3E%3Crect x=%226%22 y=%226%22 width=%222%22 height=%222%22 fill=%22%233f9a45%22/%3E%3Crect x=%229%22 y=%229%22 width=%222%22 height=%222%22 fill=%22%233f9a45%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Ghép Kẹo / 2048 / Sudoku: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
-       không bo tròn, không mờ. Vàng CHỈ cho nút chính và sao đánh giá. Bóng, trứng, khủng long là pixel 16×16 vẽ bằng code (game.js). */
+       không bo tròn, không mờ. Vàng CHỈ cho nút chính và sao đánh giá. Nền sân và khủng long có ảnh riêng; các ký hiệu bóng được vẽ bằng Canvas. */
     :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --leaf: #3f9a45; --leaf-l: #7fd47f;
@@ -18,10 +18,10 @@
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html, body { height: 100%; }
-    body { margin: 0; background: linear-gradient(rgba(23, 15, 10, .8), rgba(23, 15, 10, .8)), url("assets/bg/scene.webp") center / cover no-repeat, var(--bg); image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+    body { margin: 0; background: radial-gradient(ellipse at 56% 28%, #1b3839, #0e1e24 66%, #0a151d); image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
       display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent;
       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
-    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #1d1a16; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255,255,255,.08); }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #0b1d24; box-shadow: inset 0 -1px 0 #36535a; }
     .bar a { color: var(--soft); text-decoration: none; font-weight: 700; white-space: nowrap; }
     .bar h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
@@ -34,7 +34,7 @@
 
     /* TẦNG 2 — tiến độ */
     .hud { grid-area: hud; display: flex; gap: 14px; min-width: 0; }
-    .stats { flex: 1; min-width: 0; display: grid; gap: 10px; padding: 12px 14px; margin: 3px; background: var(--panel); box-shadow: var(--bevel), var(--border); }
+    .stats { flex: 1; min-width: 0; display: grid; gap: 10px; padding: 12px 14px; margin: 3px; background: #10282e; box-shadow: 0 0 0 1px #38575a; }
     .stat { display: grid; line-height: 1.1; position: relative; min-width: 0; }
     .stat small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); white-space: nowrap; }
     .stat b { font: 800 20px "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; }
@@ -80,8 +80,8 @@
 
     /* TẦNG 1 — sân bắn */
     .stage { grid-area: stage; position: relative; min-height: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; touch-action: none; outline: none; }
-    .frame { position: relative; padding: var(--fr, 12px); background: repeating-linear-gradient(90deg, #6a4626 0 18px, #5e3e22 18px 21px, #74502c 21px 40px); box-shadow: inset 0 3px 0 #a87444, inset 3px 0 0 #8a5a30, inset 0 -3px 0 #3a2414, inset -3px 0 0 #3a2414, 0 0 0 3px var(--line), var(--drop); }
-    .board { position: relative; width: var(--bw); height: var(--bh); overflow: hidden; background: #1a1410; box-shadow: 0 0 0 3px var(--line); cursor: crosshair; touch-action: none; }
+    .frame { position: relative; padding: var(--fr, 4px); background: #416961; box-shadow: inset 0 1px 0 #709183, 0 0 0 1px #091b23, 0 10px 30px #08141999; }
+    .board { position: relative; width: var(--bw); height: var(--bh); overflow: hidden; background: #143037 url("assets/bg/arena-v2.webp") center / 100% 100% no-repeat; cursor: crosshair; touch-action: none; }
     .board canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
     .banner { position: absolute; left: 50%; top: 40%; z-index: 7; pointer-events: none; padding: 8px 18px; font: 800 calc(var(--cs) * .6) / 1.1 "Be Vietnam Pro"; text-transform: uppercase; letter-spacing: .05em;
       color: var(--gold); background: rgba(10, 8, 7, .85); box-shadow: 0 0 0 3px var(--line); text-shadow: 2px 2px 0 #000; white-space: nowrap; transform: translate(-50%, -50%);
@@ -272,7 +272,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=arena2";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

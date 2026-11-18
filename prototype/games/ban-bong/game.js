@@ -1,6 +1,5 @@
 // Bắn Bóng Khủng Long — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
-// Toàn bộ hình là pixel 20×20 (khủng long 24×24) vẽ bằng canvas ngay khi tải trang (không dùng ảnh AI): bóng 6 màu có ký hiệu riêng
-// trong lòng (người mù màu vẫn phân biệt được), trứng, đá, bom và chú khủng long con canh bệ phóng.
+// Bóng 6 màu giữ ký hiệu riêng để dễ phân biệt. Khủng long dùng sprite riêng và có hình dự phòng khi ảnh chưa tải.
 import * as L from "./logic.js";
 
 const SAVE_KEY = "wgp.ban-bong.v1";
@@ -8,23 +7,23 @@ const FLY_SPEED = 26; // đơn vị (đường kính bóng) / giây
 
 // [nền, sáng, tối] theo bảng màu Art Bible V5 (giữ cho hạt nổ / đường ngắm) + [gờ sáng, bóng sâu] cho khối cầu
 const PAL = [
-  ["#e0483d", "#ff8a7a", "#8e2219"], // đỏ — vòng tròn
-  ["#e8954a", "#ffc58a", "#8a4a14"], // cam — ô vuông
-  ["#f2b632", "#ffe08a", "#a8740e"], // vàng — thoi
-  ["#3fae4a", "#8fdc7a", "#17521c"], // lá — tam giác
-  ["#3a7bd5", "#8ab8ff", "#163a73"], // xanh dương — chữ thập
-  ["#8a5cc2", "#c8a4f0", "#3e2268"], // tím — tim
+  ["#ef646c", "#ff9b9c", "#a62e52"], // đỏ — vòng tròn
+  ["#f18b44", "#ffc07c", "#a74725"], // cam — ô vuông
+  ["#edcf43", "#fff193", "#9b6c20"], // vàng — thoi
+  ["#54ce94", "#99f0bd", "#167858"], // lá — tam giác
+  ["#55a8f0", "#98d7ff", "#3155ae"], // xanh dương — chữ thập
+  ["#ab7eea", "#d4afff", "#643384"], // tím — tim
 ];
 const PAL2 = [["#ffd0c4", "#5a120c"], ["#ffe6c4", "#552a08"], ["#fff6d0", "#6a4606"], ["#d4f6c0", "#0c3410"], ["#d4e6ff", "#0c2248"], ["#eedcff", "#26123f"]];
 const KIND_NAME = ["đỏ", "cam", "vàng", "xanh lá", "xanh dương", "tím"];
 const OUT = "#160d0a";
 const GLYPH = [
-  [".##.", "#..#", "#..#", ".##."],
-  ["####", "#..#", "#..#", "####"],
-  [".#.", "###", "###", ".#."],
+  [".###.", "#...#", "#...#", "#...#", ".###."],
+  ["#####", "#...#", "#...#", "#...#", "#####"],
+  ["..#..", ".###.", "#####", ".###.", "..#.."],
   ["..#..", ".###.", "#####"],
-  [".#.", "###", ".#."],
-  ["#.#", "###", ".#."],
+  ["..#..", "..#..", "#####", "..#..", "..#.."],
+  [".#.#.", "#####", "#####", ".###.", "..#.."],
 ];
 // Khủng long con 24×24 (nhìn sang phải) — cùng tạo hình ảnh bìa: thân xanh lá, gai lưng cam, bụng kem.
 // o viền, g xanh, l xanh sáng, d xanh tối, b bụng kem, c bụng tối, s gai cam, S gai tối, w mắt trắng, k con ngươi, r má, t răng, m miệng
@@ -64,7 +63,6 @@ function paint(fn, w = BS, h = BS) {
   fn((x, y, col) => { g.fillStyle = col; g.fillRect(x, y, 1, 1); }, g);
   return c;
 }
-const mix = (a, b, t) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, "0")).join("");
 const circ = (r, c = (BS - 1) / 2) => (x, y) => x >= 0 && y >= 0 && x < BS && y < BS && (x - c) ** 2 + (y - c) ** 2 <= r * r;
 // khối cầu pixel: ánh sáng từ trên-trái, 5 bậc màu, dải chuyển bằng hạt so le (dithering), viền 1px, ánh phản chiếu dưới-phải
 function sphere(px, m, [hi, lite, base, dark, deep], edgeCol = OUT) {
@@ -97,9 +95,9 @@ function specular(px, inner) {
 function ballSprite(k) {
   return paint((px) => {
     const inner = sphere(px, circ(9.4), tones(k));
-    // ký hiệu nhỏ dập chìm giữa bóng (người mù màu vẫn phân biệt được)
+    // Ký hiệu tương phản ở tâm bóng, đọc được ngay cả trên màn hẹp.
     const gl = GLYPH[k], ox = 10 - Math.floor(gl[0].length / 2), oy = 10 - Math.floor(gl.length / 2);
-    gl.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === "#") px(ox + i, oy + j, mix(PAL[k][0], PAL[k][2], 0.62)); }));
+    gl.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === "#") px(ox + i, oy + j, PAL2[k][1]); }));
     specular(px, inner);
   });
 }
@@ -229,8 +227,7 @@ function loadSave() {
 
 const fmt = (n) => Math.round(n).toLocaleString("vi-VN");
 const centerP = (par, i) => { const r = L.R(i), c = L.C(i); return [c + 0.5 + ((r + par) & 1) * 0.5, r * L.RH + 0.5]; };
-const TORCH = [0.9, L.W - 0.9], TORCH_Y = L.LY - 2.6;
-const DINO_X = L.LX - 3.1, DINO_Y = L.LY - 0.35, NEXT_X = L.LX + 2.3, NEXT_Y = L.LY + 0.2;
+const DINO_X = L.LX - 3.05, DINO_Y = L.LY + 0.77, NEXT_X = L.LX + 2.3, NEXT_Y = L.LY + 0.2;
 const LINE_Y = (L.LOSE_ROW - 0.5) * L.RH + 0.5;
 
 export function mount(root, ctx = {}) {
@@ -251,7 +248,8 @@ export function mount(root, ctx = {}) {
   let fly = null;         // { path, segs, len, d, k, res, snapPar }
   let fx = [], pushAnim = null, shakeT = 0, dinoJump = 0, raf = 0, last = performance.now(), lastSec = -1, clock = 0;
   let pending = null;     // kết thúc ván đang chờ hiệu ứng xong
-  let bg = null;
+  const dinoArt = new Image();
+  dinoArt.src = new URL("assets/sprites/dino-v2.webp", import.meta.url);
   const timers = new Set();
   const wait = (ms) => new Promise((res) => { const t = setTimeout(() => { timers.delete(t); res(); }, ms * speed); timers.add(t); });
   const setText = (id, t) => { const e = $(id); if (e && e.textContent !== String(t)) e.textContent = t; };
@@ -270,7 +268,7 @@ export function mount(root, ctx = {}) {
   function layout() {
     const r = stage.getBoundingClientRect();
     const ht = $("hintTx"), hintH = ht && getComputedStyle(ht).display !== "none" ? 24 : 0;
-    const fr = Math.max(6, Math.min(12, Math.round(Math.min(r.width, r.height) * 0.018)));
+    const fr = 4;
     const cs = Math.max(14, Math.min(58, Math.floor(Math.min((r.width - 2 * fr - 14) / L.W, (r.height - hintH - 2 * fr - 14) / L.FH))));
     const dpr = Math.min(3, window.devicePixelRatio || 1);
     const bw = cs * L.W, bh = Math.round(cs * L.FH);
@@ -280,83 +278,7 @@ export function mount(root, ctx = {}) {
     board.style.setProperty("--bw", bw + "px");
     board.style.setProperty("--bh", bh + "px");
     cv.width = Math.round(bw * dpr); cv.height = Math.round(bh * dpr);
-    bg = null;
     draw();
-  }
-
-  // nền tường đền đá trong rừng (cùng khung cảnh ảnh bìa): gạch đá ấm so le, rêu, dây leo rủ, hai giá đuốc,
-  // sàn đá sa thạch có cỏ dưới bệ — vẽ một lần mỗi khi đổi kích thước (lửa đuốc vẽ động trong draw())
-  function background() {
-    const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height;
-    const b = c.getContext("2d"), u = G.u, p = Math.max(1, Math.round(u / 8));
-    const F = (x, y, w, h, col) => { b.fillStyle = col; b.fillRect(x, y, w, h); };
-    const gy = Math.round((L.LY + 0.45) * u);
-    let st = { rng: 4242 };
-    const rnd = () => L.rngNext(st);
-    // gạch đá
-    F(0, 0, c.width, gy, "#1a1410");
-    const bw = p * 10, bh = p * 5, tone = ["#3a2f25", "#40342a", "#362b22", "#3d3127"];
-    for (let row = 0, y = 0; y < gy; row++, y += bh) {
-      for (let x = -((row & 1) ? bw / 2 : 0); x < c.width; x += bw) {
-        const t = tone[(rnd() * tone.length) | 0], x0 = x + p, y0 = y + p, w = bw - p, h = bh - p;
-        F(x0, y0, w, h, t);
-        F(x0, y0, w, p, "#4d3f31"); F(x0, y0, p, h, "#4a3c2f");
-        F(x0, y0 + h - p, w, p, "#2a211a");
-        // hạt rỗ/ nứt
-        if (rnd() < 0.5) F(x0 + Math.round(rnd() * (w - 2 * p) / p) * p + p, y0 + p * 2, p, p, "#2a211a");
-        if (rnd() < 0.18) { const cx = x0 + Math.round(rnd() * (w - 3 * p) / p) * p; F(cx, y0 + p, p, p * 2, "#241c16"); F(cx + p, y0 + p * 3, p, p, "#241c16"); }
-        // rêu ở mép trên một số viên
-        if (rnd() < 0.16) for (let i = 0; i < w; i += p) if (rnd() < 0.7) F(x0 + i, y0, p, p * (1 + (rnd() < 0.4)), rnd() < 0.5 ? "#3e5a2e" : "#2f4a24");
-      }
-    }
-    // tối dần lên phía trên (bậc thang, không chuyển mượt) cho bóng nổi
-    for (let i = 0; i < 4; i++) { b.globalAlpha = 0.12 * (4 - i); F(0, (i * gy) / 10, c.width, gy / 10 + 1, "#0a0807"); }
-    b.globalAlpha = 1;
-    // dây leo rủ từ trên xuống
-    const vines = [0.06, 0.28, 0.71, 0.93].map((fx) => Math.round((fx * c.width) / p) * p);
-    vines.forEach((vx, vi) => {
-      const len = gy * (0.25 + rnd() * 0.35);
-      for (let y = 0, x = vx; y < len; y += p) {
-        if (rnd() < 0.25) x += (rnd() < 0.5 ? -p : p);
-        F(x, y, p, p, "#1f3a1e"); F(x + p, y, p, p, "#2c5a2a");
-        if (y % (p * 4) === 0) { const s2 = (y / p / 4) & 1 ? -1 : 1, lx = x + s2 * p * 2; F(lx, y, p * 2, p * 2, "#3f9a45"); F(lx + (s2 > 0 ? p : 0), y, p, p, "#7fd47f"); F(lx, y + p, p, p, "#17521c"); }
-      }
-    });
-    // hai giá đuốc (lửa vẽ động)
-    for (const tx of TORCH) {
-      const x = Math.round((tx * u) / p) * p, y = Math.round((TORCH_Y * u) / p) * p;
-      F(x - p, y + p * 2, p * 2, p * 6, OUT); F(x, y + p * 2, p, p * 5, "#6a4626");               // cán
-      F(x - p * 3, y + p * 7, p * 6, p * 2, OUT); F(x - p * 2, y + p * 7, p * 4, p, "#5c4a36");     // chốt tường
-      F(x - p * 4, y - p, p * 8, p * 4, OUT); F(x - p * 3, y, p * 6, p * 2, "#a8741a"); F(x - p * 3, y, p * 6, p / 2 + 1 | 0, "#ffe9a8");
-      F(x - p * 2, y + p * 2, p * 4, p, "#7a5410");                                                // bát đồng
-      // quầng sáng ấm theo bậc (3 vòng vuông, không mờ)
-      for (let r = 3; r >= 1; r--) { b.globalAlpha = 0.05; F(x - p * 4 * r, y - p * 6 - p * 3 * r, p * 8 * r, p * 6 * r + p * 4, "#ffc94a"); }
-      b.globalAlpha = 1;
-    }
-    // sàn đá sa thạch
-    F(0, gy, c.width, c.height - gy, "#5c4a36");
-    for (let row = 0, y = gy + p * 2; y < c.height; row++, y += p * 4) {
-      F(0, y, c.width, p, "#3e3022");
-      for (let x = (row & 1) * p * 6; x < c.width; x += p * 12) { F(x, y, p, p * 4, "#3e3022"); F(x + p, y + p, p * 11, p, "#6e5a42"); }
-    }
-    F(0, gy, c.width, p * 2, "#3f9a45");
-    for (let x = 0; x < c.width; x += p * 3) { const h = 1 + ((rnd() * 3) | 0); F(x, gy - p * h, p, p * h, rnd() < 0.5 ? "#7fd47f" : "#3f9a45"); }
-    F(0, gy + p * 2, c.width, p, "#17521c");
-    return c;
-  }
-  function drawTorches() {
-    const u = G.u, p = Math.max(1, Math.round(u / 8));
-    const FL = [
-      ["...1....", "...11...", "..121...", "..1221..", ".12231..", ".123321.", "1233321.", "12344321", ".123321.", "..1111.."],
-      ["....1...", "...11...", "...121..", "..1221..", "..13221.", ".123321.", ".1233321", "12344321", ".123321.", "..1111.."],
-      ["........", "..1..1..", "..11.1..", ".1221...", ".12321..", ".123321.", "1233421.", "12344321", ".123321.", "..1111.."],
-    ], FC = { 1: "#c8501a", 2: "#e8954a", 3: "#ffc94a", 4: "#fff4e0" };
-    TORCH.forEach((tx, ti) => {
-      const x = Math.round((tx * u) / p) * p, y = Math.round((TORCH_Y * u) / p) * p;
-      const f = (((clock * 8) | 0) + ti * 3) | 0;
-      FL[(((f % 3) + 3) % 3) || 0].forEach((row, j) => [...row].forEach((ch, i) => { if (ch !== ".") { g.fillStyle = FC[ch]; g.fillRect(x + (i - 4) * p, y + (j - 9) * p, p, p); } }));
-      if (f % 5 === 0) { g.fillStyle = "#ffc94a"; g.fillRect(x + p * ((f % 3) - 1), y - p * (8 + (f % 4)), p, p); }
-    });
   }
 
   // ---------- Vẽ ----------
@@ -378,17 +300,18 @@ export function mount(root, ctx = {}) {
     if (!cv.width) return;
     const u = G.u;
     g.imageSmoothingEnabled = false;
-    if (!bg) bg = background();
+    g.clearRect(0, 0, cv.width, cv.height);
     g.save();
     if (shakeT > 0) g.translate(Math.round((Math.random() * 2 - 1) * u * 0.08 * Math.min(1, shakeT * 4)), 0);
-    g.drawImage(bg, 0, 0);
-    drawTorches();
+    drawDino();
     const playing = s && s.status === "playing";
     // vạch đỏ nguy hiểm: nhấp nháy khi bóng xuống gần
     const low = vg ? lowest(vg) : -1, danger = low >= L.LOSE_ROW - 2;
-    g.fillStyle = danger && (clock * 3 | 0) % 2 ? "#ff8a7a" : "#e0483d";
+    g.fillStyle = danger && (clock * 3 | 0) % 2 ? "#ffb0a0" : "#ed6963";
+    g.globalAlpha = danger ? 1 : 0.55;
     const dash = Math.max(2, Math.round(u * 0.3)), lh = Math.max(2, Math.round(u * 0.06));
     for (let x = 0; x < cv.width; x += dash * 2) g.fillRect(x, Math.round(LINE_Y * u), dash, lh);
+    g.globalAlpha = 1;
     // bóng trên lưới
     const yoff = pushAnim ? -L.RH * (1 - easeOut(Math.min(1, pushAnim.t / pushAnim.dur))) : 0;
     if (vg) for (let i = 0; i < L.N; i++) {
@@ -462,9 +385,16 @@ export function mount(root, ctx = {}) {
     for (let i = 0; i < 5; i++) R(NEXT_X - 0.5 + i * 0.22, NEXT_Y + 0.16 + (i % 2) * 0.08, 0.14, 0.06, "#c8a060");
     if (s && s.status === "playing") blit(S.ball[s.next], NEXT_X, NEXT_Y - 0.12, 0.72);
     text("⇄", (X + NEXT_X) / 2 + 0.15, Y + 0.05, 0.36, "#b9ad93");
-    // khủng long con
+  }
+  function drawDino() {
+    const u = G.u;
     const jump = dinoJump > 0 ? Math.sin((1 - dinoJump / 0.5) * Math.PI) * 0.45 : Math.sin(clock * 3) > 0.95 ? 0.06 : 0;
-    blit(S.dino, DINO_X, DINO_Y - 0.15 - jump, 2.1);
+    const image = dinoArt.naturalWidth ? dinoArt : S.dino;
+    const h = Math.round((image === dinoArt ? 2.7 : 2.1) * u);
+    const w = Math.round(h * image.width / image.height);
+    if (image === dinoArt) g.imageSmoothingEnabled = true;
+    g.drawImage(image, Math.round(DINO_X * u - w / 2), Math.round((DINO_Y - jump) * u - h), w, h);
+    g.imageSmoothingEnabled = false;
   }
   const easeOut = (t) => 1 - (1 - t) * (1 - t);
   const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
