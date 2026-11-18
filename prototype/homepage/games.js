@@ -1,6 +1,6 @@
 // Danh sách 18 game theo docs/game-catalog-v2.md (thứ tự theo điểm ưu tiên).
 // thumb: 6 game đầu cắt từ concept V4; 12 game còn lại là ảnh thumbnail 4:3 riêng (đã được chủ dự án duyệt). icon/hue giữ làm dự phòng.
-// mode: "solo" | "multi" | "both" — dùng cho bộ lọc "Chơi cùng bạn".
+// mode: "solo" | "multi" | "both" — dùng cho nhãn số người chơi trên thẻ.
 // url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Ma Sói, Xếp Gạch, 2048, Sudoku).
 // Game CHƯA có url: thẻ hiện nhãn "Đang cập nhật" + ảnh mờ, bấm vào vẫn mở trang chờ play.html.
 window.GAMES = [
@@ -35,7 +35,7 @@ window.HERO_SLIDES = [
   { id: "co-caro",    kicker: "Đối kháng",           text: "5 quân liền một hàng là thắng. Đấu với bạn bè hoặc thử sức với máy.", stat: "41 phòng đang mở" },
 ];
 
-// TẦNG 1 — sảnh chờ trực tiếp (bên phải, rộng): phòng công khai đang thiếu người, lọc được theo game.
+// TẦNG 1 — sảnh chờ trực tiếp (bên phải, rộng): phòng công khai đang thiếu người.
 // SỐ GIẢ (placeholder) — chủ dự án duyệt giữ số minh họa cho bản thử nghiệm.
 window.LOBBY_ROOMS = [
   { game: "co-ca-ngua", code: "CN4920", no: "492", host: "Tèo",     have: 3, max: 4 },
@@ -63,16 +63,13 @@ window.DUELS = [
 ];
 
 // Kệ theo danh mục (sau kệ Đối kháng) khi xem "Tất cả": cùng 1 kiểu lưới 6 ô/dòng.
+// Tab lọc phía trên lưới dùng CHÍNH danh sách kệ này ⇒ tên + số đếm luôn khớp kệ bên dưới.
+// Mỗi game nằm đúng 1 kệ: game trong DUELS thuộc kệ "duel", còn lại theo cat.
 window.SHELVES = [
+  { cat: "duel",      title: "Đối kháng đông người", hint: "Rủ bạn vào phòng, chơi ngay trên trình duyệt" },
   { cat: "giai-do",   title: "Giải đố",   hint: "Thư giãn đầu óc, chơi một mình" },
   { cat: "hanh-dong", title: "Hành động", hint: "Nhanh tay, bấm là chơi" },
   { cat: "tri-tue",   title: "Trí tuệ",   hint: "Suy nghĩ từng nước" },
 ];
 
-window.CATEGORIES = [
-  { id: "all",       label: "Tất cả" },
-  { id: "multi",     label: "Chơi cùng bạn" },
-  { id: "tri-tue",   label: "Trí tuệ" },
-  { id: "giai-do",   label: "Giải đố" },
-  { id: "hanh-dong", label: "Hành động" },
-];
+window.CATEGORIES = [{ id: "all", label: "Tất cả" }].concat(window.SHELVES.map(function (s) { return { id: s.cat, label: s.title }; }));

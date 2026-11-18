@@ -102,7 +102,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .logo__words { display: grid; line-height: 1.05; }
 .logo__text { font: 800 22px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--px-ink); text-shadow: 3px 3px 0 #000; }
 .logo__slogan { margin-top: 4px; font: 700 12px/1 var(--font-body); letter-spacing: .04em; color: var(--px-soft); }
-.topbar__actions { display: flex; gap: 16px; justify-content: flex-end; padding-right: 7px; }
 .search { width: 100%; }
 .search input { min-height: 40px; }
 
@@ -110,12 +109,11 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .mobile-search-slot:empty { display: none; }
 
 /* =========================================================
-   TẦNG 1 — ARENA: hero trượt (gọn, trái ~42%) + sảnh chờ trực tiếp (rộng, phải ~58%)
+   TẦNG 1 — ARENA: hero trượt (gọn, trái ~1/3) + sảnh chờ trực tiếp (rộng, phải ~2/3, 3 phòng/hàng)
    ========================================================= */
-.arena { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 28px; align-items: stretch; margin-bottom: 40px; }
+.arena { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); gap: 28px; align-items: stretch; margin-bottom: 40px; }
 .arena__hero { display: flex; min-width: 0; }
 .arena > * { min-width: 0; }
-.arena__mobile-actions { display: none; }
 
 /* Hero: băng chuyền nhiều game. Khung ảnh 4:3 = đúng tỉ lệ mọi thumbnail ⇒ thấy TRỌN ảnh, không cắt. */
 .hero { position: relative; display: flex; flex-direction: column; width: 100%; container-type: inline-size; }
@@ -163,13 +161,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .lobby__create { flex: none; }
 .lobby__subrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 4px 19px 0; min-width: 0; }
 .lobby__sub { flex: none; font: 800 12px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--px-soft); }
-.lobby__games { display: flex; gap: 6px; flex-wrap: wrap; min-width: 0; padding: 3px; scrollbar-width: none; }
-.lobby__games::-webkit-scrollbar { display: none; }
-.chip { all: unset; box-sizing: border-box; cursor: pointer; flex: none; min-height: 30px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px;
-  font: 800 12px/1 var(--font-body); letter-spacing: .04em; color: var(--px-soft); background: #0d0b09; --b: #000; box-shadow: var(--px-border); }
-.chip:hover { color: var(--px-ink); background: #1d1a16; }
-.chip[aria-pressed="true"] { color: #2c1b05; background: var(--px-ink); box-shadow: var(--px-border), inset 0 -2px 0 #a99d82; }
-.chip:focus-visible { outline: 2px dashed var(--px-gold); outline-offset: 2px; }
 .lobby__note { margin: 0; padding: 0 16px 0 19px; font-size: 12px; color: var(--px-dim); }
 
 .pin__label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--px-soft); }
@@ -178,7 +169,7 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .pin__error { min-height: 1em; margin: 6px 0 0; font-size: 13px; font-weight: 700; color: #ff8a7a; }
 .pin__error:empty { display: none; }
 
-.rooms { position: relative; list-style: none; margin: 0; padding: 3px 19px 6px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px;
+.rooms { position: relative; list-style: none; margin: 0; padding: 3px 19px 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px;
   align-content: start; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4a4034 transparent; }
 .room { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 8px 7px 7px; background: var(--px-panel2); --b: #000; box-shadow: var(--px-border); }
 .room__art { width: 56px; height: 42px; overflow: hidden; box-shadow: inset 0 0 0 2px #000; }
@@ -254,14 +245,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 /* =========================================================
    HỘP THOẠI NHẬP MÃ
    ========================================================= */
-.dialog { border: 0; padding: 0; color: var(--px-ink); width: min(420px, calc(100vw - 32px)); }
-.dialog::backdrop { background: rgba(8,7,6,.72); }
-.dialog__body { display: grid; gap: 12px; padding: 22px; }
-.dialog h2 { font: 800 22px var(--font-title); text-shadow: 2px 2px 0 #000; }
-.dialog__hint { margin: 0; color: var(--px-soft); }
-.pin-big { min-height: 56px; margin: 0 3px; text-align: center; font: 800 26px var(--font-body) !important; letter-spacing: .3em; }
-.dialog__error { margin: 0; min-height: 1.2em; color: #ff8a7a; font-weight: 700; font-size: 14px; }
-.dialog__actions { display: flex; justify-content: flex-end; gap: 16px; padding-right: 7px; }
 
 /* play.html (trang chờ) dùng lại vài lớp cũ */
 .card { color: inherit; }
@@ -272,7 +255,23 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 /* =========================================================
    RESPONSIVE
    ========================================================= */
+/* Kệ được nút "Tạo phòng mới" đưa tới: nháy viền 1 lần để mắt bắt được */
+.shelf { scroll-margin-top: 84px; }
+.shelf.is-flash .shelf__title { animation: shelfFlash 1.2s steps(4) 1; }
+@keyframes shelfFlash { 0%, 50% { color: var(--px-gold); } 100% { color: inherit; } }
+@media (prefers-reduced-motion: reduce) { .shelf.is-flash .shelf__title { animation: none; } }
+/* Desktop rộng: 3 phòng/hàng ⇒ bỏ dải ô ghế (đã có số x/y), thu ảnh phòng để tên game không bị cắt */
+@media (min-width: 1181px) {
+  .rooms { gap: 10px 12px; }
+  .room { grid-template-columns: 48px minmax(0, 1fr) auto; gap: 8px; }
+  .room__art { width: 48px; height: 36px; }
+  .room__name { font-size: 13px; }
+  .room .seats { display: none; }
+  .room__go { min-width: 48px; padding-left: 10px; padding-right: 10px; }
+}
 @media (max-width: 1180px) {
+  .arena { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tiles { grid-template-columns: repeat(5, 1fr); }
   .lobby__bar { flex-wrap: wrap; }
   .lobby__create { flex: 1 1 100%; }
@@ -296,9 +295,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 }
 @media (max-width: 720px) {
   .topbar__inner { grid-template-columns: 1fr auto; padding: 8px 12px; gap: 12px; }
-  .topbar__actions { gap: 0; padding-right: 3px; }
-  .topbar__actions #createRoom { display: none; }
-  .topbar__actions #openRoom { min-height: 40px; padding: 6px 10px; font-size: 12px; }
   .logo__text { font-size: 18px; }
   .logo__mark { width: 28px; height: 28px; }
   .logo__slogan { font-size: 11px; }
@@ -317,14 +313,12 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
   .hero__dots { gap: 0; padding: 0 0 2px; }
   .hero__dot { width: 40px; height: 40px; } /* vùng chạm ≥ 40px trên điện thoại */
 
-  .arena__mobile-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 7px 0 3px; }
-  .arena__mobile-actions .btn--lg { font-size: 15px; padding: 10px 8px; }
 
   .lobby__head { padding: 12px; flex-wrap: wrap; }
   .lobby__bar { padding: 0 15px; }
-  .lobby__create { display: none; } /* đã có nút to "Tạo phòng" ngay dưới hero */
+  .lobby__bar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .lobby__create { min-height: 44px; }
   .lobby__subrow { display: grid; gap: 8px; padding: 2px 12px 0 15px; }
-  .lobby__games { flex-wrap: nowrap; overflow-x: auto; }
   /* Phòng chờ: 3 hàng, vuốt ngang xem thêm */
   .rooms { display: grid; grid-template-columns: none; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: 88%;
     max-height: none; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; gap: 10px 12px; padding: 3px 15px 10px; scrollbar-width: none; }

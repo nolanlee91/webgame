@@ -4,24 +4,23 @@ Tên thương hiệu **Lụm Kèo**, slogan **"Rủ bạn vào chơi"**. Prototy
 bố cục theo `docs/homepage-redesign-spec.md`, Pixel UI theo Art Bible V5 (cùng ngôn ngữ với Cờ Cá Ngựa / Đào Vàng).
 
 ## Bố cục 3 tầng
-- **Thanh trên**: logo + slogan · tìm game (không dấu) · [+ Tạo phòng] (xanh ngọc) · [Nhập mã] (mở hộp thoại).
-- **Tầng 1 — Arena** (desktop ≥1024 chia ~42/58): trái là **carousel** các game nổi bật (`HERO_SLIDES`, tự chuyển,
-  nút ‹ › + chấm, vuốt trên mobile; ảnh 4:3 hiện trọn bằng `object-fit: contain`, nút vàng "Chơi ngay");
-  phải là **Sảnh chờ trực tiếp** (rộng hơn): ô nhập mã 6 ký tự, "Tạo phòng mới", tab lọc theo game,
-  12 phòng đang chờ xếp 2 cột (ghế trống, nút "Vào").
-- **Tầng 2 — Kệ game**: tab lọc liền khối; xem "Tất cả" thì có kệ **Đối kháng đông người** (`DUELS`, nhãn số phòng mở)
-  rồi các kệ **Giải đố / Hành động / Trí tuệ** (`SHELVES`). Mọi kệ dùng cùng một kiểu ô 4:3, lưới 6 ô/dòng.
-  Đã bỏ mục "Chơi tiếp".
+- **Thanh trên**: logo + slogan · tìm game (không dấu). Không đặt nút phòng ở đây để khỏi trùng với sảnh chờ.
+- **Tầng 1 — Arena** (desktop ≥1181 chia ~30/70, 1024–1180 chia ~42/58): trái là **carousel** các game nổi bật
+  (`HERO_SLIDES`, tự chuyển, nút ‹ › + chấm, vuốt trên mobile; ảnh 4:3 hiện trọn bằng `object-fit: contain`, nút vàng "Chơi ngay");
+  phải là **Sảnh chờ trực tiếp** — chỗ DUY NHẤT để vào/tạo phòng: ô nhập mã 6 ký tự + "Vào phòng", "Tạo phòng mới"
+  (cuộn tới kệ Đối kháng đông người để chọn game), 12 phòng đang chờ xếp 3 phòng/hàng (2 phòng/hàng khi màn hẹp hơn).
+- **Tầng 2 — Kệ game**: tab lọc liền khối = **đúng các kệ** (`SHELVES` trong `games.js`): Tất cả · Đối kháng đông người ·
+  Giải đố · Hành động · Trí tuệ — tên và số đếm khớp kệ bên dưới vì cả hai dùng chung hàm `group()` (game trong `DUELS`
+  thuộc kệ Đối kháng, còn lại theo `cat`; mỗi game đúng 1 kệ). Mọi kệ cùng một kiểu ô 4:3, lưới 6 ô/dòng.
 - **Tầng 3 — Footer**: banner tài trợ SpeakUp Kids, bản quyền, bật/tắt âm thanh (`wgp.muted`, dùng chung với game).
 
-Mobile (<720px): thanh trên 1 hàng (logo + slogan, Nhập mã), ô tìm ở đầu trang, khối tiêu điểm xếp dọc,
-ngay dưới là thanh to [+ Tạo phòng][Nhập mã], phòng chờ thành dải vuốt ngang (3 hàng), mọi kệ 3 cột; nút ‹ › và chấm carousel có vùng chạm ≥ 40px.
+Mobile (<720px): thanh trên chỉ có logo + slogan, ô tìm ở đầu trang, carousel rồi sảnh chờ xếp dọc (ô mã + nút to
+"Tạo phòng mới"), phòng chờ thành dải vuốt ngang (3 hàng), mọi kệ 3 cột; vùng chạm ≥ 40px.
 
-Quy ước màu: **vàng chỉ dùng cho nút chính "Chơi ngay"**; mọi hành động phòng (Tạo phòng, Vào, Rủ bạn) là xanh ngọc;
-"Nhập mã" là nút tối phụ. Pixel UI: viền đen 3px góc khuyết, vát sáng/tối 2px, bóng đổ cứng, bấm lún 4px; không bo góc, không blur.
+Quy ước màu: **vàng chỉ dùng cho nút chính "Chơi ngay"**; mọi hành động phòng (Tạo phòng, Vào) là xanh ngọc.
+Pixel UI: viền đen 3px góc khuyết, vát sáng/tối 2px, bóng đổ cứng, bấm lún 4px; không bo góc, không blur.
 
-Số người online, số phòng và các phòng chờ là **số minh họa** (`LOBBY_ROOMS`, `DUELS` trong `games.js`) — chưa có multiplayer thật.
-"Tạo phòng" hiện mở Cờ Cá Ngựa (game duy nhất đã có sảnh tạo phòng).
+Số người online, số phòng và các phòng chờ là **số minh họa** (`LOBBY_ROOMS`, `DUELS` trong `games.js`).
 
 ## Chạy
 ```

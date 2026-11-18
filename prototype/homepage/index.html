@@ -14,7 +14,7 @@
 <body>
   <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
 
-  <!-- HEADER: logo + slogan · tìm game · Tạo phòng / Nhập mã (hành động cấp 1) -->
+  <!-- HEADER: logo + slogan · tìm game. Tạo phòng / Vào phòng bằng mã chỉ có MỘT chỗ: khung Sảnh chờ trực tiếp. -->
   <header class="topbar" data-name="topbar">
     <div class="topbar__inner">
       <a class="logo" href="./" aria-label="Lụm Kèo — Rủ bạn vào chơi. Về trang chủ">
@@ -28,14 +28,6 @@
         <input id="q" type="search" placeholder="Tìm game…" autocomplete="off" enterkeyhint="search" />
       </label>
 
-      <div class="topbar__actions">
-        <a class="btn btn--teal" id="createRoom" href="../games/co-ca-ngua/" data-name="create-room">
-          <span class="btn__plus" aria-hidden="true">+</span><span>Tạo phòng</span>
-        </a>
-        <button class="btn" id="openRoom" type="button" aria-haspopup="dialog">
-          <img src="assets/ui/icon-copy-link.png" alt="" width="16" height="16" /><span>Nhập mã</span>
-        </button>
-      </div>
     </div>
   </header>
 
@@ -54,12 +46,6 @@
         </div>
       </div>
 
-      <!-- Mobile: thanh hành động to cho ngón cái, ngay dưới game tiêu điểm -->
-      <div class="arena__mobile-actions" data-name="mobile-actions">
-        <a class="btn btn--teal btn--lg" href="../games/co-ca-ngua/"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng</a>
-        <button class="btn btn--lg" type="button" id="openRoom2" aria-haspopup="dialog"><img src="assets/ui/icon-copy-link.png" alt="" width="16" height="16" />Nhập mã</button>
-      </div>
-
       <aside class="lobby px-panel" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
@@ -76,12 +62,11 @@
             </div>
             <p class="pin__error" id="roomInlineError" role="alert"></p>
           </form>
-          <a class="btn btn--teal lobby__create" href="../games/co-ca-ngua/"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
+          <a class="btn btn--teal lobby__create" href="#duel" id="createRoom"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
         </div>
 
         <div class="lobby__subrow">
           <h3 class="lobby__sub">Phòng đang chờ người <span class="count" id="roomCount"></span></h3>
-          <nav class="lobby__games" id="roomGames" aria-label="Lọc phòng theo game"></nav>
         </div>
         <ul class="rooms" id="rooms"></ul>
 
@@ -89,7 +74,7 @@
       </aside>
     </section>
 
-    <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng) -->
+    <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng; tab lọc = đúng các kệ) -->
     <section class="shelves" id="games" data-name="games" aria-labelledby="gamesTitle">
       <div class="shelves__head">
         <h2 class="section__title" id="gamesTitle">Tất cả game <span class="count" id="count"></span></h2>
@@ -117,21 +102,6 @@
       <p class="footer__small">Bản thử nghiệm · ảnh game pixel art · số người online và phòng chờ là số giả.</p>
     </div>
   </footer>
-
-  <dialog class="dialog px-panel" id="roomDialog" aria-labelledby="roomTitle">
-    <form method="dialog" class="dialog__body" id="roomForm" novalidate>
-      <h2 id="roomTitle">Vào phòng của bạn bè</h2>
-      <p class="dialog__hint">Nhập mã 6 ký tự bạn bè gửi cho bạn.</p>
-      <label for="roomCode" class="sr-only">Mã phòng</label>
-      <input id="roomCode" class="field pin-big" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false"
-             maxlength="6" placeholder="ABC789" aria-describedby="roomError" />
-      <p class="dialog__error" id="roomError" role="alert"></p>
-      <div class="dialog__actions">
-        <button class="btn" value="cancel" type="button" id="roomCancel">Huỷ</button>
-        <button class="btn btn--teal" type="submit" id="roomJoin">Vào phòng</button>
-      </div>
-    </form>
-  </dialog>
 
   <script src="games.js"></script>
   <script src="app.js"></script>

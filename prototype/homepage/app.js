@@ -5,7 +5,7 @@
   var GAMES = window.GAMES, CATS = window.CATEGORIES, SLIDES = window.HERO_SLIDES || [];
   var ROOMS = window.LOBBY_ROOMS || [], DUELS = window.DUELS || [], SHELVES = window.SHELVES || [];
   var MUTE_KEY = "wgp.muted", HERO_MS = 5500;
-  var state = { cat: "all", q: "", roomGame: "all", slide: 0 };
+  var state = { cat: "all", q: "", slide: 0 };
 
   var $ = function (id) { return document.getElementById(id); };
   var grid = $("grid"), chips = $("chips"), count = $("count"), empty = $("empty");
@@ -110,6 +110,10 @@
   track.addEventListener("click", function (e) { if (swiped) { e.preventDefault(); swiped = false; } }, true);
 
   // ---------- TẦNG 1: sảnh chờ trực tiếp (số giả) ----------
+  function renderRooms() {
+    $("rooms").innerHTML = ROOMS.map(roomHTML).join("");
+    $("roomCount").textContent = ROOMS.length;
+  }
   function roomHref(r) { var g = byId(r.game); return g && g.url ? g.url : "play.html?room=" + r.code; }
   function seatsHTML(r) {
     var s = "";
@@ -126,23 +130,6 @@
       '<a class="btn btn--teal btn--sm room__go" href="' + roomHref(r) + '" data-room="' + r.code + '" aria-label="Vào phòng ' + g.name + " số " + r.no + ", " + r.have + " trên " + r.max + ' người' + (soon(g) ? ", đang cập nhật" : "") + '">' + (soon(g) ? "Sắp có" : "Vào") + "</a>" +
     "</li>";
   }
-  // Tab lọc phòng theo game (theo thứ tự xuất hiện trong danh sách phòng).
-  var roomGames = ROOMS.map(function (r) { return r.game; }).filter(function (id, i, a) { return byId(id) && a.indexOf(id) === i; });
-  function renderRooms() {
-    var list = ROOMS.filter(function (r) { return state.roomGame === "all" || r.game === state.roomGame; });
-    $("roomGames").innerHTML = ["all"].concat(roomGames).map(function (id) {
-      var n = id === "all" ? ROOMS.length : ROOMS.filter(function (r) { return r.game === id; }).length;
-      return '<button type="button" class="chip" data-g="' + id + '" aria-pressed="' + (id === state.roomGame) + '">' +
-        (id === "all" ? "Tất cả" : byId(id).name) + ' <span class="tab__n">' + n + "</span></button>";
-    }).join("");
-    $("rooms").innerHTML = list.map(roomHTML).join("");
-    $("roomCount").textContent = list.length;
-  }
-  $("roomGames").addEventListener("click", function (e) {
-    var b = e.target.closest(".chip"); if (!b) return;
-    state.roomGame = b.dataset.g; renderRooms();
-    $("rooms").scrollTop = 0;
-  });
 
   // ---------- TẦNG 2: kho game ----------
   // Mọi kệ dùng CÙNG một kiểu ô (4:3, lưới 6 ô/dòng). Game đối kháng có thêm nhãn số phòng đang mở trên ảnh.
@@ -159,20 +146,21 @@
       .sort(function (a, b) { return (soon(a[0]) - soon(b[0])) || (a[1] - b[1]); })
       .map(function (x) { return x[0]; });
   }
+  // Kệ của 1 game: game đối kháng → "duel", còn lại theo danh mục. Tab lọc và kệ dùng CÙNG hàm này nên số luôn khớp.
+  function group(g) { return duelIds.indexOf(g.id) !== -1 ? "duel" : g.cat; }
   function shelfHTML(cls, title, hint, list) {
-    return '<div class="shelf shelf--' + cls + '"><h3 class="shelf__title">' + title + ' <span class="count">' + list.length +
+    return '<div class="shelf shelf--' + cls + '" id="' + cls + '"><h3 class="shelf__title">' + title + ' <span class="count">' + list.length +
       '</span><span class="shelf__hint">' + hint + '</span></h3><div class="tiles">' + playableFirst(list).map(tileHTML).join("") + "</div></div>";
   }
 
   function matches(g) {
-    if (state.cat === "multi" && g.mode === "solo") return false;
-    if (state.cat !== "all" && state.cat !== "multi" && g.cat !== state.cat) return false;
+    if (state.cat !== "all" && group(g) !== state.cat) return false;
     if (state.q && fold(g.name).indexOf(fold(state.q)) === -1) return false;
     return true;
   }
   function countIn(catId) {
     return GAMES.filter(function (g) {
-      return catId === "all" ? true : catId === "multi" ? g.mode !== "solo" : g.cat === catId;
+      return catId === "all" || group(g) === catId;
     }).length;
   }
   function renderChips() {
@@ -184,14 +172,12 @@
   function renderGrid() {
     var list = GAMES.filter(matches), html = "";
     if (state.cat === "all" && !state.q) {
-      // "Tất cả": kệ Đối kháng đông người trước, rồi từng danh mục (không lặp game đã có ở kệ Đối kháng).
-      var duels = duelIds.map(byId).filter(Boolean);
-      html += shelfHTML("duel", "Đối kháng đông người", "Rủ bạn vào phòng, chơi ngay trên trình duyệt", duels);
+      // "Tất cả": các kệ theo đúng thứ tự SHELVES (Đối kháng đông người trước); mỗi game đúng 1 kệ.
       SHELVES.forEach(function (sh) {
-        var items = list.filter(function (g) { return g.cat === sh.cat && duelIds.indexOf(g.id) === -1; });
+        var items = sh.cat === "duel" ? duelIds.map(byId).filter(Boolean) : list.filter(function (g) { return group(g) === sh.cat; });
         if (items.length) html += shelfHTML(sh.cat, sh.title, sh.hint, items);
       });
-      var rest = list.filter(function (g) { return duelIds.indexOf(g.id) === -1 && !SHELVES.some(function (sh) { return sh.cat === g.cat; }); });
+      var rest = list.filter(function (g) { return !SHELVES.some(function (sh) { return sh.cat === group(g); }); });
       if (rest.length) html += shelfHTML("other", "Game khác", "", rest);
     } else if (list.length) {
       html = '<div class="shelf shelf--flat"><div class="tiles">' + playableFirst(list).map(tileHTML).join("") + "</div></div>";
@@ -225,12 +211,12 @@
   var mq = window.matchMedia("(max-width: 720px)");
   function placeSearch() {
     if (mq.matches) $("mobileSearchSlot").appendChild(searchEl);
-    else topInner.insertBefore(searchEl, document.querySelector(".topbar__actions"));
+    else topInner.appendChild(searchEl);
   }
   (mq.addEventListener ? mq.addEventListener("change", placeSearch) : mq.addListener(placeSearch));
   placeSearch();
 
-  // Mã phòng: 6 ký tự chữ + số. Dùng chung cho ô PIN ở sảnh chờ và hộp thoại "Nhập mã".
+  // Mã phòng: 6 ký tự chữ + số (ô PIN trong sảnh chờ — chỗ duy nhất để vào phòng bằng mã).
   function cleanCode(input) {
     input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
   }
@@ -243,18 +229,19 @@
     location.href = "play.html?room=" + input.value;
   }
 
+  // "Tạo phòng mới": mỗi game có phòng riêng ⇒ đưa người chơi tới kệ "Đối kháng đông người" để chọn game.
+  $("createRoom").addEventListener("click", function (e) {
+    e.preventDefault();
+    if (state.cat !== "all" || state.q) { $("q").value = ""; state.q = ""; state.cat = "all"; renderAll(); }
+    var d = $("duel"); if (!d) return;
+    d.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    d.classList.remove("is-flash"); void d.offsetWidth; d.classList.add("is-flash");
+  });
+
   var inl = $("roomInlineCode"), inlErr = $("roomInlineError");
   inl.addEventListener("input", function () { cleanCode(inl); inlErr.textContent = ""; });
   $("roomInline").addEventListener("submit", function (e) { e.preventDefault(); tryJoin(inl, inlErr); });
 
-  var dlg = $("roomDialog"), code = $("roomCode"), err = $("roomError");
-  function openDlg() { err.textContent = ""; code.value = ""; dlg.showModal(); code.focus(); }
-  $("openRoom").addEventListener("click", openDlg);
-  $("openRoom2").addEventListener("click", openDlg);
-  $("roomCancel").addEventListener("click", function () { dlg.close(); });
-  dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
-  code.addEventListener("input", function () { cleanCode(code); err.textContent = ""; });
-  $("roomForm").addEventListener("submit", function (e) { e.preventDefault(); tryJoin(code, err); });
 
   // Âm thanh portal: dùng chung khóa "wgp.muted" với các game (Đào Vàng, Cờ Cá Ngựa đọc khóa này).
   function isMuted() { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch (e) { return false; } }
