@@ -71,14 +71,13 @@
       display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; }
     /* đất: luống cày ngang (sọc tối/sáng xen kẽ) thay cho chấm bi */
     .plot { all: unset; box-sizing: border-box; position: relative; cursor: pointer; display: grid; place-items: center; min-width: 0; min-height: 0; touch-action: manipulation;
-      background: radial-gradient(circle at 30% 40%, #9a6a44 0 1.5px, transparent 2px) 0 0 / 13px 11px, radial-gradient(circle at 75% 70%, #3f2716 0 1.5px, transparent 2px) 0 0 / 17px 11px,
-        repeating-linear-gradient(180deg, #7a4f30 0 2px, var(--soil) 2px 8px, #563520 8px 11px); --b: var(--soil-d);
+      background: url(assets/tiles.webp) 0% 0 / 400% 100% no-repeat, var(--soil); image-rendering: pixelated; --b: var(--soil-d); /* tiles.webp: đất khô */
       box-shadow: inset 0 3px 0 rgba(255,255,255,.10), inset 0 -4px 0 rgba(0,0,0,.35), var(--border); }
-    .plot.wet { background: radial-gradient(circle at 30% 40%, #6e4a2c 0 1.5px, transparent 2px) 0 0 / 13px 11px, radial-gradient(circle at 60% 55%, rgba(120,180,230,.35) 0 2px, transparent 2.5px) 0 0 / 19px 15px,
-      repeating-linear-gradient(180deg, var(--wet-l) 0 2px, var(--wet) 2px 8px, #2c1a0d 8px 11px); }
+    .plot.wet { background: url(assets/tiles.webp) 33.333% 0 / 400% 100% no-repeat, var(--wet); } /* đất đã tưới */
     /* ô chưa mở: cỏ (2 tông + vài cọng), không ổ khoá; ô mở được có thẻ giá, ô xa chỉ là cỏ tối */
     .plot.locked { --b: #1c3a15; box-shadow: inset 0 3px 0 rgba(255,255,255,.06), inset 0 -4px 0 rgba(0,0,0,.25);
-      background: radial-gradient(circle at 25% 30%, #4d8a3a 0 2px, transparent 2.5px) 0 0 / 18px 16px, radial-gradient(circle at 70% 75%, #26491d 0 2px, transparent 2.5px) 0 0 / 18px 16px, var(--grass); }
+      background: url(assets/tiles.webp) 66.667% 0 / 400% 100% no-repeat, var(--grass); }
+    .plot.locked.grassB { background: url(assets/tiles.webp) 100% 0 / 400% 100% no-repeat, var(--grass); }
     .plot.locked canvas { display: none; }
     .plot.locked .lbl { top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); padding: 4px 7px; background: rgba(10,8,7,.78); box-shadow: 0 0 0 2px var(--gold-d); color: var(--gold-l); text-shadow: none; white-space: nowrap; }
     .plot.locked .lbl:empty { display: none; }
@@ -93,7 +92,9 @@
     .plot.ready { animation: bob 1s steps(2) infinite; }
     .plot.ready::after { content: ""; position: absolute; inset: -3px; box-shadow: 0 0 0 3px var(--gold); pointer-events: none; }
     .plot.confirm::after { content: ""; position: absolute; inset: -3px; box-shadow: 0 0 0 3px var(--gold); pointer-events: none; animation: blink .5s steps(2) infinite; }
-    .plot .drop { position: absolute; right: 9%; bottom: calc(8% + 13px); width: 7px; height: 9px; background: var(--blue); box-shadow: 0 0 0 2px var(--line); } /* chấm xanh: cây chưa tưới */
+    .plot .drop { position: absolute; right: 6%; bottom: calc(8% + 11px); width: 18px; height: 18px; background: url(assets/icons.png) 33.333% 0 / 400% 100% no-repeat; image-rendering: pixelated; } /* giọt nước: cây chưa tưới */
+    .ico { display: inline-block; width: 22px; height: 22px; vertical-align: -3px; margin-right: 4px; background: url(assets/icons.png) 0 0 / 400% 100% no-repeat; image-rendering: pixelated; }
+    .ico--coin { background-position: 0% 0; } .ico--xp { background-position: 66.667% 0; }
     @keyframes bob { 50% { transform: translateY(-3px); } }
     @keyframes blink { 50% { opacity: 0; } }
     .float { position: absolute; z-index: 3; font: 800 16px "Be Vietnam Pro"; color: var(--gold); text-shadow: 2px 2px 0 #000; pointer-events: none; animation: up 1s ease-out forwards; white-space: nowrap; }
@@ -152,7 +153,7 @@
   <main class="wrap">
     <aside class="hud" aria-label="Trang trại của bạn">
       <div class="stats">
-        <div class="stat main"><small>Xu</small><b id="hCoins">0</b></div>
+        <div class="stat main"><small>Xu</small><b><i class="ico ico--coin" aria-hidden="true"></i><span id="hCoins">0</span></b></div>
         <div class="stat"><small>Cấp</small><b class="lv" id="hLevel">1</b><div class="px-bar" aria-hidden="true"><i id="hXp" style="width:0%"></i></div><span class="xpTxt" id="hXpTxt"></span></div>
         <div class="stat"><small>Đã thu</small><b id="hHarvested">0</b></div>
         <div class="hsep"></div>

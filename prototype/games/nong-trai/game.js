@@ -154,10 +154,25 @@ const MAPS = {
     "................",
   ],
 };
+// Sprite Pixel V5 của Codex (assets/asset-manifest.json): crops.png 4 cột (hạt · mầm · đang lớn · chín) × 5 hàng theo
+// thứ tự L.CROPS, khung 64×64, gốc cây ở (32, 56). Chưa tải xong ⇒ dùng tạm khối pixel vẽ bằng code ở trên.
+const STAGE_COL = { seed: 0, sprout: 1, grow: 2, ready: 3 };
+const atlas = new Image();
 const ART = {
+  ready: false,
+  onReady: null,
+  /** key: "<cây>:<giai đoạn>" hoặc null (ô trống). */
   draw(cv, key) {
-    const g = cv.getContext("2d"), map = MAPS[key];
+    const g = cv.getContext("2d");
     g.clearRect(0, 0, cv.width, cv.height);
+    if (!key) return;
+    const [crop, st] = key.split(":"), row = L.CROPS.findIndex((c) => c.id === crop);
+    if (this.ready && row >= 0) {
+      g.imageSmoothingEnabled = false;
+      g.drawImage(atlas, STAGE_COL[st] * 64, row * 64, 64, 64, 0, 0, cv.width, cv.height);
+      return;
+    }
+    const map = MAPS[st === "ready" ? crop : st];
     if (!map) return;
     const n = map.length, k = cv.width / n;
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
@@ -166,6 +181,8 @@ const ART = {
     }
   },
 };
+atlas.onload = () => { ART.ready = true; ART.onReady && ART.onReady(); };
+atlas.src = new URL("assets/crops.png", import.meta.url).href;
 
 // ---------- âm thanh ----------
 function makeSfx(dir, names, sdk) {
@@ -246,7 +263,7 @@ export function mount(root, ctx = {}) {
   const seedBtns = L.CROPS.map((c, n) => {
     const b = document.createElement("button");
     b.type = "button"; b.className = "seed"; b.setAttribute("role", "radio"); b.dataset.id = c.id;
-    const cv = document.createElement("canvas"); cv.width = cv.height = 64; ART.draw(cv, c.id);
+    const cv = document.createElement("canvas"); cv.width = cv.height = 64; ART.draw(cv, c.id + ":ready");
     b.append(cv);
     b.insertAdjacentHTML("beforeend", `<b>${c.name}</b><small class="info"></small>`);
     b.title = `${c.name}: hạt ${c.seed} xu · chín sau ${fmtGrow(c.growMs)} · bán ${c.sell} xu (phím ${n + 1})`;
@@ -254,6 +271,9 @@ export function mount(root, ctx = {}) {
     ui.seeds.append(b);
     return b;
   });
+
+  ART.onReady = () => { for (const c of cells) c.key = undefined; L.CROPS.forEach((k, n) => ART.draw(seedBtns[n].querySelector("canvas"), k.id + ":ready")); render(); };
+  if (ART.ready) ART.onReady();
 
   // ---------- lưu ----------
   function persist(force) {
@@ -295,10 +315,11 @@ export function mount(root, ctx = {}) {
   function renderPlot(i, t) {
     const p = s.plots[i], c = cells[i], cost = L.plotCost(s);
     const st = p.open ? L.stage(p, t) : "locked";
-    let key = st === "locked" || st === "empty" ? null : st === "ready" ? p.crop : st;
-    if (c.key !== key) { if (st === "ready" && c.key === "grow") sfx.play("trung-kim-cuong", 0.3, 1.3); ART.draw(c.cv, key); c.key = key; } // cây vừa chín trước mắt
+    const key = st === "locked" || st === "empty" ? null : p.crop + ":" + st;
+    if (c.key !== key) { if (st === "ready" && c.key === p.crop + ":grow") sfx.play("trung-kim-cuong", 0.3, 1.3); ART.draw(c.cv, key); c.key = key; } // cây vừa chín trước mắt
     const buyable = !p.open && L.canBuy(s, i);
     c.b.classList.toggle("locked", !p.open);
+    c.b.classList.toggle("grassB", !p.open && ((i % L.W) + Math.floor(i / L.W)) % 2 === 1); // 2 kiểu cỏ xen kẽ
     c.b.classList.toggle("far", !p.open && !buyable);
     c.b.classList.toggle("wet", p.open && !!p.crop && p.watered && st !== "ready");
     c.b.classList.toggle("ready", st === "ready");
