@@ -150,6 +150,8 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 #tabWolf[aria-selected="true"] { color: var(--red); }
 .chat__log { margin: 0; padding: 8px 12px; list-style: none; overflow-y: auto; display: grid; align-content: start; gap: 4px; font-size: 14px; overflow-wrap: anywhere; }
 .chat__log b { color: var(--accent); }
+.chat__log .msg { display: grid; gap: 0; padding: 3px 0 2px; border-bottom: 1px solid rgba(0,0,0,.28); }
+.chat__log .msg time { justify-self: end; font-size: 10px; line-height: 1.1; color: var(--dim); font-variant-numeric: tabular-nums; }
 .chat__log .sys { color: var(--soft); font-style: italic; }
 .chat__log .sys b { color: var(--ink); }
 .quick { display: flex; gap: 4px; overflow-x: auto; padding: 6px 10px 2px; }

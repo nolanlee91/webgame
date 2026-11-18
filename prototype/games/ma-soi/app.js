@@ -356,12 +356,16 @@ function renderLobby() {
   sum.textContent = `${total} vai / ${n} người`;
   sum.className = `rsum ${match ? "rsum--ok" : "rsum--bad"}`;
   const warn = $("roleWarn");
-  if (!match) { warn.className = "rwarn rwarn--bad"; warn.textContent = `Không khớp: bộ vai cần ${total} người, phòng mới có ${n}. Mời thêm ${total - n} người nữa mới bắt đầu được.`; }
+  if (!match) { warn.className = "rwarn rwarn--bad"; warn.textContent = `Có ${total} vai cho ${n} người: số vai phải bằng số người. Mời thêm ${total - n} người nữa mới bắt đầu được.`; }
   else if (off) { warn.className = "rwarn rwarn--warn"; warn.textContent = `Khớp ${total} vai cho ${n} người — nhưng ${off} người đang mất kết nối, quá 20 giây không vào lại sẽ tự rời phòng.`; }
   else { warn.className = "rwarn rwarn--ok"; warn.textContent = `Khớp: ${total} vai cho ${n} người. ${n < v.max ? `Thêm người thì có thêm Dân Làng (tối đa ${v.max}).` : "Phòng đã đủ."}`; }
 }
 
 // ---------------- trò chuyện ----------------
+// mỗi ghế một màu tên cố định (đọc rõ trên nền tối cả ngày lẫn đêm) + giờ gửi ở góc dưới
+const SEAT_COLOR = ["#f5d77f", "#7ec8e3", "#f29e6d", "#9fd88a", "#d6a2f0", "#f28fae", "#6fe0c6", "#e8c39e"];
+const hhmm = (ts) => { const d = new Date(ts); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const msgLi = (c, color) => `<li class="msg"><span><b style="color:${color || SEAT_COLOR[c.seat % 8]}">${esc(nameOf(c.seat))}</b>: ${esc(c.text)}</span>${c.ts ? `<time>${hhmm(c.ts)}</time>` : ""}</li>`;
 let lastLogKey = "";
 function renderChat() {
   const wolf = me()?.role === "wolf" && !!v.wolfChat;
@@ -370,10 +374,10 @@ function renderChat() {
   $("tabVillage").setAttribute("aria-selected", tab === "village"); $("tabWolf").setAttribute("aria-selected", tab === "wolf");
   // kênh Làng: lời nói + sự kiện (chết/treo) xếp theo thời gian vòng
   let items;
-  if (tab === "wolf") items = (v.wolfChat || []).map((c) => `<li><b style="color:var(--red)">${esc(nameOf(c.seat))}</b>: ${esc(c.text)}</li>`);
+  if (tab === "wolf") items = (v.wolfChat || []).map((c) => msgLi(c, "var(--red)"));
   else {
     items = v.events.map((e) => `<li class="sys">${e.kind === "bite" ? `Đêm ${e.round}: <b>${esc(nameOf(e.seat))}</b> bị Sói cắn — là ${ROLE[e.role].name}.` : e.kind === "peace" ? `Đêm ${e.round}: bình yên.` : e.kind === "hang" ? `Ngày ${e.round}: <b>${esc(nameOf(e.seat))}</b> bị treo cổ — là ${ROLE[e.role].name}.` : `Ngày ${e.round}: không ai bị treo cổ.`}</li>`);
-    items = items.concat(v.chat.map((c) => `<li><b>${esc(nameOf(c.seat))}</b>: ${esc(c.text)}</li>`));
+    items = items.concat(v.chat.map((c) => msgLi(c)));
   }
   const key = tab + items.join("");
   if (key !== lastLogKey) { lastLogKey = key; const log = $("chatLog"); log.innerHTML = items.join("") || `<li class="sys">Chưa có ai nói gì.</li>`; log.scrollTop = log.scrollHeight; }
