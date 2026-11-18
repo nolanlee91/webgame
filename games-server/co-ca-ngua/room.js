@@ -46,14 +46,13 @@ class Room {
     if (this.phase !== "lobby") return { err: "started" };
     if (this.players.length >= MAX_PLAYERS) return { err: "full" };
     this.players.push({ token, ip, name: cleanName(name, "Người " + (this.players.length + 1)), connected: true, left: false });
-    this.chat.claim(token, ip);
     this.changed();
     return { ok: true };
   }
 
   leave(i) {
     const p = this.players[i]; if (!p) return;
-    this.chat.forget(p.token, p.ip);
+    this.chat.forget(p.token);
     if (this.phase === "lobby") this.players.splice(i, 1);
     else { p.left = true; p.connected = false; p.token = null; }
     if (!this.players.some((x) => !x.left)) return this.close();
@@ -98,7 +97,7 @@ class Room {
         return this.doMove(m.horse) ? { ok: true } : { err: "illegal" };
       }
       case "chat": { // người gửi = ghế i do máy chủ biết từ kết nối; client chỉ gửi nội dung
-        const r = this.chat.post(p, m.text);
+        const r = this.chat.post(p, m.text, this.players.filter((x) => !x.left && x.ip === p.ip).length);
         if (r.ok) this.changed();
         return r;
       }

@@ -8,5 +8,5 @@ Phòng 1v1 qua WebSocket `/ws/co-caro`, gắn vào `server.js` khi `COCARO_ONLIN
 - `host.js` — mã phòng 5 ký tự, token 128 bit, nối lại (`resume`), giới hạn: 1 KB/khung, 12 tin liền rồi 5/giây, 16 kết nối + 3 phòng mỗi IP,
   phòng không còn ai kết nối bị xoá sau 5 phút. Sau proxy đặt `COCARO_TRUST_PROXY=1` để lấy IP thật từ `X-Forwarded-For`.
 - `chat.js` — trò chuyện: người gửi lấy theo token của kết nối (không tin tên client gửi), làm sạch ký tự điều khiển/bidi, tối đa 200 ký tự (`long`),
-  4 tin liền rồi 0,7 tin/giây mỗi người (`chat-slow`), giữ 40 tin trong bộ nhớ phòng; `state.v.chat = [{id,name,text,at,mine}]` (không lộ token).
+  4 tin liền rồi 0,7 tin/giây mỗi người (`chat-slow`) Thêm hạn mức chung theo IP trong phòng (sống suốt đời phòng, = hạn mức 1 người × số ghế đang ngồi từ IP đó) nên rời/vào lại hay mở kết nối phụ không làm đầy lại., giữ 40 tin trong bộ nhớ phòng; `state.v.chat = [{id,name,text,at,mine}]` (không lộ token).
 - Chạy thử: `node games-server/co-caro/dev.js` (PORT 8768). Test: `node --test --test-concurrency=1 games-server/co-caro/test/*.test.mjs`.

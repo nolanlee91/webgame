@@ -341,19 +341,30 @@ test('server.js: WebSocket tới đường không có game nào nhận (game onl
   assert.match(out, /^alive /);
 });
 
-test('chat (review Codex): rời phòng rồi vào lại cùng IP không làm mới hạn mức; người cùng IP đang ngồi không bị ảnh hưởng; lọc đủ ký tự bidi', () => {
+test('chat (review Codex): hạn mức theo IP sống suốt đời phòng — rời/vào lại hay mở kết nối phụ cùng IP không làm đầy lại; người cùng nhà vẫn đủ phần; lọc đủ ký tự bidi', () => {
   const { Chat } = require('../chat.js');
   let t = 0; const c = new Chat({ now: () => t });
-  const a = { token: 'a', name: 'A' }, a2 = { token: 'a2', name: 'A' }, b = { token: 'b', name: 'B' };
-  for (let i = 0; i < 4; i++) assert.equal(c.post(a, 'tin ' + i).ok, true);
-  assert.equal(c.post(a, 'tin 5').err, 'chat-slow');
-  c.forget('a', '1.2.3.4'); c.claim('a2', '1.2.3.4');
-  assert.equal(c.post(a2, 'vào lại').err, 'chat-slow', 'token mới cùng IP vẫn bị giới hạn');
-  c.claim('b', '1.2.3.4'); // người khác cùng IP vào sau: không còn gì gửi giữ → hạn mức riêng
-  assert.equal(c.post(b, 'xin chào').ok, true);
-  t += 1500; assert.equal(c.post(a2, 'hồi lại').ok, true, 'hạn mức hồi theo thời gian như cũ');
+  const IP = '1.2.3.4';
+  const a = { token: 'a', name: 'A', ip: IP }, a2 = { token: 'a2', name: 'A', ip: IP }, d = { token: 'd', name: 'D', ip: IP };
+  for (let i = 0; i < 4; i++) assert.equal(c.post(a, 'tin ' + i, 1).ok, true);
+  assert.equal(c.post(a, 'tin 5', 1).err, 'chat-slow');
+  c.forget('a');
+  assert.equal(c.post(a2, 'vào lại', 1).err, 'chat-slow', 'token mới cùng IP vẫn bị giới hạn');
+  // kết nối phụ D cùng IP ngồi vào trước rồi A mới vào lại (cách lách Codex chỉ ra): cả hai vẫn bị chặn
+  assert.equal(c.post(d, 'phụ', 2).err, 'chat-slow', 'kết nối phụ cùng IP không có hạn mức mới');
+  assert.equal(c.post(a2, 'vào lại lần 2', 2).err, 'chat-slow');
+  t += 1500; // hồi theo thời gian: 2 ghế cùng IP → hồi 2 × 0,7/giây
+  assert.equal(c.post(a2, 'hồi lại', 2).ok, true);
+  assert.equal(c.post(d, 'hồi lại', 2).ok, true);
+  assert.equal(c.post(d, 'thêm', 2).err, 'chat-slow', 'hết phần chung của IP');
+  // hai người chung mạng (cùng nhà) vào phòng mới: mỗi người vẫn 4 tin liền
+  const h = new Chat({ now: () => t });
+  const p1 = { token: 'p1', name: 'P1', ip: '9.9.9.9' }, p2 = { token: 'p2', name: 'P2', ip: '9.9.9.9' };
+  for (let i = 0; i < 4; i++) { assert.equal(h.post(p1, 'x' + i, 2).ok, true); assert.equal(h.post(p2, 'y' + i, 2).ok, true); }
+  assert.equal(h.post(p1, 'z', 2).err, 'chat-slow');
+  const b = { token: 'b', name: 'B', ip: '5.6.7.8' };
   const ctl = [0x61c, 0x200e, 0x200f, 0x202a, 0x202e, 0x2066, 0x2069, 0x2060, 0xfeff].map((x) => String.fromCharCode(x)).join('');
-  assert.equal(c.post(b, 'abc' + ctl + 'def').ok, true);
+  assert.equal(c.post(b, 'abc' + ctl + 'def', 1).ok, true);
   const last = c.view('x').at(-1).text;
   assert.equal(last, 'abc def'); assert.ok(![...last].some((ch) => ch.charCodeAt(0) > 0x7e && ch.charCodeAt(0) < 0x2100 && !/\p{L}/u.test(ch)));
 });

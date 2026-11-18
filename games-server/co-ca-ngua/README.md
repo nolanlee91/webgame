@@ -8,7 +8,7 @@ Phòng 2–4 người qua WebSocket `/ws/co-ca-ngua`, gắn vào `server.js` —
 - `host.js` — mã phòng 5 ký tự, token 128 bit, nối lại (`resume`), giới hạn: 1 KB/khung, 12 tin nhắn liền rồi 5/giây, 16 kết nối + 3 phòng mỗi IP,
   phòng không còn ai kết nối bị xoá sau 5 phút. Sau proxy (Railway) đặt `COCANGUA_TRUST_PROXY=1` để lấy IP thật từ `X-Forwarded-For`.
 - `chat.js` — trò chuyện trong phòng: client gửi `chat{text}`, máy chủ lấy người gửi theo token của kết nối (không tin tên client gửi), làm sạch
-  (ký tự điều khiển/bidi → khoảng trắng, gộp khoảng trắng), từ chối rỗng (`bad`) / > 200 ký tự (`long`), mỗi người 4 tin liền rồi 0,7 tin/giây (`chat-slow`).
+  (ký tự điều khiển/bidi → khoảng trắng, gộp khoảng trắng), từ chối rỗng (`bad`) / > 200 ký tự (`long`), mỗi người 4 tin liền rồi 0,7 tin/giây (`chat-slow`). Thêm hạn mức chung theo IP trong phòng (sống suốt đời phòng, = hạn mức 1 người × số ghế đang ngồi từ IP đó) nên rời/vào lại hay mở kết nối phụ không làm đầy lại.
   Giữ 40 tin gần nhất trong bộ nhớ phòng; `state.v.chat = [{id,name,text,at,mine}]` (không lộ token).
 - Giao thức: client gửi `create{name}` / `join{code,name}` / `resume{code,token}` / `rule{rule}` / `start` / `again` / `roll` / `move{horse}` / `chat{text}` / `sync` / `leave` / `ping`;
   máy chủ gửi `joined{code,token}`, `state{now,v}` (mỗi người một bản, có `gid`, `seq`, `act` để client phát lại), `err{code}`, `replaced`, `kicked`, `left`, `pong`.

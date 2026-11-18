@@ -46,7 +46,6 @@ class Room {
     if (this.phase !== "lobby") return { err: "started" };
     if (this.players.length >= MAX_PLAYERS) return { err: "full" };
     this.players.push({ token, ip, name: cleanName(name, "Người " + (this.players.length + 1)), connected: true });
-    this.chat.claim(token, ip);
     this.changed();
     return { ok: true };
   }
@@ -54,7 +53,7 @@ class Room {
   /** Rời phòng. Trận 1v1 không chơi tiếp được với 1 người → về phòng chờ, người còn lại làm chủ phòng (cầm X), chờ người mới. */
   leave(i) {
     if (!this.players[i]) return;
-    this.chat.forget(this.players[i].token, this.players[i].ip);
+    this.chat.forget(this.players[i].token);
     this.players.splice(i, 1);
     if (!this.players.length) return this.close();
     if (this.phase !== "lobby") { this.phase = "lobby"; this.s = null; this.gid++; this.seq = 0; this.lastAct = null; this.oppLeft = true; }
@@ -94,7 +93,8 @@ class Room {
         return this.doMove(m.r, m.c, false) ? { ok: true } : { err: "illegal" };
       }
       case "chat": { // người gửi = ghế i do máy chủ biết từ kết nối; client chỉ gửi nội dung
-        const r = this.chat.post(this.players[i], m.text);
+        const me = this.players[i];
+        const r = this.chat.post(me, m.text, this.players.filter((x) => x.ip === me.ip).length);
         if (r.ok) this.changed();
         return r;
       }
