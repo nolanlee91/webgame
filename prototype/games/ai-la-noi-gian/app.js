@@ -172,7 +172,7 @@ function needName() {
 }
 try { $("nameInp").value = localStorage.getItem(NAME) || ""; } catch {}
 const qp = new URLSearchParams(location.search).get("p"); if (qp) $("codeInp").value = qp.toUpperCase().slice(0, 5);
-$("createBtn").onclick = () => { const n = needName(); if (n) { homeMsg("Đang tạo phòng…"); send({ t: "create", name: n }); } };
+$("createBtn").onclick = () => { const n = needName(); if (n) { homeMsg("Đang tạo phòng…"); send({ t: "create", name: n, public: !$("privateRoom").checked }); } };
 $("joinBtn").onclick = () => {
   const n = needName(); if (!n) return;
   const c = $("codeInp").value.trim().toUpperCase(); if (c.length !== 5) { homeMsg("Mã phòng gồm 5 ký tự."); return; }

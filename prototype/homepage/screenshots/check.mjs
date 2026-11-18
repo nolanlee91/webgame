@@ -1,7 +1,30 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-// Chạy server từ thư mục prototype/ (cổng 8766) để link sang game thật (../games/…) mở được.
+// Chạy PORT=8766 node server.js ở gốc repo để có API sảnh và WebSocket. Chỉ chạy trên localhost.
 const OUT = process.argv[2], BASE = process.argv[3] || 'http://127.0.0.1:8766/homepage/';
+const baseUrl = new URL(BASE);
+if (!["localhost", "127.0.0.1"].includes(baseUrl.hostname)) throw new Error("Chỉ tạo phòng test trên localhost.");
+const sockets = [];
+async function createRoom(game, isPublic) {
+  const url = new URL("/ws/" + game, BASE);
+  url.protocol = "ws:";
+  const socket = new WebSocket(url);
+  sockets.push(socket);
+  socket.addEventListener("open", () => socket.send(JSON.stringify({ t: "create", name: "Kiểm thử", public: isPublic })), { once: true });
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Không tạo được phòng " + game)), 5000);
+    socket.addEventListener("error", () => { clearTimeout(timer); reject(new Error("Lỗi WebSocket")); }, { once: true });
+    socket.addEventListener("message", ({ data }) => {
+      const message = JSON.parse(data);
+      if (message.t === "joined" || message.t === "room") { clearTimeout(timer); resolve(message.code); }
+      if (message.t === "err") { clearTimeout(timer); reject(new Error(game + ": " + message.code)); }
+    });
+  });
+}
+const games = ["dat-bom", "ma-soi", "ai-la-noi-gian", "noi-tu", "co-ca-ngua", "co-caro", "co-vua", "co-tuong", "co-ty-phu"];
+const publicRooms = {};
+for (const game of games) publicRooms[game] = await createRoom(game);
+const privateCode = await createRoom("dat-bom", false);
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9333', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -36,7 +59,12 @@ const shot = async (name, full = false) => {
   writeFileSync(OUT + '/' + name, Buffer.from(r.result.data, 'base64'));
 };
 const R = []; const check = (n, c, d = '') => console.log((c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''));
-const _c = check; globalThis.__log = 1;
+const enterRoom = code => ev(`(() => {
+  const input = document.getElementById("roomInlineCode");
+  input.value = ${JSON.stringify(code)};
+  input.dispatchEvent(new Event("input"));
+  document.getElementById("roomInline").requestSubmit();
+})()`);
 
 // Báo lỗi mã phòng không được làm xê dịch hàng "ô mã + Vào phòng + Tạo phòng mới"; dòng đỏ nằm trên ô nhập, đọc đủ chữ.
 const pinRects = 'JSON.stringify(["roomInlineCode","createRoom"].map(i=>document.getElementById(i)).concat(document.querySelector("#roomInline button[type=submit]")).map(e=>{const r=e.getBoundingClientRect();return [Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]}))';
@@ -49,7 +77,7 @@ const pinStable = async (tag, shotName) => {
   const E = JSON.parse(err);
   if (shotName) await shot(shotName);
   check(`${tag}: mã sai → dòng đỏ hiện phía trên ô nhập, đủ chữ, không làm lệch ô mã/Vào phòng/Tạo phòng mới`, before === after && E.t.length > 0 && E.above && !E.cut && E.h > 0, before === after ? err : before + ' → ' + after);
-  await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="abc789";c.dispatchEvent(new Event("input"))})()');
+  await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="abc78";c.dispatchEvent(new Event("input"))})()');
   check(`${tag}: gõ lại mã đúng → dòng đỏ biến mất, hàng nút vẫn giữ chỗ`, await ev('document.getElementById("roomInlineError").textContent') === '' && await ev(pinRects) === before);
   await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="";c.dispatchEvent(new Event("input"))})()');
 };
@@ -76,7 +104,7 @@ check('carousel: ' + await ev('HERO_SLIDES.length') + ' trang, ảnh 4:3 hiện 
   check('carousel: nút › chuyển sang trang kế, chấm chỉ trang cập nhật', await ev('document.querySelector(".hero__dot[aria-current=true]").dataset.i') === String((+d0 + 1) % await ev('HERO_SLIDES.length')));
   await ev('document.getElementById("heroPrev").click()'); await sleep(700); }
 check('Tầng 1 thấy trọn trong màn 1440×900 (không cần cuộn)', await ev('Math.max(document.querySelector("#featured").getBoundingClientRect().bottom,document.querySelector(".lobby").getBoundingClientRect().bottom)<=innerHeight'), await ev('Math.round(Math.max(document.querySelector("#featured").getBoundingClientRect().bottom,document.querySelector(".lobby").getBoundingClientRect().bottom))+"px"'));
-check('sảnh chờ: ' + await ev('LOBBY_ROOMS.length') + ' phòng, xếp 3 phòng/hàng, mỗi phòng có nút "Vào" + số ghế', await ev('(()=>{const r=[...document.querySelectorAll("#rooms .room")];return r.length===LOBBY_ROOMS.length&&r.length>=10&&getComputedStyle(document.getElementById("rooms")).gridTemplateColumns.split(" ").length===3&&r.every(x=>x.querySelector("a.room__go")&&/\\d\\/\\d/.test(x.querySelector(".room__cnt").textContent))})()'));
+check('sảnh chờ chỉ hiện phòng công khai thật của cả 9 game', await ev(`(() => { const rooms = [...document.querySelectorAll("#rooms .room__go")]; const codes = Object.values(${JSON.stringify(publicRooms)}); return rooms.length === codes.length && rooms.every(r => codes.includes(new URL(r.href).searchParams.get("p") || new URL(r.href).searchParams.get("room"))); })()`));
 check('sảnh chờ: phòng không bị cắt chữ (tên game, số ghế, nút Vào thấy đủ)', await ev('[...document.querySelectorAll("#rooms .room")].every(r=>{const b=r.getBoundingClientRect(),g=r.querySelector(".room__go").getBoundingClientRect(),c=r.querySelector(".room__cnt");return g.right<=b.right&&c.offsetWidth>0&&c.getBoundingClientRect().right<=g.left})'));
 check('sảnh chờ: đã bỏ hàng lọc phòng theo game', await ev('!document.getElementById("roomGames") && !document.querySelector(".lobby .chip")'));
 check('nút Tạo phòng / Vào phòng chỉ có 1 bộ (trong sảnh chờ), header không còn nút trùng', await ev('(()=>{const t=[...document.querySelectorAll("a,button")].filter(e=>e.offsetParent&&/Tạo phòng|Nhập mã/i.test(e.textContent));return t.length===1&&!!t[0].closest(".lobby")&&!document.querySelector(".topbar .btn")&&!document.getElementById("roomDialog")&&document.querySelectorAll("#roomInline button[type=submit]").length===1})()'), await ev('[...document.querySelectorAll("a,button")].filter(e=>e.offsetParent&&/Tạo phòng|Nhập mã|Vào phòng/i.test(e.textContent)).map(e=>e.textContent.trim()).join(" | ")'));
@@ -84,17 +112,17 @@ check('nút Tạo phòng / Vào phòng chỉ có 1 bộ (trong sảnh chờ), he
   check('"Tạo phòng mới" → cuộn tới kệ Đối kháng đông người để chọn game', top >= 0 && top < 200, 'kệ cách đỉnh ' + top + 'px'); await ev('scrollTo(0,0)'); await sleep(300); }
 check('bộ lọc trên lưới = đúng tên + số của các kệ bên dưới', await ev('(()=>{const tabs=[...document.querySelectorAll("#chips .tab")].slice(1).map(t=>t.firstChild.textContent.trim()+"="+t.querySelector(".tab__n").textContent);const sh=[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim()+"="+x.querySelector(".count").textContent);return tabs.join()===sh.join()&&document.querySelector("#chips .tab .tab__n").textContent===String(GAMES.length)})()'), await ev('[...document.querySelectorAll("#chips .tab")].map(t=>t.textContent.trim().replace(/\s+/g," ")).join(" | ")'));
 
-check('sảnh chờ: phòng Cờ Cá Ngựa "Vào" mở game thật', (await ev('document.querySelector("#rooms .room__go").getAttribute("href")')).includes('games/co-ca-ngua'), await ev('document.querySelector("#rooms .room__go").getAttribute("href")'));
-check('Tầng 2: kệ đầu "Đối kháng đông người" (' + await ev('DUELS.length') + ' game) rồi các kệ danh mục, không còn mục "Chơi tiếp"', await ev('(()=>{const t=[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim());return t[0]==="Đối kháng đông người"&&document.querySelectorAll("#grid .shelf--duel .tile").length===DUELS.length&&t.length>=3&&!document.getElementById("recentSection")&&!document.getElementById("recent")})()'), await ev('[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim()).join(" | ")'));
-check('mọi kệ cùng 1 kiểu lưới 6 ô/dòng; ô đối kháng có nhãn số phòng', await ev('[...document.querySelectorAll("#grid .tiles")].every(t=>getComputedStyle(t).gridTemplateColumns.split(" ").length===6) && [...document.querySelectorAll(".shelf--duel .tile:not(.is-soon)")].every(d=>/phòng/.test(d.querySelector(".tile__rooms")?.textContent||""))'));
+check('Vào phòng mở đúng game và mã', await ev(`[...document.querySelectorAll("#rooms .room__go")].every(a => { const u = new URL(a.href); const game = u.pathname.split("/")[2]; return (u.searchParams.get("p") || u.searchParams.get("room")) === ${JSON.stringify(publicRooms)}[game]; })`));
+check('Tầng 2: kệ đầu "Đối kháng đông người" (' + await ev('DUEL_IDS.length') + ' game) rồi các kệ danh mục, không còn mục "Chơi tiếp"', await ev('(()=>{const t=[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim());return t[0]==="Đối kháng đông người"&&document.querySelectorAll("#grid .shelf--duel .tile").length===DUEL_IDS.length&&t.length>=3&&!document.getElementById("recentSection")&&!document.getElementById("recent")})()'), await ev('[...document.querySelectorAll("#grid .shelf__title")].map(x=>x.firstChild.textContent.trim()).join(" | ")'));
+check('mọi kệ cùng một kiểu lưới 6 ô/dòng', await ev('[...document.querySelectorAll("#grid .tiles")].every(t=>getComputedStyle(t).gridTemplateColumns.split(" ").length===6)'));
 check('Thư viện: 6 cột trên desktop', await ev('getComputedStyle(document.querySelector("#grid .tiles")).gridTemplateColumns.split(" ").length') === 6);
 check('màu vàng chỉ dùng cho nút chính "Chơi ngay" (trong carousel)', await ev('(()=>{const g=[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor));return g.length===HERO_SLIDES.length&&g.every(e=>!!e.closest(".hero")&&/Chơi ngay/i.test(e.textContent))})()'), await ev('[...document.querySelectorAll("body *")].filter(e=>/255, 201, 74/.test(getComputedStyle(e).backgroundImage+getComputedStyle(e).backgroundColor)).length') + ' nút vàng');
 check('Nối Thú có link game thật', await ev(`document.querySelector('#grid a.card[data-id="noi-thu"]').getAttribute('href')`) === '../games/noi-thu/');
 check('game chưa có bản chơi: thẻ có nhãn "Đang cập nhật" + ảnh mờ (mọi nơi)', await ev('(()=>{const ids=GAMES.filter(g=>!g.url).map(g=>g.id);const c=[...document.querySelectorAll("#grid a.card")];const soon=c.filter(a=>a.classList.contains("is-soon"));return soon.length===ids.length&&soon.every(a=>ids.includes(a.dataset.id)&&/Đang cập nhật/.test(a.querySelector(".soon")?.textContent||"")&&/blur/.test(getComputedStyle(a.querySelector("img")).filter))})()'), await ev('GAMES.filter(g=>!g.url).length') + ' game đang cập nhật');
 check('game chơi được: ảnh rõ, không nhãn "Đang cập nhật"', await ev('[...document.querySelectorAll("#grid a.card")].filter(a=>GAMES.find(g=>g.id===a.dataset.id).url).every(a=>!a.classList.contains("is-soon")&&!a.querySelector(".soon")&&getComputedStyle(a.querySelector("img")).filter==="none")'), await ev('GAMES.filter(g=>g.url).map(g=>g.name).join(", ")'));
-check('sảnh chờ: phòng của game chưa có ghi "Sắp có" + ảnh mờ', await ev('[...document.querySelectorAll("#rooms .room")].every(r=>{const s=r.classList.contains("is-soon");return s===(r.querySelector(".room__go").textContent==="Sắp có")})'));
+check('không có số phòng và người online mẫu', await ev('!document.querySelector(".hero__stat,.tile__rooms,.lobby__stat")'));
 check('có nhãn Hot/Mới', await ev('document.querySelectorAll("#featured .badge,#grid .badge").length') >= 3);
-check('footer: banner tài trợ + nút âm thanh', await ev('!!document.querySelector(".footer .sponsor") && !!document.querySelector(".footer #soundBtn")'));
+check('footer có nút âm thanh', await ev('!!document.querySelector(".footer #soundBtn")'));
 check('pixel UI: không bo góc (radius = 0) cho nút, ô, thẻ, khung', await ev('[...document.querySelectorAll(".btn,.tab,.field,.card,.px-panel,.room")].every(e=>parseFloat(getComputedStyle(e).borderTopLeftRadius)===0)'));
 check('desktop: không cuộn ngang', await ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth'));
 await shot('desktop-1440.png');
@@ -115,9 +143,8 @@ check('desktop: ô mã phòng có sẵn trong sảnh chờ', await ev('getComput
 await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="ab-1";c.dispatchEvent(new Event("input"));document.getElementById("roomInline").requestSubmit()})()');
 check('mã sai → báo lỗi', (await ev('document.getElementById("roomInlineError").textContent')).length > 0, 'ô nhập lọc thành "' + await ev('document.getElementById("roomInlineCode").value') + '"');
 await shot('desktop-room-error.png');
-await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="abc789";c.dispatchEvent(new Event("input"))})()');
-await ev('document.getElementById("roomInline").requestSubmit()'); await sleep(1500);
-check('mã đúng → play.html?room=ABC789', (await ev('location.search')) === '?room=ABC789', await ev('document.querySelector("h1").textContent'));
+await enterRoom(privateCode); await sleep(1500);
+check('mã phòng mời đi tới đúng game dù phòng không công khai', (await ev('location.pathname + location.search')) === '/games/dat-bom/?p=' + privateCode);
 
 await nav(BASE + 'index.html');
 await ev(`document.querySelector('a.card[data-id="dao-vang"]').click()`); await sleep(1500);
@@ -157,7 +184,7 @@ for (const [w, h] of [[390, 844], [360, 740]]) {
   await view(w, h, true, 3); await nav(BASE + 'index.html');
   check(`mobile ${w}: không cuộn ngang`, await ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth'), await ev('document.documentElement.scrollWidth+"/"+document.documentElement.clientWidth'));
   check(`mobile ${w}: Tất cả game 3 cột`, await ev('getComputedStyle(document.querySelector("#grid .tiles")).gridTemplateColumns.split(" ").length') === 3);
-  check(`mobile ${w}: xếp dọc tiêu điểm → sảnh chờ (ô mã + Tạo phòng mới); phòng chờ là dải vuốt ngang`, await ev('(()=>{const h=document.querySelector("#featured .hero").getBoundingClientRect(),l=document.querySelector(".lobby").getBoundingClientRect(),c=document.getElementById("createRoom").getBoundingClientRect(),p=document.getElementById("rooms");return h.width>=innerWidth-30&&h.bottom<=l.top&&c.height>=44&&c.width>0&&p.scrollWidth>p.clientWidth&&getComputedStyle(p).overflowX==="auto"})()'));
+  check(`mobile ${w}: xếp dọc tiêu điểm → sảnh chờ (ô mã + Tạo phòng mới); phòng chờ là dải vuốt ngang`, await ev('(()=>{const h=document.querySelector("#featured .hero").getBoundingClientRect(),l=document.querySelector(".lobby").getBoundingClientRect(),c=document.getElementById("createRoom").getBoundingClientRect(),p=document.getElementById("rooms");return h.width>=innerWidth-30&&h.bottom<=l.top&&c.height>=44&&c.width>0&&getComputedStyle(p).overflowX==="auto"})()'));
   check(`mobile ${w}: logo + slogan vẫn hiện, không tràn`, await ev('document.querySelector(".logo__slogan").offsetHeight>0 && document.querySelector(".logo__words").getBoundingClientRect().right<=innerWidth'));
   check(`mobile ${w}: thanh trên 1 hàng, ô tìm ở đầu trang`, await ev('document.querySelector(".topbar").offsetHeight<=58 && !!document.querySelector("#mobileSearchSlot .search")'));
   check(`mobile ${w}: nút "Chơi ngay" thấy ngay khi mở`, await ev('document.querySelector(".hero .btn--gold").getBoundingClientRect().bottom<=innerHeight'));
@@ -170,11 +197,12 @@ for (const [w, h] of [[390, 844], [360, 740]]) {
   if (w === 390) {
     await view(390, 844, true, 2); await sleep(500); await ev('(async()=>{document.querySelectorAll("img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("img")].map(i=>i.decode().catch(()=>0)))})()'); await shot('mobile-390-full.png', true); await view(390, 844, true, 3);
     await ev('document.getElementById("rooms").scrollIntoView()'); await ev('scrollBy(0,-300)'); await sleep(300); await shot('mobile-390-lobby.png');
-    await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="xyz123";c.dispatchEvent(new Event("input"));document.getElementById("roomInline").requestSubmit()})()'); await sleep(1500);
-    check('mobile: ô mã trong sảnh chờ, mã đúng → play.html?room=XYZ123', (await ev('location.search')) === '?room=XYZ123');
+    await enterRoom(publicRooms['dat-bom']); await sleep(1500);
+    check('mobile: nhập mã vào đúng phòng thật', (await ev('location.pathname + location.search')) === '/games/dat-bom/?p=' + publicRooms['dat-bom']);
   }
 }
 check('không có lỗi JS / console', errors.length === 0, errors.join(' | '));
 console.log(R.join('\n'));
+for (const socket of sockets) socket.close();
 ws.close(); chrome.kill();
 process.exit(0);

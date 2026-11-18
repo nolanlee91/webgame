@@ -49,7 +49,6 @@
       <aside class="lobby px-panel" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
-          <span class="lobby__stat"><strong>1.248</strong> đấu thủ online</span>
         </div>
 
         <div class="lobby__bar">
@@ -60,19 +59,20 @@
             </div>
             <div class="pin__row">
               <input class="field pin__input" id="roomInlineCode" autocomplete="off" spellcheck="false" autocapitalize="characters"
-                     maxlength="6" placeholder="ABC789" aria-label="Mã phòng" aria-describedby="roomInlineError" />
+                     maxlength="5" placeholder="ABC78" aria-label="Mã phòng" aria-describedby="roomInlineError" />
               <button class="btn btn--teal" type="submit">Vào phòng</button>
             </div>
+            <div id="roomMatches" class="pin__matches"></div>
           </form>
           <a class="btn btn--teal lobby__create" href="#duel" id="createRoom"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
         </div>
 
         <div class="lobby__subrow">
-          <h3 class="lobby__sub">Phòng đang chờ người <span class="count" id="roomCount"></span></h3>
+          <h3 class="lobby__sub">Phòng công khai đang chờ <span class="count" id="roomCount"></span></h3>
         </div>
         <ul class="rooms" id="rooms"></ul>
 
-        <p class="lobby__note">Số phòng và người chơi là số minh họa của bản thử nghiệm.</p>
+        <p class="lobby__note" id="roomStatus" role="status">Đang tải danh sách phòng…</p>
       </aside>
     </section>
 
@@ -87,25 +87,19 @@
     </section>
   </main>
 
-  <!-- TẦNG 3: Footer + nhà tài trợ -->
+  <!-- TẦNG 3: Footer -->
   <footer class="footer" data-name="footer">
     <div class="footer__inner">
-      <a class="sponsor px-panel" href="#" rel="sponsored" data-name="sponsor">
-        <span class="sponsor__tag">Tài trợ</span>
-        <span class="sponsor__text"><strong>SpeakUp Kids</strong> — Tiếng Anh cho bé qua trò chơi</span>
-        <span class="sponsor__go" aria-hidden="true">›</span>
-      </a>
       <div class="footer__row">
         <p class="footer__brand"><strong>Lụm Kèo</strong> · Rủ bạn vào chơi · © 2026</p>
         <button class="btn btn--sm" id="soundBtn" type="button" aria-pressed="false">
           <img id="soundIc" src="assets/ui/icon-am-thanh-bat.png" alt="" width="16" height="16" /><span id="soundTx">Âm thanh: bật</span>
         </button>
       </div>
-      <p class="footer__small">Bản thử nghiệm · ảnh game pixel art · số người online và phòng chờ là số giả.</p>
     </div>
   </footer>
 
-  <script src="games.js"></script>
-  <script src="app.js"></script>
+  <script src="games.js?v=live1"></script>
+  <script src="app.js?v=live1"></script>
 </body>
 </html>

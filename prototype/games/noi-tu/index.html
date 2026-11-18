@@ -294,6 +294,7 @@
               <div class="opt" id="mLevel"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="level">
                 <button type="button" role="radio" data-v="easy">Dễ<small>từ quen thuộc</small></button><button type="button" role="radio" data-v="hard">Khó<small>chặn đường nối</small></button></div></div>
               <div id="mOnline" hidden>
+                <label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
                 <div class="opt"><span>Tên bạn</span><label class="field field--sm"><input id="oName" type="text" maxlength="16" autocomplete="nickname" placeholder="vd: Lan" aria-label="Tên của bạn" /></label></div>
                 <div class="opt"><span>Mã phòng</span><div class="join-row"><label class="field field--sm"><input id="oCode" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="5 ký tự" aria-label="Mã phòng của bạn bè" /></label><button class="btn" id="enterBtn" type="button">Vào phòng</button></div></div>
               </div>
@@ -358,7 +359,7 @@
     </aside>
   </div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=private1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

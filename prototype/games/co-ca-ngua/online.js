@@ -70,6 +70,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
             <label class="lb" for="cnName">Tên của bạn</label>
             <input class="px-input" id="cnName" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Ngựa" value="">
             ${invite ? "" : `<button class="px-btn primary big" data-e="create" type="button">Tạo phòng online</button>
+            <label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
             <div class="or"><span>hoặc vào phòng của bạn bè</span></div>`}
             <div class="join">
               <input class="px-input code" id="cnCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MÃ PHÒNG" aria-label="Mã phòng" value="">
@@ -99,7 +100,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
         const c = codeIn.value.trim().toUpperCase();
         if (!CODE_RE.test(c)) { errEl.textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7M2Q."; codeIn.focus(); return; }
         pending = { t: "join", code: c, name: nm };
-      } else pending = { t: "create", name: nm };
+      } else pending = { t: "create", name: nm, public: !$("#privateRoom").checked };
       errEl.textContent = "Đang kết nối…"; busyUi(true);
       connect();
     };

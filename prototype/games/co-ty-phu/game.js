@@ -1,7 +1,7 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
-import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=private1";
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;
@@ -457,7 +457,7 @@ $("#quitBtn").onclick = () => {
   net.leave();
 };
 $("#goSolo").onclick = () => { $("#entryErr").textContent = ""; lobbyView("solo"); renderLobby(); };
-$("#mkRoom").onclick = () => { $("#entryErr").textContent = ""; setConnecting(true); net.create(readName()); };
+$("#mkRoom").onclick = () => { $("#entryErr").textContent = ""; setConnecting(true); net.create(readName(), !$("#privateRoom").checked); };
 function joinRoom() {
   const code = $("#codeIn").value.trim().toUpperCase();
   if (!CODE_RE.test(code)) { $("#entryErr").textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7QX2."; $("#codeIn").focus(); return; }

@@ -128,7 +128,7 @@ function needName() {
   return n;
 }
 try { $("nameInp").value = localStorage.getItem(NAME) || ""; } catch {}
-$("createBtn").onclick = () => { const name = needName(); if (name) { homeMsg("Đang tạo phòng…"); send({ t: "create", name, public: $("pubInp").checked }); } };
+$("createBtn").onclick = () => { const name = needName(); if (name) { homeMsg("Đang tạo phòng…"); send({ t: "create", name, public: !$("privateRoom").checked }); } };
 function joinCode(code) {
   const name = needName(); if (!name) return;
   code = String(code || "").toUpperCase().trim();

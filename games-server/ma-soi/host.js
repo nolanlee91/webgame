@@ -4,7 +4,8 @@
 "use strict";
 const crypto = require("crypto");
 const { attachWs } = require("./ws");
-const { Room } = require("./room");
+const { Room, MAX_PLAYERS } = require("./room");
+const { listPublicRooms } = require("../public-rooms");
 
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
 const realClock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (t) => clearTimeout(t) };
@@ -102,6 +103,7 @@ function createMaSoiHost(server, opts = {}) {
         token = crypto.randomBytes(16).toString("hex");
         const r = entry.room.join(m.name, token);
         if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
+        if (m.t === "create") entry.public = m.public === undefined || m.public === true;
       }
       conn.entry = entry; conn.token = token; conn.last = null;
       entry.conns.add(conn); clearTimeout(entry.idleTimer);
@@ -154,7 +156,7 @@ function createMaSoiHost(server, opts = {}) {
     });
   }, { maxBytes: 2048, allowOrigin: opts.allowOrigin });
 
-  return { rooms, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
+  return { rooms, publicList: () => listPublicRooms(rooms, MAX_PLAYERS), close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }
 
 module.exports = { createMaSoiHost };

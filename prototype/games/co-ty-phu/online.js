@@ -100,7 +100,7 @@ export function createNet(h, { wsUrl } = {}) {
 
   return {
     get seat() { return seat; }, get ws() { return ws; },
-    create(name) { pending = { t: "create", name }; connect(); },
+    create(name, isPublic) { pending = { t: "create", name, public: isPublic }; connect(); },
     join(code, name) { pending = { t: "join", code, name }; connect(); },
     resume() { pending = null; connect(); },
     send,

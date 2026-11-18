@@ -6,7 +6,8 @@ const crypto = require("crypto");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { attachWs } = require("./ws");
-const { Room } = require("./room");
+const { Room, MAX_PLAYERS } = require("./room");
+const { listPublicRooms } = require("../public-rooms");
 
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
 const realClock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (t) => clearTimeout(t) };
@@ -107,6 +108,7 @@ function createCoVuaHost(server, opts = {}) {
         try { r = entry.room.join(typeof m.name === "string" ? m.name : "", token, conn.ip); }
         catch (e) { if (m.t === "create") dropRoom(entry); throw e; } // không để phòng mồ côi khi lỗi bất ngờ
         if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
+        if (m.t === "create") entry.public = m.public === undefined || m.public === true;
       }
       conn.entry = entry; conn.token = token; conn.last = null;
       entry.conns.add(conn); clearTimeout(entry.idleTimer);
@@ -159,7 +161,7 @@ function createCoVuaHost(server, opts = {}) {
     });
   }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
 
-  return { rooms, ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
+  return { rooms, publicList: () => listPublicRooms(rooms, MAX_PLAYERS), ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }
 
 module.exports = { createCoVuaHost };

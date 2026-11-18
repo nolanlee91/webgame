@@ -59,7 +59,7 @@ export function createNet(on, { url } = {}) {
 
   return {
     get seat() { return seat; }, get inRoom() { return inRoom; }, get ws() { return ws; },
-    create(name, size, rule) { connect({ t: "create", name, size, rule }); },
+    create(name, size, rule, isPublic) { connect({ t: "create", name, size, rule, public: isPublic }); },
     join(code, name) { connect({ t: "join", code, name }); },
     resume() { if (seat && seat.code) { connect(null); return true; } return false; },
     send(o) { if (ws && ws.readyState === 1) { ws.send(JSON.stringify(o)); return true; } return false; },

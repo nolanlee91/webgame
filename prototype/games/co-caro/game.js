@@ -1,7 +1,7 @@
 // Cờ Caro — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu ván. Luật chơi ở logic.js, máy chơi ở ai.js.
 import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, other } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js";
+import { createNet, CODE_RE } from "./net.js?v=private1";
 
 const SAVE_KEY = "wgp.caro.v1";
 const C = {
@@ -342,6 +342,7 @@ export function mount(root, ctx = {}) {
     });
     ui.optAi.hidden = opts.mode !== "ai";
     ui.optName.hidden = opts.mode !== "online";
+    $("privateRoomOption").hidden = ui.optName.hidden;
   }
   root.querySelectorAll(".seg").forEach((seg) => {
     seg.addEventListener("click", (e) => {
@@ -414,7 +415,7 @@ export function mount(root, ctx = {}) {
       const c = ui.codeIn.value.trim().toUpperCase();
       if (!CODE_RE.test(c)) { ui.mErr.textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7M2Q."; ui.codeIn.focus(); return; }
       net.join(c, nm);
-    } else net.create(nm, opts.size, opts.rule);
+    } else net.create(nm, opts.size, opts.rule, !$("privateRoom").checked);
     ui.mErr.textContent = "Đang kết nối…"; busyMenu(true);
   }
   ui.joinBtn.onclick = () => goOnline("join");

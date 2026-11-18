@@ -117,8 +117,15 @@ try {
   await A.ev(`document.getElementById('nameInp').value='Tèo'`);
   await A.click('#createBtn');
   await A.waitFor(`!document.getElementById('game').hidden && !document.getElementById('ovLobby').hidden`);
+  ok(await A.ev(`document.getElementById('pubToggle').checked`), 'phòng mới mặc định công khai');
+  await A.click('#leaveBtn');
+  await A.waitFor(`!document.getElementById('home').hidden`);
+  await A.click('#privateRoom');
+  await A.click('#createBtn');
+  await A.waitFor(`!document.getElementById('game').hidden && !document.getElementById('ovLobby').hidden`);
   const code = await A.ev(`document.getElementById('lobCode').textContent`);
-  ok(/^[A-Z2-9]{5}$/.test(code), `tạo phòng, mã ${code}`);
+  ok(/^[A-Z2-9]{5}$/.test(code), `tạo phòng kín, mã ${code}`);
+  ok(!(await A.ev(`document.getElementById('pubToggle').checked`)), 'tích Phòng kín giữ phòng ngoài sảnh');
   ok(new URL(await A.ev('location.href')).searchParams.get('p') === code, 'địa chỉ trang mang mã phòng (?p=) để chép mời');
   ok(await A.visible('#startBtn') && await A.ev(`document.getElementById('startBtn').getAttribute('aria-disabled')`) === 'true', 'chủ phòng thấy nút Bắt đầu, còn mờ khi chỉ có 1 người');
   await A.click('#startBtn');

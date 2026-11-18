@@ -3,7 +3,7 @@
 import { W, RED, BLACK, START, parse, sideOf, typeOf, newMatch, newRound, nextRound, play, undo, replay, resign, agreeDraw,
   legalFrom, isAiTurn, other, moveName, REASON, findKing } from "./logic.js";
 import { bestMove, evaluate } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js";
+import { createNet, CODE_RE } from "./net.js?v=private1";
 
 const SAVE_KEY = "wgp.tuong.v1";
 const NAME_KEY = "wgp.tuong.name";
@@ -431,6 +431,7 @@ export function mount(root, ctx = {}) {
     });
     ui.optAi.hidden = opts.mode !== "ai";
     ui.optName.hidden = opts.mode !== "online";
+    $("privateRoomOption").hidden = ui.optName.hidden;
   }
   root.querySelectorAll(".seg").forEach((seg) => {
     seg.addEventListener("click", (e) => {
@@ -504,7 +505,7 @@ export function mount(root, ctx = {}) {
       const c = ui.codeIn.value.trim().toUpperCase();
       if (!CODE_RE.test(c)) { ui.mErr.textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7M2Q."; ui.codeIn.focus(); return; }
       net.join(c, nm);
-    } else net.create(nm);
+    } else net.create(nm, !$("privateRoom").checked);
     ui.mErr.textContent = "Đang kết nối…"; busyMenu(true);
   }
   ui.joinBtn.onclick = () => goOnline("join");

@@ -266,6 +266,7 @@
             <div class="opt"><span>Chế độ</span><div class="seg" role="radiogroup" aria-label="Chế độ" data-k="mode">
               <button type="button" role="radio" data-v="ai">Chơi với máy<small>bạn cầm Đỏ</small></button><button type="button" role="radio" data-v="online">Online<small>mỗi người 1 máy</small></button></div></div>
             <div class="opt" id="optName" hidden><span>Tên bạn</span><input class="inp" id="nameIn" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Tướng" /></div>
+            <div id="privateRoomOption" hidden><label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label></div>
             <div class="opt" id="optAi"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="aiLevel">
               <button type="button" role="radio" data-v="easy">Dễ</button><button type="button" role="radio" data-v="normal">Thường</button></div></div>
           </div>
@@ -320,7 +321,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=private1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

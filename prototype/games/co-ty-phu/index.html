@@ -264,6 +264,7 @@
         <label class="lb" for="nmIn">Tên của bạn</label>
         <input class="inp" id="nmIn" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Đại Gia">
         <button class="btn btn--primary btn--big" id="mkRoom" type="button">Tạo phòng online</button>
+        <label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
         <div class="or"><span>hoặc vào phòng của bạn bè</span></div>
         <div class="join">
           <input class="inp code" id="codeIn" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MÃ PHÒNG" aria-label="Mã phòng">
@@ -315,6 +316,6 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js"></script>
+  <script type="module" src="game.js?v=private1"></script>
 </body>
 </html>

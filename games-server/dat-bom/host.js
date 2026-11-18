@@ -96,14 +96,14 @@ function createDatBomHost(server, opts = {}) {
   }
 
   /** Danh sách phòng công khai còn chỗ, đang ở phòng chờ. */
-  function publicList() {
+  function publicList(limit) {
     const out = [];
     for (const e of rooms.values()) {
       const r = e.room;
       if (!r.public || r.closed || r.phase !== "lobby" || r.players.length >= MAX_PLAYERS) continue;
-      if (!r.players.some((p) => p.connected)) continue;
+      if (!r.players.some((p) => p.connected && !p.bot)) continue;
       out.push({ code: r.code, host: r.players[r.hostSeat]?.name || "", n: r.players.length, max: MAX_PLAYERS });
-      if (out.length >= 20) break;
+      if (out.length >= limit) break;
     }
     return out;
   }
@@ -123,7 +123,7 @@ function createDatBomHost(server, opts = {}) {
     if (m.t === "mv" && !isMove) return reply(conn, { t: "err", code: "bad" }); // gói vị trí phải đi đúng khuôn (để tính hạn mức riêng)
     if (m.t === "ping") return reply(conn, { t: "pong", now: clock.now() });
     if (!L) return reply(conn, { t: "err", code: loadFailed ? "server" : "loading" });
-    if (m.t === "list") return reply(conn, { t: "list", rooms: publicList() });
+    if (m.t === "list") return reply(conn, { t: "list", rooms: publicList(20) });
 
     if (m.t === "create" || m.t === "join" || m.t === "resume") {
       if (conn.entry) return reply(conn, { t: "err", code: "already" });
@@ -142,7 +142,7 @@ function createDatBomHost(server, opts = {}) {
         token = crypto.randomBytes(16).toString("hex");
         const r = entry.room.join(m.name, token, conn.ip);
         if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
-        if (m.t === "create" && m.public) entry.room.public = true;
+        if (m.t === "create") entry.room.public = m.public === undefined || m.public === true;
       }
       conn.entry = entry; conn.token = token; conn.last = null;
       entry.conns.add(conn); clock.clearTimeout(entry.idleTimer); entry.idleTimer = null;
@@ -203,7 +203,7 @@ function createDatBomHost(server, opts = {}) {
     });
   }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
 
-  return { rooms, ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
+  return { rooms, publicList: () => publicList(Infinity), ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }
 
 module.exports = { createDatBomHost };

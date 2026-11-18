@@ -157,7 +157,7 @@ function createNoiTuHost(server, opts = {}) {
         const name = cleanName(m.name); if (!name) return reply(conn, { t: "err", code: "name" });
         if (rooms.size >= maxRooms || [...rooms.values()].filter((x) => x.ip === conn.ip).length >= perIp.rooms) return reply(conn, { t: "err", code: "busy" });
         const code = newCode(); if (!code) return reply(conn, { t: "err", code: "busy" });
-        const e = { code, ip: conn.ip, seats: [{ token: crypto.randomBytes(16).toString("hex"), name }, null], conns: new Set(), ref: null, idleTimer: null, graceTimers: [null, null],
+        const e = { code, ip: conn.ip, public: m.public === undefined || m.public === true, seats: [{ token: crypto.randomBytes(16).toString("hex"), name }, null], conns: new Set(), ref: null, idleTimer: null, graceTimers: [null, null],
           chat: [], chatRate: [0, 1].map(() => ({ tok: CHAT.burst, at: Date.now() })) };
         rooms.set(code, e);
         return enter(conn, e, e.seats[0].token);
@@ -227,7 +227,13 @@ function createNoiTuHost(server, opts = {}) {
     });
   }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
 
-  return { rooms, ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
+  function publicList() {
+    return [...rooms.values()]
+      .filter((e) => e.public && !e.ref && !e.seats[1] && [...e.conns].some((c) => c.ws.open && c.token === e.seats[0].token))
+      .map((e) => ({ code: e.code, host: e.seats[0].name, n: 1, max: 2 }));
+  }
+
+  return { rooms, publicList, ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }
 
 module.exports = { createNoiTuHost, cleanName };

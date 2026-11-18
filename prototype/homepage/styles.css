@@ -167,6 +167,8 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .lobby__subrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 4px 19px 0; min-width: 0; }
 .lobby__sub { flex: none; font: 800 12px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--px-soft); }
 .lobby__note { margin: 0; padding: 0 16px 0 19px; font-size: 12px; color: var(--px-dim); }
+.pin__matches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
+.pin__matches:empty, #roomCount:empty, .rooms:empty { display: none; }
 
 /* Dòng nhãn và dòng báo lỗi dùng chung 1 hàng cố định phía trên ô nhập:
    báo lỗi hiện thay chỗ nhãn, không đẩy hàng "ô mã + Vào phòng + Tạo phòng mới" xuống */

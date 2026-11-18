@@ -160,7 +160,7 @@ function showHome() { $("home").hidden = false; $("game").hidden = true; $("barC
 function needName() { const n = $("nameInp").value.trim(); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } localStorage.setItem("ma-soi:name", n); return n; }
 $("nameInp").value = localStorage.getItem("ma-soi:name") || "";
 const qp = new URLSearchParams(location.search).get("p"); if (qp) $("codeInp").value = qp.toUpperCase();
-$("createBtn").onclick = () => { const n = needName(); if (n) { homeMsg("Đang tạo phòng…"); send({ t: "create", name: n }); } };
+$("createBtn").onclick = () => { const n = needName(); if (n) { homeMsg("Đang tạo phòng…"); send({ t: "create", name: n, public: !$("privateRoom").checked }); } };
 $("joinBtn").onclick = () => {
   const n = needName(); if (!n) return;
   const c = $("codeInp").value.trim().toUpperCase(); if (c.length !== 5) { homeMsg("Mã phòng gồm 5 ký tự."); return; }

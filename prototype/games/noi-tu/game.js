@@ -536,7 +536,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   el.oName.value = prefs.name || ""; el.oCode.value = invite;
   if (invite) el.mNote.textContent = `Bạn được mời vào phòng ${invite} — nhập tên rồi bấm “Vào phòng”.`;
   const needName = () => { const n = myName(); if (!n) { el.mNote.textContent = ONLINE_ERR.name; el.oName.focus(); } return n; };
-  el.create.addEventListener("click", () => { if (el.create.getAttribute("aria-disabled") === "true") return; const n = needName(); if (n) openRoom({ t: "create", name: n }); });
+  el.create.addEventListener("click", () => { if (el.create.getAttribute("aria-disabled") === "true") return; const n = needName(); if (n) openRoom({ t: "create", name: n, public: !$("privateRoom").checked }); });
   const doEnter = () => {
     if (el.enter.getAttribute("aria-disabled") === "true") return;
     const code = el.oCode.value.trim().toUpperCase();
