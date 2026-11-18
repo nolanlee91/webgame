@@ -30,7 +30,8 @@ function createDatBomHost(server, opts = {}) {
   // logic.js là ES module dùng chung với client → nạp bất đồng bộ một lần khi khởi động.
   let L = null;
   const ready = (opts.logic ? Promise.resolve(opts.logic) : import(pathToFileURL(LOGIC).href)).then((m) => (L = m));
-  ready.catch((e) => console.error("[dat-bom] không nạp được logic.js:", e));
+  let loadFailed = false; // nạp hỏng thì báo lỗi máy chủ, đừng để người chơi chờ "đang khởi động" mãi
+  ready.catch((e) => { loadFailed = true; console.error("[dat-bom] không nạp được logic.js:", e); });
 
   const newCode = () => {
     for (let k = 0; k < 50; k++) {
@@ -121,7 +122,7 @@ function createDatBomHost(server, opts = {}) {
     if (!m || typeof m !== "object" || Array.isArray(m)) return reply(conn, { t: "err", code: "bad" });
     if (m.t === "mv" && !isMove) return reply(conn, { t: "err", code: "bad" }); // gói vị trí phải đi đúng khuôn (để tính hạn mức riêng)
     if (m.t === "ping") return reply(conn, { t: "pong", now: clock.now() });
-    if (!L) return reply(conn, { t: "err", code: "loading" });
+    if (!L) return reply(conn, { t: "err", code: loadFailed ? "server" : "loading" });
     if (m.t === "list") return reply(conn, { t: "list", rooms: publicList() });
 
     if (m.t === "create" || m.t === "join" || m.t === "resume") {
