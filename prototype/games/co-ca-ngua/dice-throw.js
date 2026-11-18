@@ -59,9 +59,10 @@ export function simulateThrow({ x, y, vx, vy, bounds, r = 26, seed = 1, reduced 
     vx *= f; vy *= f; w *= ground ? 1 - 7 * dt : 1 - 0.3 * dt;
     if (ground && Math.hypot(vx, vy) < 22 && Math.abs(w) < 1.2) break;
   }
-  // nằm yên: xoay về góc vuông gần nhất (~130 ms) để mặt trên nhìn rõ
-  const a1 = Math.round(a / (Math.PI / 2)) * (Math.PI / 2), a0 = a;
-  for (let i = 1; i <= 8; i++) { const k = 1 - (1 - i / 8) ** 3; frames.push({ x, y, z: 0, a: a0 + (a1 - a0) * k }); }
+  // nằm yên: xoay về THẲNG ĐỨNG (bội của 360°, ~230 ms). Ảnh xúc xắc là khối nghiêng 3 mặt — xoay 90° là mặt trên
+  // lật sang bên, nhìn chéo không biết mặt nào ngửa ⇒ chỉ dừng ở góc 0.
+  const a1 = Math.round(a / (Math.PI * 2)) * (Math.PI * 2), a0 = a;
+  for (let i = 1; i <= 14; i++) { const k = 1 - (1 - i / 14) ** 3; frames.push({ x, y, z: 0, a: a0 + (a1 - a0) * k }); }
   return { frames, bounces, duration: (frames.length - 1) * FRAME_MS, end: { x, y, a: a1 }, seed };
 }
 

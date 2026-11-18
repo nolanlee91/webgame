@@ -42,7 +42,7 @@ const V5 = "assets/board-v5/";
 export const ART = {
   board: { src: V5 + "board-v5.webp", grid: V5 + "board-v5-grid.json" },
   horse: { manifest: V5 + "animation-manifest.json", sheet: (c) => V5 + "ngua-" + FILE_COLOR[c] + "-animation.webp" },
-  dice: { src: "assets/xuc-xac.webp", box: [304, 136, 672, 716], top: [[640, 160], [940, 327], [640, 503], [340, 327]] },
+  dice: { src: "assets/xuc-xac.webp", box: [304, 136, 672, 716], top: [[640, 160], [940, 327], [640, 503], [340, 327]], down: [0, 322] },
 };
 // Chuồng xuất phát = khối 5×5 ô ở góc (CORNER); trong ảnh là cái lán 256×256 bắt đầu từ +32px. 4 ngựa đứng dưới mái lán.
 const HUT = 32, HUT_SIZE = 256;
@@ -71,6 +71,8 @@ function posXY(g, seat, h, pos) {
 }
 const loadJson = (src) => fetch(new URL(src, import.meta.url)).then((r) => { if (!r.ok) throw new Error("Không tải được " + src); return r.json(); });
 const loadImg = (src) => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error("Không tải được " + src)); i.src = new URL(src, import.meta.url).href; });
+// Mặt trên → [mặt trái, mặt phải] nhìn thấy trên ảnh khối nghiêng: 3 mặt đôi một không đối diện (tổng 7).
+const DICE_SIDES = { 1: [2, 3], 2: [3, 1], 3: [1, 2], 4: [2, 6], 5: [1, 3], 6: [3, 2] };
 const DICE_PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] };
 
 
@@ -652,18 +654,23 @@ export function mount(el, ctx = {}) {
     c.imageSmoothingEnabled = true; c.imageSmoothingQuality = "high";
     c.drawImage(art.dice, 0, 0);
     if (face) {
-      const [T, R, B, L] = D.top, cx = (T[0] + B[0]) / 2, cy = (T[1] + B[1]) / 2, sh = 0.93;
-      const P = (p) => [cx + (p[0] - cx) * sh, cy + (p[1] - cy) * sh];
-      const t = P(T), r = P(R), b = P(B), l = P(L);
-      c.beginPath(); c.moveTo(...t); c.lineTo(...r); c.lineTo(...b); c.lineTo(...l); c.closePath();
-      c.fillStyle = "#e1bc87"; c.fill();
-      c.beginPath(); c.moveTo(...t); c.lineTo((t[0] + r[0]) / 2, (t[1] + r[1]) / 2); c.lineTo((l[0] + b[0]) / 2, (l[1] + b[1]) / 2); c.lineTo(...l); c.closePath();
-      c.fillStyle = "#fcefbf"; c.fill();
-      c.save();
-      c.transform((R[0] - T[0]) / 2, (R[1] - T[1]) / 2, (L[0] - T[0]) / 2, (L[1] - T[1]) / 2, cx, cy);
-      c.fillStyle = "#120b08";
-      for (const [u, v] of DICE_PIPS[face]) c.fillRect(u * 0.48 - 0.15, v * 0.48 - 0.15, 0.3, 0.3);
-      c.restore();
+      // Vẽ lại CẢ 3 mặt thấy được (ảnh gốc in sẵn 1 / 2 / 3): mặt trên = số gieo, 2 mặt bên = 2 mặt kề hợp lệ
+      // (không mặt nào đối diện nhau — tổng 7) ⇒ không còn cảnh "ra 5 mà mặt bên vẫn hiện 2".
+      const [T, R, B, L] = D.top, DN = D.down, [sl, sr] = DICE_SIDES[face];
+      const add = (p, q, k = 1) => [p[0] + q[0] * k, p[1] + q[1] * k];
+      const faceAt = (o, e1, e2, n, base, hi) => { // o: góc; e1, e2: 2 cạnh; n: số chấm
+        const cx = o[0] + (e1[0] + e2[0]) / 2, cy = o[1] + (e1[1] + e2[1]) / 2, sh = 0.9;
+        const P = (p) => [cx + (p[0] - cx) * sh, cy + (p[1] - cy) * sh];
+        const a = P(o), b = P(add(o, e1)), d = P(add(add(o, e1), e2)), e = P(add(o, e2));
+        c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.lineTo(...d); c.lineTo(...e); c.closePath(); c.fillStyle = base; c.fill();
+        c.beginPath(); c.moveTo(...a); c.lineTo((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); c.lineTo((e[0] + d[0]) / 2, (e[1] + d[1]) / 2); c.lineTo(...e); c.closePath(); c.fillStyle = hi; c.fill();
+        c.fillStyle = "#120b08";
+        for (const [u, v] of DICE_PIPS[n]) { const px = cx + (u * e1[0] + v * e2[0]) * 0.25, py = cy + (u * e1[1] + v * e2[1]) * 0.25; c.fillRect(px - 27, py - 27, 54, 54); }
+      };
+      const vec = (p, q) => [q[0] - p[0], q[1] - p[1]];
+      faceAt(T, vec(T, R), vec(T, L), face, "#e1bc87", "#fcefbf");          // mặt trên
+      faceAt(L, vec(L, B), DN, sl, "#e3c08b", "#fbecc0");                   // mặt trái
+      faceAt(B, vec(B, R), DN, sr, "#d9b27c", "#efd9a5");                   // mặt phải (tối hơn)
     }
     c.restore();
   }
@@ -822,7 +829,7 @@ export function mount(el, ctx = {}) {
     let d = null;
     if (diceAnim && diceAnim.sim) {
       const t = now - diceAnim.t0, q = sampleThrow(diceAnim.sim, t), landed = now >= diceAnim.land;
-      d = { ...q, face: landed || t > diceAnim.sim.duration - 140 ? diceAnim.face : tumbleFace(diceAnim, t), pop: landed ? Math.min(1, (now - diceAnim.land) / (diceAnim.until - diceAnim.land)) : -1 };
+      d = { ...q, face: landed || t > diceAnim.sim.duration - 240 ? diceAnim.face : tumbleFace(diceAnim, t), pop: landed ? Math.min(1, (now - diceAnim.land) / (diceAnim.until - diceAnim.land)) : -1 };
     } else if (pendThrow) {
       const t = now - pendThrow.t0; d = { ...sampleThrow(pendThrow.sim, t), face: tumbleFace(pendThrow, now - pendThrow.at), pop: -1 };
     } else if (drag) d = { x: drag.x, y: drag.y, z: 14, a: drag.a, face: null, pop: -1, held: true };

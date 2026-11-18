@@ -17,7 +17,7 @@ test("mọi cú tung (vận tốc, seed bất kỳ) luôn nằm trong sân và d
     assert.ok(sim.duration > 300 && sim.duration < 2700, `seed ${seed}: ${sim.duration}ms`);
     const last = sim.frames[sim.frames.length - 1];
     assert.equal(last.z, 0);
-    assert.ok(Math.abs(last.a / (Math.PI / 2) - Math.round(last.a / (Math.PI / 2))) < 1e-9, "nằm yên ở góc vuông");
+    assert.ok(Math.abs(last.a / (Math.PI * 2) - Math.round(last.a / (Math.PI * 2))) < 1e-9, "nằm yên thẳng đứng (mặt trên ngửa lên)");
     const mid = sampleThrow(sim, sim.duration / 2);
     assert.ok(inside(mid));
   }
