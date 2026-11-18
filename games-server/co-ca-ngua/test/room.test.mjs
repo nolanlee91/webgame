@@ -62,6 +62,55 @@ async function table(url, n) {
 }
 const whoseTurn = (cs) => cs.find((c) => c.myTurn);
 
+test('lobby reconnect: an earlier disconnect must not evict a newly disconnected seat', async () => {
+  const S = await startServer({ lobbyGraceMs: 500 });
+  try {
+    const [a, b] = await table(S.url, 2);
+    const { code, token } = a;
+    a.close(); await a.closed;
+    await sleep(300);
+    const back = await new Client(S.url, 'back').open();
+    back.send({ t: 'resume', code, token }); await back.next(m => m.t === 'joined');
+    back.close(); await back.closed;
+    await sleep(250); // past the first grace, still within the second grace
+    const again = await new Client(S.url, 'again').open();
+    again.send({ t: 'resume', code, token }); await again.next(m => m.t === 'joined');
+    assert.equal(S.host.rooms.get(code).room.players.length, 2);
+    again.close(); b.close();
+  } finally { await S.stop(); }
+});
+
+test('active lobby survives idle limit, starts late, and survives one player disconnecting', async () => {
+  const S = await startServer({ idleMs: 120, lobbyGraceMs: 80, timings: { turn: 60000, away: 60000 } });
+  try {
+    const [a, b] = await table(S.url, 2);
+    await sleep(180);
+    assert.ok(S.host.rooms.has(a.code));
+    a.send({ t: 'start' }); await b.next(m => m.t === 'state' && m.v.phase === 'play');
+    b.close(); await b.closed; await sleep(180);
+    assert.ok(S.host.rooms.has(a.code));
+    const back = await new Client(S.url, 'back').open();
+    back.send({ t: 'resume', code: a.code, token: b.token }); await back.next(m => m.t === 'joined');
+    assert.equal(S.host.rooms.get(a.code).room.players.length, 2);
+    a.close(); back.close();
+  } finally { await S.stop(); }
+});
+
+test('all disconnected in play: resume cancels cleanup; a truly empty room expires', async () => {
+  const S = await startServer({ idleMs: 250, timings: { turn: 60000, away: 60000 } });
+  try {
+    const [a, b] = await table(S.url, 2);
+    a.send({ t: 'start' }); await b.next(m => m.t === 'state' && m.v.phase === 'play');
+    a.close(); b.close(); await Promise.all([a.closed, b.closed]);
+    await sleep(100);
+    const back = await new Client(S.url, 'back').open();
+    back.send({ t: 'resume', code: a.code, token: a.token }); await back.next(m => m.t === 'joined');
+    await sleep(300); assert.ok(S.host.rooms.has(a.code));
+    back.close(); await back.closed;
+    await sleep(300); assert.equal(S.host.rooms.has(a.code), false);
+  } finally { await S.stop(); }
+});
+
 test('tạo phòng + vào bằng mã (không phân biệt hoa thường); phòng đủ 4 thì người thứ 5 bị từ chối; mã sai báo no-room', async () => {
   const S = await startServer();
   try {

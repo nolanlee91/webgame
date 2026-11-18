@@ -42,7 +42,7 @@ function createCoCaNguaHost(server, opts = {}) {
     if (rooms.size >= maxRooms) return null;
     if ([...rooms.values()].filter((e) => e.ip === ip).length >= perIp.rooms) return null;
     const code = newCode(); if (!code) return null;
-    const entry = { conns: new Set(), idleTimer: null, ip };
+    const entry = { conns: new Set(), idleTimer: null, lobbyTimers: new Map(), ip };
     entry.room = new Room({ code, L, clock, randInt, timings: opts.timings, onChange: () => push(entry) });
     rooms.set(code, entry);
     return entry;
@@ -50,16 +50,24 @@ function createCoCaNguaHost(server, opts = {}) {
 
   function dropRoom(entry) {
     entry.room.close();
-    clearTimeout(entry.idleTimer);
+    clock.clearTimeout(entry.idleTimer);
+    for (const t of entry.lobbyTimers.values()) clock.clearTimeout(t);
+    entry.lobbyTimers.clear();
     rooms.delete(entry.room.code);
     for (const c of entry.conns) c.ws.close(1000);
   }
 
   // Phòng không còn ai kết nối ⇒ xoá sau 5 phút (giữ cho người rớt mạng quay lại).
+  const hasPlayers = (entry) => [...entry.conns].some((c) => c.ws.open && seatOf(entry, c.token) >= 0);
   function checkIdle(entry) {
-    clearTimeout(entry.idleTimer);
-    if ([...entry.conns].some((c) => c.token)) return;
-    entry.idleTimer = setTimeout(() => dropRoom(entry), opts.idleMs ?? 5 * 60 * 1000);
+    clock.clearTimeout(entry.idleTimer);
+    entry.idleTimer = null;
+    if (entry.room.closed || rooms.get(entry.room.code) !== entry || hasPlayers(entry)) return;
+    const timer = clock.setTimeout(() => {
+      if (entry.idleTimer !== timer || rooms.get(entry.room.code) !== entry || hasPlayers(entry)) return;
+      dropRoom(entry);
+    }, opts.idleMs ?? 5 * 60 * 1000);
+    entry.idleTimer = timer;
     entry.idleTimer.unref?.();
   }
 
@@ -107,7 +115,8 @@ function createCoCaNguaHost(server, opts = {}) {
         if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
       }
       conn.entry = entry; conn.token = token; conn.last = null;
-      entry.conns.add(conn); clearTimeout(entry.idleTimer);
+      entry.conns.add(conn); clock.clearTimeout(entry.idleTimer); entry.idleTimer = null;
+      clock.clearTimeout(entry.lobbyTimers.get(token)); entry.lobbyTimers.delete(token);
       reply(conn, { t: "joined", code: entry.room.code, token });
       entry.room.setConnected(seatOf(entry, token), true);
       push(entry);
@@ -147,10 +156,14 @@ function createCoCaNguaHost(server, opts = {}) {
         if (i >= 0) entry.room.setConnected(i, false);
         // phòng chờ: rời hẳn sau 20 s nếu không quay lại; đang chơi: giữ ghế (máy chủ đi thay khi tới lượt)
         if (entry.room.phase === "lobby") {
-          const t = setTimeout(() => {
+          clock.clearTimeout(entry.lobbyTimers.get(token));
+          const t = clock.setTimeout(() => {
+            if (entry.lobbyTimers.get(token) !== t || rooms.get(entry.room.code) !== entry) return;
+            entry.lobbyTimers.delete(token);
             const s = seatOf(entry, token);
             if (s >= 0 && !entry.room.players[s].connected && entry.room.phase === "lobby") { entry.room.leave(s); if (entry.room.closed) dropRoom(entry); }
-          }, opts.lobbyGraceMs ?? 20000); t.unref?.();
+          }, opts.lobbyGraceMs ?? 20000);
+          entry.lobbyTimers.set(token, t); t.unref?.();
         }
       }
       checkIdle(entry);

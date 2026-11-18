@@ -240,7 +240,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
         showEntry(text, m.code === "no-room" ? code : (CODE_RE.test(code) ? code : ""));
         return;
       }
-      if (m.code === "no-seat" || m.code === "no-room") { saveSeat(null); setRoomParam(""); showEntry(ERR["no-seat"]); return; }
+      if (m.code === "no-seat" || m.code === "no-room") { saveSeat(null); setRoomParam(""); showEntry(m.code === "no-room" ? "Phòng không còn trên máy chủ (có thể máy chủ vừa khởi động lại hoặc phòng đã hết hạn khi mọi người mất kết nối). Bạn có thể tạo phòng mới." : ERR["no-seat"]); return; }
       if (m.code !== "phase") toast(text);
     }
   }
