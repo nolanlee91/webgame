@@ -1,0 +1,38 @@
+PASS menu hiện khi mở game, có 5 lựa chọn chủ đề + 2 chế độ
+PASS Bắt đầu → 10 câu khác nhau, chủ đề trộn — ["dia-ly","van-hoa","dia-ly","tieng-anh","dia-ly","do-meo","do-meo","tieng-anh","do-meo","do-meo"]
+PASS câu hỏi + 4 đáp án hiển thị
+PASS đồng hồ chạy
+PASS bấm đúng → +điểm, chuỗi 1, đánh dấu ✓ xanh — {"status":"play","phase":"reveal","i":0,"score":190,"streak":1,"correct":1,"cat":"all","mode":"normal","fifty":1,"hidden":[],"c":0,"cats":["dia-ly","van-hoa","dia-ly","tieng-anh","dia-ly","do-meo","do-meo","tieng-anh","do-meo","do-meo"],"ids":[25,3,26,50,37,62,60,52,72,61]}
+PASS đã trả lời thì bấm đáp án khác không đổi kết quả
+PASS Enter → câu 2
+PASS phím số chọn sai → mất chuỗi, hiện ✗ + đáp án đúng
+PASS tự sang câu sau sau vài giây
+PASS F dùng 50:50 → ẩn 2 đáp án sai, chỉ 1 lần
+PASS 50:50 lần 2 không có tác dụng
+PASS P tạm dừng → che câu hỏi
+PASS đang dừng đồng hồ đứng yên
+PASS đang dừng không trả lời được
+PASS Esc chơi tiếp
+PASS trả lời đúng sau 50:50
+PASS hết 15 giây → tính hết giờ — ⏰ Hết giờ!
+PASS M tắt tiếng (lưu localStorage)
+PASS hết 10 câu → bảng kết quả — {"status":"over","phase":"done","i":9,"score":1930,"streak":6,"correct":8,"cat":"all","mode":"normal","fifty":0,"hidden":[],"c":0,"cats":["dia-ly","van-hoa","dia-ly","tieng-anh","dia-ly","do-meo","do-meo","tieng-anh","do-meo","do-meo"],"ids":[25,3,26,50,37,62,60,52,72,61]}
+PASS kết quả: 8/10 đúng, danh hiệu, sao, kỷ lục mới
+PASS kỷ lục được lưu
+PASS xem lại có đủ 10 câu
+PASS Chơi lại → ván mới không lặp câu vừa gặp
+PASS Tạm dừng → Về menu
+PASS chọn Tiếng Anh + Siêu tốc → toàn câu tiếng Anh, 8 giây
+PASS Siêu tốc: đúng nhanh ≈ ×1,5 điểm — 300
+PASS desktop: không tràn ngang, thẻ câu hỏi + đáp án nằm gọn
+PASS mobile: không tràn ngang, nút Bắt đầu trong màn hình
+PASS mobile: đáp án 1 cột, cả 4 nút + đồng hồ nằm trong màn hình
+PASS mobile: nút đáp án đủ to để chạm (≥ 48px)
+PASS mobile: chạm đáp án đúng
+PASS mobile: nút Câu tiếp
+PASS mobile: nút 50:50
+PASS mobile: đáp án đã ẩn không chạm được
+PASS mobile: chạm sai
+PASS mobile: chơi hết ván → bảng kết quả vừa màn hình
+PASS mobile ngang: không tràn ngang, câu hỏi hiển thị
+PASS không có lỗi console

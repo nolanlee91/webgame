@@ -1,0 +1,39 @@
+PASS menu hiện khi mở game
+PASS chọn Xuyên tường đổi trạng thái nút
+PASS Bắt đầu → ván Cổ điển, rắn dài 4 hướng phải — {"status":"play","mode":"classic","dir":"right","q":[],"len":4,"head":{"x":7,"y":10},"score":0,"eaten":0,"gold":false,"died":null}
+PASS ← (quay đầu 180°) bị bỏ qua
+PASS ↑ đổi hướng lên — up
+PASS A (WASD) đổi hướng trái — left
+PASS S đổi hướng xuống
+PASS ăn mồi → dài thêm 1, +10 điểm, HUD cập nhật — {"status":"play","mode":"classic","dir":"right","q":[],"len":5,"head":{"x":9,"y":10},"score":10,"eaten":1,"gold":false,"died":null}
+PASS ăn đủ 5 mồi → xuất hiện đồng vàng — {"status":"play","mode":"classic","dir":"right","q":[],"len":9,"head":{"x":15,"y":10},"score":60,"eaten":5,"gold":true,"died":null}
+PASS ăn đồng vàng → +50×cấp điểm — {"status":"play","mode":"classic","dir":"right","q":[],"len":12,"head":{"x":12,"y":10},"score":160,"eaten":5,"gold":false,"died":null}
+PASS rắn dài hơn → nhịp nhanh hơn, HUD tốc độ tăng — 134→96
+PASS P tạm dừng → che bàn — {"status":"play","mode":"classic","dir":"right","q":[],"len":24,"head":{"x":6,"y":10},"score":160,"eaten":5,"gold":false,"died":null} paused=true
+PASS đang dừng rắn đứng yên
+PASS Esc chơi tiếp
+PASS M tắt tiếng (lưu localStorage)
+PASS đụng tường → thua, lý do "wall" — {"x":8,"y":-1,"by":"wall"}
+PASS bảng kết quả hiện, tiêu đề đúng
+PASS kỷ lục được lưu + báo Kỷ lục mới — 160
+PASS Enter chơi lại ván mới
+PASS HUD kỷ lục hiển thị — 160
+PASS cắn vào thân → thua, lý do "self" — {"x":4,"y":5,"by":"self"}
+PASS tiêu đề "Cắn trúng đuôi"
+PASS Về menu → menu + kỷ lục ở menu
+PASS Xuyên tường: đi qua mép phải sang mép trái, vẫn sống — {"x":3,"y":10}
+PASS desktop: không tràn ngang, bàn chơi nằm gọn màn hình
+PASS desktop: bàn đủ to (ô ≥ 24px) — ô 37
+PASS mobile: không tràn ngang, menu vừa màn hình, d-pad ẩn ở menu
+PASS mobile: d-pad hiện khi chơi, nằm trong màn hình
+PASS mobile: bàn chơi + d-pad không chồng nhau
+PASS mobile: ô bàn ≥ 14px — ô 17
+PASS mobile: nút ▲ đổi hướng lên — up
+PASS mobile: nút ◀ đổi hướng trái — left
+PASS mobile: vuốt xuống trên bàn → đi xuống — down
+PASS mobile: vuốt phải → đi phải — right
+PASS mobile: spam nút → không lỗi
+PASS mobile: nút tạm dừng
+PASS mobile: thua → bảng kết quả vừa màn hình
+PASS mobile ngang: không tràn, bàn nằm trong màn hình
+PASS không có lỗi console
