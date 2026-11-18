@@ -64,7 +64,7 @@ export async function startGame(cs) {
   cs[0].send({ t: 'start' });
   await Promise.all(cs.map((c) => c.waitPhase('night')));
   const by = (r) => cs.filter((c) => c.role === r);
-  return { cs, moles: by('mole'), hacker: by('hacker')[0], security: by('security')[0], agents: by('agent') };
+  return { cs, moles: cs.filter((c) => ['mole', 'jammer'].includes(c.role)), hacker: by('hacker')[0], security: by('security')[0], agents: by('agent') };
 }
 
 /**
@@ -79,7 +79,7 @@ export function leaks(c, moleSeats) {
     const v = m.v, me = v.seat, iMole = moleSeats.includes(me), over = v.phase === 'end';
     for (const p of v.players) {
       if (!('role' in p)) continue;
-      const ok = p.seat === me || over || !p.alive || (iMole && moleSeats.includes(p.seat) && p.role === 'mole');
+      const ok = p.seat === me || over || !p.alive || (iMole && moleSeats.includes(p.seat) && ['mole', 'jammer'].includes(p.role));
       if (!ok) bad.push(`${c.name} thấy vai ghế ${p.seat} (${p.role}) ở pha ${v.phase}`);
     }
     if (!iMole && ('moleChat' in v || v.night?.pack)) bad.push(`${c.name} (không phải Nội Gián) nhận kênh mã hóa`);

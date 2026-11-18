@@ -10,17 +10,22 @@
 //  5. Lỗi trả về chỉ phụ thuộc vai của CHÍNH người gửi, không phụ thuộc vai của mục tiêu.
 "use strict";
 
-const ROLES = { wolf: "wolf", seer: "seer", guard: "guard", villager: "villager" };
-const TEAM = { wolf: "wolf", seer: "village", guard: "village", villager: "village" };
+const ROLES = { wolf: "wolf", seer: "seer", guard: "guard", villager: "villager", hunter: "hunter", witch: "witch", mayor: "mayor", gatekeeper: "gatekeeper" };
+const TEAM = Object.fromEntries(Object.values(ROLES).map((role) => [role, role === ROLES.wolf ? "wolf" : "village"]));
 const MIN_PLAYERS = 6, MAX_PLAYERS = 8;
-const DEFAULT_TIMINGS = { reveal: 6000, night: 30000, dawn: 7000, day: 60000, vote: 20000, verdict: 6000 };
+const DEFAULT_TIMINGS = { reveal: 6000, night: 30000, dawn: 7000, day: 60000, vote: 20000, verdict: 6000, hunt: 15000 };
 const QUICK = ["Tôi là dân!", "Nghi ngờ quá…", "Cứu tôi!", "Đồng ý", "Không phải tôi", "Bỏ phiếu đi!"];
 const CHAT_MAX = 200, CHAT_KEEP = 60;
 const CHAT_BURST = 5, CHAT_PER_SEC = 1; // chống spam: mỗi người dồn tối đa 5 tin, hồi 1 tin/giây (riêng chat, ngoài giới hạn lệnh chung)
 
-/** Bộ vai theo số người: 6 → 2 Sói, 1 Tiên tri, 1 Bảo vệ, 2 Dân; 7 → 3 Dân; 8 → 4 Dân. */
-function roleSet(n) {
-  return [ROLES.wolf, ROLES.wolf, ROLES.seer, ROLES.guard, ...Array(n - 4).fill(ROLES.villager)];
+const SPECIAL = [ROLES.hunter, ROLES.witch, ROLES.mayor, ROLES.gatekeeper];
+const PAIRS = SPECIAL.flatMap((role, i) => SPECIAL.slice(i + 1).map((other) => [role, other]));
+
+function roleSet(n, variant = 0) {
+  const roles = [ROLES.wolf, ROLES.wolf, ROLES.seer, ROLES.guard, ROLES.villager, ROLES.villager];
+  if (n === 7) roles.push(SPECIAL[variant]);
+  if (n === 8) roles.push(...PAIRS[variant]);
+  return roles;
 }
 
 function cleanText(s, max) {
@@ -48,11 +53,20 @@ class Room {
     this.wolfChat = []; // chỉ Sói
     this.events = [];  // công khai: {round, kind:'bite'|'peace'|'hang'|'nohang', seat?, role?}
     this.night = null; // {wolfVotes: Map, seer: seat|null, guard: seat|null}
-    this.lastGuard = null;
     this.seerLog = []; // chỉ Tiên tri: {round, target, team}
+    this.lineup = null;
+    this._resetSkills();
     this.votes = new Map();
     this.winner = null;
     this.closed = false;
+  }
+
+  _resetSkills() {
+    this.lastGuard = null;
+    this.witchUsed = false;
+    this.gateReport = null;
+    this.mayorUsed = false;
+    this.hunt = null;
   }
 
   // ---------- phòng chờ ----------
@@ -96,6 +110,9 @@ class Room {
     switch (m?.t) {
       case "start": return this._start(seat);
       case "act": return this._act(p, m.target);
+      case "brew": return this._brew(p, m.enabled);
+      case "watch": return this._watch(p, m.enabled);
+      case "hunt": return this._hunt(p, m.target);
       case "vote": return this._vote(p, m.target);
       case "chat": return this._chat(p, m.text);
       case "quick": return Number.isInteger(m.id) && QUICK[m.id] ? this._chat(p, QUICK[m.id]) : { err: "bad" };
@@ -108,12 +125,53 @@ class Room {
     if (this.phase !== "lobby") return { err: "phase" };
     if (seat !== this.host) return { err: "not-host" };
     if (this.players.length < MIN_PLAYERS) return { err: "need-players" };
-    const roles = roleSet(this.players.length);
+    const size = this.players.length;
+    const roles = roleSet(size, size === 6 ? 0 : this.randInt(size === 7 ? SPECIAL.length : PAIRS.length));
+    this.lineup = Object.fromEntries(Object.values(ROLES).map((role) => [role, roles.filter((r) => r === role).length]));
     for (let i = roles.length - 1; i > 0; i--) { const j = this.randInt(i + 1); [roles[i], roles[j]] = [roles[j], roles[i]]; }
     this.players.forEach((p, i) => { p.role = roles[i]; p.alive = true; });
-    this.round = 0; this.events = []; this.chat = []; this.wolfChat = []; this.seerLog = []; this.lastGuard = null; this.winner = null;
+    this.round = 0; this.events = []; this.chat = []; this.wolfChat = []; this.seerLog = []; this.winner = null;
+    this._resetSkills();
     this._enter("reveal", this.t.reveal);
     return { ok: true };
+  }
+
+  _brew(p, enabled) {
+    if (this.phase !== "night" || !p.alive || p.role !== ROLES.witch) return { err: "no-action" };
+    if (this.witchUsed) return { err: "spent" };
+    if (typeof enabled !== "boolean") return { err: "bad" };
+    if (enabled === this.night.brew) return { ok: true };
+    this.night.brew = enabled;
+    this._changed();
+    return { ok: true };
+  }
+
+  _watch(p, enabled) {
+    if (this.phase !== "night" || !p.alive || p.role !== ROLES.gatekeeper) return { err: "no-action" };
+    if (this.gateReport) return { err: "spent" };
+    if (typeof enabled !== "boolean") return { err: "bad" };
+    if (enabled === this.night.watch) return { ok: true };
+    this.night.watch = enabled;
+    this._changed();
+    return { ok: true };
+  }
+
+  _hunt(p, target) {
+    if (this.hunt?.seat !== p.seat) return { err: "no-action" };
+    const q = this._target(target);
+    if (q === undefined) return { err: "target" };
+    this.hunt.target = q ? q.seat : null;
+    this._changed();
+    return { ok: true };
+  }
+
+  _eliminate(seat, kind, byMayor = false) {
+    const p = this.players[seat];
+    p.alive = false;
+    const event = { round: this.round, kind, seat, role: p.role };
+    if (byMayor) event.byMayor = true;
+    this.events.push(event);
+    if (p.role === ROLES.hunter) this.hunt = { seat, target: null };
   }
 
   _again(seat) {
@@ -124,6 +182,8 @@ class Room {
     this.players.forEach((p, i) => { p.seat = i; p.role = null; p.alive = true; });
     this.host = this.players.length ? 0 : null;
     this.phase = "lobby"; this.round = 0; this.endsAt = 0; this.events = []; this.chat = []; this.wolfChat = []; this.seerLog = [];
+    this.lineup = null;
+    this._resetSkills();
     this.votes = new Map(); this.night = null; this.winner = null;
     this._changed();
     return { ok: true, reseat: true };
@@ -195,8 +255,9 @@ class Room {
   _enter(phase, ms, then) {
     this.clock.clearTimeout(this.timer);
     this.phase = phase;
-    this.endsAt = ms ? this.clock.now() + ms : 0;
     if (then) then.call(this);
+    if (this.hunt && (phase === "dawn" || phase === "verdict")) ms += this.t.hunt;
+    this.endsAt = ms ? this.clock.now() + ms : 0;
     this.timer = ms ? this.clock.setTimeout(() => this._next(), ms) : null;
     this._changed();
   }
@@ -215,7 +276,7 @@ class Room {
 
   _toNight() {
     this.round++;
-    this.night = { wolfVotes: new Map(), seer: null, guard: null };
+    this.night = { wolfVotes: new Map(), seer: null, guard: null, brew: false, watch: false };
     this.wolfChat = [];
     this._enter("night", this.t.night);
   }
@@ -231,9 +292,17 @@ class Room {
       victim = top[this.randInt(top.length)];
     }
     this.lastGuard = n.guard;
+    if (n.watch) {
+      const watcher = this.players.find((p) => p.role === ROLES.gatekeeper);
+      const seat = watcher.seat;
+      // Chỉ tính mục tiêu cuối cùng của bầy Sói, cùng các lượt soi và bảo vệ đã chọn.
+      this.gateReport = { round: this.round, targeted: n.guard === seat || n.seer === seat || victim === seat };
+    }
     if (victim !== null && victim !== n.guard) {
-      const v = this.players[victim]; v.alive = false;
-      this.events.push({ round: this.round, kind: "bite", seat: v.seat, role: v.role });
+      if (n.brew) {
+        this.witchUsed = true;
+        this.events.push({ round: this.round, kind: "peace" });
+      } else this._eliminate(victim, "bite");
     } else this.events.push({ round: this.round, kind: "peace" });
     this.night = null;
     this._enter("dawn", this.t.dawn);
@@ -242,18 +311,29 @@ class Room {
   _resolveVote() {
     const tally = new Map();
     for (const [v, t] of this.votes) if (this.players[v].alive) tally.set(t, (tally.get(t) || 0) + 1);
-    let hanged = null;
+    let hanged = null, byMayor = false;
     if (tally.size) {
       const max = Math.max(...tally.values()), top = [...tally].filter(([, c]) => c === max);
       if (top.length === 1 && top[0][0] !== -1) hanged = top[0][0]; // hoà hoặc "bỏ qua" nhiều nhất ⇒ không treo ai
+      if (top.length === 2 && top.every(([target]) => target >= 0) && !this.mayorUsed) {
+        const mayor = this.players.find((p) => p.alive && p.role === ROLES.mayor);
+        const choice = mayor && this.votes.get(mayor.seat);
+        if (top.some(([target]) => target === choice)) {
+          hanged = choice;
+          this.mayorUsed = true;
+          byMayor = true;
+        }
+      }
     }
     if (hanged !== null) {
-      const h = this.players[hanged]; h.alive = false;
-      this.events.push({ round: this.round, kind: "hang", seat: h.seat, role: h.role });
+      this._eliminate(hanged, "hang", byMayor);
     } else this.events.push({ round: this.round, kind: "nohang" });
   }
 
   _afterDeath(nextPhase, ms) {
+    const target = this.hunt?.target;
+    this.hunt = null;
+    if (target != null && this.players[target]?.alive) this._eliminate(target, "hunt");
     const w = this._winner();
     if (w) { this.winner = w; return this._enter("end", 0); }
     if (nextPhase === "night") return this._toNight();
@@ -288,13 +368,19 @@ class Room {
       endsAt: this.endsAt, min: MIN_PLAYERS, max: MAX_PLAYERS, quick: QUICK,
       players, events: this.events.map((e) => ({ ...e })), chat: this.chat.map((c) => ({ ...c })),
     };
+    if (this.lineup) v.lineup = { ...this.lineup };
     if (this.phase === "night" && me.alive && this.night) {
       const n = this.night;
       if (me.role === ROLES.wolf) v.night = { can: "bite", mine: n.wolfVotes.get(seat) ?? null, pack: Object.fromEntries(n.wolfVotes) };
       else if (me.role === ROLES.seer) v.night = { can: "inspect", mine: n.seer };
       else if (me.role === ROLES.guard) v.night = { can: "protect", mine: n.guard, banned: this.lastGuard };
+      else if (me.role === ROLES.witch) v.night = { can: "brew", ready: !this.witchUsed, armed: n.brew };
+      else if (me.role === ROLES.gatekeeper) v.night = { can: "watch", ready: !this.gateReport, armed: n.watch };
       else v.night = { can: null };
     }
+    if (this.hunt?.seat === seat) v.hunt = { target: this.hunt.target };
+    if (me.role === ROLES.gatekeeper && this.gateReport) v.gateReport = { ...this.gateReport };
+    if (me.role === ROLES.mayor) v.mayorReady = !this.mayorUsed;
     if (iAmWolf && (this.phase === "night" || over)) v.wolfChat = this.wolfChat.map((c) => ({ ...c }));
     if (me.role === ROLES.seer) v.seer = this.seerLog.map((r) => ({ ...r }));
     if (this.phase === "vote" || this.phase === "verdict") v.votes = Object.fromEntries(this.votes); // phiếu treo cổ là công khai

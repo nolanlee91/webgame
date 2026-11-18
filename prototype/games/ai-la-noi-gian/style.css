@@ -173,6 +173,8 @@ body.is-day .seat--sel .av { --b: var(--gold); box-shadow: var(--border), 0 0 0 
 .quick button { flex: none; border: 0; background: var(--panel2); padding: 6px 10px; min-height: 36px; font-size: 12px; font-weight: 700; cursor: pointer; --b: var(--line); box-shadow: var(--border); margin: 3px; }
 .chat__form { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 4px 8px 0; }
 .chat__form input { min-width: 0; }
+.dispatch-form { padding: 6px 0 0; }
+#dispatchNote { overflow-wrap: anywhere; }
 .chat--off .chat__form, .chat--off .quick { opacity: .45; pointer-events: none; }
 
 /* ---------- phòng chờ ---------- */

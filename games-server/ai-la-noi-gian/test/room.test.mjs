@@ -4,16 +4,34 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { startServer, table, startGame, leaks, sleep, Client, FAST, allPhase } from './helpers.mjs';
 const require = createRequire(import.meta.url);
-const { Room, roleSet } = require('../room.js');
+const { Room, roleSet, TEAM } = require('../room.js');
 
 let S;
 test.beforeEach(async () => { S = await startServer(); });
 test.afterEach(async () => { await S.stop(); });
 
-test('bộ vai: 6 → 2 Nội Gián + Hacker Mật + Kỹ Sư An Ninh + 2 Đặc Vụ; 8 → 4 Đặc Vụ', () => {
+async function expandedGame(variant = 0) {
+  const clients = await table(S.url, 8);
+  S.host.rooms.get(clients[0].code).room.randInt = (n) => n === 4 ? variant : 0;
+  return startGame(clients);
+}
+
+test('bộ vai: 6 → 2 Nội Gián + Hacker Mật + Kỹ Sư An Ninh + 2 Đặc Vụ; 7 luân phiên, 8 có cả hai vai mới', () => {
   const count = (a) => a.reduce((o, r) => ((o[r] = (o[r] || 0) + 1), o), {});
   assert.deepEqual(count(roleSet(6)), { mole: 2, hacker: 1, security: 1, agent: 2 });
-  assert.deepEqual(count(roleSet(8)), { mole: 2, hacker: 1, security: 1, agent: 4 });
+  assert.deepEqual(count(roleSet(7)), { mole: 2, hacker: 1, security: 1, agent: 2, technician: 1 });
+  assert.deepEqual(count(roleSet(7, 1)), { mole: 1, jammer: 1, hacker: 1, security: 1, agent: 3 });
+  assert.deepEqual(count(roleSet(8)), { mole: 1, jammer: 1, hacker: 1, security: 1, agent: 3, technician: 1 });
+  assert.ok(roleSet(7, 2).includes('courier'));
+  for (const [size, variants] of [[6, 1], [7, 3], [8, 4]]) {
+    for (let i = 0; i < variants; i++) {
+      const roles = roleSet(size, i);
+      assert.equal(roles.length, size);
+      assert.equal(roles.filter((r) => TEAM[r] === 'mole').length, 2);
+      if (roles.includes('signal')) assert.ok(roles.includes('jammer'));
+    }
+  }
+  assert.ok(roleSet(8, 3).includes('signal'));
 });
 
 test('phòng chờ: mã phòng, tên trùng/rỗng bị từ chối, chưa đủ 6 thì không bắt đầu, chỉ chủ phòng bắt đầu, tối đa 8', async () => {
@@ -36,14 +54,88 @@ test('phòng chờ: mã phòng, tên trùng/rỗng bị từ chối, chưa đủ
   assert.equal(await cs[3].tryCmd({ t: 'start' }), 'not-host');
 });
 
+test('Kỹ Thuật Viên chặn phá hoại; Kẻ Đánh Lạc Hướng đảo lượt quét đã chọn, hai kỹ năng chỉ dùng một lần', async () => {
+  const g = await expandedGame();
+  const jammer = g.moles.find((c) => c.role === 'jammer');
+  const mole = g.moles.find((c) => c.role === 'mole');
+  const tech = g.cs.find((c) => c.role === 'technician');
+  const [victim, watcher] = g.agents;
+  const before = watcher.raw.length;
+  const scan = g.hacker.next((m) => m.t === 'state' && m.v.night?.mine === jammer.v.seat);
+  g.hacker.send({ t: 'act', target: jammer.v.seat });
+  await scan;
+  assert.deepEqual(g.hacker.v.scan, []);
+  assert.equal(await jammer.tryCmd({ t: 'act', target: mole.v.seat }, 30), 'target');
+  const armed = jammer.next((m) => m.t === 'state' && m.v.night?.jam?.armed);
+  jammer.send({ t: 'jam', enabled: true });
+  await armed;
+  const repair = tech.next((m) => m.t === 'state' && m.v.night?.armed);
+  tech.send({ t: 'repair', enabled: true });
+  await repair;
+  assert.equal(mole.v.night.jam, undefined);
+  assert.equal(await watcher.tryCmd({ t: 'jam', enabled: true }, 30), 'no-action');
+  assert.equal(watcher.raw.slice(before).filter(({ text }) => JSON.parse(text).t === 'state').length, 0);
+  jammer.send({ t: 'act', target: victim.v.seat });
+  await allPhase(g.cs, 'dawn');
+  assert.equal(victim.me.alive, true);
+  assert.equal(victim.v.events.at(-1).kind, 'safe');
+  assert.deepEqual(g.hacker.v.scan.at(-1), { round: 1, target: jammer.v.seat, team: 'agency' });
+  assert.equal(watcher.v.scan, undefined);
+  await allPhase(g.cs, 'vote');
+  for (const c of g.cs) c.send({ t: 'vote', target: null });
+  await allPhase(g.cs, 'night');
+  assert.equal(tech.v.night.ready, false);
+  assert.equal(jammer.v.night.jam.ready, false);
+  assert.equal(await tech.tryCmd({ t: 'repair', enabled: true }), 'spent');
+  assert.equal(await jammer.tryCmd({ t: 'jam', enabled: true }), 'spent');
+});
+
+test('Tín Hiệu xác thực nhiễu một lần mà không thấy mục tiêu quét; kết quả chỉ gửi đúng ghế', async () => {
+  const g = await expandedGame(3);
+  const analyst = g.cs.find((c) => c.role === 'signal');
+  const jammer = g.moles.find((c) => c.role === 'jammer');
+  const observer = g.agents[0];
+  assert.deepEqual(observer.v.lineup, analyst.v.lineup);
+  assert.equal(observer.v.lineup.signal, 1);
+  assert.equal(observer.v.players[analyst.v.seat].role, undefined);
+  jammer.send({ t: 'jam', enabled: true });
+  g.hacker.send({ t: 'act', target: jammer.v.seat });
+  await allPhase(g.cs, 'day');
+  assert.equal(await observer.tryCmd({ t: 'verify' }, 25), 'no-action');
+  const result = analyst.next((m) => m.t === 'state' && m.v.signal?.report);
+  analyst.send({ t: 'verify' });
+  await result;
+  assert.deepEqual(analyst.v.signal, { ready: false, report: { round: 1, jammed: true } });
+  assert.equal(analyst.v.scan, undefined);
+  assert.ok(g.cs.filter((c) => c !== analyst).every((c) => !c.v.signal));
+});
+
+test('Liên Lạc Viên gửi một tin ban ngày, chỉ người gửi và người nhận thấy nội dung', async () => {
+  const g = await expandedGame(1);
+  const courier = g.cs.find((c) => c.role === 'courier');
+  const [recipient, observer] = g.agents;
+  const cmd = { t: 'dispatch', target: recipient.v.seat, text: '  Kiểm tra\u0000phiếu  ' };
+  assert.equal(await courier.tryCmd(cmd, 25), 'no-action');
+  await allPhase(g.cs, 'day');
+  assert.equal(await observer.tryCmd(cmd, 15), 'no-action');
+  assert.equal(await courier.tryCmd({ ...cmd, target: courier.v.seat }, 15), 'target');
+  const delivered = recipient.next((m) => m.t === 'state' && m.v.dispatch);
+  courier.send(cmd);
+  assert.deepEqual((await delivered).v.dispatch, { from: courier.v.seat, to: recipient.v.seat, text: 'Kiểm tra phiếu' });
+  assert.equal(await courier.tryCmd(cmd, 15), 'spent');
+  assert.ok(g.cs.filter((c) => c !== courier && c !== recipient).every((c) => !c.v.dispatch));
+  assert.ok(observer.raw.every(({ text }) => !text.includes('Kiểm tra phiếu')));
+});
+
 test('phát vai: mỗi người chỉ biết vai MÌNH; Nội Gián thấy đúng đồng bọn; không ai thấy vai Hacker Mật/Kỹ Sư An Ninh', async () => {
-  const cs = await table(S.url, 8);
-  const g = await startGame(cs);
-  assert.equal(g.moles.length, 2); assert.ok(g.hacker && g.security); assert.equal(g.agents.length, 4);
+  const g = await expandedGame();
+  const { cs } = g;
+  assert.equal(g.moles.length, 2); assert.ok(g.hacker && g.security); assert.equal(g.agents.length, 3);
+  assert.ok(g.moles.some((c) => c.role === "jammer") && cs.some((c) => c.role === "technician"));
   const moleSeats = g.moles.map((c) => c.v.seat);
   for (const c of cs) {
     const known = c.v.players.filter((p) => 'role' in p).map((p) => p.seat).sort();
-    const expect = c.role === 'mole' ? [...moleSeats].sort() : [c.v.seat];
+    const expect = g.moles.includes(c) ? [...moleSeats].sort() : [c.v.seat];
     assert.deepEqual(known, expect, `${c.name} (${c.role}) biết vai của: ${known}`);
   }
   for (const c of cs) assert.deepEqual(leaks(c, moleSeats), []);
@@ -213,12 +305,14 @@ test('chủ phòng chơi lại ⇒ về phòng chờ, xoá vai cũ; người r�
   const room = new Room({ code: 'T', timings: { reveal: 0 }, clock: { now: () => 0, setTimeout: () => 1, clearTimeout: () => {} }, randInt: () => 0 });
   for (let i = 0; i < 6; i++) room.join(`N${i}`, `t${i}`);
   room._start(0); room.phase = 'end'; room.winner = 'mole';
+  Object.assign(room, { lastShield: 1, repairUsed: true, jamUsed: true, signalReport: { jammed: true }, lastScanAudit: { jammed: true }, dispatch: { from: 1, to: 2 } });
   room.players[5].connected = false;
   assert.deepEqual(room.handle(1, { t: 'again' }), { err: 'not-host' });
   assert.ok(room.handle(0, { t: 'again' }).ok);
   assert.equal(room.phase, 'lobby'); assert.equal(room.players.length, 5);
   assert.ok(room.players.every((p) => p.role === null));
   assert.ok(room.viewFor(1).players.every((p) => !('role' in p)));
+  assert.deepEqual([room.lastShield, room.repairUsed, room.jamUsed, room.signalReport, room.lastScanAudit, room.dispatch], [null, false, false, null, null, null]);
 });
 
 // ---- tầng kết nối: khung WebSocket thô (mảnh rỗng, dồn khung) + hạn mức theo IP ----
@@ -369,6 +463,31 @@ test('bot: chủ phòng chơi lại ⇒ bot vẫn ngồi trong phòng chờ; ch�
   assert.equal(p.v.host, p.v.seat, 'người thật còn lại làm chủ phòng (không bao giờ là bot)');
   p.close(); await sleep(450);
   assert.equal(S.host.rooms.size, 0, 'chỉ còn bot ⇒ phòng đóng, không để phòng mồ côi');
+});
+
+test('bot: phòng tám ghế, Liên Lạc Viên gửi tin và Tín Hiệu tự xác thực mà giữ kết quả riêng', async () => {
+  for (const variant of [1, 3]) {
+    const [human] = await table(S.url, 1);
+    for (let i = 0; i < 7; i++) assert.equal(await human.tryCmd({ t: 'add-bot' }, 30), null);
+    const room = S.host.rooms.get(human.code).room;
+    let calls = 0;
+    room.randInt = (n) => {
+      if (calls++ === 0) return variant;
+      return calls <= 8 ? n - 1 : 0; // giữ ghế người thật ở vai Nội Gián; bot chọn kết quả tái lập được
+    };
+    human.send({ t: 'start' });
+    await human.waitPhase('day');
+    if (variant === 1) {
+      const message = human.v.dispatch || (await human.next((m) => m.t === 'state' && m.v.dispatch)).v.dispatch;
+      assert.equal(message.to, human.v.seat);
+      assert.equal(room.players[message.from].role, 'courier');
+    } else {
+      await sleep(55);
+      assert.deepEqual(room.signalReport, { round: 1, jammed: true });
+      assert.equal(human.v.signal, undefined);
+    }
+    human.close();
+  }
 });
 
 // Hồi quy (Codex review): rớt mạng 2 lần liên tiếp trong phòng chờ — hẹn giờ của lần rớt ĐẦU không được xoá ghế trước hạn của lần rớt SAU.

@@ -4,6 +4,10 @@ const $ = (id) => document.getElementById(id);
 const SESS = "ma-soi:sess";
 
 const ROLE = {
+  mayor: { name: "Trưởng Làng", img: "role-truong-lang.webp", desc: "Một lần mỗi ván, phiếu của bạn phân xử nếu bạn bầu cho một trong hai người hòa dẫn đầu. Cả làng được báo rằng Trưởng Làng đã phân xử.", team: "Phe Làng" },
+  gatekeeper: { name: "Người Gác Cổng", img: "role-nguoi-gac-cong.webp", desc: "Một lần mỗi ván, canh cửa để biết bạn có được soi, được bảo vệ hoặc là mục tiêu cắn cuối cùng của bầy Sói trong đêm đó.", team: "Phe Làng" },
+  hunter: { name: "Thợ Săn", img: "role-tho-san.webp", desc: "Khi bị loại, chọn một người còn sống để kéo theo trước khi hết giờ.", team: "Phe Làng" },
+  witch: { name: "Phù Thủy", img: "role-phu-thuy.webp", desc: "Một lần mỗi ván, chuẩn bị thuốc để cứu người bị Sói cắn đêm đó. Thuốc chỉ mất khi cứu được người.", team: "Phe Làng" },
   wolf: { name: "Ma Sói", img: "role-ma-soi.webp", desc: "Mỗi đêm cùng bầy chọn một người để cắn. Ban ngày giả làm dân lành.", team: "Phe Sói" },
   seer: { name: "Tiên Tri", img: "role-tien-tri.webp", desc: "Mỗi đêm soi một người để biết họ thuộc phe Sói hay phe Làng.", team: "Phe Làng" },
   guard: { name: "Bảo Vệ", img: "role-bao-ve.webp", desc: "Mỗi đêm che chắn một người khỏi Sói. Không bảo vệ cùng một người hai đêm liền.", team: "Phe Làng" },
@@ -19,7 +23,7 @@ const ERR = {
   started: "Ván đã bắt đầu, không vào được nữa.", full: "Phòng đã đủ 8 người.", name: "Hãy nhập tên (tối đa 16 ký tự).",
   "name-taken": "Tên này đã có người dùng trong phòng.", phase: "Chưa tới lúc làm việc này.", "not-host": "Chỉ chủ phòng mới làm được.",
   "need-players": "Cần ít nhất 6 người để bắt đầu.", dead: "Bạn đã bị loại, chỉ được xem.", target: "Không chọn được người này.",
-  done: "Đêm nay bạn đã soi rồi.", "same-guard": "Không được bảo vệ cùng một người hai đêm liền.", "no-action": "Vai của bạn không có hành động ban đêm.",
+  done: "Đêm nay bạn đã soi rồi.", spent: "Bạn đã dùng hết lượt kỹ năng.", "same-guard": "Không được bảo vệ cùng một người hai đêm liền.", "no-action": "Bạn không thể dùng kỹ năng này lúc này.",
   night: "Ban đêm cả làng phải im lặng.", empty: "Tin nhắn trống.", bad: "Yêu cầu không hợp lệ.", gone: "Phòng đã đóng.",
   slow: "Bạn thao tác nhanh quá, chờ một chút.", "chat-slow": "Bạn nhắn nhanh quá — chờ một giây rồi gửi tiếp.", already: "Bạn đã ở trong phòng.", busy: "Máy chủ đang bận, thử lại sau.",
   "no-room": "Không tìm thấy phòng với mã này.", "no-seat": "Phiên cũ đã hết hạn.", server: "Máy chủ gặp lỗi, thử lại.",
@@ -78,9 +82,13 @@ function showSnd() {
   b.classList.toggle("is-off", m);
 }
 /** So góc nhìn cũ ↔ mới của CHÍNH MÌNH để phát tiếng cho các mốc: vào phòng, lật vai, đêm/ngày, bỏ phiếu, có người chết, tin nhắn, hết ván. */
+const newHunt = (a, b) => a && a.code === b.code && b.events.length > a.events.length && b.events.at(-1)?.kind === "hunt";
+const huntText = (e) => `Thợ Săn đã kéo theo ${nameOf(e.seat)} (${ROLE[e.role].name}).`;
 function soundFor(a, b) {
   if (!a || !b || a.code !== b.code) return; // lần đầu nhận trạng thái (mới vào / tải lại) ⇒ im lặng
   const last = b.events[b.events.length - 1];
+  const hunted = newHunt(a, b);
+  if (hunted) sfx.play("trung-da");
   if (a.phase !== b.phase) {
     if (b.phase === "lobby") sfx.play("buoc-nhay");
     else if (b.phase === "reveal") sfx.play("lat-the", 1, 350);
@@ -88,7 +96,7 @@ function soundFor(a, b) {
     else if (b.phase === "dawn") { sfx.play("chieng-sang", 0.8); if (last?.kind === "bite") sfx.play("trung-da", 1, 1200); }
     else if (b.phase === "vote") sfx.play("trong-phieu");
     else if (b.phase === "verdict" && last?.kind === "hang") sfx.play("trung-da");
-    else if (b.phase === "end") { const my = b.players[b.seat]; sfx.play(my?.role && (my.role === "wolf") === (b.winner === "wolf") ? "thang" : "thua"); }
+    else if (b.phase === "end") { const my = b.players[b.seat]; sfx.play(my?.role && (my.role === "wolf") === (b.winner === "wolf") ? "thang" : "thua", 1, hunted ? 900 : 0); }
   } else if (b.phase === "lobby" && b.players.length > a.players.length) sfx.play("buoc-nhay", 0.7);
   const fresh = (x, y) => { const t = x?.length ? x[x.length - 1].ts : -1; return (y || []).some((c) => c.ts > t && c.seat !== b.seat); };
   if (fresh(a.chat, b.chat) || fresh(a.wolfChat, b.wolfChat)) sfx.play("tin-nhan", 0.7);
@@ -122,7 +130,15 @@ function send(o) {
 function onMsg(m) {
   switch (m.t) {
     case "joined": save({ code: m.code, token: m.token }); history.replaceState(null, "", `?p=${m.code}`); break;
-    case "state": { offset = m.now - Date.now(); const prev = v; v = m.v; render(); soundFor(prev, v); break; }
+    case "state": {
+      offset = m.now - Date.now();
+      const prev = v;
+      v = m.v;
+      render();
+      if (newHunt(prev, v)) banner(huntText(v.events.at(-1)));
+      soundFor(prev, v);
+      break;
+    }
     case "err":
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
       toast(ERR[m.code] || "Có lỗi xảy ra."); break;
@@ -176,7 +192,7 @@ function onPhase(ph) {
   else if (ph === "dawn" && last) txt = last.kind === "bite" ? `${nameOf(last.seat)} bị Sói cắn đêm qua (${ROLE[last.role].name})` : "Đêm qua bình yên, không ai chết";
   else if (ph === "day") txt = "Trời sáng — bàn bạc đi!";
   else if (ph === "vote") txt = "Bỏ phiếu treo cổ";
-  else if (ph === "verdict" && last) txt = last.kind === "hang" ? `${nameOf(last.seat)} bị treo cổ (${ROLE[last.role].name})` : "Không ai bị treo cổ";
+  else if (ph === "verdict" && last) txt = last.kind === "hang" ? `${last.byMayor ? "Trưởng Làng đã phân xử. " : ""}${nameOf(last.seat)} bị treo cổ (${ROLE[last.role].name})` : "Không ai bị treo cổ";
   if (txt) banner(txt);
 }
 let bannerT;
@@ -207,6 +223,7 @@ setInterval(() => { if (v && v.endsAt !== lastEnds) { lastEnds = v.endsAt; total
 requestAnimationFrame(tick);
 
 function canPick(p) {
+  if (v.hunt) return p.alive;
   const my = me(); if (!my?.alive || !p.alive) return false;
   if (v.phase === "night" && v.night?.can) {
     if (v.night.can === "bite") return p.role !== "wolf";
@@ -217,6 +234,7 @@ function canPick(p) {
   return false;
 }
 function selected(p) {
+  if (v.hunt) return v.hunt.target === p.seat;
   if (v.phase === "night" && v.night) return v.night.mine === p.seat;
   if (v.phase === "vote" || v.phase === "verdict") return v.votes?.[v.seat] === p.seat;
   return false;
@@ -260,7 +278,8 @@ function renderSeats() {
 $("seats").addEventListener("click", (e) => {
   const b = e.target.closest(".seat[data-seat]"); if (!b || !v) return;
   const p = v.players[+b.dataset.seat]; if (!p || !canPick(p)) return;
-  if (v.phase === "night") send({ t: "act", target: v.night.mine === p.seat && v.night.can !== "inspect" ? null : p.seat });
+  if (v.hunt) send({ t: "hunt", target: v.hunt.target === p.seat ? null : p.seat });
+  else if (v.phase === "night") send({ t: "act", target: v.night.mine === p.seat && v.night.can !== "inspect" ? null : p.seat });
   else if (v.phase === "vote") send({ t: "vote", target: p.seat });
 });
 
@@ -284,13 +303,20 @@ function renderAct() {
     else txt = `Chờ chủ phòng ${esc(nameOf(v.host))} bắt đầu (cần ${v.min} người).`;
     btns += `<button class="btn" data-a="copy" aria-label="Sao chép link mời">Chép link mời</button><button class="btn" data-a="leave">Rời phòng</button>`;
   } else if (ph === "reveal") txt = "Ghi nhớ vai của bạn và đừng để ai thấy.";
+  else if (v.hunt) txt = v.hunt.target == null ? "Thợ Săn: chọn một người còn sống để kéo theo trước khi hết giờ." : `Bạn chọn <b>${esc(nameOf(v.hunt.target))}</b>. Bấm lại để bỏ chọn.`;
   else if (!my?.alive && ph !== "end") txt = "Bạn đã bị loại. Theo dõi tiếp nhé.";
   else if (ph === "night") {
     const n = v.night || {};
     if (n.can === "bite") txt = `${actIcon(0)}${n.mine != null ? `Bạn chọn cắn <b>${esc(nameOf(n.mine))}</b>. Bấm lại để bỏ chọn.` : "Bấm vào một người để cắn. Cả bầy thống nhất trong Kênh Sói."}`;
     else if (n.can === "inspect") txt = `${actIcon(1)}${n.mine != null ? `Đã soi <b>${esc(nameOf(n.mine))}</b>.` : "Bấm vào một người để soi phe của họ."}`;
     else if (n.can === "protect") txt = `${actIcon(2)}${n.mine != null ? `Đang bảo vệ <b>${esc(nameOf(n.mine))}</b>.` : "Bấm vào một người (có thể là bạn) để bảo vệ đêm nay."}${n.banned != null ? `<br><span class="soft">Không được chọn lại ${esc(nameOf(n.banned))}.</span>` : ""}`;
-    else txt = "Bạn đang ngủ say… Chờ trời sáng.";
+    else if (n.can === "brew") {
+      txt = n.ready ? "Thuốc cứu người sẽ dùng nếu Sói cắn trúng mục tiêu đêm nay." : "Bạn đã dùng thuốc cứu người.";
+      if (n.ready) btns = `<button class="btn" data-a="brew" aria-pressed="${n.armed}">${n.armed ? "Bỏ chuẩn bị thuốc" : "Chuẩn bị thuốc"}</button>`;
+    } else if (n.can === "watch") {
+      txt = n.ready ? "Canh cửa đêm nay để biết có hành động nào tác động tới bạn." : "Bạn đã dùng lượt canh cửa.";
+      if (n.ready) btns = `<button class="btn" data-a="watch" aria-pressed="${n.armed}">${n.armed ? "Hủy canh cửa" : "Canh cửa"}</button>`;
+    } else txt = "Bạn đang ngủ say… Chờ trời sáng.";
   } else if (ph === "dawn") txt = "Mặt trời lên. Xem chuyện đêm qua.";
   else if (ph === "day") txt = "Bàn bạc trong kênh Làng, ai đáng ngờ nhất?";
   else if (ph === "vote") {
@@ -299,6 +325,8 @@ function renderAct() {
     btns = `<button class="btn" data-a="skip">Bỏ qua lượt này</button>`;
   } else if (ph === "verdict") txt = "Đang kiểm phiếu…";
   else if (ph === "end") { txt = v.winner === "wolf" ? "Bầy Sói đã thắng." : "Dân làng đã thắng."; btns = `<button class="btn" data-a="result">Xem kết quả</button>`; }
+  if (ph === "vote" && my?.alive && v.mayorReady) txt += " Nếu đúng hai người hòa dẫn đầu, lá phiếu của bạn có thể phân xử.";
+  if (v.gateReport) txt += `<br><span class="soft">Đêm ${v.gateReport.round}: ${v.gateReport.targeted ? "Có hành động tác động tới bạn." : "Không có hành động nào tác động tới bạn."}</span>`;
   $("actTxt").innerHTML = txt; row.innerHTML = btns;
 
   const log = $("seerLog");
@@ -308,6 +336,7 @@ function renderAct() {
 $("actRow").addEventListener("click", async (e) => {
   const a = e.target.closest("[data-a]")?.dataset.a; if (!a) return;
   if (a === "start") send({ t: "start" });
+  else if (a === "brew" || a === "watch") send({ t: a, enabled: !v.night?.armed });
   else if (a === "skip") send({ t: "vote", target: null });
   else if (a === "leave") send({ t: "leave" });
   else if (a === "result") { endHidden = false; renderEnd(); }
@@ -318,10 +347,8 @@ $("actRow").addEventListener("click", async (e) => {
 });
 
 // ---------------- phòng chờ: danh sách người + bộ vai ----------------
-// Bộ vai giống hệt roleSet() của server: 2 Sói, 1 Tiên Tri, 1 Bảo Vệ, còn lại là Dân Làng. Chỉ là bản xem trước công khai,
-// không chứa vai của ai — vai thật do server xáo và chia lúc bấm Bắt đầu.
-const ROLE_ORDER = ["wolf", "seer", "guard", "villager"];
-const roleCount = (n) => ({ wolf: 2, seer: 1, guard: 1, villager: Math.max(0, n - 4) });
+const ROLE_ORDER = ["wolf", "seer", "guard", "villager", "hunter", "witch", "mayor", "gatekeeper"];
+const roleCount = (n) => ({ wolf: 2, seer: 1, guard: 1, villager: 2, ...Object.fromEntries(ROLE_ORDER.slice(4).map((role) => [role, n >= 7 ? "?" : 0])) });
 const thumb = (k) => `assets/thumbs/${ROLE[k].img.replace(".webp", "-sm.webp")}`;
 let lastLobbyKey = "";
 function renderLobby() {
@@ -346,11 +373,10 @@ function renderLobby() {
   if (empty > 0) rows += `<li class="prow prow--empty"><span class="prow__av"></span><span class="prow__name">Còn ${empty} ghế trống</span></li>`;
   $("plist").innerHTML = rows;
 
-  // bộ vai: tính cho tối thiểu v.min người để luôn thấy đủ 4 loại vai; lệch số người ⇒ báo đỏ
   const size = Math.min(v.max, Math.max(n, v.min)), cnt = roleCount(size);
-  const total = ROLE_ORDER.reduce((a, k) => a + cnt[k], 0), match = total === n;
-  $("rcards").innerHTML = ROLE_ORDER.map((k) => `<figure class="rcard rcard--${k}">
-      <span class="rcard__img"><img src="${thumb(k)}" alt="" width="192" height="256" loading="lazy" /><b class="rcard__n">×${cnt[k]}</b></span>
+  const total = size, match = total === n;
+  $("rcards").innerHTML = ROLE_ORDER.filter((k) => cnt[k]).map((k) => `<figure class="rcard rcard--${k}">
+      <span class="rcard__img"><img src="${thumb(k)}" alt="" width="192" height="256" loading="lazy" /><b class="rcard__n">${cnt[k] === "?" ? "?" : `×${cnt[k]}`}</b></span>
       <figcaption><b>${ROLE[k].name}</b><span>${ROLE[k].team}</span></figcaption></figure>`).join("");
   const sum = $("roleSum");
   sum.textContent = `${total} vai / ${n} người`;
@@ -358,7 +384,7 @@ function renderLobby() {
   const warn = $("roleWarn");
   if (!match) { warn.className = "rwarn rwarn--bad"; warn.textContent = `Có ${total} vai cho ${n} người: số vai phải bằng số người. Mời thêm ${total - n} người nữa mới bắt đầu được.`; }
   else if (off) { warn.className = "rwarn rwarn--warn"; warn.textContent = `Khớp ${total} vai cho ${n} người — nhưng ${off} người đang mất kết nối, quá 20 giây không vào lại sẽ tự rời phòng.`; }
-  else { warn.className = "rwarn rwarn--ok"; warn.textContent = `Khớp: ${total} vai cho ${n} người. ${n < v.max ? `Thêm người thì có thêm Dân Làng (tối đa ${v.max}).` : "Phòng đã đủ."}`; }
+  else { warn.className = "rwarn rwarn--ok"; warn.textContent = `Khớp: ${total} vai cho ${n} người. ${n >= 7 ? `Chọn ngẫu nhiên ${n - 6} trong 4 vai đặc biệt. Bộ vai chính thức hiện khi bắt đầu.` : "Từ 7 người sẽ có thêm vai đặc biệt."}`; }
 }
 
 // ---------------- trò chuyện ----------------
@@ -376,7 +402,7 @@ function renderChat() {
   let items;
   if (tab === "wolf") items = (v.wolfChat || []).map((c) => msgLi(c, "var(--red)"));
   else {
-    items = v.events.map((e) => `<li class="sys">${e.kind === "bite" ? `Đêm ${e.round}: <b>${esc(nameOf(e.seat))}</b> bị Sói cắn — là ${ROLE[e.role].name}.` : e.kind === "peace" ? `Đêm ${e.round}: bình yên.` : e.kind === "hang" ? `Ngày ${e.round}: <b>${esc(nameOf(e.seat))}</b> bị treo cổ — là ${ROLE[e.role].name}.` : `Ngày ${e.round}: không ai bị treo cổ.`}</li>`);
+    items = v.events.map((e) => `<li class="sys">${e.kind === "bite" ? `Đêm ${e.round}: <b>${esc(nameOf(e.seat))}</b> bị Sói cắn — là ${ROLE[e.role].name}.` : e.kind === "hunt" ? esc(huntText(e)) : e.kind === "peace" ? `Đêm ${e.round}: bình yên.` : e.kind === "hang" ? `Ngày ${e.round}: ${e.byMayor ? "Trưởng Làng đã phân xử. " : ""}<b>${esc(nameOf(e.seat))}</b> bị treo cổ — là ${ROLE[e.role].name}.` : `Ngày ${e.round}: không ai bị treo cổ.`}</li>`);
     items = items.concat(v.chat.map((c) => msgLi(c)));
   }
   const key = tab + items.join("");
@@ -409,6 +435,8 @@ function showReveal(role, manual) {
   const r = ROLE[role]; $("flipFront").src = `assets/${r.img}`; $("flipFront").alt = r.name;
   const wolves = role === "wolf" ? v.players.filter((p) => p.role === "wolf" && p.seat !== v.seat).map((p) => p.name) : [];
   $("revealCap").innerHTML = `Bạn là <b>${r.name}</b> — ${r.desc}${wolves.length ? `<br>Đồng bọn: <b style="color:var(--red)">${wolves.map(esc).join(", ")}</b>` : ""}${manual ? "<br><span class='soft'>Chạm để đóng</span>" : ""}`;
+  const lineup = Object.entries(v.lineup || {}).filter(([, count]) => count).map(([key, count]) => `${ROLE[key].name} ×${count}`);
+  if (lineup.length) $("revealCap").innerHTML += `<br><span class="soft">Bộ vai: ${lineup.join(" · ")}</span>`;
   const ov = $("ovReveal"); ov.hidden = false; $("flip").classList.remove("on");
   setTimeout(() => $("flip").classList.add("on"), 350);
   ov.onclick = manual ? () => (ov.hidden = true) : null;
@@ -418,7 +446,8 @@ function renderEnd() {
   const won = my?.role && (my.role === "wolf") === (w === "wolf");
   $("endTitle").textContent = w === "wolf" ? "Bầy Sói chiếm làng!" : "Dân làng đã diệt hết Sói!";
   $("endTitle").className = `end__title ${w}`;
-  $("endSub").textContent = `${won ? "Bạn thắng ván này." : "Bạn thua ván này."} Sau ${v.round} đêm.`;
+  const last = v.events.at(-1);
+  $("endSub").textContent = `${won ? "Bạn thắng ván này." : "Bạn thua ván này."} Sau ${v.round} đêm.${last?.kind === "hunt" ? " " + huntText(last) : ""}`;
   $("endCards").innerHTML = v.players.map((p) => {
     const r = ROLE[p.role] || ROLE.villager, win = (p.role === "wolf") === (w === "wolf");
     return `<figure class="${p.alive ? "" : "dead"} ${win ? "win" : ""}"><img src="assets/${r.img}" alt=""><figcaption>${esc(p.name)}<br>${r.name}${p.alive ? "" : " · đã chết"}</figcaption></figure>`;

@@ -10,10 +10,22 @@ let S;
 test.beforeEach(async () => { S = await startServer(); });
 test.afterEach(async () => { await S.stop(); });
 
-test('bộ vai: 6 → 2 Sói + Tiên tri + Bảo vệ + 2 Dân; 8 → 4 Dân', () => {
+async function expandedGame(variant = 0) {
+  const clients = await table(S.url, 8);
+  S.host.rooms.get(clients[0].code).room.randInt = (n) => n === 6 ? variant : 0;
+  return startGame(clients);
+}
+
+test('bộ vai: 6 → 2 Sói + Tiên tri + Bảo vệ + 2 Dân; 7 luân phiên, 8 có cả hai vai mới', () => {
   const count = (a) => a.reduce((o, r) => ((o[r] = (o[r] || 0) + 1), o), {});
   assert.deepEqual(count(roleSet(6)), { wolf: 2, seer: 1, guard: 1, villager: 2 });
-  assert.deepEqual(count(roleSet(8)), { wolf: 2, seer: 1, guard: 1, villager: 4 });
+  assert.deepEqual(count(roleSet(7)), { wolf: 2, seer: 1, guard: 1, villager: 2, hunter: 1 });
+  assert.deepEqual(count(roleSet(7, 1)), { wolf: 2, seer: 1, guard: 1, villager: 2, witch: 1 });
+  assert.deepEqual(count(roleSet(8)), { wolf: 2, seer: 1, guard: 1, villager: 2, hunter: 1, witch: 1 });
+  assert.equal(new Set(Array.from({ length: 4 }, (_, i) => roleSet(7, i).at(-1))).size, 4);
+  const pairs = Array.from({ length: 6 }, (_, i) => roleSet(8, i).slice(6));
+  assert.equal(new Set(pairs.map((pair) => pair.join('/'))).size, 6);
+  assert.deepEqual(pairs.at(-1), ['mayor', 'gatekeeper']);
 });
 
 test('phòng chờ: mã phòng, tên trùng/rỗng bị từ chối, chưa đủ 6 thì không bắt đầu, chỉ chủ phòng bắt đầu, tối đa 8', async () => {
@@ -36,10 +48,123 @@ test('phòng chờ: mã phòng, tên trùng/rỗng bị từ chối, chưa đủ
   assert.equal(await cs[3].tryCmd({ t: 'start' }), 'not-host');
 });
 
+test('Phù Thủy cứu một lần; chọn thuốc chỉ đổi góc nhìn của Phù Thủy', async () => {
+  const g = await expandedGame();
+  const witch = g.cs.find((c) => c.role === 'witch');
+  const [victim, watcher] = g.villagers;
+  const before = watcher.raw.length;
+  const armed = witch.next((m) => m.t === 'state' && m.v.night?.armed);
+  witch.send({ t: 'brew', enabled: true });
+  await armed;
+  assert.equal(await watcher.tryCmd({ t: 'brew', enabled: true }, 30), 'no-action');
+  assert.equal(watcher.raw.slice(before).filter(({ text }) => JSON.parse(text).t === 'state').length, 0);
+  g.wolves[0].send({ t: 'act', target: victim.v.seat });
+  await allPhase(g.cs, 'dawn');
+  assert.equal(victim.me.alive, true);
+  assert.equal(watcher.v.events.at(-1).kind, 'peace');
+  await allPhase(g.cs, 'vote');
+  for (const c of g.cs) c.send({ t: 'vote', target: null });
+  await allPhase(g.cs, 'night');
+  assert.equal(witch.v.night.ready, false);
+  assert.equal(await witch.tryCmd({ t: 'brew', enabled: true }), 'spent');
+});
+
+test('công bố bộ vai; Gác Cổng nhận báo cáo riêng và Trưởng Làng chỉ phân xử một lần', async () => {
+  const g = await expandedGame(5);
+  const keeper = g.cs.find((c) => c.role === 'gatekeeper');
+  const mayor = g.cs.find((c) => c.role === 'mayor');
+  const [observer, other] = g.villagers;
+  assert.deepEqual(keeper.v.lineup, observer.v.lineup);
+  assert.equal(observer.v.lineup.gatekeeper, 1);
+  assert.equal(observer.v.players[keeper.v.seat].role, undefined);
+  assert.equal(await observer.tryCmd({ t: 'watch', enabled: true }, 30), 'no-action');
+  const armed = keeper.next((m) => m.t === 'state' && m.v.night?.armed);
+  keeper.send({ t: 'watch', enabled: true });
+  await armed;
+  g.seer.send({ t: 'act', target: keeper.v.seat });
+  await allPhase(g.cs, 'dawn');
+  assert.deepEqual(keeper.v.gateReport, { round: 1, targeted: true });
+  assert.ok(g.cs.filter((c) => c !== keeper).every((c) => !c.v.gateReport));
+  await allPhase(g.cs, 'vote');
+  // Bốn phiếu chia 2–2. Những người còn lại không bỏ phiếu, để hết giờ tự kiểm.
+  mayor.send({ t: 'vote', target: observer.v.seat });
+  other.send({ t: 'vote', target: observer.v.seat });
+  observer.send({ t: 'vote', target: other.v.seat });
+  keeper.send({ t: 'vote', target: other.v.seat });
+  await allPhase(g.cs, 'night');
+  assert.equal(observer.me.alive, false);
+  assert.equal(other.v.events.at(-1).byMayor, true);
+  assert.equal(other.me.alive, true);
+  assert.equal(mayor.v.mayorReady, false);
+  assert.equal(other.v.mayorReady, undefined);
+  assert.equal(await keeper.tryCmd({ t: 'watch', enabled: true }, 30), 'spent');
+  await allPhase(g.cs, 'vote');
+  mayor.send({ t: 'vote', target: keeper.v.seat });
+  other.send({ t: 'vote', target: keeper.v.seat });
+  keeper.send({ t: 'vote', target: other.v.seat });
+  g.seer.send({ t: 'vote', target: other.v.seat });
+  await allPhase(g.cs, 'night');
+  assert.equal(keeper.v.events.at(-1).kind, 'nohang');
+});
+
+test('Gác Cổng tính lần bảo vệ và chỉ tính mục tiêu cắn cuối cùng của bầy Sói', () => {
+  for (const protectedByGuard of [false, true]) {
+    const room = new Room({ code: 'WATCH', clock: { now: () => 0, setTimeout: () => 1, clearTimeout: () => {} }, randInt: (n) => n - 1 });
+    for (let i = 0; i < 8; i++) room.join(`P${i}`, `T${i}`);
+    room.handle(0, { t: 'start' });
+    room._next();
+    const keeper = room.players.find((p) => p.role === 'gatekeeper');
+    const guard = room.players.find((p) => p.role === 'guard');
+    const [wolf1, wolf2] = room.players.filter((p) => p.role === 'wolf');
+    room.handle(keeper.seat, { t: 'watch', enabled: true });
+    room.handle(wolf1.seat, { t: 'act', target: keeper.seat });
+    room.handle(wolf2.seat, { t: 'act', target: guard.seat });
+    if (protectedByGuard) room.handle(guard.seat, { t: 'act', target: keeper.seat });
+    room._next();
+    assert.equal(room.events.at(-1).seat, guard.seat);
+    assert.equal(room.viewFor(keeper.seat).gateReport.targeted, protectedByGuard);
+  }
+});
+
+test('Thợ Săn được chọn riêng ở bình minh hoặc lúc kiểm phiếu; xử lý trước khi xét thắng', () => {
+  for (const phase of ['dawn', 'verdict']) {
+    const room = new Room({ code: 'HUNT', clock: { now: () => 0, setTimeout: () => 1, clearTimeout: () => {} }, randInt: () => 0 });
+    for (let i = 0; i < 8; i++) room.join(`P${i}`, `T${i}`);
+    room.handle(0, { t: 'start' });
+    room._next();
+    const hunter = room.players.find((p) => p.role === 'hunter');
+    const wolves = room.players.filter((p) => p.role === 'wolf');
+    const villager = room.players.find((p) => p.role === 'villager');
+    room._eliminate(wolves[1].seat, 'hang');
+    if (phase === 'dawn') {
+      room.handle(wolves[0].seat, { t: 'act', target: hunter.seat });
+      room._next();
+    } else {
+      room._next(); room._next(); room._next();
+      room.handle(villager.seat, { t: 'vote', target: hunter.seat });
+      room._next();
+    }
+    assert.equal(room.phase, phase);
+    assert.equal(room.endsAt, phase === 'dawn' ? 22000 : 21000);
+    assert.equal(room.handle(villager.seat, { t: 'hunt', target: wolves[0].seat }).err, 'no-action');
+    assert.equal(room.handle(hunter.seat, { t: 'hunt', target: hunter.seat }).err, 'target');
+    assert.equal(room.handle(hunter.seat, { t: 'hunt', target: wolves[0].seat }).ok, true);
+    assert.deepEqual(room.viewFor(hunter.seat).hunt, { target: wolves[0].seat });
+    assert.equal(room.viewFor(villager.seat).hunt, undefined);
+    assert.equal(wolves[0].alive, true);
+    room._next();
+    assert.equal(room.phase, 'end');
+    assert.equal(room.winner, 'village');
+    assert.deepEqual(room.events.at(-1), { round: 1, kind: 'hunt', seat: wolves[0].seat, role: 'wolf' });
+    assert.equal(room.viewFor(hunter.seat).hunt, undefined);
+  }
+});
+
 test('phát vai: mỗi người chỉ biết vai MÌNH; Sói thấy đúng đồng bọn; không ai thấy vai Tiên tri/Bảo vệ', async () => {
-  const cs = await table(S.url, 8);
-  const g = await startGame(cs);
-  assert.equal(g.wolves.length, 2); assert.ok(g.seer && g.guard); assert.equal(g.villagers.length, 4);
+  const g = await expandedGame();
+  const { cs } = g;
+  assert.equal(g.wolves.length, 2); assert.ok(g.seer && g.guard); assert.equal(g.villagers.length, 2);
+  assert.ok(cs.some((c) => c.role === "hunter") && cs.some((c) => c.role === "witch"));
   const wolfSeats = g.wolves.map((c) => c.v.seat);
   for (const c of cs) {
     const known = c.v.players.filter((p) => 'role' in p).map((p) => p.seat).sort();
@@ -213,12 +338,14 @@ test('chủ phòng chơi lại ⇒ về phòng chờ, xoá vai cũ; người r�
   const room = new Room({ code: 'T', timings: { reveal: 0 }, clock: { now: () => 0, setTimeout: () => 1, clearTimeout: () => {} }, randInt: () => 0 });
   for (let i = 0; i < 6; i++) room.join(`N${i}`, `t${i}`);
   room._start(0); room.phase = 'end'; room.winner = 'wolf';
+  Object.assign(room, { lastGuard: 1, witchUsed: true, mayorUsed: true, gateReport: { targeted: true }, hunt: { seat: 1, target: 2 } });
   room.players[5].connected = false;
   assert.deepEqual(room.handle(1, { t: 'again' }), { err: 'not-host' });
   assert.ok(room.handle(0, { t: 'again' }).ok);
   assert.equal(room.phase, 'lobby'); assert.equal(room.players.length, 5);
   assert.ok(room.players.every((p) => p.role === null));
   assert.ok(room.viewFor(1).players.every((p) => !('role' in p)));
+  assert.deepEqual([room.lastGuard, room.witchUsed, room.mayorUsed, room.gateReport, room.hunt], [null, false, false, null, null]);
 });
 
 // ---- tầng kết nối: khung WebSocket thô (mảnh rỗng, dồn khung) + hạn mức theo IP ----

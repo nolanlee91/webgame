@@ -6,7 +6,7 @@
   <title>Ai Là Nội Gián — Lụm Kèo</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230b0e14%22/%3E%3Crect x=%223%22 y=%223%22 width=%2210%22 height=%2210%22 fill=%22%23113311%22/%3E%3Crect x=%227%22 y=%223%22 width=%222%22 height=%2210%22 fill=%22%2333ff33%22/%3E%3Crect x=%223%22 y=%227%22 width=%2210%22 height=%222%22 fill=%22%2333ff33%22/%3E%3Crect x=%2210%22 y=%224%22 width=%222%22 height=%222%22 fill=%22%23e74c3c%22/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=roles3" />
 </head>
 <body class="is-day">
   <header class="bar">
@@ -97,6 +97,11 @@
       <div class="act px-panel" id="actPanel">
         <p class="act__txt" id="actTxt"></p>
         <div class="act__row" id="actRow"></div>
+        <form class="dispatch-form chat__form" id="dispatchForm" hidden>
+          <input id="dispatchInput" maxlength="200" aria-label="Nội dung tin nhắn riêng" placeholder="Tin nhắn riêng" required />
+          <button class="btn" id="dispatchSend" type="submit" disabled>Gửi riêng</button>
+        </form>
+        <p class="act__txt" id="dispatchNote" role="status" hidden></p>
         <ul class="scanlog" id="scanLog" hidden></ul>
       </div>
 
@@ -135,6 +140,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=roles3"></script>
 </body>
 </html>
