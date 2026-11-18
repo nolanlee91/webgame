@@ -178,6 +178,11 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 .prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 .chip { font: 800 11px/1 "Be Vietnam Pro", system-ui; padding: 5px 7px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; --b: var(--line); box-shadow: var(--border); margin: 3px 2px; }
 .chip--host { background: var(--gold); color: #2b1c08; }
+.chip--bot { background: #1a1410; color: var(--gold); }
+.chip--x { border: 0; cursor: pointer; background: var(--panel2, #2a221b); color: var(--ink); min-width: 32px; min-height: 28px; }
+.botrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; font-size: 12px; }
+.botrow .soft { color: var(--soft, #b9ad93); }
+.botrow .btn:disabled { opacity: .45; cursor: not-allowed; }
 .chip--ok { background: var(--green); color: #fff; }
 .chip--off { background: var(--red); color: #fff; animation: blink 1.2s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .55; } }

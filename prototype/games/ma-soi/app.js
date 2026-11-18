@@ -278,7 +278,7 @@ function renderSeats() {
     const label = `${p.name}${p.seat === v.seat ? " (bạn)" : ""}${p.alive ? "" : ", đã bị loại"}`;
     html += `<button class="${cls.join(" ")}" data-seat="${p.seat}" ${can ? "" : 'tabindex="-1"'} aria-label="${esc(label)}">
       <span class="seat__av" style="background-position:${av}">${bi != null ? `<i class="seat__badge" style="background-position:${bpos}"></i>` : ""}${votes}</span>
-      <span class="seat__name">${esc(p.name)}${host}</span>${roleTxt}</button>`;
+      <span class="seat__name">${esc(p.name)}${host}${p.bot ? " ·BOT" : ""}</span>${roleTxt}</button>`;
   }
   box.innerHTML = html;
 }
@@ -358,11 +358,13 @@ const ROLE_ORDER = ["wolf", "seer", "guard", "villager", "hunter", "witch", "may
 const roleCount = (n) => ({ wolf: 2, seer: 1, guard: 1, villager: 2, ...Object.fromEntries(ROLE_ORDER.slice(4).map((role) => [role, n >= 7 ? "?" : 0])) });
 const thumb = (k) => `assets/thumbs/${ROLE[k].img.replace(".webp", "-sm.webp")}`;
 let lastLobbyKey = "";
+$("addBot").onclick = () => send({ t: "add-bot" });
+$("plist").addEventListener("click", (e) => { const b = e.target.closest("[data-kick]"); if (b) send({ t: "kick-bot", target: +b.dataset.kick }); });
 function renderLobby() {
   const box = $("lobby"), on = v.phase === "lobby";
   box.hidden = !on; if (!on) { lastLobbyKey = ""; return; }
-  const n = v.players.length, off = v.players.filter((p) => !p.connected).length;
-  const key = JSON.stringify([v.seat, v.host, v.players.map((p) => [p.name, p.avatar, p.connected])]);
+  const n = v.players.length, off = v.players.filter((p) => !p.connected).length, iHost = v.host === v.seat;
+  const key = JSON.stringify([v.seat, v.host, v.players.map((p) => [p.name, p.avatar, p.connected, p.bot])]);
   if (key === lastLobbyKey) return; lastLobbyKey = key;
 
   $("pplCount").textContent = `${n}/${v.max}`;
@@ -370,7 +372,9 @@ function renderLobby() {
     const av = `${(p.avatar % 4) * (100 / 3)}% ${Math.floor(p.avatar / 4) * 100}%`;
     const chips = [];
     if (v.host === p.seat) chips.push(`<span class="chip chip--host">★ Chủ phòng</span>`);
-    chips.push(p.connected ? `<span class="chip chip--ok">Sẵn sàng</span>` : `<span class="chip chip--off">Mất kết nối</span>`);
+    if (p.bot) chips.push(`<span class="chip chip--bot">Bot</span>`);
+    else chips.push(p.connected ? `<span class="chip chip--ok">Sẵn sàng</span>` : `<span class="chip chip--off">Mất kết nối</span>`);
+    if (p.bot && iHost) chips.push(`<button type="button" class="chip chip--x" data-kick="${p.seat}" aria-label="Bớt ${esc(p.name)}">✕</button>`);
     return `<li class="prow${p.connected ? "" : " prow--off"}${p.seat === v.seat ? " prow--me" : ""}">
       <span class="prow__av" style="background-position:${av}"></span>
       <span class="prow__name">${esc(p.name)}${p.seat === v.seat ? ` <i>(bạn)</i>` : ""}</span>
@@ -379,6 +383,7 @@ function renderLobby() {
   const empty = v.max - n;
   if (empty > 0) rows += `<li class="prow prow--empty"><span class="prow__av"></span><span class="prow__name">Còn ${empty} ghế trống</span></li>`;
   $("plist").innerHTML = rows;
+  $("botRow").hidden = !iHost; $("addBot").disabled = n >= v.max;
 
   const size = Math.min(v.max, Math.max(n, v.min)), cnt = roleCount(size);
   const total = size, match = total === n;
@@ -389,7 +394,7 @@ function renderLobby() {
   sum.textContent = `${total} vai / ${n} người`;
   sum.className = `rsum ${match ? "rsum--ok" : "rsum--bad"}`;
   const warn = $("roleWarn");
-  if (!match) { warn.className = "rwarn rwarn--bad"; warn.textContent = `Có ${total} vai cho ${n} người: số vai phải bằng số người. Mời thêm ${total - n} người nữa mới bắt đầu được.`; }
+  if (!match) { warn.className = "rwarn rwarn--bad"; warn.textContent = `Có ${total} vai cho ${n} người: số vai phải bằng số người. Mời thêm ${total - n} người nữa mới bắt đầu được.${iHost ? " Hoặc bấm “Thêm bot”." : ""}`; }
   else if (off) { warn.className = "rwarn rwarn--warn"; warn.textContent = `Khớp ${total} vai cho ${n} người — nhưng ${off} người đang mất kết nối, quá 20 giây không vào lại sẽ tự rời phòng.`; }
   else { warn.className = "rwarn rwarn--ok"; warn.textContent = `Khớp: ${total} vai cho ${n} người. ${n >= 7 ? `Chọn ngẫu nhiên ${n - 6} trong 4 vai đặc biệt. Bộ vai chính thức hiện khi bắt đầu.` : "Từ 7 người sẽ có thêm vai đặc biệt."}`; }
 }

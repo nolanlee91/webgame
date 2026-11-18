@@ -15,6 +15,7 @@ const TEAM = Object.fromEntries(Object.values(ROLES).map((role) => [role, role =
 const MIN_PLAYERS = 6, MAX_PLAYERS = 8;
 const DEFAULT_TIMINGS = { reveal: 6000, night: 30000, dawn: 7000, day: 60000, vote: 20000, verdict: 6000, hunt: 15000 };
 const QUICK = ["Tôi là dân!", "Nghi ngờ quá…", "Cứu tôi!", "Đồng ý", "Không phải tôi", "Bỏ phiếu đi!"];
+const BOT_NAMES = ["Bot Cú Đêm", "Bot Trăng Rằm", "Bot Bó Đuốc", "Bot Cối Xay", "Bot Mõ Làng", "Bot Nón Lá", "Bot Lúa Non", "Bot Chuông Chùa"];
 const CHAT_MAX = 200, CHAT_KEEP = 60;
 const CHAT_BURST = 5, CHAT_PER_SEC = 1; // chống spam: mỗi người dồn tối đa 5 tin, hồi 1 tin/giây (riêng chat, ngoài giới hạn lệnh chung)
 
@@ -43,7 +44,9 @@ class Room {
     this.clock = o.clock;
     this.randInt = o.randInt;
     this.onChange = o.onChange || (() => {});
-    this.players = []; // {seat, name, avatar, role, alive, connected, token}
+    this.players = []; // {seat, name, avatar, role, alive, connected, token, bot}
+    this.botTimers = [];
+    this.botSeq = 0;
     this.host = null;
     this.phase = "lobby";
     this.round = 0;    // đêm thứ / ngày thứ
@@ -77,38 +80,74 @@ class Room {
     const nm = cleanText(name, 16);
     if (!nm) return { err: "name" };
     if (this.players.some((p) => p.name.toLowerCase() === nm.toLowerCase())) return { err: "name-taken" };
-    const used = new Set(this.players.map((p) => p.avatar));
-    const free = [0, 1, 2, 3, 4, 5, 6, 7].filter((a) => !used.has(a));
-    const p = { seat: this.players.length, name: nm, avatar: free[this.randInt(free.length)], role: null, alive: true, connected: true, token };
-    this.players.push(p);
+    const p = this._addPlayer(nm, token, false);
     if (this.host === null) this.host = p.seat;
     this._changed();
     return { seat: p.seat };
   }
+  _humans() { return this.players.filter((p) => !p.bot); }
+  _addPlayer(name, token, bot) {
+    const used = new Set(this.players.map((p) => p.avatar));
+    const free = [0, 1, 2, 3, 4, 5, 6, 7].filter((a) => !used.has(a));
+    const p = { seat: this.players.length, name, avatar: free[this.randInt(free.length)], role: null, alive: true, connected: true, token, bot: !!bot };
+    this.players.push(p);
+    return p;
+  }
+  _reseat() { this.players.forEach((p, i) => (p.seat = i)); }
+  _pickHost() {
+    const h = this.players.find((q) => !q.bot && q.connected) || this.players.find((q) => !q.bot);
+    this.host = h ? h.seat : null;
+  }
   /** Rời phòng chờ: xoá hẳn và đánh lại số ghế. Đang chơi: chỉ đánh dấu mất kết nối (vẫn trong ván). */
   leave(seat) {
     if (this.phase !== "lobby") return this.setConnected(seat, false);
+    const wasHost = this.host === seat, hostP = this.players[this.host];
     this.players.splice(seat, 1);
-    this.players.forEach((p, i) => (p.seat = i));
-    if (!this.players.length) { this.host = null; this.close(); return; }
-    if (this.host === seat) this.host = 0; else if (this.host > seat) this.host--;
+    this._reseat();
+    if (!this._humans().length) { this.players = []; this.host = null; this.close(); return; } // chỉ còn bot ⇒ đóng phòng
+    if (wasHost) this._pickHost(); else this.host = hostP.seat;
     this._changed();
   }
   setConnected(seat, on) {
-    const p = this.players[seat]; if (!p || p.connected === on) return;
+    const p = this.players[seat]; if (!p || p.bot || p.connected === on) return;
     p.connected = on;
     if (!on && this.phase === "lobby" && this.host === seat) {
-      const next = this.players.find((q) => q.connected); if (next) this.host = next.seat;
+      const next = this.players.find((q) => q.connected && !q.bot); if (next) this.host = next.seat;
     }
     this._changed();
+  }
+
+  _addBot(seat) {
+    if (this.phase !== "lobby") return { err: "phase" };
+    if (seat !== this.host) return { err: "not-host" };
+    if (this.players.length >= MAX_PLAYERS) return { err: "full" };
+    const taken = new Set(this.players.map((p) => p.name.toLowerCase()));
+    const name = BOT_NAMES.find((n) => !taken.has(n.toLowerCase()));
+    if (!name) return { err: "full" };
+    this._addPlayer(name, `bot-${++this.botSeq}`, true); // token không phải 32 hex ⇒ không ai "resume" vào ghế bot được
+    this._changed();
+    return { ok: true };
+  }
+  _kickBot(seat, target) {
+    if (this.phase !== "lobby") return { err: "phase" };
+    if (seat !== this.host) return { err: "not-host" };
+    if (!Number.isInteger(target) || !this.players[target]?.bot) return { err: "target" };
+    const hostP = this.players[this.host];
+    this.players.splice(target, 1);
+    this._reseat();
+    this.host = hostP.seat;
+    this._changed();
+    return { ok: true };
   }
 
   // ---------- lệnh từ người chơi (seat đã được host.js xác thực bằng token) ----------
   handle(seat, m) {
     const p = this.players[seat];
-    if (!p || this.closed) return { err: "gone" };
+    if (!p || p.bot || this.closed) return { err: "gone" };
     switch (m?.t) {
       case "start": return this._start(seat);
+      case "add-bot": return this._addBot(seat);
+      case "kick-bot": return this._kickBot(seat, m.target);
       case "act": return this._act(p, m.target);
       case "brew": return this._brew(p, m.enabled);
       case "watch": return this._watch(p, m.enabled);
@@ -129,7 +168,7 @@ class Room {
     const roles = roleSet(size, size === 6 ? 0 : this.randInt(size === 7 ? SPECIAL.length : PAIRS.length));
     this.lineup = Object.fromEntries(Object.values(ROLES).map((role) => [role, roles.filter((r) => r === role).length]));
     for (let i = roles.length - 1; i > 0; i--) { const j = this.randInt(i + 1); [roles[i], roles[j]] = [roles[j], roles[i]]; }
-    this.players.forEach((p, i) => { p.role = roles[i]; p.alive = true; });
+    this.players.forEach((p, i) => { p.role = roles[i]; p.alive = true; p.botSeen = null; });
     this.round = 0; this.events = []; this.chat = []; this.wolfChat = []; this.seerLog = []; this.winner = null;
     this._resetSkills();
     this._enter("reveal", this.t.reveal);
@@ -177,10 +216,11 @@ class Room {
   _again(seat) {
     if (this.phase !== "end") return { err: "phase" };
     if (seat !== this.host) return { err: "not-host" };
-    // bỏ người đã rời hẳn, về phòng chờ
+    // bỏ người đã rời hẳn (bot luôn "có mặt"), về phòng chờ
     this.players = this.players.filter((p) => p.connected);
-    this.players.forEach((p, i) => { p.seat = i; p.role = null; p.alive = true; });
-    this.host = this.players.length ? 0 : null;
+    this.players.forEach((p, i) => { p.seat = i; p.role = null; p.alive = true; p.botSeen = null; });
+    this._pickHost();
+    this._clearBots();
     this.phase = "lobby"; this.round = 0; this.endsAt = 0; this.events = []; this.chat = []; this.wolfChat = []; this.seerLog = [];
     this.lineup = null;
     this._resetSkills();
@@ -254,12 +294,14 @@ class Room {
   // ---------- vòng ngày / đêm ----------
   _enter(phase, ms, then) {
     this.clock.clearTimeout(this.timer);
+    this._clearBots();
     this.phase = phase;
     if (then) then.call(this);
     if (this.hunt && (phase === "dawn" || phase === "verdict")) ms += this.t.hunt;
     this.endsAt = ms ? this.clock.now() + ms : 0;
     this.timer = ms ? this.clock.setTimeout(() => this._next(), ms) : null;
     this._changed();
+    this._botsFor(phase, ms);
   }
 
   _next() {
@@ -283,6 +325,8 @@ class Room {
 
   _toDawn() {
     const n = this.night;
+    const humanPick = [...n.wolfVotes].find(([s]) => !this.players[s].bot && this.players[s].alive)?.[1];
+    if (humanPick !== undefined) for (const [s] of n.wolfVotes) if (this.players[s].bot) n.wolfVotes.set(s, humanPick);
     // Sói cắn: theo số phiếu đông nhất của các Sói còn sống; hoà ⇒ chọn ngẫu nhiên trong nhóm hoà
     const tally = new Map();
     for (const [w, t] of n.wolfVotes) if (this.players[w].alive && this.players[t]?.alive) tally.set(t, (tally.get(t) || 0) + 1);
@@ -348,7 +392,65 @@ class Room {
     return null;
   }
 
-  close() { this.closed = true; this.clock.clearTimeout(this.timer); this.timer = null; }
+
+  // ---------- bot: hành động qua đúng các hàm của người thật (_act/_brew/_watch/_hunt/_vote/_chat) ----------
+  // Bot không có đường gửi dữ liệu riêng; chỉ "biết" đúng những gì vai của nó được biết (Sói biết bầy, Tiên Tri biết kết quả soi).
+  _clearBots() { for (const t of this.botTimers) this.clock.clearTimeout(t); this.botTimers = []; }
+  _later(ms, f) {
+    const t = this.clock.setTimeout(() => { this.botTimers = this.botTimers.filter((x) => x !== t); if (!this.closed) f(); }, ms);
+    this.botTimers.push(t);
+  }
+  _pick(list) { return list.length ? list[this.randInt(list.length)] : null; }
+  _botsFor(phase, ms) {
+    const bots = this.players.filter((p) => p.bot && p.alive);
+    const others = (b, f = () => true) => this.players.filter((q) => q.alive && q !== b && f(q));
+    const at = (lo, span) => Math.round(ms * (lo + this.randInt(span) / 100));
+    if (this.hunt && this.players[this.hunt.seat]?.bot && (phase === "dawn" || phase === "verdict")) {
+      const h = this.players[this.hunt.seat];
+      this._later(at(0.1, 30), () => {
+        if (this.hunt?.seat !== h.seat) return;
+        const known = Object.entries(h.botSeen || {}).find(([s, team]) => team === "wolf" && this.players[s]?.alive);
+        const q = known ? this.players[+known[0]] : this._pick(others(h));
+        if (q) this._hunt(h, q.seat);
+      });
+    }
+    if (!bots.length || !ms) return;
+    if (phase === "night") {
+      for (const b of bots) this._later(at(0.15, 40), () => {
+        if (this.phase !== "night" || !b.alive || !this.night) return;
+        const n = this.night;
+        if (b.role === ROLES.wolf) {
+          const mate = [...n.wolfVotes].find(([s]) => s !== b.seat)?.[1];
+          const q = mate !== undefined ? this.players[mate] : this._pick(others(b, (x) => x.role !== ROLES.wolf));
+          if (q) this._act(b, q.seat);
+        } else if (b.role === ROLES.seer) {
+          const q = this._pick(others(b, (x) => !(b.botSeen || {})[x.seat]));
+          if (q && this._act(b, q.seat).ok) { b.botSeen ||= {}; b.botSeen[q.seat] = TEAM[q.role]; }
+        } else if (b.role === ROLES.guard) {
+          const q = this._pick(this.players.filter((x) => x.alive && x.seat !== this.lastGuard));
+          if (q) this._act(b, q.seat);
+        } else if (b.role === ROLES.witch && !this.witchUsed && this.randInt(3) === 0) this._brew(b, true);
+        else if (b.role === ROLES.gatekeeper && !this.gateReport && this.randInt(3) === 0) this._watch(b, true);
+      });
+    } else if (phase === "day") {
+      for (const b of bots) if (this.randInt(2)) this._later(at(0.1, 60), () => {
+        if (this.phase === "day" && b.alive) this._chat(b, QUICK[this.randInt(QUICK.length)]);
+      });
+    } else if (phase === "vote") {
+      for (const b of bots) this._later(at(0.25, 45), () => {
+        if (this.phase !== "vote" || !b.alive) return;
+        let q;
+        if (b.role === ROLES.wolf) q = this._pick(others(b, (x) => x.role !== ROLES.wolf));
+        else {
+          const known = others(b, (x) => (b.botSeen || {})[x.seat] === "wolf"); // chỉ Tiên Tri-bot có botSeen
+          q = known.length ? known[0] : this.randInt(5) === 0 ? null : this._pick(others(b));
+        }
+        this._vote(b, q ? q.seat : null);
+      });
+    }
+  }
+
+  close() { this.closed = true; this.clock.clearTimeout(this.timer); this.timer = null; this._clearBots(); }
   _changed() { this.onChange(); }
 
   // ---------- GÓC NHÌN: đường duy nhất dữ liệu đi ra khỏi server ----------
@@ -358,7 +460,7 @@ class Room {
     const over = this.phase === "end";
     const iAmWolf = me.role === ROLES.wolf;
     const players = this.players.map((p) => {
-      const o = { seat: p.seat, name: p.name, avatar: p.avatar, alive: p.alive, connected: p.connected };
+      const o = { seat: p.seat, name: p.name, avatar: p.avatar, alive: p.alive, connected: p.connected, bot: !!p.bot };
       // ai được thấy vai: chính mình | hết ván | người đã chết (lộ khi chết) | Sói thấy Sói
       if (p.role && (p === me || over || !p.alive || (iAmWolf && p.role === ROLES.wolf))) o.role = p.role;
       return o;
