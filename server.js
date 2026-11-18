@@ -106,5 +106,15 @@ if (on(process.env.COTUONG_ONLINE, true)) {
   console.log("Cờ Tướng online: đường /ws/co-tuong");
 }
 
+// Ai Là Nội Gián online (6–8 người, vai ẩn, chu kỳ ngày/đêm — cùng khung với Ma Sói) — luôn chạy, không có biến bật/tắt;
+// khi nào public do chủ dự án quyết ở bước deploy production.
+{
+  const speed = Number(process.env.NOIGIAN_SPEED) || 1; // chỉ dùng khi test: 0.2 = nhanh gấp 5
+  const { DEFAULT_TIMINGS } = require("./games-server/ai-la-noi-gian/room");
+  const timings = Object.fromEntries(Object.entries(DEFAULT_TIMINGS).map(([k, v]) => [k, Math.round(v * speed)]));
+  require("./games-server/ai-la-noi-gian/host").createNoiGianHost(server, { timings });
+  console.log(`Ai Là Nội Gián online: đường /ws/ai-la-noi-gian (thời gian mỗi pha x${speed})`);
+}
+
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
 module.exports = server;

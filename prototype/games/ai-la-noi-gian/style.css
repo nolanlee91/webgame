@@ -1,0 +1,305 @@
+/* Ai Là Nội Gián — pixel UI theo Art Bible V5 (viền 3px bằng box-shadow, vát 2px, bóng cứng lệch, không bo tròn,
+   không gradient mềm). Bảng màu theo đề cương §4: NGÀY gỗ nâu + hải quân + hổ phách; ĐÊM xanh đen terminal + phosphor + đỏ báo động. */
+:root {
+  --ink: #f4ead2; --soft: #c4b79a; --dim: #857a66; --line: #0a0807; --shadow: rgba(0,0,0,.6);
+  --gold: #f5d77f; --gold-d: #a8741a; --green: #3a7d44; --teal: #2f8f83; --teal-d: #1b5b53;
+  --red: #e74c3c; --navy: #1b2a4a; --phos: #33ff33;
+  --bg: #2c221b; --panel: #1e232d; --panel2: #2a3346; --accent: var(--gold);
+  --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
+  --bevel: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -2px 0 rgba(0,0,0,.35);
+  --drop: 4px 6px 0 0 var(--shadow);
+}
+body.is-night { --bg: #0b0e14; --panel: #0f141b; --panel2: #16202a; --accent: var(--phos); --soft: #9fc7a6; --dim: #5d7a66; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+  display: flex; flex-direction: column; min-height: 100dvh; -webkit-tap-highlight-color: transparent;
+  transition: background-color 2s steps(8); }
+button, input { font: inherit; color: inherit; }
+.soft { color: var(--soft); }
+.kicker { font: 800 11px/1 "Be Vietnam Pro", system-ui; letter-spacing: .1em; text-transform: uppercase; color: var(--soft); }
+.px-panel { background: var(--panel); --b: var(--line); box-shadow: var(--bevel), var(--border), var(--drop); margin: 3px; transition: background-color 2s steps(8); }
+.px-h { margin: 0; font: 800 20px/1.2 "Be Vietnam Pro", system-ui; text-shadow: 2px 2px 0 #000; }
+
+.bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #0c0f14; box-shadow: inset 0 -3px 0 #000; }
+.bar a { color: var(--soft); text-decoration: none; font-weight: 700; white-space: nowrap; }
+.bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+.bar__code { margin-left: auto; color: var(--soft); font-size: 13px; }
+.bar__code b { color: var(--accent); letter-spacing: .12em; font-size: 15px; }
+.net { color: var(--red); font-weight: 700; font-size: 13px; }
+.bar__snd { margin-left: auto; display: inline-grid; place-items: center; width: 40px; height: 36px; padding: 0; border: 0; cursor: pointer; color: var(--ink);
+  background: var(--panel2); --b: var(--line); box-shadow: var(--bevel), var(--border); }
+.bar__code:not([hidden]) ~ .bar__snd { margin-left: 8px; }
+.bar__snd .snd-off, .bar__snd.is-off .snd-on { display: none; }
+.bar__snd.is-off .snd-off { display: inline; }
+.bar__snd.is-off { color: var(--soft); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed var(--accent); outline-offset: 3px; }
+
+.btn { border: 0; cursor: pointer; padding: 10px 16px; min-height: 44px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; font-size: 14px;
+  background: var(--panel2); --b: var(--line); box-shadow: var(--bevel), var(--border), 3px 4px 0 0 var(--shadow); margin: 3px; }
+.btn:active { transform: translate(2px, 3px); box-shadow: var(--bevel), var(--border); }
+.btn--gold { background: var(--gold); color: #2b1c08; }
+.btn--teal { background: var(--teal); }
+.btn--red { background: var(--red); }
+.btn[aria-disabled="true"], .btn:disabled { opacity: .45; cursor: not-allowed; }
+.field { display: grid; gap: 6px; font-weight: 700; font-size: 13px; color: var(--soft); }
+.field input, .chat__form input { background: #0c0f14; border: 0; padding: 10px 12px; min-height: 44px; font-size: 16px; color: var(--ink);
+  --b: var(--line); box-shadow: inset 0 3px 0 rgba(0,0,0,.6), var(--border); margin: 3px; }
+
+/* ---------- màn đầu ---------- */
+.home { flex: 1; display: grid; place-items: center; padding: 20px 14px; }
+.home__card { width: min(920px, 100%); display: grid; grid-template-columns: 1.15fr 1fr; overflow: hidden; }
+.home__poster { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; min-height: 260px; }
+.home__body { padding: 22px; display: grid; gap: 14px; align-content: start; }
+.home__body p { margin: 0; }
+.home__opt { display: grid; gap: 8px; }
+.home__step { margin: 0; font-size: 13px; color: var(--soft); }
+.home__step b { color: var(--ink); }
+.home__create { width: calc(100% - 6px); min-height: 52px; font-size: 16px; }
+.home__or { display: flex; align-items: center; gap: 12px; color: var(--soft); font: 800 12px/1 "Be Vietnam Pro", system-ui; letter-spacing: .14em; text-transform: uppercase; }
+.home__or::before, .home__or::after { content: ""; flex: 1; height: 3px; background: #000; box-shadow: 0 3px 0 rgba(255,255,255,.06); }
+.home__join { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px; padding: 10px 12px 12px; margin: 3px; background: rgba(0,0,0,.25); --b: var(--line); box-shadow: var(--border); }
+.home__join input { text-transform: uppercase; letter-spacing: .2em; min-width: 0; }
+.home__join .btn { white-space: nowrap; }
+.home__msg { min-height: 1.5em; color: var(--gold); font-weight: 700; }
+@media (max-width: 720px) { .home__card { grid-template-columns: 1fr; } .home__poster { max-height: 34vh; min-height: 0; } }
+
+/* ---------- trong phòng ---------- */
+.game { flex: 1 0 auto; width: 100%; max-width: 1360px; margin: 0 auto; padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 12px; align-items: start; }
+.stage { position: relative; overflow: hidden; --b: var(--line); box-shadow: var(--border), var(--drop); margin: 3px; background: #000; }
+.world { position: relative; width: 100%; aspect-ratio: 16 / 9; }
+.scene { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+.scene--night { opacity: 0; transition: opacity 2s steps(10); }
+body.is-night .scene--night { opacity: 1; }
+/* chuyển cảnh 2 s: crossfade ảnh + chớp đỏ báo động (sang đêm) hoặc chớp hổ phách (đèn sáng lại) + scanline CRT */
+.alert { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: var(--red); mix-blend-mode: multiply; }
+.stage.to-day .alert { background: var(--gold); mix-blend-mode: overlay; }
+.crt { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.45) 0 2px, transparent 2px 4px); }
+body.is-night .crt { opacity: .35; }
+.stage.shift .alert { animation: alert 2s steps(8); }
+.stage.shift .crt { animation: crt 2s steps(10); }
+@keyframes alert { 0%, 100% { opacity: 0; } 12%, 37% { opacity: .7; } 25%, 50% { opacity: .1; } 62% { opacity: .45; } }
+@keyframes crt { 0% { opacity: 0; transform: translateY(0); } 40% { opacity: .8; } 100% { opacity: .35; transform: translateY(8px); } }
+body.is-day .stage.shift .crt { animation-name: crtOff; }
+@keyframes crtOff { 0% { opacity: .6; } 100% { opacity: 0; } }
+
+/* chỗ ngồi: 8 ghế quanh bàn họp (toạ độ % đo trên ảnh 1280×720; vùng bấm độc lập với ảnh) — hàng sau 1–4, hàng trước 5–8 */
+.seats { position: absolute; inset: 0; }
+.seat { position: absolute; width: 6%; transform: translate(-50%, -82%); border: 0; padding: 0; background: none; cursor: default; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 2px; }
+.seat:nth-child(1) { left: 32.8%; top: 52%; } .seat:nth-child(2) { left: 44.3%; top: 52%; }
+.seat:nth-child(3) { left: 56.3%; top: 52%; } .seat:nth-child(4) { left: 67.7%; top: 52%; }
+.seat:nth-child(5) { left: 31.3%; top: 82%; } .seat:nth-child(6) { left: 43.8%; top: 82%; }
+.seat:nth-child(7) { left: 56.3%; top: 82%; } .seat:nth-child(8) { left: 69.1%; top: 82%; }
+.seat__box { position: relative; width: 100%; display: block; }
+/* avatar pixel bằng CSS: ô vuông màu ghế + chữ cái đầu mật danh (không cần ảnh) */
+.av { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; align-items: start; padding-top: 14%;
+  background: linear-gradient(#f4ead2, #f4ead2) 50% 100% / 18% 26% no-repeat, linear-gradient(0deg, var(--navy) 0 26%, var(--c, #555) 26%);
+  color: #111; font: 800 clamp(13px, 1.6vw, 22px)/1 "Be Vietnam Pro", system-ui; text-shadow: 1px 1px 0 rgba(255,255,255,.35);
+  --b: var(--line); box-shadow: var(--bevel), var(--border), 3px 4px 0 0 var(--shadow); }
+.av b { font: inherit; }
+.av i { position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); font: 800 8px/1 system-ui; font-style: normal; letter-spacing: .06em;
+  background: #0b0e14; color: var(--phos); padding: 2px 3px; box-shadow: 0 0 0 1px #000; }
+.av--sm { padding-top: 4px; }
+.av--empty { background: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+.av--sm { width: 36px; height: 36px; font-size: 16px; margin: 3px; }
+.seat__name { max-width: 210%; padding: 1px 5px; background: rgba(10,8,7,.86); font: 800 clamp(10px, .95vw, 12px)/1.3 "Be Vietnam Pro", system-ui; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seat--me .seat__name { color: var(--gold); }
+.seat--hide { visibility: hidden; }
+.seat--empty .seat__name { color: var(--dim); }
+.seat--off .av { filter: brightness(.55); }
+.seat--dead .av { filter: grayscale(1) brightness(.6); }
+.seat--dead .seat__name { text-decoration: line-through; color: var(--dim); }
+.seat--can { cursor: pointer; }
+.seat--can .av { --b: var(--accent); animation: pick 1s steps(2) infinite; }
+.seat--sel .av { --b: var(--red); box-shadow: var(--border), 0 0 0 6px rgba(231,76,60,.4), 3px 4px 0 0 var(--shadow); animation: none; }
+body.is-day .seat--sel .av { --b: var(--gold); box-shadow: var(--border), 0 0 0 6px rgba(245,215,127,.35), 3px 4px 0 0 var(--shadow); }
+.seat__role.is-mole { color: var(--red); } .seat__role.is-ok { color: #8fe08f; }
+.seat--win .av { --b: var(--gold); }
+.seat--lose .av { filter: brightness(.7); }
+@keyframes pick { 50% { transform: translateY(-3px); } }
+.seat__tag { position: absolute; right: -16%; top: -16%; width: 48%; z-index: 1; aspect-ratio: 1; background: url(assets/hud-icons.png) 0 0 / 300% 200% no-repeat; image-rendering: pixelated; }
+.seat__votes--mole { background: var(--red) !important; color: #fff !important; }
+.seat__votes { position: absolute; z-index: 2; left: 50%; top: -6px; transform: translate(-50%, -100%); --b: var(--line); box-shadow: var(--border); background: var(--gold); color: #2b1c08; font: 800 11px/1 system-ui; padding: 3px 5px; white-space: nowrap; }
+.seat__role { font: 800 9px/1.2 system-ui; white-space: nowrap; color: var(--soft); background: rgba(10,8,7,.86); padding: 1px 5px; text-transform: uppercase; }
+
+.dial { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: grid; grid-template-columns: auto auto auto; align-items: center; gap: 10px; padding: 6px 12px 10px; min-width: 260px; }
+.dial__txt { display: grid; line-height: 1.2; }
+.dial__txt b { font-size: 16px; text-shadow: 2px 2px 0 #000; }
+.dial__txt span { font-size: 12px; color: var(--soft); }
+.dial__sec { font: 800 26px/1 "Be Vietnam Pro", system-ui; color: var(--accent); min-width: 2ch; text-align: right; text-shadow: 2px 2px 0 #000; font-variant-numeric: tabular-nums; }
+.dial__bar { position: absolute; left: 6px; right: 6px; bottom: 4px; height: 4px; background: #000; }
+.dial__bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.hud { width: 48px; height: 48px; background: url(assets/hud-icons.png) 0 0 / 300% 200% no-repeat; image-rendering: pixelated; }
+/* mặt radar xoay trong đêm (đề cương §4) — xoay theo bước 45° cho đúng chất pixel */
+.dial--spin .hud { animation: spin 2.4s steps(8) infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.banner { position: absolute; left: 0; right: 0; top: 64%; transform: translateY(-50%); z-index: 3; text-align: center; padding: 14px; background: rgba(10,8,7,.82); font: 800 clamp(16px, 2.2vw, 26px)/1.2 "Be Vietnam Pro", system-ui;
+  text-shadow: 3px 3px 0 #000; box-shadow: inset 0 3px 0 #000, inset 0 -3px 0 #000; animation: bannerIn .3s steps(3); }
+@keyframes bannerIn { from { transform: translateY(-50%) scaleY(0); } }
+
+/* ---------- cột phải ---------- */
+.side { display: grid; gap: 12px; min-width: 0; }
+.me { display: grid; grid-template-columns: 76px 1fr; gap: 12px; padding: 10px; align-items: center; }
+.me__card { border: 0; padding: 0; background: none; cursor: pointer; width: 76px; aspect-ratio: 3 / 4; }
+.me__card img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; --b: var(--line); box-shadow: var(--border); }
+.me__info { display: grid; gap: 3px; }
+.me__role { font-size: 19px; text-shadow: 2px 2px 0 #000; }
+.me__desc { font-size: 13px; line-height: 1.4; }
+.me--mole .me__role { color: var(--red); }
+
+.act { padding: 12px; display: grid; gap: 8px; }
+.act__txt { margin: 0; font-weight: 700; }
+.act__txt .icon { display: inline-block; width: 32px; height: 32px; vertical-align: middle; margin-right: 6px; background: url(assets/hud-icons.png) 0 0 / 300% 200% no-repeat; image-rendering: pixelated; }
+.act__row { display: flex; flex-wrap: wrap; gap: 6px; }
+.act__row:empty { display: none; }
+.act__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; color: var(--soft); }
+.scanlog { margin: 0; padding: 8px 0 0; list-style: none; display: grid; gap: 4px; font-size: 13px; border-top: 2px solid rgba(0,0,0,.4); }
+.scanlog .w { color: var(--red); font-weight: 800; } .scanlog .ok { color: #8fd18f; font-weight: 800; }
+
+.chat { padding: 0 0 8px; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; height: min(46vh, 420px); }
+.chat__tabs { display: flex; gap: 0; box-shadow: inset 0 -3px 0 #000; }
+.chat__tabs button { flex: 1; border: 0; background: none; padding: 10px; font-weight: 800; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); cursor: pointer; min-height: 44px; }
+.chat__tabs button[aria-selected="true"] { color: var(--ink); background: var(--panel2); }
+#tabMole[aria-selected="true"] { color: var(--red); }
+.chat__log { margin: 0; padding: 8px 12px; list-style: none; overflow-y: auto; display: grid; align-content: start; gap: 4px; font-size: 14px; overflow-wrap: anywhere; }
+.chat__log b { color: var(--accent); }
+.chat__log .msg { display: grid; gap: 0; padding: 3px 0 2px; border-bottom: 1px solid rgba(0,0,0,.28); }
+.chat__log .msg time { justify-self: end; font-size: 10px; line-height: 1.1; color: var(--dim); font-variant-numeric: tabular-nums; }
+.chat__log .sys { color: var(--soft); font-style: italic; }
+.chat__log .sys b { color: var(--ink); }
+.quick { display: flex; gap: 4px; overflow-x: auto; padding: 6px 10px 2px; }
+.quick button { flex: none; border: 0; background: var(--panel2); padding: 6px 10px; min-height: 36px; font-size: 12px; font-weight: 700; cursor: pointer; --b: var(--line); box-shadow: var(--border); margin: 3px; }
+.chat__form { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 4px 8px 0; }
+.chat__form input { min-width: 0; }
+.chat--off .chat__form, .chat--off .quick { opacity: .45; pointer-events: none; }
+
+/* ---------- phòng chờ ---------- */
+/* .game không được co (flex-shrink 0): khung cảnh overflow:hidden có min-content = 0 nên nếu co, hàng lưới của nó
+   sụp và nội dung hàng dưới đè lên (từng làm nút Bắt đầu / Rời phòng bị che trên điện thoại). */
+.game > .stage { grid-column: 1; grid-row: 1; }
+.game > .side { grid-column: 2; grid-row: 1 / span 2; }
+.lobby { grid-column: 1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 12px; align-items: start; min-width: 0; }
+.lobby > .px-panel { padding: 12px; display: grid; gap: 10px; min-width: 0; }
+.lobby__h { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 800 13px/1.2 "Be Vietnam Pro", system-ui; letter-spacing: .08em; text-transform: uppercase; }
+.lobby__n { color: var(--accent); letter-spacing: .04em; }
+.plist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.prow { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; background: rgba(0,0,0,.22); box-shadow: inset 0 -2px 0 rgba(0,0,0,.3); }
+.prow--me { background: rgba(245,215,127,.1); box-shadow: inset 3px 0 0 var(--gold), inset 0 -2px 0 rgba(0,0,0,.3); }
+.prow__name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow__name i { font-style: normal; font-weight: 600; color: var(--gold); }
+.prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.chip { font: 800 11px/1 "Be Vietnam Pro", system-ui; padding: 5px 7px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; --b: var(--line); box-shadow: var(--border); margin: 3px 2px; }
+.chip--host { background: var(--gold); color: #2b1c08; }
+.chip--ok { background: var(--green); color: #fff; }
+.chip--bot { background: #0b0e14; color: var(--phos); }
+.chip--x { border: 0; cursor: pointer; background: var(--panel2); color: var(--ink); min-width: 32px; min-height: 28px; }
+.botrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; }
+.botrow .btn:disabled { opacity: .45; cursor: not-allowed; }
+.chip--off { background: var(--red); color: #fff; animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .55; } }
+.prow--off .av { filter: grayscale(1) brightness(.55); }
+.prow--off .prow__name { color: var(--dim); }
+.prow--empty { background: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,.12); grid-template-columns: 36px 1fr; }
+.prow--empty .prow__name { color: var(--dim); font-weight: 600; font-style: italic; }
+
+.rsum { margin-left: auto; padding: 4px 8px; font-size: 12px; letter-spacing: .04em; --b: var(--line); box-shadow: var(--border); }
+.rsum--ok { background: var(--green); color: #fff; }
+.rsum--bad { background: var(--red); color: #fff; }
+.rcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rcard { margin: 0; display: grid; gap: 6px; text-align: center; }
+.rcard__img { position: relative; display: block; aspect-ratio: 3 / 4; --b: var(--line); box-shadow: var(--border), 3px 4px 0 0 var(--shadow); margin: 3px; background: #000; }
+.rcard__img img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+.rcard__n { position: absolute; right: -6px; top: -8px; min-width: 34px; padding: 4px 6px; background: var(--gold); color: #2b1c08; font: 800 16px/1 "Be Vietnam Pro", system-ui; --b: var(--line); box-shadow: var(--border), 2px 3px 0 0 var(--shadow); }
+.rcard--mole .rcard__n { background: var(--red); color: #fff; }
+.rcard figcaption { display: grid; line-height: 1.2; }
+.rcard figcaption b { font-size: 14px; text-shadow: 2px 2px 0 #000; }
+.rcard--mole figcaption b { color: var(--red); }
+.rcard figcaption span { font-size: 11px; color: var(--soft); }
+.rwarn { margin: 0; padding: 8px 10px; font-weight: 700; font-size: 13px; line-height: 1.4; --b: var(--line); box-shadow: var(--border); margin: 3px; }
+.rwarn--ok { background: rgba(58,125,68,.28); color: #bfe6c4; }
+.rwarn--warn { background: rgba(245,215,127,.16); color: var(--gold); }
+.rwarn--bad { background: rgba(224,60,60,.22); color: #ffb3b3; box-shadow: var(--border), inset 4px 0 0 var(--red); }
+
+/* cụm nút phòng chờ: "Bắt đầu" một hàng riêng nổi bật nhất, 2 nút phụ chia đều một hàng; khoảng cách đều 8px */
+body.is-lobby .act__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+body.is-lobby .act__row .btn { margin: 3px; min-width: 0; padding: 10px 8px; line-height: 1.15; }
+body.is-lobby .act__row [data-a="start"] { grid-column: 1 / -1; min-height: 52px; font-size: 16px; letter-spacing: .06em; }
+body.is-lobby .act__row [data-a="leave"] { color: var(--soft); }
+
+/* màn hình rộng: cột phải (chat) neo dính khi cuộn, chat kéo dài hết phần còn lại */
+body.is-lobby .me { display: none; }
+.chat__fold { display: none; }
+@media (min-width: 981px) {
+  body.is-lobby .side { position: sticky; top: 12px; display: flex; flex-direction: column; height: calc(100dvh - 88px); min-height: 460px; }
+  body.is-lobby .side > .act { flex: none; }
+  body.is-lobby .chat { flex: 1; height: auto; min-height: 0; }
+}
+
+/* mặt sau thẻ bằng CSS (không có asset riêng): nền hải quân sọc chéo pixel + huy hiệu bắt tay Lụm Kèo ở giữa */
+.cardback { position: relative; display: block; width: 100%; height: 100%; image-rendering: pixelated;
+  background: repeating-linear-gradient(45deg, #22355c 0 6px, var(--navy) 6px 12px);
+  --b: var(--line); box-shadow: inset 0 0 0 4px var(--gold), inset 0 0 0 7px #000, var(--border); }
+.cardback::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: url(assets/hud-icons.png) 100% 100% / 300% 200% no-repeat; image-rendering: pixelated; }
+.me__card .cardback { box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 0 5px #000, var(--border); }
+
+/* ---------- lớp phủ ---------- */
+.ov { position: fixed; inset: 0; z-index: 20; background: rgba(5,6,10,.82); display: grid; place-items: center; align-content: center; gap: 14px; padding: 16px; }
+.ov__cap { margin: 0; text-align: center; font-weight: 700; max-width: 420px; }
+.flip { width: min(300px, 70vw); aspect-ratio: 3 / 4; perspective: 900px; }
+.flip__in { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .9s steps(9); }
+.flip.on .flip__in { transform: rotateY(180deg); }
+.flip img, .flip .cardback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; backface-visibility: hidden; --b: var(--line); box-shadow: var(--border), 6px 8px 0 0 var(--shadow); }
+.flip__front { transform: rotateY(180deg); }
+.end { width: min(860px, 100%); padding: 18px; display: grid; gap: 10px; max-height: 92dvh; overflow-y: auto; }
+.end__title { margin: 0; font: 800 28px/1.2 "Be Vietnam Pro", system-ui; text-shadow: 3px 3px 0 #000; }
+.end__title.mole { color: var(--red); } .end__title.agency { color: var(--gold); }
+.end__sub { margin: 0; }
+.end__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.end__cards figure { margin: 0; display: grid; gap: 4px; text-align: center; font-size: 12px; font-weight: 700; }
+.end__cards img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; image-rendering: pixelated; --b: var(--line); box-shadow: var(--border); }
+.end__cards .dead img { filter: grayscale(.8) brightness(.7); }
+.end__cards .win figcaption { color: var(--gold); }
+.end__row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- mobile ---------- */
+@media (max-width: 980px) {
+  .game { grid-template-columns: 1fr; padding: 8px; gap: 8px; }
+  .game > .stage, .game > .side, .lobby { grid-column: 1; grid-row: auto; }
+  .game > .side { order: 1; } .lobby { order: 2; }
+  .chat { height: 340px; }
+  .lobby { grid-template-columns: 1fr; gap: 8px; }
+  /* phòng chờ: chat neo đáy màn hình — gọn 2 dòng, bấm "Mở rộng" để xem nhiều hơn; chừa chỗ để không che nội dung */
+  body.is-lobby .game { padding-bottom: 190px; }
+  body.is-lobby .chat { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; margin: 0; height: auto; padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    grid-template-rows: auto auto auto auto; box-shadow: 0 -3px 0 0 var(--line), 0 -8px 0 0 rgba(0,0,0,.35); }
+  body.is-lobby .chat__log { height: 64px; }
+  body.is-lobby .chat--open .chat__log { height: 42dvh; }
+  body.is-lobby .chat:not(.chat--open) .quick { display: none; }
+  body.is-lobby .chat__fold { display: block; flex: none; border: 0; background: none; color: var(--accent); font-weight: 800; font-size: 12px; padding: 0 14px; min-height: 44px; cursor: pointer; }
+  body.is-lobby .chat__tabs button[role="tab"] { text-align: left; padding-left: 14px; }
+}
+@media (max-width: 640px) {
+  .bar { padding: 8px 10px; gap: 10px; }
+  .bar h1 { font-size: 14px; white-space: nowrap; letter-spacing: .02em; }
+  .bar__code { font-size: 0; } .bar__code b { font-size: 15px; }
+  /* cắt khung quanh bàn họp: thế giới rộng 180%, dịch trái 40% ⇒ 8 ghế chiếm gần đủ màn */
+  .stage { aspect-ratio: 1 / 1.02; }
+  .world { position: absolute; width: 180%; left: -40%; top: 0; }
+  .seat { width: 7.6%; }
+  .av { font-size: 15px; }
+  .seat__name { font-size: 10px; max-width: 170%; }
+  .dial { top: 6px; min-width: 0; width: calc(100% - 18px); grid-template-columns: auto 1fr auto; padding: 4px 10px 9px; }
+  .hud { width: 36px; height: 36px; }
+  .dial__sec { font-size: 22px; }
+  .me { grid-template-columns: 60px 1fr; }
+  .me__card { width: 60px; }
+  .rcards { gap: 6px; }
+  .rcard figcaption b { font-size: 12px; }
+  .rcard figcaption span { font-size: 10px; }
+  .rcard__n { font-size: 13px; min-width: 28px; right: -4px; }
+  .chip { font-size: 10px; padding: 4px 5px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
