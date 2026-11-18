@@ -16,7 +16,7 @@ Xếp đủ **5 quân liên tiếp** (ngang, dọc, chéo) trước đối thủ
 - Rớt mạng: tự nối lại, giữ ghế (token trong `sessionStorage`); F5 vào lại đúng ván. Người có lượt im lặng 60 s (mất kết nối: 15 s) → máy chủ đánh thay để ván không treo. Đối thủ rời → báo và về phòng chờ người mới.
 - **Trò chuyện**: ô chat bên phải bàn (điện thoại: nút **Chat** có số tin chưa đọc, mở bảng trượt từ dưới). Tin đi qua máy chủ, tên người gửi do máy chủ gắn,
   tối đa 200 ký tự, mỗi người 4 tin liền rồi ~0,7 tin/giây, chỉ giữ 40 tin trong phòng (mất khi phòng đóng).
-- Máy chủ online **mặc định tắt** cho tới khi qua review độc lập; bật bằng `COCARO_ONLINE=1`. Chạy thử: `node games-server/co-caro/dev.js` → http://localhost:8768/games/co-caro/
+- Máy chủ online mặc định **bật** (đã qua review độc lập của Codex); tắt bằng `COCARO_ONLINE=0`. Chạy thử: `node games-server/co-caro/dev.js` → http://localhost:8768/games/co-caro/
 - Chế độ **2 người chung máy** và **Chơi với máy** giữ nguyên, không cần máy chủ.
 
 ## Điều khiển

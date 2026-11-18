@@ -1,6 +1,6 @@
 # Máy chủ Cờ Caro online
 
-Phòng 1v1 qua WebSocket `/ws/co-caro`, gắn vào `server.js` khi `COCARO_ONLINE=1` (mặc định **tắt** cho tới khi qua review độc lập).
+Phòng 1v1 qua WebSocket `/ws/co-caro`, gắn vào `server.js` — mặc định **bật** (đã qua review Codex), tắt bằng `COCARO_ONLINE=0`.
 Độc lập với các game khác (`ws.js`, `chat.js` là bản chép riêng, không dùng chung file).
 
 - `room.js` — luật lấy nguyên từ `prototype/games/co-caro/logic.js`; kiểm tra đúng ghế / đúng lượt / ô hợp lệ / ván chưa kết thúc.

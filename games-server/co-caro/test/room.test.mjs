@@ -275,7 +275,7 @@ test('người không có lượt ngắt/nối liên tục không kéo dài đư
   r.close();
 });
 
-test('server.js chỉ gắn Cờ Caro khi COCARO_ONLINE=1', async () => {
+test('server.js gắn Cờ Caro mặc định, tắt được bằng COCARO_ONLINE=0', async () => {
   const { execFileSync } = await import('node:child_process');
   const probe = (env) => execFileSync(process.execPath, ['-e', `
     const s=require('./server.js'); s.listen(0,'127.0.0.1',async()=>{const p=s.address().port;
@@ -284,7 +284,8 @@ test('server.js chỉ gắn Cờ Caro khi COCARO_ONLINE=1', async () => {
       ws.onopen=()=>{clearTimeout(t);console.log('on');process.exit(0)}; ws.onerror=()=>{clearTimeout(t);console.log('off');process.exit(0)};});`],
     { cwd: new URL('../../../', import.meta.url), env: { ...process.env, MASOI_ONLINE: '0', NOITU_ONLINE: '0', ...env }, encoding: 'utf8' }).trim().split('\n').pop();
   assert.equal(probe({ COCARO_ONLINE: '1' }), 'on');
-  assert.equal(probe({ COCARO_ONLINE: '' }), 'off');
+  assert.equal(probe({ COCARO_ONLINE: '' }), 'on');
+  assert.equal(probe({ COCARO_ONLINE: '0' }), 'off');
 });
 
 test('chat: đi qua máy chủ rồi phát cho cả phòng; tên người gửi do máy chủ gắn (không giả danh được); làm sạch; giới hạn độ dài + số tin; không lộ token; không đổi ván', async () => {
