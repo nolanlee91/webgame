@@ -18,10 +18,10 @@
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html, body { height: 100%; }
-    body { margin: 0; background: linear-gradient(rgba(23, 15, 10, .8), rgba(23, 15, 10, .8)), url("assets/bg/scene.webp") center / cover no-repeat, var(--bg); image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+    body { margin: 0; background: linear-gradient(180deg, #21162944, #21162988), url("assets/bg/shop-v2.webp") center / cover no-repeat, #291e35; image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
       display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent;
       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
-    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #1d1a16; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255,255,255,.08); }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #251b30; box-shadow: inset 0 -1px 0 #6b4d70; }
     .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
     .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
     .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
@@ -33,7 +33,7 @@
 
     /* TẦNG 2 — tiến độ */
     .hud { grid-area: hud; display: flex; gap: 14px; min-width: 0; }
-    .stats { flex: 1; min-width: 0; display: grid; gap: 10px; padding: 12px 14px; margin: 3px; background: var(--panel); box-shadow: var(--bevel), var(--border); }
+    .stats { flex: 1; min-width: 0; display: grid; gap: 10px; padding: 12px 14px; margin: 3px; background: #312339; box-shadow: 0 0 0 1px #775781; }
     .stat { display: grid; line-height: 1.1; position: relative; min-width: 0; }
     .stat small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); white-space: nowrap; }
     .stat b { font: 800 20px "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; }
@@ -72,8 +72,8 @@
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
-    .btn--teal { color: #f4ffe9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
-    .btn--teal:hover { background: linear-gradient(#a8e8a0 0 3px, #4aae50 3px); }
+    .btn--teal { color: #291733; background: linear-gradient(#f4c3e1 0 3px, #dca0d1 3px); --b: #7d5382; }
+    .btn--teal:hover { background: linear-gradient(#ffe0ef 0 3px, #eab5df 3px); }
     .btn--teal[disabled] { color: var(--dim); background: #1a1612; }
     .acts .wide { grid-column: span 2; }
     .acts .btn { white-space: nowrap; padding: 8px 10px; }
@@ -82,13 +82,10 @@
 
     /* TẦNG 1 — bàn chơi */
     .stage { grid-area: stage; position: relative; min-height: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; touch-action: none; outline: none; }
-    .frame { position: relative; padding: calc(var(--fr, 12px) + 6px); background: repeating-linear-gradient(90deg, #7a5230 0 22px, #6a4626 22px 25px, #84593a 25px 46px);
-      box-shadow: inset 0 3px 0 #b07a48, inset 3px 0 0 #96643a, inset 0 -3px 0 #3a2414, inset -3px 0 0 #3a2414, 0 0 0 3px var(--line), var(--drop); }
-    .frame::before { content: ""; position: absolute; inset: calc(var(--fr, 12px) - 2px); pointer-events: none;
-      background: repeating-linear-gradient(45deg, #e0483d 0 6px, #fff4e0 6px 12px); box-shadow: 0 0 0 3px var(--line); }
-    .frame > * { position: relative; }
-    .board { position: relative; width: var(--bw); height: var(--bw); overflow: hidden; background-color: #1f1a24;
-      background-image: conic-gradient(#2c2530 25%, #241e2a 0 50%, #2c2530 0 75%, #241e2a 0); background-size: calc(var(--cs) * 2) calc(var(--cs) * 2);
+    .frame { position: relative; padding: calc(var(--fr, 12px) + 6px); background: #744b78;
+      box-shadow: inset 0 2px 0 #bf89ac, inset 0 -2px 0 #4f345c, 0 0 0 1px #271b33, 0 12px 28px #1a102899; }
+    .board { position: relative; width: var(--bw); height: var(--bw); overflow: hidden; background-color: #30263d;
+      background-image: conic-gradient(#443450 25%, #362a43 0 50%, #443450 0 75%, #362a43 0); background-size: calc(var(--cs) * 2) calc(var(--cs) * 2);
       box-shadow: 0 0 0 3px var(--line), inset 0 3px 0 rgba(0,0,0,.4); }
     .ck { position: absolute; left: 0; top: 0; width: var(--cs); height: var(--cs); z-index: 1; will-change: transform;
       transform: translate3d(calc(var(--x) * var(--cs)), calc(var(--y) * var(--cs)), 0); transition: transform var(--t, 140ms) var(--e, ease-out); }
@@ -127,7 +124,7 @@
     .board.shake { animation: shake 180ms steps(4); }
     @keyframes shake { 25% { transform: translate(-3px, 0); } 50% { transform: translate(3px, 0); } 75% { transform: translate(-2px, 0); } }
     .board.dim .ck .sp { filter: grayscale(.8) brightness(.55); transition: filter .5s steps(4); }
-    .hint-tx { text-align: center; font-size: 12px; line-height: 16px; color: var(--dim); display: none; }
+    .hint-tx { text-align: center; font-size: 12px; line-height: 16px; color: #dfcce3; display: none; }
 
     .ov { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(10, 8, 7, .74); z-index: 10; overflow: auto; }
     .card { width: min(560px, 100%); padding: 22px 24px 26px; background: var(--panel); box-shadow: var(--bevel), var(--border), var(--drop); text-align: center; margin: 3px 7px 7px 3px; }
@@ -173,6 +170,7 @@
 
     /* Màn hình thấp: bỏ bảng phím tắt */
     @media (max-height: 820px) { .keys { display: none; } .stats { gap: 8px; } }
+    @media (max-aspect-ratio: 3/5) { body { background-size: 100% 100%, 100% 100%; } }
     /* Điện thoại cầm dọc / khung hẹp: HUD gọn trên cùng, bàn giữa, nút dưới */
     @media (max-width: 760px), (max-aspect-ratio: 1/1) {
       .tag { display: none; }

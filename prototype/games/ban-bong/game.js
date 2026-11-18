@@ -88,18 +88,33 @@ function sphere(px, m, [hi, lite, base, dark, deep], edgeCol = OUT) {
   return (x, y) => m(x, y) && !edge(x, y);
 }
 const tones = (k) => [PAL2[k][0], PAL[k][1], PAL[k][0], PAL[k][2], PAL2[k][1]];
-function specular(px, inner) {
-  for (const [x, y] of [[5, 4], [6, 4], [7, 4], [4, 5], [5, 5], [6, 5], [4, 6], [5, 6], [4, 7]]) if (inner(x, y)) px(x, y, "#fffbef");
-  if (inner(8, 3)) px(8, 3, "#fffbef");
-}
+const ORB_SIZE = 64;
 function ballSprite(k) {
-  return paint((px) => {
-    const inner = sphere(px, circ(9.4), tones(k));
-    // Ký hiệu tương phản ở tâm bóng, đọc được ngay cả trên màn hẹp.
-    const gl = GLYPH[k], ox = 10 - Math.floor(gl[0].length / 2), oy = 10 - Math.floor(gl.length / 2);
-    gl.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === "#") px(ox + i, oy + j, PAL2[k][1]); }));
-    specular(px, inner);
-  });
+  const [base, light, shade] = PAL[k];
+  const [glow, ink] = PAL2[k];
+  return paint((_, g) => {
+    const center = ORB_SIZE / 2;
+    const glass = g.createRadialGradient(21, 16, 2, center, center, 34);
+    glass.addColorStop(0, glow);
+    glass.addColorStop(0.32, light);
+    glass.addColorStop(0.64, base);
+    glass.addColorStop(0.9, shade);
+    glass.addColorStop(1, ink);
+    g.beginPath(); g.arc(center, center, 29, 0, Math.PI * 2);
+    g.fillStyle = glass; g.fill();
+    g.lineWidth = 2; g.strokeStyle = ink; g.stroke();
+    g.lineCap = "round";
+    g.beginPath(); g.arc(center, center, 24, 3.65, 4.78);
+    g.lineWidth = 2.7; g.strokeStyle = "#ffffffb3"; g.stroke();
+    g.beginPath(); g.arc(center, center, 24, 0.45, 1.35);
+    g.lineWidth = 1.9; g.strokeStyle = glow + "a0"; g.stroke();
+    // Giữ ký hiệu theo màu để người chơi còn nhận ra nhóm bằng hình.
+    const glyph = GLYPH[k], step = 3, x = (ORB_SIZE - glyph[0].length * step) / 2, y = (ORB_SIZE - glyph.length * step) / 2;
+    g.fillStyle = ink;
+    glyph.forEach((row, j) => [...row].forEach((ch, i) => {
+      if (ch === "#") g.fillRect(x + i * step, y + j * step, step, step);
+    }));
+  }, ORB_SIZE, ORB_SIZE);
 }
 // trứng kem chấm màu nằm trong vòng bóng màu
 const eggMask = (cx, cy, rx, ryT, ryB) => (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / (y < cy ? ryT : ryB)) ** 2 <= 1;
@@ -248,8 +263,14 @@ export function mount(root, ctx = {}) {
   let fly = null;         // { path, segs, len, d, k, res, snapPar }
   let fx = [], pushAnim = null, shakeT = 0, dinoJump = 0, raf = 0, last = performance.now(), lastSec = -1, clock = 0;
   let pending = null;     // kết thúc ván đang chờ hiệu ứng xong
-  const dinoArt = new Image();
-  dinoArt.src = new URL("assets/sprites/dino-v2.webp", import.meta.url);
+  function loadArt(file) {
+    const art = new Image();
+    art.src = new URL("assets/sprites/" + file, import.meta.url);
+    return art;
+  }
+  const dinoArt = loadArt("dino-v2.webp");
+  const launcherBase = loadArt("launcher-base.webp");
+  const launcherBarrel = loadArt("launcher-barrel.webp");
   const timers = new Set();
   const wait = (ms) => new Promise((res) => { const t = setTimeout(() => { timers.delete(t); res(); }, ms * speed); timers.add(t); });
   const setText = (id, t) => { const e = $(id); if (e && e.textContent !== String(t)) e.textContent = t; };
@@ -286,7 +307,9 @@ export function mount(root, ctx = {}) {
   function blit(img, x, y, size = 1, alpha = 1) {
     const u = G.u;
     if (alpha !== 1) g.globalAlpha = Math.max(0, alpha);
+    g.imageSmoothingEnabled = img.width === ORB_SIZE;
     g.drawImage(img, Math.round((x - size / 2) * u), Math.round((y - size / 2) * u), Math.round(size * u), Math.round(size * u));
+    g.imageSmoothingEnabled = false;
     if (alpha !== 1) g.globalAlpha = 1;
   }
   function text(t, x, y, size, col = "#f4ead2") {
@@ -326,7 +349,16 @@ export function mount(root, ctx = {}) {
     // bệ phóng
     drawLauncher();
     // bóng đang bay
-    if (fly) { const [x, y] = posAt(fly, fly.d); blit(S.ball[fly.k], x, y); }
+    if (fly) {
+      const [x, y] = posAt(fly, fly.d);
+      for (let i = 3; i >= 1; i--) {
+        const distance = fly.d - i * 0.31;
+        if (distance <= 0) continue;
+        const [tx, ty] = posAt(fly, distance);
+        blit(S.ball[fly.k], tx, ty, 0.86 - i * 0.13, 0.22 - i * 0.05);
+      }
+      blit(S.ball[fly.k], x, y);
+    }
     // hiệu ứng
     for (const e of fx) {
       const a = e.t / e.dur;
@@ -344,47 +376,60 @@ export function mount(root, ctx = {}) {
   }
   function drawGuide() {
     const { path, at } = L.trace(s, aim);
-    const u = G.u, p = Math.max(2, Math.round(u * 0.12));
-    let rest = 0.35, n = 0;
-    const col = PAL[s.cur][1];
+    const u = G.u, color = PAL[s.cur][1];
+    let rest = 1.44, dot = 0;
     for (let j = 1; j < path.length; j++) {
       const [x0, y0] = path[j - 1], [x1, y1] = path[j], len = Math.hypot(x1 - x0, y1 - y0);
       let d = rest;
       while (d < len - (j === path.length - 1 ? 0.45 : 0)) {
         const x = x0 + ((x1 - x0) * d) / len, y = y0 + ((y1 - y0) * d) / len;
-        g.globalAlpha = Math.max(0.25, 1 - n * 0.03);
-        g.fillStyle = "#0a0807"; g.fillRect(Math.round(x * u - p / 2) + 1, Math.round(y * u - p / 2) + 1, p, p);
-        g.fillStyle = n % 2 ? col : "#fff4e0"; g.fillRect(Math.round(x * u - p / 2), Math.round(y * u - p / 2), p, p);
-        d += 0.42; n++;
+        g.globalAlpha = Math.max(0.38, 0.94 - dot * 0.027);
+        g.fillStyle = color;
+        g.beginPath();
+        g.arc(x * u, y * u, Math.max(1.25, u * 0.048), 0, Math.PI * 2);
+        g.fill();
+        d += 0.37; dot++;
       }
       rest = d - len;
     }
-    g.globalAlpha = 1;
-    // ô sẽ dính vào: vòng nét đứt
+    g.globalAlpha = 0.78;
     const [cx, cy] = centerP(s.par, at);
-    g.strokeStyle = "#fff4e0"; g.lineWidth = Math.max(2, Math.round(u * 0.06)); g.setLineDash([Math.max(2, u * 0.12), Math.max(2, u * 0.1)]);
-    g.beginPath(); g.arc(cx * u, cy * u, u * 0.44, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = color;
+    g.lineWidth = Math.max(1, u * 0.038);
+    g.beginPath(); g.arc(cx * u, cy * u, u * 0.39, 0, Math.PI * 2); g.stroke();
+    g.globalAlpha = 1;
   }
   function drawLauncher() {
     const u = G.u, X = L.LX, Y = L.LY;
-    const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x * u), Math.round(y * u), Math.round(w * u), Math.round(h * u)); };
-    // nòng xoay theo hướng ngắm
-    g.save(); g.translate(X * u, Y * u); g.rotate(-aim + Math.PI / 2);
-    R(-0.27, -1.2, 0.54, 1.05, OUT); R(-0.21, -1.14, 0.42, 0.99, "#7a4a24"); R(-0.21, -1.14, 0.12, 0.99, "#b07a40"); R(0.09, -1.14, 0.12, 0.99, "#5a3418");
-    for (const yy of [-0.62, -0.32]) { R(-0.27, yy, 0.54, 0.12, OUT); R(-0.24, yy + 0.02, 0.48, 0.07, "#a8741a"); R(-0.24, yy + 0.02, 0.12, 0.07, "#ffe9a8"); }
-    R(-0.3, -1.24, 0.6, 0.18, OUT); R(-0.26, -1.21, 0.52, 0.11, "#ffc94a"); R(-0.26, -1.21, 0.14, 0.11, "#ffe9a8");
+    g.save();
+    g.imageSmoothingEnabled = true;
+    g.translate(X * u, Y * u);
+    if (launcherBase.naturalWidth) {
+      const height = 1.12 * u;
+      const width = height * launcherBase.naturalWidth / launcherBase.naturalHeight;
+      g.drawImage(launcherBase, -width / 2, -0.27 * u, width, height);
+    } else {
+      g.fillStyle = "#43766f";
+      g.beginPath(); g.roundRect(-0.93 * u, -0.19 * u, 1.86 * u, 0.88 * u, 0.22 * u); g.fill();
+    }
+    g.rotate(-aim + Math.PI / 2);
+    if (launcherBarrel.naturalWidth) {
+      const height = 1.52 * u;
+      const width = height * launcherBarrel.naturalWidth / launcherBarrel.naturalHeight;
+      g.drawImage(launcherBarrel, -width / 2, -1.4 * u, width, height);
+    } else {
+      g.fillStyle = "#caad6d";
+      g.beginPath(); g.roundRect(-0.26 * u, -1.33 * u, 0.52 * u, 1.25 * u, 0.16 * u); g.fill();
+    }
     g.restore();
-    // bệ đá
-    R(X - 1.0, Y + 0.16, 2.0, 0.66, OUT); R(X - 0.93, Y + 0.22, 1.86, 0.54, "#8a7458"); R(X - 0.93, Y + 0.22, 1.86, 0.1, "#a89070"); R(X - 0.93, Y + 0.66, 1.86, 0.1, "#5a4a36");
-    for (const dx of [-0.6, -0.12, 0.36]) { R(X + dx, Y + 0.38, 0.24, 0.12, "#5a4a36"); R(X + dx, Y + 0.38, 0.24, 0.04, "#6e5a42"); } // hoa văn khắc
-    R(X - 0.66, Y - 0.44, 1.32, 0.72, OUT); R(X - 0.6, Y - 0.38, 1.2, 0.6, "#6e5a42"); R(X - 0.6, Y - 0.38, 1.2, 0.08, "#8a7458"); R(X - 0.6, Y - 0.38, 0.08, 0.6, "#8a7458");
-    // viên đang bắn (ẩn khi đang bay)
-    if (s && !fly && s.status === "playing") blit(S.ball[s.cur], X, Y, 1);
-    // tổ chứa viên kế
-    R(NEXT_X - 0.55, NEXT_Y + 0.12, 1.1, 0.36, OUT); R(NEXT_X - 0.5, NEXT_Y + 0.16, 1.0, 0.28, "#7a5a2a");
-    for (let i = 0; i < 5; i++) R(NEXT_X - 0.5 + i * 0.22, NEXT_Y + 0.16 + (i % 2) * 0.08, 0.14, 0.06, "#c8a060");
-    if (s && s.status === "playing") blit(S.ball[s.next], NEXT_X, NEXT_Y - 0.12, 0.72);
-    text("⇄", (X + NEXT_X) / 2 + 0.15, Y + 0.05, 0.36, "#b9ad93");
+    if (s && !fly && s.status === "playing") blit(S.ball[s.cur], X, Y, 0.82);
+    if (s && s.status === "playing") {
+      g.beginPath(); g.arc(NEXT_X * u, NEXT_Y * u, 0.53 * u, 0, Math.PI * 2);
+      g.fillStyle = "#123a40"; g.fill();
+      g.strokeStyle = "#70a69a"; g.lineWidth = Math.max(1, 0.032 * u); g.stroke();
+      blit(S.ball[s.next], NEXT_X, NEXT_Y, 0.78);
+      text("⇄", (X + NEXT_X) / 2 + 0.22, NEXT_Y, 0.27, "#a0cbc1");
+    }
   }
   function drawDino() {
     const u = G.u;

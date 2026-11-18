@@ -2,7 +2,11 @@
 
 Game ghép 3 cổ điển chơi một mình trên lưới 8×8. Đổi chỗ 2 viên kẹo cạnh nhau để tạo hàng ngang hoặc dọc từ 3 viên cùng loại trở lên. Kẹo trong hàng sẽ nổ, kẹo phía trên rơi xuống và kẹo mới rơi từ trên vào.
 
-Game chạy hoàn toàn trên trình duyệt, không cần server. Kẹo là sprite pixel 20×20 vẽ bằng code (canvas), không dùng ảnh AI — cùng bộ với ảnh bìa: tim, lát cam, sao, kẹo xoắn, giọt, chùm nho. Nền trang là ảnh bìa có sẵn (assets/bg/scene.webp) phủ tối. Âm thanh và icon chép từ bộ có sẵn.
+Game chạy hoàn toàn trên trình duyệt, không cần server. Kẹo là sprite pixel 20×20 vẽ bằng Canvas. Cảnh tiệm kẹo dùng `assets/bg/shop-v2.webp`. Âm thanh và icon dùng bộ có sẵn.
+
+Prompt cho nền tiệm kẹo, tạo bằng ImageGen tích hợp
+
+> Portrait 4:5 original pixel-art backdrop for a polished candy matching mobile game. A whimsical candy maker's shop, dusky berry and plum palette with muted peach and mint accents limited to the outer edges, gentle warm lights, narrow distant shelves, tiny unlabelled sweet jars low at the edges. Central 75% width is quiet low contrast deep plum air and gently shaded wall with no foreground objects, so a bright square gameplay board will sit in front. Decorative edges only. Carefully placed crisp pixel clusters. No game board, tiles, grids, candy icon pattern, typography, logos, characters, interface or text. Full bleed scene with enough empty area for cropping on desktop.
 
 Cách mở: ở gốc repo chạy `PORT=8768 node server.js`, rồi vào `http://127.0.0.1:8768/games/ghep-keo/`.
 

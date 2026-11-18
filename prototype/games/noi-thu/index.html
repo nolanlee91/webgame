@@ -18,9 +18,9 @@
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html, body { height: 100%; }
-    body { margin: 0; background: linear-gradient(rgba(23, 15, 10, .8), rgba(23, 15, 10, .8)), url("assets/bg/scene.webp") center / cover no-repeat, var(--bg); image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+    body { margin: 0; background: radial-gradient(ellipse at 45% 25%, #284437, #14241f 70%, #101b18); image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
       display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #1d1a16; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255,255,255,.08); }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #182a23; box-shadow: inset 0 -1px 0 #496653; }
     .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
     .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
     .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
@@ -175,7 +175,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=tiles2";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

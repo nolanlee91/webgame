@@ -2,9 +2,12 @@
 import { LEVELS, newGame, nextLevel, retryLevel, pick, hint, shuffle, tick, remaining, H, W } from "./logic.js";
 import { TILES, renderAnimal } from "./sprites.js";
 
+const TILE_ART_SIZE = 64;
+const TILE_ART_COLUMNS = 6;
+
 const SAVE_KEY = "wgp.noithu.v1";
 const C = {
-  board: "#4e3420", boardDither: "#583c25", plank: "#3a2616", rim: "#7a5230", rimHi: "#a87444", rimD: "#4a2e18", panel: "#1d1a16", line: "#0a0807", outline: "#2b1d14",
+  board: "#27433c", boardDither: "#304c41", plank: "#254039", rim: "#4a7361", rimHi: "#83a18a", rimD: "#263e32", panel: "#1d1a16", line: "#0a0807", outline: "#2b1d14",
   face: "#efe2c2", faceHi: "#fff6de", depth: "#bfa77a", depthD: "#8d7650", back: "#7a5634", backHi: "#9a7046",
   gold: "#ffc94a", goldD: "#a8741a", teal: "#7fd47f", tealD: "#17521c", goldL: "#ffe9a8", red: "#e0483d", ink: "#f4ead2",
 };
@@ -61,6 +64,8 @@ export function mount(root, ctx = {}) {
   };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-kim-cuong", "trung-da", "do-xuc-xac", "het-gio", "qua-man", "thang", "thua"], sdk);
   const sprites = TILES.map((t) => renderAnimal(t));
+  const tileArt = new Image();
+  tileArt.src = new URL("assets/sprites/tiles-v2.webp", import.meta.url);
   let save = loadSave();
   let s = null;                // trạng thái logic (null = đang ở menu)
   let paused = false, destroyed = false, raf = 0, last = performance.now();
@@ -123,8 +128,15 @@ export function mount(root, ctx = {}) {
     g2.fillStyle = back ? "#3e2a18" : C.depthD; g2.fillRect(X + u, Y + S - u - u, S - 2 * u, u);
     if (back) { g2.fillStyle = "#5a3e24"; const q = Math.max(u, Math.round(S / 8)); g2.fillRect(X + (S >> 1) - q, Y + (S >> 1) - q - (dep >> 1), 2 * q, 2 * q); }
     else if (t) {
-      const room = (S - dep - 4 * u) * 0.94, k = Math.floor(room / 16), sz = k >= 1 && 16 * k >= room * 0.92 ? 16 * k : Math.max(16, Math.round(room));
-      g2.drawImage(sprites[t - 1], X + ((S - sz) >> 1), Y + ((S - dep - sz) >> 1) + (u >> 1), sz, sz);
+      const room = Math.max(u, S - dep - 3 * u), sz = Math.round(room);
+      const x = X + ((S - sz) >> 1), y = Y + ((S - dep - sz) >> 1);
+      const index = t - 1;
+      if (tileArt.naturalWidth) {
+        const col = index % TILE_ART_COLUMNS, row = Math.floor(index / TILE_ART_COLUMNS);
+        g2.imageSmoothingEnabled = true;
+        g2.drawImage(tileArt, col * TILE_ART_SIZE, row * TILE_ART_SIZE, TILE_ART_SIZE, TILE_ART_SIZE, x, y, sz, sz);
+        g2.imageSmoothingEnabled = false;
+      } else g2.drawImage(sprites[index], x, y, sz, sz);
     }
     const ring = (col, w) => { g2.fillStyle = col; g2.fillRect(X - w, Y - w, S + 2 * w, w); g2.fillRect(X - w, Y + S, S + 2 * w, w); g2.fillRect(X - w, Y, w, S); g2.fillRect(X + S, Y, w, S); };
     if (opt.sel) { ring(C.goldD, 3 * u); ring(C.gold, 2 * u); }
@@ -142,11 +154,11 @@ export function mount(root, ctx = {}) {
     g2.clearRect(0, 0, cv.width, cv.height);
     if (!s) return;
     const u = Math.max(1, Math.round(L.cs * d / 26));
-    // khung bàn: nền gỗ tối có phối hạt + viền 3px + bóng cứng
-    const bx = Math.round(L.ox * d), by = Math.round(L.oy * d), bw = Math.round(L.dw * L.cs * d), bh = Math.round(L.dh * L.cs * d), b3 = Math.round(3 * d);
+    // Lòng khay ít tương phản để các ô sáng nổi rõ.
+    const bx = Math.round(L.ox * d), by = Math.round(L.oy * d), bw = Math.round(L.dw * L.cs * d), bh = Math.round(L.dh * L.cs * d), b3 = Math.max(1, Math.round(d));
     g2.fillStyle = "rgba(0,0,0,.6)"; g2.fillRect(bx + 4 * d + b3, by + 7 * d + b3, bw, bh);
-    // khay gỗ (cùng ảnh bìa): vành gỗ sáng có gờ, lòng khay ván tối phối hạt
-    const rw = Math.max(b3 * 2, Math.round(L.cs * d * 0.16));
+    // Vành khay mỏng, giữ đủ khoảng trống cho đường nối bên ngoài.
+    const rw = Math.max(b3 * 2, Math.round(L.cs * d * 0.10));
     g2.fillStyle = C.line; g2.fillRect(bx - rw - b3, by - rw - b3, bw + 2 * (rw + b3), bh + 2 * (rw + b3));
     g2.fillStyle = C.rim; g2.fillRect(bx - rw, by - rw, bw + 2 * rw, bh + 2 * rw);
     g2.fillStyle = C.rimHi; g2.fillRect(bx - rw, by - rw, bw + 2 * rw, Math.round(2 * d)); g2.fillRect(bx - rw, by - rw, Math.round(2 * d), bh + 2 * rw);
