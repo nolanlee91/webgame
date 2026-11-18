@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
 const OUT = process.argv[2]; mkdirSync(OUT, { recursive: true });
-const URL0 = 'http://127.0.0.1:8766/games/co-ca-ngua/index.html';
+const URL0 = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-ca-ngua/index.html';
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9335', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -42,7 +42,7 @@ const rollTray = async (horses, seat, d) => {
 
 // ---------- Desktop 1366×900 ----------
 await view(1366, 900, false, 1);
-await nav(URL0);
+await nav(URL0 + '?local=1');
 await shot('hud-01-phong-cho.png');
 await click(...await btn('[data-n="4"]')); await sleep(300);
 await click(...await btn('[data-rule="16"]')); await sleep(300);
@@ -70,7 +70,7 @@ await shot('hud-08-xep-hang.png');
 
 // ---------- Mobile 390×844 ----------
 await view(390, 844, true, 2);
-await nav(URL0);
+await nav(URL0 + '?local=1');
 await shot('hud-09-mobile-phong-cho.png');
 await nav(URL0 + '?players=3&seed=3');
 await stage({ 0: [5, 20, -1, -1], 1: [12, -1, -1, -1], 2: [30, 2, -1, -1] }, 1, 5); await sleep(500);

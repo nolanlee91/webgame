@@ -2,7 +2,7 @@
 // node e2e.mjs <thư mục output>   (cần server: python -m http.server 8766 trong prototype/)
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
-const OUT = process.argv[2], URL0 = 'http://127.0.0.1:8766/games/co-ca-ngua/index.html';
+const OUT = process.argv[2], URL0 = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-ca-ngua/index.html';
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9334', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -80,7 +80,7 @@ async function play(sec, useTouch = false) {
 
 // ---------- Desktop: menu ----------
 await view(1280, 900, false, 1);
-await nav(URL0);
+await nav(URL0 + '?local=1');
 check('trang Cờ Cá Ngựa mở được, có lựa chọn 2/3/4 người', await ev('[...document.querySelectorAll("[data-n]")].map(b=>b.dataset.n).join()') === '2,3,4');
 await shot('cn-menu.png');
 await click(...await btn('[data-n="4"]')); await sleep(300);
@@ -207,7 +207,7 @@ await shot('cn-4-nguoi-giua-van.png');
 // ---------- Mobile dọc 390×844, chạm ----------
 await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
 await view(390, 844, true, 2);
-await nav(URL0);
+await nav(URL0 + '?local=1');
 await tap(...await btn('[data-n="3"]')); await sleep(300);
 await ev('document.querySelector("#playBtn").scrollIntoView({block:"center"})'); await sleep(100);
 await tap(...await btn('#playBtn')); await sleep(400); await ev('scrollTo(0,0)'); await sleep(100);

@@ -33,3 +33,16 @@ Phát bằng Web Audio, bắt thời điểm từ sự kiện của `logic.js` v
 `do-xuc-xac` khi gieo · `buoc-nhay` mỗi lần ngựa đáp xuống một ô · `da-quan` khi đá ngựa đối thủ · `ve-chuong` khi ngựa vào/lên bậc chuồng đích ·
 `thang` khi thắng (sau tiếng về chuồng 0,3 giây). Tắt tiếng: nút "Âm thanh" dưới bàn hoặc phím M (nhớ qua `localStorage` `wgp.muted`;
 game đọc `sdk.sound.muted`, core thật sẽ cấp giá trị này). Trình duyệt chỉ cho phát tiếng sau lần chạm/bấm phím đầu tiên.
+
+## Chơi online (2–4 người, mỗi người một máy)
+- Mở trang không có tham số → màn vào phòng: nhập tên → **Tạo phòng online** (nhận mã 5 ký tự + link `?room=MÃ`) hoặc nhập mã → **Vào phòng**,
+  hoặc **Chơi chung 1 máy** (phòng chờ cũ; đi thẳng bằng `?local=1`). `?players=2|3|4` vẫn vào bàn chung máy luôn (test cũ dùng).
+- Máy chủ (`games-server/co-ca-ngua/`, WebSocket `/ws/co-ca-ngua`) giữ ván, **gieo xúc xắc bằng crypto**, kiểm tra đúng người / đúng pha / nước hợp lệ
+  bằng chính `logic.js` (không sửa). Client chỉ gửi ý định (`roll`, `move{horse}`) và phát lại hành động máy chủ gửi về để có hoạt ảnh;
+  lệch hoặc thiếu gói thì nhận nguyên trạng thái máy chủ.
+- Chủ phòng chọn luật + bấm Bắt đầu (≥ 2 người). Rớt mạng: tự nối lại, giữ ghế (token trong `sessionStorage`, mỗi tab một người);
+  tải lại trang vẫn vào lại đúng ghế. Người có lượt im lặng 30 s / mất kết nối 8 s / đã rời → máy chủ đi thay.
+- File: `online.js` + `online.css` (màn vào phòng, kết nối), `game.js` (`ctx.online`, `netState`), `hud.js` (tên, chủ phòng, mất kết nối).
+- Bật máy chủ: biến môi trường `COCANGUA_ONLINE=1` (mặc định tắt). Chạy thử trên máy: `node games-server/co-ca-ngua/dev.js` → http://localhost:8767/games/co-ca-ngua/
+- Test: `node --test --test-concurrency=1 games-server/co-ca-ngua/test/*.test.mjs` (máy chủ, 12 test) ·
+  `PORT=8767 node prototype/games/co-ca-ngua/screenshots/online-e2e.mjs <thư mục>` (3 trình duyệt thật, 31 kiểm tra; cần dev.js đang chạy).

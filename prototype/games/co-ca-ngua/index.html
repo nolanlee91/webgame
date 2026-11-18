@@ -30,6 +30,7 @@
   <main>
     <div id="stage"></div>
     <div class="help">
+      <div><b>Chơi online:</b> tạo phòng rồi gửi mã phòng (hoặc link) cho bạn bè; 2–4 người, mỗi người một máy. Máy chủ gieo xúc xắc và kiểm tra lượt đi.</div>
       <div><b>Gieo xúc xắc:</b> chạm khay xúc xắc đang sáng (hoặc chạm bàn), hoặc nhấn Space / Enter.</div>
       <div><b>Chọn ngựa:</b> chạm vào ngựa có vòng vàng dưới chân (hoặc chấm vàng nơi nó sẽ tới), hoặc phím 1–4. Chỉ có 1 nước đi thì tự đi.</div>
       <div><b>Luật:</b> gieo 6 (hoặc 1/6 nếu chọn ở phòng chờ) mới được xuất ngựa · gieo 6 được gieo thêm · không nhảy qua ngựa khác · dừng đúng ô đối thủ thì đá ngựa đó về chuồng · vào chuồng đích bằng đúng số bậc · ai đủ 4 ngựa trong chuồng đích trước thì thắng.</div>
@@ -37,6 +38,7 @@
   </main>
   <script type="module">
     import { mount } from "./game.js";
+    import { startOnline } from "./online.js";
     const stage = document.getElementById("stage");
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này.
@@ -47,20 +49,21 @@
       sound: { muted: localStorage.getItem("wgp.muted") === "1" }, // nút loa trên HUD / phím M đổi giá trị này
     };
     const n = Number(params.get("players"));
-    const direct = [2, 3, 4].includes(n); // ?players=2|3|4 → vào bàn luôn (link phòng / test); không có → phòng chờ
-    const inst = window.__game = mount(stage, {
-      mode: "single", locale: "vi", sdk, player: { id: "guest", name: "Khách" },
+    const direct = [2, 3, 4].includes(n); // ?players=2|3|4 → vào bàn chung máy luôn (test / link cũ); không có → màn vào phòng online
+    const ctx = {
+      mode: direct ? "single" : "online", locale: "vi", sdk, player: { id: "guest", name: "Khách" },
       localPlayers: direct ? n : 2, lobby: !direct,
       seed: params.has("seed") ? Number(params.get("seed")) : undefined,
       rules: params.get("rule") === "16" ? { launchOn: [1, 6] } : undefined,
       homeHref: "../../homepage/",
       onMuteChange: (m) => localStorage.setItem("wgp.muted", m ? "1" : "0"),
-    });
+    };
     window.addEventListener("keydown", (e) => {
-      if (e.code !== "KeyM" || e.repeat) return;
+      if (e.code !== "KeyM" || e.repeat || (e.target && e.target.closest && e.target.closest("input"))) return;
       sdk.sound.muted = !sdk.sound.muted; localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0");
     });
-    if (direct) stage.querySelector("canvas").focus();
+    if (direct || params.get("local") === "1") { window.__game = mount(stage, ctx); if (direct) stage.querySelector("canvas").focus(); } // ?local=1 → phòng chờ chung máy
+    else startOnline(stage, ctx);
   </script>
 </body>
 </html>

@@ -1,0 +1,31 @@
+PASS màn vào phòng hiện: ô tên, Tạo phòng online, ô mã, Chơi chung 1 máy
+PASS chưa nhập tên → báo lỗi, chưa kết nối
+PASS tạo phòng online → nhận mã phòng 5 ký tự, URL có ?room= — 35MRR
+PASS chủ phòng 1 người: nút Bắt đầu bị khoá (cần ≥ 2 người)
+PASS mở link mời ?room= → mã phòng điền sẵn, ẩn nút Tạo phòng
+PASS mã sai định dạng → báo lỗi ngay (không gửi máy chủ)
+PASS mã phòng không tồn tại → "Không tìm thấy phòng"
+PASS 3 người ở 3 trình duyệt cùng thấy phòng 3 người
+PASS phòng chờ hiện tên thật + "(Bạn)" đúng người — An Ngựa Ô (Bạn) | Bình | Chi
+PASS người không phải chủ phòng: nút "Chờ chủ phòng" khoá, luật khoá
+PASS máy chủ từ chối người không phải chủ bắt đầu ván
+PASS chủ phòng đổi luật "Gieo 1 hoặc 6" → mọi máy thấy
+PASS chủ bấm Bắt đầu → cả 3 máy vào bàn 3 màu, cùng trạng thái — 0,1,2
+PASS mỗi máy một màu riêng (ghế 0,1,2)
+PASS gửi "gieo" khi chưa tới lượt → máy chủ báo "Chưa tới lượt bạn", ván không đổi — Chưa tới lượt bạn.
+PASS gửi "đi ngựa" sai lượt/sai pha → ván không đổi
+PASS khay người khác hiện "Chờ … gieo"
+PASS điện thoại 390px giữa ván: không tràn ngang — 390 / 390 / 
+PASS 45 giây chơi thật (29 lần gieo, 8 lần chọn ngựa) → 3 máy khớp nhau từng ngựa, cùng số thứ tự — 50,50,50
+PASS không máy nào phải nhận lại trạng thái do lệch (desync = 0) — 0,0,0
+PASS đã chơi được nhiều lượt — 29
+PASS rớt mạng → hiện "đang nối lại"
+PASS tự nối lại, giữ đúng ghế, trạng thái khớp máy khác
+PASS tải lại trang (F5) → tự vào lại đúng ghế giữa ván
+PASS bấm Rời phòng (xác nhận) → về màn vào phòng
+PASS máy khác thấy "Đã rời · máy đi thay"
+PASS ván vẫn chạy tiếp khi có người rời (máy chủ đi thay)
+PASS mở cùng chỗ ngồi ở tab khác → tab cũ thoát, báo rõ
+PASS máy chủ chưa bật online → báo rõ, vẫn còn nút Chơi chung 1 máy
+PASS "Chơi chung 1 máy" → phòng chờ chung máy cũ
+PASS không có lỗi JS trên trang

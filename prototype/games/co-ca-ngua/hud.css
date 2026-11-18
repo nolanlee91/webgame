@@ -158,3 +158,18 @@
 
 /* nút loa luôn bấm được, kể cả khi bảng xếp hạng phủ lên */
 .cn-top [data-act="mute"] { position: relative; z-index: 6; }
+
+/* ---------- Chế độ online (online.js): ẩn chọn số người / tạm dừng, hiện tên + trạng thái kết nối ---------- */
+.cn-table.is-online .sec-n, .cn-table.is-online [data-act="pause"], .cn-table:not(.is-online) .net-only, .cn-table.is-online .local-only { display: none; }
+.cn-table .host-only-note { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--px-dim); }
+.cn-row .st.bad, .cn-card .sub .off { color: #ff8a7a; }
+.cn-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cn-table.is-online .cn-card .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.cn-table.is-online .cn-card .who > div { min-width: 0; }
+@media (max-width: 980px) {
+  /* nhãn khay dài (tên người chơi online) xuống dòng thay vì đẩy tràn ngang trên điện thoại */
+  .cn-table.is-online .cn-tray .lbl .tag, .cn-table.is-online .cn-tray .lbl .px-btn { white-space: normal; max-width: 96px; text-align: center; line-height: 1.2; }
+  .cn-table.is-online .cn-tray { min-width: 0; }
+  .cn-table.is-online .cn-seat { min-width: 0; }
+  .cn-table.is-online .cn-card .nm { max-width: 100%; }
+}
