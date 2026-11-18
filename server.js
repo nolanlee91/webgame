@@ -56,14 +56,26 @@ function serveFile(file, req, res, st) {
   fs.stat(file, (err, s) => (err || !s.isFile() ? send(res, 404, "Not Found") : go(s)));
 }
 
-// Ma Sói online (phòng nhiều người qua WebSocket) — CHỈ bật khi MASOI_ONLINE=1 (môi trường dev).
-// Production chưa bật: bật = một lần deploy cần chủ dự án duyệt riêng.
-if (process.env.MASOI_ONLINE === "1") {
+// Máy chủ game online (WebSocket). Mặc định BẬT — không cần đặt biến môi trường nào trên Railway.
+// Muốn tắt riêng một game: đặt MASOI_ONLINE=0 hoặc NOITU_ONLINE=0.
+const on = (v, def) => (v === "0" ? false : v === "1" ? true : def);
+if (on(process.env.MASOI_ONLINE, true)) {
   const speed = Number(process.env.MASOI_SPEED) || 1; // 0.2 = nhanh gấp 5 để thử
   const { DEFAULT_TIMINGS } = require("./games-server/ma-soi/room");
   const timings = Object.fromEntries(Object.entries(DEFAULT_TIMINGS).map(([k, v]) => [k, Math.round(v * speed)]));
   require("./games-server/ma-soi/host").createMaSoiHost(server, { timings });
   console.log(`Ma Sói online: đường /ws/ma-soi (thời gian mỗi pha x${speed})`);
+}
+// Nối Từ online 1v1 — tạm mặc định TẮT cho tới khi Codex review xong phần chống gian lận (bật thử: NOITU_ONLINE=1).
+if (on(process.env.NOITU_ONLINE, false)) {
+  require("./games-server/noi-tu/host").createNoiTuHost(server);
+  console.log("Nối Từ online: đường /ws/noi-tu");
+}
+
+// Cờ Cá Ngựa online (phòng 2–4 người qua WebSocket, máy chủ gieo xúc xắc + xác thực lượt) — CHỈ bật khi COCANGUA_ONLINE=1.
+if (process.env.COCANGUA_ONLINE === "1") {
+  require("./games-server/co-ca-ngua/host").createCoCaNguaHost(server);
+  console.log("Cờ Cá Ngựa online: đường /ws/co-ca-ngua");
 }
 
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));

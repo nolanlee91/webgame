@@ -3,7 +3,8 @@
 Trạng thái: **bước 1 xong** — kiến trúc + lõi + lớp phiên chơi + test hợp đồng đã code và chạy (56 test; bản 2.1 sửa 4 lỗi Codex tìm ra khi review code — xem mục 8).
 **Bước 2 xong** — giao diện chơi offline với máy (`index.html` + `game.js`), E2E Chrome thật 49 kiểm tra (mục 9). Mục tiêu giữ nguyên: bản đầu chơi với máy/offline, sau này cắm online 1v1 thật
 **mà không sửa luật, AI hay giao diện** — chỉ thêm một transport Colyseus và phần server.
-Code: `prototype/games/noi-tu/` · Test: `npm test` trong thư mục đó.
+**Bước 3 xong** — online 1v1 thật qua mã phòng (mục 11).
+Code: `prototype/games/noi-tu/` + `games-server/noi-tu/` · Test: `npm test` trong thư mục game, `npm run test:noi-tu` ở gốc repo.
 
 ## 1. Luật (bản đầu)
 - Mỗi từ là **từ ghép đúng 2 âm tiết** có trong từ điển; từ sau bắt đầu bằng **âm tiết cuối của từ trước**,
@@ -158,4 +159,21 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
 - **Từ điển:** bản khởi đầu mới có 591 từ (ván máy-đấu-máy trung bình ~4 nước — quá ngắn; máy hay thắng bằng
   từ cụt). Cần mở rộng lên 3.000–5.000 từ và **người thật duyệt** nguồn gốc trước khi phát hành.
 - Từ người chơi gõ mà thiếu đã được ghi cục bộ (`noi-tu:missing`) — chưa có đường gửi về để duyệt.
-- Chưa có adapter Colyseus/WebSocket thật để chạy bộ test hợp đồng qua mạng thật (làm cùng OnlineSession).
+- ~~Chưa có adapter WebSocket thật~~ — đã có (mục 11). Bộ test hợp đồng gốc vẫn chạy qua transport bộ nhớ/tiến trình riêng;
+  test mạng thật nằm ở `games-server/noi-tu/test/`.
+
+## 11. Online 1v1 (bước 3) — WebSocket thuần thay vì Colyseus
+- **Đổi so với mục 5:** dùng WebSocket thuần (`games-server/ma-soi/ws.js`, không thư viện ngoài) cùng tiến trình
+  `server.js`, giống Ma Sói. Lý do: một máy chủ Railway duy nhất, không thêm phụ thuộc, và RefereeHost vốn đã lo hết
+  idempotency / seq / snapshot nên Colyseus không thêm gì. Nguyên tắc mục 5 giữ nguyên: **log của RefereeHost là
+  nguồn sự thật duy nhất**, tầng phòng chỉ chuyển tiếp.
+- `host.js` = tầng phòng: `create {name}` → mã 5 ký tự + token ghế 0; `enter {code,name}` → ghế 1 và bắt đầu trận
+  (người đi trước, seed ngẫu nhiên ở server); `resume {code,token}` → vào lại ghế (kết nối cũ bị thay, mã đóng 4000);
+  `leave`. Chỉ `join / ping / sync / intent` được chuyển cho trọng tài, sau khi **làm sạch**: token luôn lấy từ kết
+  nối (không tin token/seat client gửi), `commandId` `[\w-]{1,64}`, `type` ∈ submit/resign/rematch, `word` ≤ 40 ký
+  tự, `expectedSeq` số nguyên. Lệnh sai hình dạng có commandId hợp lệ ⇒ trả `result {ok:false, reason:'bad-command'}`
+  để client ngừng gửi lại.
+- Giới hạn: khung ≤ 1 KB, 6 tin/giây (dồn tối đa 20), 16 kết nối + 4 phòng mỗi IP, tối đa 300 phòng, phòng không ai
+  kết nối bị xoá sau 5 phút. Tên: bỏ ký tự điều khiển/định hướng, tối đa 16 ký tự, hiển thị bằng `textContent`.
+- Rớt mạng: trọng tài chờ 30 giây (`graceMs`) rồi cho máy thay ghế; người cũ quay lại lấy lại ghế ở đầu ván sau.
+- Bật/tắt bằng `NOITU_ONLINE` (`0`/`1`).

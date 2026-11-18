@@ -1,16 +1,28 @@
 // Nối Từ — giao diện. Chỉ biết interface MatchSession (session/client.js): state / event / status, submit, resign,
 // rematch, remainingMs. KHÔNG import core/rules hay core/ai và KHÔNG tự tính giờ: thắng thua, hết giờ, bot đều do
-// trọng tài quyết. Sau này mở online chỉ cần đổi createLocalSession → OnlineSession, phần dưới giữ nguyên.
-//
-// Gốc lắp ráp (composition root) duy nhất được biết đến từ điển + LocalSession là hàm openSession() bên dưới.
+// trọng tài quyết. Hai chế độ chỉ khác nơi trọng tài chạy:
+//   · Đấu máy: createLocalSession — trọng tài chạy ngay trong trang (openSession()).
+//   · Online với bạn: openOnline — trọng tài chạy trên máy chủ (games-server/noi-tu), trang chỉ gửi ý định (openRoom()).
 import { createDict } from "./core/dict.js";
 import { createLocalSession } from "./session/local.js";
+import { openOnline } from "./session/online.js";
 import { guessWord } from "./core/input.js";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
 
 const STORE_KEY = "noi-tu:local";
 const PREFS_KEY = "noi-tu:prefs";
 const MISSING_KEY = "noi-tu:missing";      // từ người chơi gõ mà từ điển chưa có ⇒ người duyệt bổ sung sau (không tự thêm)
+const ROOM_KEY = "noi-tu:room";            // phòng online đang chơi {code, token} — để tải lại trang vẫn vào lại đúng ghế
 const ME = 0;                               // offline: người chơi luôn ngồi ghế 0 (Đỏ), máy ghế 1 (Xanh dương)
+const ONLINE_ERR = {
+  offline: "Không kết nối được máy chủ online (chế độ online có thể chưa bật trên máy chủ này).",
+  "no-room": "Không thấy phòng — kiểm tra lại mã (phòng bỏ trống 5 phút sẽ tự đóng).",
+  "no-seat": "Phòng này không còn ghế của bạn nữa.",
+  full: "Phòng đã đủ 2 người.",
+  "name-taken": "Tên này trùng với chủ phòng — đổi tên khác nhé.",
+  name: "Nhập tên của bạn trước đã.",
+  busy: "Máy chủ đang bận (hoặc bạn mở quá nhiều phòng). Thử lại sau chút nữa.",
+  loading: "Máy chủ đang khởi động — thử lại sau vài giây.",
+};
 
 const REASON = {
   "need-two-syllables": () => "Cần đúng một từ ghép 2 tiếng (vd: học tập).",
@@ -22,6 +34,7 @@ const REASON = {
   "late": () => "Hết giờ mất rồi!",
   "stale": () => "Chuỗi từ vừa đổi — xem lại rồi gõ tiếp.",
   "not-playing": () => "Ván đã kết thúc.",
+  "seat-taken-by-bot": () => "Máy đang giữ ghế của bạn — ván sau bạn sẽ được chơi lại.",
 };
 
 const store = {
@@ -67,11 +80,19 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     resign: $("resignBtn"), overRow: $("overRow"), overTxt: $("overTxt"), next2: $("nextBtn2"),
     ovMenu: $("ovMenu"), resume: $("resumeBtn"), start: $("startBtn"), mNote: $("mNote"),
     ovEnd: $("ovEnd"), eAv: $("eAv"), eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), eNext: $("eNext"), next: $("nextBtn"), view: $("viewBtn"),
-    menuBtn: $("menuBtn"), muteBtn: $("muteBtn"), muteIc: $("muteIc") };
+    menuBtn: $("menuBtn"), muteBtn: $("muteBtn"), muteIc: $("muteIc"),
+    mPick: $("mPick"), mLevel: $("mLevel"), mOnline: $("mOnline"), oName: $("oName"), oCode: $("oCode"), enter: $("enterBtn"), create: $("createBtn"),
+    mLobby: $("mLobby"), lCode: $("lCode"), lWait: $("lWait"), copy: $("copyBtn"), cancel: $("cancelBtn"), mRoom: $("mRoom"), mCard: $("mCard"), back: $("backBtn"), leave: $("leaveBtn") };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "thang", "thua", "qua-man", "het-gio", "do-xuc-xac"], sdk);
-  const prefs = { level: "easy", ...loadJSON(PREFS_KEY, {}) };   // level: chọn cho trận mới · matchLevel: của trận đang lưu
+  const prefs = { level: "easy", mode: "bot", name: "", ...loadJSON(PREFS_KEY, {}) };   // level: chọn cho trận mới · matchLevel: của trận đang lưu
+  const invite = (new URLSearchParams(location.search).get("p") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+  if (invite) prefs.mode = "online";
+  const ss = { get: (k) => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
+    set: (k, v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch { /* bỏ qua */ } }, remove: (k) => { try { sessionStorage.removeItem(k); } catch { /* bỏ qua */ } } };
 
   let dict = null, session = null, state = null, offs = [];
+  let mode = "bot";           // chế độ của ván đang mở: "bot" | "online"
+  let online = null;          // kết nối phòng online (openOnline) — còn sống cả lúc ở phòng chờ
   let fxWord = null;          // seq của sự kiện "played" mới (để chỉ thẻ đó có hiệu ứng rơi; snapshot thì không)
   let busy = false;           // đang chờ kết quả submit
   let armTimer = null, raf = 0, destroyed = false, lastSec = null, endShownFor = null, viewing = false;
@@ -80,7 +101,12 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   // ---------- phiên chơi ----------
   const ready = fetch(new URL("data/words.json", import.meta.url))
     .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then((j) => { dict = createDict(j); if (j.contentHash && j.contentHash !== dict.contentHash) console.warn("words.json: contentHash lệch nội dung"); showMenu(); })
+    .then((j) => {
+      dict = createDict(j); if (j.contentHash && j.contentHash !== dict.contentHash) console.warn("words.json: contentHash lệch nội dung");
+      const saved = ss.get(ROOM_KEY);
+      if (saved?.code && saved?.token) openRoom({ t: "resume", code: saved.code, token: saved.token }); // tải lại trang giữa ván online
+      else showMenu();
+    })
     .catch((e) => { el.mNote.innerHTML = `<span class="err">Không tải được từ điển (${e.message}). Tải lại trang thử nhé.</span>`; el.start.disabled = true; });
 
   function savedMatch() {
@@ -95,37 +121,101 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     closeSession();
     if (fresh) { store.remove(STORE_KEY); prefs.matchLevel = prefs.level; savePrefs(); }
     const level = prefs.matchLevel || prefs.level;
-    session = createLocalSession({ dict, mode: "bot", botLevel: level, names: ["Bạn", "Máy"], storage: store, storageKey: STORE_KEY });
+    mode = "bot";
+    attach(createLocalSession({ dict, mode: "bot", botLevel: level, names: ["Bạn", "Máy"], storage: store, storageKey: STORE_KEY }));
+  }
+
+  function attach(sess) {
+    session = sess;
     state = null; endShownFor = null; viewing = false; fxWord = null; el.chain.textContent = ""; el.chain.dataset.round = "";
     offs = [session.on("state", onState), session.on("event", onEvent), session.on("status", onStatus)];
     hide(el.ovMenu); setInert(false);
     loop();
   }
 
+  // ---------- online: phòng 2 người qua mã ----------
+  function openRoom(action) {
+    closeSession(); leaveRoom();
+    mode = "online";
+    const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/noi-tu`;
+    el.mNote.textContent = action.t === "resume" ? "Đang vào lại phòng…" : "Đang kết nối máy chủ…";
+    setBusyMenu(true);
+    const o = online = openOnline({
+      dict, url, action,
+      onRoom(room) {
+        if (o !== online) return;
+        ss.set(ROOM_KEY, { code: room.code, token: room.token });
+        setBusyMenu(false);
+        if (!room.started) showLobby(room);
+      },
+      onStart(sess) { if (o !== online) return; history.replaceState(null, "", location.pathname); attach(sess); },
+      onError(code) {
+        if (o !== online) return;
+        online = null; ss.remove(ROOM_KEY); setBusyMenu(false);
+        closeSession(); mode = "online"; showMenu(ONLINE_ERR[code] || `Lỗi online (${code}).`, true);
+      },
+      onEnd(reason) {
+        if (o !== online) return;
+        online = null; closeSession(); mode = "online";
+        showMenu(reason === "replaced" ? "Bạn đã mở ván này ở tab/máy khác — tab này dừng lại." : "Đã rời phòng.", true);
+      },
+    });
+  }
+
+  /** Rời phòng hẳn (báo máy chủ). Đang giữa ván ⇒ sau 30 giây máy sẽ thay ghế cho bạn kia chơi tiếp. */
+  function leaveRoom() {
+    if (!online) return;
+    const o = online; online = null; ss.remove(ROOM_KEY);
+    if (session && mode === "online") closeSession(); else o.leave();
+  }
+
+  function showLobby(room) {
+    for (const x of [el.mPick, el.mRoom]) hide(x);
+    show(el.mLobby); show(el.ovMenu); setInert(true); hide(el.ovEnd); el.mCard.dataset.view = "lobby";
+    el.lCode.textContent = room.code;
+    el.lWait.textContent = `Bạn là ${room.names[room.seat]} — đang chờ bạn kia vào phòng… (giữ trang này mở)`;
+    el.mNote.textContent = "";
+  }
+
+  function setBusyMenu(on) { for (const b of [el.create, el.enter]) b.setAttribute("aria-disabled", on ? "true" : "false"); }
+  function myName() { const n = el.oName.value.trim(); prefs.name = n; savePrefs(); return n; }
+
   function closeSession() {
     for (const off of offs) off();
     offs = [];
-    if (session) session.dispose();   // dừng trọng tài + mọi hẹn giờ (đồng hồ lượt dừng thật)
+    if (session) session.dispose();   // dừng trọng tài + mọi hẹn giờ (online: báo máy chủ rời phòng)
     session = null; busy = false;
     cancelAnimationFrame(raf);
   }
 
   // ---------- sự kiện từ trọng tài ----------
   function onEvent(ev) {
+    const ME = me();
     if (ev.type === "played") {
       fxWord = ev.seq;
       sfx.play(ev.seat === ME ? "buoc-nhay" : "do-xuc-xac", ev.seat === ME ? 0.7 : 0.35);
     } else if (ev.type === "roundEnded") {
       sfx.play(ev.winner === ME ? "thang" : (ev.reason === "timeout" ? "het-gio" : "thua"), 0.8);
-      sdk.gameOver?.({ winner: ev.winner === ME ? "player" : "bot", reason: ev.reason });
+      sdk.gameOver?.({ winner: ev.winner === ME ? "player" : (mode === "online" ? "opponent" : "bot"), reason: ev.reason, mode });
     } else if (ev.type === "roundStarted" && ev.seq > 2) {
       sfx.play("qua-man", 0.5);
     }
   }
 
   function onStatus(s) {
-    if (s === "closed" && session?.rejectReason) showMenu(`Không vào được ván (${session.rejectReason}). Bấm “Trận mới”.`);
+    if (s === "closed" && session?.rejectReason) {
+      if (mode === "online") { const why = session.rejectReason; leaveRoom(); showMenu(why === "pin-mismatch" ? "Từ điển của trang khác bản máy chủ — tải lại trang (Ctrl+F5) rồi vào lại phòng." : `Không vào được ván (${why}).`, true); }
+      else showMenu(`Không vào được ván (${session.rejectReason}). Bấm “Trận mới”.`);
+      return;
+    }
+    if (mode !== "online" || !state) return;
+    if (s === "reconnecting") setMsg("Mất kết nối — đang nối lại…", "bad");
+    else if (s === "opponent-left") setMsg(`${opp()} vừa mất kết nối — chờ tối đa 30 giây, sau đó máy sẽ đánh thay.`, "bad");
+    else if (s === "live") { setMsg(""); render(); }
   }
+
+  const me = () => session?.mySeat ?? ME;
+  const opp = () => state?.seats[1 - me()]?.name ?? (mode === "online" ? "Bạn kia" : "Máy");
 
   function onState(s) {
     const prevRound = state?.round?.id;
@@ -139,13 +229,14 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   function render() {
     const s = state, r = s?.round;
     if (!s) return;
-    const me = session.mySeat ?? ME, bot = 1 - me;
-    el.n[me].textContent = s.seats[me].name; el.n[bot].textContent = `${s.seats[bot].name} · ${(prefs.matchLevel || prefs.level) === "hard" ? "Khó" : "Dễ"}`;
+    const me = session.mySeat ?? ME, bot = 1 - me, O = s.seats[bot].name;
+    el.n[me].textContent = mode === "online" ? `${s.seats[me].name} (bạn)` : s.seats[me].name;
+    el.n[bot].textContent = mode === "online" ? O : `${O} · ${(prefs.matchLevel || prefs.level) === "hard" ? "Khó" : "Dễ"}`;
     for (const i of [0, 1]) el.s[i].textContent = s.score[i];
     sdk.reportScore?.(s.score[me]);
     if (!r) return;
     el.round.textContent = `Ván ${r.no}`;
-    el.first.textContent = r.first === me ? "Bạn đi trước" : "Máy đi trước";
+    el.first.textContent = r.first === me ? "Bạn đi trước" : `${O} đi trước`;
     const myTurn = !r.over && r.turn === me;
     for (const i of [0, 1]) {
       el.pl[i].classList.toggle("on", !r.over && r.turn === i);
@@ -153,7 +244,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
       const c = i === 0 ? "do" : "xanh-duong";
       el.av[i].src = `assets/avatar/ngua-${c}-${r.over ? (r.winner === i ? "mung-thang-1" : "bi-da-1") : "dung-yen-1"}.png`;
     }
-    el.status.textContent = r.over ? (r.winner === me ? "Bạn thắng ván" : "Máy thắng ván") : myTurn ? "Lượt bạn" : "Máy đang nghĩ…";
+    el.status.textContent = r.over ? (r.winner === me ? "Bạn thắng ván" : `${O} thắng ván`) : myTurn ? "Lượt bạn" : `${O} đang nghĩ…`;
     renderChain(r, me);
     // khay nhập
     const last = r.chain[r.chain.length - 1];
@@ -164,14 +255,16 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     else { el.need.textContent = "Từ mở đầu"; el.need.classList.add("free"); el.inp.placeholder = "gõ từ 2 tiếng bất kỳ…"; }
     setSendOff(!myTurn || busy);
     if (r.over) {
-      el.overTxt.textContent = endLine(r, me).title + " " + endLine(r, me).sub;
+      el.overTxt.textContent = endLine(r, me).title + " " + endLine(r, me).sub + rematchLine(me);
+      el.eNext.textContent = nextLine(r, me);
       if (endShownFor !== r.id && !viewing) showEnd(r, me);
       el.inp.blur();
     } else {
       hide(el.ovEnd); endShownFor = null; viewing = false;
       if (myTurn && el.ovMenu.hidden && document.activeElement !== el.inp && matchMedia("(hover: hover)").matches) el.inp.focus({ preventScroll: true });
-      if (!myTurn && !busy && !el.msg.classList.contains("bad")) setMsg("Máy đang tìm từ nối…");
-      if (myTurn && el.msgTxt.textContent === "Máy đang tìm từ nối…") setMsg(last ? `Tới lượt bạn — nối tiếp “${syl(last.word)[1]}”.` : "Tới lượt bạn — gõ từ mở đầu.");
+      const waitTxt = `${O} đang tìm từ nối…`;
+      if (!myTurn && !busy && !el.msg.classList.contains("bad")) setMsg(waitTxt);
+      if (myTurn && el.msgTxt.textContent === waitTxt) setMsg(last ? `Tới lượt bạn — nối tiếp “${syl(last.word)[1]}”.` : "Tới lượt bạn — gõ từ mở đầu.");
     }
   }
 
@@ -182,7 +275,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     d.dataset.seat = w.seat;
     d.innerHTML = `<span class="sy${i > 0 ? " lk" : ""}"></span><span class="sy${i < chain.length - 1 ? " lk" : ""}"></span>`;
     d.children[0].textContent = a; d.children[1].textContent = b;
-    d.setAttribute("aria-label", `${w.seat === me ? "Bạn" : "Máy"}: ${w.word}`);
+    d.setAttribute("aria-label", `${w.seat === me ? "Bạn" : opp()}: ${w.word}`);
     return d;
   }
 
@@ -208,13 +301,14 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     if (r.over && r.reason === "no-move" && last) last.classList.add("dead");
     if (!r.chain.length && !r.over) {
       const e = document.createElement("div"); e.className = "empty";
-      e.innerHTML = r.turn === me ? "Bạn mở màn! Gõ <b>một từ ghép 2 tiếng</b> bất kỳ, vd: <b>học tập</b>." : "Máy mở màn — chờ một chút…";
+      if (r.turn === me) e.innerHTML = "Bạn mở màn! Gõ <b>một từ ghép 2 tiếng</b> bất kỳ, vd: <b>học tập</b>.";
+      else e.textContent = `${opp()} mở màn — chờ một chút…`;
       box.append(e);
     }
     if (!r.over && r.turn !== me) {
       if (r.chain.length) box.append(Object.assign(document.createElement("span"), { className: "arrow ghost-arrow" }));
       const g = document.createElement("span"); g.className = "w ghost";
-      g.innerHTML = '<span class="sy dots"><i></i><i></i><i></i></span>'; g.setAttribute("aria-label", "Máy đang nghĩ");
+      g.innerHTML = '<span class="sy dots"><i></i><i></i><i></i></span>'; g.setAttribute("aria-label", `${opp()} đang nghĩ`);
       box.append(g);
     }
     box.scrollTop = box.scrollHeight;
@@ -222,12 +316,22 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
 
   function endLine(r, me) {
     const won = r.winner === me, last = r.chain[r.chain.length - 1];
-    const title = won ? "Bạn thắng!" : "Máy thắng!";
+    const O = opp(), title = won ? "Bạn thắng!" : `${O} thắng!`;
     let sub = "";
     if (r.reason === "no-move") sub = `“${last.word}” là từ cụt — không còn từ nào bắt đầu bằng “${syl(last.word)[1]}”.`;
-    else if (r.reason === "timeout") sub = won ? "Máy hết giờ." : "Bạn hết 15 giây mà chưa nối được.";
-    else if (r.reason === "resign") sub = won ? "Máy bí từ, chịu thua." : "Bạn đã chịu thua.";
+    else if (r.reason === "timeout") sub = won ? `${O} hết giờ.` : "Bạn hết 15 giây mà chưa nối được.";
+    else if (r.reason === "resign") sub = won ? (mode === "online" ? `${O} chịu thua.` : "Máy bí từ, chịu thua.") : "Bạn đã chịu thua.";
     return { title, sub };
+  }
+
+  // chơi lại online cần CẢ HAI bấm — báo đang chờ ai
+  function rematchLine(me) {
+    const rm = state?.rematch; if (mode !== "online" || !rm) return "";
+    return rm[me] && !rm[1 - me] ? ` Đang chờ ${opp()} bấm chơi tiếp…` : !rm[me] && rm[1 - me] ? ` ${opp()} muốn chơi tiếp!` : "";
+  }
+  function nextLine(r, me) {
+    const won = r.winner === me;
+    return `Ván sau: ${won ? opp() : "bạn"} đi trước (người thua đi trước).${rematchLine(me)}`;
   }
 
   function showEnd(r, me) {
@@ -235,8 +339,11 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     const { title, sub } = endLine(r, me), won = r.winner === me;
     el.eTitle.textContent = title; el.eSub.textContent = sub + (r.chain.length ? ` Chuỗi dài ${r.chain.length} từ.` : "");
     el.eAv.src = won ? "assets/avatar/ngua-do-mung-thang-1.png" : "assets/avatar/ngua-xanh-duong-mung-thang-1.png";
-    el.eResult.innerHTML = `<div class="r0"><small>Bạn</small><b>${state.score[me]}</b></div><div class="r1"><small>Máy</small><b>${state.score[1 - me]}</b></div>`;
-    el.eNext.textContent = `Ván sau: ${won ? "máy" : "bạn"} đi trước (người thua đi trước).`;
+    el.eResult.innerHTML = '<div class="r0"><small></small><b></b></div><div class="r1"><small></small><b></b></div>';
+    const [c0, c1] = el.eResult.children;
+    c0.children[0].textContent = "Bạn"; c0.children[1].textContent = String(state.score[me]);
+    c1.children[0].textContent = opp(); c1.children[1].textContent = String(state.score[1 - me]);
+    el.eNext.textContent = nextLine(r, me);
     show(el.ovEnd);
     setTimeout(() => { if (!el.ovEnd.hidden) el.next.focus({ preventScroll: true }); }, 50);
   }
@@ -260,7 +367,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     }
     const total = state.config.turnMs, sec = Math.ceil(rem / 1000);
     el.clock.className = "clock " + (r.turn === me ? "me" : "bot") + (rem <= 5000 && r.turn === me ? " low" : "");
-    el.cLbl.textContent = r.turn === me ? "Lượt bạn" : "Lượt máy";
+    el.cLbl.textContent = r.turn === me ? "Lượt bạn" : (mode === "online" ? "Lượt bạn kia" : "Lượt máy");
     el.cFill.style.width = `calc(${Math.max(0, Math.min(1, rem / total)) * 100}% - 4px)`;
     if (sec !== lastSec) { el.cNum.textContent = String(sec); el.clock.dataset.ms = String(Math.round(rem)); lastSec = sec; }
   }
@@ -278,7 +385,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   async function submit() {
     const r = state?.round;
     if (!session || !r || r.over || busy) return;
-    if (r.turn !== (session.mySeat ?? ME)) { setMsg("Chưa tới lượt bạn — chờ máy nối xong.", "bad"); return; }
+    if (r.turn !== (session.mySeat ?? ME)) { setMsg(`Chưa tới lượt bạn — chờ ${opp()} nối xong.`, "bad"); return; }
     const word = wordFrom(el.inp.value);
     if (!word) { setMsg("Gõ một từ trước đã.", "bad"); shake(); return; }
     busy = true; setSendOff(true); t.submits++;
@@ -314,26 +421,39 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   }
   function disarm() { clearTimeout(armTimer); armTimer = null; el.resign.classList.remove("armed"); el.resign.textContent = "Chịu thua"; }
 
-  function rematch() { hide(el.ovEnd); viewing = false; session?.rematch(); }
+  function rematch() { hide(el.ovEnd); viewing = false; session?.rematch().then(() => state && render()); }
 
   // ---------- menu / tạm dừng ----------
-  function showMenu(note = "") {
+  function showMenu(note = "", keepMode = false) {
+    if (session && mode === "online") {  // online: KHÔNG dừng ván (đối thủ vẫn chơi) — chỉ mở menu phòng
+      for (const x of [el.mPick, el.mLobby]) hide(x);
+      show(el.mRoom); el.mNote.textContent = note; show(el.ovMenu); setInert(true); el.mCard.dataset.view = "room";
+      setTimeout(() => el.back.focus({ preventScroll: true }), 30);
+      return;
+    }
+    if (!keepMode && !online) mode = prefs.mode;
+    hide(el.mLobby); hide(el.mRoom); show(el.mPick);
     const live = session && state?.round && !state.round.over;
     if (session) closeSession();       // tạm dừng THẬT: trọng tài dừng, log đã lưu; chơi tiếp ⇒ tính giờ lại lượt đang dở
     const sv = savedMatch();
     el.resume.hidden = !sv;
     el.start.classList.toggle("btn--primary", !sv);
     el.start.textContent = sv ? "Trận mới" : "▶ Bắt đầu";
-    el.mNote.textContent = note || (sv ? `Trận đang lưu: ván ${sv.roundNo}, tỉ số Bạn ${sv.score[0]} – ${sv.score[1]} Máy${sv.over ? "" : " (ván đang dở — chơi tiếp được tính lại 15 giây)"}.` : "");
+    el.mNote.textContent = note || (sv && prefs.mode === "bot" ? `Trận đang lưu: ván ${sv.roundNo}, tỉ số Bạn ${sv.score[0]} – ${sv.score[1]} Máy${sv.over ? "" : " (ván đang dở — chơi tiếp được tính lại 15 giây)"}.` : "");
     if (live) el.mNote.textContent = "Đã tạm dừng — đồng hồ đứng yên. " + el.mNote.textContent;
     syncSeg();
     hide(el.ovEnd); show(el.ovMenu); setInert(true);
     el.clock.className = "clock idle";
-    setTimeout(() => (sv ? el.resume : el.start).focus({ preventScroll: true }), 30);
+    setTimeout(() => (prefs.mode === "online" ? (el.oName.value ? el.create : el.oName) : sv ? el.resume : el.start).focus({ preventScroll: true }), 30);
   }
 
   function syncSeg() {
     for (const b of root.querySelectorAll('.seg[data-k="level"] button')) b.setAttribute("aria-checked", String(b.dataset.v === prefs.level));
+    for (const b of root.querySelectorAll('.seg[data-k="mode"] button')) b.setAttribute("aria-checked", String(b.dataset.v === prefs.mode));
+    const on = prefs.mode === "online", sv = !on && savedMatch();
+    el.mLevel.hidden = on; el.mOnline.hidden = !on; el.create.hidden = !on;
+    el.start.hidden = on; el.resume.hidden = on || !sv;
+    el.mCard.dataset.view = on ? "online" : "bot";
   }
   function savePrefs() { store.set(PREFS_KEY, JSON.stringify(prefs)); }
 
@@ -358,6 +478,28 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   el.next2.addEventListener("click", rematch);
   el.view.addEventListener("click", () => { viewing = true; hide(el.ovEnd); el.next2.focus({ preventScroll: true }); });
   el.menuBtn.addEventListener("click", () => (el.ovMenu.hidden ? showMenu() : (session ? (hide(el.ovMenu), setInert(false)) : null)));
+  for (const b of root.querySelectorAll('.seg[data-k="mode"] button')) b.addEventListener("click", () => { prefs.mode = b.dataset.v; mode = prefs.mode; savePrefs(); el.mNote.textContent = ""; syncSeg(); });
+  el.oName.value = prefs.name || ""; el.oCode.value = invite;
+  if (invite) el.mNote.textContent = `Bạn được mời vào phòng ${invite} — nhập tên rồi bấm “Vào phòng”.`;
+  const needName = () => { const n = myName(); if (!n) { el.mNote.textContent = ONLINE_ERR.name; el.oName.focus(); } return n; };
+  el.create.addEventListener("click", () => { if (el.create.getAttribute("aria-disabled") === "true") return; const n = needName(); if (n) openRoom({ t: "create", name: n }); });
+  const doEnter = () => {
+    if (el.enter.getAttribute("aria-disabled") === "true") return;
+    const code = el.oCode.value.trim().toUpperCase();
+    if (code.length < 5) { el.mNote.textContent = "Mã phòng gồm 5 ký tự."; el.oCode.focus(); return; }
+    const n = needName(); if (n) openRoom({ t: "enter", code, name: n });
+  };
+  el.enter.addEventListener("click", doEnter);
+  el.oCode.addEventListener("keydown", (e) => { if (e.key === "Enter") doEnter(); });
+  el.oName.addEventListener("keydown", (e) => { if (e.key === "Enter") (el.oCode.value.trim() ? doEnter() : el.create.click()); });
+  el.copy.addEventListener("click", async () => {
+    const link = `${location.origin}${location.pathname}?p=${el.lCode.textContent}`;
+    try { await navigator.clipboard.writeText(link); el.copy.textContent = "Đã sao chép ✓"; } catch { el.copy.textContent = link; }
+    setTimeout(() => { el.copy.textContent = "Sao chép link mời"; }, 2500);
+  });
+  el.cancel.addEventListener("click", () => { leaveRoom(); showMenu("Đã hủy phòng.", true); });
+  el.back.addEventListener("click", () => { hide(el.ovMenu); setInert(false); });
+  el.leave.addEventListener("click", () => { leaveRoom(); showMenu("Đã rời phòng.", true); });
   el.muteBtn.addEventListener("click", toggleMute);
   el.resume.addEventListener("click", () => openSession(false));
   el.start.addEventListener("click", () => openSession(true));
@@ -367,7 +509,8 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   };
   window.addEventListener("keydown", onKey);
   // chuyển tab / tắt màn hình điện thoại giữa ván ⇒ tự tạm dừng (không bị xử thua vì hết giờ khi không nhìn)
-  const onVis = () => { if (document.hidden && session && state?.round && !state.round.over) showMenu(); };
+  // (online thì KHÔNG: đối thủ vẫn đang chơi, ván không dừng được)
+  const onVis = () => { if (document.hidden && mode === "bot" && session && state?.round && !state.round.over) showMenu(); };
   document.addEventListener("visibilitychange", onVis);
   // bàn phím ảo mở / xoay máy làm khung chuỗi thấp lại ⇒ luôn giữ từ mới nhất trong tầm nhìn
   const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => { el.chain.scrollTop = el.chain.scrollHeight; }) : null;
@@ -377,9 +520,10 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   return {
     ready,
     get session() { return session; },
+    get mode() { return mode; },
     get state() { return state; },
     get dict() { return dict; },
     t, sfx, prefs,
-    destroy() { destroyed = true; closeSession(); sfx.close(); window.removeEventListener("keydown", onKey); ro?.disconnect(); document.removeEventListener("visibilitychange", onVis); },
+    destroy() { destroyed = true; closeSession(); if (online) { online.leave(); online = null; } sfx.close(); window.removeEventListener("keydown", onKey); ro?.disconnect(); document.removeEventListener("visibilitychange", onVis); },
   };
 }

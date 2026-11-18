@@ -166,6 +166,13 @@
     .result .r0 b { color: var(--s0-l); } .result .r1 b { color: var(--s1-l); }
     .note { margin-top: 12px; font-size: 13px; color: var(--soft); }
     .err { color: var(--s0-l); font-weight: 700; }
+    /* menu online gọn: phòng chờ / trong phòng không cần phần hướng dẫn; chọn online thì bỏ hình minh họa cho thấy ô nhập */
+    #mCard[data-view="online"] :is(.demo, .how), #mCard[data-view="lobby"] :is(.demo, .how, .intro), #mCard[data-view="room"] :is(.demo, .how, .intro) { display: none; }
+    .field--sm input { min-height: 44px; font-size: 17px; }
+    .join-row { display: flex; gap: 8px; align-items: center; } .join-row .field { flex: 1; }
+    #oCode { text-transform: uppercase; letter-spacing: .2em; font-weight: 800; }
+    #mOnline { display: grid; gap: 10px; } #mOnline[hidden] { display: none; }
+    .lobby .code { margin: 14px auto 4px; width: max-content; padding: 10px 22px; font: 800 40px/1 "Be Vietnam Pro", monospace; letter-spacing: .3em; color: var(--gold); background: var(--panel2); box-shadow: var(--border); user-select: all; }
 
     @media (max-width: 760px), (max-aspect-ratio: 1/1) {
       .tag { display: none; }
@@ -232,9 +239,9 @@
       <div class="chain" id="chain" aria-live="polite" aria-label="Chuỗi từ đã nối"></div>
 
       <div class="ov" id="ovMenu">
-        <div class="card">
+        <div class="card" id="mCard" data-view="bot">
           <h2><img src="assets/avatar/ngua-do-dung-yen-1.png" alt="" />Nối Từ<img src="assets/avatar/ngua-xanh-duong-dung-yen-1.png" alt="" /></h2>
-          <p class="sub">Nối từ ghép tiếng Việt — đấu trí với máy, mỗi lượt 15 giây!</p>
+          <p class="sub intro">Nối từ ghép tiếng Việt — đấu với máy hoặc với bạn qua mã phòng, mỗi lượt 15 giây!</p>
           <div class="demo" aria-hidden="true">
             <span class="w w--0"><span class="sy">học</span><span class="sy lk">tập</span></span><span class="arrow"></span>
             <span class="w w--1"><span class="sy lk">tập</span><span class="sy lk">thể</span></span><span class="arrow"></span>
@@ -247,13 +254,38 @@
               <li>Đánh được <b>từ cụt</b> (không còn từ nào nối tiếp) là <b>thắng ngay</b>. Ván sau người thua đi trước.</li>
             </ul>
           </div>
-          <div class="opts">
-            <div class="opt"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="level">
-              <button type="button" role="radio" data-v="easy">Dễ<small>từ quen thuộc</small></button><button type="button" role="radio" data-v="hard">Khó<small>chặn đường nối</small></button></div></div>
+          <div id="mPick">
+            <div class="opts">
+              <div class="opt"><span>Chế độ</span><div class="seg" role="radiogroup" aria-label="Chế độ chơi" data-k="mode">
+                <button type="button" role="radio" data-v="bot">Đấu máy<small>chơi một mình</small></button><button type="button" role="radio" data-v="online">Online với bạn<small>2 máy, mã phòng</small></button></div></div>
+              <div class="opt" id="mLevel"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="level">
+                <button type="button" role="radio" data-v="easy">Dễ<small>từ quen thuộc</small></button><button type="button" role="radio" data-v="hard">Khó<small>chặn đường nối</small></button></div></div>
+              <div id="mOnline" hidden>
+                <div class="opt"><span>Tên bạn</span><label class="field field--sm"><input id="oName" type="text" maxlength="16" autocomplete="nickname" placeholder="vd: Lan" aria-label="Tên của bạn" /></label></div>
+                <div class="opt"><span>Mã phòng</span><div class="join-row"><label class="field field--sm"><input id="oCode" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="5 ký tự" aria-label="Mã phòng của bạn bè" /></label><button class="btn" id="enterBtn" type="button">Vào phòng</button></div></div>
+              </div>
+            </div>
+            <div class="actions" id="mActions">
+              <button class="btn btn--big btn--primary" id="resumeBtn" type="button" hidden>▶ Chơi tiếp</button>
+              <button class="btn btn--big" id="startBtn" type="button">Trận mới</button>
+              <button class="btn btn--big btn--primary" id="createBtn" type="button" hidden>Tạo phòng mới</button>
+            </div>
           </div>
-          <div class="actions" id="mActions">
-            <button class="btn btn--big btn--primary" id="resumeBtn" type="button" hidden>▶ Chơi tiếp</button>
-            <button class="btn btn--big" id="startBtn" type="button">Trận mới</button>
+          <div id="mLobby" class="lobby" hidden>
+            <p class="sub">Gửi mã này cho bạn — bạn ấy mở Nối Từ, chọn <b>Online với bạn</b> và nhập mã:</p>
+            <div class="code" id="lCode" aria-live="polite">-----</div>
+            <div class="actions">
+              <button class="btn btn--primary" id="copyBtn" type="button">Sao chép link mời</button>
+              <button class="btn" id="cancelBtn" type="button">Hủy phòng</button>
+            </div>
+            <p class="note" id="lWait">Đang chờ bạn vào phòng…</p>
+          </div>
+          <div id="mRoom" hidden>
+            <p class="sub">Đang đấu online — ván vẫn chạy, đồng hồ <b>không</b> dừng khi mở menu.</p>
+            <div class="actions">
+              <button class="btn btn--big btn--primary" id="backBtn" type="button">▶ Quay lại ván</button>
+              <button class="btn btn--big btn--warn" id="leaveBtn" type="button">Rời phòng</button>
+            </div>
           </div>
           <div class="note" id="mNote"></div>
         </div>

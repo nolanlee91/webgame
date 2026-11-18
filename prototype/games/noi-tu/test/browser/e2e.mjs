@@ -69,7 +69,7 @@ async function waitFor(expr, ms = 5000) { const t0 = Date.now(); while (Date.now
 const click = async (x, y) => { await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y }); for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); };
 const tap = async (x, y) => { await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] }); await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); };
 let press = click;
-const at = (sel) => ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]'))return null;const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()`);
+const at = (sel) => ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]'))return null;e.scrollIntoView({block:'nearest'});const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()`);
 const pressSel = async (sel) => { const p = await at(sel); if (!p) throw new Error('không thấy ' + sel); await press(...p); await sleep(120); };
 const KEYS = { Enter: ['Enter', 13], Escape: ['Escape', 27] };
 const key = async (code) => { const [k, vk] = KEYS[code]; for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, code, key: k, windowsVirtualKeyCode: vk, text: type === 'keyDown' && code === 'Enter' ? '\r' : undefined }); await sleep(60); };
@@ -113,7 +113,7 @@ try {
   await view(1440, 900, false); await touch(false); press = click;
   await nav(BASE); await ev('localStorage.clear()'); await nav(BASE);
   check('mở game → menu hiện, chưa có trận lưu, mặc định máy Dễ, khay nhập bị khoá', await visible('#ovMenu') && !(await visible('#resumeBtn'))
-    && await ev(`document.querySelector('.seg button[aria-checked=true]').dataset.v`) === 'easy' && await ev('document.getElementById("dock").inert'));
+    && await ev(`document.querySelector('.seg[data-k=level] button[aria-checked=true]').dataset.v`) === 'easy' && await ev('document.getElementById("dock").inert'));
   check('từ điển nạp đúng bản ghim (hash khớp words.json)', await ev(`fetch('data/words.json').then(r=>r.json()).then(j=>j.contentHash===__game.dict.contentHash&&__game.dict.size===591)`));
   await shot('noitu-desktop-menu.png');
   await pressSel('#startBtn');

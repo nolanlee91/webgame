@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev:ma-soi": "node games-server/ma-soi/dev.js",
     "test:ma-soi": "node --test --test-concurrency=1 games-server/ma-soi/test/*.test.mjs",
-    "test:ma-soi:e2e": "node games-server/ma-soi/test/browser-e2e.mjs"
+    "test:ma-soi:e2e": "node games-server/ma-soi/test/browser-e2e.mjs",
+    "test:noi-tu": "node --test --test-concurrency=1 --test-timeout=20000 games-server/noi-tu/test/*.test.mjs"
   },
   "engines": {
     "node": ">=18"

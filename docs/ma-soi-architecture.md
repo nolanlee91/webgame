@@ -1,6 +1,6 @@
 # Ma Sói online: phòng, ngày/đêm, giữ bí mật vai
 
-Trạng thái: bản dev, chưa bật ở production. Máy chủ chỉ chạy khi có `MASOI_ONLINE=1`. Thiết kế game: `docs/ma-soi-game-design-mvp.md`.
+Trạng thái: đang chạy ở production. Máy chủ **bật mặc định** (không cần đặt biến trên Railway); đặt `MASOI_ONLINE=0` để tắt. Thiết kế game: `docs/ma-soi-game-design-mvp.md`.
 
 ## Chạy thử
 - `npm run dev:ma-soi` rồi mở `http://localhost:8766/games/ma-soi/` ở **6 tab** (mỗi tab là một người).
