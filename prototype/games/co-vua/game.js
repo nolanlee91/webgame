@@ -250,6 +250,7 @@ export function mount(root, ctx = {}) {
     const order = "qrbnp";
     return list.slice().sort((a, b) => order.indexOf(L.typeOf(a)) - order.indexOf(L.typeOf(b))).map((p) => icon(L.colorOf(p), L.typeOf(p), "mini")).join("");
   }
+  let warnLeft = -1; // giây cuối đã tích cảnh báo hết giờ lượt
   function hud() {
     const nm = names();
     document.body.classList.toggle("is-online", online());
@@ -281,6 +282,7 @@ export function mount(root, ctx = {}) {
     else if (online()) {
       const left = room.deadline ? Math.max(0, Math.ceil((room.deadline - (Date.now() + skew)) / 1000)) : 0;
       const tm = left && left <= 15 ? " · " + left + "s" : "", opp = room.players[ts];
+      if (ts === mySeat() && left > 0 && left <= 5 && left !== warnLeft) { warnLeft = left; sfx.play("do-xuc-xac", 0.3); }
       ui.status.textContent = (ts === mySeat() ? "Lượt bạn (" + CNAME[s.turn] + ")" : opp && !opp.connected ? nm[ts] + " mất kết nối…" : "Chờ " + nm[ts] + " đi…") + check + tm;
     } else ui.status.innerHTML = "Lượt " + CNAME[s.turn] + '<span class="hn"> · ' + esc(nm[ts]) + "</span>" + check;
     const humanMoved = s.mode !== "ai" || s.moves.some((m, i) => (i % 2 ? "b" : "w") === L.colorOfSeat(s, 0));
@@ -492,6 +494,7 @@ export function mount(root, ctx = {}) {
   function netState(v) {
     const prev = room; room = v;
     renderChat(v); presenceSfx(prev, v);
+    if (prev && prev.gid === v.gid && prev.drawOffer !== v.drawOffer && v.drawOffer >= 0 && v.drawOffer !== v.you) sfx.play("do-xuc-xac", 0.5); // đối thủ mời hòa
     if (v.phase === "lobby") {
       clearTimers(); s = null; sent = false; sel = -1; targets = []; fx = { anim: null, bad: null }; closePromo();
       if (v.oppLeft && prev && prev.phase !== "lobby") toast("Đối thủ đã rời phòng — gửi mã cho người khác vào chơi tiếp.", 4000);
@@ -661,8 +664,8 @@ export function mount(root, ctx = {}) {
     ui.menuP.textContent = room ? "Rời phòng" : "Về menu";
     if (on) {
       ui.pSub.textContent = "Ván " + s.round + " · " + s.moves.length + " nước · tỉ số " + s.score[0] + " – " + s.score[1];
-      overlay("pause"); $("resumeBtn").focus({ preventScroll: true });
-    } else { overlay(null); cv.focus({ preventScroll: true }); }
+      overlay("pause"); $("resumeBtn").focus({ preventScroll: true }); sfx.play("buoc-nhay", 0.35);
+    } else { overlay(null); cv.focus({ preventScroll: true }); sfx.play("buoc-nhay", 0.35); }
   }
   // Bảng chọn quân phong cấp (Hậu / Xe / Tượng / Mã)
   function openPromo(from, to) {

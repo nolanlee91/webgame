@@ -461,6 +461,7 @@ export function mount(root, ctx = {}) {
     $("nextBtn").hidden = lv >= L.LEVELS.length;
     show(ov.win);
     sfx.play("thang", 0.6);
+    if (record && prevBest) setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới
     $(lv < L.LEVELS.length ? "nextBtn" : "replayBtn").focus({ preventScroll: true });
   }
 
@@ -483,9 +484,10 @@ export function mount(root, ctx = {}) {
   }
 
   // ---------- Gợi ý ----------
-  function hint() {
+  function hint(auto = false) {
     if (!s || s.status !== "playing" || busy || anyOverlay()) return null;
     hintPair = L.findMove(s.cells);
+    if (hintPair) sfx.play("buoc-nhay", auto ? 0.2 : 0.45, 1.3); // tự gợi ý khi đứng yên thì nhỏ hơn
     marks();
     return hintPair;
   }
@@ -519,6 +521,7 @@ export function mount(root, ctx = {}) {
   }
   function showMenu() {
     if (destroyed) return;
+    if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     hide(ov.win); hide(ov.lose);
     if (s && s.status !== "playing") { s = null; }
     persist();
@@ -539,6 +542,7 @@ export function mount(root, ctx = {}) {
     board.classList.remove("dim", "shake");
     hide(ov.menu); hide(ov.win); hide(ov.lose);
     syncView(); syncAll(); hud(); persist();
+    sfx.play("qua-man", 0.5);
     stage.focus({ preventScroll: true });
     return s;
   }
@@ -634,6 +638,7 @@ export function mount(root, ctx = {}) {
       if (busy) return;
       if (cur < 0) cur = 27;
       sel = sel === cur ? -1 : cur;
+      if (sel >= 0) sfx.play("buoc-nhay", 0.25, 1.4);
       idle = 0; marks();
     }
   }
@@ -667,7 +672,7 @@ export function mount(root, ctx = {}) {
     const dt = Math.min(0.25, (now - last) / 1000); last = now;
     if (s && s.status === "playing" && !anyOverlay() && !document.hidden) {
       s.time += dt;
-      if (!busy && !hintPair && sel < 0) { idle += dt; if (idle > IDLE_HINT) { idle = 0; hint(); } }
+      if (!busy && !hintPair && sel < 0) { idle += dt; if (idle > IDLE_HINT) { idle = 0; hint(true); } }
       const sec = Math.floor(s.time);
       if (sec !== lastSec) { lastSec = sec; if (sec % 5 === 0) persist(); }
     }

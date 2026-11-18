@@ -310,7 +310,7 @@ export function mount(el, ctx = {}) {
       msg = lobbyMsg();
       return;
     }
-    if (lobby || v.gid !== netGid) { lobby = false; adopt(v); return; }
+    if (lobby || v.gid !== netGid) { if (!lobby && netGid >= 0) sfx.play("qua-man", 0.5); lobby = false; adopt(v); return; } // ván mới trong cùng phòng
     if (v.seq > netSeq) inbox.push(v);
   }
   function pumpNet() {
@@ -365,7 +365,7 @@ export function mount(el, ctx = {}) {
   window.addEventListener("keydown", onKey);
   canvas.addEventListener("pointerdown", onPointer);
   document.addEventListener("visibilitychange", onVis);
-  function setPaused(v) { paused = v; }
+  function setPaused(v) { if (paused !== v) sfx.play("buoc-nhay", 0.35); paused = v; }
 
   // ---------- Vòng lặp ----------
   function frame(now) {
@@ -374,7 +374,7 @@ export function mount(el, ctx = {}) {
     if (!paused && !lobby) {
       if (diceAnim && now >= diceAnim.until) {
         shownDice = diceAnim.face; msg = diceAnim.msg; diceAnim = null;
-        if (lastRoll && lastRoll.noMove) { noMoveShow = { seat: lastRoll.seat, face: lastRoll.dice, until: now + 900 }; shownSeat = lastRoll.seat; }
+        if (lastRoll && lastRoll.noMove) { noMoveShow = { seat: lastRoll.seat, face: lastRoll.dice, until: now + 900 }; shownSeat = lastRoll.seat; sfx.play("da-quan", 0.3); } // gieo mà không đi được
         else if (g.phase !== "move") shownSeat = currentSeat(g);
       }
       if (noMoveShow && now >= noMoveShow.until) { noMoveShow = null; shownSeat = currentSeat(g); }
@@ -388,7 +388,7 @@ export function mount(el, ctx = {}) {
       if (hop && now - hop.t0 >= (hop.pts.length - 1) * 110 + 60) {
         if (hop.kick) sfx.play("da-quan");
         if (hop.home) sfx.play("ve-chuong");
-        if (hop.win) sfx.play("thang", 1, 0.3);
+        if (hop.win) sfx.play(!net || hop.seat === mySeat() ? "thang" : "qua-man", 1, 0.3); // online: người thua không nghe nhạc thắng
         if (hop.kick) kickFx = { seat: hop.kick.seat, horse: hop.kick.horse, ...hop.pts[hop.pts.length - 1], t0: now };
         if (hop.kick) pops.push({ ...posXY(g, hop.seat, hop.horse, g.horses[hop.seat][hop.horse]), text: "ĐÁ!", t: now });
         hop = null;

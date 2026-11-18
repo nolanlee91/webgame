@@ -75,6 +75,7 @@ const sfx = (() => {
     win: [[523, 0.1, "square"], [659, 0.1, "square"], [784, 0.1, "square"], [1046, 0.3, "square"]],
     lose: [[392, 0.16, "triangle"], [330, 0.16, "triangle"], [262, 0.4, "triangle"]],
     tick: [[1000, 0.03, "square"]],
+    leave: [[660, 0.06, "triangle"], [440, 0.1, "triangle"]], err: [[200, 0.07, "square"], [150, 0.1, "square"]],
   };
   return {
     muted, log: [],
@@ -109,12 +110,20 @@ function soundFor(a, b) {
     else if (b.phase === "reveal") sfx.play("card", 1, 350);
     else if (b.phase === "night") sfx.play("alarm", 0.8);
     else if (b.phase === "dawn") { sfx.play("power", 0.8); if (last?.kind === "hit") sfx.play("hit", 1, 900); }
+    else if (b.phase === "day") sfx.play("blip", 0.5);
     else if (b.phase === "vote") sfx.play("gavel");
     else if (b.phase === "verdict" && last?.kind === "jail") sfx.play("hit");
     else if (b.phase === "end") sfx.play(won(b.players[b.seat]) ? "win" : "lose");
-  } else if (b.phase === "lobby" && b.players.length > a.players.length) sfx.play("blip", 0.7);
+  } else {
+    let join = false, gone = false;
+    if (b.players.length < a.players.length) gone = true;
+    else if (b.players.length > a.players.length) join = true;
+    else b.players.forEach((p, i) => { if (i === b.seat) return; const o = a.players[i]; if (o && o.connected && !p.connected) gone = true; else if (o && !o.connected && p.connected) join = true; });
+    if (join) sfx.play("blip", 0.7); else if (gone) sfx.play("leave", 0.7);
+  }
   const fresh = (x, y) => { const t = x?.length ? x[x.length - 1].ts : -1; return (y || []).some((c) => c.ts > t && c.seat !== b.seat); };
   if (fresh(a.chat, b.chat) || fresh(a.moleChat, b.moleChat)) sfx.play("msg", 0.7);
+  if (b.dispatch && !a.dispatch && b.dispatch.from !== b.seat) sfx.play("msg", 1, 120); // nhận tin riêng của Liên Lạc Viên (kêu 2 lần cho khác tin chat)
 }
 
 // ---------------- kết nối ----------------
@@ -137,7 +146,7 @@ function connect() {
 }
 function offline() { homeMsg("Máy chủ Ai Là Nội Gián chưa bật ở bản này. Khi chạy thử: node games-server/ai-la-noi-gian/dev.js"); }
 function send(o) {
-  if (o.t === "act" || o.t === "vote") sfx.play("tap", 0.8);
+  if (["act", "vote", "repair", "jam", "verify", "dispatch"].includes(o.t)) sfx.play("tap", 0.8);
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(o));
   else if (o.t === "create" || o.t === "join") { pending = o; if (!ws) connect(); }
 }
@@ -148,7 +157,7 @@ function onMsg(m) {
     case "state": { offset = m.now - Date.now(); const prev = v; v = m.v; render(); soundFor(prev, v); break; }
     case "err":
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
-      toast(ERR[m.code] || "Có lỗi xảy ra."); break;
+      toast(ERR[m.code] || "Có lỗi xảy ra."); sfx.play("err", 0.7); break;
     case "kicked": case "left": save(null); v = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); break;
     case "replaced": save(null); v = null; showHome(); homeMsg("Phòng này đang mở ở tab khác."); break;
   }

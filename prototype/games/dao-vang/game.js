@@ -180,6 +180,7 @@ export function mount(el, ctx = {}) {
   document.addEventListener("visibilitychange", onVis);
 
   function setPaused(v) {
+    if (paused !== v) sfx.play("tha-moc", 0.3);
     paused = v;
     last = performance.now();
   }
@@ -363,6 +364,7 @@ export function mount(el, ctx = {}) {
     pxText("MÀN " + g.level + (players === 2 ? " · 2 NGƯỜI" : ""), W / 2, 23, PX.ink, FONT(800, 15));
     c2.textAlign = "right";
     const low = g.time <= 10, tc = low ? COLORS.bad : PX.ink;
+    if (low && g.time > 0 && !g._lowWarned) { g._lowWarned = true; sfx.play("het-gio", 0.45); } // còn 10 giây (cờ gắn vào màn hiện tại)
     pxText(Math.ceil(g.time) + " giây", W - 16, 22, tc, FONT(800, 18));
     clockIcon(W - 16 - c2.measureText(Math.ceil(g.time) + " giây").width - 26, 14, tc);
     // thanh thời gian chia ô (pixel), nằm dưới viền HUD

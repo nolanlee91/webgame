@@ -265,7 +265,8 @@ export function mount(root, ctx = {}) {
     layout(); hudCache = "";
     const g = s.gravity === "none" ? "" : " · ô dồn " + ARROW[s.gravity][L.tr ? 1 : 0];
     fx.banner = { text: "Màn " + (s.level + 1) + g, until: performance.now() + 1500 };
-    last = performance.now();
+    last = performance.now(); warnSec = -1;
+    sfx.play("qua-man", 0.5);
     cv.focus({ preventScroll: true });
   }
   const startLevel = (lv) => startState(newGame({ level: lv, seed: nextSeed() }));
@@ -282,6 +283,7 @@ export function mount(root, ctx = {}) {
     const b = document.createElement("button"); b.type = "button"; b.className = "btn btn--big" + (cls ? " " + cls : ""); b.textContent = label; b.onclick = fn; if (id) b.id = id; return b;
   }
   function showMenu() {
+    if (s) sfx.play("buoc-nhay", 0.35);
     s = null; paused = false; hudCache = "";
     ui.level.textContent = "–"; ui.score.textContent = "0"; ui.grav.textContent = "—"; ui.time.textContent = "–:––"; ui.fill.style.width = "100%"; ui.bar.classList.remove("low");
     for (const b of [ui.hint, ui.shuf, ui.pause]) b.disabled = true;
@@ -319,6 +321,7 @@ export function mount(root, ctx = {}) {
       sdk.gameOver && sdk.gameOver({ score: s.score, level: lv, result: "win" });
     }
     ui.eResult.innerHTML = rows.join("");
+    if (newRecord) sfx.play("trung-kim-cuong", 0.7, 0.8); // kỷ lục mới, trễ 0,8 s sau tiếng thắng/thua
     ui.eRecord.innerHTML = newRecord ? '<span class="record">Kỷ lục mới!</span>' : '<div class="best">Kỷ lục: ' + save.best + " điểm</div>";
     sdk.reportScore && sdk.reportScore(s.score);
     ui.ovEnd.hidden = false; hudCache = ""; hud();
@@ -327,6 +330,7 @@ export function mount(root, ctx = {}) {
   function setPaused(p) {
     if (!s || s.status !== "playing" || paused === p) return;
     paused = p; ui.ovPause.hidden = !p; hudCache = "";
+    sfx.play("buoc-nhay", 0.4);
     if (p) setTimeout(() => $("resumeBtn").focus({ preventScroll: true }), 0); else { last = performance.now(); cv.focus({ preventScroll: true }); }
   }
 
@@ -416,12 +420,15 @@ export function mount(root, ctx = {}) {
   document.addEventListener("visibilitychange", onVis);
   window.addEventListener("blur", onBlur);
 
+  // cảnh báo sắp hết giờ: một tiếng khi còn 20 s, rồi tích mỗi giây từ 5 s
+  let warnSec = -1;
   function frame(now) {
     if (destroyed) return;
     const dt = Math.min(0.1, Math.max(0, (now - last) / 1000)); last = now;
     if (s && !paused && s.status === "playing") {
       const e = tick(s, dt);
       if (e && e.type === "timeout") { sfx.play("het-gio"); sfx.play("thua", 1, 0.65); showEnd(); }
+      else { const sec = Math.ceil(s.time); if (sec !== warnSec && (sec === 20 || (sec <= 5 && sec > 0))) { warnSec = sec; sfx.play("het-gio", sec === 20 ? 0.55 : 0.3); } }
     }
     hud(); draw(now);
     raf = requestAnimationFrame(frame);

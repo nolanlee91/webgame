@@ -272,13 +272,16 @@ export function mount(root, ctx = {}) {
     draw(now); hud();
     raf = requestAnimationFrame(tickLoop);
   }
+  let hadGold = false;
   function onStep(ev, now) {
+    if (s.gold && !hadGold && !ev.ate) sfx.play("trung-kim-cuong", 0.4, 1.5); // đồng vàng vừa xuất hiện
+    hadGold = !!s.gold;
     if (ev.ate) {
       const h = s.snake[0], [x, y] = cellPoint(h.x, h.y), gold = ev.ate === "gold";
       for (let i = 0; i < (gold ? 22 : 12); i++) { const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 150; fx.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 90, t: now, life: 500 + Math.random() * 300, c: gold ? [C.gold, C.goldHi][i % 2] : [C.red, C.redHi, C.leaf][i % 3] }); }
       fx.floats.push({ x, y: y - 6, txt: "+" + ev.pts, t: now, c: gold ? C.gold : C.ink, big: gold });
       sfx.play(gold ? "trung-kim-cuong" : "buoc-nhay", gold ? 0.8 : 0.6, gold ? 1 : 1 + Math.min(0.5, (s.snake.length - START_LEN) * 0.01));
-      if (s.snake.length % 5 === START_LEN % 5 && ev.ate === "food") fx.floats.push({ x, y: y - 28, txt: "Tăng tốc!", t: now + 120, c: "#7fd47f" });
+      if (s.snake.length % 5 === START_LEN % 5 && ev.ate === "food") { fx.floats.push({ x, y: y - 28, txt: "Tăng tốc!", t: now + 120, c: "#7fd47f" }); sfx.play("qua-man", 0.35, 1.3); }
     }
     if (ev.goldGone) sfx.play("het-gio", 0.4);
     if (ev.died) {
@@ -323,9 +326,10 @@ export function mount(root, ctx = {}) {
   function setPaused(on) {
     if (!s || s.status !== "play" || paused === on) return;
     paused = on; showOv(on ? "ovPause" : null);
+    sfx.play("buoc-nhay", 0.4, on ? 0.8 : 1.2);
     if (!on) { last = performance.now(); cv.focus({ preventScroll: true }); }
   }
-  function toMenu() { clearTimeout(endTimer); s = null; paused = false; showMenu(); showOv("ovMenu"); }
+  function toMenu() { if (s) sfx.play("buoc-nhay", 0.35, 0.8); clearTimeout(endTimer); s = null; paused = false; showMenu(); showOv("ovMenu"); }
   function showMenu() {
     for (const b of document.querySelectorAll(".mode")) { const on = b.dataset.mode === mode; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }
     const bc = save.best.classic, bw = save.best.wrap;

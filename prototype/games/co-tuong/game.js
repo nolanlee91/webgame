@@ -640,6 +640,7 @@ export function mount(root, ctx = {}) {
     pendingResume = null; drawAsked = -1;
     resetSel(); cursor = null; hover = -1; fx = { move: null, bad: null, check: 0 };
     overlay(null); layout(); persist(); hud(); cv.focus({ preventScroll: true });
+    sfx.play("qua-man", 0.4);
     maybeAi();
   }
   function showEnd() {
@@ -681,10 +682,10 @@ export function mount(root, ctx = {}) {
       if (sel === k) { resetSel(); hud(); return false; }
       sel = k; dests = legalFrom(s.board, k);
       if (!dests.length) { fx.bad = { k, t: performance.now() }; toast(s.check ? "Đang bị chiếu — quân này không giải được chiếu." : "Quân này chưa đi được (bị cản hoặc đi sẽ để Tướng bị chiếu).", 2200); }
-      sfx.play("buoc-nhay", 0.25);
+      sfx.play(dests.length ? "buoc-nhay" : "trung-da", 0.25); // quân không đi được ⇒ tiếng lỗi
       hud(); return false;
     }
-    if (sel >= 0) fx.bad = { k, t: performance.now() };
+    if (sel >= 0) { fx.bad = { k, t: performance.now() }; sfx.play("trung-da", 0.25); }
     resetSel(); hud(); return false;
   }
   function move(f, t) {
@@ -707,7 +708,7 @@ export function mount(root, ctx = {}) {
   }
   function apply(f, t) {
     const n = play(s, f, t);
-    if (!n) { fx.bad = { k: t, t: performance.now() }; return false; }
+    if (!n) { fx.bad = { k: t, t: performance.now() }; sfx.play("trung-da", 0.25); return false; }
     s = n; resetSel();
     afterMove(s.moves[s.moves.length - 1], false);
     if (s.winner) finishLocal(); else { persist(); hud(); maybeAi(); }
@@ -777,7 +778,7 @@ export function mount(root, ctx = {}) {
     clearTimers();
     s = s.winner ? nextRound(s) : newRound({ ...s, round: s.round - 1 });
     drawAsked = -1; resetSel(); fx = { move: null, bad: null, check: 0 };
-    overlay(null); persist(); hud(); cv.focus({ preventScroll: true }); maybeAi();
+    overlay(null); persist(); hud(); cv.focus({ preventScroll: true }); sfx.play("qua-man", 0.4); maybeAi();
   }
   function setPause(on) {
     if (!s || !ui.ovMenu.hidden || !ui.ovEnd.hidden) return;
@@ -785,8 +786,8 @@ export function mount(root, ctx = {}) {
     if (on) {
       const sc = scores();
       ui.pSub.textContent = "Ván " + (room ? room.round : s.round) + " · " + s.moves.length + " nước · tỉ số Đỏ " + sc[1] + " – " + sc[2] + " Đen";
-      overlay("pause"); $("resumeBtn").focus({ preventScroll: true });
-    } else { overlay(null); cv.focus({ preventScroll: true }); }
+      overlay("pause"); $("resumeBtn").focus({ preventScroll: true }); sfx.play("buoc-nhay", 0.35);
+    } else { overlay(null); cv.focus({ preventScroll: true }); sfx.play("buoc-nhay", 0.35); }
   }
 
   // ---------- Nhập liệu ----------

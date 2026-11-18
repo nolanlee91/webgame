@@ -14,7 +14,7 @@ const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 // ---------- Âm thanh retro (WebAudio, tự tạo) ----------
 const AC = window.AudioContext || window.webkitAudioContext;
-let ac = null, muted = localStorage.getItem("cotyphu-muted") === "1";
+let ac = null, muted = localStorage.getItem("wgp.muted") === "1"; // dùng chung nút tắt tiếng của cả cổng game
 function beep(freq, dur = 0.06, type = "square", vol = 0.05) {
   if (muted || !AC) return;
   try {
@@ -35,7 +35,7 @@ const SFX = { hop: () => beep(520, 0.04), dice: () => beep(220 + Math.random() *
   turn: () => { beep(784, 0.06); setTimeout(() => beep(1047, 0.09), 90); },
   start: () => [392, 523, 659].forEach((f, i) => setTimeout(() => beep(f, 0.1), i * 110)) };
 $("#mute").textContent = muted ? "🔇" : "🔊";
-$("#mute").onclick = () => { muted = !muted; localStorage.setItem("cotyphu-muted", muted ? "1" : "0"); $("#mute").textContent = muted ? "🔇" : "🔊"; };
+$("#mute").onclick = () => { muted = !muted; localStorage.setItem("wgp.muted", muted ? "1" : "0"); $("#mute").textContent = muted ? "🔇" : "🔊"; };
 
 // ---------- Bàn ----------
 let RECTS = null; // board.tiles trong manifest
@@ -169,6 +169,7 @@ function renderActions() {
 
 function startTimer() {
   stopTimer();
+  let warned = false;
   if (mode === "online") { // hạn do máy chủ đặt (đã gồm thời gian hoạt ảnh); hết giờ máy chủ tự làm thay, client chỉ hiển thị
     const left = () => Math.max(0, (room.deadline - (Date.now() + (room.skew || 0))) / 1000);
     if (!room.deadline) return renderPlayers();
@@ -176,6 +177,7 @@ function startTimer() {
     timer = setInterval(() => {
       timeLeft = left();
       const bar = $(`#pc${g.turn} .timer`); if (bar) bar.style.width = Math.min(100, timeLeft / ONLINE_TURN_SECONDS * 100) + "%";
+      if (g.turn === room.you && timeLeft <= 3 && !warned) { warned = true; SFX.dice(); } // còn 3 giây
       if (timeLeft <= 0) stopTimer();
     }, 250);
     return renderPlayers();
@@ -183,6 +185,7 @@ function startTimer() {
   timeLeft = TURN_SECONDS;
   timer = setInterval(() => {
     timeLeft -= 0.25;
+    if (timeLeft <= 3 && !warned) { warned = true; SFX.dice(); } // còn 3 giây là máy tự đi thay
     const bar = $(`#pc${g.turn} .timer`); if (bar) bar.style.width = (timeLeft / TURN_SECONDS * 100) + "%";
     if (timeLeft <= 0) {
       stopTimer();
@@ -257,7 +260,7 @@ async function playOne(e) {
     case "sellLand": syncCash(e); news(`${nameOf(e.pid)} cầm cố ${TILES[e.tile].name} cho ngân hàng`); renderTiles(); await sleep(600); break;
     case "bankrupt": syncCash(e); SFX.bad(); news(`💥 ${nameOf(e.pid)} <b>PHÁ SẢN!</b>`); renderTiles(); placeTokens(); renderPlayers(); await sleep(1400); break;
     case "round": $("#round").textContent = `Vòng ${e.round}/${g.rules.maxRounds}`; if (e.round >= g.rules.maxRounds - 2) news(`⚠ Vòng <b>${e.round}</b>/${g.rules.maxRounds} — sắp chốt sổ!`); break;
-    case "turn": renderPlayers(); if (mode === "online" && room && e.pid === room.you) SFX.turn(); break;
+    case "turn": renderPlayers(); if (g.players[e.pid] && !g.players[e.pid].bot) SFX.turn(); break; // tới lượt bạn (cả chơi với máy lẫn online)
   }
 }
 function hlTile(i) { const el = tileEls[i]; el.classList.remove("hl"); void el.offsetWidth; el.classList.add("hl"); }
@@ -346,7 +349,7 @@ function newGame() {
   setDice([1, 2]); news("Gieo xúc xắc để bắt đầu lụm kèo!");
   $("#tagline").textContent = "Lụm Kèo Đại Phú · chơi với máy";
   $("#lobby").hidden = true; $("#endOv").hidden = true;
-  renderAll();
+  renderAll(); SFX.start();
 }
 function clearBoard() {
   epoch++; stopTimer(); g = null; busy = false; sent = false; queue = []; curGid = 0; lastSeq = -1;

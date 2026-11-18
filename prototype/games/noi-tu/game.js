@@ -128,6 +128,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     const level = prefs.matchLevel || prefs.level;
     mode = "bot";
     attach(createLocalSession({ dict, mode: "bot", botLevel: level, names: ["Bạn", "Máy"], storage: store, storageKey: STORE_KEY }));
+    sfx.play("qua-man", 0.5); // vào trận với máy
   }
 
   function attach(sess) {
@@ -250,6 +251,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     }
   }
 
+  let lastNetStatus = "";
   function onStatus(s) {
     if (s === "closed" && session?.rejectReason) {
       if (mode === "online") { const why = session.rejectReason; leaveRoom(); showMenu(why === "pin-mismatch" ? "Từ điển của trang khác bản máy chủ — tải lại trang (Ctrl+F5) rồi vào lại phòng." : `Không vào được ván (${why}).`, true); }
@@ -258,8 +260,9 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     }
     if (mode !== "online" || !state) return;
     if (s === "reconnecting") setMsg("Mất kết nối — đang nối lại…", "bad");
-    else if (s === "opponent-left") setMsg(`${opp()} vừa mất kết nối — chờ tối đa 30 giây, sau đó máy sẽ đánh thay.`, "bad");
-    else if (s === "live") { setMsg(""); render(); }
+    else if (s === "opponent-left") (sfx.play("trung-da", 0.35), setMsg(`${opp()} vừa mất kết nối — chờ tối đa 30 giây, sau đó máy sẽ đánh thay.`, "bad"));
+    else if (s === "live") { if (lastNetStatus === "opponent-left" || lastNetStatus === "reconnecting") sfx.play("buoc-nhay", 0.5); setMsg(""); render(); }
+    lastNetStatus = s;
   }
 
   const me = () => session?.mySeat ?? ME;
@@ -417,7 +420,10 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     el.clock.className = "clock " + (r.turn === me ? "me" : "bot") + (rem <= 5000 && r.turn === me ? " low" : "");
     el.cLbl.textContent = r.turn === me ? "Lượt bạn" : (mode === "online" ? "Lượt bạn kia" : "Lượt máy");
     el.cFill.style.width = `calc(${Math.max(0, Math.min(1, rem / total)) * 100}% - 4px)`;
-    if (sec !== lastSec) { el.cNum.textContent = String(sec); el.clock.dataset.ms = String(Math.round(rem)); lastSec = sec; }
+    if (sec !== lastSec) {
+      el.cNum.textContent = String(sec); el.clock.dataset.ms = String(Math.round(rem)); lastSec = sec;
+      if (r.turn === me && sec > 0 && sec <= 5) sfx.play("do-xuc-xac", 0.25); // 5 giây cuối lượt của bạn
+    }
   }
 
   // ---------- người chơi ----------

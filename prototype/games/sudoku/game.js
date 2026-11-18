@@ -216,7 +216,7 @@ export function mount(root, ctx = {}) {
     }
     if (notesMode !== asNote) return false; // ghi chú vào ô đã có số → bỏ qua
     const r = L.place(s, sel, d);
-    if (!r) { if (L.isLocked(s, sel)) anim(sel, "shake"); return false; }
+    if (!r) { if (L.isLocked(s, sel)) { anim(sel, "shake"); sfx.play("do-xuc-xac", 0.25, 0.7); } return false; } // ô đề cho sẵn
     render();
     if (r.wrong) { anim(sel, "shake"); sfx.play("het-gio", 0.35, 1.2); }
     else {
@@ -287,6 +287,7 @@ export function mount(root, ctx = {}) {
       ["Thời gian", fmtTime(s.time)], ["Lỗi", s.mistakes], ["Gợi ý đã dùng", L.HINTS - s.hintsLeft],
       ["Kỷ lục mức " + D.name, fmtTime(save.best[s.diff])],
     ].map(([a, b]) => `<span>${a}</span><b>${b}</b>`).join("") + `<span class="total">Điểm</span><b>${fmt(pts)}</b>`;
+    if (isRecord) setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới
     $("wRecord").innerHTML = isRecord ? `<span class="record">★ ${prev ? "Kỷ lục mới!" : "Lần đầu giải mức này!"}</span>` : "";
     show("win");
     $("nextBtn").focus({ preventScroll: true });
@@ -317,6 +318,7 @@ export function mount(root, ctx = {}) {
     }
   }
   function showMenu() {
+    if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     persist();
     clearTimeout(winTimer);
     // xem trước đề đang giải dở (hoặc đề mẫu) phía sau menu
@@ -333,7 +335,7 @@ export function mount(root, ctx = {}) {
     render();
   }
   function start(fresh) {
-    sfx.unlock();
+    sfx.unlock(); sfx.play("buoc-nhay", 0.5, 1.25);
     clearTimeout(winTimer);
     const g = !fresh && save.games[diff] && L.deserialize(save.games[diff]);
     if (g) s = g;

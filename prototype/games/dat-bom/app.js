@@ -149,7 +149,7 @@ setInterval(() => { if (!$("home").hidden && ws && ws.readyState === 1 && !sess)
 let me = null, meGid = 0, sent = { x: 0, y: 0 }, sentAt = 0, face = "d";
 const disp = [];          // vị trí đang vẽ của từng người (nội suy về vị trí máy chủ)
 const deadAt = [];        // lúc thấy người đó bị loại (hiệu ứng mờ dần)
-let countSaid = -1, lastPhase = null;
+let countSaid = -1, lastPhase = null, warnSec = -1;
 
 const you = () => (v ? v.you : -1);
 const myP = () => (f && v ? f.p[v.you] : null);
@@ -172,7 +172,8 @@ function render(prev) {
   $("home").hidden = true; $("game").hidden = false;
   $("barCode").hidden = false; $("barCodeTxt").textContent = v.code;
   if (lastPhase !== v.phase) {
-    if (v.phase === "over" && v.result) sfx.play(v.result.winner === v.you ? "win" : "lose");
+    if (v.phase === "over" && v.result) sfx.play(v.result.winner === v.you ? "win" : v.result.winner < 0 ? "go" : "lose"); // hoà ⇒ tiếng trung tính
+    if (v.phase === "lobby" && lastPhase === "over") sfx.play("join", 0.6); // về phòng chờ
     if (v.phase !== "play") f = v.phase === "over" ? f : null;
     lastPhase = v.phase;
   }
@@ -251,7 +252,7 @@ function onFrame(m) {
     else if (e.k === "pick" && e.i === v.you) { sfx.play("pick"); banner(ITEM_NAME[e.kind] + "!"); }
     else if (e.k === "die") {
       if (e.i === v.you) { sfx.play("die"); banner(e.by === v.you ? "Bạn tự nổ trúng mình!" : e.by >= 0 ? `${v.players[e.by]?.name || "?"} đã hạ bạn` : "Bạn bị loại"); }
-      else banner(`${v.players[e.i]?.name || "?"} bị loại${e.by >= 0 && e.by !== e.i ? ` bởi ${e.by === v.you ? "bạn" : v.players[e.by]?.name || "?"}` : ""}`);
+      else (sfx.play("die", 0.35), banner(`${v.players[e.i]?.name || "?"} bị loại${e.by >= 0 && e.by !== e.i ? ` bởi ${e.by === v.you ? "bạn" : v.players[e.by]?.name || "?"}` : ""}`));
     }
   }
 }
@@ -354,6 +355,7 @@ function hud() {
   const tt = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
   if (!f.over && $("hudTime").textContent !== tt) $("hudTime").textContent = tt; // hết ván thì đồng hồ đứng yên
   $("hudTime").classList.toggle("is-low", left <= 20);
+  if (!f.over && v.phase === "play" && left !== warnSec && (left === 20 || (left <= 5 && left > 0))) { warnSec = left; sfx.play("tick", left === 20 ? 1 : 0.6); } // sắp hết giờ
   const toGo = f.s - n;
   if (v.phase === "play" && toGo > -600) {
     const c = toGo > 0 ? Math.ceil(toGo / 1000) : 0;

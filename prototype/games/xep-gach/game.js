@@ -407,12 +407,13 @@ export function mount(root, ctx = {}) {
     paused = false; newRecord = false; releaseAll();
     ui.ovMenu.hidden = ui.ovPause.hidden = ui.ovEnd.hidden = true;
     document.body.classList.remove("is-menu");
-    writeSave(); sfx.unlock();
+    writeSave(); sfx.unlock(); sfx.play("qua-man", 0.5);
     for (const k in hudCache) delete hudCache[k];
     layout(); hud(); cv.focus({ preventScroll: true });
   }
   function showMenu() {
     clearTimeout(endTimer);
+    if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     s = null; paused = false; releaseAll();
     ui.ovPause.hidden = ui.ovEnd.hidden = true; ui.ovMenu.hidden = false;
     document.body.classList.add("is-menu"); layout();
@@ -449,6 +450,7 @@ export function mount(root, ctx = {}) {
       ui.eResult.append(a, b);
     }
     ui.eRecord.innerHTML = newRecord ? '<span class="record">Kỷ lục mới!</span>' : "";
+    if (newRecord) setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới
     ui.ovEnd.hidden = false;
     $("againBtn").focus({ preventScroll: true });
     sdk.reportScore && sdk.reportScore(s.score);
@@ -457,6 +459,7 @@ export function mount(root, ctx = {}) {
   function setPaused(p) {
     if (!s || s.status !== "playing") return;
     paused = p; ui.ovPause.hidden = !p; releaseAll();
+    sfx.play("buoc-nhay", 0.4, p ? 0.8 : 1.2);
     if (p) $("resumeBtn").focus({ preventScroll: true }); else { cv.focus({ preventScroll: true }); last = performance.now(); }
   }
   const playing = () => s && s.status === "playing" && !paused;

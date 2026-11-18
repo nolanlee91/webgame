@@ -276,6 +276,7 @@ export function mount(root, ctx = {}) {
 
   // ---------- HUD ----------
   const names = () => room ? { 1: room.players[0]?.name || "X", 2: room.players[1]?.name || (room.phase === "lobby" ? "Đang chờ…" : "O") } : (s?.mode ?? opts.mode) === "ai" ? { 1: "Bạn", 2: "Máy" + ((s?.aiLevel ?? opts.aiLevel) === "easy" ? " (dễ)" : " (khó)") } : { 1: "Người 1", 2: "Người 2" };
+  let warnLeft = -1; // giây cuối đã tích cảnh báo hết giờ lượt
   function hud() {
     const nm = names();
     ui.nX.textContent = nm[1]; ui.nO.textContent = nm[2];
@@ -297,6 +298,7 @@ export function mount(root, ctx = {}) {
     if (online() && !s.winner) {
       const left = room.deadline ? Math.max(0, Math.ceil((room.deadline - (Date.now() + skew)) / 1000)) : 0;
       const t = left && left <= 15 ? " · " + left + "s" : "";
+      if (s.turn === mySide() && left > 0 && left <= 5 && left !== warnLeft) { warnLeft = left; sfx.play("do-xuc-xac", 0.3); }
       const opp = room.players[s.turn - 1];
       ui.status.textContent = s.turn === mySide() ? "Lượt bạn (" + SYM[s.turn] + ")" + t : opp && !opp.connected ? nm[s.turn] + " mất kết nối…" + t : "Chờ " + nm[s.turn] + " đánh…" + t;
     }
@@ -508,7 +510,7 @@ export function mount(root, ctx = {}) {
     if (!sameGame) {
       clearTimers(); pending = null; cursor = null; hover = null; fx = { drop: null, win: null, bad: null };
       overlay(null); layout(); cv.focus({ preventScroll: true });
-      if (!prev || prev.phase === "lobby") sfx.play("qua-man", 0.5);
+      if (!prev || prev.phase === "lobby" || prev.gid !== v.gid) sfx.play("qua-man", 0.5); // vào ván / ván mới trong cùng phòng
       if (s.winner) { fx.win = performance.now() - 450; }
     } else if (s.moves.length === before + 1) {
       const [r, c, q] = s.moves[s.moves.length - 1];
@@ -539,6 +541,7 @@ export function mount(root, ctx = {}) {
     pendingResume = null;
     pending = null; cursor = null; hover = null; fx = { drop: null, win: null, bad: null };
     overlay(null); layout(); persist(); hud(); cv.focus({ preventScroll: true });
+    sfx.play("qua-man", 0.4);
     maybeAi();
   }
   function showEnd() {
@@ -618,15 +621,15 @@ export function mount(root, ctx = {}) {
     clearTimers();
     s = s.winner ? nextRound(s) : { ...newRound(s, s.first), round: s.round };
     pending = null; fx = { drop: null, win: null, bad: null };
-    overlay(null); persist(); hud(); cv.focus({ preventScroll: true }); maybeAi();
+    overlay(null); persist(); hud(); cv.focus({ preventScroll: true }); sfx.play("qua-man", 0.4); maybeAi();
   }
   function setPause(on) {
     if (!s || !ui.ovMenu.hidden || !ui.ovEnd.hidden) return;
     ui.menuP.textContent = room ? "Rời phòng" : "Về menu";
     if (on) {
       ui.pSub.textContent = "Ván " + s.round + " · " + s.moves.length + " nước · tỉ số " + s.score[1] + " – " + s.score[2];
-      overlay("pause"); $("resumeBtn").focus({ preventScroll: true });
-    } else { overlay(null); cv.focus({ preventScroll: true }); }
+      overlay("pause"); $("resumeBtn").focus({ preventScroll: true }); sfx.play("buoc-nhay", 0.35);
+    } else { overlay(null); cv.focus({ preventScroll: true }); sfx.play("buoc-nhay", 0.35); }
   }
 
   // ---------- Nhập liệu ----------

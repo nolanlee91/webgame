@@ -185,6 +185,7 @@ export function mount(root, ctx = {}) {
     ui.eReview.open = false;
     showOv("ovEnd");
     sfx.play(s.correct >= 5 ? "thang" : "thua", 0.8);
+    if (newRecord) setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới
     if (stars >= 2) setTimeout(() => confetti(), 150);
     sdk.reportScore?.(s.score);
     sdk.gameOver?.({ score: s.score, correct: s.correct, mode: s.mode, cat: s.cat });
@@ -196,9 +197,10 @@ export function mount(root, ctx = {}) {
     if (on) { usedBefore = used(); paused = true; clearTimeout(revealTimer); }
     else { paused = false; askAt = performance.now(); if (s.phase === "reveal") revealTimer = setTimeout(goNext, 900); }
     document.body.classList.toggle("is-paused", paused);
+    sfx.play("buoc-nhay", 0.4, on ? 0.8 : 1.2);
     showOv(paused ? "ovPause" : null);
   }
-  function toMenu() { clearTimeout(revealTimer); s = null; paused = false; document.body.classList.remove("is-paused"); showMenuPicks(); showOv("ovMenu"); hud(); }
+  function toMenu() { if (s) sfx.play("buoc-nhay", 0.35, 0.8); clearTimeout(revealTimer); s = null; paused = false; document.body.classList.remove("is-paused"); showMenuPicks(); showOv("ovMenu"); hud(); }
 
   // ---------- HUD + đồng hồ ----------
   function hud() {

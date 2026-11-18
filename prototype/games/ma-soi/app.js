@@ -94,10 +94,17 @@ function soundFor(a, b) {
     else if (b.phase === "reveal") sfx.play("lat-the", 1, 350);
     else if (b.phase === "night") sfx.play("hu-dem", 0.8);
     else if (b.phase === "dawn") { sfx.play("chieng-sang", 0.8); if (last?.kind === "bite") sfx.play("trung-da", 1, 1200); }
+    else if (b.phase === "day") sfx.play("buoc-nhay", 0.4); // hết bình minh ⇒ bàn bạc
     else if (b.phase === "vote") sfx.play("trong-phieu");
     else if (b.phase === "verdict" && last?.kind === "hang") sfx.play("trung-da");
     else if (b.phase === "end") { const my = b.players[b.seat]; sfx.play(my?.role && (my.role === "wolf") === (b.winner === "wolf") ? "thang" : "thua", 1, hunted ? 900 : 0); }
-  } else if (b.phase === "lobby" && b.players.length > a.players.length) sfx.play("buoc-nhay", 0.7);
+  } else {
+    let join = false, gone = false;
+    if (b.players.length < a.players.length) gone = true;
+    else if (b.players.length > a.players.length) join = true;
+    else b.players.forEach((p, i) => { if (i === b.seat) return; const o = a.players[i]; if (o && o.connected && !p.connected) gone = true; else if (o && !o.connected && p.connected) join = true; });
+    if (join) sfx.play("buoc-nhay", 0.7); else if (gone) sfx.play("trung-da", 0.35);
+  }
   const fresh = (x, y) => { const t = x?.length ? x[x.length - 1].ts : -1; return (y || []).some((c) => c.ts > t && c.seat !== b.seat); };
   if (fresh(a.chat, b.chat) || fresh(a.wolfChat, b.wolfChat)) sfx.play("tin-nhan", 0.7);
 }
@@ -122,7 +129,7 @@ function connect() {
 }
 function offline() { homeMsg("Máy chủ Ma Sói chưa bật ở bản này. Khi chạy thử: npm run dev:ma-soi"); }
 function send(o) {
-  if (o.t === "act" || o.t === "vote") sfx.play("buoc-nhay", 0.8);
+  if (["act", "vote", "hunt", "brew", "watch"].includes(o.t)) sfx.play("buoc-nhay", 0.8);
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(o));
   else if (o.t === "create" || o.t === "join") { pending = o; if (!ws) connect(); }
 }
@@ -141,7 +148,7 @@ function onMsg(m) {
     }
     case "err":
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
-      toast(ERR[m.code] || "Có lỗi xảy ra."); break;
+      toast(ERR[m.code] || "Có lỗi xảy ra."); sfx.play("trung-da", 0.35); break;
     case "kicked": case "left": save(null); v = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); break;
     case "replaced": save(null); v = null; showHome(); homeMsg("Phòng này đang mở ở tab khác."); break;
   }

@@ -221,6 +221,7 @@ export function mount(root, ctx = {}) {
     finishPending();
     const r = L.move(s, dir);
     if (!r) {
+      sfx.play("do-xuc-xac", 0.2, 0.7); // không đi được hướng này
       board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake");
       return false;
     }
@@ -252,7 +253,7 @@ export function mount(root, ctx = {}) {
   function doUndo() {
     if (!s || anyOverlay(["menu", "win", "confirm"])) return false;
     finishPending();
-    if (!L.undo(s)) { if (s.undoLeft === 0) { board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake"); } return false; }
+    if (!L.undo(s)) { if (s.undoLeft === 0) { sfx.play("do-xuc-xac", 0.2, 0.7); board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake"); } return false; }
     clearTimeout(endTimer);
     hide(ov.end);
     syncAll();
@@ -296,7 +297,7 @@ export function mount(root, ctx = {}) {
   }
   function recordBadge(el) {
     el.innerHTML = "";
-    if (s.score > startBest && s.score > 0) { const r = document.createElement("span"); r.className = "record"; r.textContent = "★ Kỷ lục mới!"; el.appendChild(r); }
+    if (s.score > startBest && s.score > 0) { const r = document.createElement("span"); r.className = "record"; r.textContent = "★ Kỷ lục mới!"; el.appendChild(r); setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới }
   }
   function stats() {
     return [["Ô lớn nhất", String(s.maxTile)], ["Nước đi", fmt(s.moves)], ["Lần gộp", fmt(s.merges)], ["Thời gian", fmtTime(s.time)], ["Tổng điểm", fmt(s.score), true]];
@@ -339,6 +340,7 @@ export function mount(root, ctx = {}) {
   }
   function showMenu() {
     finishPending(); clearTimeout(endTimer);
+    if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     if (s) persist();
     hide(ov.win); hide(ov.end); hide(ov.confirm);
     if (s) size = s.size;
@@ -359,7 +361,7 @@ export function mount(root, ctx = {}) {
     layout(); syncAll(); hud(); persist();
     if (s.status === "won") showWin();
     else if (s.status === "over") showEnd();
-    sfx.unlock();
+    sfx.unlock(); sfx.play("qua-man", 0.5);
     stage.focus({ preventScroll: true });
   }
   function askNew() {

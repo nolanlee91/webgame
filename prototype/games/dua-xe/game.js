@@ -290,8 +290,8 @@ export function mount(root, ctx = {}) {
     last = 0;
     return s;
   }
-  function pause() { if (mode !== "play") return; setMode("pause"); $("pSub").textContent = "Đã đi " + fmt(s.dist) + " m · " + fmt(s.coins) + " xu"; show(ov.pause); sfx.engine(false, 0, false); }
-  function resume() { if (mode !== "pause") return; setMode("play"); show(null); last = 0; stage.focus({ preventScroll: true }); }
+  function pause() { if (mode !== "play") return; setMode("pause"); $("pSub").textContent = "Đã đi " + fmt(s.dist) + " m · " + fmt(s.coins) + " xu"; show(ov.pause); sfx.engine(false, 0, false); sfx.play("buoc-nhay", 0.35, 0.8); }
+  function resume() { if (mode !== "pause") return; sfx.play("buoc-nhay", 0.35, 1.2); setMode("play"); show(null); last = 0; stage.focus({ preventScroll: true }); }
   function showMenu() {
     if (s && (mode === "play" || mode === "pause") && s.status !== "over") { s.status = "over"; s.reason = "bo"; finish(true); }
     setMode("menu"); renderShop(); show(ov.menu); sfx.engine(false, 0, false);
@@ -335,7 +335,7 @@ export function mount(root, ctx = {}) {
       else if (e.type === "crash") { sfx.play("no-tnt", 0.8); shake = 0.45; burst(s.p[2].x, s.p[2].y, ["#f4ead2", "#b9ad93", "#e0483d"], 16); toast("Lật xe!", "warn"); }
       else if (e.type === "over") overTimer = later(() => finish(), s.reason === "lat" ? 250 : 500);
     }
-    if (s.status === "run" && s.fuel / s.cfg.fuelMax < 0.2 && !lowWarned) { lowWarned = true; toast("Sắp hết xăng!", "warn"); }
+    if (s.status === "run" && s.fuel / s.cfg.fuelMax < 0.2 && !lowWarned) { lowWarned = true; toast("Sắp hết xăng!", "warn"); sfx.play("buoc-nhay", 0.6, 0.6); }
   }
   function burst(x, y, cols, n) {
     for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = 1.5 + Math.random() * 3; parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v + 2, t: 0, life: 0.5 + Math.random() * 0.4, col: cols[i % cols.length], g: 9 }); }

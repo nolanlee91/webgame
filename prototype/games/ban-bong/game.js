@@ -529,6 +529,7 @@ export function mount(root, ctx = {}) {
     setText("hShotsL", lvl ? "Còn viên" : "Đã bắn");
     setText("hShots", lvl ? s.shots : s.fired);
     $("shotsBox").classList.toggle("low", lvl && s.shots <= 5);
+    if (lvl && s.shots <= 5 && s.shots > 0 && !s._lowWarned) { s._lowWarned = true; sfx.play("het-gio", 0.4); } // sắp hết viên
     setText("hLevel", lvl ? `${s.level}/${L.LEVELS.length}` : "Tự do");
     setText("hScore", fmt(s.score));
     setText("hBest", lvl ? (save.best[s.level] ? "Kỷ lục " + fmt(save.best[s.level]) : "") : "Kỷ lục " + fmt(Math.max(save.freeBest, s.score)));
@@ -549,6 +550,7 @@ export function mount(root, ctx = {}) {
       setText("hPushL", `Trần hạ khi hụt thêm ${left} lần`);
       $("hPush").innerHTML = Array.from({ length: s.push }, (_, j) => `<i class="${j < s.misses ? "on" : ""}"></i>`).join("");
       $("pushBox").classList.toggle("warn", left <= 1);
+      if (left === 1 && s._pushWarnAt !== s.misses) { s._pushWarnAt = s.misses; sfx.play("het-gio", 0.3, 0.8); } // hụt thêm 1 lần là trần hạ
       $("pushBox").title = `Bắn hụt (không nổ bóng nào) ${left} lần nữa thì trần hạ một hàng`;
     }
     $("swapBtn").disabled = !s || s.status !== "playing" || s.cur === s.next;
