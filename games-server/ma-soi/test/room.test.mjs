@@ -270,3 +270,31 @@ test('hạn mức theo IP: tối đa N kết nối và N phòng đang mở từ 
     assert.equal(await again.tryCmd({ t: 'ping' }), null);
   } finally { await S2.stop(); }
 });
+
+test('tin proxy: chỉ dùng IP do proxy gần nhất ghi (cuối X-Forwarded-For), client tự đặt header không né được hạn mức', async () => {
+  const S2 = await startServer({ trustProxy: true, maxConnsPerIp: 2 });
+  try {
+    const port = new URL(S2.url).port;
+    const http = await import('node:http');
+    const open = (xff) => new Promise((r) => {
+      const q = http.request({ port, host: '127.0.0.1', path: '/ws/ma-soi', headers: { Connection: 'Upgrade', Upgrade: 'websocket', 'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==', 'Sec-WebSocket-Version': '13', 'X-Forwarded-For': xff } });
+      q.on('upgrade', (res, sock, head) => { let got = head.toString('latin1'); sock.on('data', (d) => (got += d.toString('latin1'))); sock.on('close', () => r(got.includes('busy') ? 'busy' : 'closed')); setTimeout(() => r('open'), 200); });
+      q.end();
+    });
+    // client tự đặt IP đầu khác nhau, proxy (giả lập) luôn nối thêm IP thật 203.0.113.9 ở cuối
+    assert.equal(await open('198.51.100.1, 203.0.113.9'), 'open');
+    assert.equal(await open('198.51.100.2, 203.0.113.9'), 'open');
+    assert.equal(await open('198.51.100.3, 203.0.113.9'), 'busy');
+    assert.equal(await open('203.0.113.10'), 'open');
+  } finally { await S2.stop(); }
+});
+
+test('khung có bit RSV (extension chưa thương lượng) bị đóng 1002', async () => {
+  const S2 = await startServer();
+  try {
+    const a = await rawWs(S2.url);
+    const f = a.frame(true, 0x1, '{}'); f[0] |= 0x40;
+    a.s.write(f);
+    assert.equal(await a.closed, 1002);
+  } finally { await S2.stop(); }
+});

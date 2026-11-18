@@ -42,6 +42,7 @@ class Socket extends EventEmitter {
       const fin = b[0] & 0x80, op = b[0] & 0x0f, masked = b[1] & 0x80;
       let len = b[1] & 0x7f, off = 2;
       if (!masked) return this.close(1002); // client phải che dữ liệu
+      if (b[0] & 0x70) return this.close(1002); // RSV1-3 phải = 0 (không thương lượng extension nào)
       if (len === 126) { if (b.length < 4) return; len = b.readUInt16BE(2); off = 4; }
       else if (len === 127) { if (b.length < 10) return; const big = b.readBigUInt64BE(2); if (big > BigInt(this.maxBytes)) return this.close(1009); len = Number(big); off = 10; }
       if (len > this.maxBytes) return this.close(1009);

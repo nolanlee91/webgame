@@ -23,7 +23,8 @@ function createMaSoiHost(server, opts = {}) {
   const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 3 };
   const trustProxy = opts.trustProxy ?? process.env.MASOI_TRUST_PROXY === "1";
   const ipConns = new Map();
-  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",")[0].trim()) || req.socket.remoteAddress || "?";
+  // Lấy phần tử CUỐI của X-Forwarded-For (do proxy gần nhất ghi, client không giả được); phần đầu do client tự đặt.
+  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
 
   const newCode = () => {
     for (let k = 0; k < 50; k++) {
