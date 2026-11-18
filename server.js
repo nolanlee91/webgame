@@ -116,6 +116,11 @@ if (on(process.env.COTUONG_ONLINE, true)) {
   console.log(`Ai Là Nội Gián online: đường /ws/ai-la-noi-gian (thời gian mỗi pha x${speed})`);
 }
 
+// Cờ Tỷ Phú online (phòng 2–4 người + chat, máy chủ gieo xúc xắc và kiểm tra từng lượt bằng logic.js) — luôn chạy,
+// không có biến bật/tắt.
+require("./games-server/co-ty-phu/host").createCoTyPhuHost(server);
+console.log("Cờ Tỷ Phú online: đường /ws/co-ty-phu");
+
 // Đặt Bom online (phòng 2–4 người + chat, máy chủ chạy bom/lửa/điểm 20 nhịp/giây bằng logic.js) — luôn chạy, không có biến bật/tắt.
 require("./games-server/dat-bom/host").createDatBomHost(server);
 console.log("Đặt Bom online: đường /ws/dat-bom");

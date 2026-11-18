@@ -1,13 +1,16 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js";
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms * SPEED));
 const K = (v) => (v < 0 ? "−" : "") + Math.abs(v).toLocaleString("vi-VN") + "K";
 const pct = (v) => (v / 1024 * 100) + "%";
-const TURN_SECONDS = 15;
+const TURN_SECONDS = 15;          // chơi với máy
+const ONLINE_TURN_SECONDS = 25;   // online — khớp DEFAULT_TIMINGS.turn ở games-server/co-ty-phu/room.js
+const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // ---------- Âm thanh retro (WebAudio, tự tạo) ----------
 const AC = window.AudioContext || window.webkitAudioContext;
@@ -65,6 +68,10 @@ function tokenXY(tile, k) {
 // ---------- Trạng thái UI ----------
 let g = null, setup = { token: 0, n: 4 }, shown = [], shownCash = [], busy = false, timer = null, timeLeft = 0;
 const tokEls = [];
+// Online: mode "online" khi đã vào phòng. room = góc nhìn mới nhất máy chủ gửi; g = room.game (đã gắn p.bot = "không phải mình").
+let mode = "solo", room = null, net = null, chat = null, curGid = 0, lastSeq = -1, queue = [], pumping = false, sent = false;
+const turnSec = () => (mode === "online" ? ONLINE_TURN_SECONDS : TURN_SECONDS);
+const myIdx = () => (mode === "online" ? room.you : g.players.findIndex((p) => !p.bot));
 
 function renderPlayers() {
   g.players.forEach((p, k) => {
@@ -73,11 +80,13 @@ function renderPlayers() {
     el.classList.toggle("turn", g.phase !== "over" && g.turn === k);
     el.classList.toggle("out", p.bankrupt);
     const lands = ownedBy(g, p.id).length;
+    const rp = mode === "online" && room ? room.players[k] : null;
+    const status = rp ? (rp.left ? '<span class="off">Đã rời</span>' : !rp.connected ? '<span class="off">Mất kết nối</span>' : "") : "";
     el.innerHTML = `<i class="tok spr tk tk${p.token}" aria-hidden="true"></i>
-      <span class="nm">${p.name} · ${tk.name}</span>
+      <span class="nm">${esc(p.name)}${mode === "online" && k === room.you ? " (Bạn)" : ""} · ${tk.name}</span>
       <span class="cash"><i class="ic ic-money" aria-hidden="true"></i>${p.bankrupt ? "Phá sản" : K(shownCash[k] ?? p.cash)}</span>
-      <span class="meta"><span title="Số ô đất">🏠 ${lands} ô</span><span title="Tổng tài sản">💰 ${K(p.bankrupt ? 0 : netWorth(g, p.id))}</span>${p.jailed ? '<i class="ic ic-jail" title="Đang ở tù"></i>' : ""}</span>
-      ${g.turn === k && !p.bot && g.phase !== "over" && timeLeft > 0 ? `<span class="timer" style="width:${timeLeft / TURN_SECONDS * 100}%"></span>` : ""}`;
+      <span class="meta"><span title="Số ô đất">🏠 ${lands} ô</span><span title="Tổng tài sản">💰 ${K(p.bankrupt ? 0 : netWorth(g, p.id))}</span>${p.jailed ? '<i class="ic ic-jail" title="Đang ở tù"></i>' : ""}${status}</span>
+      ${g.turn === k && (mode === "online" || !p.bot) && g.phase !== "over" && timeLeft > 0 ? `<span class="timer" style="width:${Math.min(100, timeLeft / turnSec() * 100)}%"></span>` : ""}`;
   });
   for (let k = g.players.length; k < 4; k++) $("#pc" + k).hidden = true;
 }
@@ -121,7 +130,7 @@ function setDice(d, rolling) {
     el.classList.toggle("rolling", !!rolling);
   });
 }
-const nameOf = (pid) => `<b style="color:${TOKENS[g.players[pid].token].color}">${g.players[pid].name}</b>`;
+const nameOf = (pid) => `<b style="color:${TOKENS[g.players[pid].token].color}">${esc(g.players[pid].name)}</b>`;
 const news = (html) => { $("#news").innerHTML = html; };
 
 function renderAll() {
@@ -135,12 +144,13 @@ function renderActions() {
   const box = $("#actions"); box.innerHTML = "";
   if (!g || g.phase === "over") return;
   const p = current(g);
-  $("#who").innerHTML = p.bot ? `Lượt ${nameOf(p.id)}…` : `Lượt của ${nameOf(p.id)}!`;
-  if (busy || p.bot) return;
+  $("#who").innerHTML = p.bot ? `Lượt ${nameOf(p.id)}…` : mode === "online" ? "Tới lượt bạn!" : `Lượt của ${nameOf(p.id)}!`;
+  if (busy) return;
+  if (p.bot || sent) { if (mode === "online") startTimer(); return; }
   const btn = (label, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.innerHTML = label; b.onclick = () => { if (!busy) fn(); }; box.appendChild(b); return b; };
   if (g.phase === "roll") {
     btn("🎲 Gieo xúc xắc", "btn--primary btn--big", humanRoll).focus({ preventScroll: true });
-    if (p.jailed) { const b = btn(`Nộp ${g.rules.jailFine}K ra tù`, "", () => { payJail(g); play(drainEvents(g)); }); b.disabled = p.cash < g.rules.jailFine; }
+    if (p.jailed) { const b = btn(`Nộp ${g.rules.jailFine}K ra tù`, "", humanJail); b.disabled = p.cash < g.rules.jailFine; }
   } else if (g.phase === "decide") {
     const { type, tile, cost } = g.pending, t = TILES[tile];
     news(type === "buy" ? `Mua <b>${t.name}</b> giá ${K(cost)}? Thuê khởi điểm ${K(baseRent(t.price, 0))}.`
@@ -153,6 +163,17 @@ function renderActions() {
 
 function startTimer() {
   stopTimer();
+  if (mode === "online") { // hạn do máy chủ đặt (đã gồm thời gian hoạt ảnh); hết giờ máy chủ tự làm thay, client chỉ hiển thị
+    const left = () => Math.max(0, (room.deadline - (Date.now() + (room.skew || 0))) / 1000);
+    if (!room.deadline) return renderPlayers();
+    timeLeft = left();
+    timer = setInterval(() => {
+      timeLeft = left();
+      const bar = $(`#pc${g.turn} .timer`); if (bar) bar.style.width = Math.min(100, timeLeft / ONLINE_TURN_SECONDS * 100) + "%";
+      if (timeLeft <= 0) stopTimer();
+    }, 250);
+    return renderPlayers();
+  }
   timeLeft = TURN_SECONDS;
   timer = setInterval(() => {
     timeLeft -= 0.25;
@@ -167,17 +188,26 @@ function startTimer() {
 }
 function stopTimer() { if (timer) clearInterval(timer); timer = null; timeLeft = 0; }
 
-function humanRoll() { stopTimer(); if (g.phase !== "roll") return; roll(g); play(drainEvents(g)); }
-function humanDecide(yes) { stopTimer(); decide(g, yes); play(drainEvents(g)); }
+// Online: chỉ gửi ý định lên máy chủ; kết quả (xúc xắc, tiền, ô) về qua trạng thái mới.
+function netAct(o) { if (net.send(o)) { sent = true; renderActions(); } }
+function humanRoll() { if (g.phase !== "roll") return; if (mode === "online") return netAct({ t: "roll" }); stopTimer(); roll(g); play(drainEvents(g)); }
+function humanDecide(yes) { if (mode === "online") return netAct({ t: "decide", yes: !!yes }); stopTimer(); decide(g, yes); play(drainEvents(g)); }
+function humanJail() { if (mode === "online") return netAct({ t: "jail" }); payJail(g); play(drainEvents(g)); }
 
 // ---------- Phát sự kiện ----------
+let epoch = 0; // tăng khi dọn bàn (rời phòng / về phòng chờ) → hoạt ảnh đang phát dừng ngay
 async function play(events) {
+  const ep = epoch;
   busy = true; renderActions();
-  for (const e of events) await playOne(e);
+  for (const e of events) {
+    if (ep !== epoch) return;
+    try { await playOne(e); } catch (err) { if (ep === epoch) throw err; return; } // bàn đã dọn giữa chừng → bỏ phần còn lại
+  }
+  if (ep !== epoch) return;
   busy = false;
   renderAll();
   if (g.phase === "over") return showEnd();
-  if (current(g).bot) { await sleep(450); botStep(g); play(drainEvents(g)); }
+  if (mode === "solo" && current(g).bot) { await sleep(450); botStep(g); play(drainEvents(g)); }
 }
 function syncCash(e) {
   if (!e.cash) return;
@@ -233,12 +263,14 @@ function showCard(e, p) {
     kc.className = "kcard " + (thom ? "thom" : "thoi");
     $("#kTitle").textContent = thom ? "Kèo Thơm" : "Kèo Thối";
     $("#kText").textContent = e.text;
-    $("#kAmt").innerHTML = `${g.players[e.pid].name}`;
+    $("#kAmt").textContent = g.players[e.pid].name;
     $("#cardOv").hidden = false; $("#kOk").hidden = true;
-    await sleep(500); kc.classList.add("flip"); (thom ? SFX.coin : SFX.bad)();
+    const ep = epoch;
+    await sleep(500); if (ep !== epoch || !g) { $("#cardOv").hidden = true; return done(); }
+    kc.classList.add("flip"); (thom ? SFX.coin : SFX.bad)();
     news(`${nameOf(e.pid)} rút <b>${thom ? "Kèo Thơm" : "Kèo Thối"}</b>: ${e.text}`);
     const close = () => { $("#cardOv").hidden = true; done(); };
-    if (p.bot) { await sleep(1700); close(); }
+    if (p.bot || mode === "online") { await sleep(1700); close(); } // online: tự đóng để không lệch nhịp cả phòng
     else { $("#kOk").hidden = false; $("#kOk").focus(); $("#kOk").onclick = close; }
   });
 }
@@ -251,7 +283,7 @@ function showInfo(i) {
     const pr = g ? g.props[i] : { owner: null, level: 0 }, mono = g && pr.owner != null && ownsRegion(g, pr.owner, t.region);
     html += `<p class="sub">${REGIONS[t.region].name} · giá ${K(t.price)} · nâng cấp ${K(upgradeCost(t.price))}/cấp</p><div class="regband" style="background:${REGIONS[t.region].color}"></div>
       <table>${LEVEL_NAMES.map((n, l) => `<tr class="${pr.owner != null && pr.level === l ? "cur" : ""}"><td>${n}</td><td>${K(baseRent(t.price, l) * (mono ? 2 : 1))}</td></tr>`).join("")}</table>
-      <p class="sub">${pr.owner != null ? `Chủ: ${g.players[pr.owner].name}${mono ? " · độc quyền vùng, thuê x2" : ""}` : "Đất trống — đủ 4 ô cùng vùng thì thuê x2."}</p>`;
+      <p class="sub">${pr.owner != null ? `Chủ: ${esc(g.players[pr.owner].name)}${mono ? " · độc quyền vùng, thuê x2" : ""}` : "Đất trống — đủ 4 ô cùng vùng thì thuê x2."}</p>`;
   } else {
     const desc = { start: `Đi qua nhận +${RULES.passStart}K.`, jail: `Tạm giam tối đa ${RULES.maxJailTries} lượt. Đổ đôi hoặc nộp ${RULES.jailFine}K để ra sớm.`,
       bus: "Nghỉ chân miễn phí, nhận thưởng ngẫu nhiên 20K–100K.", "go-to-jail": "Bị bắt quả tang! Vào thẳng Nhà Tù.",
@@ -265,18 +297,19 @@ function showInfo(i) {
 $("#infoOv").onclick = (e) => { if (e.target.id === "infoOv") $("#infoOv").hidden = true; };
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") $("#infoOv").hidden = true;
-  if ((e.key === " " || e.key === "Enter") && g && !busy && g.phase === "roll" && !current(g).bot && $("#lobby").hidden && $("#infoOv").hidden && document.activeElement?.tagName !== "BUTTON" && !document.activeElement?.classList.contains("tile")) { e.preventDefault(); humanRoll(); }
+  if ((e.key === " " || e.key === "Enter") && g && !busy && g.phase === "roll" && !current(g).bot && !sent && $("#lobby").hidden && $("#infoOv").hidden && document.activeElement?.tagName !== "BUTTON" && !document.activeElement?.classList.contains("tile")) { e.preventDefault(); humanRoll(); }
 });
 
 // Tổng kết
 function showEnd() {
   stopTimer();
-  const me = g.players.find((p) => !p.bot), win = g.players[g.winner], iWon = win === me;
+  const me = g.players[myIdx()], win = g.players[g.winner], iWon = win === me;
   $("#endTitle").textContent = iWon ? "Đại Phú Lụm Kèo!" : `${win.name} là Đại Phú`;
+  $("#again").textContent = mode === "online" ? "Về phòng chờ" : "Chơi lại"; $("#endLeave").hidden = mode !== "online";
   $("#endSub").textContent = (g.endReason === "rounds" ? `Hết ${g.rules.maxRounds} vòng — xếp hạng theo tổng tài sản (tiền + đất + nhà).` : "Chỉ còn một người trụ lại, thắng tuyệt đối!")
     + (me.bankrupt && !iWon ? " Bạn đã phá sản." : "");
   $("#rank").innerHTML = g.ranking.map((r, i) => { const p = g.players[r.pid];
-    return `<div><span>#${i + 1}</span><i class="spr tk tk${p.token}"></i><span>${p.name} · ${TOKENS[p.token].name}</span><span class="w">${p.bankrupt ? "Phá sản" : K(r.worth)}</span></div>`; }).join("");
+    return `<div><span>#${i + 1}</span><i class="spr tk tk${p.token}"></i><span>${esc(p.name)} · ${TOKENS[p.token].name}</span><span class="w">${p.bankrupt ? "Phá sản" : K(r.worth)}</span></div>`; }).join("");
   $("#endOv").hidden = false; $("#again").focus();
   if (iWon) { SFX.win(); confetti(); } else SFX.bad();
 }
@@ -293,23 +326,141 @@ function renderLobby() {
   $("#pick").querySelectorAll("button").forEach((b) => (b.onclick = () => { setup.token = +b.dataset.t; renderLobby(); }));
   document.querySelectorAll(".seg button").forEach((b) => { b.setAttribute("aria-pressed", +b.dataset.n === setup.n); b.onclick = () => { setup.n = +b.dataset.n; renderLobby(); }; });
 }
+function buildTokens() {
+  tokEls.forEach((el) => el.remove()); tokEls.length = 0;
+  const me = myIdx();
+  g.players.forEach((p, k) => { const el = document.createElement("i"); el.className = `token spr tk tk${p.token}` + (k === me ? " me" : ""); boardEl.appendChild(el); tokEls[k] = el; });
+}
 function newGame() {
   stopTimer();
   g = createGame({ players: setup.n, human: setup.token });
   drainEvents(g);
   shown = g.players.map(() => 0);
-  tokEls.forEach((el) => el.remove()); tokEls.length = 0;
-  g.players.forEach((p, k) => { const el = document.createElement("i"); el.className = `token spr tk tk${p.token}` + (p.bot ? "" : " me"); boardEl.appendChild(el); tokEls[k] = el; });
+  buildTokens();
   setDice([1, 2]); news("Gieo xúc xắc để bắt đầu lụm kèo!");
+  $("#tagline").textContent = "Lụm Kèo Đại Phú · chơi với máy";
   $("#lobby").hidden = true; $("#endOv").hidden = true;
   renderAll();
 }
-$("#start").onclick = newGame;
-$("#again").onclick = () => { $("#endOv").hidden = true; $("#lobby").hidden = false; renderLobby(); };
+function clearBoard() {
+  epoch++; stopTimer(); g = null; busy = false; sent = false; queue = []; curGid = 0; lastSeq = -1;
+  tokEls.forEach((el) => el.remove()); tokEls.length = 0;
+  for (let k = 0; k < 4; k++) $("#pc" + k).hidden = true;
+  $("#actions").innerHTML = ""; $("#who").textContent = "Chuẩn bị"; news("Gieo xúc xắc để bắt đầu lụm kèo!");
+  $("#endOv").hidden = true; $("#cardOv").hidden = true; $("#round").textContent = `Vòng 1/${RULES.maxRounds}`;
+  tileEls.forEach((el, i) => { const t = TILES[i]; if (t.type !== "property") return; el.classList.remove("owned"); el.querySelector(".bld").innerHTML = ""; el.querySelector(".pr").textContent = t.price + "K"; });
+}
+
+// ---------- Màn vào phòng / phòng chờ ----------
+function lobbyView(which) { // "entry" | "solo" | "room"
+  $("#lobby").hidden = false;
+  $("#vEntry").hidden = which !== "entry"; $("#vSolo").hidden = which !== "solo"; $("#vRoom").hidden = which !== "room";
+  $("#lobbyBtns").hidden = which === "entry";
+  $("#backBtn").textContent = which === "room" ? "Rời phòng" : "Quay lại";
+}
+function setConnecting(on) {
+  ["#mkRoom", "#joinRoom", "#goSolo"].forEach((s) => ($(s).disabled = on));
+  $("#mkRoom").textContent = on ? "Đang kết nối…" : "Tạo phòng online";
+}
+function showEntry(msg = "", code = "") {
+  mode = "solo"; room = null; chat.show(false); clearBoard(); setConnecting(false);
+  $("#tagline").textContent = "Lụm Kèo Đại Phú · 2–4 người";
+  $("#entryErr").textContent = msg; if (code) $("#codeIn").value = code;
+  lobbyView("entry");
+}
+function readName() { const n = $("#nmIn").value.trim(); try { localStorage.setItem(NAME_KEY, n); } catch {} return n; }
+function showRoom() {
+  const v = room, n = v.players.length, host = v.you === v.host;
+  lobbyView("room");
+  $("#rCode").textContent = v.code;
+  $("#rPick").innerHTML = TOKENS.map((t, i) => {
+    const k = v.players.findIndex((p) => p.tok === i), p = v.players[k], mine = k === v.you;
+    const who = p ? (k === v.host ? "👑 " : "") + esc(p.name) + (mine ? " (Bạn)" : "") : "Trống";
+    return `<button type="button" style="--pc:${t.color}" aria-pressed="${mine}" data-t="${i}"${p && !mine ? " disabled" : ""} aria-label="${t.name}: ${p ? esc(p.name) : "chỗ trống, bấm để chọn"}">`
+      + `<i class="spr tk tk${i}"></i>${t.name}<span class="who2${p ? "" : " free"}">${who}</span>${p && !p.connected ? '<span class="off">mất kết nối</span>' : ""}</button>`;
+  }).join("");
+  $("#rPick").querySelectorAll("button").forEach((b) => (b.onclick = () => { if (!b.disabled && b.getAttribute("aria-pressed") !== "true") net.send({ t: "token", tok: +b.dataset.t }); }));
+  $("#rNote").textContent = `${n}/4 người trong phòng. ` + (host ? (n < 2 ? "Gửi mã hoặc link mời cho bạn bè — cần ít nhất 2 người." : "Đủ người rồi, bấm Bắt đầu!") : "Đang chờ chủ phòng bấm Bắt đầu…") + " Bấm linh vật trống để đổi quân.";
+  $("#start").disabled = !host || n < 2;
+  $("#start").textContent = host ? "Bắt đầu" : "Chờ chủ phòng";
+}
+
+// ---------- Nhận trạng thái từ máy chủ ----------
+function netState(v) {
+  room = v; chat.render(v);
+  $("#tagline").textContent = "Phòng " + v.code + " · online";
+  if (v.phase === "lobby") { if (g) clearBoard(); showRoom(); return; }
+  queue.push(v); pump();
+}
+async function pump() {
+  if (pumping) return; pumping = true;
+  try {
+    while (queue.length) {
+      const v = queue.shift(), gv = v.game;
+      gv.players.forEach((p) => (p.bot = p.id !== v.you));
+      if (!g || v.gid !== curGid) { // ván mới (hoặc vừa nối lại) → dựng lại từ ảnh chụp, không phát hoạt ảnh
+        curGid = v.gid; lastSeq = v.seq; g = gv; sent = false;
+        buildTokens(); shown = g.players.map((p) => p.pos);
+        $("#lobby").hidden = true; $("#endOv").hidden = true;
+        setDice(g.dice || [1, 2]); news(v.seq ? "Đã vào lại ván đang chơi." : "Ván mới! Gieo xúc xắc để bắt đầu lụm kèo!");
+        renderAll(); if (g.phase === "over") showEnd();
+        continue;
+      }
+      if (v.seq === lastSeq + 1 && v.events.length && !queue.length && !document.hidden) { // nước kế tiếp → phát hoạt ảnh
+        lastSeq = v.seq; g = gv; sent = false;
+        await play(v.events);
+        continue;
+      }
+      if (v.seq !== lastSeq) { // lệch / dồn gói / tab ẩn → nhảy thẳng tới trạng thái mới
+        lastSeq = v.seq; g = gv; sent = false;
+        shown = g.players.map((p) => p.pos); if (g.dice) setDice(g.dice);
+        renderAll(); if (g.phase === "over") showEnd();
+        continue;
+      }
+      g = gv; renderPlayers(); renderActions(); // cùng nước: chỉ đổi kết nối / hạn giờ / chat
+    }
+  } finally { pumping = false; }
+}
+
+$("#start").onclick = () => (mode === "online" ? net.send({ t: "start" }) : newGame());
+$("#backBtn").onclick = () => (mode === "online" ? net.leave() : lobbyView("entry"));
+$("#again").onclick = () => {
+  if (mode === "online") return net.send({ t: "lobby" });
+  $("#endOv").hidden = true; lobbyView("solo"); renderLobby();
+};
+$("#endLeave").onclick = () => net.leave();
+$("#goSolo").onclick = () => { $("#entryErr").textContent = ""; lobbyView("solo"); renderLobby(); };
+$("#mkRoom").onclick = () => { $("#entryErr").textContent = ""; setConnecting(true); net.create(readName()); };
+function joinRoom() {
+  const code = $("#codeIn").value.trim().toUpperCase();
+  if (!CODE_RE.test(code)) { $("#entryErr").textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7QX2."; $("#codeIn").focus(); return; }
+  $("#entryErr").textContent = ""; setConnecting(true); net.join(code, readName());
+}
+$("#joinRoom").onclick = joinRoom;
+$("#codeIn").addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") joinRoom(); });
+$("#nmIn").addEventListener("keydown", (e) => e.stopPropagation());
+$("#copyLink").onclick = async () => {
+  const u = new URL(location.href); u.search = "?room=" + room.code;
+  try { await navigator.clipboard.writeText(u.href); toast("Đã sao chép link mời — gửi cho bạn bè nhé!"); }
+  catch { toast("Link mời: " + u.href, 6000); }
+};
 
 (async () => {
   await loadManifest();
   buildBoard(); renderLobby(); setDice([5, 6]);
+  try { $("#nmIn").value = localStorage.getItem(NAME_KEY) || ""; } catch {}
+  chat = createChat({ box: $("#chat"), button: $("#chatBtn"), send: (o) => net.send(o),
+    colorOf: (name) => { const p = room && room.players.find((x) => x.name === name); return p ? TOKENS[p.tok].color : ""; } });
+  net = createNet({
+    onJoined: () => { mode = "online"; chat.show(true); setConnecting(false); $("#entryErr").textContent = ""; },
+    onState: netState,
+    onExit: (msg, code) => showEntry(msg, code),
+  });
+  showEntry();
+  const param = (new URLSearchParams(location.search).get("room") || "").toUpperCase();
+  if (net.seat && (!param || param === net.seat.code)) { setConnecting(true); net.resume(); }
+  else if (CODE_RE.test(param)) { $("#codeIn").value = param; $("#entryErr").textContent = ""; ($("#nmIn").value ? $("#joinRoom") : $("#nmIn")).focus(); }
   // Hook test: ?seed=…&auto=1 cho kiểm thử tự động.
-  window.__cotyphu = { get g() { return g; }, newGame, humanRoll, humanDecide, setFast: (v) => { SPEED = v; } };
+  window.__cotyphu = { get g() { return g; }, get room() { return room; }, get mode() { return mode; }, get net() { return net; },
+    newGame, humanRoll, humanDecide, setFast: (v) => { SPEED = v; } };
 })();

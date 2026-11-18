@@ -31,12 +31,13 @@
 
     /* Bố cục: desktop = 2 thẻ người chơi trái + bàn + 2 thẻ phải (HUD 4 góc). Mobile = 4 thẻ gọn trên, bàn dưới. */
     .wrap { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; padding: 14px 16px 18px; display: grid; gap: 14px 18px;
-      grid-template-columns: minmax(180px, 230px) auto minmax(180px, 230px); grid-template-areas: "p0 board p1" "p3 board p2"; align-items: start; justify-content: center; }
+      grid-template-columns: minmax(180px, 230px) auto minmax(180px, 230px); grid-template-rows: auto 1fr auto;
+      grid-template-areas: "p0 board p1" ". board chat" "p3 board p2"; align-items: start; justify-content: center; }
     #pc0 { grid-area: p0; } #pc1 { grid-area: p1; } #pc2 { grid-area: p2; align-self: end; } #pc3 { grid-area: p3; align-self: end; }
-    .board-wrap { grid-area: board; --size: min(calc(100svh - 96px), calc(100vw - 540px), 900px); width: var(--size); height: var(--size); position: relative; }
+    .board-wrap { grid-area: board; grid-row: 1 / -1; --size: min(calc(100svh - 96px), calc(100vw - 540px), 900px); width: var(--size); height: var(--size); position: relative; }
     @media (max-width: 860px) {
-      .wrap { grid-template-columns: 1fr 1fr; grid-template-areas: "p0 p1" "p3 p2" "board board"; padding: 10px 8px 14px; gap: 8px; align-content: start; }
-      .board-wrap { --size: min(calc(100vw - 16px), 640px); justify-self: center; }
+      .wrap { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-template-areas: "p0 p1" "p3 p2" "board board"; padding: 10px 8px 14px; gap: 8px; align-content: start; }
+      .board-wrap { grid-row: auto; --size: min(calc(100vw - 16px), 640px); justify-self: center; }
       #pc2, #pc3 { align-self: start; }
       .bar { padding: 6px 10px; gap: 10px; } .bar h1 { font-size: 15px; } .tagline { display: none; }
     }
@@ -166,15 +167,67 @@
     .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
     .confetti i { position: absolute; top: -12px; width: 10px; height: 10px; animation: fall linear forwards; }
     @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+    /* ---------- Online: màn vào phòng, phòng chờ, chat ---------- */
+    .inp { all: unset; box-sizing: border-box; min-height: 44px; padding: 8px 12px; width: 100%; color: var(--ink); background: #120f0c; text-align: left;
+      font: 700 16px/1.2 "Be Vietnam Pro", system-ui, sans-serif; --b: #6d6150; box-shadow: inset 0 3px 0 rgba(0,0,0,.5), var(--border); user-select: text; -webkit-user-select: text; }
+    .inp::placeholder { color: var(--dim); }
+    .inp:focus-visible { --b: var(--gold); }
+    .inp.code { text-transform: uppercase; letter-spacing: .3em; font-weight: 800; text-align: center; }
+    .entry { display: grid; gap: 12px; margin: 16px 3px 4px; text-align: left; }
+    .entry .lb { color: var(--soft); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .entry .join { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+    .entry .or { display: flex; align-items: center; gap: 10px; color: var(--dim); font-size: 12px; font-weight: 700; }
+    .entry .or::before, .entry .or::after { content: ""; flex: 1; height: 3px; background: #2e271f; }
+    .err { color: #ff8a7a; font-size: 13px; font-weight: 700; } .err:empty { display: none; }
+    .roomhd { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 14px 0 4px; font-weight: 700; color: var(--soft); }
+    .roomhd b { font: 800 24px "Be Vietnam Pro"; letter-spacing: .2em; color: var(--gold); text-shadow: 2px 2px 0 #000; user-select: text; -webkit-user-select: text; }
+    .pick button .who2 { font-size: 13px; color: var(--ink); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pick button .who2.free { color: var(--dim); font-weight: 600; }
+    .pick button .off { color: #ff8a7a; font-size: 11px; }
+    .pick button[disabled] { cursor: default; }
+    .chatbtn { position: relative; width: auto; padding: 0 12px; font: 800 13px "Be Vietnam Pro"; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); }
+    .chatbtn .n { position: absolute; right: -8px; top: -8px; min-width: 20px; height: 20px; padding: 0 4px; display: grid; place-items: center; font-size: 11px; color: #2c1b05; background: var(--gold); box-shadow: 0 0 0 2px #000; }
+    .chatbtn .n[hidden] { display: none; }
+    .chat { grid-area: chat; align-self: stretch; position: relative; min-height: 220px; z-index: 21; }
+    .chat .box { position: absolute; inset: 3px; display: flex; flex-direction: column; background: var(--panel); box-shadow: var(--bevel), var(--border), var(--drop); }
+    .chat .hd { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: #2b2118; box-shadow: inset 0 -3px 0 #000; }
+    .chat .hd h2 { margin: 0; font: 800 13px "Be Vietnam Pro"; letter-spacing: .08em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+    .chat .close { display: none; min-height: 34px; padding: 4px 10px; font-size: 12px; }
+    .chat .log { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 10px; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+    .chat .log li { align-self: flex-start; max-width: 92%; padding: 5px 9px 5px 11px; background: var(--panel2); box-shadow: inset 4px 0 0 var(--who, #6d6150), 0 0 0 2px #000; }
+    .chat .log li b { display: block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--who, var(--soft)); }
+    .chat .log li.mine { align-self: flex-end; background: #2c261d; box-shadow: inset -4px 0 0 var(--who, var(--gold)), 0 0 0 2px #000; padding: 5px 11px 5px 9px; }
+    .chat .log li.mine b { text-align: right; }
+    .chat .log .empty { align-self: center; background: none; box-shadow: none; color: var(--dim); font-size: 13px; text-align: center; }
+    .chat form { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px 12px 10px; box-shadow: inset 0 3px 0 #000; }
+    .chat form .inp { min-height: 40px; font-size: 15px; padding: 6px 10px; }
+    .chat form .btn { min-height: 40px; padding: 6px 12px; }
+    body.online .bar { position: relative; z-index: 21; }
+    @media (min-width: 861px) { .chatbtn { display: none !important; } }
+    @media (max-width: 520px) { .bar .hm { display: none; } .bar { gap: 8px; } .round { padding: 4px 6px; font-size: 12px; } .chatbtn { padding: 0 8px; font-size: 12px; } }
+    @media (max-width: 860px) {
+      body.online .ov { padding-top: 64px; }
+      .chat { display: none; }
+      body.chat-open .chat { display: block; position: fixed; z-index: 45; left: 0; right: 0; bottom: 0; height: min(62svh, 460px); min-height: 0; }
+      body.chat-open .chat .box { inset: 3px 3px 0; }
+      body.chat-open .chat .close { display: inline-flex; }
+      body.chat-open .toast { display: none; }
+    }
+    .toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 50; max-width: min(92vw, 460px); padding: 10px 16px; pointer-events: none;
+      color: var(--ink); background: #1d1a16; font: 700 14px/1.35 "Be Vietnam Pro", system-ui, sans-serif;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.13), 0 -3px 0 #ffc94a, 0 3px 0 #ffc94a, -3px 0 0 #ffc94a, 3px 0 0 #ffc94a, 4px 7px 0 0 rgba(0,0,0,.6); }
+    .pcard .off { font-size: 11px; font-weight: 800; color: #ff8a7a; }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
   </style>
 </head>
 <body>
   <header class="bar">
-    <a href="../../homepage/">← Trang chủ</a>
+    <a href="../../homepage/" aria-label="Về trang chủ">←<span class="hm"> Trang chủ</span></a>
     <h1>Cờ Tỷ Phú</h1>
-    <span class="tagline">Lụm Kèo Đại Phú · chơi với máy</span>
+    <span class="tagline" id="tagline">Lụm Kèo Đại Phú · 2–4 người</span>
     <span class="round" id="round">Vòng 1/25</span>
+    <button class="iconbtn chatbtn" id="chatBtn" type="button" aria-label="Trò chuyện" hidden>Chat<span class="n" hidden></span></button>
     <button class="iconbtn" id="mute" aria-label="Tắt/bật âm thanh" title="Âm thanh">🔊</button>
   </header>
   <main class="wrap">
@@ -182,6 +235,13 @@
     <section class="pcard" id="pc1" hidden></section>
     <section class="pcard" id="pc2" hidden></section>
     <section class="pcard" id="pc3" hidden></section>
+    <aside class="chat" id="chat" aria-label="Trò chuyện trong phòng" hidden>
+      <div class="box">
+        <div class="hd"><h2>Trò chuyện</h2><button class="btn close" type="button">Đóng</button></div>
+        <ol class="log" aria-live="polite"></ol>
+        <form autocomplete="off"><input class="inp" maxlength="200" placeholder="Nhắn cho cả phòng…" enterkeyhint="send" aria-label="Nội dung tin nhắn"><button class="btn btn--primary" type="submit">Gửi</button></form>
+      </div>
+    </aside>
     <div class="board-wrap">
       <div class="board" id="board" role="application" aria-label="Bàn cờ 40 ô">
         <div class="court">
@@ -199,16 +259,37 @@
       <div class="poster" role="img" aria-label="Bốn linh vật quanh bàn cờ tỷ phú giữa phố đèn lồng"></div>
       <h2>Lụm Kèo Đại Phú</h2>
       <p class="sub">Mua đất, xây nhà, thu tiền thuê. Sau 25 vòng ai giàu nhất là Đại Phú!</p>
-      <div class="pick" id="pick" role="group" aria-label="Chọn quân"></div>
-      <div class="seg" role="group" aria-label="Số người chơi"><span class="lbl">Số người:</span>
-        <button class="btn" data-n="2">2</button><button class="btn" data-n="3">3</button><button class="btn" data-n="4" aria-pressed="true">4</button></div>
+      <section class="entry" id="vEntry">
+        <label class="lb" for="nmIn">Tên của bạn</label>
+        <input class="inp" id="nmIn" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Đại Gia">
+        <button class="btn btn--primary btn--big" id="mkRoom" type="button">Tạo phòng online</button>
+        <div class="or"><span>hoặc vào phòng của bạn bè</span></div>
+        <div class="join">
+          <input class="inp code" id="codeIn" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MÃ PHÒNG" aria-label="Mã phòng">
+          <button class="btn" id="joinRoom" type="button">Vào phòng</button>
+        </div>
+        <div class="err" id="entryErr" role="alert"></div>
+        <div class="or"><span>hoặc</span></div>
+        <button class="btn" id="goSolo" type="button">Chơi với máy</button>
+      </section>
+      <section id="vSolo" hidden>
+        <div class="pick" id="pick" role="group" aria-label="Chọn quân"></div>
+        <div class="seg" role="group" aria-label="Số người chơi"><span class="lbl">Số người:</span>
+          <button class="btn" data-n="2">2</button><button class="btn" data-n="3">3</button><button class="btn" data-n="4" aria-pressed="true">4</button></div>
+      </section>
+      <section id="vRoom" hidden>
+        <div class="roomhd">Mã phòng <b id="rCode"></b><button class="btn" id="copyLink" type="button">Sao chép link mời</button></div>
+        <div class="pick" id="rPick" role="group" aria-label="Chỗ ngồi và linh vật"></div>
+        <p class="sub" id="rNote"></p>
+      </section>
       <div class="how">
         <span>🎲 <b>Gieo 2 xúc xắc</b>, đi theo chiều kim đồng hồ. Qua <b>Xuất Phát</b> +200K.</span>
         <span>🏠 Ô trống: <b>mua</b>. Dừng lại ô của mình: <b>nâng cấp nhà ngay</b> (3 cấp). Đủ 4 ô cùng màu: thuê <b>x2</b>.</span>
         <span>🃏 <b>Kèo Thơm</b> thưởng, <b>Kèo Thối</b> phạt. <b>Vào Tù</b>: đổ đôi, nộp 50K, hoặc chờ 2 lượt.</span>
-        <span>⏱ Mỗi lượt 15 giây — hết giờ máy tự gieo/tự mua. Hết tiền là phá sản.</span>
+        <span>⏱ Mỗi lượt 15 giây (chơi với máy) / 25 giây (online) — hết giờ tự gieo, tự quyết. Hết tiền là phá sản.</span>
+        <span>👥 <b>Online 2–4 người</b>: tạo phòng, gửi mã hoặc link mời cho bạn bè, chủ phòng bấm Bắt đầu. Có khung chat cho cả phòng.</span>
       </div>
-      <button class="btn btn--primary btn--big" id="start">Bắt đầu</button>
+      <div class="row" id="lobbyBtns" hidden><button class="btn btn--primary btn--big" id="start">Bắt đầu</button><button class="btn btn--big" id="backBtn" type="button">Quay lại</button></div>
     </div>
   </div>
 
@@ -228,7 +309,7 @@
       <h2 id="endTitle">Đại Phú Lụm Kèo</h2>
       <p class="sub" id="endSub"></p>
       <div class="rank" id="rank"></div>
-      <div class="row"><button class="btn btn--primary btn--big" id="again">Chơi lại</button><a class="btn btn--big" href="../../homepage/">Trang chủ</a></div>
+      <div class="row"><button class="btn btn--primary btn--big" id="again">Chơi lại</button><button class="btn btn--big" id="endLeave" type="button" hidden>Rời phòng</button><a class="btn btn--big" href="../../homepage/">Trang chủ</a></div>
     </div>
   </div>
   <div class="confetti" id="confetti"></div>

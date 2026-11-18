@@ -1,0 +1,53 @@
+PASS A: màn vào phòng hiện (tên, Tạo phòng, mã phòng, Chơi với máy)
+PASS A: nhãn đầu trang "2–4 người", không còn "chơi với máy"
+PASS A: mã phòng trống → báo lỗi, không kết nối
+PASS A: tạo phòng → vào phòng chờ có mã
+PASS A: là chủ phòng, 1/4 người, URL có ?room= — 7BHRV
+PASS A: chủ phòng 1 người → nút Bắt đầu bị khoá
+PASS A: khung chat hiện cạnh bàn (desktop)
+PASS B: link mời điền sẵn mã phòng
+PASS B: vào phòng (mobile)
+PASS C: vào bằng mã (gõ chữ thường vẫn được)
+PASS A thấy 3/4 người, nút Bắt đầu mở
+PASS B (không phải chủ) không bấm được Bắt đầu
+PASS B đổi linh vật sang quân trống → A thấy cập nhật
+PASS B không chọn được linh vật người khác đang giữ
+PASS mobile phòng chờ: không tràn ngang
+PASS A: vào ván, lớp phủ phòng chờ đóng
+PASS B: vào ván, lớp phủ phòng chờ đóng
+PASS C: vào ván, lớp phủ phòng chờ đóng
+PASS 3 thẻ người chơi hiện, đúng tên
+PASS quân của mình có dấu ▼ (đúng ghế)
+PASS gửi gieo khi chưa tới lượt → máy chủ bỏ qua
+PASS chơi 8 nước bằng bấm thật, ván chạy tiếp — seq=8
+PASS tiền/vị trí khớp giữa các tab
+PASS desktop đang chơi: không tràn ngang
+PASS mobile đang chơi: không tràn ngang
+PASS A gửi chat → hiện trong khung của A
+PASS B (mobile) có huy hiệu tin chưa đọc
+PASS B mở bảng chat, thấy tin của A, huy hiệu tắt
+PASS A nhận tin của B, chữ <b> hiện nguyên văn (không chèn HTML)
+PASS B đóng bảng chat
+PASS chat spam bị giới hạn (≤ 4 tin liền)
+PASS B rớt mạng → A thấy "Mất kết nối" hoặc B đã nối lại ngay
+PASS B tự nối lại, giữ đúng ghế 2
+PASS B tải lại trang → vào lại ván đang chơi
+PASS chơi tiếp sau khi nối lại
+PASS C rời → về màn vào phòng
+PASS A thấy C "Đã rời"
+PASS ván kết thúc (hết vòng hoặc phá sản) — vòng 25, 147s
+PASS A: bảng tổng kết hiện, nút "Về phòng chờ" + "Rời phòng"
+PASS B: bảng tổng kết hiện, nút "Về phòng chờ" + "Rời phòng"
+PASS về phòng chờ: cả A và B quay lại phòng, C (đã rời) bị bỏ khỏi danh sách
+PASS ván 2 bắt đầu lại từ đầu (gid 2, tiền khởi điểm)
+PASS rời phòng → về màn vào phòng, URL bỏ ?room=
+PASS Chơi với máy: hiện chọn quân + số người
+PASS ván với máy bắt đầu, lượt người chơi có nút Gieo
+PASS gieo xúc xắc với máy → máy tự đi tiếp
+PASS chơi với máy không có chat
+PASS trang chủ: Cờ Tỷ Phú ở kệ Đối kháng đông người, nhãn 2–4 người — Mới11 phòngCờ Tỷ Phú2–4 người, chơi cùng bạn được
+PASS trang chủ: Cờ Vua + Cờ Tướng ở kệ Trí tuệ, không còn ở kệ Đối kháng
+PASS trang chủ: Cờ Tỷ Phú không còn ở kệ Trí tuệ
+PASS A: không có lỗi JS
+PASS B: không có lỗi JS
+PASS C: không có lỗi JS
