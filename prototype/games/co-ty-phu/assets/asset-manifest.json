@@ -1,0 +1,785 @@
+{
+  "generationCalls": 7,
+  "files": [
+    {
+      "file": "board-co-ty-phu.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 1354468,
+      "mode": "RGB",
+      "sha256": "18faf7e6b56f6f4990e79de19b7106182585d97aa7f7d256deb527f4d698d469"
+    },
+    {
+      "file": "tokens-sprite.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 230118,
+      "mode": "RGBA",
+      "sha256": "58833eefd558043385af9d9086f13c53ca6ac09dd47132e954d85b6b626edd0c",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "buildings-sprite.webp",
+      "width": 64,
+      "height": 64,
+      "bytes": 5448,
+      "mode": "RGBA",
+      "sha256": "d618c41c9622174938efa3b0aefa3d829f947a0afc8ad7564f8cfeb7be267245",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "cards-keo.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 381022,
+      "mode": "RGB",
+      "sha256": "be616b30591986382116718939249a790becd3c9d890005daed1ee2230e0aeb0"
+    },
+    {
+      "file": "hud-dice-icons.png",
+      "width": 160,
+      "height": 64,
+      "bytes": 13195,
+      "mode": "RGBA",
+      "sha256": "59aa5a30a26d469302166ef5c54406b39b8434adda49c9c6fa0751155a14b9bd",
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "file": "poster-co-ty-phu.webp",
+      "width": 960,
+      "height": 640,
+      "bytes": 943468,
+      "mode": "RGB",
+      "sha256": "5c0c6cb9fdafd64ca85afc47a38044656cf76e8617b82cde32034f32d2fd93ed"
+    }
+  ],
+  "sprites": {
+    "tokens-sprite.webp": {
+      "xich-lo-red": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "non-la-blue": {
+        "x": 256,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "ca-phe-phin-yellow": {
+        "x": 0,
+        "y": 256,
+        "width": 256,
+        "height": 256
+      },
+      "trau-vang-green": {
+        "x": 256,
+        "y": 256,
+        "width": 256,
+        "height": 256
+      }
+    },
+    "buildings-sprite.webp": {
+      "level-1-thatched-house": {
+        "x": 0,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "level-2-townhouse": {
+        "x": 32,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "level-3-villa-hotel": {
+        "x": 0,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      },
+      "ownership-flag": {
+        "x": 32,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    },
+    "cards-keo.webp": {
+      "keo-thom": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 512
+      },
+      "keo-thoi": {
+        "x": 384,
+        "y": 0,
+        "width": 384,
+        "height": 512
+      }
+    },
+    "hud-dice-icons.png": {
+      "dice-1": {
+        "x": 0,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "dice-2": {
+        "x": 32,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "dice-3": {
+        "x": 64,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "dice-4": {
+        "x": 96,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "dice-5": {
+        "x": 128,
+        "y": 0,
+        "width": 32,
+        "height": 32
+      },
+      "dice-6": {
+        "x": 0,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      },
+      "polymer-banknotes": {
+        "x": 32,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      },
+      "gold-bag": {
+        "x": 64,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      },
+      "jail-handcuffs": {
+        "x": 96,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      },
+      "prohibition": {
+        "x": 128,
+        "y": 32,
+        "width": 32,
+        "height": 32
+      }
+    }
+  },
+  "board": {
+    "file": "board-co-ty-phu.webp",
+    "tileCount": 40,
+    "tilesPerSideIncludingCorners": 11,
+    "direction": "clockwise from bottom right toward bottom left",
+    "coordinateSystem": "1024x1024 final image; approximate measured visible boundaries, verify overlays in integrated UI",
+    "tiles": [
+      {
+        "id": 0,
+        "type": "start",
+        "row": 10,
+        "column": 10,
+        "x": 846,
+        "y": 844,
+        "width": 112,
+        "height": 104,
+        "center": [
+          902.0,
+          896.0
+        ]
+      },
+      {
+        "id": 1,
+        "type": "property",
+        "row": 10,
+        "column": 9,
+        "x": 771,
+        "y": 844,
+        "width": 75,
+        "height": 104,
+        "center": [
+          808.5,
+          896.0
+        ]
+      },
+      {
+        "id": 2,
+        "type": "property",
+        "row": 10,
+        "column": 8,
+        "x": 697,
+        "y": 844,
+        "width": 74,
+        "height": 104,
+        "center": [
+          734.0,
+          896.0
+        ]
+      },
+      {
+        "id": 3,
+        "type": "property",
+        "row": 10,
+        "column": 7,
+        "x": 624,
+        "y": 844,
+        "width": 73,
+        "height": 104,
+        "center": [
+          660.5,
+          896.0
+        ]
+      },
+      {
+        "id": 4,
+        "type": "property",
+        "row": 10,
+        "column": 6,
+        "x": 550,
+        "y": 844,
+        "width": 74,
+        "height": 104,
+        "center": [
+          587.0,
+          896.0
+        ]
+      },
+      {
+        "id": 5,
+        "type": "keo-thoi",
+        "row": 10,
+        "column": 5,
+        "x": 474,
+        "y": 844,
+        "width": 76,
+        "height": 104,
+        "center": [
+          512.0,
+          896.0
+        ]
+      },
+      {
+        "id": 6,
+        "type": "property",
+        "row": 10,
+        "column": 4,
+        "x": 400,
+        "y": 844,
+        "width": 74,
+        "height": 104,
+        "center": [
+          437.0,
+          896.0
+        ]
+      },
+      {
+        "id": 7,
+        "type": "property",
+        "row": 10,
+        "column": 3,
+        "x": 326,
+        "y": 844,
+        "width": 74,
+        "height": 104,
+        "center": [
+          363.0,
+          896.0
+        ]
+      },
+      {
+        "id": 8,
+        "type": "property",
+        "row": 10,
+        "column": 2,
+        "x": 252,
+        "y": 844,
+        "width": 74,
+        "height": 104,
+        "center": [
+          289.0,
+          896.0
+        ]
+      },
+      {
+        "id": 9,
+        "type": "property",
+        "row": 10,
+        "column": 1,
+        "x": 178,
+        "y": 844,
+        "width": 74,
+        "height": 104,
+        "center": [
+          215.0,
+          896.0
+        ]
+      },
+      {
+        "id": 10,
+        "type": "jail",
+        "row": 10,
+        "column": 0,
+        "x": 66,
+        "y": 844,
+        "width": 112,
+        "height": 104,
+        "center": [
+          122.0,
+          896.0
+        ]
+      },
+      {
+        "id": 11,
+        "type": "property",
+        "row": 9,
+        "column": 0,
+        "x": 66,
+        "y": 774,
+        "width": 112,
+        "height": 70,
+        "center": [
+          122.0,
+          809.0
+        ]
+      },
+      {
+        "id": 12,
+        "type": "property",
+        "row": 8,
+        "column": 0,
+        "x": 66,
+        "y": 704,
+        "width": 112,
+        "height": 70,
+        "center": [
+          122.0,
+          739.0
+        ]
+      },
+      {
+        "id": 13,
+        "type": "property",
+        "row": 7,
+        "column": 0,
+        "x": 66,
+        "y": 633,
+        "width": 112,
+        "height": 71,
+        "center": [
+          122.0,
+          668.5
+        ]
+      },
+      {
+        "id": 14,
+        "type": "property",
+        "row": 6,
+        "column": 0,
+        "x": 66,
+        "y": 562,
+        "width": 112,
+        "height": 71,
+        "center": [
+          122.0,
+          597.5
+        ]
+      },
+      {
+        "id": 15,
+        "type": "keo-thom",
+        "row": 5,
+        "column": 0,
+        "x": 66,
+        "y": 467,
+        "width": 112,
+        "height": 95,
+        "center": [
+          122.0,
+          514.5
+        ]
+      },
+      {
+        "id": 16,
+        "type": "property",
+        "row": 4,
+        "column": 0,
+        "x": 66,
+        "y": 397,
+        "width": 112,
+        "height": 70,
+        "center": [
+          122.0,
+          432.0
+        ]
+      },
+      {
+        "id": 17,
+        "type": "property",
+        "row": 3,
+        "column": 0,
+        "x": 66,
+        "y": 326,
+        "width": 112,
+        "height": 71,
+        "center": [
+          122.0,
+          361.5
+        ]
+      },
+      {
+        "id": 18,
+        "type": "property",
+        "row": 2,
+        "column": 0,
+        "x": 66,
+        "y": 255,
+        "width": 112,
+        "height": 71,
+        "center": [
+          122.0,
+          290.5
+        ]
+      },
+      {
+        "id": 19,
+        "type": "property",
+        "row": 1,
+        "column": 0,
+        "x": 66,
+        "y": 185,
+        "width": 112,
+        "height": 70,
+        "center": [
+          122.0,
+          220.0
+        ]
+      },
+      {
+        "id": 20,
+        "type": "bus-stop",
+        "row": 0,
+        "column": 0,
+        "x": 66,
+        "y": 76,
+        "width": 112,
+        "height": 109,
+        "center": [
+          122.0,
+          130.5
+        ]
+      },
+      {
+        "id": 21,
+        "type": "property",
+        "row": 0,
+        "column": 1,
+        "x": 178,
+        "y": 76,
+        "width": 74,
+        "height": 109,
+        "center": [
+          215.0,
+          130.5
+        ]
+      },
+      {
+        "id": 22,
+        "type": "property",
+        "row": 0,
+        "column": 2,
+        "x": 252,
+        "y": 76,
+        "width": 74,
+        "height": 109,
+        "center": [
+          289.0,
+          130.5
+        ]
+      },
+      {
+        "id": 23,
+        "type": "property",
+        "row": 0,
+        "column": 3,
+        "x": 326,
+        "y": 76,
+        "width": 74,
+        "height": 109,
+        "center": [
+          363.0,
+          130.5
+        ]
+      },
+      {
+        "id": 24,
+        "type": "property",
+        "row": 0,
+        "column": 4,
+        "x": 400,
+        "y": 76,
+        "width": 74,
+        "height": 109,
+        "center": [
+          437.0,
+          130.5
+        ]
+      },
+      {
+        "id": 25,
+        "type": "keo-thom",
+        "row": 0,
+        "column": 5,
+        "x": 474,
+        "y": 76,
+        "width": 76,
+        "height": 109,
+        "center": [
+          512.0,
+          130.5
+        ]
+      },
+      {
+        "id": 26,
+        "type": "property",
+        "row": 0,
+        "column": 6,
+        "x": 550,
+        "y": 76,
+        "width": 74,
+        "height": 109,
+        "center": [
+          587.0,
+          130.5
+        ]
+      },
+      {
+        "id": 27,
+        "type": "property",
+        "row": 0,
+        "column": 7,
+        "x": 624,
+        "y": 76,
+        "width": 73,
+        "height": 109,
+        "center": [
+          660.5,
+          130.5
+        ]
+      },
+      {
+        "id": 28,
+        "type": "property",
+        "row": 0,
+        "column": 8,
+        "x": 697,
+        "y": 76,
+        "width": 74,
+        "height": 109,
+        "center": [
+          734.0,
+          130.5
+        ]
+      },
+      {
+        "id": 29,
+        "type": "property",
+        "row": 0,
+        "column": 9,
+        "x": 771,
+        "y": 76,
+        "width": 75,
+        "height": 109,
+        "center": [
+          808.5,
+          130.5
+        ]
+      },
+      {
+        "id": 30,
+        "type": "go-to-jail",
+        "row": 0,
+        "column": 10,
+        "x": 846,
+        "y": 76,
+        "width": 112,
+        "height": 109,
+        "center": [
+          902.0,
+          130.5
+        ]
+      },
+      {
+        "id": 31,
+        "type": "property",
+        "row": 1,
+        "column": 10,
+        "x": 846,
+        "y": 185,
+        "width": 112,
+        "height": 70,
+        "center": [
+          902.0,
+          220.0
+        ]
+      },
+      {
+        "id": 32,
+        "type": "property",
+        "row": 2,
+        "column": 10,
+        "x": 846,
+        "y": 255,
+        "width": 112,
+        "height": 71,
+        "center": [
+          902.0,
+          290.5
+        ]
+      },
+      {
+        "id": 33,
+        "type": "property",
+        "row": 3,
+        "column": 10,
+        "x": 846,
+        "y": 326,
+        "width": 112,
+        "height": 71,
+        "center": [
+          902.0,
+          361.5
+        ]
+      },
+      {
+        "id": 34,
+        "type": "property",
+        "row": 4,
+        "column": 10,
+        "x": 846,
+        "y": 397,
+        "width": 112,
+        "height": 70,
+        "center": [
+          902.0,
+          432.0
+        ]
+      },
+      {
+        "id": 35,
+        "type": "keo-thoi",
+        "row": 5,
+        "column": 10,
+        "x": 846,
+        "y": 467,
+        "width": 112,
+        "height": 95,
+        "center": [
+          902.0,
+          514.5
+        ]
+      },
+      {
+        "id": 36,
+        "type": "property",
+        "row": 6,
+        "column": 10,
+        "x": 846,
+        "y": 562,
+        "width": 112,
+        "height": 71,
+        "center": [
+          902.0,
+          597.5
+        ]
+      },
+      {
+        "id": 37,
+        "type": "property",
+        "row": 7,
+        "column": 10,
+        "x": 846,
+        "y": 633,
+        "width": 112,
+        "height": 71,
+        "center": [
+          902.0,
+          668.5
+        ]
+      },
+      {
+        "id": 38,
+        "type": "property",
+        "row": 8,
+        "column": 10,
+        "x": 846,
+        "y": 704,
+        "width": 112,
+        "height": 70,
+        "center": [
+          902.0,
+          739.0
+        ]
+      },
+      {
+        "id": 39,
+        "type": "property",
+        "row": 9,
+        "column": 10,
+        "x": 846,
+        "y": 774,
+        "width": 112,
+        "height": 70,
+        "center": [
+          902.0,
+          809.0
+        ]
+      }
+    ],
+    "centerCourt": {
+      "x": 178,
+      "y": 185,
+      "width": 668,
+      "height": 659
+    },
+    "note": "NOT an absolutely uniform grid. Dev MUST use individual tile rectangles/centers, never divide the board into evenly spaced cells. Four shared corner tiles +9 intermediate tiles on each side =40. Artwork has 32 properties and 4 events."
+  },
+  "processing": "Nearest-neighbor resize and aspect fit only; lossless WebP, original generated alpha preserved for transparent sheets.",
+  "qa": {
+    "pipCounts": "Visually confirmed 1-6 in original generation; verify after downscale",
+    "visualApproval": "Pending project owner approval; no gameplay integration or commit",
+    "board40": "Visually counted 11 per edge; 40 distinct tile rectangles. Four corners, 32 property, two keo-thom and two keo-thoi."
+  },
+  "generationAccounting": {
+    "initialBatchCalls": 6,
+    "boardReplacementCalls": 1,
+    "totalActualCalls": 7,
+    "activeAssetSlots": 6,
+    "note": "One approved replacement call replaces the old board slot. Five other generated images are unchanged; replacement is not a new six-image batch."
+  },
+  "activeAssetSlots": 6
+}
