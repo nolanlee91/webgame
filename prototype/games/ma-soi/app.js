@@ -36,11 +36,11 @@ let ws = null, v = null, offset = 0, sess = load(), retry = 0, pending = null, t
 function load() { try { return JSON.parse(sessionStorage.getItem(SESS)) || null; } catch { return null; } }
 // Khách (guest): danh tính trong phòng = token 128 bit do server cấp, giữ ở tab (sessionStorage) + bản dự phòng trên máy
 // (localStorage) để lỡ đóng tab vẫn "Quay lại phòng" được. Không tài khoản, không mật khẩu.
-const LAST = "ma-soi:last";
+const LAST = "ma-soi:last"; const GAME = "ma-soi";
 function save(s) {
   sess = s;
   if (s) { sessionStorage.setItem(SESS, JSON.stringify(s)); localStorage.setItem(LAST, JSON.stringify(s)); }
-  else { sessionStorage.removeItem(SESS); localStorage.removeItem(LAST); }
+  else { sessionStorage.removeItem(SESS); localStorage.removeItem(LAST);  document.getElementById("resumeRow")?.remove(); }
 }
 const now = () => Date.now() + offset;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -492,6 +492,12 @@ else {
     const b = document.createElement("button"); b.className = "btn"; b.textContent = `Quay lại phòng ${last.code}`;
     b.onclick = () => { sess = last; sessionStorage.setItem(SESS, JSON.stringify(last)); homeMsg("Đang quay lại phòng…"); ws ? send({ t: "resume", ...last }) : connect(); };
     b.classList.add("btn--teal", "home__create");
-    const row = document.createElement("div"); row.className = "home__row"; row.append(b);   // phòng đang chơi dở ⇒ lựa chọn nổi bật nhất, đặt trên cùng
+    const row = document.createElement("div"); row.className = "home__row"; row.id = "resumeRow"; row.append(b);   // phòng đang chơi dở ⇒ lựa chọn nổi bật nhất, đặt trên cùng
     document.querySelector(".home__opt").before(row);
+    // Chỉ hiện khi phòng còn trên máy chủ (phòng hết hạn / máy chủ khởi động lại ⇒ quên ghế cũ, không hiện nút "chết").
+    row.hidden = true;
+    fetch(`/api/lobby/rooms/${encodeURIComponent(last.code)}`, { cache: "no-store" })
+      .then((r) => ((r.ok || r.status === 404) && /json/.test(r.headers.get("content-type") || "") ? r.json() : null)) // máy chủ cũ không có API ⇒ null
+      .then((d) => { if (!d || d.games?.includes(GAME)) row.hidden = false; else { try { localStorage.removeItem(LAST); } catch {} row.remove(); } })
+      .catch(() => { row.hidden = false; }); // không hỏi được ⇒ cứ cho thử
   } $("createBtn").addEventListener("pointerenter", () => { if (!ws) connect(); }, { once: true }); }

@@ -2,7 +2,7 @@
 // trừ khi server cho phép (người bị loại, hết ván, Nội Gián thấy Nội Gián). Không ghi state ra console.
 const $ = (id) => document.getElementById(id);
 const SESS = "ai-la-noi-gian:sess";
-const LAST = "ai-la-noi-gian:last";
+const LAST = "ai-la-noi-gian:last"; const GAME = "ai-la-noi-gian";
 const NAME = "ai-la-noi-gian:name";
 
 const ROLE = {
@@ -42,7 +42,7 @@ function save(s) {
   sess = s;
   try {
     if (s) { sessionStorage.setItem(SESS, JSON.stringify(s)); localStorage.setItem(LAST, JSON.stringify(s)); }
-    else { sessionStorage.removeItem(SESS); localStorage.removeItem(LAST); }
+    else { sessionStorage.removeItem(SESS); localStorage.removeItem(LAST);  document.getElementById("resumeRow")?.remove(); }
   } catch { /* chế độ riêng tư */ }
 }
 const now = () => Date.now() + offset;
@@ -519,8 +519,14 @@ else {
   if (last?.code && last?.token) {
     const b = document.createElement("button"); b.className = "btn btn--teal home__create"; b.textContent = `Quay lại phòng ${last.code}`;
     b.onclick = () => { sess = last; try { sessionStorage.setItem(SESS, JSON.stringify(last)); } catch {} homeMsg("Đang quay lại phòng…"); ws ? send({ t: "resume", ...last }) : connect(); };
-    const row = document.createElement("div"); row.className = "home__row"; row.append(b);
+    const row = document.createElement("div"); row.className = "home__row"; row.id = "resumeRow"; row.append(b);
     document.querySelector(".home__opt").before(row);
+    // Chỉ hiện khi phòng còn trên máy chủ (phòng hết hạn / máy chủ khởi động lại ⇒ quên ghế cũ, không hiện nút "chết").
+    row.hidden = true;
+    fetch(`/api/lobby/rooms/${encodeURIComponent(last.code)}`, { cache: "no-store" })
+      .then((r) => ((r.ok || r.status === 404) && /json/.test(r.headers.get("content-type") || "") ? r.json() : null)) // máy chủ cũ không có API ⇒ null
+      .then((d) => { if (!d || d.games?.includes(GAME)) row.hidden = false; else { try { localStorage.removeItem(LAST); } catch {} row.remove(); } })
+      .catch(() => { row.hidden = false; }); // không hỏi được ⇒ cứ cho thử
   }
   $("createBtn").addEventListener("pointerenter", () => { if (!ws) connect(); }, { once: true });
 }
