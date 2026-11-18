@@ -205,6 +205,12 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 .rwarn--warn { background: rgba(245,215,127,.16); color: var(--gold); }
 .rwarn--bad { background: rgba(224,60,60,.22); color: #ffb3b3; box-shadow: var(--border), inset 4px 0 0 var(--red); }
 
+/* cụm nút phòng chờ: "Bắt đầu" một hàng riêng nổi bật nhất, 2 nút phụ chia đều một hàng; khoảng cách đều 8px */
+body.is-lobby .act__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+body.is-lobby .act__row .btn { margin: 3px; min-width: 0; padding: 10px 8px; line-height: 1.15; }
+body.is-lobby .act__row [data-a="start"] { grid-column: 1 / -1; min-height: 52px; font-size: 16px; letter-spacing: .06em; }
+body.is-lobby .act__row [data-a="leave"] { color: var(--soft); }
+
 /* màn hình rộng: cột phải (chat) neo dính khi cuộn, chat kéo dài hết phần còn lại */
 body.is-lobby .me { display: none; }
 .chat__fold { display: none; }

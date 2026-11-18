@@ -282,7 +282,7 @@ function renderAct() {
     const n = v.players.length;
     if (v.host === v.seat) { txt = n >= v.min ? "Đủ người rồi! Bấm Bắt đầu khi cả làng sẵn sàng." : `Mời thêm ${v.min - n} người nữa bằng mã phòng hoặc link.`; btns = `<button class="btn btn--gold" data-a="start" ${n >= v.min ? "" : 'aria-disabled="true"'}>Bắt đầu</button>`; }
     else txt = `Chờ chủ phòng ${esc(nameOf(v.host))} bắt đầu (cần ${v.min} người).`;
-    btns += `<button class="btn" data-a="copy">Sao chép link mời</button><button class="btn" data-a="leave">Rời phòng</button>`;
+    btns += `<button class="btn" data-a="copy" aria-label="Sao chép link mời">Chép link mời</button><button class="btn" data-a="leave">Rời phòng</button>`;
   } else if (ph === "reveal") txt = "Ghi nhớ vai của bạn và đừng để ai thấy.";
   else if (!my?.alive && ph !== "end") txt = "Bạn đã bị loại. Theo dõi tiếp nhé.";
   else if (ph === "night") {
