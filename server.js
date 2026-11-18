@@ -86,5 +86,11 @@ if (on(process.env.COCANGUA_ONLINE, true)) {
   console.log("Cờ Cá Ngựa online: đường /ws/co-ca-ngua");
 }
 
+// Cờ Caro online 1v1 (phòng qua mã, máy chủ xác thực từng nước) — CHỈ bật khi COCARO_ONLINE=1.
+if (process.env.COCARO_ONLINE === "1") {
+  require("./games-server/co-caro/host").createCoCaroHost(server);
+  console.log("Cờ Caro online: đường /ws/co-caro");
+}
+
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
 module.exports = server;

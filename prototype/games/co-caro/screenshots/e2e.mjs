@@ -175,12 +175,12 @@ check('về desktop 1280×720 → vẫn đúng ô, bàn gọn', s.moves === 5 &&
 await view(390, 844, true, 3); await touch(true); press = tap;
 await nav(BASE); await ev('localStorage.clear()'); await nav(BASE);
 await shot('caro-mobile-menu.png');
-check('mobile: menu không tràn, nút ≥ 44px', await noOverflow() && await ev(`[...document.querySelectorAll('#ovMenu .btn')].every(b=>b.offsetHeight>=44)`));
+check('mobile: menu không tràn, nút ≥ 44px', await noOverflow() && await ev(`[...document.querySelectorAll('#ovMenu .btn')].filter(b=>b.getClientRects().length).every(b=>b.offsetHeight>=44)`));
 await pressSel('#startBtn');
 check('mobile: chạm "Bắt đầu" → vào ván', !!(await S()), await ev(`JSON.stringify([innerHeight, document.getElementById('startBtn')?.getBoundingClientRect().y, document.getElementById('ovMenu').hidden])`));
 const cs15 = await csPx();
 check('mobile 15×15: ô ≥ 22px (có chạm 2 lần xác nhận), bàn gọn trong màn', cs15 >= 22 && await boardInStage() && await noOverflow(), cs15.toFixed(1) + 'px/ô');
-check('mobile: nút công cụ ≥ 44px, không đè bàn cờ', await ev(`(()=>{const bs=[...document.querySelectorAll('.tools .btn')];const st=document.getElementById('stage').getBoundingClientRect();return bs.every(b=>{const r=b.getBoundingClientRect();return r.height>=44&&r.top>=st.bottom-1&&r.bottom<=innerHeight})})()`));
+check('mobile: nút công cụ ≥ 44px, không đè bàn cờ', await ev(`(()=>{const bs=[...document.querySelectorAll('.tools .btn')].filter(b=>b.getClientRects().length);const st=document.getElementById('stage').getBoundingClientRect();return bs.every(b=>{const r=b.getBoundingClientRect();return r.height>=44&&r.top>=st.bottom-1&&r.bottom<=innerHeight})})()`));
 await cell(7, 7); s = await S();
 check('chạm lần 1 → chỉ chọn ô (quân mờ + gợi ý "chạm lần nữa"), chưa đặt', s.moves === 0 && s.pending && s.pending[0] === 7 && await visible('#tip'));
 await cell(6, 6); s = await S();
