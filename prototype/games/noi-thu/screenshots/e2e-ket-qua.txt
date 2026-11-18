@@ -1,8 +1,8 @@
 PASS menu hiện khi mở game
-PASS bấm Bắt đầu → màn 1 (6×10 = 60 ô) — {"status":"playing","level":0,"score":0,"time":199.55710000003586,"hints":3,"shuffles":2,"sel":null,"combo":0,"left":60}
+PASS bấm Bắt đầu → màn 1 (6×10 = 60 ô) — {"status":"playing","level":0,"score":0,"time":199.57229999998808,"hints":3,"shuffles":2,"sel":null,"combo":0,"left":60}
 PASS nhấp 1 ô → ô được chọn
 PASS nhấp lại ô đó → bỏ chọn
-PASS nối cặp hợp lệ → mất 2 ô, +10 điểm — {"status":"playing","level":0,"score":10,"time":199.14020000003595,"hints":3,"shuffles":2,"sel":null,"combo":0,"left":58}
+PASS nối cặp hợp lệ → mất 2 ô, +10 điểm — {"status":"playing","level":0,"score":10,"time":198.855799999988,"hints":3,"shuffles":2,"sel":null,"combo":0,"left":58}
 PASS nhấp 2 ô khác loại → không mất ô, chuyển chọn sang ô mới
 PASS nhấp nhanh 9 lần vào 1 ô → trạng thái hợp lệ (số lẻ = đang chọn)
 PASS spam 60 lần nhấp ngẫu nhiên → không lỗi, số ô vẫn chẵn — còn 58
@@ -13,9 +13,9 @@ PASS P tạm dừng → đồng hồ đứng, hiện hộp Tạm dừng
 PASS Tiếp tục → đồng hồ chạy lại
 PASS bàn phím: mũi tên + Enter chọn được ô
 PASS M tắt/bật tiếng, lưu chung wgp.muted
-PASS dọn sạch màn 1 → Qua màn — {"status":"cleared","level":0,"score":1361,"time":193.65010000005958,"hints":0,"shuffles":0,"sel":null,"combo":5,"left":0}
+PASS dọn sạch màn 1 → Qua màn — {"status":"cleared","level":0,"score":1359,"time":192.6765999999994,"hints":0,"shuffles":0,"sel":null,"combo":5,"left":0}
 PASS màn hình qua màn có thưởng giờ + nút màn 2
-PASS lưu tiến độ: mở màn 2 + kỷ lục — {"unlocked":1,"best":1361}
+PASS lưu tiến độ: mở màn 2 + kỷ lục — {"unlocked":1,"best":1359}
 PASS Màn 2 → 7×12, giữ điểm, có ô dồn
 PASS màn 2 ô dồn xuống: mọi ô sát đáy cột
 PASS thu cửa sổ về mobile giữa ván → bàn xoay dọc, ván giữ nguyên
@@ -24,7 +24,7 @@ PASS xoay ngang → bàn nằm ngang, ô ≥ 18px — ô 34px
 PASS hết giờ → màn hình Hết giờ + nút chơi lại
 PASS Chơi lại màn 2 → điểm trả về lúc đầu màn
 PASS mở lại trang → menu có "Chơi tiếp màn 2"
-PASS mobile: chạm nối 8 cặp — {"status":"playing","level":0,"score":205,"time":197.42149999995223,"hints":3,"shuffles":2,"sel":null,"combo":5,"left":44}
+PASS mobile: chạm nối 8 cặp — {"status":"playing","level":0,"score":205,"time":197.35519999995216,"hints":3,"shuffles":2,"sel":null,"combo":5,"left":44}
 PASS mobile 390×844: không tràn ngang, nút công cụ nằm trong màn hình
 PASS mobile màn 8 (9×16): ô đủ lớn để chạm — ô 35px
 PASS dọn sạch màn 8 → Phá đảo 8 màn

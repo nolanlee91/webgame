@@ -4,9 +4,9 @@ import { TILES, renderAnimal } from "./sprites.js";
 
 const SAVE_KEY = "wgp.noithu.v1";
 const C = {
-  board: "#1d1a16", boardDither: "#241f1a", line: "#0a0807", outline: "#2b1d14",
+  board: "#4e3420", boardDither: "#583c25", plank: "#3a2616", rim: "#7a5230", rimHi: "#a87444", rimD: "#4a2e18", panel: "#1d1a16", line: "#0a0807", outline: "#2b1d14",
   face: "#efe2c2", faceHi: "#fff6de", depth: "#bfa77a", depthD: "#8d7650", back: "#7a5634", backHi: "#9a7046",
-  gold: "#ffc94a", goldD: "#a8741a", teal: "#6fd0bb", tealD: "#0f3a33", red: "#e0483d", ink: "#f4ead2",
+  gold: "#ffc94a", goldD: "#a8741a", teal: "#7fd47f", tealD: "#17521c", goldL: "#ffe9a8", red: "#e0483d", ink: "#f4ead2",
 };
 // Hướng ô dồn → mũi tên hiển thị (khi bàn xoay dọc trên điện thoại, hàng logic thành cột nên mũi tên xoay theo).
 const ARROW = { none: ["—", "—"], down: ["↓", "→"], up: ["↑", "←"], left: ["←", "↑"], right: ["→", "↓"] };
@@ -107,7 +107,7 @@ export function mount(root, ctx = {}) {
     const d = L.dpr, size = L.cs - Math.max(2, Math.round(L.cs * 0.06));
     const u = Math.max(1, Math.round(size * d / 26));
     let X = Math.round((x - size / 2) * d), Y = Math.round((y - size / 2) * d);
-    const S = Math.round(size * d), dep = 3 * u;
+    const S = Math.round(size * d), dep = 4 * u;
     if (opt.lift) Y -= 2 * u;
     if (opt.scale && opt.scale !== 1) { const ns = Math.round(S * opt.scale); X += (S - ns) >> 1; Y += (S - ns) >> 1; return drawTileBox(X, Y, ns, u, t, opt, Math.max(u, Math.round(dep * opt.scale))); }
     drawTileBox(X, Y, S, u, t, opt, dep);
@@ -118,12 +118,12 @@ export function mount(root, ctx = {}) {
     g2.fillStyle = C.outline; g2.fillRect(X, Y, S, S);
     const back = opt.back;
     g2.fillStyle = back ? C.back : opt.sel ? "#fff1c2" : C.face; g2.fillRect(X + u, Y + u, S - 2 * u, S - 2 * u);
-    g2.fillStyle = back ? C.backHi : C.faceHi; g2.fillRect(X + u, Y + u, S - 2 * u, u);
+    g2.fillStyle = back ? C.backHi : C.faceHi; g2.fillRect(X + u, Y + u, S - 2 * u, u); g2.fillRect(X + u, Y + u, u, S - 2 * u - dep);
     g2.fillStyle = back ? "#5a3e24" : C.depth; g2.fillRect(X + u, Y + S - u - dep, S - 2 * u, dep);
     g2.fillStyle = back ? "#3e2a18" : C.depthD; g2.fillRect(X + u, Y + S - u - u, S - 2 * u, u);
     if (back) { g2.fillStyle = "#5a3e24"; const q = Math.max(u, Math.round(S / 8)); g2.fillRect(X + (S >> 1) - q, Y + (S >> 1) - q - (dep >> 1), 2 * q, 2 * q); }
     else if (t) {
-      const k = Math.max(1, Math.floor((S - dep - 4 * u) * 0.86 / 16)), sz = 16 * k;
+      const room = (S - dep - 4 * u) * 0.94, k = Math.floor(room / 16), sz = k >= 1 && 16 * k >= room * 0.92 ? 16 * k : Math.max(16, Math.round(room));
       g2.drawImage(sprites[t - 1], X + ((S - sz) >> 1), Y + ((S - dep - sz) >> 1) + (u >> 1), sz, sz);
     }
     const ring = (col, w) => { g2.fillStyle = col; g2.fillRect(X - w, Y - w, S + 2 * w, w); g2.fillRect(X - w, Y + S, S + 2 * w, w); g2.fillRect(X - w, Y, w, S); g2.fillRect(X + S, Y, w, S); };
@@ -145,9 +145,17 @@ export function mount(root, ctx = {}) {
     // khung bàn: nền gỗ tối có phối hạt + viền 3px + bóng cứng
     const bx = Math.round(L.ox * d), by = Math.round(L.oy * d), bw = Math.round(L.dw * L.cs * d), bh = Math.round(L.dh * L.cs * d), b3 = Math.round(3 * d);
     g2.fillStyle = "rgba(0,0,0,.6)"; g2.fillRect(bx + 4 * d + b3, by + 7 * d + b3, bw, bh);
+    // khay gỗ (cùng ảnh bìa): vành gỗ sáng có gờ, lòng khay ván tối phối hạt
+    const rw = Math.max(b3 * 2, Math.round(L.cs * d * 0.16));
+    g2.fillStyle = C.line; g2.fillRect(bx - rw - b3, by - rw - b3, bw + 2 * (rw + b3), bh + 2 * (rw + b3));
+    g2.fillStyle = C.rim; g2.fillRect(bx - rw, by - rw, bw + 2 * rw, bh + 2 * rw);
+    g2.fillStyle = C.rimHi; g2.fillRect(bx - rw, by - rw, bw + 2 * rw, Math.round(2 * d)); g2.fillRect(bx - rw, by - rw, Math.round(2 * d), bh + 2 * rw);
+    g2.fillStyle = C.rimD; g2.fillRect(bx - rw, by + bh + rw - Math.round(2 * d), bw + 2 * rw, Math.round(2 * d)); g2.fillRect(bx + bw + rw - Math.round(2 * d), by - rw, Math.round(2 * d), bh + 2 * rw);
     g2.fillStyle = C.line; g2.fillRect(bx - b3, by - b3, bw + 2 * b3, bh + 2 * b3);
     g2.fillStyle = dither(Math.max(1, Math.round(2 * d))); g2.fillRect(bx, by, bw, bh);
-    g2.fillStyle = "rgba(255,255,255,.06)"; g2.fillRect(bx, by, bw, Math.round(2 * d));
+    g2.fillStyle = C.plank; const ph = Math.max(2, Math.round(L.cs * d * 0.5)), pl = Math.max(1, Math.round(d));
+    for (let y = by + ph, i = 0; y < by + bh; y += ph, i++) { g2.fillRect(bx, y, bw, pl); for (let x = bx + ((i * 3) % 7) * ph; x < bx + bw; x += ph * 7) g2.fillRect(x, y, pl, ph); }
+    g2.fillStyle = "rgba(0,0,0,.28)"; g2.fillRect(bx, by, bw, Math.round(3 * d)); g2.fillRect(bx, by, Math.round(3 * d), bh); // bóng vành đổ vào lòng khay
 
     const hidden = paused && !s.ended;
     const hintIds = fx.hint && now < fx.hint.until ? fx.hint.ids : null;
@@ -178,12 +186,12 @@ export function mount(root, ctx = {}) {
       const q = Math.max(2, Math.round(L.cs * d / 10)), dist = L.cs * d * (0.3 + k * 0.5);
       for (const [dx, dy] of [[1, 1], [-1, 1], [1, -1], [-1, -1], [0, 1.3], [0, -1.3]]) g2.fillRect(Math.round(px * d + dx * dist - q / 2), Math.round(py * d + dy * dist - q / 2), q, q);
     }
-    // đường nối: viền tối + lõi xanh ngọc, góc vuông kiểu pixel
+    // đường nối: viền vàng tối + lõi vàng sáng (như ảnh bìa), góc vuông kiểu pixel
     fx.paths = fx.paths.filter((p) => now - p.start < 380);
     for (const p of fx.paths) {
       const pts = p.pts.map(([r, c]) => center(r, c).map((v) => Math.round(v * d)));
       g2.lineJoin = "miter"; g2.lineCap = "square";
-      for (const [col, wd] of [[C.tealD, Math.max(4, Math.round(L.cs * d * 0.2))], [C.teal, Math.max(2, Math.round(L.cs * d * 0.1))]]) {
+      for (const [col, wd] of [[C.goldD, Math.max(4, Math.round(L.cs * d * 0.22))], [C.gold, Math.max(3, Math.round(L.cs * d * 0.13))], [C.goldL, Math.max(1, Math.round(L.cs * d * 0.05))]]) {
         g2.strokeStyle = col; g2.lineWidth = wd; g2.beginPath(); pts.forEach(([x, y], i) => (i ? g2.lineTo(x, y) : g2.moveTo(x, y))); g2.stroke();
       }
       g2.fillStyle = C.ink; const q = Math.max(3, Math.round(L.cs * d * 0.12));
@@ -205,7 +213,7 @@ export function mount(root, ctx = {}) {
       const tw = g2.measureText(fx.banner.text).width + fs * 1.6, th = fs * 2.1, x = (L.w * d - tw) / 2, y = (L.h * d - th) / 2;
       g2.fillStyle = "rgba(0,0,0,.6)"; g2.fillRect(x + 4 * d, y + 7 * d, tw, th);
       g2.fillStyle = C.line; g2.fillRect(x - b3, y - b3, tw + 2 * b3, th + 2 * b3);
-      g2.fillStyle = C.board; g2.fillRect(x, y, tw, th);
+      g2.fillStyle = C.panel; g2.fillRect(x, y, tw, th);
       g2.fillStyle = "rgba(255,255,255,.13)"; g2.fillRect(x, y, tw, 2 * d);
       g2.fillStyle = C.ink; g2.fillText(fx.banner.text, L.w * d / 2, L.h * d / 2 + d);
     }
@@ -327,7 +335,7 @@ export function mount(root, ctx = {}) {
       fx.paths.push({ pts: e.path, start: now });
       for (const t of e.removed) fx.pops.push({ at: t.at, t: t.t, start: now + 60 });
       for (const m of e.moves) fx.slides.set(m.id, { from: m.from, start: now + 140 });
-      fx.floats.push({ at: e.removed[1].at, text: "+" + e.gained + (e.combo ? " x" + (e.combo + 1) : ""), col: e.combo ? C.teal : C.ink, start: now });
+      fx.floats.push({ at: e.removed[1].at, text: "+" + e.gained + (e.combo ? " x" + (e.combo + 1) : ""), col: e.combo ? C.goldL : C.ink, start: now });
       sfx.play("trung-kim-cuong", 0.8);
       if (e.autoShuffle) { fx.banner = { text: "Hết nước đi · tự đảo bàn", until: now + 1400 }; sfx.play("do-xuc-xac", 0.8, 0.25); }
       if (e.cleared) { sfx.play(s.status === "won" ? "thang" : "qua-man", 1, 0.3); setTimeout(() => !destroyed && s && showEnd(), 650); }
