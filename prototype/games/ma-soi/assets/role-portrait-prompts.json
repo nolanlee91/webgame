@@ -1,0 +1,26 @@
+{
+  "mode": "built-in ImageGen",
+  "calls": 4,
+  "roles": [
+    {
+      "id": "role-tho-san",
+      "reference": "role-bao-ve.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with a narrow dark copper carved geometric border, moonlit traditional Vietnamese village, ink-blue shadows and warm lantern accents. A weathered middle-aged Vietnamese village tracker in a rust-brown indigo-trimmed tunic, animal hide shoulder wrap, broad face, distinctive moustache, carrying a slung traditional wooden bow as a small role-identifying prop, forest path and moonlit bamboo. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    },
+    {
+      "id": "role-phu-thuy",
+      "reference": "role-tien-tri.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with a narrow dark copper carved geometric border, moonlit traditional Vietnamese village, ink-blue shadows and warm lantern accents. A younger Vietnamese village herbalist with braided dark hair and a maroon scarf and dark teal woven robe, carefully holding a single glowing amber medicine flask, hanging herbs and a thatched cottage behind. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    },
+    {
+      "id": "role-truong-lang",
+      "reference": "role-bao-ve.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with a narrow dark copper carved geometric border, moonlit traditional Vietnamese village, ink-blue shadows and warm lantern accents. An elderly Vietnamese village leader with a silver beard, deeply lined face, ochre embroidered traditional robe and black headwrap, holding a carved wooden tally tablet without writing, village communal house and lanterns. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    },
+    {
+      "id": "role-nguoi-gac-cong",
+      "reference": "role-bao-ve.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with a narrow dark copper carved geometric border, moonlit traditional Vietnamese village, ink-blue shadows and warm lantern accents. A vigilant adult Vietnamese woman with dark tied hair and a moss-green embroidered short jacket, holding a warm caged lantern, standing at a bamboo village gate watching the road, no shield. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    }
+  ]
+}

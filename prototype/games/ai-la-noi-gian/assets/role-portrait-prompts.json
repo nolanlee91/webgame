@@ -1,0 +1,26 @@
+{
+  "mode": "built-in ImageGen",
+  "calls": 4,
+  "roles": [
+    {
+      "id": "role-ky-thuat-vien",
+      "reference": "role-hacker-mat.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with the same narrow full-perimeter beveled steel security frame as the reference, cinematic Vietnamese espionage headquarters at night, navy shadows with crisp warm or cool accent lighting. A practical Vietnamese woman engineer with tied-back hair, amber work vest over dark slate coveralls, holding a repair module and insulated tool, teal server cabinets and a workshop lamp. Green corner indicators. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    },
+    {
+      "id": "role-danh-lac-huong",
+      "reference": "role-noi-gian.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with the same narrow full-perimeter beveled steel security frame as the reference, cinematic Vietnamese espionage headquarters at night, navy shadows with crisp warm or cool accent lighting. A composed Vietnamese undercover operative with a charcoal hood under a burgundy coat, sharp cheekbones, holding a pocket signal scrambler with a tiny red light, dark equipment room, red corner indicators. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    },
+    {
+      "id": "role-chuyen-vien-tin-hieu",
+      "reference": "role-hacker-mat.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with the same narrow full-perimeter beveled steel security frame as the reference, cinematic Vietnamese espionage headquarters at night, navy shadows with crisp warm or cool accent lighting. A focused Vietnamese man with cropped hair and a light blue shirt under a graphite utility vest, holding a compact waveform analyzer, cyan oscilloscope monitors. Green corner indicators. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    },
+    {
+      "id": "role-lien-lac-vien",
+      "reference": "role-hacker-mat.webp",
+      "prompt": "Create one new original illustrated role card, vertical 3:4, for the same game as the supplied existing card. The reference is only for art direction and matching the border, palette, pixel granularity and framing; create a clearly different individual. Detailed hand-placed pixel art with the same narrow full-perimeter beveled steel security frame as the reference, cinematic Vietnamese espionage headquarters at night, navy shadows with crisp warm or cool accent lighting. A poised Vietnamese woman field liaison with a straight chin-length dark bob and light tan trench coat, holding one sealed cream envelope and wearing a subtle earpiece, warm lamplit corridor at night. Green corner indicators. Waist-up portrait with the face prominent in the upper middle and the identifying prop readable as a thumbnail. Keep all four frame edges visible, full bleed, no transparency. No text, letters, numbers, typography or labels."
+    }
+  ]
+}
