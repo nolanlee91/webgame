@@ -2,7 +2,7 @@
 
 Game ghép 3 cổ điển chơi một mình trên lưới 8×8. Đổi chỗ 2 viên kẹo cạnh nhau để tạo hàng ngang hoặc dọc từ 3 viên cùng loại trở lên. Kẹo trong hàng sẽ nổ, kẹo phía trên rơi xuống và kẹo mới rơi từ trên vào.
 
-Game chạy hoàn toàn trên trình duyệt, không cần server. Kẹo là sprite pixel 16×16 vẽ bằng code (canvas), không dùng ảnh AI. Âm thanh và icon chép từ bộ có sẵn.
+Game chạy hoàn toàn trên trình duyệt, không cần server. Kẹo là sprite pixel 20×20 vẽ bằng code (canvas), không dùng ảnh AI — cùng bộ với ảnh bìa: tim, lát cam, sao, kẹo xoắn, giọt, chùm nho. Nền trang là ảnh bìa có sẵn (assets/bg/scene.webp) phủ tối. Âm thanh và icon chép từ bộ có sẵn.
 
 Cách mở: ở gốc repo chạy `PORT=8768 node server.js`, rồi vào `http://127.0.0.1:8768/games/ghep-keo/`.
 

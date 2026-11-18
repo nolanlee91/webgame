@@ -40,13 +40,13 @@ PASS phím M → tắt tiếng (lưu wgp.muted)
 PASS nút Âm thanh → bật lại
 PASS dữ liệu lưu hỏng → vẫn mở được menu, về mặc định
 PASS ván lưu sai cấu trúc → bỏ qua ván, giữ tiến độ
-PASS desktop 1440×900: bàn vừa khung, không chồng HUD/nút, không tràn — ô 80px true,true,true,true,true
-PASS laptop 1280×720: bàn vừa khung, không chồng HUD/nút, không tràn — ô 75px true,true,true,true,true
-PASS tablet ngang 1024×768: bàn vừa khung, không chồng HUD/nút, không tràn — ô 80px true,true,true,true,true
-PASS tablet dọc 768×1024: bàn vừa khung, không chồng HUD/nút, không tràn — ô 71px true,true,true,true,true
-PASS mobile 390×844: bàn vừa khung, không chồng HUD/nút, không tràn — ô 41px true,true,true,true,true
-PASS mobile nhỏ 360×640: bàn vừa khung, không chồng HUD/nút, không tràn — ô 38px true,true,true,true,true
-PASS mobile ngang 844×390: bàn vừa khung, không chồng HUD/nút, không tràn — ô 39px true,true,true,true,true
+PASS desktop 1440×900: bàn vừa khung, không chồng HUD/nút, không tràn — ô 79px true,true,true,true,true
+PASS laptop 1280×720: bàn vừa khung, không chồng HUD/nút, không tràn — ô 73px true,true,true,true,true
+PASS tablet ngang 1024×768: bàn vừa khung, không chồng HUD/nút, không tràn — ô 79px true,true,true,true,true
+PASS tablet dọc 768×1024: bàn vừa khung, không chồng HUD/nút, không tràn — ô 70px true,true,true,true,true
+PASS mobile 390×844: bàn vừa khung, không chồng HUD/nút, không tràn — ô 40px true,true,true,true,true
+PASS mobile nhỏ 360×640: bàn vừa khung, không chồng HUD/nút, không tràn — ô 36px true,true,true,true,true
+PASS mobile ngang 844×390: bàn vừa khung, không chồng HUD/nút, không tràn — ô 37px true,true,true,true,true
 PASS mobile: menu + 12 màn vừa màn hình
 PASS mobile: chạm Bắt đầu → màn 1
 PASS mobile: vuốt kẹo sang ô bên cạnh → đổi chỗ

@@ -8,20 +8,20 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%224%22 y=%223%22 width=%228%22 height=%2210%22 fill=%22%23e0483d%22/%3E%3Crect x=%223%22 y=%224%22 width=%2210%22 height=%228%22 fill=%22%23e0483d%22/%3E%3Crect x=%225%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%23fff4e0%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với 2048 / Sudoku / Xếp Gạch: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
-       không bo tròn, không mờ. Vàng CHỈ cho nút chính và sao đánh giá. Kẹo là sprite pixel 16×16 vẽ bằng code (game.js). */
-    :root { --bg: #11171c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
+       không bo tròn, không mờ. Vàng CHỈ cho nút chính và sao đánh giá. Kẹo là sprite pixel 20×20 vẽ bằng code (game.js). */
+    :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
-      --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #2f8f7f; --teal-l: #6fd0bb; --teal-d: #0f3a33; --red: #e0483d; --pink: #e05f9c;
+      --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --pink: #e05f9c;
       --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
       --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
       --drop: 4px 7px 0 0 var(--shadow), 7px 4px 0 0 var(--shadow); }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html, body { height: 100%; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
+    body { margin: 0; background: linear-gradient(rgba(23, 15, 10, .8), rgba(23, 15, 10, .8)), url("assets/bg/scene.webp") center / cover no-repeat, var(--bg); image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
       display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent;
       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
-    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #0c1014; box-shadow: inset 0 -3px 0 #000; }
+    .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #1d1a16; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255,255,255,.08); }
     .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
     .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
     .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
@@ -72,8 +72,8 @@
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
-    .btn--teal { color: #e9fff9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
-    .btn--teal:hover { background: linear-gradient(#9fe6d6 0 3px, #38a291 3px); }
+    .btn--teal { color: #f4ffe9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
+    .btn--teal:hover { background: linear-gradient(#a8e8a0 0 3px, #4aae50 3px); }
     .btn--teal[disabled] { color: var(--dim); background: #1a1612; }
     .acts .wide { grid-column: span 2; }
     .acts .btn { white-space: nowrap; padding: 8px 10px; }
@@ -82,9 +82,13 @@
 
     /* TẦNG 1 — bàn chơi */
     .stage { grid-area: stage; position: relative; min-height: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; touch-action: none; outline: none; }
-    .frame { position: relative; padding: var(--fr, 12px); background: #5a3a4a; box-shadow: inset 0 3px 0 #7d5268, inset 0 -3px 0 #3a2230, 0 0 0 3px var(--line), var(--drop); }
-    .board { position: relative; width: var(--bw); height: var(--bw); overflow: hidden; background-color: #1e1820;
-      background-image: conic-gradient(#2a2128 25%, #231c22 0 50%, #2a2128 0 75%, #231c22 0); background-size: calc(var(--cs) * 2) calc(var(--cs) * 2);
+    .frame { position: relative; padding: calc(var(--fr, 12px) + 6px); background: repeating-linear-gradient(90deg, #7a5230 0 22px, #6a4626 22px 25px, #84593a 25px 46px);
+      box-shadow: inset 0 3px 0 #b07a48, inset 3px 0 0 #96643a, inset 0 -3px 0 #3a2414, inset -3px 0 0 #3a2414, 0 0 0 3px var(--line), var(--drop); }
+    .frame::before { content: ""; position: absolute; inset: calc(var(--fr, 12px) - 2px); pointer-events: none;
+      background: repeating-linear-gradient(45deg, #e0483d 0 6px, #fff4e0 6px 12px); box-shadow: 0 0 0 3px var(--line); }
+    .frame > * { position: relative; }
+    .board { position: relative; width: var(--bw); height: var(--bw); overflow: hidden; background-color: #1f1a24;
+      background-image: conic-gradient(#2c2530 25%, #241e2a 0 50%, #2c2530 0 75%, #241e2a 0); background-size: calc(var(--cs) * 2) calc(var(--cs) * 2);
       box-shadow: 0 0 0 3px var(--line), inset 0 3px 0 rgba(0,0,0,.4); }
     .ck { position: absolute; left: 0; top: 0; width: var(--cs); height: var(--cs); z-index: 1; will-change: transform;
       transform: translate3d(calc(var(--x) * var(--cs)), calc(var(--y) * var(--cs)), 0); transition: transform var(--t, 140ms) var(--e, ease-out); }

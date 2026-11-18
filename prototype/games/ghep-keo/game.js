@@ -1,6 +1,6 @@
 // Ghép Kẹo — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
-// Kẹo là sprite pixel 16×16 vẽ bằng canvas ngay khi tải trang (không dùng ảnh AI), mỗi loại một hình riêng
-// để người mù màu vẫn phân biệt được: tròn, vuông, thoi, giọt, lục giác, tim + kẹo sao cầu vồng.
+// Kẹo là sprite pixel 20×20 vẽ bằng canvas ngay khi tải trang (không dùng ảnh AI), mỗi loại một hình riêng
+// để người mù màu vẫn phân biệt được: tim, lát cam, sao, kẹo xoắn, giọt, chùm nho + kẹo sao cầu vồng.
 import * as L from "./logic.js";
 
 const SAVE_KEY = "wgp.ghep-keo.v1";
@@ -8,54 +8,109 @@ const IDLE_HINT = 6; // giây không thao tác thì tự gợi ý
 
 // [nền, sáng, tối] theo bảng màu Art Bible V5
 const PAL = [
-  ["#e0483d", "#ff8a7a", "#8e2219"], // đỏ — tròn
-  ["#e8954a", "#ffc58a", "#8a4a14"], // cam — vuông
-  ["#ffc94a", "#fff0a8", "#a8740e"], // vàng — thoi
-  ["#3f9a45", "#7fd47f", "#1d5222"], // lá — giọt
-  ["#3a7bd5", "#8ab8ff", "#1a3f7a"], // xanh dương — lục giác
-  ["#8a5cc2", "#c8a4f0", "#4a2a72"], // tím — tim
+  ["#e0483d", "#ff8a7a", "#8e2219"], // đỏ — tim
+  ["#e8954a", "#ffc58a", "#8a4a14"], // cam — lát cam
+  ["#ffc94a", "#fff0a8", "#a8740e"], // vàng — sao
+  ["#3f9a45", "#7fd47f", "#1d5222"], // lá — kẹo xoắn
+  ["#3a7bd5", "#8ab8ff", "#1a3f7a"], // xanh dương — giọt
+  ["#8a5cc2", "#c8a4f0", "#4a2a72"], // tím — chùm nho
 ];
 const KIND_NAME = ["kẹo đỏ", "kẹo cam", "kẹo vàng", "kẹo xanh lá", "kẹo xanh dương", "kẹo tím"];
 const RAINBOW = ["#e0483d", "#e8954a", "#ffc94a", "#3f9a45", "#3a7bd5", "#8a5cc2"];
 const OUT = "#160d0a";
 
 // ---------- Sprite ----------
-const SHAPES = [
-  (x, y) => (x - 7.5) ** 2 + (y - 7.5) ** 2 <= 7 ** 2,
-  (x, y) => x >= 1 && x <= 14 && y >= 1 && y <= 14 && !((x <= 1 || x >= 14) && (y <= 1 || y >= 14)),
-  (x, y) => Math.abs(x - 7.5) + Math.abs(y - 7.5) <= 8,
-  (x, y) => (y >= 8 && (x - 7.5) ** 2 + (y - 9) ** 2 <= 6.2 ** 2) || (y >= 0 && y < 9.5 && Math.abs(x - 7.5) <= y * 0.68 + 0.3),
-  (x, y) => { const dx = Math.abs(x - 7.5), dy = Math.abs(y - 7.5); return dy <= 6.4 && dx <= 7.6 - dy * 0.62; },
-  (x, y) => { const u = (x - 7.5) / 6.6, v = -(y - 7.2) / 6.6; return (u * u + v * v - 1) ** 3 - u * u * v * v * v <= 0; },
+// Kẹo 20×20 cùng bộ với ảnh bìa: tim đỏ, lát cam, sao vàng, kẹo xoắn xanh lá, giọt xanh dương, chùm nho tím
+// (mỗi màu một hình riêng — người mù màu vẫn phân biệt được). Đổ bóng khối 5 bậc, viền 1px, điểm loá trên-trái.
+const N = 20, C = 9.5;
+const TONES = [
+  ["#ffd0c4", "#ff8a7a", "#e0483d", "#8e2219", "#5a120c"],
+  ["#ffe6c4", "#ffb060", "#e8954a", "#a8541a", "#552a08"],
+  ["#fff6d0", "#ffe08a", "#f2b632", "#a8740e", "#6a4606"],
+  ["#d4f6c0", "#8fdc7a", "#3fae4a", "#17521c", "#0c3410"],
+  ["#d4e6ff", "#8ab8ff", "#3a7bd5", "#163a73", "#0c2248"],
+  ["#eedcff", "#c8a4f0", "#8a5cc2", "#3e2268", "#26123f"],
 ];
+const inPoly = (pts, x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+const STAR_PTS = Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 5.3 : 10.6; return [C + Math.cos(a) * r, 10.9 + Math.sin(a) * r]; });
+const GRAPES = [[5.2, 8.4, 3.4], [9.8, 8.2, 3.4], [14.4, 8.6, 3.3], [7.4, 12.6, 3.4], [12.2, 12.8, 3.4], [9.8, 16.4, 3.1]];
+const SHAPES = [
+  (x, y) => { const u = (x - C) / 8.1, v = -(y - 10.4) / 8.1; return (u * u + v * v - 1) ** 3 - u * u * v * v * v <= 0; }, // tim
+  (x, y) => (x - C) ** 2 + (y - C) ** 2 <= 9.3 ** 2,                                                                    // lát cam
+  (x, y) => inPoly(STAR_PTS, x + 0.5, y + 0.5),                                                                          // sao
+  (x, y) => (x - C) ** 2 + (y - C) ** 2 <= 8.9 ** 2,                                                                    // kẹo xoắn
+  (x, y) => (y >= 10 && (x - C) ** 2 + (y - 11.8) ** 2 <= 7.9 ** 2) || (y >= 0 && y < 12 && Math.abs(x - C) <= (y + 0.2) * 0.72), // giọt
+  (x, y) => GRAPES.some(([gx, gy, r]) => (x - gx) ** 2 + (y - gy) ** 2 <= r * r) || (y >= 1 && y <= 4 && x >= 9 && x <= 14 && Math.abs(y - 2.5 + (x - 11.5) * 0.35) <= 1.4), // nho + lá
+];
+const mixc = (a, b, t) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, "0")).join("");
+// bậc sáng của khối cầu tâm (cx,cy) bán kính r: 0 loá … 4 bóng sâu (dải chuyển bằng hạt so le)
+function sphereTone(x, y, cx, cy, r) {
+  const nx = (x - cx) / r, ny = (y - cy) / r, rr = Math.min(1, Math.hypot(nx, ny)), nz = Math.sqrt(1 - rr * rr);
+  const d = -0.45 * nx - 0.55 * ny + 0.7 * nz, ch = (x + y) & 1;
+  if (d > 0.93) return 0; if (d > 0.88) return ch ? 0 : 1; if (d > 0.7) return 1; if (d > 0.64) return ch ? 1 : 2;
+  if (d > 0.3) return 2; if (d > 0.22) return ch ? 2 : 3; if (d > -0.05) return 3; return 4;
+}
 const spriteCache = new Map();
 function sprite(k, sp) {
   const key = k + ":" + (sp || "");
   if (spriteCache.has(key)) return spriteCache.get(key);
-  const c = document.createElement("canvas"); c.width = c.height = 16;
+  const c = document.createElement("canvas"); c.width = c.height = N;
   const g = c.getContext("2d");
   const star = k === L.STAR;
-  const shape = star ? SHAPES[0] : SHAPES[k];
-  const m = (x, y) => x >= 0 && y >= 0 && x < 16 && y < 16 && shape(x, y);
+  const shape = star ? SHAPES[1] : SHAPES[k];
+  const m = (x, y) => x >= 0 && y >= 0 && x < N && y < N && shape(x, y);
   const edge = (x, y) => m(x, y) && (!m(x - 1, y) || !m(x + 1, y) || !m(x, y - 1) || !m(x, y + 1));
   const inner = (x, y) => m(x, y) && !edge(x, y);
-  const [base, lite, dark] = star ? ["#f4ead2", "#ffffff", "#8a7a64"] : PAL[k];
+  const T = star ? null : TONES[k];
   const px = (x, y, col) => { g.fillStyle = col; g.fillRect(x, y, 1, 1); };
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     if (!m(x, y)) continue;
     if (edge(x, y)) { px(x, y, sp === "b" ? "#ffc94a" : OUT); continue; }
-    let col = base;
-    if (star) { const a = Math.atan2(y - 7.5, x - 7.5) + Math.PI; col = RAINBOW[Math.floor(a / (Math.PI * 2) * 6 + 0.5) % 6]; }
-    if (!inner(x - 2, y) || !inner(x, y - 2) || !inner(x - 1, y - 1)) col = star ? col : lite;
-    else if (!inner(x + 2, y) || !inner(x, y + 2) || !inner(x + 1, y + 1)) col = star ? col : dark;
-    if (sp === "h" && (y === 5 || y === 8 || y === 11)) col = (x + y) % 2 ? "#fff4e0" : "#ffe9c9";
-    if (sp === "v" && (x === 5 || x === 8 || x === 11)) col = (x + y) % 2 ? "#fff4e0" : "#ffe9c9";
+    let t, col;
+    const rr = Math.hypot(x - C, y - C) / 9.3, ang = Math.atan2(y - C, x - C);
+    if (star) { // kẹo sao cầu vồng: lát màu theo góc + khối cầu
+      const base = RAINBOW[Math.floor(((ang + Math.PI) / (Math.PI * 2)) * 6 + 0.5) % 6];
+      t = sphereTone(x, y, C, C, 9.3);
+      col = t === 0 ? "#ffffff" : t === 1 ? mixc(base, "#ffffff", 0.45) : t === 2 ? base : t === 3 ? mixc(base, "#000000", 0.4) : mixc(base, "#000000", 0.62);
+    } else if (k === 5) { // nho: mỗi quả một khối cầu; lá xanh ở trên
+      const gp = GRAPES.find(([gx, gy, r]) => (x - gx) ** 2 + (y - gy) ** 2 <= r * r);
+      if (!gp) col = (x + y) & 1 ? "#3fae4a" : "#8fdc7a";
+      else {
+        t = sphereTone(x, y, gp[0], gp[1], gp[2]); col = T[t];
+        if (GRAPES.some((q) => q !== gp && q[1] < gp[1] && (x - q[0]) ** 2 + (y - q[1]) ** 2 <= (q[2] + 1) ** 2)) col = T[Math.min(4, t + 1)]; // bóng quả trên đổ xuống
+      }
+    } else if (k === 1) { // lát cam: vỏ, cùi trắng, múi
+      t = sphereTone(x, y, C, C, 9.3);
+      if (rr > 0.8) col = T[Math.max(1, Math.min(4, t + 1))];
+      else if (rr > 0.68) col = t >= 3 ? "#e8d4b0" : "#fff4e0";
+      else {
+        const seg = ((ang + Math.PI) / (Math.PI / 4)) % 1;
+        col = seg < 0.16 || seg > 0.9 || rr < 0.12 ? (t >= 3 ? "#f0d0a0" : "#fff0d0") : t <= 1 ? "#ffc58a" : t === 2 ? "#ffa850" : "#e8954a";
+      }
+    } else if (k === 3) { // kẹo xoắn: khối cầu xanh + dải xoắn sáng
+      t = sphereTone(x, y, C, C, 8.9);
+      const sw = ((ang + Math.PI) / (Math.PI * 2) + rr * 1.6) % 1;
+      col = sw < 0.34 && rr > 0.12 ? (t <= 1 ? "#f0ffe0" : t === 2 ? "#bff0a0" : "#8fdc7a") : T[t];
+    } else { // tim / sao / giọt: khối cầu + gờ sáng/tối theo mép
+      const cy = k === 4 ? 11.8 : k === 0 ? 9.4 : 10.9, r = k === 2 ? 9.4 : k === 4 ? 9 : 8.6;
+      t = sphereTone(x, y, C, cy, r);
+      if (!inner(x - 1, y - 1) && t > 1) t = 1;
+      if (!inner(x + 1, y + 1) && t < 3) t = 3;
+      col = T[t];
+    }
+    if (sp === "h" && (y === 6 || y === 7 || y === 12 || y === 13)) col = (x + y) % 2 ? "#fff4e0" : "#ffe9c9";
+    if (sp === "v" && (x === 6 || x === 7 || x === 12 || x === 13)) col = (x + y) % 2 ? "#fff4e0" : "#ffe9c9";
     px(x, y, col);
   }
-  if (star) { for (const [x, y] of [[7, 5], [8, 5], [6, 7], [7, 7], [8, 7], [9, 7], [7, 9], [8, 9], [7, 6], [8, 6], [7, 8], [8, 8], [6, 9], [9, 9]]) px(x, y, "#fff4e0"); }
-  else if (sp === "b") { for (const [x, y] of [[7, 6], [8, 6], [6, 7], [7, 7], [8, 7], [9, 7], [6, 8], [7, 8], [8, 8], [9, 8], [7, 9], [8, 9]]) px(x, y, OUT); px(7, 7, "#ffc94a"); px(9, 5, "#ffc94a"); px(10, 4, "#fff4e0"); }
-  // điểm bóng trắng góc trên trái
-  for (const [x, y] of [[4, 4], [5, 4], [4, 5]]) if (inner(x, y) && !(sp === "h" && y === 5)) px(x, y, "#fff8ec");
+  if (star) {
+    for (const [x, y] of [[9, 5], [10, 5], [9, 6], [10, 6], [9, 7], [10, 7], [6, 8], [7, 8], [8, 8], [9, 8], [10, 8], [11, 8], [12, 8], [13, 8], [8, 9], [9, 9], [10, 9], [11, 9], [8, 10], [9, 10], [10, 10], [11, 10], [7, 11], [8, 11], [11, 11], [12, 11], [7, 12], [12, 12]]) px(x, y, "#fff4e0");
+  } else if (sp === "b") {
+    for (let y = 7; y <= 12; y++) for (let x = 7; x <= 12; x++) if ((x - 9.5) ** 2 + (y - 9.5) ** 2 <= 7.2) px(x, y, OUT);
+    px(8, 8, "#5e544a"); px(11, 7, "#c8a070"); px(12, 6, "#ffc94a"); px(13, 5, "#fff4e0");
+  }
+  // điểm loá trắng góc trên trái
+  const hl = k === 4 ? [[7, 9], [7, 10], [8, 9]] : k === 2 ? [[8, 7], [9, 6], [8, 8]] : k === 5 ? [[4, 7], [5, 7], [4, 8]] : [[5, 5], [6, 5], [5, 6], [6, 4]];
+  for (const [x, y] of hl) if (inner(x, y) && !(sp === "h" && (y === 6 || y === 7)) && !(sp === "v" && (x === 6 || x === 7))) px(x, y, "#fffbef");
   const url = c.toDataURL();
   spriteCache.set(key, url);
   return url;
@@ -145,7 +200,7 @@ export function mount(root, ctx = {}) {
     const ht = $("hintTx"), hintH = ht && getComputedStyle(ht).display !== "none" ? 24 : 0;
     const avail = Math.max(160, Math.min(r.width - 14, r.height - 14 - hintH, 680));
     const fr = Math.max(6, Math.min(14, Math.round(avail * 0.022)));
-    const cs = Math.floor((avail - 2 * fr - 6) / L.W);
+    const cs = Math.floor((avail - 2 * fr - 18) / L.W); // khung gỗ + viền gậy kẹo dày thêm 6px mỗi bên
     G = { cs, bw: cs * L.W };
     frame.style.setProperty("--fr", fr + "px");
     board.style.setProperty("--cs", cs + "px");
