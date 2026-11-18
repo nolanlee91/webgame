@@ -42,12 +42,14 @@ window.LOBBY_ROOMS = [
   { game: "dat-bom",    code: "DB3150", no: "315", host: "Khoa", have: 2, max: 4 },
 ];
 
-// TẦNG 3 — kệ "Đối kháng đông người": 4 game nhiều người nổi bật (thẻ 3:2). rooms = số phòng đang mở (số giả).
+// TẦNG 3 — kệ "Đối kháng đông người": mọi game chỉ chơi nhiều người (mode "multi") (thẻ 3:2). rooms = số phòng đang mở (số giả).
 window.DUELS = [
   { id: "co-ca-ngua", rooms: 24 },
   { id: "co-caro",    rooms: 41 },
   { id: "dat-bom",    rooms: 12 },
   { id: "noi-tu",     rooms: 9 },
+  { id: "ma-soi",     rooms: 8 },
+  { id: "co-tuong",   rooms: 17 },
 ];
 
 window.CATEGORIES = [
