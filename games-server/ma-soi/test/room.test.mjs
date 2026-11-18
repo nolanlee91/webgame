@@ -220,3 +220,53 @@ test('chủ phòng chơi lại ⇒ về phòng chờ, xoá vai cũ; người r�
   assert.ok(room.players.every((p) => p.role === null));
   assert.ok(room.viewFor(1).players.every((p) => !('role' in p)));
 });
+
+// ---- tầng kết nối: khung WebSocket thô (mảnh rỗng, dồn khung) + hạn mức theo IP ----
+async function rawWs(url) {
+  const net = await import('node:net');
+  const u = new URL(url);
+  const s = net.connect(+u.port, u.hostname);
+  await new Promise((r) => s.once('connect', r));
+  s.write(`GET ${u.pathname} HTTP/1.1\r\nHost: ${u.host}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n`);
+  await new Promise((r) => s.once('data', r));
+  const closed = new Promise((r) => { let code = null; s.on('data', (d) => { const i = d.indexOf(0x88); if (i >= 0 && code === null) code = d.readUInt16BE(i + 2); }); s.on('close', () => r(code)); });
+  const frame = (fin, op, payload = Buffer.alloc(0)) => { const m = Buffer.from([1, 2, 3, 4]); const p = Buffer.from(payload).map((b, i) => b ^ m[i & 3]); return Buffer.concat([Buffer.from([(fin ? 0x80 : 0) | op, 0x80 | p.length]), m, p]); };
+  return { s, closed, frame };
+}
+
+test('kết nối: mảnh rỗng vô hạn bị đóng; dồn khung (kể cả ping) bị đóng; khung điều khiển phân mảnh bị từ chối', async () => {
+  const S2 = await startServer();
+  try {
+    const a = await rawWs(S2.url);
+    a.s.write(a.frame(false, 0x1, '{"t":'));
+    for (let i = 0; i < 30; i++) a.s.write(a.frame(false, 0x0));
+    assert.equal(await a.closed, 1009);
+
+    const b = await rawWs(S2.url);
+    b.s.write(Buffer.concat(Array.from({ length: 200 }, () => b.frame(true, 0x9))));
+    assert.equal(await b.closed, 1008);
+
+    const c = await rawWs(S2.url);
+    c.s.write(c.frame(false, 0x9, 'x'));
+    assert.equal(await c.closed, 1002);
+  } finally { await S2.stop(); }
+});
+
+test('hạn mức theo IP: tối đa N kết nối và N phòng đang mở từ một máy', async () => {
+  const S2 = await startServer({ maxConnsPerIp: 4, maxRoomsPerIp: 2 });
+  try {
+    const cs = [];
+    for (let i = 0; i < 4; i++) cs.push(await new Client(S2.url, `c${i}`).open());
+    const extra = await new Client(S2.url, 'thừa').open();
+    const code = await new Promise((r) => (extra.ws.onclose = (e) => r(e.code)));
+    assert.equal(code, 1008);
+    assert.ok(extra.msgs.some((m) => m.code === 'busy'));
+    assert.equal(await cs[0].tryCmd({ t: 'create', name: 'A' }), null);
+    assert.equal(await cs[1].tryCmd({ t: 'create', name: 'B' }), null);
+    assert.equal(await cs[2].tryCmd({ t: 'create', name: 'C' }), 'busy');
+    // đóng một kết nối ⇒ trả lại suất
+    cs[3].close(); await sleep(100);
+    const again = await new Client(S2.url, 'lại').open();
+    assert.equal(await again.tryCmd({ t: 'ping' }), null);
+  } finally { await S2.stop(); }
+});

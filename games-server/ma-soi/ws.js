@@ -5,11 +5,14 @@ const crypto = require("crypto");
 const { EventEmitter } = require("events");
 
 const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+const MAX_FRAGS = 16, FRAME_BURST = 40, FRAME_PER_SEC = 20;
 
 class Socket extends EventEmitter {
   constructor(sock, maxBytes) {
     super();
-    this.sock = sock; this.maxBytes = maxBytes; this.buf = Buffer.alloc(0); this.frag = null; this.open = true;
+    this.sock = sock; this.maxBytes = maxBytes; this.buf = Buffer.alloc(0); this.frag = null; this.fragBytes = 0; this.open = true;
+    // ngân sách khung: mọi khung (kể cả ping/mảnh rỗng) đều tính — chặn spam khung nhỏ né giới hạn lệnh ở tầng trên
+    this.frames = FRAME_BURST; this.framesAt = Date.now();
     sock.setNoDelay(true);
     sock.on("data", (d) => this._data(d));
     sock.on("close", () => this._closed());
@@ -46,16 +49,19 @@ class Socket extends EventEmitter {
       const mask = b.subarray(off, off + 4), payload = Buffer.from(b.subarray(off + 4, off + 4 + len));
       for (let i = 0; i < len; i++) payload[i] ^= mask[i & 3];
       this.buf = b.subarray(off + 4 + len);
+      const t = Date.now(); this.frames = Math.min(FRAME_BURST, this.frames + ((t - this.framesAt) / 1000) * FRAME_PER_SEC); this.framesAt = t;
+      if (--this.frames < 0) return this.close(1008);
+      if (op >= 0x8 && (!fin || len > 125)) return this.close(1002); // khung điều khiển: không phân mảnh, ≤125 byte
       if (op === 0x8) return this.close(1000);
       if (op === 0x9) { this.sock.write(Buffer.concat([Buffer.from([0x8a, payload.length]), payload.subarray(0, 125)])); continue; }
       if (op === 0xa) continue;
       if (op === 0x2) return this.close(1003); // chỉ nhận text
-      if (op === 0x1) { if (this.frag) return this.close(1002); this.frag = [payload]; }
-      else if (op === 0x0) { if (!this.frag) return this.close(1002); this.frag.push(payload); }
+      if (op === 0x1) { if (this.frag) return this.close(1002); this.frag = [payload]; this.fragBytes = len; }
+      else if (op === 0x0) { if (!this.frag) return this.close(1002); this.frag.push(payload); this.fragBytes += len; }
       else return this.close(1002);
-      const total = this.frag.reduce((s, p) => s + p.length, 0);
-      if (total > this.maxBytes) return this.close(1009);
-      if (fin) { const msg = Buffer.concat(this.frag).toString("utf8"); this.frag = null; this.emit("message", msg); }
+      // giới hạn cả tổng byte LẪN số mảnh (mảnh rỗng không được làm mảng phình vô hạn)
+      if (this.fragBytes > this.maxBytes || this.frag.length > MAX_FRAGS) return this.close(1009);
+      if (fin) { const msg = Buffer.concat(this.frag).toString("utf8"); this.frag = null; this.fragBytes = 0; this.emit("message", msg); }
     }
   }
 }

@@ -11,8 +11,8 @@ Trạng thái: bản dev, chưa bật ở production. Máy chủ chỉ chạy kh
 ## Thành phần
 | File | Vai trò |
 |---|---|
-| `games-server/ma-soi/ws.js` | WebSocket tự viết theo RFC 6455, không dùng gói ngoài. Chỉ nhận khung có mặt nạ và khung chữ. Khung lớn hơn 2 KB thì đóng 1009. Origin khác host thì trả 403. |
-| `games-server/ma-soi/host.js` | Quản lý mã phòng (5 ký tự), danh tính bằng token và giới hạn tốc độ (12 lệnh dồn, hồi 4 lệnh/giây). Chỉ đẩy góc nhìn cho một ghế khi góc nhìn của ghế đó thay đổi. |
+| `games-server/ma-soi/ws.js` | WebSocket tự viết theo RFC 6455, không dùng gói ngoài. Chỉ nhận khung có mặt nạ và khung chữ. Một tin nhắn quá 2 KB hoặc quá 16 mảnh thì đóng 1009. Mỗi kết nối được tối đa 20 khung/giây (cho dồn tới 40), tính cả ping và mảnh rỗng; vượt thì đóng 1008. Khung điều khiển bị phân mảnh hoặc dài quá 125 byte thì đóng 1002. Origin khác host thì trả 403. |
+| `games-server/ma-soi/host.js` | Quản lý mã phòng (5 ký tự), danh tính bằng token và giới hạn tốc độ (12 lệnh dồn, hồi 4 lệnh/giây). Mỗi IP được tối đa 16 kết nối và 3 phòng đang mở. Khi chạy sau proxy, chỉ đọc IP từ X-Forwarded-For nếu có `MASOI_TRUST_PROXY=1`. Chỉ đẩy góc nhìn cho một ghế khi góc nhìn của ghế đó thay đổi. |
 | `games-server/ma-soi/room.js` | Luật chơi và các pha: lobby → reveal → night → dawn → day → vote → verdict → night … → end. `viewFor(seat)` là đường duy nhất để dữ liệu rời khỏi server. |
 | `prototype/games/ma-soi/` | Giao diện. Chỉ vẽ đúng góc nhìn server gửi về, không tự suy luận vai. |
 
@@ -23,6 +23,7 @@ Trạng thái: bản dev, chưa bật ở production. Máy chủ chỉ chạy kh
 - Token được lưu ở `sessionStorage` (theo tab) và `localStorage` (bản dự phòng trên máy). Nhờ vậy, lỡ đóng tab vẫn bấm được "Quay lại phòng" để về đúng ghế.
 - Nếu cùng một token mở ở tab khác, tab cũ nhận `replaced` và bị đóng.
 - Tài khoản thật để sau.
+- **Rủi ro chấp nhận ở giai đoạn khách:** một người vẫn có thể mở nhiều trình duyệt để chiếm nhiều ghế trong một phòng. Không chặn theo IP được, vì bạn bè ngồi chung một wifi sẽ dùng chung IP. Hạn mức theo IP chỉ ngăn một máy chiếm hết máy chủ. Muốn chặn triệt để thì cần tài khoản thật.
 
 ## Ai được thấy gì (`viewFor`)
 - **Vai của một người** chỉ hiện trong các trường hợp:

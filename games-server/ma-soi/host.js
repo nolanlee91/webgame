@@ -18,6 +18,12 @@ function createMaSoiHost(server, opts = {}) {
   const rooms = new Map();           // code → { room, conns:Set<conn> }
   const sockets = new Set();         // mọi kết nối đang mở (để tắt máy chủ gọn)
   const RATE = { burst: 12, perSec: 4 };
+  // Chưa có tài khoản ⇒ hạn mức theo địa chỉ IP để một máy không chiếm hết phòng / kết nối của máy chủ.
+  // Sau proxy (Railway) chỉ tin X-Forwarded-For khi MASOI_TRUST_PROXY=1.
+  const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 3 };
+  const trustProxy = opts.trustProxy ?? process.env.MASOI_TRUST_PROXY === "1";
+  const ipConns = new Map();
+  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",")[0].trim()) || req.socket.remoteAddress || "?";
 
   const newCode = () => {
     for (let k = 0; k < 50; k++) {
@@ -27,10 +33,11 @@ function createMaSoiHost(server, opts = {}) {
     return null;
   };
 
-  function makeRoom() {
+  function makeRoom(ip) {
     if (rooms.size >= maxRooms) return null;
+    if ([...rooms.values()].filter((e) => e.ip === ip).length >= perIp.rooms) return null;
     const code = newCode(); if (!code) return null;
-    const entry = { conns: new Set(), idleTimer: null };
+    const entry = { conns: new Set(), idleTimer: null, ip };
     entry.room = new Room({ code, timings, clock, randInt, onChange: () => push(entry) });
     rooms.set(code, entry);
     return entry;
@@ -79,7 +86,7 @@ function createMaSoiHost(server, opts = {}) {
     if (m.t === "create" || m.t === "join" || m.t === "resume") {
       if (conn.entry) return reply(conn, { t: "err", code: "already" });
       let entry;
-      if (m.t === "create") { entry = makeRoom(); if (!entry) return reply(conn, { t: "err", code: "busy" }); }
+      if (m.t === "create") { entry = makeRoom(conn.ip); if (!entry) return reply(conn, { t: "err", code: "busy" }); }
       else {
         entry = rooms.get(String(m.code || "").toUpperCase().trim());
         if (!entry) return reply(conn, { t: "err", code: "no-room" });
@@ -118,12 +125,16 @@ function createMaSoiHost(server, opts = {}) {
 
   function reply(conn, o) { conn.ws.send(JSON.stringify(o)); }
 
-  attachWs(server, path, (ws) => {
-    const conn = { ws, entry: null, token: null, last: null, bucket: RATE.burst, at: clock.now() };
+  attachWs(server, path, (ws, req) => {
+    const ip = ipOf(req);
+    if ((ipConns.get(ip) || 0) >= perIp.conns) { ws.send(JSON.stringify({ t: "err", code: "busy" })); return ws.close(1008); }
+    ipConns.set(ip, (ipConns.get(ip) || 0) + 1);
+    const conn = { ws, ip, entry: null, token: null, last: null, bucket: RATE.burst, at: clock.now() };
     sockets.add(ws);
     ws.on("message", (raw) => { try { onMessage(conn, raw); } catch (e) { console.error("[ma-soi]", e); reply(conn, { t: "err", code: "server" }); } });
     ws.on("close", () => {
       sockets.delete(ws);
+      const n = (ipConns.get(ip) || 1) - 1; if (n > 0) ipConns.set(ip, n); else ipConns.delete(ip);
       const entry = conn.entry; if (!entry) return;
       entry.conns.delete(conn);
       if (conn.token) {
