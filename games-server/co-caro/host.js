@@ -103,7 +103,7 @@ function createCoCaroHost(server, opts = {}) {
         for (const c of entry.conns) if (c.token === token && c !== conn) { c.token = null; c.ws.send(JSON.stringify({ t: "replaced" })); c.ws.close(4000); }
       } else {
         token = crypto.randomBytes(16).toString("hex");
-        const r = entry.room.join(m.name, token);
+        const r = entry.room.join(m.name, token, conn.ip);
         if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
       }
       conn.entry = entry; conn.token = token; conn.last = null;

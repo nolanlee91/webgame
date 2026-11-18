@@ -340,3 +340,20 @@ test('server.js: WebSocket tới đường không có game nào nhận (game onl
     { cwd: new URL('../../../', import.meta.url), env: { ...process.env, MASOI_ONLINE: '0', NOITU_ONLINE: '0', COCARO_ONLINE: '0', COCANGUA_ONLINE: '0' }, encoding: 'utf8' }).trim().split('\n').pop();
   assert.match(out, /^alive /);
 });
+
+test('chat (review Codex): rời phòng rồi vào lại cùng IP không làm mới hạn mức; người cùng IP đang ngồi không bị ảnh hưởng; lọc đủ ký tự bidi', () => {
+  const { Chat } = require('../chat.js');
+  let t = 0; const c = new Chat({ now: () => t });
+  const a = { token: 'a', name: 'A' }, a2 = { token: 'a2', name: 'A' }, b = { token: 'b', name: 'B' };
+  for (let i = 0; i < 4; i++) assert.equal(c.post(a, 'tin ' + i).ok, true);
+  assert.equal(c.post(a, 'tin 5').err, 'chat-slow');
+  c.forget('a', '1.2.3.4'); c.claim('a2', '1.2.3.4');
+  assert.equal(c.post(a2, 'vào lại').err, 'chat-slow', 'token mới cùng IP vẫn bị giới hạn');
+  c.claim('b', '1.2.3.4'); // người khác cùng IP vào sau: không còn gì gửi giữ → hạn mức riêng
+  assert.equal(c.post(b, 'xin chào').ok, true);
+  t += 1500; assert.equal(c.post(a2, 'hồi lại').ok, true, 'hạn mức hồi theo thời gian như cũ');
+  const ctl = [0x61c, 0x200e, 0x200f, 0x202a, 0x202e, 0x2066, 0x2069, 0x2060, 0xfeff].map((x) => String.fromCharCode(x)).join('');
+  assert.equal(c.post(b, 'abc' + ctl + 'def').ok, true);
+  const last = c.view('x').at(-1).text;
+  assert.equal(last, 'abc def'); assert.ok(![...last].some((ch) => ch.charCodeAt(0) > 0x7e && ch.charCodeAt(0) < 0x2100 && !/\p{L}/u.test(ch)));
+});

@@ -15,7 +15,7 @@ const DEFAULT_TIMINGS = {
 
 // ký tự điều khiển, ký tự vô hình / đảo chiều chữ (bidi) và dấu < > — dựng từ mã số để file không chứa ký tự vô hình
 const hex4 = (c) => "\\" + "u" + c.toString(16).padStart(4, "0");
-const BAD_CHARS = new RegExp("[" + [[0, 0x1f], [0x7f, 0x9f], [0x200b, 0x200f], [0x2028, 0x202e], [0x2066, 0x2069]].map(([a, b]) => hex4(a) + "-" + hex4(b)).join("") + "<>]", "g");
+const BAD_CHARS = new RegExp("[" + [[0, 0x1f], [0x7f, 0x9f], [0x61c, 0x61c], [0x200b, 0x200f], [0x2028, 0x202e], [0x2060, 0x2069], [0xfeff, 0xfeff]].map(([a, b]) => hex4(a) + "-" + hex4(b)).join("") + "<>]", "g");
 function cleanName(raw, fallback) {
   const s = String(raw ?? "").replace(BAD_CHARS, "").replace(/\s+/g, " ").trim();
   return [...s].slice(0, 16).join("") || fallback;
@@ -41,18 +41,19 @@ class Room {
 
   get hostSeat() { return this.players.findIndex((p) => !p.left); }
 
-  join(name, token) {
+  join(name, token, ip = "") {
     if (this.closed) return { err: "no-room" };
     if (this.phase !== "lobby") return { err: "started" };
     if (this.players.length >= MAX_PLAYERS) return { err: "full" };
-    this.players.push({ token, name: cleanName(name, "Người " + (this.players.length + 1)), connected: true, left: false });
+    this.players.push({ token, ip, name: cleanName(name, "Người " + (this.players.length + 1)), connected: true, left: false });
+    this.chat.claim(token, ip);
     this.changed();
     return { ok: true };
   }
 
   leave(i) {
     const p = this.players[i]; if (!p) return;
-    this.chat.forget(p.token);
+    this.chat.forget(p.token, p.ip);
     if (this.phase === "lobby") this.players.splice(i, 1);
     else { p.left = true; p.connected = false; p.token = null; }
     if (!this.players.some((x) => !x.left)) return this.close();
