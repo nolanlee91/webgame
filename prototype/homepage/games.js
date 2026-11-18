@@ -1,7 +1,7 @@
 // Danh sách 18 game theo docs/game-catalog-v2.md (thứ tự theo điểm ưu tiên).
 // thumb: 6 game đầu cắt từ concept V4; 12 game còn lại là ảnh thumbnail 4:3 riêng (đã được chủ dự án duyệt). icon/hue giữ làm dự phòng.
 // mode: "solo" | "multi" | "both" — dùng cho nhãn số người chơi trên thẻ.
-// url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Xếp Gạch, 2048, Sudoku, Đố Vui, Rắn Săn Mồi).
+// url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Xếp Gạch, 2048, Sudoku, Đố Vui, Rắn Săn Mồi, Cờ Tỷ Phú).
 // Game CHƯA có url: thẻ hiện nhãn "Đang cập nhật" + ảnh mờ, bấm vào vẫn mở trang chờ play.html.
 window.GAMES = [
   { id: "co-ca-ngua", name: "Cờ Cá Ngựa",      cat: "tri-tue",  mode: "multi", players: "2–4 người", thumb: "assets/thumbs/co-ca-ngua.webp", icon: "dice", hue: 0, badge: "Hot", url: "../games/co-ca-ngua/" },
@@ -23,6 +23,7 @@ window.GAMES = [
   { id: "nong-trai", name: "Nông Trại",        cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/nong-trai.webp", icon: "sprout", hue: 110 },
   { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320, url: "../games/ghep-keo/" },
   { id: "sudoku",    name: "Sudoku",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/sudoku.webp", icon: "sudoku", hue: 225, url: "../games/sudoku/" },
+  { id: "co-ty-phu", name: "Cờ Tỷ Phú",        cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "../games/co-ty-phu/assets/poster-co-ty-phu.webp", icon: "dice", hue: 45, badge: "Mới", url: "../games/co-ty-phu/" },
   { id: "ma-soi",    name: "Ma Sói",           cat: "tri-tue",  mode: "multi", players: "6–8 người", thumb: "assets/thumbs/ma-soi.webp", icon: "quiz", hue: 230, badge: "Mới", url: "../games/ma-soi/" },
 ];
 
