@@ -1,0 +1,42 @@
+{
+  "base": 20000,
+  "added": 10000,
+  "total": 30000,
+  "sources": {
+    "vi": 2442,
+    "en": 5148,
+    "viet22k": 2307,
+    "viet39k": 103
+  },
+  "newCommon": 4119,
+  "newRare": 5881,
+  "newWithImmediateContinuation": 8408,
+  "oldTerminalBefore": 958,
+  "oldTerminalAfter": 558,
+  "upstream": {
+    "vi": {
+      "sha256": "f2139c262f45cbe32dbc8e7478369fbc936ff6640deec0d2b6e7ad647d58f273",
+      "license": "CC-BY-SA-4.0"
+    },
+    "en": {
+      "url": "https://kaikki.org/dictionary/Vietnamese/kaikki.org-dictionary-Vietnamese.jsonl",
+      "sha256": "186cd0a62d876dada70c9761bc05e598c8cf7b9a48e0aa518bab6c649e28d945",
+      "license": "CC-BY-SA-4.0"
+    },
+    "viet22k": {
+      "url": "https://github.com/duyet/vietnamese-wordlist/blob/master/Viet22K.txt",
+      "sha256": "fdb37a1f21cb44898894390fb87d137830ed1507316c2729bad2d804db81033d",
+      "license": "GPL-2.0"
+    },
+    "viet39k": {
+      "url": "https://github.com/duyet/vietnamese-wordlist/blob/master/Viet39K.txt",
+      "sha256": "5c139a85964bf8980c6659418007e2ba5e3e5cc0098fe16c08f1bf5a6dd91ec5",
+      "license": "GPL-2.0"
+    }
+  },
+  "validation": {
+    "normalizedUnique": true,
+    "twoSyllableTokens": true,
+    "blocklistPassed": true
+  }
+}
