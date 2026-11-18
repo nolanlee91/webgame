@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-18",
+  "base": 7372,
+  "added": 12628,
+  "total": 20000,
+  "newCommon": 8837,
+  "newRare": 3791,
+  "newWithImmediateContinuation": 11880,
+  "newTerminalRare": 748,
+  "oldTerminalBefore": 394,
+  "oldTerminalAfter": 206,
+  "upstream": {
+    "project": "Vietnamese Wiktionary contributors",
+    "extractor": "Kaikki / Wiktextract",
+    "url": "https://kaikki.org/dictionary/downloads/vi/vi-extract.jsonl.gz",
+    "retrieved": "2026-11-18",
+    "compressedBytes": 34424532,
+    "sha256": "f2139c262f45cbe32dbc8e7478369fbc936ff6640deec0d2b6e7ad647d58f273",
+    "license": "CC-BY-SA-4.0",
+    "licenseURL": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attributionFile": "words-v3-attribution.tsv"
+  },
+  "validation": {
+    "normalizedUnique": 20000,
+    "newWordsDisjointFromBase": true,
+    "twoSyllableTokens": true,
+    "blocklistPassed": true
+  },
+  "review": {
+    "method": "Definition-backed headwords; Vietnamese lexical/POS metadata; title/gloss/tag filters and targeted editorial sampling. No cartesian syllable generation.",
+    "rarePolicy": "Conservative: explicit uncommon/dialect/technical labels, cross-reference variants, editorial rare list, and new terminal words excluded from Easy bot."
+  }
+}
