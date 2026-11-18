@@ -70,6 +70,14 @@ export class RefereeHost {
     }
   }
 
+  /** Ghế người chưa từng join (rớt trước khi ván bắt đầu, hoặc kết nối mà không gửi 'join'):
+   *  cũng chờ graceMs rồi cho bot thay — join kịp thì hẹn giờ tự hủy. */
+  awaitJoin(seat) {
+    if (this.closed || this.seatConn[seat] != null || this.timers.grace[seat] != null) return;
+    if (this.state.seats[seat].kind !== 'human') return;
+    this.timers.grace[seat] = this.sch.at(this.now + this.o.graceMs, () => this._graceExpired(seat));
+  }
+
   message(connId, msg) {
     const c = this.conns.get(connId);
     if (!c || this.closed) return;

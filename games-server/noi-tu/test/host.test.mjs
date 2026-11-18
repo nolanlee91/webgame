@@ -287,6 +287,56 @@ test('giới hạn: số phòng mỗi IP, gửi dồn dập bị chặn', async 
   } finally { await S.stop(); }
 });
 
+test('ghế chưa từng join (chủ phòng đóng tab trước khi khách vào) ⇒ sau 30 s bot thay, ván không kẹt', async () => {
+  const sch = fakeScheduler(1_000_000);
+  const S = await startServer({ scheduler: sch });
+  try {
+    const a = await new P(S.url, 'A').open(), b = await new P(S.url, 'B').open();
+    a.send({ t: 'create', name: 'An' }); await a.next((m) => m.t === 'room');
+    a.close(); await a.closed; await sleep(30);
+    b.send({ t: 'enter', code: a.code, name: 'Bình' }); await b.next((m) => m.t === 'room');
+    await b.next((m) => m.t === 'lobby' && m.started); await b.join();
+    assert.equal(b.state.seats[a.seat].kind, 'human');
+    sch.advance(30_001);
+    await b.next((m) => m.t === 'event' && m.ev.type === 'seatChanged' && m.ev.seat === a.seat && m.ev.kind === 'bot');
+    assert.equal(b.state.seats[a.seat].kind, 'bot');
+    // join kịp trong 30 s ⇒ không bị thay
+    const [c, d] = await pair(S.url);
+    sch.advance(30_001); await sleep(40);
+    assert.equal(c.state.seats[0].kind, 'human'); assert.equal(d.state.seats[1].kind, 'human');
+  } finally { await S.stop(); }
+});
+
+test('WebSocket: nhiều khung hợp lệ gộp trong một lần ghi TCP không bị đóng nhầm (1009)', async () => {
+  const net = await import('node:net');
+  const S = await startServer();
+  try {
+    const { port } = new URL(S.url);
+    const sock = net.connect(Number(port), '127.0.0.1');
+    await new Promise((r) => sock.once('connect', r));
+    sock.write(`GET /ws/noi-tu HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n`);
+    let got = '';
+    sock.on('data', (d) => { got += d.toString('latin1'); });
+    await sleep(80); assert.match(got, /101 Switching/);
+    const frame = (text) => {
+      const p = Buffer.from(text), mask = Buffer.from([1, 2, 3, 4]);
+      const head = p.length < 126 ? Buffer.from([0x81, 0x80 | p.length]) : Buffer.from([0x81, 0x80 | 126, p.length >> 8, p.length & 255]);
+      return Buffer.concat([head, mask, Buffer.from(p.map((x, i) => x ^ mask[i & 3]))]);
+    };
+    const msg = JSON.stringify({ t: 'ping', id: 1, pad: 'x'.repeat(560) }); // ~600 byte, dưới giới hạn 1024
+    assert.ok(msg.length > 550 && msg.length < 1024);
+    let closed = null; sock.on('close', () => { closed = true; });
+    sock.write(Buffer.concat([frame(msg), frame(msg), frame(msg)]));  // ~1.8 KB trong MỘT lần ghi
+    await sleep(120);
+    assert.equal(closed, null, 'không được đóng kết nối');
+    assert.ok(!/\x88\x02\x03\xf1/.test(got), 'không có khung close 1009');
+    assert.equal((got.match(/no-room/g) || []).length, 3, 'cả 3 thông điệp đều được xử lý');
+    // khung đơn lẻ vượt giới hạn vẫn bị đóng
+    sock.write(frame(JSON.stringify({ t: 'ping', pad: 'x'.repeat(1100) })));
+    await sleep(120); assert.equal(closed, true);
+  } finally { await S.stop(); }
+});
+
 test('cleanName bỏ ký tự điều khiển/định hướng, tối đa 16 ký tự', () => {
   assert.equal(cleanName('  Hoa‮\u0000  Lan '), 'Hoa Lan');
   assert.equal(cleanName('x'.repeat(30)).length, 16);

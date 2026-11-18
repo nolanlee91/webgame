@@ -176,4 +176,6 @@ Sự kiện được snapshot phủ **không chạy hiệu ứng** (UI vẽ lạ
 - Giới hạn: khung ≤ 1 KB, 6 tin/giây (dồn tối đa 20), 16 kết nối + 4 phòng mỗi IP, tối đa 300 phòng, phòng không ai
   kết nối bị xoá sau 5 phút. Tên: bỏ ký tự điều khiển/định hướng, tối đa 16 ký tự, hiển thị bằng `textContent`.
 - Rớt mạng: trọng tài chờ 30 giây (`graceMs`) rồi cho máy thay ghế; người cũ quay lại lấy lại ghế ở đầu ván sau.
-- Bật/tắt bằng `NOITU_ONLINE` (`0`/`1`).
+- Mặc định bật; tắt bằng `NOITU_ONLINE=0`. Đã qua review độc lập của Codex (không lỗi chặn); 2 điểm nên sửa đã sửa
+  kèm test hồi quy: ghế chưa từng join cũng được bot thay sau 30 giây (`RefereeHost.awaitJoin`), và lớp WebSocket
+  dùng chung không còn đóng nhầm (1009) khi một lần ghi TCP gộp nhiều khung hợp lệ.

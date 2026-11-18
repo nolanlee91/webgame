@@ -30,7 +30,7 @@ là thua ván · đánh được từ cụt là thắng ngay · tỉ số giữ 
 - Trang: `session/online.js` (tầng phòng: tạo / vào bằng mã / quay lại) + `MatchClient` như bản offline.
   Tải lại trang giữa ván ⇒ vào lại đúng ghế (token lưu sessionStorage). Menu/ẩn tab **không** dừng ván online.
   Rớt mạng quá 30 giây ⇒ máy đánh thay ghế đó; quay lại thì lấy lại ghế từ ván sau. Chơi lại cần cả hai bấm.
-- Bật/tắt: biến `NOITU_ONLINE` (`0` tắt, `1` bật).
+- Mặc định **bật** (không cần đặt biến trên Railway); tắt bằng `NOITU_ONLINE=0`.
 - Test: `npm run test:noi-tu` (máy chủ thật + WebSocket thật: lượt, luật, giả token, lệnh sai hình dạng, gửi lại
   commandId, đồng hồ server, mất gói/đồng bộ lại, phòng đầy/sai mã/quay lại, giới hạn) và
   `node games-server/noi-tu/test/browser-e2e.mjs` (2 tab Chrome thật chơi với nhau).

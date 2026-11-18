@@ -102,6 +102,8 @@ function createNoiTuHost(server, opts = {}) {
       botLevel: "easy", seed: crypto.randomInt(2 ** 31), first: crypto.randomInt(2), graceMs: opts.graceMs ?? 30000,
     });
     for (const c of e.conns) if (c.token) bindRef(e, c);
+    // ghế nào chưa join trong graceMs (vd. chủ phòng đã đóng tab trước khi khách vào) ⇒ bot thay, ván không kẹt
+    e.ref.awaitJoin(0); e.ref.awaitJoin(1);
     lobbyPush(e);
   }
 

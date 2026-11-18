@@ -66,8 +66,8 @@ if (on(process.env.MASOI_ONLINE, true)) {
   require("./games-server/ma-soi/host").createMaSoiHost(server, { timings });
   console.log(`Ma Sói online: đường /ws/ma-soi (thời gian mỗi pha x${speed})`);
 }
-// Nối Từ online 1v1 — tạm mặc định TẮT cho tới khi Codex review xong phần chống gian lận (bật thử: NOITU_ONLINE=1).
-if (on(process.env.NOITU_ONLINE, false)) {
+// Nối Từ online 1v1 — mặc định BẬT (đã qua review độc lập của Codex); tắt bằng NOITU_ONLINE=0.
+if (on(process.env.NOITU_ONLINE, true)) {
   require("./games-server/noi-tu/host").createNoiTuHost(server);
   console.log("Nối Từ online: đường /ws/noi-tu");
 }
