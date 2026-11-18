@@ -37,6 +37,22 @@ const shot = async (name, full = false) => {
 };
 const R = []; const check = (n, c, d = '') => console.log((c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''));
 const _c = check; globalThis.__log = 1;
+
+// Báo lỗi mã phòng không được làm xê dịch hàng "ô mã + Vào phòng + Tạo phòng mới"; dòng đỏ nằm trên ô nhập, đọc đủ chữ.
+const pinRects = 'JSON.stringify(["roomInlineCode","createRoom"].map(i=>document.getElementById(i)).concat(document.querySelector("#roomInline button[type=submit]")).map(e=>{const r=e.getBoundingClientRect();return [Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]}))';
+const pinStable = async (tag, shotName) => {
+  await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="";c.dispatchEvent(new Event("input"))})()');
+  const before = await ev(pinRects);
+  await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="ab1";c.dispatchEvent(new Event("input"));document.getElementById("roomInline").requestSubmit()})()'); await sleep(200);
+  const after = await ev(pinRects);
+  const err = await ev('(()=>{const e=document.getElementById("roomInlineError"),i=document.getElementById("roomInlineCode"),r=e.getBoundingClientRect();return JSON.stringify({t:e.textContent,above:r.bottom<=i.getBoundingClientRect().top+1,cut:e.scrollWidth>e.clientWidth+1,h:Math.round(r.height)})})()');
+  const E = JSON.parse(err);
+  if (shotName) await shot(shotName);
+  check(`${tag}: mã sai → dòng đỏ hiện phía trên ô nhập, đủ chữ, không làm lệch ô mã/Vào phòng/Tạo phòng mới`, before === after && E.t.length > 0 && E.above && !E.cut && E.h > 0, before === after ? err : before + ' → ' + after);
+  await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="abc789";c.dispatchEvent(new Event("input"))})()');
+  check(`${tag}: gõ lại mã đúng → dòng đỏ biến mất, hàng nút vẫn giữ chỗ`, await ev('document.getElementById("roomInlineError").textContent') === '' && await ev(pinRects) === before);
+  await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="";c.dispatchEvent(new Event("input"))})()');
+};
 const cards = () => ev('document.querySelectorAll("#grid .card").length');
 const setQ = v => ev(`(()=>{const q=document.getElementById("q");q.value=${JSON.stringify(v)};q.dispatchEvent(new Event("input"))})()`);
 const chip = c => ev(`document.querySelector('.tab[data-cat="${c}"]').click()`);
@@ -94,6 +110,7 @@ await setQ('xyz'); check('không có kết quả → hiện thông báo trống'
 await ev('document.getElementById("clearSearch").click()'); check('"Xem tất cả game" khôi phục đủ ' + NG, await cards() === NG);
 await setQ('caro'); check('khi tìm kiếm: ẩn tầng tiêu điểm/sảnh chờ để kết quả lên đầu', await ev('document.getElementById("featuredSection").hidden')); await setQ('');
 
+await pinStable('desktop 1440');
 check('desktop: ô mã phòng có sẵn trong sảnh chờ', await ev('getComputedStyle(document.getElementById("roomInline")).display!=="none"'));
 await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="ab-1";c.dispatchEvent(new Event("input"));document.getElementById("roomInline").requestSubmit()})()');
 check('mã sai → báo lỗi', (await ev('document.getElementById("roomInlineError").textContent')).length > 0, 'ô nhập lọc thành "' + await ev('document.getElementById("roomInlineCode").value') + '"');
@@ -125,6 +142,9 @@ check('mỗi thẻ là 1 link duy nhất (1 lần Tab)', await ev('[...document.
 await view(820, 1180, true, 2); await nav(BASE + 'index.html');
 check('tablet 820: không cuộn ngang', await ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth'));
 await shot('tablet-820.png');
+await pinStable('tablet 820');
+await view(1100, 800, false, 1); await nav(BASE + 'index.html'); await pinStable('laptop 1100');
+await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="ab1";c.dispatchEvent(new Event("input"));document.getElementById("roomInline").requestSubmit()})()'); await sleep(200); await shot('laptop-1100-room-error.png');
 
 // ---------- Mobile ----------
 for (const [w, h] of [[390, 844], [360, 740]]) {
@@ -137,6 +157,8 @@ for (const [w, h] of [[390, 844], [360, 740]]) {
   check(`mobile ${w}: nút "Chơi ngay" thấy ngay khi mở`, await ev('document.querySelector(".hero .btn--gold").getBoundingClientRect().bottom<=innerHeight'));
   const small = await ev('[...document.querySelectorAll("button,a.card,input,.search")].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.top<innerHeight&&(r.height<40||r.width<40)}).map(e=>(e.id||e.className)+":"+Math.round(e.getBoundingClientRect().width)+"x"+Math.round(e.getBoundingClientRect().height)).join(",")');
   check(`mobile ${w}: vùng chạm ≥ 40px`, small === '', small);
+  await ev('document.getElementById("roomInline").scrollIntoView({block:"center"})'); await sleep(200);
+  await pinStable(`mobile ${w}`, `mobile-${w}-room-error.png`); await ev('scrollTo(0,0)'); await sleep(200);
   check(`mobile ${w}: tên game không bị cắt`, await ev('[...document.querySelectorAll(".card__name")].filter(n=>n.scrollWidth>n.clientWidth+1).length') === 0);
   await shot(`mobile-${w}.png`);
   if (w === 390) {

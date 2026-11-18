@@ -54,13 +54,15 @@
 
         <div class="lobby__bar">
           <form class="pin" id="roomInline" novalidate data-name="room-inline">
-            <label class="pin__label" for="roomInlineCode">Có mã phòng bạn gửi?</label>
+            <div class="pin__head">
+              <label class="pin__label" for="roomInlineCode">Có mã phòng bạn gửi?</label>
+              <p class="pin__error" id="roomInlineError" role="alert"></p>
+            </div>
             <div class="pin__row">
               <input class="field pin__input" id="roomInlineCode" autocomplete="off" spellcheck="false" autocapitalize="characters"
-                     maxlength="6" placeholder="ABC789" aria-describedby="roomInlineError" />
+                     maxlength="6" placeholder="ABC789" aria-label="Mã phòng" aria-describedby="roomInlineError" />
               <button class="btn btn--teal" type="submit">Vào phòng</button>
             </div>
-            <p class="pin__error" id="roomInlineError" role="alert"></p>
           </form>
           <a class="btn btn--teal lobby__create" href="#duel" id="createRoom"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
         </div>

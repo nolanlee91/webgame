@@ -163,11 +163,15 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .lobby__sub { flex: none; font: 800 12px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--px-soft); }
 .lobby__note { margin: 0; padding: 0 16px 0 19px; font-size: 12px; color: var(--px-dim); }
 
-.pin__label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--px-soft); }
+/* Dòng nhãn và dòng báo lỗi dùng chung 1 hàng cố định phía trên ô nhập:
+   báo lỗi hiện thay chỗ nhãn, không đẩy hàng "ô mã + Vào phòng + Tạo phòng mới" xuống */
+.pin__head { position: relative; height: 16px; margin-bottom: 8px; }
+.pin__label { display: block; font-size: 13px; font-weight: 700; line-height: 16px; color: var(--px-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pin__row { display: flex; gap: 14px; }
 .pin__input { flex: 1; min-width: 0; font: 800 18px var(--font-body) !important; letter-spacing: .25em; text-transform: uppercase; }
-.pin__error { min-height: 1em; margin: 6px 0 0; font-size: 13px; font-weight: 700; color: #ff8a7a; }
+.pin__error { position: absolute; inset: 0; margin: 0; font-size: 13px; font-weight: 700; line-height: 16px; color: #ff8a7a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pin__error:empty { display: none; }
+.pin:has(.pin__error:not(:empty)) .pin__label { visibility: hidden; }
 
 .rooms { position: relative; list-style: none; margin: 0; padding: 3px 19px 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px;
   align-content: start; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4a4034 transparent; }
