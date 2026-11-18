@@ -2,7 +2,7 @@
 
 Game ghép 3 cổ điển chơi một mình trên lưới 8×8. Đổi chỗ 2 viên kẹo cạnh nhau để tạo hàng ngang hoặc dọc từ 3 viên cùng loại trở lên. Kẹo trong hàng sẽ nổ, kẹo phía trên rơi xuống và kẹo mới rơi từ trên vào.
 
-Game chạy hoàn toàn trên trình duyệt, không cần server. Kẹo là sprite pixel 20×20 vẽ bằng Canvas. Cảnh tiệm kẹo dùng `assets/bg/shop-v2.webp`. Âm thanh và icon dùng bộ có sẵn.
+Game chạy hoàn toàn trên trình duyệt, không cần server. Kẹo thường được vẽ ở 64×64 để có viền và mặt bóng rõ hơn. Kẹo đặc biệt dùng sprite pixel 20×20. Cảnh tiệm kẹo dùng `assets/bg/shop-v2.webp`. Âm thanh và icon dùng bộ có sẵn.
 
 Prompt cho nền tiệm kẹo, tạo bằng ImageGen tích hợp
 

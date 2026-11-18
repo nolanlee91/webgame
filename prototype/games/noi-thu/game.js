@@ -7,8 +7,8 @@ const TILE_ART_COLUMNS = 6;
 
 const SAVE_KEY = "wgp.noithu.v1";
 const C = {
-  board: "#27433c", boardDither: "#304c41", plank: "#254039", rim: "#4a7361", rimHi: "#83a18a", rimD: "#263e32", panel: "#1d1a16", line: "#0a0807", outline: "#2b1d14",
-  face: "#efe2c2", faceHi: "#fff6de", depth: "#bfa77a", depthD: "#8d7650", back: "#7a5634", backHi: "#9a7046",
+  board: "#426150", boardDither: "#446452", rim: "#648168", rimHi: "#abb696", rimD: "#425a49", panel: "#1d1a16", line: "#0a0807", outline: "#6d563d",
+  face: "#fff4d9", faceHi: "#fffbed", depth: "#d6b98b", depthD: "#ba9870", back: "#7a5634", backHi: "#9a7046",
   gold: "#ffc94a", goldD: "#a8741a", teal: "#7fd47f", tealD: "#17521c", goldL: "#ffe9a8", red: "#e0483d", ink: "#f4ead2",
 };
 // Hướng ô dồn → mũi tên hiển thị (khi bàn xoay dọc trên điện thoại, hàng logic thành cột nên mũi tên xoay theo).
@@ -112,14 +112,14 @@ export function mount(root, ctx = {}) {
     const d = L.dpr, size = L.cs - Math.max(2, Math.round(L.cs * 0.06));
     const u = Math.max(1, Math.round(size * d / 26));
     let X = Math.round((x - size / 2) * d), Y = Math.round((y - size / 2) * d);
-    const S = Math.round(size * d), dep = 4 * u;
+    const S = Math.round(size * d), dep = 2 * u;
     if (opt.lift) Y -= 2 * u;
     if (opt.scale && opt.scale !== 1) { const ns = Math.round(S * opt.scale); X += (S - ns) >> 1; Y += (S - ns) >> 1; return drawTileBox(X, Y, ns, u, t, opt, Math.max(u, Math.round(dep * opt.scale))); }
     drawTileBox(X, Y, S, u, t, opt, dep);
   }
   function drawTileBox(X, Y, S, u, t, opt, dep) {
     // bóng cứng lệch xuống-phải
-    g2.fillStyle = "rgba(0,0,0,.45)"; g2.fillRect(X + 2 * u, Y + 2 * u, S, S);
+    g2.fillStyle = "#243a2e70"; g2.fillRect(X + u, Y + 2 * u, S, S);
     g2.fillStyle = C.outline; g2.fillRect(X, Y, S, S);
     const back = opt.back;
     g2.fillStyle = back ? C.back : opt.sel ? "#fff1c2" : C.face; g2.fillRect(X + u, Y + u, S - 2 * u, S - 2 * u);
@@ -128,7 +128,7 @@ export function mount(root, ctx = {}) {
     g2.fillStyle = back ? "#3e2a18" : C.depthD; g2.fillRect(X + u, Y + S - u - u, S - 2 * u, u);
     if (back) { g2.fillStyle = "#5a3e24"; const q = Math.max(u, Math.round(S / 8)); g2.fillRect(X + (S >> 1) - q, Y + (S >> 1) - q - (dep >> 1), 2 * q, 2 * q); }
     else if (t) {
-      const room = Math.max(u, S - dep - 3 * u), sz = Math.round(room);
+      const room = Math.max(u, S - dep - 2 * u), sz = Math.round(room);
       const x = X + ((S - sz) >> 1), y = Y + ((S - dep - sz) >> 1);
       const index = t - 1;
       if (tileArt.naturalWidth) {
@@ -156,7 +156,7 @@ export function mount(root, ctx = {}) {
     const u = Math.max(1, Math.round(L.cs * d / 26));
     // Lòng khay ít tương phản để các ô sáng nổi rõ.
     const bx = Math.round(L.ox * d), by = Math.round(L.oy * d), bw = Math.round(L.dw * L.cs * d), bh = Math.round(L.dh * L.cs * d), b3 = Math.max(1, Math.round(d));
-    g2.fillStyle = "rgba(0,0,0,.6)"; g2.fillRect(bx + 4 * d + b3, by + 7 * d + b3, bw, bh);
+    g2.fillStyle = "#1d312c70"; g2.fillRect(bx + 4 * d + b3, by + 7 * d + b3, bw, bh);
     // Vành khay mỏng, giữ đủ khoảng trống cho đường nối bên ngoài.
     const rw = Math.max(b3 * 2, Math.round(L.cs * d * 0.10));
     g2.fillStyle = C.line; g2.fillRect(bx - rw - b3, by - rw - b3, bw + 2 * (rw + b3), bh + 2 * (rw + b3));
@@ -165,9 +165,7 @@ export function mount(root, ctx = {}) {
     g2.fillStyle = C.rimD; g2.fillRect(bx - rw, by + bh + rw - Math.round(2 * d), bw + 2 * rw, Math.round(2 * d)); g2.fillRect(bx + bw + rw - Math.round(2 * d), by - rw, Math.round(2 * d), bh + 2 * rw);
     g2.fillStyle = C.line; g2.fillRect(bx - b3, by - b3, bw + 2 * b3, bh + 2 * b3);
     g2.fillStyle = dither(Math.max(1, Math.round(2 * d))); g2.fillRect(bx, by, bw, bh);
-    g2.fillStyle = C.plank; const ph = Math.max(2, Math.round(L.cs * d * 0.5)), pl = Math.max(1, Math.round(d));
-    for (let y = by + ph, i = 0; y < by + bh; y += ph, i++) { g2.fillRect(bx, y, bw, pl); for (let x = bx + ((i * 3) % 7) * ph; x < bx + bw; x += ph * 7) g2.fillRect(x, y, pl, ph); }
-    g2.fillStyle = "rgba(0,0,0,.28)"; g2.fillRect(bx, by, bw, Math.round(3 * d)); g2.fillRect(bx, by, Math.round(3 * d), bh); // bóng vành đổ vào lòng khay
+
 
     const hidden = paused && !s.ended;
     const hintIds = fx.hint && now < fx.hint.until ? fx.hint.ids : null;
@@ -223,7 +221,7 @@ export function mount(root, ctx = {}) {
       const fs = Math.round(Math.max(16, Math.min(30, L.cs * 0.55)) * d);
       g2.font = `800 ${fs}px "Be Vietnam Pro", system-ui`;
       const tw = g2.measureText(fx.banner.text).width + fs * 1.6, th = fs * 2.1, x = (L.w * d - tw) / 2, y = (L.h * d - th) / 2;
-      g2.fillStyle = "rgba(0,0,0,.6)"; g2.fillRect(x + 4 * d, y + 7 * d, tw, th);
+      g2.fillStyle = "#1d312c70"; g2.fillRect(x + 4 * d, y + 7 * d, tw, th);
       g2.fillStyle = C.line; g2.fillRect(x - b3, y - b3, tw + 2 * b3, th + 2 * b3);
       g2.fillStyle = C.panel; g2.fillRect(x, y, tw, th);
       g2.fillStyle = "rgba(255,255,255,.13)"; g2.fillRect(x, y, tw, 2 * d);

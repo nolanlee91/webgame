@@ -1,6 +1,5 @@
 // Ghép Kẹo — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
-// Kẹo là sprite pixel 20×20 vẽ bằng canvas ngay khi tải trang (không dùng ảnh AI), mỗi loại một hình riêng
-// để người mù màu vẫn phân biệt được: tim, lát cam, sao, kẹo xoắn, giọt, chùm nho + kẹo sao cầu vồng.
+// Kẹo thường và kẹo đặc biệt được vẽ bằng Canvas, với hình riêng cho từng màu.
 import * as L from "./logic.js";
 
 const SAVE_KEY = "wgp.ghep-keo.v1";
@@ -50,10 +49,64 @@ function sphereTone(x, y, cx, cy, r) {
   if (d > 0.93) return 0; if (d > 0.88) return ch ? 0 : 1; if (d > 0.7) return 1; if (d > 0.64) return ch ? 1 : 2;
   if (d > 0.3) return 2; if (d > 0.22) return ch ? 2 : 3; if (d > -0.05) return 3; return 4;
 }
+// Các viên thường dùng mặt kẹo bóng với viền cùng tông. Sáu hình giữ silhouette riêng.
+const CANDY_SHAPES = [
+  "M32 54C27 46 8 38 8 23C8 9 24 6 32 18C40 6 56 9 56 23C56 38 37 46 32 54Z",
+  "M32 7A25 25 0 1 1 32 57A25 25 0 1 1 32 7Z",
+  "M32 5L40 22L59 25L45 39L49 58L32 48L15 58L19 39L5 25L24 22Z",
+  "M32 7A25 25 0 1 1 32 57A25 25 0 1 1 32 7Z",
+  "M32 5C38 16 54 28 54 40A22 20 0 1 1 10 40C10 28 26 16 32 5Z",
+];
+function regularCandy(k) {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.lineJoin = "round";
+  function glaze(shape, tones, bounds) {
+    const [x, y, width, height] = bounds;
+    const light = g.createLinearGradient(x + width * .18, y, x + width * .78, y + height);
+    [0, .28, .51, .87, 1].forEach((stop, i) => light.addColorStop(stop, tones[i]));
+    g.fillStyle = light; g.fill(shape);
+    g.lineWidth = 2.6; g.strokeStyle = tones[4]; g.stroke(shape);
+  }
+  if (k === 5) {
+    g.fillStyle = "#90cf76";
+    g.fill(new Path2D("M30 15Q30 5 49 5Q43 16 30 18Z"));
+    for (const [x, y] of [[22,24],[42,24],[15,37],[32,38],[49,37],[24,49],[40,49],[32,57]]) {
+      const berry = new Path2D();
+      berry.arc(x,y,8,0,Math.PI*2);
+      glaze(berry,TONES[k],[x-8,y-8,16,16]);
+    }
+    return c.toDataURL();
+  }
+  const shape = new Path2D(CANDY_SHAPES[k]);
+  glaze(shape,TONES[k],[6,6,52,52]);
+  g.save();
+  g.clip(shape);
+  if (k === 1) {
+    g.strokeStyle = "#ffe0ad"; g.lineWidth = 2;
+    g.beginPath(); g.arc(32,32,20,0,Math.PI*2); g.stroke();
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      g.beginPath(); g.moveTo(32,32); g.lineTo(32 + 19*Math.cos(a),32 + 19*Math.sin(a)); g.stroke();
+    }
+  } else if (k === 3) {
+    g.strokeStyle = "#c8f3a4"; g.lineWidth = 4; g.lineCap = "round";
+    g.stroke(new Path2D("M34 33C34 26 23 28 25 37C28 48 45 47 48 33C51 19 35 12 24 16"));
+  }
+  g.strokeStyle = "#fff9e1b0"; g.lineCap = "round"; g.lineWidth = 3.5;
+  g.stroke(new Path2D("M15 25Q19 15 28 14"));
+  g.restore();
+  return c.toDataURL();
+}
 const spriteCache = new Map();
 function sprite(k, sp) {
   const key = k + ":" + (sp || "");
   if (spriteCache.has(key)) return spriteCache.get(key);
+  if (!sp && k !== L.STAR) {
+    const url = regularCandy(k);
+    spriteCache.set(key, url);
+    return url;
+  }
   const c = document.createElement("canvas"); c.width = c.height = N;
   const g = c.getContext("2d");
   const star = k === L.STAR;
@@ -198,7 +251,8 @@ export function mount(root, ctx = {}) {
   function layout() {
     const r = stage.getBoundingClientRect();
     const ht = $("hintTx"), hintH = ht && getComputedStyle(ht).display !== "none" ? 24 : 0;
-    const avail = Math.max(160, Math.min(r.width - 14, r.height - 14 - hintH, 680));
+    const insetTop = parseFloat(getComputedStyle(stage).paddingTop);
+    const avail = Math.max(160, Math.min(r.width - 14, r.height - insetTop - 14 - hintH, 680));
     const fr = Math.max(6, Math.min(14, Math.round(avail * 0.022)));
     const cs = Math.floor((avail - 2 * fr - 18) / L.W); // khung gỗ + viền gậy kẹo dày thêm 6px mỗi bên
     G = { cs, bw: cs * L.W };

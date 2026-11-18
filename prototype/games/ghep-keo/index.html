@@ -8,7 +8,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%224%22 y=%223%22 width=%228%22 height=%2210%22 fill=%22%23e0483d%22/%3E%3Crect x=%223%22 y=%224%22 width=%2210%22 height=%228%22 fill=%22%23e0483d%22/%3E%3Crect x=%225%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%23fff4e0%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với 2048 / Sudoku / Xếp Gạch: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
-       không bo tròn, không mờ. Vàng CHỈ cho nút chính và sao đánh giá. Kẹo là sprite pixel 20×20 vẽ bằng code (game.js). */
+       Nền tiệm kẹo và bảng màu mận. Hình kẹo thường và kẹo đặc biệt được vẽ trong game.js. */
     :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --pink: #e05f9c;
@@ -82,10 +82,10 @@
 
     /* TẦNG 1 — bàn chơi */
     .stage { grid-area: stage; position: relative; min-height: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; touch-action: none; outline: none; }
-    .frame { position: relative; padding: calc(var(--fr, 12px) + 6px); background: #744b78;
+    .frame { position: relative; padding: calc(var(--fr, 12px) + 6px); background: #643960;
       box-shadow: inset 0 2px 0 #bf89ac, inset 0 -2px 0 #4f345c, 0 0 0 1px #271b33, 0 12px 28px #1a102899; }
-    .board { position: relative; width: var(--bw); height: var(--bw); overflow: hidden; background-color: #30263d;
-      background-image: conic-gradient(#443450 25%, #362a43 0 50%, #443450 0 75%, #362a43 0); background-size: calc(var(--cs) * 2) calc(var(--cs) * 2);
+    .board { position: relative; width: var(--bw); height: var(--bw); overflow: hidden; background-color: #3b263f;
+      background-image: conic-gradient(#50364f 25%, #422b46 0 50%, #50364f 0 75%, #422b46 0); background-size: calc(var(--cs) * 2) calc(var(--cs) * 2);
       box-shadow: 0 0 0 3px var(--line), inset 0 3px 0 rgba(0,0,0,.4); }
     .ck { position: absolute; left: 0; top: 0; width: var(--cs); height: var(--cs); z-index: 1; will-change: transform;
       transform: translate3d(calc(var(--x) * var(--cs)), calc(var(--y) * var(--cs)), 0); transition: transform var(--t, 140ms) var(--e, ease-out); }
@@ -170,7 +170,10 @@
 
     /* Màn hình thấp: bỏ bảng phím tắt */
     @media (max-height: 820px) { .keys { display: none; } .stats { gap: 8px; } }
-    @media (max-aspect-ratio: 3/5) { body { background-size: 100% 100%, 100% 100%; } }
+    @media (max-aspect-ratio: 3/5) {
+      body { background-size: 100% 100%, 100% 100%; }
+      .stage { justify-content: flex-start; padding-top: clamp(8px, 4svh, 32px); }
+    }
     /* Điện thoại cầm dọc / khung hẹp: HUD gọn trên cùng, bàn giữa, nút dưới */
     @media (max-width: 760px), (max-aspect-ratio: 1/1) {
       .tag { display: none; }
@@ -304,7 +307,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=shop3";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
