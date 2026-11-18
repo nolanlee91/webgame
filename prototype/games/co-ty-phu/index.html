@@ -74,14 +74,29 @@
     .tile:focus-visible { outline: 3px dashed var(--gold); outline-offset: -3px; z-index: 3; }
     .tile.hl { animation: hl .5s steps(2) 3; }
     @keyframes hl { 50% { background: rgba(255, 233, 168, .45); } }
-    .tile .band { position: absolute; left: 5%; right: 5%; top: 5%; height: 19%; box-shadow: inset 0 0 0 .25cqw var(--line); }
-    .tile .nm { position: absolute; left: 3%; right: 3%; top: 26%; text-align: center; font: 800 1.12cqw/1.05 "Be Vietnam Pro", system-ui; color: #3a2414; letter-spacing: -.01em; }
-    .tile .pr { position: absolute; left: 0; right: 0; bottom: 5%; text-align: center; font: 800 1.45cqw/1 "Be Vietnam Pro", system-ui; color: #5a3a08; font-variant-numeric: tabular-nums; }
-    .tile.owned .pr { color: #fff; text-shadow: .15cqw .15cqw 0 #000; }
-    .tile .own { position: absolute; left: 5%; right: 5%; bottom: 3%; height: 20%; background: var(--oc); box-shadow: inset 0 0 0 .25cqw var(--line); }
-    .tile .bld { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); display: flex; gap: .2cqw; }
-    .tile .bld i { width: 3.1cqw; height: 3.1cqw; display: block; }
-    @container (max-width: 700px) { .tile .nm { display: none; } .tile .pr { font-size: 2.05cqw; } .tile .bld { top: 46%; } .tile .bld i { width: 4cqw; height: 4cqw; } }
+    /* Ô đất: 4 tầng tách riêng, không chồng nhau — dải vùng / tên (nền kem, chữ đậm) / cờ-nhà / giá (nền tối, chữ sáng). */
+    .tile.prop { display: flex; flex-direction: column; align-items: center; padding: .4cqw .35cqw; gap: .3cqw; }
+    .tile .band { flex: none; align-self: stretch; height: 1.3cqw; box-shadow: inset 0 0 0 .22cqw var(--line); }
+    .tile .nm { flex: none; align-self: stretch; text-align: center; font: 800 1.4cqw/1.1 "Be Vietnam Pro", system-ui; color: #1c1108; letter-spacing: -.02em;
+      background: rgba(255, 247, 228, .94); box-shadow: 0 0 0 .15cqw rgba(58, 36, 20, .55); padding: .2cqw .15cqw; overflow: hidden; overflow-wrap: anywhere; }
+    .tile .bld { flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center; gap: .2cqw; }
+    .tile .bld i { height: min(3cqw, 100%); aspect-ratio: 1; display: block; }
+    .tile .pr { flex: none; min-width: 72%; padding: .3cqw .4cqw; text-align: center; font: 800 1.45cqw/1 "Be Vietnam Pro", system-ui; color: #fff3cf; font-variant-numeric: tabular-nums;
+      background: #2a1a0c; box-shadow: 0 0 0 .2cqw var(--line); text-shadow: .12cqw .12cqw 0 #000; }
+    .tile.owned .pr { color: #fff; box-shadow: 0 0 0 .32cqw var(--oc), 0 0 0 .5cqw var(--line); }
+    /* Ô hai cạnh trái/phải (rộng, thấp): tên một dòng, cờ-nhà cùng hàng với giá. */
+    .tile.prop.wide { display: grid; grid-template: auto auto 1fr / 1fr auto; align-items: center; }
+    .tile.wide .band { grid-column: 1 / -1; height: 1cqw; }
+    .tile.wide .nm { grid-column: 1 / -1; white-space: nowrap; text-overflow: ellipsis; }
+    .tile.wide .bld { grid-row: 3; grid-column: 1; justify-content: flex-end; height: 100%; }
+    .tile.wide .pr { grid-row: 3; grid-column: 2; min-width: 0; padding: .3cqw .55cqw; }
+    @container (max-width: 700px) {
+      .tile .nm { display: none; }
+      .tile .pr { font-size: 2.05cqw; padding: .35cqw .3cqw; min-width: 88%; }
+      .tile .bld i { height: min(4cqw, 100%); }
+      .tile.prop.wide { grid-template: auto 1fr / 1fr auto; }
+      .tile.wide .bld, .tile.wide .pr { grid-row: 2; }
+    }
     .token { position: absolute; width: 6.6%; height: 6.6%; transform: translate(-50%, -78%); z-index: 4; transition: left .11s steps(2), top .11s steps(2); pointer-events: none; filter: drop-shadow(.3cqw .4cqw 0 rgba(0,0,0,.55)); }
     .token.hop { animation: hop .13s steps(2); }
     @keyframes hop { 50% { transform: translate(-50%, -100%); } }

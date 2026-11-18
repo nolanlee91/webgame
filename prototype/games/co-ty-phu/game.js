@@ -47,6 +47,7 @@ function buildBoard() {
     el.setAttribute("role", "button");
     el.setAttribute("aria-label", t.name + (t.price ? ", giá " + K(t.price) : ""));
     if (t.type === "property") {
+      el.classList.add("prop"); if (r.width > r.height) el.classList.add("wide");
       el.innerHTML = `<span class="band" style="background:${REGIONS[t.region].color}"></span><span class="nm">${t.short}</span><span class="bld"></span><span class="pr">${t.price}K</span>`;
     }
     el.onclick = () => showInfo(r.id);
@@ -90,11 +91,9 @@ function renderTiles() {
   for (const i in g.props) {
     const el = tileEls[i], pr = g.props[i];
     el.classList.toggle("owned", pr.owner != null);
-    el.querySelector(".own")?.remove();
     const bld = el.querySelector(".bld"); bld.innerHTML = "";
     if (pr.owner != null) {
-      const o = document.createElement("span"); o.className = "own"; o.style.setProperty("--oc", TOKENS[g.players[pr.owner].token].color);
-      el.insertBefore(o, el.querySelector(".pr"));
+      el.style.setProperty("--oc", TOKENS[g.players[pr.owner].token].color);
       bld.innerHTML = pr.level ? `<i class="spr bd bd${pr.level}"></i>` : `<i class="spr bd bdF"></i>`;
       el.querySelector(".pr").textContent = rentOf(g, +i) + "K";
       el.setAttribute("aria-label", `${TILES[i].name}, chủ ${g.players[pr.owner].name}, ${LEVEL_NAMES[pr.level]}, thuê ${K(rentOf(g, +i))}`);
