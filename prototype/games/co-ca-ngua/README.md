@@ -42,7 +42,10 @@ game đọc `sdk.sound.muted`, core thật sẽ cấp giá trị này). Trình d
   lệch hoặc thiếu gói thì nhận nguyên trạng thái máy chủ.
 - Chủ phòng chọn luật + bấm Bắt đầu (≥ 2 người). Rớt mạng: tự nối lại, giữ ghế (token trong `sessionStorage`, mỗi tab một người);
   tải lại trang vẫn vào lại đúng ghế. Người có lượt im lặng 30 s / mất kết nối 8 s / đã rời → máy chủ đi thay.
-- File: `online.js` + `online.css` (màn vào phòng, kết nối), `game.js` (`ctx.online`, `netState`), `hud.js` (tên, chủ phòng, mất kết nối).
-- Bật máy chủ: biến môi trường `COCANGUA_ONLINE=1` (mặc định tắt). Chạy thử trên máy: `node games-server/co-ca-ngua/dev.js` → http://localhost:8767/games/co-ca-ngua/
-- Test: `node --test --test-concurrency=1 games-server/co-ca-ngua/test/*.test.mjs` (máy chủ, 12 test) ·
-  `PORT=8767 node prototype/games/co-ca-ngua/screenshots/online-e2e.mjs <thư mục>` (3 trình duyệt thật, 31 kiểm tra; cần dev.js đang chạy).
+- **Trò chuyện trong phòng**: mọi ghế đã vào phòng nhắn được cho cả phòng (phòng chờ lẫn trong ván). Tin đi qua máy chủ, máy chủ gắn tên người gửi
+  theo ghế (client không tự khai tên được), cắt ký tự điều khiển, tối đa 200 ký tự/tin, mỗi người 4 tin liền rồi ~0,7 tin/giây; chỉ giữ 40 tin gần nhất
+  trong bộ nhớ của phòng (mất khi phòng đóng). Máy rộng ≥ 1360px: cột bên phải bàn; nhỏ hơn: nút **Chat** (có số tin chưa đọc) mở bảng nổi / trượt từ dưới.
+- File: `online.js` + `online.css` (màn vào phòng, kết nối, ô chat), `game.js` (`ctx.online`, `netState`), `hud.js` (tên, chủ phòng, mất kết nối).
+- Máy chủ mặc định **bật** (đã qua review Codex); tắt bằng `COCANGUA_ONLINE=0`. Chạy thử trên máy: `node games-server/co-ca-ngua/dev.js` → http://localhost:8767/games/co-ca-ngua/
+- Test: `node --test --test-concurrency=1 games-server/co-ca-ngua/test/*.test.mjs` (máy chủ, 14 test) ·
+  `PORT=8767 node prototype/games/co-ca-ngua/screenshots/online-e2e.mjs <thư mục>` (3 trình duyệt thật, 50 kiểm tra gồm chat; cần dev.js đang chạy).

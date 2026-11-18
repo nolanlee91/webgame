@@ -22,7 +22,10 @@ const ERR = {
   loading: "Máy chủ đang khởi động, thử lại sau giây lát.",
   server: "Máy chủ gặp lỗi, thử lại.",
   bad: "Yêu cầu không hợp lệ.",
+  long: "Tin nhắn dài quá (tối đa 200 ký tự).",
+  "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
+const SEAT_HEX = ["#e0483d", "#3a7bd5", "#f2b632", "#3fae4a"]; // đỏ, xanh dương, vàng, xanh lá — trùng màu ghế trên bàn (hud.js)
 const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ chưa bật hoặc mạng có vấn đề). Bạn vẫn có thể chơi chung 1 máy.";
 
 function addCss() {
@@ -55,6 +58,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   function showEntry(err = "", code = "") {
     stopNet();
     if (inst) { inst.destroy(); inst = null; }
+    chatOff();
     hideToast();
     const name = localStorage.getItem(NAME_KEY) || "";
     const invite = CODE_RE.test(code);
@@ -106,7 +110,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   }
 
   function startLocal() {
-    stopNet(); saveSeat(null); setRoomParam("");
+    stopNet(); saveSeat(null); setRoomParam(""); chatOff();
     stage.innerHTML = "";
     inst = mount(stage, { ...baseCtx, lobby: true });
     window.__game = inst;
@@ -117,7 +121,80 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     clearTimeout(retryTimer); clearInterval(pingTimer); retryTimer = pingTimer = 0;
     if (ws) { const w = ws; ws = null; w.onclose = w.onmessage = w.onerror = null; try { w.close(1000); } catch {} }
   }
-  function send(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); else toast("Đang nối lại máy chủ…"); }
+  function send(o) { if (ws && ws.readyState === 1) { ws.send(JSON.stringify(o)); return true; } toast("Đang nối lại máy chủ…"); return false; }
+
+  // ---------- Trò chuyện trong phòng (đi qua máy chủ; tên người gửi do máy chủ gắn theo ghế, client không tự khai) ----------
+  // Máy rộng: cột bên phải bàn chơi. Màn hẹp hơn: nút "Chat" (có số tin chưa đọc) mở bảng nổi / trượt từ dưới lên.
+  let chatEl = null, chatBtn = null, chatSeen = 0, chatLast = -1, lastView = null;
+  const wide = () => matchMedia("(min-width: 1360px) and (min-aspect-ratio: 1/1)").matches;
+  const chatVisible = () => !!chatEl && (wide() || document.body.classList.contains("cn-chat-open"));
+  function chatOn() {
+    if (chatEl) return;
+    chatEl = document.createElement("aside");
+    chatEl.className = "cn-table cn-chat"; chatEl.setAttribute("aria-label", "Trò chuyện trong phòng");
+    chatEl.innerHTML = `
+      <div class="px-panel cn-chat-box">
+        <div class="hd"><h2 class="px-h">Trò chuyện</h2><button class="px-btn seg" data-c="close" type="button">Đóng</button></div>
+        <ol class="log" aria-live="polite"></ol>
+        <form class="f" autocomplete="off"><input class="px-input" maxlength="200" placeholder="Nhắn cho cả phòng…" enterkeyhint="send" aria-label="Nội dung tin nhắn"><button class="px-btn primary" type="submit">Gửi</button></form>
+      </div>`;
+    stage.after(chatEl);
+    document.body.classList.add("cn-chat-on");
+    const input = chatEl.querySelector("input");
+    // phím gõ trong ô chat không được lọt xuống phím tắt của bàn cờ (Space = gieo, 1–4 = chọn ngựa…)
+    input.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Escape") setChatOpen(false); });
+    input.addEventListener("keyup", (e) => e.stopPropagation());
+    chatEl.querySelector('[data-c="close"]').onclick = () => setChatOpen(false);
+    chatEl.querySelector("form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = input.value.trim(); if (!text) return;
+      if (send({ t: "chat", text })) input.value = "";
+    });
+    addChatBtn();
+  }
+  function addChatBtn() {
+    const tools = stage.querySelector(".cn-tools");
+    if (!tools || (chatBtn && chatBtn.isConnected)) return;
+    chatBtn = document.createElement("button");
+    chatBtn.type = "button"; chatBtn.className = "px-btn cn-chat-btn"; chatBtn.setAttribute("aria-label", "Trò chuyện");
+    chatBtn.innerHTML = 'Chat<span class="n" hidden></span>';
+    chatBtn.onclick = () => setChatOpen(!document.body.classList.contains("cn-chat-open"));
+    tools.prepend(chatBtn);
+  }
+  function chatOff() {
+    if (chatEl) chatEl.remove();
+    chatEl = null; chatBtn = null; chatSeen = 0; chatLast = -1; lastView = null;
+    document.body.classList.remove("cn-chat-on", "cn-chat-open");
+  }
+  function setChatOpen(on) {
+    if (!chatEl) return;
+    document.body.classList.toggle("cn-chat-open", on);
+    if (on) { hideToast(); if (lastView) renderChat(lastView); const log = chatEl.querySelector(".log"); log.scrollTop = log.scrollHeight; chatEl.querySelector("input").focus({ preventScroll: true }); }
+    else if (chatBtn) chatBtn.focus({ preventScroll: true });
+  }
+  function renderChat(v) {
+    chatOn(); addChatBtn(); lastView = v;
+    const log = chatEl.querySelector(".log"), list = v.chat || [], top = list.length ? list[list.length - 1].id : 0;
+    if (top !== chatLast) {
+      const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40, isNew = chatLast >= 0 && top > chatLast;
+      chatLast = top;
+      log.replaceChildren(...(list.length ? list.map((c) => {
+        const li = document.createElement("li"), b = document.createElement("b");
+        const k = v.players.findIndex((p) => p.name === c.name), seatIx = k < 0 ? -1 : v.players[k].seat >= 0 ? v.players[k].seat : k;
+        if (c.mine) li.className = "mine";
+        if (seatIx >= 0) li.style.setProperty("--who", SEAT_HEX[seatIx % 4]);
+        b.textContent = c.mine ? "Bạn" : c.name; li.append(b, document.createTextNode(c.text));
+        return li;
+      }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
+      if (atEnd || list.at(-1)?.mine) log.scrollTop = log.scrollHeight;
+      const last = list.at(-1);
+      if (isNew && last && !last.mine && !chatVisible()) toast(last.name + ": " + last.text, 3500);
+    }
+    if (chatVisible()) chatSeen = top;
+    const unread = list.filter((c) => c.id > chatSeen && !c.mine).length, n = chatBtn && chatBtn.querySelector(".n");
+    if (n) { n.hidden = !unread; n.textContent = unread > 9 ? "9+" : String(unread); }
+  }
+  addEventListener("resize", () => { if (lastView) renderChat(lastView); });
 
   function connect() {
     stopNet();
@@ -150,7 +227,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       if (!inst) { stage.innerHTML = ""; inst = mount(stage, { ...baseCtx, lobby: true, online: { send, leave } }); window.__game = inst; }
       return;
     }
-    if (m.t === "state") { if (inst) { m.v.skew = m.now - Date.now(); inst.netState(m.v); } return; }
+    if (m.t === "state") { if (inst) { m.v.skew = m.now - Date.now(); inst.netState(m.v); renderChat(m.v); } return; }
     if (m.t === "pong") return;
     if (m.t === "left") { saveSeat(null); setRoomParam(""); showEntry(); return; }
     if (m.t === "replaced") { saveSeat(null); showEntry("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
@@ -176,6 +253,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   window.__net = {
     get ws() { return ws; }, get seat() { return seat; }, get joined() { return joinedOnce; },
     send, leave, drop() { if (ws) ws.close(); }, // drop: test giả lập rớt mạng
+    openChat: setChatOpen,
   };
 
   // ---------- Khởi động ----------

@@ -279,7 +279,7 @@ test('giới hạn theo IP: một máy không mở quá 3 phòng', async () => {
   } finally { await S.stop(); }
 });
 
-test('server.js chỉ gắn Cờ Cá Ngựa khi COCANGUA_ONLINE=1', async () => {
+test('server.js gắn Cờ Cá Ngựa mặc định (không cần biến môi trường), tắt bằng COCANGUA_ONLINE=0', async () => {
   const { execFileSync } = await import('node:child_process');
   const probe = (env) => execFileSync(process.execPath, ['-e', `
     const s=require('./server.js'); s.listen(0,'127.0.0.1',async()=>{const p=s.address().port;
@@ -288,7 +288,8 @@ test('server.js chỉ gắn Cờ Cá Ngựa khi COCANGUA_ONLINE=1', async () => 
       ws.onopen=()=>{clearTimeout(t);console.log('on');process.exit(0)}; ws.onerror=()=>{clearTimeout(t);console.log('off');process.exit(0)};});`],
     { cwd: new URL('../../../', import.meta.url), env: { ...process.env, MASOI_ONLINE: '0', NOITU_ONLINE: '0', ...env }, encoding: 'utf8' }).trim().split('\n').pop();
   assert.equal(probe({ COCANGUA_ONLINE: '1' }), 'on');
-  assert.equal(probe({ COCANGUA_ONLINE: '' }), 'off');
+  assert.equal(probe({ COCANGUA_ONLINE: '' }), 'on');
+  assert.equal(probe({ COCANGUA_ONLINE: '0' }), 'off');
 });
 
 test('người không có lượt ngắt/nối liên tục không kéo dài được hạn của lượt người khác (đồng hồ giả)', () => {
@@ -312,4 +313,27 @@ test('người không có lượt ngắt/nối liên tục không kéo dài đư
     r.setConnected(turn, true); assert.equal(r.deadline, base);
   }
   r.close();
+});
+
+const st = (f) => (m) => m.t === 'state' && f(m.v);
+test('chat: đi qua máy chủ rồi phát cho mọi ghế; tên người gửi do máy chủ gắn (không giả danh được); làm sạch; giới hạn độ dài + số tin; người đã rời ván không chat được', async () => {
+  const S = await startServer();
+  try {
+    const cs = await table(S.url, 3);
+    cs[1].send({ t: 'chat', text: 'Xin​ chào\n\nmọi người', name: 'Chủ phòng', from: 0 });
+    for (const c of cs) await c.next(st((v) => v.chat?.length === 1));
+    for (const [k, c] of cs.entries()) { assert.equal(c.v.chat[0].name, 'Người 1'); assert.equal(c.v.chat[0].text, 'Xin chào mọi người'); assert.equal(c.v.chat[0].mine, k === 1); }
+    for (const raw of cs.flatMap((c) => c.raw).filter((t) => !t.startsWith('{"t":"joined"'))) for (const c of cs) assert.ok(!raw.includes(c.token));
+    assert.equal(await cs[2].tryCmd({ t: 'chat', text: '' }), 'bad');
+    assert.equal(await cs[2].tryCmd({ t: 'chat', text: 'a'.repeat(201) }), 'long');
+    const errs = [];
+    for (let k = 0; k < 6; k++) errs.push(await cs[2].tryCmd({ t: 'chat', text: 'spam ' + k }, 20));
+    assert.deepEqual(errs.slice(0, 4), [null, null, null, null]); assert.equal(errs[4], 'chat-slow');
+    assert.equal(await cs[0].tryCmd({ t: 'chat', text: 'chủ phòng vẫn chat được' }), null); // giới hạn tính riêng từng người
+    // vào ván rồi rời hẳn → kết nối cũ không còn ghế để chat
+    cs[0].send({ t: 'start' }); for (const c of cs) await c.next(st((v) => v.phase === 'play'));
+    cs[2].send({ t: 'leave' }); await cs[2].next((m) => m.t === 'left');
+    assert.equal(await cs[2].tryCmd({ t: 'chat', text: 'tôi đã rời' }), 'no-room');
+    assert.ok(!cs[0].v.chat.some((c) => c.text === 'tôi đã rời'));
+  } finally { await S.stop(); }
 });

@@ -56,6 +56,13 @@ function serveFile(file, req, res, st) {
   fs.stat(file, (err, s) => (err || !s.isFile() ? send(res, 404, "Not Found") : go(s)));
 }
 
+// Chốt an toàn WebSocket: kết nối tới đường không có game nào nhận (vd game online đang tắt) trước đây bị bỏ treo không có
+// handler lỗi — trình duyệt ngắt đột ngột (ECONNRESET) là sập CẢ server. Giờ: nuốt lỗi socket + trả 404 cho đường lạ.
+server.on("upgrade", (req, sock) => {
+  sock.on("error", () => {});
+  setImmediate(() => { if (!sock.destroyed && !sock.writableEnded && sock.bytesWritten === 0 && sock.writableLength === 0) sock.end("HTTP/1.1 404 Not Found\r\n\r\n"); });
+});
+
 // Máy chủ game online (WebSocket). Mặc định BẬT — không cần đặt biến môi trường nào trên Railway.
 // Muốn tắt riêng một game: đặt MASOI_ONLINE=0 hoặc NOITU_ONLINE=0.
 const on = (v, def) => (v === "0" ? false : v === "1" ? true : def);
@@ -72,8 +79,9 @@ if (on(process.env.NOITU_ONLINE, true)) {
   console.log("Nối Từ online: đường /ws/noi-tu");
 }
 
-// Cờ Cá Ngựa online (phòng 2–4 người qua WebSocket, máy chủ gieo xúc xắc + xác thực lượt) — CHỈ bật khi COCANGUA_ONLINE=1.
-if (process.env.COCANGUA_ONLINE === "1") {
+// Cờ Cá Ngựa online (phòng 2–4 người qua WebSocket, máy chủ gieo xúc xắc + xác thực lượt) — mặc định BẬT (đã qua review độc lập
+// của Codex); tắt bằng COCANGUA_ONLINE=0.
+if (on(process.env.COCANGUA_ONLINE, true)) {
   require("./games-server/co-ca-ngua/host").createCoCaNguaHost(server);
   console.log("Cờ Cá Ngựa online: đường /ws/co-ca-ngua");
 }

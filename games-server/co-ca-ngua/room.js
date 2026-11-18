@@ -3,6 +3,7 @@
 // Client chỉ gửi Ý ĐỊNH ("gieo", "đi ngựa số h"); máy chủ kiểm tra đúng người / đúng pha / nước hợp lệ,
 // tự gieo xúc xắc bằng crypto (không dùng RNG có seed của logic.js để không ai đoán trước được mặt xúc xắc).
 "use strict";
+const { Chat } = require("./chat");
 
 const MAX_PLAYERS = 4;
 const DEFAULT_TIMINGS = {
@@ -35,6 +36,7 @@ class Room {
     this.deadline = 0;
     this.timer = null;
     this.closed = false;
+    this.chat = new Chat(clock); // trò chuyện của phòng — sống cùng phòng
   }
 
   get hostSeat() { return this.players.findIndex((p) => !p.left); }
@@ -50,6 +52,7 @@ class Room {
 
   leave(i) {
     const p = this.players[i]; if (!p) return;
+    this.chat.forget(p.token);
     if (this.phase === "lobby") this.players.splice(i, 1);
     else { p.left = true; p.connected = false; p.token = null; }
     if (!this.players.some((x) => !x.left)) return this.close();
@@ -92,6 +95,11 @@ class Room {
         if (m.t === "roll") return this.doRoll() ? { ok: true } : { err: "phase" };
         if (!Number.isInteger(m.horse)) return { err: "bad" };
         return this.doMove(m.horse) ? { ok: true } : { err: "illegal" };
+      }
+      case "chat": { // người gửi = ghế i do máy chủ biết từ kết nối; client chỉ gửi nội dung
+        const r = this.chat.post(p, m.text);
+        if (r.ok) this.changed();
+        return r;
       }
       default: return { err: "bad" };
     }
@@ -169,6 +177,7 @@ class Room {
       code: this.code, phase: this.phase, rule: this.rule, you: i, host: this.hostSeat,
       gid: this.gid, seq: this.seq, act: this.lastAct, deadline: this.deadline,
       players: this.players.map((p, k) => ({ name: p.name, connected: p.connected, left: p.left, seat: g ? g.seats[k] : -1 })),
+      chat: this.chat.view(this.players[i]?.token),
       game: g && {
         players: g.players, seats: g.seats, rules: g.rules, turn: g.turn, phase: g.phase, dice: g.dice,
         moves: g.moves, horses: g.horses, winner: g.winner, rolls: g.rolls,

@@ -53,13 +53,17 @@ async function newPage(name, w, h, mobile) {
     async type(sel, text) { await ev(`document.querySelector(${JSON.stringify(sel)}).focus()`); await ev(`document.querySelector(${JSON.stringify(sel)}).select()`); await P.send('Input.insertText', { text }); },
     async key(code, k, vk) { for (const type of ['keyDown', 'keyUp']) await P.send('Input.dispatchKeyEvent', { type, code, key: k, windowsVirtualKeyCode: vk, text: type === 'keyDown' ? k : undefined }); },
     S: () => ev(`(()=>{const G=window.__game;if(!G||!G.room)return null;const g=G.state;return {lobby:G.lobby,phase:g.phase,turn:g.turn,seat:g.seats[g.turn],me:G.mySeat,horses:JSON.stringify(g.horses),moves:g.moves.map(m=>m.horse),seq:G.netSeq,inbox:G.inbox,busy:G.busy,desyncs:G.desyncs,players:G.room.players.length,code:G.room.code,rphase:G.room.phase,winner:g.winner}})()`),
+    chatOpen: () => ev(`(()=>{const c=document.querySelector('.cn-chat');return !!c&&getComputedStyle(c).display!=='none'&&c.getBoundingClientRect().height>100})()`),
+    chatLog: () => ev(`[...document.querySelectorAll('.cn-chat .log li:not(.empty)')].map(li=>li.querySelector('b').textContent+': '+li.lastChild.textContent)`),
+    badge: () => ev(`(()=>{const n=document.querySelector('.cn-chat-btn .n');return n&&!n.hidden?n.textContent:''})()`),
+    async say(text) { await pg.type('.cn-chat input', text); await pg.press('.cn-chat .f button'); },
     toast: () => ev(`(()=>{const t=document.querySelector('.cn-toast');return t&&!t.hidden?t.textContent:''})()`),
   };
   return pg;
 }
 async function until(fn, ms = 6000, step = 60) { const end = Date.now() + ms; while (Date.now() < end) { try { const v = await fn(); if (v) return v; } catch {} await sleep(step); } return null; }
 
-const A = await newPage('A', 1280, 900, false);
+const A = await newPage('A', 1440, 900, false); // máy rộng: ô chat là cột bên phải bàn
 const Bm = await newPage('B', 390, 844, true);
 const C = await newPage('C', 1280, 900, false);
 
@@ -96,6 +100,40 @@ await Bm.ev(`__net.send({t:'start'})`);
 check('máy chủ từ chối người không phải chủ bắt đầu ván', (await until(() => Bm.toast(), 2000)) .includes('chủ phòng'));
 await A.press('[data-rule="16"]');
 check('chủ phòng đổi luật "Gieo 1 hoặc 6" → mọi máy thấy', !!(await until(async () => (await C.ev(`document.querySelector('[data-rule="16"]').getAttribute('aria-pressed')`)) === 'true')));
+
+// ---------- Trò chuyện trong phòng (qua máy chủ) ----------
+check('máy rộng 1440px: ô chat là cột bên cạnh bàn, không cần nút Chat', await A.chatOpen() && !(await A.ev(`!!document.querySelector('.cn-chat-btn')?.offsetParent`)));
+check('máy 1280px + điện thoại: ô chat ẩn, có nút Chat trên thanh công cụ', !(await C.chatOpen()) && !(await Bm.chatOpen()) && await C.ev(`!!document.querySelector('.cn-chat-btn').offsetParent`) && await Bm.ev(`!!document.querySelector('.cn-chat-btn').offsetParent`));
+await A.say('Chào cả nhà!');
+const gotB = await until(async () => (await Bm.badge()) === '1' && (await C.badge()) === '1');
+check('A nhắn → B, C nhận (số tin chưa đọc = 1)', !!gotB);
+check('người nhận đang đóng chat → hiện thông báo nổi "tên: nội dung"', (await Bm.toast()).includes('An Ngựa Ô: Chào cả nhà!'), await Bm.toast());
+check('A thấy tin của mình là "Bạn", C thấy tên A do máy chủ gắn', (await A.chatLog()).at(-1) === 'Bạn: Chào cả nhà!' && (await C.chatLog()).at(-1) === 'An Ngựa Ô: Chào cả nhà!');
+check('ô nhập đã xoá sau khi gửi', (await A.ev(`document.querySelector('.cn-chat input').value`)) === '');
+await C.ev(`__net.send({t:'chat',text:'Mình là Bình nè',name:'Bình',from:1,seat:1})`);
+await until(async () => (await A.chatLog()).length === 2);
+check('mạo danh (gửi kèm name/from khác) → máy chủ vẫn gắn đúng tên người gửi', (await A.chatLog()).at(-1) === 'Chi: Mình là Bình nè', (await A.chatLog()).at(-1));
+await C.press('.cn-chat-btn'); await sleep(150);
+check('máy 1280px bấm Chat → bảng chat nổi bên phải mở ra', await C.chatOpen() && (await C.badge()) === '');
+await C.say('<b>đậm</b> <img src=x onerror=alert(1)>');
+await sleep(300); await C.shot('online-chat-desktop.png'); await C.press('.cn-chat .hd .px-btn');
+await until(async () => (await A.chatLog()).length === 3);
+check('nội dung có thẻ HTML hiện đúng chữ, không thành thẻ', await A.ev(`(()=>{const li=[...document.querySelectorAll('.cn-chat .log li')].at(-1);return li.querySelectorAll('*').length===1&&li.textContent.includes('<img')})()`));
+await Bm.press('.cn-chat-btn');
+check('điện thoại bấm Chat → mở bảng, hết số chưa đọc, thấy đủ 3 tin', await Bm.chatOpen() && (await Bm.badge()) === '' && (await Bm.chatLog()).length === 3);
+await Bm.ev(`__net.send({t:'chat',text:'x'.repeat(201)})`);
+check('tin dài hơn 200 ký tự → máy chủ từ chối, báo rõ', (await until(() => Bm.ev(`document.querySelector('.cn-toast')?.textContent||''`), 2000) || '').includes('dài quá'));
+await Bm.say('Ok vô nha 🐎');
+await until(async () => (await A.chatLog()).length === 4);
+check('điện thoại gửi tin → máy rộng nhận, A đang mở chat nên không tăng số chưa đọc', (await A.chatLog()).at(-1) === 'Bình: Ok vô nha 🐎');
+await Bm.shot('online-chat-mobile.png');
+await Bm.press('.cn-chat .hd .px-btn');
+check('bấm Đóng → bảng chat đóng', !(await Bm.chatOpen()));
+for (let i = 0; i < 6; i++) await C.ev(`__net.send({t:'chat',text:'spam ${i}'})`);
+check('nhắn dồn dập (6 tin liền) → máy chủ chặn bớt, báo "nhanh quá"', (await until(() => C.toast(), 2000) || '').includes('nhanh quá'));
+await sleep(400);
+const nSpam = (await A.chatLog()).filter((t) => t.startsWith('Chi: spam')).length;
+check('chỉ vài tin đầu qua được (giới hạn mỗi người)', nSpam >= 2 && nSpam <= 4, String(nSpam));
 await A.shot('online-phong-cho-desktop.png'); await Bm.shot('online-phong-cho-mobile.png');
 
 // ---------- Bắt đầu ----------
@@ -105,6 +143,12 @@ let st = await Promise.all([A.S(), Bm.S(), C.S()]);
 check('chủ bấm Bắt đầu → cả 3 máy vào bàn 3 màu, cùng trạng thái', st.every((x) => !x.lobby && x.horses === st[0].horses && x.turn === st[0].turn), st.map((x) => x.me).join(','));
 check('mỗi máy một màu riêng (ghế 0,1,2)', JSON.stringify(st.map((x) => x.me).sort()) === '[0,1,2]');
 const pages = [A, Bm, C];
+// gõ phím trong ô chat không được lọt xuống phím tắt bàn cờ (Space = gieo, 1–4 = chọn ngựa)
+{ const s0 = await A.S(); await A.ev(`document.querySelector('.cn-chat input').value='';document.querySelector('.cn-chat input').focus()`);
+  await A.key('Space', ' ', 32); await A.key('Digit1', '1', 49); await sleep(400);
+  check('gõ Space/1 trong ô chat → chữ vào ô, ván không bị gieo/đi', (await A.ev(`document.querySelector('.cn-chat input').value`)) === ' 1' && (await A.S()).seq === s0.seq);
+  await A.ev(`document.querySelector('.cn-chat input').value='';document.querySelector('.cn-chat input').blur()`); }
+check('chat vẫn còn khi vào ván', (await C.ev(`document.querySelectorAll('.cn-chat .log li:not(.empty)').length`)) >= 4);
 const turnPage = async () => { const s = await A.S(); return pages[[A, Bm, C].findIndex((_, i) => st[i].me === s.seat)]; };
 // người không có lượt: bấm Space không gửi gì; cố gửi thẳng "roll" → máy chủ từ chối, không ai thay đổi
 const tp = await turnPage(), other = pages.find((p) => p !== tp && !p.mobile) || pages.find((p) => p !== tp);
@@ -151,10 +195,12 @@ check('tự nối lại, giữ đúng ghế, trạng thái khớp máy khác', !
 await C.nav(URL0 + '?room=' + code);
 const cBack = await until(async () => { const [a, c] = await Promise.all([A.S(), C.S()]); return c && !c.lobby && c.horses === a.horses ? c : null; }, 8000);
 check('tải lại trang (F5) → tự vào lại đúng ghế giữa ván', !!cBack && cBack.me === st[2].me);
+check('F5 xong vẫn thấy lịch sử chat của phòng', (await C.chatLog()).includes('An Ngựa Ô: Chào cả nhà!'));
 
 // ---------- Rời ván: máy chủ đi thay ----------
 await C.press('[data-act="leave"]');
 check('bấm Rời phòng (xác nhận) → về màn vào phòng', !!(await until(() => C.ev(`!!document.querySelector('#cnName')`), 3000)));
+check('rời phòng → ô chat + nút Chat biến mất', !(await C.ev(`!!document.querySelector('.cn-chat') || !!document.querySelector('.cn-chat-btn')`)));
 const leftShown = await until(() => A.ev(`[...document.querySelectorAll('.cn-card .sub')].some(e=>e.textContent.includes('Đã rời'))`), 3000);
 check('máy khác thấy "Đã rời · máy đi thay"', !!leftShown);
 const cSeat = st[2].me; let sawC = false;
