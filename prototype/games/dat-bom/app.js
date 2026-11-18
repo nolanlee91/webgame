@@ -415,16 +415,20 @@ function drawFlames(list, t) {
   }
 }
 const DIR_ROW = { d: 0, l: 64, r: 128, u: 192 }, WALK = [0, 64, 128, 64];
+// Nhân vật chỉ chiếm ~27×51 px trong ô 64 px ⇒ trên màn nhỏ (ô hiển thị < 44 px CSS) phóng 1,5 lần, giữ điểm chân [32,60]
+// (chỉ là hình vẽ, va chạm do máy chủ tính theo ô nên không đổi luật). Máy tính giữ nguyên cỡ gốc.
+const playerScale = () => (cv.clientWidth / L.W < 44 ? 1.5 : 1);
 function drawPlayer(i, x, y, dir, alpha, t, moving) {
-  const X = Math.round(x * T), Y = Math.round(y * T);
+  const X = Math.round(x * T), Y = Math.round(y * T), k = playerScale();
+  const d = Math.round(64 * k), SX = X + 32 - Math.round(32 * k), SY = Y + 60 - Math.round(60 * k); // góc trên-trái sprite đã phóng
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = "rgba(0,0,0,.32)"; ctx.beginPath(); ctx.ellipse(X + 32, Y + 59, 18, 6, 0, 0, Math.PI * 2); ctx.fill();
-  if (imgReady) spr(IMG["p" + i], moving ? WALK[Math.floor(t / 110) % 4] : 64, DIR_ROW[dir] ?? 0, 64, X, Y); // chân ở [32,60]
+  ctx.fillStyle = "rgba(0,0,0,.32)"; ctx.beginPath(); ctx.ellipse(X + 32, Y + 59, 18 * k, 6 * k, 0, 0, Math.PI * 2); ctx.fill();
+  if (imgReady) spr(IMG["p" + i], moving ? WALK[Math.floor(t / 110) % 4] : 64, DIR_ROW[dir] ?? 0, 64, SX, SY, d); // chân ở [32,60]
   else rect(X + 16, Y + 8, 32, 48, COLORS[i]);
-  if (i === you()) { // mũi tên vàng đánh dấu "bạn"
-    const b = Math.floor(t / 300) % 2 * 2;
-    ctx.fillStyle = "#1b1d24"; ctx.beginPath(); ctx.moveTo(X + 22, Y - 10 + b); ctx.lineTo(X + 42, Y - 10 + b); ctx.lineTo(X + 32, Y + 2 + b); ctx.fill();
-    ctx.fillStyle = "#f5d77f"; ctx.beginPath(); ctx.moveTo(X + 25, Y - 8 + b); ctx.lineTo(X + 39, Y - 8 + b); ctx.lineTo(X + 32, Y - 1 + b); ctx.fill();
+  if (i === you()) { // mũi tên vàng đánh dấu "bạn", nằm trên đầu nhân vật
+    const b = Math.floor(t / 300) % 2 * 2, A = SY + Math.round(9 * k) - 9, w = k;
+    ctx.fillStyle = "#1b1d24"; ctx.beginPath(); ctx.moveTo(X + 32 - 10 * w, A - 10 + b); ctx.lineTo(X + 32 + 10 * w, A - 10 + b); ctx.lineTo(X + 32, A + 2 + b); ctx.fill();
+    ctx.fillStyle = "#f5d77f"; ctx.beginPath(); ctx.moveTo(X + 32 - 7 * w, A - 8 + b); ctx.lineTo(X + 32 + 7 * w, A - 8 + b); ctx.lineTo(X + 32, A - 1 + b); ctx.fill();
   }
   ctx.globalAlpha = 1;
 }
