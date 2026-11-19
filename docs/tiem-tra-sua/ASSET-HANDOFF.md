@@ -77,3 +77,15 @@ Tên frame, clip, thứ tự, FPS và quy tắc loop giữ theo sheet nguồn. T
 ```
 
 Test lõi: 126/126 đạt.
+
+## Âm thanh Tiệm Trà Sữa
+
+Bộ dựng tổng hợp nguyên bản trong assets/audio gồm 29 hiệu ứng và 4 vòng lặp MP3. Hiệu ứng bao phủ thao tác pha, đơn và thanh toán, bếp, nâng cấp, chốt ca, review và drama. Ba phản ứng nhân vật là âm giọng không lời. Phần thoại tiếng Việt hiển thị bằng văn bản.
+
+- evening-prep: nhạc chuẩn bị và chốt ca, khoảng 51 giây.
+- counter-rhythm: nhạc khi mở quán, khoảng 41 giây.
+- shop-loop: quạt, phố xa và tiếng ly, khoảng 31 giây.
+- boil-loop: nồi sôi khi bếp có mẻ đang nấu, khoảng 8 giây.
+
+Âm thanh bắt đầu sau thao tác người chơi. Khi có hội thoại trong ca, nhạc và âm quán hạ âm lượng. Nút Tiếng và khoá chung wgp.muted điều khiển cả bộ. Khi ẩn tab hoặc tạm dừng, âm nền dừng.
+Kiểm ảnh sau tích hợp: `0 lỗi, 2 cảnh báo — ĐẠT, giao được.` Hai cảnh báo đã có ở bản nền và thuộc sheet tùy chọn drama-portraits-hd.webp, weather-fx.webp.

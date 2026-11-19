@@ -1,15 +1,15 @@
 // Quầy pha: phiếu đang ghim, ly lớn đổi hình theo từng bước, dải 7 bước, lựa chọn nguyên liệu (hình từ atlas + chữ + tồn kho), hành động.
 // Chỉ gửi action qua dispatch() — không tự đổi trạng thái.
-import { icon, crisp } from "../render/atlas.js?v=m36";
-import { createCupView } from "../render/cup.js?v=m36";
-import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js?v=m36";
-import { cupNotes } from "../core/cupview.js?v=m36";
-import { hasStock } from "../core/economy.js?v=m36";
-import { cupSpec } from "../core/score.js?v=m36";
-import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m36";
-import { kitchenSlots, owns } from "../core/equipment.js?v=m36";
+import { icon, crisp } from "../render/atlas.js?v=m36audio";
+import { createCupView } from "../render/cup.js?v=m36audio";
+import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js?v=m36audio";
+import { RECIPE } from "../data/recipes.js?v=m36audio";
+import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js?v=m36audio";
+import { cupNotes } from "../core/cupview.js?v=m36audio";
+import { hasStock } from "../core/economy.js?v=m36audio";
+import { cupSpec } from "../core/score.js?v=m36audio";
+import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m36audio";
+import { kitchenSlots, owns } from "../core/equipment.js?v=m36audio";
 
 const CROP = { cupui: [8, 52, 144, 132] };
 export const ingIcon = (atlas, ref, px) => icon(atlas, ref, px, "ico", ref && CROP[ref[0]] && !/cup|tea-|milk-high|served|dome/.test(ref[1]) ? CROP[ref[0]] : null);

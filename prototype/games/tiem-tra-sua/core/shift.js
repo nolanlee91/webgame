@@ -3,28 +3,28 @@
 // Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
 // Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
 // c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
-import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
+import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m36audio";
+import { RECIPE } from "../data/recipes.js?v=m36audio";
+import { ARCHETYPES } from "../data/customers.js?v=m36audio";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
   TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
-} from "../data/shift.js?v=m36";
-import * as L from "../data/lines.js?v=m36";
-import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m36";
-import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m36";
-import { next, int, pick, weighted } from "./rng.js?v=m36";
-import { fill, pickLine } from "./text.js?v=m36";
-import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m36";
-import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m36";
-import { scoreServe, starsFor } from "./score.js?v=m36";
-import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m36";
-import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m36";
-import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m36";
-import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m36";
-import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m36";
-import { promoGuests, consignRepay } from "./business.js?v=m36";
-import { caption } from "./journal.js?v=m36";
+} from "../data/shift.js?v=m36audio";
+import * as L from "../data/lines.js?v=m36audio";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m36audio";
+import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m36audio";
+import { next, int, pick, weighted } from "./rng.js?v=m36audio";
+import { fill, pickLine } from "./text.js?v=m36audio";
+import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m36audio";
+import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m36audio";
+import { scoreServe, starsFor } from "./score.js?v=m36audio";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m36audio";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m36audio";
+import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m36audio";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m36audio";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m36audio";
+import { promoGuests, consignRepay } from "./business.js?v=m36audio";
+import { caption } from "./journal.js?v=m36audio";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");

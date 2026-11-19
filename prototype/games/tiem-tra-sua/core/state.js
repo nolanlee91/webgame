@@ -5,19 +5,19 @@
 // nhiệm vụ ngày, vị trí trang trí, quảng bá, gói ký gửi.
 // v3: tính cách chủ tiệm (owner), câu trả lời review lưu nguyên văn + hậu quả + câu đáp lại (feed[].reply là object),
 // khách quay lại nhờ câu trả lời (returning), bộ nhớ chống lặp câu giữa hai ca (usedDay).
-import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
-import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m36";
-import { levelForXp } from "./progression.js?v=m36";
-import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m36";
-import { capacityFor, stationCount } from "./equipment.js?v=m36";
-import { EVENT } from "../data/events.js?v=m36";
-import { MISSION } from "../data/missions.js?v=m36";
-import { PROMOS } from "./business.js?v=m36";
-import { placeError } from "./decor.js?v=m36";
-import { freshDrama } from "./drama.js?v=m36";
-import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m36";
+import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m36audio";
+import { RECIPE } from "../data/recipes.js?v=m36audio";
+import { ARCHETYPES } from "../data/customers.js?v=m36audio";
+import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m36audio";
+import { levelForXp } from "./progression.js?v=m36audio";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m36audio";
+import { capacityFor, stationCount } from "./equipment.js?v=m36audio";
+import { EVENT } from "../data/events.js?v=m36audio";
+import { MISSION } from "../data/missions.js?v=m36audio";
+import { PROMOS } from "./business.js?v=m36audio";
+import { placeError } from "./decor.js?v=m36audio";
+import { freshDrama } from "./drama.js?v=m36audio";
+import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m36audio";
 
 export const SAVE_VERSION = 3;
 

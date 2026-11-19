@@ -1,8 +1,8 @@
 // Chấm ly giao (GAME-DESIGN "Review"): 60 đúng công thức + 25 thời gian + 15 kỳ vọng của khách = điểm thô 0–100 → 1..5 sao.
 // Công thức: món nền (trà 15 + phần thêm 10) 25, đường 10, đá 10, topping 10, ly + nắp 5.
 // Sai món nền (trà hoặc phần thêm khác đơn) hoặc giao nhầm khách ⇒ tối đa 2 sao.
-import { ICE_ORDER, SUGAR_ORDER } from "../data/ingredients.js?v=m36";
-import { STAR_CUTS } from "../data/shift.js?v=m36";
+import { ICE_ORDER, SUGAR_ORDER } from "../data/ingredients.js?v=m36audio";
+import { STAR_CUTS } from "../data/shift.js?v=m36audio";
 
 export function cupSpec(cup) {
   const spec = {};

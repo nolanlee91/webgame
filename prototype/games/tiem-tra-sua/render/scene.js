@@ -1,12 +1,12 @@
 // Cảnh tiệm 1280×720 (toạ độ logic của shop-scene.webp). DOM sprite theo atlas, render lại mỗi khung từ trạng thái (thuần hiển thị).
 // Lớp: nền quán → máy trên quầy sau → nhân viên → lớp che quầy (shop-counter-foreground) → đồ trên mặt quầy + ly đang pha → khách (theo y)
 // → bong bóng thoại / thanh kiên nhẫn (lớp UI không phóng to theo cảnh, chữ luôn đọc được).
-import { paint, placeAt, setSnap } from "./atlas.js?v=m36"; // tag: tránh trình duyệt ghép scene mới với atlas cũ trong bộ nhớ đệm
-import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js?v=m36";
-import { patienceLeft } from "../core/shift.js?v=m36";
-import { cupLayers } from "../core/cupview.js?v=m36";
-import { EQUIPMENT, PLACE_ZONES } from "../data/equipment.js?v=m36";
-import { placeOf, placeError } from "../core/decor.js?v=m36";
+import { paint, placeAt, setSnap } from "./atlas.js?v=m36audio"; // tag: tránh trình duyệt ghép scene mới với atlas cũ trong bộ nhớ đệm
+import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js?v=m36audio";
+import { patienceLeft } from "../core/shift.js?v=m36audio";
+import { cupLayers } from "../core/cupview.js?v=m36audio";
+import { EQUIPMENT, PLACE_ZONES } from "../data/equipment.js?v=m36audio";
+import { placeOf, placeError } from "../core/decor.js?v=m36audio";
 
 const W = 1280, H = 720;
 const BUBBLE_MS = 4200;

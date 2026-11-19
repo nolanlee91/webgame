@@ -1,6 +1,6 @@
 // Thiết bị và trang trí: mua khi tiệm đóng cửa, hiệu ứng đọc qua các hàm nhỏ dưới đây (shift.js / economy.js dùng).
-import { EQUIPMENT, APPEAL_CAP, APPEAL_CAP_FULL } from "../data/equipment.js?v=m36";
-import { START_CAPACITY } from "../data/ingredients.js?v=m36";
+import { EQUIPMENT, APPEAL_CAP, APPEAL_CAP_FULL } from "../data/equipment.js?v=m36audio";
+import { START_CAPACITY } from "../data/ingredients.js?v=m36audio";
 
 export const SEAL_BONUS_MS = 1500;
 export const owns = (s, id) => !!s.owned?.[id];

@@ -1,21 +1,21 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon, dpr } from "../render/atlas.js?v=m36";
-import { ingIcon, headIcon } from "./brew.js?v=m36";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m36";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
-import { COMPLAINT } from "../data/lines.js?v=m36";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m36";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m36";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m36";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m36";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m36";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m36";
-import { fill } from "../core/text.js?v=m36";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m36";
-import { appeal } from "../core/equipment.js?v=m36";
-import { portrait as portraitOf } from "./panels.js?v=m36";
-import { personaCards, PERSONAS } from "./persona.js?v=m36";
+import { icon, dpr } from "../render/atlas.js?v=m36audio";
+import { ingIcon, headIcon } from "./brew.js?v=m36audio";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m36audio";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m36audio";
+import { ARCHETYPES } from "../data/customers.js?v=m36audio";
+import { COMPLAINT } from "../data/lines.js?v=m36audio";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m36audio";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m36audio";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m36audio";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m36audio";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m36audio";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m36audio";
+import { fill } from "../core/text.js?v=m36audio";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m36audio";
+import { appeal } from "../core/equipment.js?v=m36audio";
+import { portrait as portraitOf } from "./panels.js?v=m36audio";
+import { personaCards, PERSONAS } from "./persona.js?v=m36audio";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;

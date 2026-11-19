@@ -1,7 +1,7 @@
 // Vẽ thẻ Nhật Ký Làm Chủ 1080×1350 lên journal-card.png (canvas cùng nguồn ⇒ xuất PNG được). Nội dung từ core/journal.js.
 // Khung đầu (70..1010 × 60..175): "Lụm Kèo · Nhật Ký Làm Chủ", tên tiệm và ngày. Vùng kem dưới (40..1040 × 885..1320): câu meme,
 // câu trích, ba số, lumkeo.com. Chữ dài tự xuống dòng và thu cỡ.
-import { journalCard } from "../core/journal.js?v=m36";
+import { journalCard } from "../core/journal.js?v=m36audio";
 
 export const CARD_W = 1080, CARD_H = 1350;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';

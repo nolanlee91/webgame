@@ -1,18 +1,18 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m36";
-import { createScene } from "./render/scene.js?v=m36";
-import { createBrew } from "./ui/brew.js?v=m36";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m36";
-import { createPanels } from "./ui/panels.js?v=m36";
-import { apply } from "./core/apply.js?v=m36";
-import { customer } from "./core/shift.js?v=m36";
-import { currentEvent, openEvent } from "./core/drama.js?v=m36";
-import { PLACE_REASON } from "./core/decor.js?v=m36";
-import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m36";
-import { EQUIPMENT } from "./data/equipment.js?v=m36";
-import { shopSave, browserStorage } from "./save.js?v=m36";
-import { play, isMuted, setMuted } from "./ui/sfx.js?v=m36";
+import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m36audio";
+import { createScene } from "./render/scene.js?v=m36audio";
+import { createBrew } from "./ui/brew.js?v=m36audio";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m36audio";
+import { createPanels } from "./ui/panels.js?v=m36audio";
+import { apply } from "./core/apply.js?v=m36audio";
+import { customer } from "./core/shift.js?v=m36audio";
+import { currentEvent, openEvent } from "./core/drama.js?v=m36audio";
+import { PLACE_REASON } from "./core/decor.js?v=m36audio";
+import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m36audio";
+import { EQUIPMENT } from "./data/equipment.js?v=m36audio";
+import { shopSave, browserStorage } from "./save.js?v=m36audio";
+import { play, isMuted, setMuted, unlockSound, setSoundScene, syncSound, MUTE_KEY } from "./ui/sfx.js?v=m36audio";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -96,6 +96,14 @@ async function boot() {
     "supplier-closed": () => "Vựa sỉ chỉ giao trước ca. Giữa ca nhập gấp ở Dì Ba.",
   };
 
+  const brewSounds = { cup: "cup", base: "tea-pour", add: "topping", sugar: "syrup", ice: "ice", topping: "topping", lid: "seal" };
+  function brewSound(step, id) {
+    if (id === "none" || id === "khong" || id === 0) return "paper";
+    if (step === "base" && id === "sua-tuoi" || step === "add" && (id === "sua" || id === "kem-sua")) return "milk-pour";
+    if (step === "add" && id === "duong-den") return "syrup";
+    return brewSounds[step];
+  }
+
   function act(a, fromLoop = false) {
     const r = apply(state, a);
     if (r.err) {
@@ -107,14 +115,19 @@ async function boot() {
       switch (e.type) {
         case "brewed":
           justDid = e.step;
-          play(e.step === "ice" ? "ice" : e.step === "topping" ? "plop" : e.step === "lid" ? "seal" : e.step === "cup" ? "plop" : "pour");
+          play(brewSound(e.step, e.id));
           if (e.also?.length && e.step === "cup") say(e.line || `Pha đồng loạt: ${e.also.length + 1} ly cùng yêu cầu.`, "good");
           break;
-        case "arrive": play("bell"); break;
-        case "pinned": play("plop"); break;
-        case "filled": play("plop"); say(`Đã ghép ly ${e.n}/${e.of} vào đơn. Pha tiếp ly kế!`, "good"); break;
+        case "arrive": play("arrival"); break;
+        case "pinned": case "selected": case "undone": play("paper"); break;
+        case "discarded": play("discard"); break;
+        case "impatient": play("voice-sorry"); break;
+        case "filled": play("handoff"); say(`Đã ghép ly ${e.n}/${e.of} vào đơn. Pha tiếp ly kế!`, "good"); break;
         case "served": {
-          play("coin");
+          play("handoff");
+          if (e.price > 0) play("coin", .14);
+          if (e.stars >= 4) play("voice-happy", .31);
+          else if (e.stars <= 2) play("voice-sorry", .19);
           const p = scene.posOf(state, e.cid);
           if (p) scene.burst("bfx", "coin", p[0], p[1] - 190, 1, reduced());
           scene.burst("bfx", "success", 548, 412, 1, reduced());
@@ -123,25 +136,25 @@ async function boot() {
           say(`+${fmtK(e.price)}${e.cups > 1 ? ` (${e.cups} ly)` : ""} · ${e.stars} sao${e.xp ? ` · +${e.xp} XP` : ""}${e.tip ? ` · thưởng ${e.tip}k` : ""}${e.repay ? ` · trả ký gửi ${e.repay}k` : ""}`, e.stars >= 4 ? "good" : e.stars <= 2 ? "warn" : "");
           break;
         }
-        case "complaint": play("sad"); setTimeout(() => state.shift?.dialog && overlays.complaint(state), reduced() ? 0 : 450); break;
-        case "drama": play("bell"); setTimeout(() => { if (state.shift?.dialog?.kind === "event" && !overlays.current) panels.event(state, { onDone: () => {} }); }, reduced() ? 0 : 350); break;
-        case "dramaResolved": play(e.rolled === "lose" ? "sad" : "coin"); break;
-        case "missionDone": play("level"); say(`Xong nhiệm vụ: ${e.text} (+${e.xp} XP${e.money ? `, +${e.money}k` : ""})${e.line ? " " + e.line : ""}`, "good"); break;
+        case "complaint": play("complaint"); play("voice-surprise", .22); setTimeout(() => state.shift?.dialog && overlays.complaint(state), reduced() ? 0 : 450); break;
+        case "drama": play("drama"); play("voice-surprise", .20); setTimeout(() => { if (state.shift?.dialog?.kind === "event" && !overlays.current) panels.event(state, { onDone: () => {} }); }, reduced() ? 0 : 350); break;
+        case "dramaResolved": play(e.rolled === "lose" ? "complaint" : "drama-good"); break;
+        case "missionDone": play("mission"); say(`Xong nhiệm vụ: ${e.text} (+${e.xp} XP${e.money ? `, +${e.money}k` : ""})${e.line ? " " + e.line : ""}`, "good"); break;
         case "missionsAll": say(e.line, "good"); break;
         case "consignDone": play("level"); say(e.line, "good"); break;
-        case "timeout": play("sad"); say(`${e.name} bỏ về vì chờ lâu. −1 review 1 sao.`, "warn"); break;
+        case "timeout": play("timeout"); say(`${e.name} bỏ về vì chờ lâu. −1 review 1 sao.`, "warn"); break;
         case "levelUp": { play("level"); const real = e.unlocks.filter((u) => u.kind !== "note"); say(`Lên cấp ${e.level}!${real.length ? " Mở: " + real.map((u) => u.name).join(", ") : ""}`, "good"); break; }
-        case "restocked": say(`Nhập ${e.n} phần ${STOCK[e.id].name} (−${fmtK(e.price)}${e.express ? ", giao gấp" : ""}${e.supplier === "si" ? ", vựa sỉ" : ""})`); break;
-        case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
-        case "cooking": play("plop"); say("Bắt đầu nấu mẻ " + e.size + " phần trân châu."); break;
-        case "batchDone": play("bell"); say("Mẻ trân châu " + e.size + " phần đã chín!", "good"); break;
+        case "restocked": play("stock"); say(`Nhập ${e.n} phần ${STOCK[e.id].name} (−${fmtK(e.price)}${e.express ? ", giao gấp" : ""}${e.supplier === "si" ? ", vựa sỉ" : ""})`); break;
+        case "shiftEnded": play("summary"); setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
+        case "cooking": play("cooking"); say("Bắt đầu nấu mẻ " + e.size + " phần trân châu."); break;
+        case "batchDone": play("ready"); say("Mẻ trân châu " + e.size + " phần đã chín!", "good"); break;
         case "bought": play("level"); scene.setOwned(state); say("Đã mua " + EQUIPMENT[e.id].name + " (−" + fmtK(e.price) + ")", "good"); break;
-        case "placed": play("plop"); break;
+        case "placed": play("decorate"); break;
         case "consigned": play("coin"); say(`${e.line ? e.line + " " : "Dì Ba ký gửi một gói hàng. "}(${fmtK(e.owed)}, bán tới đâu trừ tới đó.)`, "good"); break;
-        case "promoted": play("coin"); say(e.line, "good"); break;
-        case "replied": play(e.outcome === "phot" || e.outcome === "annoyed" ? "sad" : e.outcome === "viral" ? "level" : "plop"); say(`${e.label}: ${e.fx.slice(0, 2).join(" · ")}`, e.outcome === "phot" || e.outcome === "annoyed" ? "warn" : "good"); break;
+        case "promoted": play("viral"); say(e.line, "good"); break;
+        case "replied": play(e.outcome === "phot" || e.outcome === "annoyed" ? "complaint" : e.outcome === "viral" ? "viral" : "paper"); say(`${e.label}: ${e.fx.slice(0, 2).join(" · ")}`, e.outcome === "phot" || e.outcome === "annoyed" ? "warn" : "good"); break;
         case "persona": if (e.switches >= 3) say(`Đổi tính lần thứ ${e.switches} trong ngày. Cư dân mạng bắt đầu để ý…`, "warn"); break;
-        case "shiftStarted": if (params.get("calm") === "1" && state.shift) state.shift.drama.max = 0; say(`Mở cửa ngày ${e.day}! ${e.guests} khách dự kiến.`, "good"); break;
+        case "shiftStarted": play("open"); if (params.get("calm") === "1" && state.shift) state.shift.drama.max = 0; say(`Mở cửa ngày ${e.day}! ${e.guests} khách dự kiến.`, "good"); break;
         default: break;
       }
     }
@@ -158,6 +171,10 @@ async function boot() {
     const dt = Math.min(250, now - last); last = now;
     if (running()) act({ type: "tick", dt }, true);
     if (dirty && performance.now() - lastSave > 2500) save(true);
+    const shift = state.shift;
+    const mode = paused ? "quiet" : shift?.dialog ? "dialog" : running() ? "service" :
+      (!shift && (!overlays.current || ["intro", "persona", "prep", "summary"].includes(overlays.current))) ? "prep" : "quiet";
+    setSoundScene(mode, mode === "service" && !!shift.kitchen?.batches.length);
     scene.update(state, { reduced: reduced() });
     scene.setOwned(state);
     rail(state);
@@ -190,7 +207,17 @@ async function boot() {
     if (atlas.has("icons", ic)) { muteBtn.textContent = ""; muteBtn.appendChild(icon(atlas, ["icons", ic], 24)); muteBtn.setAttribute("aria-label", m ? "Tiếng: tắt" : "Tiếng: bật"); }
     else muteBtn.textContent = m ? "Tiếng: tắt" : "Tiếng: bật";
   };
-  muteBtn.addEventListener("click", () => { setMuted(!isMuted()); syncMute(); });
+  const unlock = () => unlockSound();
+  document.addEventListener("pointerdown", unlock, { passive: true, capture: true });
+  document.addEventListener("keydown", unlock, true);
+  muteBtn.addEventListener("click", () => {
+    setMuted(!isMuted());
+    if (!isMuted()) unlockSound();
+    syncMute();
+  });
+  addEventListener("storage", (event) => {
+    if (event.key === MUTE_KEY || event.key === null) { syncMute(); syncSound(); }
+  });
   syncMute();
   $("#helpBtn").addEventListener("click", () => { if (state.shift) paused = true; overlays.help(); });
   $("#bookBtn").addEventListener("click", () => {
@@ -201,6 +228,7 @@ async function boot() {
   });
   $("#pauseBtn").addEventListener("click", () => { if (!state.shift || overlays.current) return; paused = true; overlays.pause(state, "pause"); });
   document.addEventListener("visibilitychange", () => {
+    syncSound();
     if (document.hidden) { save(true); if (state.shift && !overlays.current) { paused = true; overlays.pause(state, "pause"); } }
   });
   addEventListener("pagehide", () => save(true));

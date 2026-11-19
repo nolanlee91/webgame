@@ -1,11 +1,11 @@
 // Việc của chủ tiệm ngoài quầy: gói ký gửi khi hụt vốn (không bao giờ kẹt), quảng bá địa phương (cấp 14).
-import { STOCK, useOf } from "../data/ingredients.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { costOfUse, hasStock, stockUsed, capacity, packPrice, useOfSpec } from "./economy.js?v=m36";
-import { PEARL_RAW } from "../data/equipment.js?v=m36";
-import { SHIFT_FEE, DRAMA } from "../data/shift.js?v=m36";
-import { CONSIGN_LINES } from "../data/lines-m3.js?v=m36";
-import { pick } from "./rng.js?v=m36";
+import { STOCK, useOf } from "../data/ingredients.js?v=m36audio";
+import { RECIPE } from "../data/recipes.js?v=m36audio";
+import { costOfUse, hasStock, stockUsed, capacity, packPrice, useOfSpec } from "./economy.js?v=m36audio";
+import { PEARL_RAW } from "../data/equipment.js?v=m36audio";
+import { SHIFT_FEE, DRAMA } from "../data/shift.js?v=m36audio";
+import { CONSIGN_LINES } from "../data/lines-m3.js?v=m36audio";
+import { pick } from "./rng.js?v=m36audio";
 
 /** Cờ của game cho Drama Engine (core/drama.js ENGINE_FLAG). until = ngày cuối còn hiệu lực. */
 const flag = (s, f, until) => { if (s.drama) s.drama.flags[f] = until; };

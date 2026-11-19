@@ -1,15 +1,15 @@
 // Nhật Ký Làm Chủ: câu chốt ca kiểu meme (theo dữ kiện ca) và nội dung thẻ chia sẻ 1080×1350 (ui/journal.js vẽ lên journal-card.png).
 // Thuần: test kiểm câu chọn đúng tình huống và nội dung thẻ đủ dòng.
-import { CAPTIONS as BASE_CAPTIONS } from "../data/lines.js?v=m36";
-import { CAPTIONS_M3 } from "../data/lines-m3.js?v=m36";
-import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=m36";
+import { CAPTIONS as BASE_CAPTIONS } from "../data/lines.js?v=m36audio";
+import { CAPTIONS_M3 } from "../data/lines-m3.js?v=m36audio";
+import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=m36audio";
 
 const CAPTIONS = { ...BASE_CAPTIONS, missions: CAPTIONS_M3.missions, multi: [...BASE_CAPTIONS.multi, ...CAPTIONS_M3.multi],
   replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip };
 /** Ca bình thường: chủ tiệm đã chọn tính cách thì một nửa số lần dùng câu theo tính cách. */
 const PLAIN = new Set(["good", "few", "perfect"]);
-import { fill } from "./text.js?v=m36";
-import { int } from "./rng.js?v=m36";
+import { fill } from "./text.js?v=m36audio";
+import { int } from "./rng.js?v=m36audio";
 
 /** Chọn nhóm câu theo dữ kiện ca: lỗ > câu trả lời review lên mạng / dính phốt > đổi tính nhiều lần > khách bỏ về > drama > 0% đường > pha nhầm > xong cả 3 nhiệm vụ > lên mạng > đơn nhóm > hoàn hảo > ít khách > ổn. */
 export function captionKind(sum) {
