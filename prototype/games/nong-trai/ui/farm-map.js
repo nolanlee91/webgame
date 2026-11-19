@@ -1,15 +1,32 @@
 // Bản đồ nông trại (Milestone 3): vẽ công trình / bản vẽ / giàn giáo / trang trí theo core/levels-map.js mapLayout().
 // Chỉ hiển thị — mọi thay đổi trạng thái đi qua apply() ở game.js (onTap / onSlot gọi ra ngoài).
 // Toạ độ chuẩn hoá theo bản đồ 960 × 600 (data/buildings.js); bản đồ rộng EAST_W lần khi tới cấp 17 / mở Khu đất phía Đông.
-import { frame, sheet as sheetOf } from "./sprites.js?v=m4";
+import { frame, sheet as sheetOf } from "./sprites.js?v=m5";
 
-const MW = 960, MH = 600;
+let MW = 960, MH = 640; // = data/buildings.js MAP_W / MAP_H (đọc lại từ L khi dựng)
 const GARDEN = { house: [269, 184], market: [205, 190] }; // kích thước gốc ảnh assets/garden (neo đáy-giữa)
+const BLUEPRINT_ID = "lo-ban-ve";
 export const STATUS_TEXT = { locked: "Khoá", available: "Có thể xây", building: "Đang xây", done: "Hoàn thành", upgradeable: "Nâng cấp được" };
 const SPECIAL_ID = { xuong: "workshopLot", "sap-cho": "market", "bang-don-hang": "boardBtn" };
 const NORMAL_TAG = { xuong: "Xưởng chế biến", "sap-cho": "Khu chợ", "bang-don-hang": "Bảng đơn", "nha-kho": "Nhà kho", "nha-kinh": "Nhà kính",
   "chuong-ga": "Chuồng gà", "chuong-bo": "Chuồng bò", "bien-lang": "Làng" };
-const STATIC = new Set(["nha", "xe-giao-hang"]); // cảnh vật, không chạm (biển Làng chạm được từ Milestone 4 ⇒ cảnh Làng)
+const STATIC = new Set(["xe-giao-hang"]); // cảnh vật, không chạm (biển Làng chạm được từ M4 ⇒ cảnh Làng; Nhà chạm được từ M5 ⇒ thẻ nâng Nhà)
+/**
+ * Gà / bò đi lại trước chuồng trên bản đồ (§3 "gà chạy trong sân", "bò gặm cỏ") — khung lấy từ assets/v3/manifest.json
+ * (animals: walkLeft / eat), chạy bằng CSS (steps) ⇒ không tốn vòng vẽ JS. pos = % background-position của khung trong atlas 768 × 304.
+ * mode "walk": đi trái rồi quay đầu đi phải; "eat": mổ thóc / gặm cỏ tại chỗ. at: chân con vật (px bản đồ, so với neo chuồng).
+ */
+const CRITTERS = {
+  ga: { housing: "chuong-ga", size: 34, max: 3, frame: 96, list: [
+    { mode: "walk", frames: ["ga-di-trai-1", "ga-di-trai-2"], at: [46, 40], delay: 0 },
+    { mode: "eat", frames: ["ga-an-1", "ga-an-2"], at: [-14, 42], delay: -0.2 },
+    { mode: "walk", frames: ["ga-di-trai-1", "ga-di-trai-2"], at: [8, 50], delay: -3.4 },
+  ] },
+  "bo-sua": { housing: "chuong-bo", size: 54, max: 2, frame: 128, list: [
+    { mode: "eat", frames: ["bo-an-1", "bo-an-2"], at: [-14, 44], delay: 0 },
+    { mode: "walk", frames: ["bo-di-trai-1", "bo-di-trai-2"], at: [62, 46], delay: -5 },
+  ] },
+};
 /** Huy hiệu trên công trình (id cũ của M2 giữ nguyên). Milestone 4: trứng / sữa chờ thu trên chuồng, "!" trên biển Làng. */
 const BADGE_ID = { xuong: "wsBadge", "bang-don-hang": "boardBadge", "chuong-ga": "coopBadge", "chuong-bo": "barnBadge", "bien-lang": "villageBadge" };
 
@@ -24,6 +41,7 @@ export function spriteCss(sheet, id) {
 }
 
 export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
+  MW = L.MAP_W || MW; MH = L.MAP_H || MH;
   const layer = map.querySelector("#bldLayer"), decorLayer = map.querySelector("#decorLayer"), slotLayer = map.querySelector("#slotLayer");
   const field = map.querySelector("#field"), fieldEast = map.querySelector("#fieldEast"), eastWild = map.querySelector("#eastWild");
   const els = {};
@@ -45,6 +63,39 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     els[def.id] = { b, pic: b.querySelector(".pic"), tag: b.querySelector(".market-tag"), bar: b.querySelector(".lot-bar"), arrow: b.querySelector(".up-arrow"), key: "" };
   }
   slotLayer.addEventListener("click", (e) => { const d = e.target.closest(".dslot"); if (d) onSlot(d.dataset.slot, d); });
+  const critterLayer = document.createElement("div");
+  critterLayer.className = "critter-layer"; critterLayer.setAttribute("aria-hidden", "true");
+  layer.after(critterLayer);
+  let critterKey = "";
+  /** % background-position của khung `id` trong atlas animals (frame vuông `fw` px). */
+  const framePos = (id, fw) => {
+    const f = frame("animals", id), sh = sheetOf("animals");
+    if (!f || !sh) return null;
+    return `${+((f.x / (sh.width - fw)) * 100).toFixed(3)}% ${+((f.y / (sh.height - fw)) * 100).toFixed(3)}%`;
+  };
+  function renderCritters(s, layout) {
+    const counts = {};
+    for (const a of s.animals?.list || []) counts[a.kind] = (counts[a.kind] || 0) + 1;
+    const out = [];
+    for (const [kind, c] of Object.entries(CRITTERS)) {
+      const home = layout.items.find((it) => it.id === c.housing);
+      const n = Math.min(c.max, counts[kind] || 0);
+      if (!home || home.view !== "built" || !n) continue;
+      const sh = sheetOf("animals");
+      if (!sh) continue;
+      for (let k = 0; k < n; k++) {
+        const cr = c.list[k], p1 = framePos(cr.frames[0], c.frame), p2 = framePos(cr.frames[1], c.frame);
+        if (!p1 || !p2) continue;
+        const fx = home.x * MW + cr.at[0], fy = home.y * MH + cr.at[1], sz = c.size;
+        out.push(`<span class="critter critter--${cr.mode} critter--${kind}" style="left:${X(fx - sz / 2)};top:${Y(fy - sz * 0.88)};width:${X(sz)};height:${Y(sz)};` +
+          `background-size:${+((sh.width / c.frame) * 100).toFixed(3)}% ${+((sh.height / c.frame) * 100).toFixed(3)}%;--f1:${p1};--f2:${p2};animation-delay:0s,${cr.delay}s"></span>`);
+      }
+    }
+    const key = bw + out.join("");
+    if (key === critterKey) return;
+    critterKey = key;
+    critterLayer.innerHTML = out.join("");
+  }
 
   const pct = (v) => +v.toFixed(3) + "%";
   const X = (px) => pct((px / (MW * bw)) * 100), Y = (px) => pct((px / MH) * 100);
@@ -65,7 +116,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     map.style.aspectRatio = `${MW * bw} / ${MH}`;
     placeArt();
     for (const k of Object.keys(els)) els[k].key = "";
-    decorKey = slotKey = "";
+    decorKey = slotKey = critterKey = "";
   }
   /** Đặt hộp vẽ: atlas ⇒ theo khung + điểm neo manifest; ảnh garden ⇒ neo đáy-giữa. */
   function place(el, def, sprite) {
@@ -76,7 +127,9 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
       return;
     }
     const f = sprite && frame(sprite.sheet, sprite.id);
-    const fw = f?.width || 256, fh = f?.height || 256, [ax, ay] = f?.anchor || [fw / 2, fh * 0.88];
+    const fw = f?.width || 256, fh = f?.height || 256;
+    // Bản vẽ (lo-ban-ve) neo giữa khung ⇒ đặt như công trình (neo đáy 226/256) để nằm đúng lô, không thò xuống dưới mép bản đồ (lỗi M4: chuồng gà / bò)
+    const [ax, ay] = sprite?.id === BLUEPRINT_ID ? [fw / 2, (fh * 226) / 256] : f?.anchor || [fw / 2, fh * 0.88];
     const h = (w * fh) / fw;
     Object.assign(el.style, { left: X(x - (w * ax) / fw), top: Y(y - (h * ay) / fh), width: X(w), height: Y(h) });
   }
@@ -138,7 +191,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
         tag = status === "locked" ? (inMs ? `Khoá · Cấp ${it.unlockLevel}` : s.level >= it.unlockLevel ? "Khoá · sắp có" : `Khoá · Cấp ${it.unlockLevel}`) : STATUS_TEXT[status];
       } else if (status === "available") tag = "Có thể xây";
       else if (status === "locked") tag = `${it.name.replace(" chế biến", "")} · cấp ${it.unlockLevel}`;
-      else tag = NORMAL_TAG[it.id] || "";
+      else tag = it.id === "nha" ? (it.level >= 2 ? `Nhà ★${it.level - 1}` : "") : NORMAL_TAG[it.id] || "";
       if (e.tag.textContent !== tag) e.tag.textContent = tag;
       // thanh tiến độ (giàn giáo / đang nâng)
       const prog = it.upgrading ? it.upgrading.progress : it.progress;
@@ -153,6 +206,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     }
     for (const [id, e] of Object.entries(els)) if (!shown.has(id)) e.b.hidden = true;
 
+    renderCritters(s, layout);
     // trang trí đã đặt
     const dk = bw + JSON.stringify(layout.decor);
     if (dk !== decorKey) {
@@ -184,7 +238,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     slotEl: (id) => slotLayer.querySelector(`[data-slot="${id}"]`) || decorLayer.querySelector(`[data-slot="${id}"]`),
     get layout() { return last; },
     /** Sprite vừa nạp xong ⇒ vẽ lại mọi thứ. */
-    invalidate() { for (const k of Object.keys(els)) els[k].key = ""; decorKey = slotKey = ""; },
+    invalidate() { for (const k of Object.keys(els)) els[k].key = ""; decorKey = slotKey = critterKey = ""; },
     get bw() { return bw; },
     /** Cuộn khung bản đồ để điểm x (toạ độ bản đồ gốc, 0..bw) vào giữa. */
     scrollToX(xNorm, smooth = false) {

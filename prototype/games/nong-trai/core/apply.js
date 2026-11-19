@@ -7,17 +7,17 @@
 // Milestone 3: xây dựng (startBuild, startUpgrade — thay cho upgradeWarehouse cũ; buildWorkshop / upgradeWorkshop giữ làm tên
 // gọi tắt cho Xưởng), trang trí (placeDecor, removeDecor). Sức chứa kho, ô Nhà kính / phía Đông suy ra từ công trình (core/construct.js).
 // Milestone 4: chăn nuôi + làng (core/m4-handlers.js — handler, sync bảng nhiệm vụ làng, track sau quests.track, bất biến đàn).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
-import * as plots from "./plots.js?v=m4";
-import * as orders from "./orders.js?v=m4";
-import * as eco from "./economy.js?v=m4";
-import * as quests from "./quests.js?v=m4";
-import * as ws from "./workshop.js?v=m4";
-import * as build from "./construct.js?v=m4";
-import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m4";
-import { addXp } from "./progression.js?v=m4";
-import { effects, isBuilt } from "./build.js?v=m4";
-import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m4";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m5";
+import * as plots from "./plots.js?v=m5";
+import * as orders from "./orders.js?v=m5";
+import * as eco from "./economy.js?v=m5";
+import * as quests from "./quests.js?v=m5";
+import * as ws from "./workshop.js?v=m5";
+import * as build from "./construct.js?v=m5";
+import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m5";
+import { addXp } from "./progression.js?v=m5";
+import { effects, isBuilt } from "./build.js?v=m5";
+import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m5";
 
 /** Milestone 4 (chăn nuôi + làng, core/m4-handlers.js): kho / ví / XP tiêm vào; sức chứa chuồng từ công trình (core/build.js effects),
  *  chuồng đang xây lần đầu ⇒ 0 (chưa mua được). Nhiệm vụ tiến trình M4 chỉ mở khi hướng dẫn M1 xong (ctx.tutorialDone). */
@@ -107,5 +107,16 @@ export function apply(state, action, now) {
   return { ok: true, events, result };
 }
 
-/** Đồng bộ theo thời gian có đổi gì không (để giao diện chỉ khoá + ghi khi cần). */
-export const needsSync = (state, now) => apply(structuredClone(state), { type: "tick" }, now).events.length > 0;
+/**
+ * Đồng bộ theo thời gian có đổi gì không (để giao diện chỉ khoá + ghi khi cần). Giao diện gọi mỗi giây ⇒ chỉ chép trạng thái
+ * MỘT lần (bản M4 gọi apply trên bản chép ⇒ chép 2 lần mỗi giây). Cùng thứ tự như apply({ type: "tick" }): sync rồi track.
+ */
+export function needsSync(state, now) {
+  if (!Number.isFinite(now)) return false;
+  const draft = structuredClone(state), events = [];
+  sync(draft, now, events);
+  if (events.length) return true;
+  quests.track(draft, events);
+  m4Track(draft, events, now, M4DEPS);
+  return events.length > 0;
+}

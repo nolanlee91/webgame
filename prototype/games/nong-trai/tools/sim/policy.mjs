@@ -3,8 +3,8 @@
 //   → bán dư → xây / nâng / mua theo danh sách ưu tiên → gieo (cây hợp với thời gian tới lần nhìn tiếp) → tưới.
 // Chỉ dùng hàm của harness (⇒ luật thật). Không đọc giờ thật.
 import { CROP, CROPS, ITEM, RECIPE, MACHINE, ANIMAL, BUILDING, QUESTS, MARKET, plots, orders, P, A, V, B } from "./harness.mjs";
-import { RECIPES } from "../../data/recipes.js?v=m4";
-import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m4";
+import { RECIPES } from "../../data/recipes.js?v=m5";
+import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m5";
 
 export const XP_WORTH = 2;          // 1 XP ≈ 2 xu khi chọn cây (người chơi muốn lên cấp)
 export const STALE_ORDER_MS = 30 * 60_000; // đơn không giao được sau 30 phút CHƠI ⇒ bỏ
@@ -234,6 +234,7 @@ function plan(f) {
   building("chuong-ga", false);
   building("chuong-bo", false);
   building("nha-kinh", false);
+  building("nha", false);            // Milestone 5: bậc Nhà ("Nông trại danh tiếng") — chỗ tiêu xu dài hạn, mua khi không để dành mục lớn
   return out;
 }
 

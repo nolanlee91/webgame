@@ -21,7 +21,8 @@ export function renderReport(j) {
     `- Thu nhập: ${A.income.map((x) => `${name[x.profile]} — đơn ${x.share.orders} %, thô ${x.share.raw} %, thành phẩm ${x.share.products} %, trứng/sữa ${x.share.animals} %, nhiệm vụ ${x.share.quests} %`).join("; ")}.`,
     `- Vòng lặp lời: ${A.runaway.economyOk && !A.runaway.perProfile.some((p) => p.superLinear) ? "không thấy (chợ chặn mua→bán lời; thu nhập/giờ chơi phẳng, không siêu tuyến tính)" : "CÓ DẤU HIỆU — xem §6"}.`,
     `- Lỗi luật còn tái hiện: ${A.bugs.filter((b) => b.confirmed).length} (xem §10).`,
-    `- Gợi ý ưu tiên: ${A.recommendations.slice(0, 5).map((r, i) => `(${i + 1}) ${r.file.split(" — ")[0]}: ${r.to}`).join(" · ")}.`);
+    `- Chỗ tiêu xu còn lại cuối tuần (mọi mốc xây / nâng chưa mua, gồm bậc Nhà "danh tiếng" M5): ${results.map((r) => `${name[r.profile.id]} ${n(A.sinks[r.profile.id].left)} xu`).join(" · ")}.`,
+    `- Gợi ý ưu tiên: ${A.recommendations.length ? A.recommendations.slice(0, 5).map((r, i) => `(${i + 1}) ${r.file.split(" — ")[0]}: ${r.to}`).join(" · ") : "không có — các mốc §3 nằm trong khoảng mục tiêu, xu cuối tuần ít hơn chỗ tiêu còn lại"}.`);
   P("## Hồ sơ người chơi", table(["Hồ sơ", "Mô tả", "Chơi 7 ngày", "Cấp cuối", "Xu cuối", "Tổng xu kiếm"],
     results.map((r) => [r.profile.name, r.profile.desc, fmtMin(r.activeMin), r.final.level, n(r.final.coins), n(r.final.earned)])));
 
@@ -101,6 +102,7 @@ export function renderReport(j) {
 
   // 9. gợi ý
   P("## 9. Gợi ý chỉnh số (CHƯA áp dụng)");
+  if (!A.recommendations.length) P("Không có gợi ý: mọi điều kiện kích hoạt gợi ý (lệch mục tiêu XP, xu dư hơn chỗ tiêu, lỗi còn tái hiện …) đều không xảy ra.");
   A.recommendations.forEach((r, i) => P(`${i + 1}. **${r.file}** — từ \`${r.from}\` → \`${r.to}\`.  \n   Lý do: ${r.why}`));
 
   // 10. lỗi

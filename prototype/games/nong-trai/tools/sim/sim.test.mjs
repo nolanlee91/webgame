@@ -74,3 +74,17 @@ test("báo cáo kết xuất được", () => {
   assert.match(md, /Thời gian tới từng cấp/);
   assert.match(md, /Gợi ý chỉnh số/);
 });
+
+// Milestone 5 — hồi quy cân bằng: "chăm" 7 ngày (seed mặc định) phải nằm trong khoảng mục tiêu §3 và còn chỗ tiêu xu.
+test("cân bằng M5: chăm lên cấp 4/7/10/20 trong khoảng mục tiêu §3; xu cuối tuần ít hơn chỗ tiêu còn lại (không dư xu)", async () => {
+  const { TARGET_RANGE, coinSinkLeft } = await import("./analysis.mjs");
+  const r = runSim("cham", { days: 7 });
+  for (const [L, [lo, hi]] of Object.entries(TARGET_RANGE)) {
+    const m = r.levels[L] ? r.levels[L].active / 60_000 : Infinity;
+    assert.ok(m >= lo && m <= hi, `cấp ${L} sau ${m.toFixed(0)} ph chơi (mục tiêu ${lo}–${hi})`);
+  }
+  const sink = coinSinkLeft(r);
+  assert.ok(r.final.coins < sink.left, `xu cuối ${r.final.coins} ≥ chỗ tiêu còn lại ${sink.left}`);
+  assert.ok(r.final.coins < 400_000, `xu cuối ${r.final.coins} — dư xu như bản M4 (920 000)`);
+  assert.ok((r.final.buildings.nha || 1) >= 5, "người chơi chăm phải đã nâng Nhà vài bậc (chỗ tiêu xu M5)");
+});

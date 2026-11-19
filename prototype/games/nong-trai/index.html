@@ -34,7 +34,7 @@
     /* bảng chỉ số */
     .hud { grid-area: hud; display: flex; justify-content: space-between; gap: 14px; min-width: 0; }
     .stats { display: grid; grid-template-columns: repeat(4, minmax(72px, auto)); gap: 14px; padding: 12px 14px; margin: 3px; background: var(--panel); box-shadow: var(--bevel), var(--border); }
-    .stat { display: grid; line-height: 1.1; }
+    .stat { display: grid; line-height: 1.1; position: relative; }
     .stat small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
     .stat b { font: 800 20px "Be Vietnam Pro", system-ui; font-variant-numeric: tabular-nums; }
     .stat.main b { font-size: 30px; color: var(--gold); text-shadow: 2px 2px 0 #000; }
@@ -214,6 +214,7 @@
     .slip-items b { color: #a3341f; } .slip-items .ok b { color: #2f7a1f; }
     .slip-reward { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-weight: 800; }
     .slip-status { font-size: 12px; font-weight: 800; color: #8a6a40; }
+    .fame-plus { margin-left: 2px; padding: 0 3px; font-size: 11px; color: #7a5208; background: #ffe9a8; box-shadow: 0 0 0 1px #c9a24a; }
     .slip.ready .slip-status { color: #2f7a1f; }
     .slip-btns { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 2px; }
     .slip .btn { color: var(--ink); }
@@ -263,10 +264,20 @@
       .wh-item .it { --sz: 40px; }
       .wh-btns { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
     }
-    @media (max-width: 520px) { .farm-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; } .tools .btn { padding-inline: 8px; } }
+    /* Milestone 5: điện thoại (≤ 520 px) — 10 nút / 2 hàng × 5 cột, chữ 12 px xuống dòng thay vì bị cắt ("Hạt giống" ở 390 px),
+       nút cao ≥ 52 px, bóng đổ ngắn để không đè nút bên cạnh. */
+    @media (max-width: 520px) {
+      .farm-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px 7px; margin-bottom: 11px; }
+      .farm-nav .btn { min-height: 52px; padding: 6px 2px; font-size: 12px; line-height: 1.12; letter-spacing: .01em; white-space: normal; text-align: center;
+        overflow-wrap: anywhere; box-shadow: var(--bevel), var(--border), 2px 4px 0 0 var(--shadow); flex-direction: column; gap: 1px; }
+      .farm-nav .btn:active { transform: translate(2px, 3px); }
+      .farm-nav button small { font-size: 10px; margin-top: 2px; }
+      .nav-badge { top: -9px; right: -6px; }
+      .tools .btn { padding-inline: 8px; }
+    }
     @media (max-width: 520px) { .tag { display: none; } .bar { white-space: nowrap; } }
     @media (max-width: 360px) {
-      .farm-nav button { font-size: 9px; letter-spacing: 0; }
+      .farm-nav .btn { font-size: 11px; letter-spacing: 0; }
       .hud { gap: 7px; }
       .stats { column-gap: 7px; padding-inline: 7px; }
       .stat.main b { font-size: 18px; }
@@ -421,10 +432,10 @@
       .scene-top h2 { font-size: 17px; }
     }
 
-    /* ===== Milestone 3: bản đồ theo toạ độ 960 × 600 (core/levels-map.js), chế độ Xây, công trình, trang trí, Nhà kính ===== */
+    /* ===== Milestone 3: bản đồ theo toạ độ 960 × 640 (M5: cao thêm 40 px) (core/levels-map.js), chế độ Xây, công trình, trang trí, Nhà kính ===== */
     .farm { position: relative; width: min(100%, 1000px); overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: #8a6a3a #2a1d10;
       background: #4f6f30; --b: #3a2716; box-shadow: var(--border), 0 -5px #815336, 0 5px #503823, var(--drop); }
-    .farm-map { container-type: inline-size; position: relative; width: calc(100% * var(--bw, 1)); aspect-ratio: 1.6; isolation: isolate; overflow: hidden;
+    .farm-map { container-type: inline-size; position: relative; width: calc(100% * var(--bw, 1)); aspect-ratio: 1.5; isolation: isolate; overflow: hidden;
       background: #779c49 url(assets/garden/grass.webp) 0 0 / 96px auto repeat; image-rendering: pixelated; }
     .farm-path { position: absolute; pointer-events: none; background: url(assets/garden/path.webp) 0 0 / 56px repeat; box-shadow: inset 0 0 0 2px #0000001a; }
     .world-art { position: absolute; pointer-events: none; height: auto; filter: drop-shadow(3px 4px 0 #2d462759); }
@@ -493,6 +504,19 @@
     .gh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 92px)); justify-content: center; gap: 8px; padding: 10px; background: #bfe3e8; box-shadow: inset 0 0 0 3px #6fa7b0, inset 0 0 0 6px #d8f2f4; }
     .gh-grid .plot { aspect-ratio: 1; min-height: 64px; }
     @media (prefers-reduced-motion: reduce) { .bld .rotor, .bld[data-view="blueprint"] .spr, .up-arrow, .dslot::before, .bld .badge { animation: none; } }
+    /* ===== Milestone 5: gà / bò trên bản đồ (khung animals.webp, CSS steps), nhảy số xu, thanh điều hướng điện thoại ===== */
+    .critter-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+    .critter { position: absolute; image-rendering: pixelated; background: url(assets/v3/animals.webp) var(--f1) no-repeat; filter: drop-shadow(1px 2px 0 #2d462766); will-change: transform; }
+    .critter--walk { animation: critter-frames .36s steps(1) infinite, critter-walk 9s linear infinite; }
+    .critter--eat { animation: critter-frames .9s steps(1) infinite; }
+    .critter--bo-sua.critter--walk { animation-duration: .72s, 16s; }
+    .critter--bo-sua.critter--eat { animation-duration: 1.4s; }
+    @keyframes critter-frames { 0% { background-position: var(--f1); } 50% { background-position: var(--f2); } }
+    @keyframes critter-walk { 0% { transform: translateX(0) scaleX(1); } 46% { transform: translateX(-120%) scaleX(1); } 50% { transform: translateX(-120%) scaleX(-1); }
+      96% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(0) scaleX(1); } }
+    .stat.main.bump b { animation: coin-bump .32s steps(3); }
+    @keyframes coin-bump { 50% { transform: translateY(-3px) scale(1.06); color: #fff3c0; } }
+    @media (prefers-reduced-motion: reduce) { .critter, .stat.main.bump b { animation: none; } }
     @media (max-width: 760px) {
       .farm-map { width: calc(max(100%, 760px) * var(--bw, 1)); }
       .build-bar { font-size: 12px; }
@@ -541,7 +565,7 @@
         <span id="buildBarTxt"><b>Chế độ Xây</b> — chạm lô để xây / nâng cấp (mũi tên vàng), ô viền vàng để đặt trang trí.</span>
         <button class="btn btn--sm btn--primary" id="buildExit" type="button">Xong</button>
       </div>
-      <!-- Bản đồ nông trại: toạ độ 960 × 600 (data/buildings.js), rộng 1,5 lần khi mở Khu đất phía Đông; cuộn ngang trong khung khi rộng hơn màn -->
+      <!-- Bản đồ nông trại: toạ độ 960 × 640 (data/buildings.js), rộng 1,5 lần khi mở Khu đất phía Đông; cuộn ngang trong khung khi rộng hơn màn -->
       <section class="farm" id="farm" data-upgrade="0" aria-label="Bản đồ nông trại">
         <div class="farm-map" id="farmMap">
           <div class="east-wild" id="eastWild" hidden aria-hidden="true"></div>
@@ -669,7 +693,7 @@
           <li>Mở <b>Bảng đơn</b>: gom đủ món rồi bấm <b>Giao</b> — đơn trả cao hơn bán ở chợ. Đơn khó thì <b>Bỏ đơn</b>, 2 phút sau có đơn mới.</li>
           <li>Từ cấp 2, bấm vào ô cỏ cạnh ruộng để <b>mở thêm ô</b> (bấm 2 lần để xác nhận). Làm theo <b>nhiệm vụ của Chị Ba</b> để nhận thưởng.</li>
           <li>Chạm <b>Khu chợ</b> để bán theo giá hôm nay (mũi tên ↑↓, đổi mỗi 3 giờ) và mua vật tư, trang trí.</li>
-          <li>Nút <b>Xây</b> (cái búa): xây Nhà kho (cấp 3), Xưởng (cấp 4), Nhà kính trồng mía (cấp 10), Khu đất phía Đông (cấp 17); nâng cấp khi có mũi tên vàng; đặt đồ trang trí mua ở chợ.</li>
+          <li>Nút <b>Xây</b> (cái búa): xây Nhà kho (cấp 3), Xưởng (cấp 4), Nhà kính trồng mía (cấp 10), Khu đất phía Đông (cấp 17); nâng cấp khi có mũi tên vàng; đặt đồ trang trí mua ở chợ. Từ cấp 10 chạm <b>Nhà</b> để nâng bậc danh tiếng: danh hiệu mới và mọi đơn hàng trả thêm xu.</li>
           <li>Cấp 4 xây <b>Xưởng chế biến</b>: chạm máy, chọn công thức (vd. 3 dâu → mứt dâu) — thành phẩm bán đắt hơn và được đơn kết hợp của Bác Tư săn đón.</li>
           <li>Cây và máy <b>vẫn chạy khi bạn tắt máy</b> — tiến trình lưu ngay trên trình duyệt này.</li>
         </ul>
@@ -679,7 +703,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m4";
+    import { mount } from "./game.js?v=m5";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

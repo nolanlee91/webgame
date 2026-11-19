@@ -1,10 +1,10 @@
 // Test bản đồ theo cấp (Milestone 3) — core/levels-map.js.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mapLayout, unlocksAt, unlockTable, lotMenu } from "../core/levels-map.js?v=m4";
-import * as B from "../core/build.js?v=m4";
-import { BUILDINGS, LOTS, DECOR_SLOTS, EAST_W } from "../data/buildings.js?v=m4";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m4";
+import { mapLayout, unlocksAt, unlockTable, lotMenu } from "../core/levels-map.js?v=m5";
+import * as B from "../core/build.js?v=m5";
+import { BUILDINGS, LOTS, DECOR_SLOTS, EAST_W } from "../data/buildings.js?v=m5";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m5";
 import manifest from "../assets/v3/manifest.json" with { type: "json" };
 import { existsSync } from "node:fs";
 
@@ -158,5 +158,6 @@ test("bản đồ theo từng cấp 1..20 với người chơi xây mọi thứ 
     }
   }
   const e = B.effects(b, now);
-  assert.deepEqual([e.warehouseCap, e.extraQueueSlots, e.chickenCap, e.cowCap, e.greenhousePlots, e.eastPlots, e.marketFull], [250, 1, 10, 6, 9, 9, true]);
+  assert.deepEqual([e.warehouseCap, e.extraQueueSlots, e.chickenCap, e.cowCap, e.greenhousePlots, e.eastPlots, e.marketFull], [320, 1, 10, 6, 9, 9, true]);
+  assert.deepEqual([e.fameLevel, e.orderBonus], [11, 0.2], "Milestone 5: Nhà nâng hết 10 bậc");
 });

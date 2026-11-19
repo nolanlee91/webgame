@@ -11,13 +11,13 @@
 //   toast?(msg, ms), sfx?(name, vol, rate), onBack?(),
 // }
 // Trả { root, open, close, show, hide, render, onEvents(events, origin), selectNpc(id), npcEl(id) }.
-import * as V from "../core/village.js?v=m4";
-import { VILLAGERS, VILLAGER, PROGRESSION_GIVER, VILLAGE_LEVEL, CHAIN_LEVEL, FRIEND_LEVELS } from "../data/village.js?v=m4";
-import { ITEM } from "../data/catalog.js?v=m4";
+import * as V from "../core/village.js?v=m5";
+import { VILLAGERS, VILLAGER, PROGRESSION_GIVER, VILLAGE_LEVEL, CHAIN_LEVEL, FRIEND_LEVELS } from "../data/village.js?v=m5";
+import { ITEM } from "../data/catalog.js?v=m5";
 import {
   loadArt, artReady, draw, tileRow, cropUrl, fx, floatText, centerIn, injectStyle, esc, fmtNum, iconHtml, makeToast, makeSfx, frameCss, frameEdgeCss,
   rewardHtml, rewardText,
-} from "./m4-art.js?v=m4";
+} from "./m4-art.js?v=m5";
 
 const RW = 1000, RH = 216, GROUND = 144; // khung vẽ đường làng (logic)
 const HOUSE_X = [130, 375, 625, 870];
@@ -138,9 +138,14 @@ export function createVillageScene(ctx) {
   const log = () => V.questLog(vs(), rc(), inv());
 
   // ---------- vẽ đường làng ----------
+  let paintedKey = "";
+  /** Vẽ lại chỉ khi khung NPC / trạng thái mở đổi (khung idle đổi mỗi 750 ms) — không vẽ 8 lần/giây khi cảnh đứng yên. */
   function paint(t) {
-    g.clearRect(0, 0, RW, RH);
     const open = V.villageUnlocked(rc());
+    const key = open + "|" + VILLAGERS.map((v, i) => (sel === v.id && t < waveUntil ? "w" : Math.floor((t + i * 310) / 750) % v.idle.length)).join(",");
+    if (key === paintedKey) return;
+    paintedKey = key;
+    g.clearRect(0, 0, RW, RH);
     tileRow(g, "village", "mep-co", 0, RW, GROUND - 6, 1);
     tileRow(g, "village", "duong-lang", 0, RW, GROUND + 32, 1);
     tileRow(g, "village", "duong-lang", 0, RW, GROUND + 80, 1);
@@ -290,7 +295,7 @@ export function createVillageScene(ctx) {
 
   let secT = 0;
   function show() {
-    root.hidden = false; boardKey = ""; dlgKey = "";
+    root.hidden = false; boardKey = ""; dlgKey = ""; paintedKey = "";
     render();
     clearInterval(secT); secT = setInterval(() => { if (!root.hidden && !document.hidden) render(); }, 1000);
   }

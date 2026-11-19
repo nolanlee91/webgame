@@ -5,23 +5,23 @@
 //   Di chuyển v3/v4: s.warehouse ≥ 1 (đã nâng kho bằng xu) ⇒ Nhà kho coi như đã xây, level = mốc + 1 (build.migrate) — không ai mất sức chứa.
 // v6 (Milestone 4) thêm: animals (đàn gà / bò, core/animals.js), village (thân thiết, nhiệm vụ làng, core/village.js), lastDeliveryAt
 //   (xe giao hàng). Save cũ thiếu field ⇒ tạo mới (core/m4-handlers.js ensureM4). Đơn có trứng / sữa giữ được khi tải lại.
-import { CROP, CROPS } from "../data/crops.js?v=m4";
-import { ITEM, isDecor } from "../data/catalog.js?v=m4";
-import { WORKSHOP } from "../data/workshop.js?v=m4";
-import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m4";
-import { MACHINES_NOW } from "./workshop.js?v=m4";
-import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m4";
-import { applyEffects } from "./construct.js?v=m4";
-import { NPC } from "../data/npcs.js?v=m4";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
-import { UPGRADES } from "../data/decor.js?v=m4";
-import { QUESTS, TUTORIAL } from "../data/quests.js?v=m4";
+import { CROP, CROPS } from "../data/crops.js?v=m5";
+import { ITEM, isDecor } from "../data/catalog.js?v=m5";
+import { WORKSHOP } from "../data/workshop.js?v=m5";
+import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m5";
+import { MACHINES_NOW } from "./workshop.js?v=m5";
+import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m5";
+import { applyEffects } from "./construct.js?v=m5";
+import { NPC } from "../data/npcs.js?v=m5";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m5";
+import { UPGRADES } from "../data/decor.js?v=m5";
+import { QUESTS, TUTORIAL } from "../data/quests.js?v=m5";
 const TUTORIAL_LENGTH = TUTORIAL.length;
-import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m4";
-import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m4";
-import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m4";
-import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m4";
-import { ensureM4 } from "./m4-handlers.js?v=m4";
+import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m5";
+import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m5";
+import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m5";
+import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m5";
+import { ensureM4 } from "./m4-handlers.js?v=m5";
 
 export const SAVE_VERSION = 6;
 /** Phiên bản đọc được (v3 = Milestone 1, chưa có Xưởng; v4 = Milestone 2, chưa có xây dựng đầy đủ; v5 = Milestone 3, chưa có chăn nuôi / làng). */
@@ -137,14 +137,26 @@ function loadWorkshop(s, d, now) {
 }
 
 /** Đọc bản lưu v6 — hoặc v5 / v4 / v3 (di chuyển: Xưởng trống, túi trang trí, Nhà kho, đàn / làng trống). Hỏng / sai phiên bản ⇒ null. Mọi số kẹp về khoảng hợp lệ. */
+/** Đường XP trước Milestone 5 (60·cấp²): XP hợp lệ của save v3–v6 cũ luôn < mức này. */
+const LEGACY_XP_NEED = (lv) => 60 * lv * lv;
+/**
+ * Cấp + XP đọc từ save. Milestone 5 hạ đường XP (data/levels.js XP_TO_NEXT) ⇒ XP đang có của save cũ có thể ≥ mức lên cấp mới:
+ * XP hợp lệ theo đường cũ được dồn lên cấp (không mất tiến trình); XP rác (vượt cả đường cũ) bị kẹp dưới mức lên cấp như trước.
+ */
+export function carryXp(level, rawXp) {
+  let xp = int(rawXp, 0, 1e12, 0);
+  if (xp >= LEGACY_XP_NEED(level)) return { level, xp: xpNeed(level) - 1 };
+  while (level < 20 && xp >= xpNeed(level)) { xp -= xpNeed(level); level++; }
+  return { level, xp: Math.min(xp, xpNeed(level) - 1) };
+}
+
 export function loadSave(raw, now) {
   const d = parse(raw);
   if (!d || typeof d !== "object" || !READABLE_VERSIONS.includes(d.v) || !Array.isArray(d.plots)) return null;
   if (d.plots.length !== BASE_PLOTS && d.plots.length !== PLOT_COUNT) return null; // 25 ô (v3/v4) hoặc 43 ô (v5)
   const s = createState(now);
   s.coins = int(d.coins, 0, 1e12, START_COINS);
-  s.level = int(d.level, 1, 20, 1); // trần cấp (MAX_LEVEL)
-  s.xp = int(d.xp, 0, xpNeed(s.level) - 1, 0);
+  Object.assign(s, carryXp(int(d.level, 1, 20, 1), d.xp)); // trần cấp (MAX_LEVEL); đường XP M5 rẻ hơn ⇒ XP dư lên cấp, không mất
   s.bought = int(d.bought, 0, W * H, 0);
   s.lastSeen = num(d.lastSeen, 0, now, now);
   s.seed = int(d.seed, 0, 0xffffffff, s.seed) >>> 0;

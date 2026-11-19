@@ -1,4 +1,4 @@
-// E2E Nông Trại (Milestone 1 + 2: Xưởng chế biến, Khu chợ + 3: chế độ Xây, Nhà kính, Khu đất phía Đông, trang trí + 4: Chăn nuôi, Làng, xe giao hàng) trên Chrome headless — bấm chuột / chạm thật qua CDP, chụp ảnh desktop + mobile.
+// E2E Nông Trại (Milestone 1 + 2: Xưởng chế biến, Khu chợ + 3: chế độ Xây, Nhà kính, Khu đất phía Đông, trang trí + 4: Chăn nuôi, Làng, xe giao hàng + 5: bậc Nhà, gà / bò trên bản đồ, điện thoại) trên Chrome headless — bấm chuột / chạm thật qua CDP, chụp ảnh desktop + mobile.
 // Chạy: (ở gốc repo) PORT=8804 node server.js   rồi   PORT=8804 node prototype/games/nong-trai/test/e2e.mjs <thư mục output>
 // Đồng hồ: trang mở với ?testclock ⇒ window.__ntOffset (ms) dịch thời gian để cây chín ngay, không phải chờ.
 import { spawn } from "node:child_process";
@@ -88,8 +88,8 @@ await pressSel("#allBtn");
 check("Thu hết → 3 cà rốt vào kho, kho 3/60, NV3 xong", (await S("s.inv['ca-rot']")) === 3 && (await text("#hStore")) === "3/60" && await visible("#qClaim"));
 // Đường XP 60·cấp²: 3 cà rốt + thưởng NV1–3 chưa đủ cấp 2 ⇒ đặt XP thiếu đúng phần thưởng NV3 (như đã cày thêm vài vụ), nhận thưởng ⇒ lên cấp 2.
 check("3 vụ đầu chưa đủ lên cấp 2 (đường XP mới)", (await S("s.level")) === 1);
-const need1 = await ev("import('./core/progression.js?v=m4').then(m=>m.xpNeed(1))");
-const nv3Xp = await ev("import('./data/quests.js?v=m4').then(m=>m.TUTORIAL[2].reward.xp)");
+const need1 = await ev("import('./core/progression.js?v=m5').then(m=>m.xpNeed(1))");
+const nv3Xp = await ev("import('./data/quests.js?v=m5').then(m=>m.TUTORIAL[2].reward.xp)");
 await ev(`(()=>{const s=__game.state;s.xp=${need1 - nv3Xp};__game.state=s})()`);
 await claim();
 check("lên cấp 2 (toast báo mở khoá Dâu tây)", (await S("s.level")) === 2);
@@ -112,7 +112,7 @@ const c0 = await S("s.coins");
 await pressSel('#slips [data-act="deliver"][data-slot="0"]');
 check("Giao đơn đầu: trừ 2 cà rốt, +" + order0.coins + " xu, NV5 xong", (await S("s.coins")) === c0 + order0.coins && !(await S("s.inv['ca-rot']")) && await visible("#qClaim"));
 check("giao lại đơn cũ (id+rev) bị chặn", (await ev(`(()=>{const L=__game;return null})()`)) === null &&
-  (await ev(`import('./logic.js?v=m4').then(L=>L.apply(__game.state,{type:'deliver',slot:0,id:${order0.id},rev:${order0.rev}},Date.now()+(window.__ntOffset||0)).err)`)) === "order-changed");
+  (await ev(`import('./logic.js?v=m5').then(L=>L.apply(__game.state,{type:'deliver',slot:0,id:${order0.id},rev:${order0.rev}},Date.now()+(window.__ntOffset||0)).err)`)) === "order-changed");
 await claim();
 // bỏ đơn
 const slot1 = await S("s.orders.slots[1].order.id");
@@ -140,7 +140,7 @@ await claim();
 check("NV7 lên cấp 3 đang mở (M3: Nhà kho xây từ cấp 3)", (await questId()) === "len-cap-3");
 await ev(`(()=>{const s=__game.state;s.level=3;s.xp=0;__game.state=s})()`);
 await sleep(300);
-await ev(`import('./logic.js?v=m4').then(L=>{const r=L.apply(__game.state,{type:'tick'},Date.now()+(window.__ntOffset||0));__game.state=__game.state})`);
+await ev(`import('./logic.js?v=m5').then(L=>{const r=L.apply(__game.state,{type:'tick'},Date.now()+(window.__ntOffset||0));__game.state=__game.state})`);
 await claim();
 check("NV8 xây Nhà kho: chỉ vào lô bản vẽ Nhà kho trên bản đồ", (await questId()) === "xay-nha-kho" && await ev("document.querySelector('.bld[data-id=\"nha-kho\"]').classList.contains('qhl')"));
 await pressSel('.bld[data-id="nha-kho"]');
@@ -259,12 +259,12 @@ check("chạm ô xong ⇒ +1 Mứt dâu, +8 XP (qua cấp), hiệu ứng fx lap-
 const uid2 = await S("s.production.machines['bep-sen'].queue[0].uid");
 await pressSel(".slot--done");
 check("nhận ô thứ 2; nhận lại ô cũ bị chặn (not-found)", (await S("s.inv['mut-dau']")) === 2 &&
-  (await ev(`import('./logic.js?v=m4').then(L=>L.apply(__game.state,{type:'collect',machine:'bep-sen',uid:${uid2}},Date.now()+(window.__ntOffset||0)).err)`)) === "not-found");
+  (await ev(`import('./logic.js?v=m5').then(L=>L.apply(__game.state,{type:'collect',machine:'bep-sen',uid:${uid2}},Date.now()+(window.__ntOffset||0)).err)`)) === "not-found");
 await claim();
 await shot("m2-06-nhan-mut.png");
 // đơn kết hợp có thành phẩm (cấp 5): sinh tự nhiên bằng luật (bỏ đơn → đơn mới sau 2 phút)
 await ev(`(()=>{const s=__game.state;s.level=5;s.xp=0;__game.state=s})()`);
-const comboSlot = await ev(`import('./logic.js?v=m4').then(L=>{const s=__game.state;for(let k=0;k<400;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.type==='ket-hop'&&x.order.items['mut-dau']);if(i>=0){__game.state=s;return i}
+const comboSlot = await ev(`import('./logic.js?v=m5').then(L=>{const s=__game.state;for(let k=0;k<400;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.type==='ket-hop'&&x.order.items['mut-dau']);if(i>=0){__game.state=s;return i}
   const j=k%s.orders.slots.length,x=s.orders.slots[j],t=Date.now()+(window.__ntOffset||0);if(x.order)L.apply(s,{type:'cancelOrder',slot:j,id:x.order.id,rev:x.rev},t);window.__ntOffset=(window.__ntOffset||0)+121000;L.apply(s,{type:'tick'},Date.now()+window.__ntOffset)}__game.state=s;return -1})`);
 check("cấp 5: Bác Tư đặt đơn kết hợp có Mứt dâu (sinh theo luật, chỉ món làm được)", comboSlot >= 0, String(comboSlot));
 const combo = await S(`s.orders.slots[${comboSlot}].order`);
@@ -287,7 +287,7 @@ check("chạm sạp trên bản đồ ⇒ cảnh Khu chợ: gian quầy + Cô Ha
 const mutLeft = await S("s.inv['mut-dau']||0");
 if (!mutLeft) await ev(`(()=>{const s=__game.state;s.inv['sot-ca-chua']=1;__game.state=s})()`); // dự phòng nếu đơn đòi hết mứt
 const prodId = mutLeft ? "mut-dau" : "sot-ca-chua";
-const want = await ev(`import('./logic.js?v=m4').then(L=>({p:L.priceOf('${prodId}',Date.now()+(window.__ntOffset||0)),t:L.MARKET.trend('${prodId}',Date.now()+(window.__ntOffset||0))}))`);
+const want = await ev(`import('./logic.js?v=m5').then(L=>({p:L.priceOf('${prodId}',Date.now()+(window.__ntOffset||0)),t:L.MARKET.trend('${prodId}',Date.now()+(window.__ntOffset||0))}))`);
 check("kệ Bán: thành phẩm hiện giá hôm nay + mũi tên xu hướng", new RegExp(`${want.p} xu ${want.t === "·" ? "·" : want.t}`).test(await text("#mkSell")));
 await shot("m2-08-khu-cho.png");
 const c1 = await S("s.coins");
@@ -299,7 +299,7 @@ check("Mua thức ăn gia súc (cấp 7): −56 xu (giá M4), vào kho", (await 
 check("hạt giống ghi 'trả khi gieo' + nút Gieo; món khoá hiện cấp", /trả khi gieo/.test(await text("#mkBuy")) && /Cấp \d+/.test(await text("#mkBuy")));
 // Nhà kho dùng cùng giá chợ
 await pressSel("#marketScene [data-back]"); await pressSel("#stockTool");
-const whOk = await ev(`import('./logic.js?v=m4').then(L=>{const s=__game.state,t=Date.now()+(window.__ntOffset||0),q=s.inv['ca-chua'];const b=document.querySelector('#whBody [data-act=sellN][data-id="ca-chua"]');return !!b&&b.textContent.includes((q*L.priceOf('ca-chua',t)).toLocaleString('vi-VN')+' xu')})`);
+const whOk = await ev(`import('./logic.js?v=m5').then(L=>{const s=__game.state,t=Date.now()+(window.__ntOffset||0),q=s.inv['ca-chua'];const b=document.querySelector('#whBody [data-act=sellN][data-id="ca-chua"]');return !!b&&b.textContent.includes((q*L.priceOf('ca-chua',t)).toLocaleString('vi-VN')+' xu')})`);
 check("Nhà kho 'Bán hết' tính theo giá chợ hôm nay (một nguồn giá)", whOk);
 // tải lại giữ mọi thứ
 const snapM2 = await S("JSON.stringify({c:s.coins,l:s.level,inv:s.inv,p:s.production,b:s.buildings,q:s.quests,d:s.decor})");
@@ -334,7 +334,7 @@ check("M3 cấp 10 (ngoài chế độ Xây): bản vẽ 'Có thể xây' của 
   /^available\|blueprint\|Có thể xây/.test(await bstat("nha-kho")) && /^available/.test(await bstat("nha-kinh")) && /^available\|blueprint/.test(await bstat("chuong-ga")) && /^available\|blueprint/.test(await bstat("chuong-bo")));
 await pressSel("#buildBtn");
 check("nút Xây (búa) ⇒ chế độ Xây: thanh trạng thái, ruộng mờ, nhãn trạng thái chuẩn", await visible("#buildBar") && await ev("document.getElementById('farm').classList.contains('building')") &&
-  /Hoàn thành/.test(await bstat("nha")) && /Nâng cấp được/.test(await bstat("sap-cho")) && /Có thể xây/.test(await bstat("nha-kinh")) && /^available\|blueprint\|Có thể xây/.test(await bstat("chuong-ga")),
+  /Nâng cấp được/.test(await bstat("nha")) /* M5: Nhà nâng bậc danh tiếng từ cấp 10 */ && /Nâng cấp được/.test(await bstat("sap-cho")) && /Có thể xây/.test(await bstat("nha-kinh")) && /^available\|blueprint\|Có thể xây/.test(await bstat("chuong-ga")),
   [await bstat("nha"), await bstat("sap-cho"), await bstat("chuong-ga")].join(" / "));
 check("bản vẽ lo-ban-ve vẽ từ buildings.webp", await ev(`getComputedStyle(document.querySelector('${bld("nha-kinh")} .spr')).backgroundImage.includes('buildings.webp')`));
 await pressSel(bld("chuong-ga"));
@@ -362,7 +362,7 @@ check("tua 5 phút ⇒ Nhà kính xong (sprite nha-kinh), báo xây xong", /^(do
 await pressSel("#buildExit");
 check("thoát chế độ Xây", !(await visible("#buildBar")) && !(await ev("document.getElementById('farm').classList.contains('building')")));
 check("khay hạt ruộng chính không có Mía; luật chặn mía ở ô thường", await ev("!document.querySelector('#seeds [data-id=mia]')") &&
-  (await ev(`import('./logic.js?v=m4').then(L=>L.apply(structuredClone(__game.state),{type:'plant',i:12,crop:'mia'},Date.now()+(window.__ntOffset||0)).err)`)) === "greenhouse-only");
+  (await ev(`import('./logic.js?v=m5').then(L=>L.apply(structuredClone(__game.state),{type:'plant',i:12,crop:'mia'},Date.now()+(window.__ntOffset||0)).err)`)) === "greenhouse-only");
 await pressSel(bld("nha-kinh"));
 check("chạm Nhà kính ⇒ bảng Nhà kính: 6 ô, hạt Mía chọn sẵn", await visible("#ovGreenhouse") && (await ev("[...document.querySelectorAll('#ghGrid .plot')].filter(b=>!b.hidden).length")) === 6 &&
   await ev("document.querySelector('#ghSeeds [data-id=mia]').getAttribute('aria-checked')==='true'"));
@@ -443,7 +443,7 @@ await pressSel("#helpOk");
 await ev(`(()=>{const s=__game.state;s.level=9;s.xp=0;s.coins=5000;s.quests.tut=13;s.quests.progress=0;s.inv={'thuc-an-gia-suc':4,'ngo':6};__game.state=s})()`);
 await sleep(500);
 const tnow = () => "Date.now()+(window.__ntOffset||0)";
-const QLEN = await ev("import('./data/quests.js?v=m4').then(m=>m.QUESTS.length)");
+const QLEN = await ev("import('./data/quests.js?v=m5').then(m=>m.QUESTS.length)");
 check("M4 seed: sổ M1/M2 đã xong (" + QLEN + " nhiệm vụ) ⇒ thanh nhiệm vụ hiện tiến trình Chăn nuôi 1/6 'Xây chuồng gà'", QLEN === 13 && await visible("#quest") && /Chăn nuôi 1\/6/.test(await text("#qStep")) && /Xây chuồng gà/.test(await text("#qTitle")), await text("#quest"));
 check("M4: nút điều hướng 'Chăn nuôi' + 'Làng' mở (không khoá), biển Làng hiện trên bản đồ và chạm được",
   await visible("#animalsTool") && !(await ev("document.getElementById('animalsTool').classList.contains('is-locked')")) && /^Làng/.test(await text("#villageTool")) &&
@@ -455,7 +455,7 @@ check("chạm bản vẽ chuồng gà ⇒ thẻ xây 300 xu / 2:00", await visib
 await pressSel("#buildOk");
 await sleep(300);
 check("xây chuồng gà ⇒ giàn giáo + đồng hồ, −300 xu; chưa mua gà được khi đang xây", /^building\|scaffold\|Đang xây/.test(await bstat("chuong-ga")) && (await S("s.coins")) === 4700 &&
-  (await ev(`import('./logic.js?v=m4').then(L=>L.apply(structuredClone(__game.state),{type:'buyAnimal',kind:'ga'},${tnow()}).err)`)) === "no-housing");
+  (await ev(`import('./logic.js?v=m5').then(L=>L.apply(structuredClone(__game.state),{type:'buyAnimal',kind:'ga'},${tnow()}).err)`)) === "no-housing");
 await shot("m4-02-chuong-ga-gian-giao.png");
 await advance(121_000); await sleep(1300);
 check("tua 2 phút ⇒ chuồng gà xong (sprite chuong-ga), nhiệm vụ 'Xây chuồng gà' xong (nút Nhận)", /^(done|upgradeable)\|built\|Chuồng gà/.test(await bstat("chuong-ga")) && await visible("#qClaim"), await bstat("chuong-ga"));
@@ -483,7 +483,7 @@ await pressSel('#animalsScene .an-tap[data-uid="1"]');
 check("chạm bong bóng ⇒ +1 trứng gà vào kho, +2 XP, gà đói lại; nhiệm vụ 'Thu quả trứng đầu tiên' xong", (await S("s.inv['trung-ga']")) === 1 && (await S("s.xp")) === xpEgg + 2 && (await ev('document.querySelector(\'#animalsScene .an-tap[data-uid="1"]\').dataset.state')) === "hungry" && await visible("#qClaim"));
 await claim();
 // đơn có trứng: bộ sinh đơn thật đòi trứng khi đã có gà (bỏ đơn → đơn mới sau 2 phút)
-const eggSlot = await ev(`import('./logic.js?v=m4').then(L=>{const s=__game.state;for(let k=0;k<600;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.items['trung-ga']&&x.order.items['trung-ga']<=(s.inv['trung-ga']||0));if(i>=0){__game.state=s;return i}
+const eggSlot = await ev(`import('./logic.js?v=m5').then(L=>{const s=__game.state;for(let k=0;k<600;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.items['trung-ga']&&x.order.items['trung-ga']<=(s.inv['trung-ga']||0));if(i>=0){__game.state=s;return i}
   const j=k%s.orders.slots.length,x=s.orders.slots[j],t=Date.now()+(window.__ntOffset||0);if(x.order)L.apply(s,{type:'cancelOrder',slot:j,id:x.order.id,rev:x.rev},t);window.__ntOffset=(window.__ntOffset||0)+121000;L.apply(s,{type:'tick'},Date.now()+window.__ntOffset)}__game.state=s;return -1})`);
 check("có gà ⇒ bảng đơn đòi trứng gà (sinh theo luật, đúng số trứng của đàn)", eggSlot >= 0, String(eggSlot));
 const eggOrder = await S(`s.orders.slots[${eggSlot}].order`);
@@ -534,15 +534,17 @@ await pressSel(bld("bien-lang"));
 await waitFor("!!document.querySelector('#villageScene') && !document.querySelector('#villageScene').hidden");
 check("chạm biển Làng ⇒ cảnh Làng (#lang), 4 NPC, bảng 3 nhiệm vụ", (await ev("__game.scene")) === "village" && (await ev("location.hash")) === "#lang" &&
   (await ev("document.querySelectorAll('#villageScene .vl-npc').length")) === 4 && (await ev("document.querySelectorAll('#villageScene [data-act=claimBoard]').length")) === 3);
+const coHai0 = await S("JSON.stringify(s.village.friends['co-hai']||{talks:0,points:0})").then(JSON.parse); // giao đơn của Cô Hai trước đó cũng cộng thân thiết
 await pressSel('#villageScene .vl-npc[data-npc="co-hai"]');
 await sleep(300);
-check("chạm Cô Hai ⇒ trò chuyện: câu thoại đầu hiện trong thẻ + thân thiết +1", (await S("s.village.friends['co-hai'].talks")) === 1 && (await S("s.village.friends['co-hai'].points")) === 1 && /Trời hửng nắng/.test(await text("#villageScene")));
+check("chạm Cô Hai ⇒ trò chuyện: câu thoại đầu hiện trong thẻ + thân thiết +1", (await S("s.village.friends['co-hai'].talks")) === (coHai0.talks || 0) + 1 && (await S("s.village.friends['co-hai'].points")) === (coHai0.points || 0) + 1 && /Trời hửng nắng/.test(await text("#villageScene")),
+  await S("JSON.stringify(s.village.friends['co-hai'])") + " trước " + JSON.stringify(coHai0));
 await shotFull("m4-07-lang-tro-chuyen.png");
 // một ô bảng đã đủ tiến độ (như đã giao 3 đơn) ⇒ nút Nhận thưởng
 const slot0 = await S("JSON.stringify(s.village.board.slots[0])");
-await ev(`import('./data/village.js?v=m4').then(V=>{const s=__game.state;const sl=s.village.board.slots[0];sl.progress=V.REPEATABLE_BY_ID[sl.tpl].count;__game.state=s})`);
+await ev(`import('./data/village.js?v=m5').then(V=>{const s=__game.state;const sl=s.village.board.slots[0];sl.progress=V.REPEATABLE_BY_ID[sl.tpl].count;__game.state=s})`);
 await sleep(400);
-const bReward = await ev(`import('./data/village.js?v=m4').then(V=>V.REPEATABLE_BY_ID[__game.state.village.board.slots[0].tpl].reward)`);
+const bReward = await ev(`import('./data/village.js?v=m5').then(V=>V.REPEATABLE_BY_ID[__game.state.village.board.slots[0].tpl].reward)`);
 const cB = await S("s.coins"), uid0 = JSON.parse(slot0).uid;
 check("Làng: huy hiệu '!' khi có nhiệm vụ chờ nhận", /!/.test(await text("#villageTool")));
 await pressSel(`#villageScene [data-act="claimBoard"][data-uid="${uid0}"]`);
@@ -568,7 +570,7 @@ const truckPainted = await ev("(()=>{const c=document.querySelector('#truckLane 
 check("xe vẽ từ buildings.webp ở cổng (canvas có pixel)", truckPainted);
 await shot("m4-08-xe-giao-hang.png");
 check("sau ~4,4 giây xe chạy đi (idle), xe đứng yên hiện lại", await waitFor("document.querySelector('#truckLane canvas').dataset.phase==='idle'&&document.getElementById('farmMap').dataset.truck===''", 7000),
-  await ev(`import('./core/village.js?v=m4').then(V=>document.querySelector('#truckLane canvas').dataset.phase+' / '+document.getElementById('farmMap').dataset.truck+' / '+JSON.stringify(V.truckVisit(Date.now()+(window.__ntOffset||0),__game.state.lastDeliveryAt,{level:__game.state.level}))+' / '+__game.state.lastDeliveryAt+' / '+(Date.now()+(window.__ntOffset||0)))`));
+  await ev(`import('./core/village.js?v=m5').then(V=>document.querySelector('#truckLane canvas').dataset.phase+' / '+document.getElementById('farmMap').dataset.truck+' / '+JSON.stringify(V.truckVisit(Date.now()+(window.__ntOffset||0),__game.state.lastDeliveryAt,{level:__game.state.level}))+' / '+__game.state.lastDeliveryAt+' / '+(Date.now()+(window.__ntOffset||0)))`));
 // mobile 390×844: hai cảnh, chạm
 await view(390, 844, true, 2); await touch(true); press = tap;
 await reload("#chan-nuoi");
@@ -595,6 +597,43 @@ await pressSel("#helpOk");
 check("cấp 1: nút Chăn nuôi khoá 'Cấp 7', Làng khoá 'Cấp 6'; #chan-nuoi không mở cảnh", /Cấp 7/.test(await text("#animalsTool")) && /Cấp 6/.test(await text("#villageTool")) && (await ev("__game.scene")) === "farm");
 await pressSel("#animalsTool");
 check("chạm nút khoá ⇒ báo cấp mở, vẫn ở bản đồ", /cấp 7/.test(await text("#toast")) && (await ev("__game.scene")) === "farm");
+
+// ===== Milestone 5: bậc Nhà (danh tiếng), gà / bò trên bản đồ, chuồng ở mép dưới không bị cắt, thanh điều hướng điện thoại, tắt tiếng chung =====
+await ev(`(()=>{const s=__game.state,t=Date.now()+(window.__ntOffset||0);s.level=14;s.xp=0;s.coins=60000;s.inv['van-go']=20;s.inv['hop-dinh']=20;
+  s.buildings['chuong-ga']={level:1,done:true,startAt:t-1,readyAt:t-1};s.buildings['chuong-bo']={level:1,done:true,startAt:t-1,readyAt:t-1};
+  s.animals.list=[1,2,3].map(u=>({uid:u,kind:'ga',fedAt:null,readyAt:null})).concat([{uid:4,kind:'bo-sua',fedAt:null,readyAt:null}]);__game.state=s})()`);
+await reload();
+await waitFor("document.querySelectorAll('#farmMap .critter').length===4", 4000);
+check("M5 bản đồ: 3 gà + 1 bò đi lại trước chuồng (khung animals.webp, CSS)", (await ev("document.querySelectorAll('#farmMap .critter--ga').length")) === 3 &&
+  (await ev("document.querySelectorAll('#farmMap .critter--bo-sua').length")) === 1 && await ev("getComputedStyle(document.querySelector('#farmMap .critter')).backgroundImage.includes('animals.webp')"));
+const inMap = (id) => `(()=>{const m=document.getElementById('farmMap').getBoundingClientRect(),b=document.querySelector('.bld[data-id="${id}"]'),t=b.querySelector('.market-tag').getBoundingClientRect(),r=b.getBoundingClientRect();return !b.hidden&&r.bottom<=m.bottom+1&&t.bottom<=m.bottom&&t.top>=m.top})()`;
+check("M5 desktop: chuồng gà / chuồng bò / nhãn nằm trọn trong bản đồ (không bị cắt mép dưới)", await ev(inMap("chuong-ga")) && await ev(inMap("chuong-bo")));
+await pressSel(bld("nha"));
+check("chạm Nhà ⇒ thẻ nâng Nhà: danh hiệu hiện tại + bậc tiếp (+2 % xu đơn), 3 000 xu", await visible("#ovBuild") && /Nông trại nhỏ/.test(await text("#buildBody")) && /Nông trại chăm chỉ/.test(await text("#buildBody")) &&
+  /\+2 % xu/.test(await text("#buildBody")) && /3\.000 xu/.test(await text("#buildOk")), await text("#buildBody"));
+await pressSel("#buildOk");
+await advance(121_000); await sleep(1300);
+check("âm thanh: nâng Nhà kêu 'thang', xây xong kêu 'qua-man' (sfx.log)", await ev("(()=>{const l=__game.sfx.log.map(x=>x.n);return l.includes('thang')&&l.includes('qua-man')})()"));
+check("tua 2 phút ⇒ Nhà ★1, nhãn bản đồ 'Nhà ★1', đơn hàng có +2 %", (await S("s.buildings.nha.level")) === 2 && /Nhà ★1/.test(await text('.bld[data-id="nha"] .market-tag')));
+await pressSel("#ordersTool");
+check("phiếu đơn hiện xu thật nhận (★+ danh tiếng)", await ev("[...document.querySelectorAll('#slips .slip-reward')].some(p=>/★\+/.test(p.textContent))") || await ev("[...document.querySelectorAll('#slips .slip-reward b')].length===0"));
+// tắt tiếng ở tab khác (khoá chung wgp.muted) ⇒ game theo
+await ev(`window.dispatchEvent(new StorageEvent('storage',{key:'wgp.muted',newValue:'1',oldValue:'0'}))`);
+check("wgp.muted đổi ở tab khác ⇒ nút âm thanh chuyển sang tắt", (await ev("document.getElementById('muteBtn').getAttribute('aria-pressed')")) === "true");
+await ev(`window.dispatchEvent(new StorageEvent('storage',{key:'wgp.muted',newValue:'0',oldValue:'1'}))`);
+// điện thoại 390: 10 nút điều hướng không bị cắt chữ, ≥ 48 px
+await view(390, 844, true, 2); await touch(true); press = tap;
+await reload();
+check("M5 mobile 390: nút điều hướng không cắt chữ (2 hàng × 5), cao ≥ 48 px, không tràn ngang", await noOverflowX() &&
+  await ev("[...document.querySelectorAll('.farm-nav button')].every(b=>b.scrollWidth<=b.clientWidth+1&&b.getBoundingClientRect().height>=48)") &&
+  await ev("new Set([...document.querySelectorAll('.farm-nav button')].map(b=>Math.round(b.getBoundingClientRect().top))).size===2"),
+  await ev("[...document.querySelectorAll('.farm-nav button')].map(b=>b.id+':'+b.scrollWidth+'/'+b.clientWidth+'x'+Math.round(b.getBoundingClientRect().height)).join(',')"));
+await shot("m5-01-mobile-dieu-huong.png");
+await ev("document.getElementById('farm').scrollTo({left:0})"); await sleep(200);
+await ev("document.querySelector('.bld[data-id=\"chuong-ga\"]').scrollIntoView({block:'center',inline:'nearest'})"); await sleep(300);
+check("M5 mobile: chuồng gà / bò nằm trọn trong bản đồ", await ev(inMap("chuong-ga")) && await ev(inMap("chuong-bo")));
+await shot("m5-02-mobile-chuong.png");
+await view(1280, 900, false); await touch(false); press = click;
 
 check("0 lỗi console / exception", errors.length === 0, errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);

@@ -1,15 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as I from "../core/inventory.js?v=m4";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
+import * as I from "../core/inventory.js?v=m5";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m5";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 const full = (s, n = I.capacity(s)) => { s.inv["ca-chua"] = n; };
 
-test("sức chứa 60 lúc đầu, các mốc nâng 90/130/180/250 có trong dữ liệu", () => {
+test("sức chứa 60 lúc đầu, các mốc nâng 90/130/180/250/320 có trong dữ liệu", () => {
   const s = farm();
   assert.equal(I.capacity(s), 60);
-  assert.deepEqual(WAREHOUSE.map((w) => w.cap), [60, 90, 130, 180, 250]);
+  assert.deepEqual(WAREHOUSE.map((w) => w.cap), [60, 90, 130, 180, 250, 320]);
   assert.equal(OVERFLOW_MAX, 10);
 });
 

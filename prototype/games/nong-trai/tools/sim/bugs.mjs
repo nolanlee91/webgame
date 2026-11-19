@@ -2,9 +2,9 @@
 // lỗi còn hay đã được sửa. KHÔNG sửa luật ở đây — chỉ báo.
 import { Farm } from "./harness.mjs";
 import { plots, orders, quests, B, P, A, V } from "./harness.mjs";
-import { addXp } from "../../core/progression.js?v=m4";
-import { MAX_LEVEL } from "../../data/levels.js?v=m4";
-import { QUESTS } from "../../data/quests.js?v=m4";
+import { addXp } from "../../core/progression.js?v=m5";
+import { MAX_LEVEL } from "../../data/levels.js?v=m5";
+import { QUESTS } from "../../data/quests.js?v=m5";
 
 const NOW = 1_000_000;
 const fresh = () => new Farm(NOW, 7);
@@ -26,6 +26,8 @@ export const BUG_CHECKS = [
       const f = fresh(), s = f.s;
       s.level = 16;
       for (const id of ["bep-sen", "coi-xay", "lo-banh", "may-bo-sua"]) P.grantMachine(s.production, id, 0);
+      // có đàn thật (2 gà, 1 bò) — bộ sinh đơn chỉ đòi trứng / sữa khi người chơi nuôi được
+      s.animals.list.push({ uid: 1, kind: "ga", fedAt: null, readyAt: null }, { uid: 2, kind: "ga", fedAt: null, readyAt: null }, { uid: 3, kind: "bo-sua", fedAt: null, readyAt: null });
       const items = orders.orderableItems(s, NOW);
       const missing = ["trung-ga", "sua", "banh-trung", "banh-bi-ngo", "bo", "pho-mai"].filter((id) => !items.includes(id));
       return { confirmed: missing.length > 0, detail: `không bao giờ có trong đơn: ${missing.join(", ")}` };
@@ -91,11 +93,16 @@ export const BUG_CHECKS = [
     title: "Hai định dạng bản ghi Xưởng: core/workshop.js coi `buildings.xuong.level` là level ĐANG xây (M2), core/build.js là level ĐÃ XONG (M3). extraSlots() của workshop.js (orders.productUnit dùng) lệch 1 khi đang nâng Xưởng lên cấp 2 theo kiểu M3 — cần chốt một định dạng khi ghép",
     file: "core/workshop.js extraSlots · core/build.js",
     repro: "bản ghi M2 { level: 2, readyAt: tương lai } ⇒ extraSlots = 1 dù chưa xong; bản ghi M3 đang nâng { level: 1, done: false } ⇒ 0 (đúng)",
-    run() { return { confirmed: true, detail: "khác biệt định dạng (đọc code), không đổi số trong mô phỏng" }; },
+    run() {
+      // M3 đang nâng Xưởng lên cấp 2 (chưa xong) ⇒ chưa có ô cộng thêm; xong ⇒ +1. workshop.extraSlots đọc build.effects (một định dạng).
+      const s = { buildings: { xuong: { level: 1, done: false, startAt: NOW, readyAt: NOW + 60_000 } } };
+      const before = B.effects(s, NOW).extraQueueSlots, after = B.effects(s, NOW + 60_000).extraQueueSlots;
+      return { confirmed: !(before === 0 && after === 1), detail: `đang nâng ⇒ ${before} ô thêm, xong ⇒ ${after}` };
+    },
   },
 ];
 
-import { stuck } from "../../core/economy.js?v=m4";
+import { stuck } from "../../core/economy.js?v=m5";
 function awaitStuck(s) { return stuck(s); }
 
 export function runBugChecks() {

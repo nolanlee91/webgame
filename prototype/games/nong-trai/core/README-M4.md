@@ -208,5 +208,5 @@ const animals = createAnimalsScene(m4ctx), village = createVillageScene(m4ctx);
 - Giao diện: nút "Chăn nuôi" / "Làng" (khoá "Cấp 7" / "Cấp 6"), `#chan-nuoi` / `#lang`, chạm chuồng ⇒ Chăn nuôi, chạm biển Làng ⇒ Làng,
   huy hiệu trứng / sữa chờ thu trên chuồng + số trên nút, "!" trên biển Làng khi có nhiệm vụ chờ nhận, xe Anh Út ở cổng (từ cấp 11, `#truckLane`),
   thanh nhiệm vụ hiện tiến trình Chăn nuôi k/6 sau sổ M1 + M2 (nút Nhận ⇒ `claimProgressQuest`), "Trong lúc bạn vắng" báo trứng / sữa.
-- Mọi module dùng một thẻ `?v=m4` (kể cả test, tools/sim, trang thử) ⇒ không có hai thể hiện module.
+- Mọi module dùng một thẻ `?v=m5` (kể cả test, tools/sim, trang thử) ⇒ không có hai thể hiện module.
 - Trang thử `ui/dev-m4.html` giữ lại (noindex, không liên kết; `test/e2e-m4.mjs` vẫn xanh). E2E trong game thật: mục 8 của `test/e2e.mjs`.

@@ -45,7 +45,7 @@ Mọi hồ sơ giới hạn **30 chạm / phút** (gieo 1 ô, tưới 1 ô, "Thu
 5. Chạy máy: ưu tiên món đơn / chuỗi đang cần, thức ăn khi thiếu cho vật nuôi, bột gạo cho lò bánh, còn lại công thức có giá trị cộng thêm / phút-máy cao nhất. Nguyên liệu thô mà đơn đang cần không đem chế biến.
 6. Cho mọi con đói ăn.
 7. Bán dư (giữ hàng cho đơn + nguyên liệu cho máy + thức ăn 3 chu kỳ): bán khi giá ≥ 97 % giá gốc (nông sản ≥ 90 %), hoặc kho ≥ 70 %, hoặc gần hết xu.
-8. Xây / mua theo danh sách ưu tiên: Nhà kho (+ nâng mốc 90) → 3 ô đất → Xưởng → Cối xay → Chuồng gà + gà → Lò bánh → thêm ô (tới 8) → Chuồng bò + bò → Nhà kính → Máy bơ sữa → Nồi đường → nâng kho khi ≥ 75 % → Lò bánh cấp 2 (cấp 16) → Xưởng cấp 2 → Đất phía Đông → ô đất còn lại → nâng máy hay đầy hàng chờ → nâng chuồng / nhà kính. Mục lớn chưa đủ tiền ⇒ "để dành" (chỉ cho mục rẻ ≤ 15 % giá mục đó). Thiếu vật liệu ⇒ mua ở chợ nếu đủ xu. Giữ lại ~6 xu/ô cho hạt.
+8. Xây / mua theo danh sách ưu tiên: Nhà kho (+ nâng mốc 90) → 3 ô đất → Xưởng → Cối xay → Chuồng gà + gà → Lò bánh → thêm ô (tới 8) → Chuồng bò + bò → Nhà kính → Máy bơ sữa → Nồi đường → nâng kho khi ≥ 75 % → Lò bánh cấp 2 (cấp 16) → Xưởng cấp 2 → Đất phía Đông → ô đất còn lại → nâng máy hay đầy hàng chờ → nâng chuồng / nhà kính → bậc Nhà "danh tiếng" (Milestone 5, chỗ tiêu xu dài hạn). Mục lớn chưa đủ tiền ⇒ "để dành" (chỉ cho mục rẻ ≤ 15 % giá mục đó). Thiếu vật liệu ⇒ mua ở chợ nếu đủ xu. Giữ lại ~6 xu/ô cho hạt.
 9. Gieo: trước hết cây cho đơn / nguyên liệu máy (≤ 60 % ô trống), còn lại cây có `(bán − hạt + 2·XP) / thời gian tới lúc THU THẬT` cao nhất — thời gian tới lúc thu tính theo lần nhìn kế tiếp, hoặc tới **phiên sau** nếu cây chín sau khi rời máy ⇒ tự động "gieo cây dài trước khi rời".
 10. Tưới mọi cây chưa tưới (nếu còn chạm).
 
@@ -56,6 +56,7 @@ Mọi hồ sơ giới hạn **30 chạm / phút** (gieo 1 ô, tưới 1 ô, "Thu
 - **Không** tự thêm `items` vào sự kiện `delivered` và **không** cho trứng/sữa vào đơn — dùng đúng hành vi hiện tại của `core/orders.js` để thấy hệ quả thật (nhiệm vụ M4 bị kẹt).
 - Giá chợ theo `core/market.js` (±15 %, chu kỳ 3 giờ, tất định theo thời gian mô phỏng bắt đầu 2/11/2026 0:00 UTC).
 - Không trò chuyện NPC (chỉ ảnh hưởng thân thiết, không có tác dụng kinh tế), không mua / đặt trang trí, không mua thức ăn ở chợ.
+- Đường XP thật: bảng `data/levels.js XP_TO_NEXT` (Milestone 5). `sim.test.mjs` có test hồi quy cân bằng: "chăm" phải lên cấp 4/7/10/20 trong khoảng mục tiêu §3 và xu ngày 7 ít hơn chỗ tiêu còn lại.
 - Đường cong XP thử nghiệm (`--fit`): harness cộng XP theo đơn vị gốc rồi tính lại cấp theo đường cong mới sau mỗi hành động — tương đương sửa `xpNeed` mà không đụng file.
 - Gợi ý XP cây được kiểm bằng cách đổi tạm `CROP[id].xp` trong bộ nhớ trong lúc chạy rồi trả lại (không ghi file).
 
