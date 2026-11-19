@@ -229,6 +229,7 @@ body.is-lobby .act__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8p
 body.is-lobby .act__row .btn { margin: 3px; min-width: 0; padding: 10px 8px; line-height: 1.15; }
 body.is-lobby .act__row [data-a="start"] { grid-column: 1 / -1; min-height: 52px; font-size: 16px; letter-spacing: .06em; }
 body.is-lobby .act__row [data-a="leave"] { color: var(--soft); }
+body.is-lobby .act__row [data-a="start"] ~ [data-a="copy"] { grid-column: 1 / -1; } /* chủ phòng: Chép link một hàng, Hủy phòng + Rời phòng chia đôi */
 
 /* màn hình rộng: cột phải (chat) neo dính khi cuộn, chat kéo dài hết phần còn lại */
 body.is-lobby .me { display: none; }

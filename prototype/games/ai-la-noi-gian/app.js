@@ -165,10 +165,40 @@ function onMsg(m) {
     case "err":
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
       toast(ERR[m.code] || "Có lỗi xảy ra."); sfx.play("err", 0.7); break;
-    case "kicked": case "left": save(null); v = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); break;
+    case "kicked": case "left": save(null); v = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); leaveDone(); break;
+    case "closed": { // chủ phòng hủy phòng ⇒ server gửi cho mọi người (cả chủ phòng), xoá phòng, giữ kết nối
+      const wasHost = v && v.host === v.seat;
+      save(null); v = null; vsBots = false; showHome(); history.replaceState(null, "", location.pathname);
+      homeMsg(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."); sfx.play("trung-da", 0.35); leaveDone();
+      break;
+    }
     case "replaced": save(null); v = null; showHome(); homeMsg("Phòng này đang mở ở tab khác."); break;
   }
 }
+
+// ---------------- rời phòng khi bấm link về trang chủ ----------------
+// Đang ở trong phòng mà bấm "← Lụm Kèo" (hay link nào về trang chủ) ⇒ báo server rời/hủy phòng trước rồi mới đi,
+// để phòng không treo lại và người khác thấy mình rời ngay. Chờ "left"/"closed" tối đa 400 ms.
+let leaveWait = null;
+function leaveDone() { const f = leaveWait; leaveWait = null; f?.(); }
+function leaveRoom() {
+  return new Promise((res) => {
+    if (!v || !ws || ws.readyState !== 1) { save(null); return res(); }
+    const solo = v.host === v.seat && !othersHuman() && (v.phase === "lobby" || v.phase === "end");
+    leaveWait = res; setTimeout(leaveDone, 400);
+    send(solo ? { t: "disband" } : { t: "leave" });
+  });
+}
+document.addEventListener("click", async (e) => {
+  const a = e.target.closest?.("a[href]");
+  if (!a || !v || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
+  let url; try { url = new URL(a.href, location.href); } catch { return; }
+  if (!/\/homepage\/(index\.html)?$/.test(url.pathname)) return;
+  e.preventDefault();
+  if (v.phase !== "lobby" && v.phase !== "end" && !confirm("Rời ván đang chơi?")) return;
+  await leaveRoom();
+  location.href = url.href;
+});
 
 // ---------------- màn đầu ----------------
 function homeMsg(t) { $("homeMsg").textContent = t; }
@@ -332,6 +362,9 @@ function renderMe() {
 $("meCard").onclick = () => { const r = me()?.role; if (r) { revealShown = -2; showReveal(r, true); } };
 
 const ico = (k) => `<span class="icon" style="background-position:${HUD[k][0]}% ${HUD[k][1]}%"></span>`;
+const DISBAND_BTN = `<button class="btn btn--red" data-a="disband">Hủy phòng</button>`;
+/** Còn người thật nào khác trong phòng không (bot không tính). */
+const othersHuman = () => !!v && v.players.some((p, i) => i !== v.seat && !p.bot);
 function renderAct() {
   const ph = v.phase, my = me(), row = $("actRow");
   let txt = "", btns = "";
@@ -339,7 +372,7 @@ function renderAct() {
     const n = v.players.length;
     if (v.host === v.seat) { txt = n >= v.min ? "Đủ người rồi! Bấm Bắt đầu khi cả đội sẵn sàng." : `Mời thêm ${v.min - n} người bằng mã phòng hoặc thêm bot.`; btns = `<button class="btn btn--gold" data-a="start" ${n >= v.min ? "" : 'aria-disabled="true"'}>Bắt đầu</button>`; }
     else txt = `Chờ chủ phòng ${esc(nameOf(v.host))} bắt đầu (cần ${v.min} người).`;
-    btns += `<button class="btn" data-a="copy" aria-label="Sao chép link mời">Chép link mời</button><button class="btn" data-a="leave">Rời phòng</button>`;
+    btns += `<button class="btn" data-a="copy" aria-label="Sao chép link mời">Chép link mời</button>${v.host === v.seat ? DISBAND_BTN : ""}<button class="btn" data-a="leave">Rời phòng</button>`;
   } else if (ph === "reveal") txt = "Ghi nhớ vai của bạn và đừng để ai thấy.";
   else if (!my?.alive && ph !== "end") txt = "Bạn đã bị loại. Theo dõi tiếp nhé.";
   else if (ph === "night") {
@@ -364,6 +397,7 @@ function renderAct() {
   if (canDispatch()) txt = dispatchTo === null ? "Liên Lạc Viên: chọn người nhận tin riêng trên bàn chơi." : `Người nhận tin riêng: <b>${esc(nameOf(dispatchTo))}</b>.`;
   if (my?.alive && v.signal?.ready && (ph === "day" || ph === "dawn")) btns = '<button class="btn" data-a="verify">Xác thực lượt quét</button>';
   if (v.signal?.report) txt += `<br><span class="soft">Quét đêm ${v.signal.report.round}: ${v.signal.report.jammed ? "kết quả đã bị nhiễu" : "kết quả xác thực"}.</span>`;
+  if (ph === "end" && v.host === v.seat) btns += DISBAND_BTN;
   if (ph !== "lobby") btns += `<button class="btn" data-a="leave">Rời phòng</button>`; // lobby đã có nút rời ở trên
   $("actTxt").innerHTML = txt; row.innerHTML = btns;
   $("dispatchForm").hidden = !canDispatch();
@@ -380,7 +414,7 @@ function renderAct() {
   else log.hidden = true;
 }
 $("actRow").addEventListener("click", async (e) => {
-  const a = e.target.closest("[data-a]")?.dataset.a; if (!a) return;
+  const a = e.target.closest("[data-a]")?.dataset.a; if (!a || !v) return; // v=null: đã về màn đầu, nút cũ còn sót
   if (a === "start") send({ t: "start" });
   else if (a === "repair") send({ t: a, enabled: !v.night?.armed });
   else if (a === "jam") send({ t: a, enabled: !v.night?.jam?.armed });
@@ -389,6 +423,10 @@ $("actRow").addEventListener("click", async (e) => {
   else if (a === "leave") {
     if (v.phase !== "lobby" && v.phase !== "end" && !confirm("Rời ván đang chơi? Ghế của bạn sẽ ở lại như người mất kết nối.")) return;
     send({ t: "leave" });
+  }
+  else if (a === "disband") {
+    if (othersHuman() && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+    send({ t: "disband" });
   }
   else if (a === "result") { endHidden = false; renderEnd(); }
   else if (a === "copy") {
