@@ -32,7 +32,7 @@
     { "file": "assets/portraits-hd.webp", "grid": 1, "cell": [384, 320], "anchor": [192, 308], "optional": true,
       "frames": ["{barista,regular,vip,reviewer,courier,neighbor,office-worker}"] },
     { "file": "assets/portrait-expressions-hd.webp", "grid": 1, "cell": [384, 320], "anchor": [192, 308], "optional": true,
-      "frames": ["{barista,regular,vip,reviewer,courier,neighbor,office-worker}-{waiting,happy,sheepish,annoyed}"] },
+      "frames": ["{regular,vip,reviewer,courier,neighbor,office-worker}-{waiting,happy,sheepish,annoyed}", "barista-{neutral,happy,concerned,surprised}"] },
 
     { "file": "assets/cup-layers.webp", "cell": [160, 192], "anchor": [80, 174],
       "frames": ["syrup-swirl", "brown-sugar-streak", "fruit-peach", "fruit-lychee", "fruit-passion", "pudding-bottom", "matcha-50", "matcha-milk-75", "cream-top"], "framesOptional": true },
