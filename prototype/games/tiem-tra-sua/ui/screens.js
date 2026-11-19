@@ -1,5 +1,5 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon } from "../render/atlas.js";
+import { icon } from "../render/atlas.js?v=snap2";
 import { ingIcon, headIcon } from "./brew.js";
 import { RECIPE, RECIPES } from "../data/recipes.js";
 import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js";
@@ -305,7 +305,26 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const go = h("button", "btn primary big", "Tiếp tục ca"); go.id = "resumeBtn"; go.type = "button"; go.dataset.autofocus = "";
       go.addEventListener("click", () => { close(); hooks.resume(); });
       c.appendChild(go);
+      restartBlock(c);
     });
+  }
+
+  /** Nút "Chơi lại từ đầu" + bước xác nhận ngay trong bảng (không mất dữ liệu: bản cũ được cất dự phòng). */
+  function restartBlock(c) {
+    const box = h("div", "restart");
+    const ask = h("button", "btn ghost small", "Chơi lại từ đầu"); ask.type = "button"; ask.id = "restartAsk";
+    ask.addEventListener("click", () => {
+      box.textContent = "";
+      box.appendChild(h("p", "small", "Mở lại tiệm từ Ngày 1 với tiền, cấp và kho ban đầu? Tiến trình hiện tại được cất một bản dự phòng trên máy này."));
+      const row = h("div", "row");
+      const yes = h("button", "btn danger small", "Chơi lại"); yes.type = "button"; yes.id = "restartYes";
+      yes.addEventListener("click", () => { if (!hooks.restart?.()) { box.appendChild(h("p", "small", "Trình duyệt không cho lưu, chưa chơi lại được.")); } });
+      const no = h("button", "btn small", "Thôi"); no.type = "button"; no.id = "restartNo";
+      no.addEventListener("click", () => { box.textContent = ""; box.appendChild(ask); ask.focus(); });
+      row.appendChild(yes); row.appendChild(no); box.appendChild(row); no.focus();
+    });
+    box.appendChild(ask);
+    c.appendChild(box);
   }
 
   function help() {
@@ -325,6 +344,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const ok = h("button", "btn primary", "Đã hiểu"); ok.type = "button"; ok.id = "helpOk"; ok.dataset.autofocus = "";
       ok.addEventListener("click", close);
       c.appendChild(ok);
+      restartBlock(c);
     });
   }
 

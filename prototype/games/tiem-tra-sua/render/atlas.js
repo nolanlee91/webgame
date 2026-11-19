@@ -42,15 +42,18 @@ export function paint(el, f, scale = 1) {
   st.backgroundPosition = `${-f.x * scale}px ${-f.y * scale}px`;
 }
 /** Đặt sprite theo điểm neo (toạ độ logic trong cảnh). */
-// Lưới bắt điểm ảnh thiết bị: số px thiết bị trên 1 px cảnh (k·devicePixelRatio). 0 = không bắt.
+// Toàn bộ tranh Codex vẽ trên lưới 2× (1 điểm ảnh tranh = ô 2×2 px file). Nét chỉ đều khi 1 ô tranh phủ số nguyên px thiết bị
+// ⇒ hệ số hiển thị chọn sao cho scale·dpr·2 là số nguyên (crisp), và sprite cỡ gốc đặt đúng lưới 2 px của cảnh.
+export const dpr = () => globalThis.devicePixelRatio || 1;
+export function crisp(s) { const d = dpr() * 2; return Math.max(1, Math.round(s * d)) / d; }
 let SNAP = 0;
 export function setSnap(v) { SNAP = v > 0 ? v : 0; }
-const snap = (v) => (SNAP ? Math.round(v * SNAP) / SNAP : v);
+const snap = (v, scale) => (scale === 1 ? Math.round(v / 2) * 2 : SNAP ? Math.round(v * SNAP) / SNAP : v);
 
 export function placeAt(el, f, x, y, scale = 1) {
   if (!f) return;
-  el.style.left = snap(x - f.ax * scale) + "px";
-  el.style.top = snap(y - f.ay * scale) + "px";
+  el.style.left = snap(x - f.ax * scale, scale) + "px";
+  el.style.top = snap(y - f.ay * scale, scale) + "px";
 }
 /** Phần tử icon nhỏ (UI) từ [alias, frame], cao `px` điểm ảnh. Có thể cắt vùng (crop: [x,y,w,h] trong frame). */
 export function icon(atlas, ref, px = 40, cls = "ico", crop = null) {
@@ -60,11 +63,12 @@ export function icon(atlas, ref, px = 40, cls = "ico", crop = null) {
   const f = ref && atlas.frame(ref[0], ref[1]);
   if (!f) return el;
   const c = crop || [0, 0, f.w, f.h];
-  const scale = px / c[3];
+  // ảnh lớn (chân dung…): làm tròn cỡ để ô tranh 2×2 phủ số nguyên px thiết bị; icon nhỏ giữ đúng cỡ bố cục
+  const scale = px >= 96 ? crisp(px / c[3]) : px / c[3];
   const st = el.style;
-  st.width = c[2] * scale + "px"; st.height = px + "px";
-  // thu nhỏ dưới 1:1 điểm ảnh thiết bị ⇒ lọc mượt (pixel cứng bị rơi điểm, trông nhòe)
-  if (scale * (globalThis.devicePixelRatio || 1) < 0.999) st.imageRendering = "auto";
+  st.width = c[2] * scale + "px"; st.height = c[3] * scale + "px";
+  // nhỏ hơn nửa cỡ gốc thì pixel cứng rơi điểm ⇒ lọc mượt
+  if (scale * dpr() < 0.5) st.imageRendering = "auto";
   st.backgroundImage = `url("${f.url}")`;
   st.backgroundSize = `${f.sw * scale}px ${f.sh * scale}px`;
   st.backgroundPosition = `${-(f.x + c[0]) * scale}px ${-(f.y + c[1]) * scale}px`;

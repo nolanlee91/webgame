@@ -10,7 +10,7 @@ export const EQUIPMENT = {
     effect: "Đóng nắp nhanh hơn: mỗi ly được tính sớm hơn 1,5 giây khi chấm thời gian" },
   "crate-rack":      { name: "Kệ kho mở rộng",  kind: "machine", unlock: 6,  price: 180, sprite: ["upgrades", "crate-rack"], at: [62, 520], scale: 0.5,
     effect: "Sức chứa kho 60 → 90 phần", capacity: 90 },
-  "dual-pot-cooker": { name: "Bếp topping 2 ngăn", kind: "machine", unlock: 7, price: 240, sprite: ["upgrades", "dual-pot-cooker"], at: [470, 300], scale: 0.42, replaces: "topping-stove",
+  "dual-pot-cooker": { name: "Bếp topping 2 ngăn", kind: "machine", unlock: 7, price: 240, sprite: ["upgrades", "dual-pot-cooker"], at: [452, 270], scale: 0.42, replaces: "topping-stove",
     effect: "Nấu hai mẻ trân châu cùng lúc", kitchenSlots: 2 },
   "tea-table-set":   { name: "Bộ bàn ghế tre",  kind: "decor", unlock: 11, price: 120, appeal: 1, sprite: ["upgrades", "tea-table-set"], at: [1010, 690], scale: 0.5,
     effect: "+1 điểm hấp dẫn, khách thích ngồi lại" },
