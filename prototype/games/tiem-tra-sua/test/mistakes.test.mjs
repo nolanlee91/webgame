@@ -8,6 +8,7 @@ import { EVENTS } from "../data/events.js";
 import { poolFor } from "../core/shift.js";
 import { STOCK_IDS } from "../data/ingredients.js";
 import { shop, act, err, advance, stepsFor } from "./helpers.mjs";
+import { LEVELS } from "../data/levels.js";
 
 const VARS = new Set(["self", "call", "drink", "sugar", "ice", "topping", "name", "n"]);
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}]/u;
@@ -65,7 +66,7 @@ test("mistakeOf: thứ tự ưu tiên loại lỗi", () => {
 /** Ca ngày thường, lịch khách do test đặt, không drama tự mở. */
 function day(guests, level = 3) {
   const s = shop(13);
-  s.tutorialDone = true; s.day = 5; s.money = 999; s.xp = [0, 0, 30, 75][level]; s.level = level;
+  s.tutorialDone = true; s.day = 5; s.money = 999; s.xp = LEVELS[level - 1].xp; s.level = level;
   for (const id of STOCK_IDS) s.stock[id] = 8;
   act(s, { type: "startShift" });
   s.shift.drama.max = 0; s.shift.kitchen.ready = 8;

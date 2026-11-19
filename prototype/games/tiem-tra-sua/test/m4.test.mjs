@@ -140,8 +140,8 @@ function v1Save() {
 }
 
 test("nâng bản lưu v1 → v2 → v3: giữ tiền / cấp / kho / nhật ký, ca dở dang chuyển sang chỗ pha 0, khách một ly thành đơn 1 ly", () => {
-  assert.equal(SAVE_VERSION, 3);
-  assert.ok(MIGRATIONS[1] && MIGRATIONS[2]);
+  assert.equal(SAVE_VERSION, 4);
+  assert.ok(MIGRATIONS[1] && MIGRATIONS[2] && MIGRATIONS[3]);
   const s = loadSave(JSON.stringify(v1Save()));
   assert.ok(s, "đọc được");
   assert.equal(s.v, SAVE_VERSION);

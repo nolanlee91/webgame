@@ -129,6 +129,7 @@ export function createScene(root, atlas, { onCustomer }) {
     if (!drag || e.pointerId !== drag.pid) return;
     const [sx, sy] = toScene(e.clientX, e.clientY);
     drag.x = Math.round(sx + drag.dx); drag.y = Math.round(sy + drag.dy);
+    clampVisible(drag);
     placeAt(drag.el, drag.f, drag.x, drag.y, drag.it.scale);
     if (drag.it.place === "floor") drag.el.style.zIndex = drag.y;
     drag.el.classList.toggle("bad", !!placeError(drag.id, drag.x, drag.y));
@@ -136,6 +137,7 @@ export function createScene(root, atlas, { onCustomer }) {
   function onUp(e) {
     if (!drag || e.pointerId !== drag.pid) return;
     const d = drag; drag = null;
+    clampVisible(d);
     d.el.classList.remove("dragging", "bad");
     ownedKey = ""; // vẽ lại theo trạng thái (vị trí cũ nếu không hợp lệ)
     arranging?.onDrop(d.id, d.x, d.y);
@@ -144,6 +146,17 @@ export function createScene(root, atlas, { onCustomer }) {
   root.addEventListener("pointermove", onMove);
   root.addEventListener("pointerup", onUp);
   root.addEventListener("pointercancel", onUp);
+  /** Vùng cảnh đang thấy (toạ độ cảnh 1280×720): camera desktop phóng cảnh nên mép phải bị cắt. */
+  function visibleRect() {
+    const w = root.clientWidth, h = root.clientHeight;
+    return { x0: Math.max(0, -ox / k), x1: Math.min(W, (w - ox) / k), y0: Math.max(0, -oy / k), y1: Math.min(H, (h - oy) / k) };
+  }
+  /** Kẹp điểm neo đồ trang trí vào vùng đang thấy (chừa nửa bề ngang sprite) ⇒ đồ kéo sát mép không bị khuất. */
+  function clampVisible(d) {
+    const v = visibleRect(), hw = (d.f ? d.f.w * d.it.scale : 80) / 2, ht = d.f ? d.f.ay * d.it.scale : 60;
+    d.x = Math.round(Math.max(v.x0 + hw, Math.min(v.x1 - hw, d.x)));
+    d.y = Math.round(Math.max(v.y0 + ht, Math.min(v.y1 - 4, d.y)));
+  }
   /** Bật / tắt chế độ xếp chỗ: opts = { state: () => state, onDrop(id, x, y) }. */
   function setArrange(opts) {
     arranging = opts || null;
@@ -309,5 +322,33 @@ export function createScene(root, atlas, { onCustomer }) {
     layout((x0 + x1) / 2, (y0 + y1) / 2, Math.max(1, fit / cover), true);
   }
   const served = () => { serveUntil = performance.now() + 500; };
-  return { update, layout, layoutFit, burst, posOf, toScreen, setOwned, setArrange, served, get scale() { return k; } };
+
+  // ---------- thời tiết / cúp điện (Cần Codex: weather-fx.webp, ô 640×360 vẽ ×2 phủ cảnh) ----------
+  // Có sheet thì dùng clip "rain" / "lightning" và frame "power-cut-glow"; chưa có thì lớp CSS (mưa vệt chéo, lớp tối).
+  const wx = el("div", "wx", stage); wx.hidden = true;
+  const wxArt = el("div", "wx-art", wx), wxFlash = el("div", "wx-art flash", wx);
+  let weather = null, wxTok = "";
+  function setWeather(kind) { weather = kind || null; wx.hidden = !weather; wx.className = "wx" + (weather ? " wx-" + weather : ""); wxTok = ""; }
+  function weatherFrame(reduced) {
+    if (!weather) return;
+    const now = performance.now();
+    const sheet = atlas.sheet("weather");
+    wx.classList.toggle("css", !sheet);
+    if (!sheet) return; // CSS dự phòng (index.html .wx-rain / .wx-power)
+    let name, flash = null;
+    if (weather === "rain") {
+      const clip = atlas.clip("weather", "rain");
+      const fr = clip?.frames || ["rain-1"];
+      name = reduced ? fr[0] : fr[Math.floor(now / (1000 / (clip?.fps || 8))) % fr.length];
+      const lc = atlas.clip("weather", "lightning");
+      if (!reduced && lc && now % 7000 < 260) flash = lc.frames[Math.floor((now % 7000) / 130) % lc.frames.length];
+    } else name = "power-cut-glow";
+    const tok = name + "|" + flash;
+    if (tok === wxTok) return;
+    wxTok = tok;
+    paint(wxArt, atlas.frame("weather", name), 2);
+    if (flash) paint(wxFlash, atlas.frame("weather", flash), 2); else wxFlash.style.backgroundImage = "none";
+  }
+  return { update(state, opts = {}) { update(state, opts); weatherFrame(opts.reduced); }, layout, layoutFit, burst, posOf, toScreen, setOwned, setArrange, served, setWeather, visibleRect,
+    get weather() { return weather; }, get scale() { return k; } };
 }

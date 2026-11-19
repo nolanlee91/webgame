@@ -1,0 +1,1234 @@
+[
+ {
+  "profile": "careful",
+  "levels": {
+   "1": {
+    "minutes": 0,
+    "day": 1
+   },
+   "2": {
+    "minutes": 3.43,
+    "day": 1
+   },
+   "3": {
+    "minutes": 9,
+    "day": 2
+   },
+   "4": {
+    "minutes": 9,
+    "day": 2
+   },
+   "5": {
+    "minutes": 20.06,
+    "day": 4
+   },
+   "6": {
+    "minutes": 25.78,
+    "day": 5
+   },
+   "7": {
+    "minutes": 38.63,
+    "day": 7
+   },
+   "8": {
+    "minutes": 57.24,
+    "day": 10
+   },
+   "9": {
+    "minutes": 82.1,
+    "day": 14
+   },
+   "10": {
+    "minutes": 118.16,
+    "day": 20
+   },
+   "11": {
+    "minutes": 142.61,
+    "day": 24
+   },
+   "12": {
+    "minutes": 167.76,
+    "day": 28
+   },
+   "13": {
+    "minutes": 198.25,
+    "day": 33
+   },
+   "14": {
+    "minutes": 229.93,
+    "day": 38
+   },
+   "15": {
+    "minutes": 273.26,
+    "day": 45
+   },
+   "16": {
+    "minutes": 328.17,
+    "day": 54
+   },
+   "17": {
+    "minutes": 391.07,
+    "day": 64
+   },
+   "18": {
+    "minutes": 465.12,
+    "day": 76
+   },
+   "19": {
+    "minutes": 541.1,
+    "day": 88
+   },
+   "20": {
+    "minutes": 624.13,
+    "day": 101
+   }
+  },
+  "money": [
+   {
+    "day": 1,
+    "xp": 40,
+    "minutesExact": 3.4335997503980376,
+    "money": 183,
+    "profit": 68,
+    "minutes": 3,
+    "level": 2,
+    "cups": 5,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 40
+   },
+   {
+    "day": 6,
+    "xp": 823,
+    "minutesExact": 32.020517447545814,
+    "money": 811,
+    "profit": 322,
+    "minutes": 32,
+    "level": 6,
+    "cups": 18,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 193
+   },
+   {
+    "day": 11,
+    "xp": 1679,
+    "minutesExact": 63.329579568994234,
+    "money": 1725,
+    "profit": 293,
+    "minutes": 63,
+    "level": 8,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 186
+   },
+   {
+    "day": 16,
+    "xp": 2483,
+    "minutesExact": 93.79963469689014,
+    "money": 2686,
+    "profit": 289,
+    "minutes": 94,
+    "level": 9,
+    "cups": 15,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 176
+   },
+   {
+    "day": 21,
+    "xp": 3287,
+    "minutesExact": 124.45807899173225,
+    "money": 3540,
+    "profit": 275,
+    "minutes": 124,
+    "level": 10,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.9,
+    "xpGain": 171
+   },
+   {
+    "day": 26,
+    "xp": 4210,
+    "minutesExact": 155.7371066755466,
+    "money": 3878,
+    "profit": 262,
+    "minutes": 156,
+    "level": 11,
+    "cups": 14,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 176
+   },
+   {
+    "day": 31,
+    "xp": 5080,
+    "minutesExact": 186.759261146045,
+    "money": 4211,
+    "profit": 299,
+    "minutes": 187,
+    "level": 12,
+    "cups": 15,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 181
+   },
+   {
+    "day": 36,
+    "xp": 5906,
+    "minutesExact": 217.37764660549846,
+    "money": 5186,
+    "profit": 313,
+    "minutes": 217,
+    "level": 13,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 185
+   },
+   {
+    "day": 41,
+    "xp": 6793,
+    "minutesExact": 248.33263914063542,
+    "money": 4776,
+    "profit": 249,
+    "minutes": 248,
+    "level": 14,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.9,
+    "xpGain": 175
+   },
+   {
+    "day": 46,
+    "xp": 7763,
+    "minutesExact": 279.164179848022,
+    "money": 3272,
+    "profit": 330,
+    "minutes": 279,
+    "level": 15,
+    "cups": 16,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 199
+   },
+   {
+    "day": 51,
+    "xp": 8663,
+    "minutesExact": 309.5418243224031,
+    "money": 4461,
+    "profit": 248,
+    "minutes": 310,
+    "level": 15,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 164
+   },
+   {
+    "day": 56,
+    "xp": 9506,
+    "minutesExact": 341.08729549566993,
+    "money": 5349,
+    "profit": 259,
+    "minutes": 341,
+    "level": 16,
+    "cups": 15,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 171
+   },
+   {
+    "day": 61,
+    "xp": 10343,
+    "minutesExact": 372.69955179028136,
+    "money": 6353,
+    "profit": 208,
+    "minutes": 373,
+    "level": 16,
+    "cups": 13,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 155
+   },
+   {
+    "day": 66,
+    "xp": 11251,
+    "minutesExact": 404.0069398800961,
+    "money": 3619,
+    "profit": 293,
+    "minutes": 404,
+    "level": 17,
+    "cups": 17,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 185
+   },
+   {
+    "day": 71,
+    "xp": 12105,
+    "minutesExact": 434.5573157545795,
+    "money": 4695,
+    "profit": 267,
+    "minutes": 435,
+    "level": 17,
+    "cups": 16,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 169
+   },
+   {
+    "day": 76,
+    "xp": 12994,
+    "minutesExact": 465.1173210008003,
+    "money": 5825,
+    "profit": 264,
+    "minutes": 465,
+    "level": 18,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 161
+   },
+   {
+    "day": 81,
+    "xp": 14118,
+    "minutesExact": 497.8650188282983,
+    "money": 7405,
+    "profit": 685,
+    "minutes": 498,
+    "level": 18,
+    "cups": 29,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 296
+   },
+   {
+    "day": 86,
+    "xp": 15105,
+    "minutesExact": 528.9306171896538,
+    "money": 8753,
+    "profit": 244,
+    "minutes": 529,
+    "level": 18,
+    "cups": 13,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 160
+   },
+   {
+    "day": 91,
+    "xp": 16189,
+    "minutesExact": 560.2908826985991,
+    "money": 5672,
+    "profit": 341,
+    "minutes": 560,
+    "level": 19,
+    "cups": 19,
+    "lost": 0,
+    "stars": 4.9,
+    "xpGain": 213
+   },
+   {
+    "day": 96,
+    "xp": 17168,
+    "minutesExact": 590.6426630106454,
+    "money": 7069,
+    "profit": 236,
+    "minutes": 591,
+    "level": 19,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 158
+   },
+   {
+    "day": 101,
+    "xp": 18363,
+    "minutesExact": 624.1290455195077,
+    "money": 8884,
+    "profit": 703,
+    "minutes": 624,
+    "level": 20,
+    "cups": 28,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 299
+   }
+  ],
+  "errors": [],
+  "log": {
+   "actions": 48461,
+   "rejected": 173,
+   "consign": 0,
+   "stuck": [],
+   "express": 937,
+   "outOfStock": 0,
+   "stockouts": 0,
+   "closed": 0,
+   "dialogs": 557,
+   "fair": 7,
+   "challenge": 0,
+   "badges": 0
+  },
+  "final": {
+   "day": 102,
+   "level": 20,
+   "xp": 18363,
+   "money": 8884,
+   "minutes": 624,
+   "owned": 14,
+   "gearLeft": 0,
+   "rep": 100,
+   "followers": 7295,
+   "rating": 5,
+   "tier": 7,
+   "badges": 8
+  }
+ },
+ {
+  "profile": "average",
+  "levels": {
+   "1": {
+    "minutes": 0,
+    "day": 1
+   },
+   "2": {
+    "minutes": 3.22,
+    "day": 1
+   },
+   "3": {
+    "minutes": 8.86,
+    "day": 2
+   },
+   "4": {
+    "minutes": 8.86,
+    "day": 2
+   },
+   "5": {
+    "minutes": 19.66,
+    "day": 4
+   },
+   "6": {
+    "minutes": 31.09,
+    "day": 6
+   },
+   "7": {
+    "minutes": 37.65,
+    "day": 7
+   },
+   "8": {
+    "minutes": 61.27,
+    "day": 11
+   },
+   "9": {
+    "minutes": 84.22,
+    "day": 15
+   },
+   "10": {
+    "minutes": 120.21,
+    "day": 21
+   },
+   "11": {
+    "minutes": 137.33,
+    "day": 24
+   },
+   "12": {
+    "minutes": 166.28,
+    "day": 29
+   },
+   "13": {
+    "minutes": 195.92,
+    "day": 34
+   },
+   "14": {
+    "minutes": 231.74,
+    "day": 40
+   },
+   "15": {
+    "minutes": 273.85,
+    "day": 47
+   },
+   "16": {
+    "minutes": 327.07,
+    "day": 56
+   },
+   "17": {
+    "minutes": 391.91,
+    "day": 67
+   },
+   "18": {
+    "minutes": 468.42,
+    "day": 80
+   },
+   "19": {
+    "minutes": 537.16,
+    "day": 91
+   },
+   "20": {
+    "minutes": 627.3,
+    "day": 105
+   }
+  },
+  "money": [
+   {
+    "day": 1,
+    "xp": 36,
+    "minutesExact": 3.2236891775871626,
+    "money": 183,
+    "profit": 68,
+    "minutes": 3,
+    "level": 2,
+    "cups": 5,
+    "lost": 0,
+    "stars": 4.4,
+    "xpGain": 36
+   },
+   {
+    "day": 6,
+    "xp": 724,
+    "minutesExact": 31.093052512660933,
+    "money": 814,
+    "profit": 271,
+    "minutes": 31,
+    "level": 6,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.7,
+    "xpGain": 172
+   },
+   {
+    "day": 11,
+    "xp": 1517,
+    "minutesExact": 61.27214634883202,
+    "money": 1451,
+    "profit": 274,
+    "minutes": 61,
+    "level": 8,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.6,
+    "xpGain": 164
+   },
+   {
+    "day": 16,
+    "xp": 2319,
+    "minutesExact": 90.4779853185319,
+    "money": 2418,
+    "profit": 199,
+    "minutes": 90,
+    "level": 9,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.2,
+    "xpGain": 127
+   },
+   {
+    "day": 21,
+    "xp": 3172,
+    "minutesExact": 120.2095116916226,
+    "money": 3708,
+    "profit": 278,
+    "minutes": 120,
+    "level": 10,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.7,
+    "xpGain": 175
+   },
+   {
+    "day": 26,
+    "xp": 3982,
+    "minutesExact": 149.23714724987232,
+    "money": 3531,
+    "profit": 237,
+    "minutes": 149,
+    "level": 11,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 156
+   },
+   {
+    "day": 31,
+    "xp": 4763,
+    "minutesExact": 177.90928442177193,
+    "money": 3726,
+    "profit": 232,
+    "minutes": 178,
+    "level": 12,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 153
+   },
+   {
+    "day": 36,
+    "xp": 5611,
+    "minutesExact": 208.22354569046354,
+    "money": 4732,
+    "profit": 230,
+    "minutes": 208,
+    "level": 13,
+    "cups": 13,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 146
+   },
+   {
+    "day": 41,
+    "xp": 6539,
+    "minutesExact": 238.08289827724826,
+    "money": 4631,
+    "profit": 252,
+    "minutes": 238,
+    "level": 14,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.3,
+    "xpGain": 160
+   },
+   {
+    "day": 46,
+    "xp": 7466,
+    "minutesExact": 268.0120170615438,
+    "money": 5897,
+    "profit": 303,
+    "minutes": 268,
+    "level": 14,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.9,
+    "xpGain": 185
+   },
+   {
+    "day": 51,
+    "xp": 8266,
+    "minutesExact": 297.65080142580894,
+    "money": 3998,
+    "profit": 269,
+    "minutes": 298,
+    "level": 15,
+    "cups": 16,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 177
+   },
+   {
+    "day": 56,
+    "xp": 9117,
+    "minutesExact": 327.0696194827202,
+    "money": 5108,
+    "profit": 231,
+    "minutes": 327,
+    "level": 16,
+    "cups": 14,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 161
+   },
+   {
+    "day": 61,
+    "xp": 9924,
+    "minutesExact": 356.3630011819838,
+    "money": 5913,
+    "profit": 197,
+    "minutes": 356,
+    "level": 16,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 136
+   },
+   {
+    "day": 66,
+    "xp": 10763,
+    "minutesExact": 385.6433560542842,
+    "money": 7007,
+    "profit": 250,
+    "minutes": 386,
+    "level": 16,
+    "cups": 14,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 167
+   },
+   {
+    "day": 71,
+    "xp": 11518,
+    "minutesExact": 415.9535024271343,
+    "money": 3953,
+    "profit": 217,
+    "minutes": 416,
+    "level": 17,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 152
+   },
+   {
+    "day": 76,
+    "xp": 12360,
+    "minutesExact": 445.20631505661436,
+    "money": 5023,
+    "profit": 257,
+    "minutes": 445,
+    "level": 17,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 169
+   },
+   {
+    "day": 81,
+    "xp": 13325,
+    "minutesExact": 475.2669719440678,
+    "money": 6416,
+    "profit": 703,
+    "minutes": 475,
+    "level": 18,
+    "cups": 29,
+    "lost": 0,
+    "stars": 4.9,
+    "xpGain": 296
+   },
+   {
+    "day": 86,
+    "xp": 14378,
+    "minutesExact": 506.6307442521198,
+    "money": 7862,
+    "profit": 236,
+    "minutes": 507,
+    "level": 18,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 161
+   },
+   {
+    "day": 91,
+    "xp": 15430,
+    "minutesExact": 537.1589087646878,
+    "money": 9362,
+    "profit": 259,
+    "minutes": 537,
+    "level": 19,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.7,
+    "xpGain": 166
+   },
+   {
+    "day": 96,
+    "xp": 16382,
+    "minutesExact": 569.097577644813,
+    "money": 5906,
+    "profit": 331,
+    "minutes": 569,
+    "level": 19,
+    "cups": 19,
+    "lost": 0,
+    "stars": 5,
+    "xpGain": 212
+   },
+   {
+    "day": 101,
+    "xp": 17517,
+    "minutesExact": 602.475083542644,
+    "money": 7466,
+    "profit": 626,
+    "minutes": 602,
+    "level": 19,
+    "cups": 28,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 281
+   }
+  ],
+  "errors": [],
+  "log": {
+   "actions": 49579,
+   "rejected": 107,
+   "consign": 0,
+   "stuck": [],
+   "express": 950,
+   "outOfStock": 0,
+   "stockouts": 0,
+   "closed": 0,
+   "dialogs": 626,
+   "fair": 7,
+   "challenge": 0,
+   "badges": 0
+  },
+  "final": {
+   "day": 106,
+   "level": 20,
+   "xp": 18282,
+   "money": 8472,
+   "minutes": 627,
+   "owned": 14,
+   "gearLeft": 0,
+   "rep": 100,
+   "followers": 7233,
+   "rating": 5,
+   "tier": 7,
+   "badges": 8
+  }
+ },
+ {
+  "profile": "sloppy",
+  "levels": {
+   "1": {
+    "minutes": 0,
+    "day": 1
+   },
+   "2": {
+    "minutes": 2.78,
+    "day": 1
+   },
+   "3": {
+    "minutes": 7.11,
+    "day": 2
+   },
+   "4": {
+    "minutes": 7.11,
+    "day": 2
+   },
+   "5": {
+    "minutes": 16.89,
+    "day": 4
+   },
+   "6": {
+    "minutes": 22.26,
+    "day": 5
+   },
+   "7": {
+    "minutes": 32.59,
+    "day": 7
+   },
+   "8": {
+    "minutes": 58.57,
+    "day": 12
+   },
+   "9": {
+    "minutes": 77.77,
+    "day": 16
+   },
+   "10": {
+    "minutes": 113.49,
+    "day": 23
+   },
+   "11": {
+    "minutes": 139.56,
+    "day": 28
+   },
+   "12": {
+    "minutes": 165.62,
+    "day": 33
+   },
+   "13": {
+    "minutes": 195.36,
+    "day": 39
+   },
+   "14": {
+    "minutes": 230.33,
+    "day": 46
+   },
+   "15": {
+    "minutes": 270.35,
+    "day": 54
+   },
+   "16": {
+    "minutes": 320.13,
+    "day": 64
+   },
+   "17": {
+    "minutes": 384.42,
+    "day": 77
+   },
+   "18": {
+    "minutes": 458.87,
+    "day": 92
+   },
+   "19": {
+    "minutes": 536.71,
+    "day": 108
+   },
+   "20": {
+    "minutes": 634.53,
+    "day": 128
+   }
+  },
+  "money": [
+   {
+    "day": 1,
+    "xp": 40,
+    "minutesExact": 2.7781168815816444,
+    "money": 201,
+    "profit": 62,
+    "minutes": 3,
+    "level": 2,
+    "cups": 5,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 40
+   },
+   {
+    "day": 6,
+    "xp": 753,
+    "minutesExact": 27.292901560578496,
+    "money": 652,
+    "profit": 217,
+    "minutes": 27,
+    "level": 6,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 153
+   },
+   {
+    "day": 11,
+    "xp": 1418,
+    "minutesExact": 53.03251204842826,
+    "money": 1135,
+    "profit": 197,
+    "minutes": 53,
+    "level": 7,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.4,
+    "xpGain": 145
+   },
+   {
+    "day": 16,
+    "xp": 2125,
+    "minutesExact": 77.76898012063404,
+    "money": 2024,
+    "profit": 192,
+    "minutes": 78,
+    "level": 9,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.6,
+    "xpGain": 156
+   },
+   {
+    "day": 21,
+    "xp": 2795,
+    "minutesExact": 103.13336069046582,
+    "money": 2584,
+    "profit": 142,
+    "minutes": 103,
+    "level": 9,
+    "cups": 11,
+    "lost": 0,
+    "stars": 3.6,
+    "xpGain": 111
+   },
+   {
+    "day": 26,
+    "xp": 3440,
+    "minutesExact": 128.40563929684956,
+    "money": 3025,
+    "profit": 149,
+    "minutes": 128,
+    "level": 10,
+    "cups": 10,
+    "lost": 0,
+    "stars": 4.2,
+    "xpGain": 124
+   },
+   {
+    "day": 31,
+    "xp": 4081,
+    "minutesExact": 154.9490086687493,
+    "money": 2494,
+    "profit": 79,
+    "minutes": 155,
+    "level": 11,
+    "cups": 10,
+    "lost": 0,
+    "stars": 3.9,
+    "xpGain": 128
+   },
+   {
+    "day": 36,
+    "xp": 4851,
+    "minutesExact": 180.17226468857874,
+    "money": 2476,
+    "profit": 182,
+    "minutes": 180,
+    "level": 12,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 130
+   },
+   {
+    "day": 41,
+    "xp": 5664,
+    "minutesExact": 204.51449674340338,
+    "money": 3440,
+    "profit": 322,
+    "minutes": 205,
+    "level": 13,
+    "cups": 17,
+    "lost": 0,
+    "stars": 4.7,
+    "xpGain": 188
+   },
+   {
+    "day": 46,
+    "xp": 6354,
+    "minutesExact": 230.32845461401965,
+    "money": 4286,
+    "profit": 195,
+    "minutes": 230,
+    "level": 14,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.4,
+    "xpGain": 137
+   },
+   {
+    "day": 51,
+    "xp": 7135,
+    "minutesExact": 255.48154069242253,
+    "money": 3651,
+    "profit": 287,
+    "minutes": 255,
+    "level": 14,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.9,
+    "xpGain": 173
+   },
+   {
+    "day": 56,
+    "xp": 7954,
+    "minutesExact": 280.54188325137767,
+    "money": 1752,
+    "profit": 269,
+    "minutes": 281,
+    "level": 15,
+    "cups": 17,
+    "lost": 0,
+    "stars": 4.2,
+    "xpGain": 164
+   },
+   {
+    "day": 61,
+    "xp": 8642,
+    "minutesExact": 304.63087714314213,
+    "money": 2449,
+    "profit": 197,
+    "minutes": 305,
+    "level": 15,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 137
+   },
+   {
+    "day": 66,
+    "xp": 9371,
+    "minutesExact": 330.4384900067933,
+    "money": 3068,
+    "profit": 243,
+    "minutes": 330,
+    "level": 16,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 149
+   },
+   {
+    "day": 71,
+    "xp": 10057,
+    "minutesExact": 354.98872028726834,
+    "money": 3923,
+    "profit": 176,
+    "minutes": 355,
+    "level": 16,
+    "cups": 11,
+    "lost": 0,
+    "stars": 4.2,
+    "xpGain": 128
+   },
+   {
+    "day": 76,
+    "xp": 10823,
+    "minutesExact": 379.48386489121367,
+    "money": 4553,
+    "profit": 254,
+    "minutes": 379,
+    "level": 16,
+    "cups": 15,
+    "lost": 0,
+    "stars": 4.7,
+    "xpGain": 174
+   },
+   {
+    "day": 81,
+    "xp": 11468,
+    "minutesExact": 404.34854648070905,
+    "money": 1195,
+    "profit": 199,
+    "minutes": 404,
+    "level": 17,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.8,
+    "xpGain": 152
+   },
+   {
+    "day": 86,
+    "xp": 12210,
+    "minutesExact": 429.02941078128663,
+    "money": 1989,
+    "profit": 215,
+    "minutes": 429,
+    "level": 17,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.6,
+    "xpGain": 129
+   },
+   {
+    "day": 91,
+    "xp": 12930,
+    "minutesExact": 454.0231183248075,
+    "money": 2605,
+    "profit": 183,
+    "minutes": 454,
+    "level": 17,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 141
+   },
+   {
+    "day": 96,
+    "xp": 13656,
+    "minutesExact": 477.98952940291537,
+    "money": 3376,
+    "profit": 227,
+    "minutes": 478,
+    "level": 18,
+    "cups": 13,
+    "lost": 0,
+    "stars": 4.4,
+    "xpGain": 147
+   },
+   {
+    "day": 101,
+    "xp": 14293,
+    "minutesExact": 501.7836212807558,
+    "money": 3945,
+    "profit": 146,
+    "minutes": 502,
+    "level": 18,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 129
+   },
+   {
+    "day": 106,
+    "xp": 15087,
+    "minutesExact": 526.6561527154433,
+    "money": 4884,
+    "profit": 195,
+    "minutes": 527,
+    "level": 18,
+    "cups": 13,
+    "lost": 0,
+    "stars": 3.9,
+    "xpGain": 144
+   },
+   {
+    "day": 111,
+    "xp": 15941,
+    "minutesExact": 551.6669036440638,
+    "money": 1199,
+    "profit": 200,
+    "minutes": 552,
+    "level": 19,
+    "cups": 15,
+    "lost": 0,
+    "stars": 3.9,
+    "xpGain": 168
+   },
+   {
+    "day": 116,
+    "xp": 16660,
+    "minutesExact": 575.7096723762639,
+    "money": 2007,
+    "profit": 155,
+    "minutes": 576,
+    "level": 19,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.2,
+    "xpGain": 131
+   },
+   {
+    "day": 121,
+    "xp": 17291,
+    "minutesExact": 600.7745410040145,
+    "money": 2415,
+    "profit": 206,
+    "minutes": 601,
+    "level": 19,
+    "cups": 14,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 149
+   },
+   {
+    "day": 126,
+    "xp": 18063,
+    "minutesExact": 625.0314227035965,
+    "money": 3259,
+    "profit": 213,
+    "minutes": 625,
+    "level": 19,
+    "cups": 12,
+    "lost": 0,
+    "stars": 4.5,
+    "xpGain": 141
+   }
+  ],
+  "errors": [],
+  "log": {
+   "actions": 56649,
+   "rejected": 93,
+   "consign": 0,
+   "stuck": [],
+   "express": 1017,
+   "outOfStock": 0,
+   "stockouts": 9,
+   "closed": 0,
+   "dialogs": 903,
+   "fair": 0,
+   "challenge": 0,
+   "badges": 0
+  },
+  "final": {
+   "day": 129,
+   "level": 20,
+   "xp": 18314,
+   "money": 3457,
+   "minutes": 635,
+   "owned": 14,
+   "gearLeft": 0,
+   "rep": 100,
+   "followers": 7684,
+   "rating": 4.3,
+   "tier": 7,
+   "badges": 6
+  }
+ }
+]

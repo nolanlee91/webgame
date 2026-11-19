@@ -6,6 +6,7 @@ import { PEARL_RAW } from "../data/equipment.js?v=m37";
 import { SHIFT_FEE, DRAMA } from "../data/shift.js?v=m37";
 import { CONSIGN_LINES } from "../data/lines-m3.js?v=m37";
 import { pick } from "./rng.js?v=m37";
+import { shiftFee } from "./fair.js?v=m37";
 
 /** Cờ của game cho Drama Engine (core/drama.js ENGINE_FLAG). until = ngày cuối còn hiệu lực. */
 const flag = (s, f, until) => { if (s.drama) s.drama.flags[f] = until; };
@@ -18,7 +19,7 @@ export const BASIC = ["tra-dao", "tra-sua-truyen-thong"];
 export function canMakeBasic(s) {
   for (const rid of BASIC) {
     const use = useOfSpec(RECIPE[rid]);
-    let money = s.money - Math.min(SHIFT_FEE, s.money);
+    let money = s.money - Math.min(shiftFee(s), s.money);
     let ok = true;
     for (const [id, n] of Object.entries(use)) {
       const have = s.stock[id] || 0;

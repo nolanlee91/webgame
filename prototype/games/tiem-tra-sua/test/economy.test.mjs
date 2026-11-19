@@ -14,7 +14,7 @@ test("ví dụ lợi nhuận vận hành ECONOMY: 216 − 88 − 11 − 12 = 105
   assert.equal(operatingProfit({ revenue: 216, cogs: 88, waste: 11, fee: 12 }), 105);
 });
 
-test("tiệm mới: vốn 160k, kho 58/60 (gói học đủ 8 ly cơ bản), danh tiếng 35", () => {
+test("tiệm mới: vốn 160k, kho 58/80 (gói học đủ 8 ly cơ bản), danh tiếng 35", () => {
   const s = shop();
   assert.equal(s.money, 160);
   assert.equal(stockUsed(s), Object.values(START_STOCK).reduce((a, b) => a + b, 0));
@@ -64,8 +64,9 @@ test("hoàn tác và đổ bỏ ghi hao hụt theo phần đã đổ (không ho�
 test("nhập hàng: trừ tiền theo gói, kiểm khóa cấp / tiền / sức chứa; giữa ca giá gấp +15%", () => {
   const s = shop();
   assert.equal(err(s, { type: "restock", id: "matcha" }), "locked");
-  assert.equal(err(s, { type: "restock", id: "dao" }), "capacity"); // 58/60, gói đào 4 phần
-  s.stock.da = 0; // còn chỗ 10
+  s.stock.thach = 20; // 78/80, gói đào 4 phần
+  assert.equal(err(s, { type: "restock", id: "dao" }), "capacity");
+  s.stock.thach = 0; s.stock.da = 0; // còn chỗ 32
   act(s, { type: "restock", id: "dao" });
   assert.equal(s.money, 160 - STOCK.dao.cost * STOCK.dao.pack);
   assert.equal(s.stock.dao, 8);

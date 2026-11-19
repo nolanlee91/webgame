@@ -5,6 +5,8 @@
 // → kéo-thả trang trí → giữa ca tải lại giữ ly / phiếu → mobile chơi bằng chạm → sự kiện drama trong ca (390 px) → đơn hai ly (desktop).
 import { writeFileSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
+import { LEVELS } from "../data/levels.js";
+const LV = LEVELS.map((L) => L.xp);
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8810;
 const BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=777&calm=1`; // calm=1: sự kiện trong ca chỉ mở bằng __game.forceEvent
@@ -426,7 +428,7 @@ check("M3 nội dung: chọn cúp máy ⇒ hội thoại đóng, hẹn U03 (giao
   await S("s.drama.queue.some(q=>q.id==='U03'&&q.day===s.day+1)&&!!s.drama.flags['ut-doi']&&s.drama.history.filter(h=>h.id==='U01').length===2"));
 
 // ===== 10. Hết hàng giữa ca: ngày 2 không còn ly =====
-await b.view(1366, 768, false); await b.touch(false); press = b.click;
+await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
 await b.ev("Storage.prototype.setItem=()=>{};localStorage.clear()"); await b.nav(BASE); // chặn pagehide ghi lại bản cũ
 await pressSel("#introGo");
 await b.ev("(()=>{const s=__game.state;s.tutorialDone=true;s.day=2;s.stock.ly=0;s.drama.pending=null;s.drama.queue=[];__game.act({type:'setName',name:'Tiệm Hết Ly'});})()");
@@ -484,6 +486,77 @@ await waitFor("!!document.querySelector('#stockWarn')||!!document.querySelector(
 if (await visible(".sheet[data-kind=event]")) { await b.ev("(()=>{const s=__game.state;s.drama.pending=null;__game.act({type:'setName',name:'Tiệm Hết Ly'});})()"); await b.nav(BASE); await waitFor("!!document.querySelector('#stockWarn')"); }
 check("hết hàng 390: hộp cảnh báo + nút Nhập đủ hiện, không tràn ngang", await visible("#stockWarn") && await visible("#fillToday") && await noOverflowX());
 await b.shot(OUT + "/20-mobile-canh-bao-het-hang.png");
+
+// ===== 11. Milestone 5: hội chợ (cấp 18), huy hiệu, kéo trang trí sát mép phải (kẹp trong khung), chơi lại ngày hôm nay =====
+await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
+await b.ev("Storage.prototype.setItem=()=>{};localStorage.clear()"); await b.nav(BASE);
+await pressSel("#introGo");
+await b.ev(`(()=>{const s=__game.state;s.tutorialDone=true;s.day=9;s.xp=${LV[17]};s.level=18;s.money=3000;s.capacity=130;s.owned['crate-rack']=true;s.owned['flowering-pot']=true;
+  for(const id of Object.keys(s.stock))s.stock[id]=7;s.drama.pending=null;s.drama.queue=[];__game.act({type:'setName',name:'Tiệm Hội Chợ'});})()`);
+await b.nav(BASE);
+check("M5: cấp 18 ⇒ bảng Chuẩn bị ca có hộp Hội chợ khu phố + nút thuê gian hàng", await waitFor("!!document.querySelector('#fairBox #fairBtn')") && !(await b.ev("document.querySelector('#fairBtn').disabled")));
+check("M5: có ảnh đầu ngày 9 để chơi lại", (await b.ev("__game.store().day")) === 9);
+const mFair = await S("s.money");
+await pressSel("#fairBtn");
+check("M5: thuê gian hàng ⇒ trừ 150k, hộp đổi sang “hôm nay có gian ở hội chợ”", (await S("s.money")) === mFair - 150 && (await S("s.fair.day===s.day")) && /Hôm nay tiệm có gian/.test(await text("#fairBox")));
+await b.shot(OUT + "/21-desktop-hoi-cho-chuan-bi.png");
+// kéo chậu hoa sát mép phải: desktop phóng cảnh nên mép phải bị cắt ⇒ điểm thả được kẹp trong khung đang thấy
+await pressSel("#arrangeBtn");
+const vr = await b.ev("__game.visibleRect()");
+const pot0 = await S("JSON.stringify(s.placement['flowering-pot']||null)");
+await dragTo([1080, 435], [Math.min(1278, vr.x1 + 30), 600]);
+const potAt = await S("s.placement['flowering-pot']||null");
+const potBox = await b.ev("(()=>{const e=document.querySelector('.stage .decor[data-item=\"flowering-pot\"]').getBoundingClientRect(),r=document.querySelector('#scene').getBoundingClientRect();return [e.right,r.right,e.left]})()");
+check("M5: kéo trang trí sát mép phải ⇒ vị trí kẹp trong khung đang thấy, chậu hoa không bị khuất", !!potAt && potAt[0] <= vr.x1 && potBox[0] <= potBox[1] + 1, JSON.stringify({ vr, potAt, potBox, pot0 }));
+await b.shot(OUT + "/22-desktop-keo-sat-mep.png");
+await pressSel("#arrangeDone");
+await pressSel("#openShop");
+if (await visible("#openAnyway")) await pressSel("#openAnyway");
+check("M5: ca hội chợ: dài 4 phút, đông khách, có đơn nhóm kết hợp", await S("s.shift.fair&&s.shift.duration===240000&&s.shift.planned>=12&&s.shift.schedule.some(g=>g.items.length>1)"));
+await b.ev("__game.state.shift.drama.max=0");
+await b.ev("__game.advance(3000)");
+await b.shot(OUT + "/23-desktop-ca-hoi-cho.png");
+// mưa bão (V15): chưa có weather-fx.webp ⇒ lớp mưa CSS phủ cảnh; xong sự kiện vẫn mưa một lúc
+await b.ev("__game.forceEvent('V15')");
+check("M5: sự kiện mưa (V15) ⇒ lớp mưa phủ cảnh (CSS dự phòng khi chưa có weather-fx)", await waitFor("!!document.querySelector('.sheet[data-kind=event][data-event=V15]')") && await b.ev("(()=>{const w=document.querySelector('.stage .wx');return !!w&&!w.hidden&&w.classList.contains('wx-rain')})()"));
+for (let i = 0; i < 4 && await visible(".sheet[data-kind=event] .choice"); i++) { // sự kiện nhiều bước
+  await pressSel('.sheet[data-kind=event] .choice:not([disabled])');
+  await waitFor("!!document.querySelector('#eventNext')");
+  if (i === 0) await b.shot(OUT + "/23b-desktop-mua.png");
+  await pressSel("#eventNext");
+}
+// chơi lại ngày hôm nay từ bảng tạm dừng
+await pressSel("#pauseBtn");
+check("M5: bảng tạm dừng có “Chơi lại ngày 9”", await visible("#replayAsk") && /ngày 9/.test(await text("#replayAsk")));
+await pressSel("#replayAsk");
+check("M5: hỏi xác nhận trước khi chơi lại (Chơi lại / Thôi)", await visible("#replayYes") && await visible("#replayNo"));
+await pressSel("#replayNo");
+check("M5: bấm Thôi ⇒ vẫn ở ca hội chợ", await S("!!s.shift&&s.shift.fair") && await visible("#replayAsk"));
+await pressSel("#replayAsk");
+await pressSel("#replayYes");
+await b.nav(BASE); // trang tự tải lại; chờ __game mới
+check("M5: chơi lại ⇒ về đầu ngày 9 (chưa mở ca, chưa thuê gian, tiền như lúc mở bảng Chuẩn bị ca), bản trước được cất dự phòng",
+  await waitFor("!!document.querySelector('#openShop')") && (await S("s.day")) === 9 && (await S("s.shift")) === null && (await S("s.money")) === mFair && !(await S("s.fair&&s.fair.day===s.day")) &&
+  await b.ev("JSON.parse(localStorage.getItem('wgp.tiemtrasua.v1.before-replay')).shift.fair===true"));
+// huy hiệu: Sổ ⇒ Nhiệm vụ có bức tường huy hiệu
+await pressSel("#prepBook");
+await pressSel('.notebook .tab[data-tab="missions"]');
+check("M5: Sổ ⇒ Nhiệm vụ có bức tường huy hiệu (14 huy hiệu, chưa có thì mờ)", await waitFor("!!document.querySelector('#badgeWall')") && await b.ev("document.querySelectorAll('#badgeWall .bw-item').length>=14"));
+await pressSel("#nbClose");
+// lên cấp 20 ⇒ lịch ca thử thách + hạng tiệm
+await b.ev(`(()=>{const s=__game.state;s.xp=${LV[19]};s.level=20;__game.act({type:'setName',name:'Tiệm Hội Chợ'});})()`);
+await b.nav(BASE);
+check("M5: cấp 20 ⇒ lịch ca thử thách 5 ngày, nút nhận thử thách hôm nay, hàng hạng tiệm", await waitFor("!!document.querySelector('#challengeBox #challengeBtn')") && await b.ev("document.querySelectorAll('#challengeBox .ch-week li').length===5") && await visible("#tierRow"));
+await pressSel("#challengeBtn");
+check("M5: nhận thử thách ⇒ ghi vào bản lưu, hộp đổi tiêu đề", (await S("s.challenge&&s.challenge.day===s.day")) && /Ca thử thách hôm nay/.test(await text("#challengeBox")));
+await pressSel("#tierBtn");
+check("M5: lên hạng tiệm ⇒ trừ tiền, hạng 1/8", (await S("s.tier")) === 1);
+await b.shot(OUT + "/24-desktop-thu-thach-hang-tiem.png");
+await b.view(390, 844, true, 3);
+await b.nav(BASE);
+await waitFor("!!document.querySelector('#challengeBox')");
+check("M5 390: hộp hội chợ / thử thách / hạng tiệm không tràn ngang", await noOverflowX());
+await b.shot(OUT + "/25-mobile-thu-thach.png");
 
 check("0 lỗi console / exception", b.errors.length === 0, b.errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);

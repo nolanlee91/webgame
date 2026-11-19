@@ -9,12 +9,19 @@ import { replyOptions, optionHint, personaOf, PERSONAS, OUTCOME_LABEL } from "..
 import { personaSwitch } from "./persona.js?v=m37";
 import { EQUIPMENT } from "../data/equipment.js?v=m37";
 import { drawJournal, download, share } from "./journal.js?v=m37";
+import { BADGES } from "../core/challenge.js?v=m37";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const GROUP_LABEL = { khach: "Khách", mang: "Trên mạng", "van-hanh": "Vận hành", "dac-biet": "Đặc biệt", doi: "Đời thường" };
 
 /** Chân dung: ưu tiên biểu cảm (portrait-expressions `${role}-${mood}`), rồi chân dung thường, rồi dáng đứng (Cần Codex #2, #3). */
-export function portrait(atlas, role, mood = "waiting", px = 150) {
+/** NPC Drama có tên ⇒ chân dung riêng trong drama-portraits-hd.webp (Cần Codex). Khớp theo tên trong sự kiện. */
+export const NPC_FACES = [[/^Mẹ$/, "me"], [/Dì Ba/, "di-ba"], [/Anh Út/, "anh-ut"], [/Tèo/, "anh-teo"], [/Bé Bông/, "be-bong"], [/Lụa/, "chi-lua"], [/tổ kiểm tra/i, "co-to"]];
+const DRAMA_MOOD = { waiting: "neutral", sheepish: "neutral", neutral: "neutral", happy: "happy", annoyed: "annoyed", impatient: "annoyed", surprised: "surprised" };
+export const npcFace = (name) => (name ? NPC_FACES.find(([re]) => re.test(name))?.[1] || null : null);
+export function portrait(atlas, role, mood = "waiting", px = 150, name = null) {
+  const face = npcFace(name), dm = DRAMA_MOOD[mood] || "neutral";
+  if (face && atlas.has("drama", `${face}-${dm}`)) return icon(atlas, ["drama", `${face}-${dm}`], px, "ico portrait npc");
   const m = mood === "surprised" ? "annoyed" : mood;
   if (atlas.has("faces", `${role}-${m}`)) return icon(atlas, ["faces", `${role}-${m}`], px, "ico portrait");
   if (atlas.has("portraits", role)) return icon(atlas, ["portraits", role], px, "ico portrait");
@@ -34,7 +41,7 @@ export function createPanels(atlas, dispatch, ov, hooks) {
       card.classList.add("drama", "event");
       card.dataset.event = ev.id;
       const stage = h("div", "drama-stage");
-      const left = h("figure", "speaker cust"); left.appendChild(portrait(atlas, role, node.mood || "waiting")); left.appendChild(h("figcaption", "", name));
+      const left = h("figure", "speaker cust"); left.appendChild(portrait(atlas, role, node.mood || "waiting", 150, c ? null : name)); left.appendChild(h("figcaption", "", name));
       const right = h("figure", "speaker me"); right.appendChild(icon(atlas, ["faces", node.mood === "happy" ? "barista-happy" : "barista-concerned"], 150, "ico portrait")); right.appendChild(h("figcaption", "", "Bạn"));
       stage.appendChild(left); stage.appendChild(right);
       stage.appendChild(h("span", "ev-tag", `${GROUP_LABEL[ev.group] || ""}${state.shift ? " · Ca đang tạm dừng" : " · Sau giờ đóng cửa"}`));
@@ -73,7 +80,7 @@ export function createPanels(atlas, dispatch, ov, hooks) {
       card.dataset.event = ev.id;
       const stage = h("div", "drama-stage small");
       const me = h("figure", "speaker me"); me.appendChild(icon(atlas, ["faces", done.rolled === "lose" ? "barista-surprised" : "barista-happy"], 120, "ico portrait")); me.appendChild(h("figcaption", "", "Bạn"));
-      const cu = h("figure", "speaker cust"); cu.appendChild(portrait(atlas, role, done.rolled === "lose" ? "annoyed" : "happy", 120)); cu.appendChild(h("figcaption", "", name));
+      const cu = h("figure", "speaker cust"); cu.appendChild(portrait(atlas, role, done.rolled === "lose" ? "annoyed" : "happy", 120, name)); cu.appendChild(h("figcaption", "", name));
       stage.appendChild(cu); stage.appendChild(me);
       card.appendChild(stage);
       const say = h("div", "say");
@@ -200,6 +207,11 @@ export function createPanels(atlas, dispatch, ov, hooks) {
           body.appendChild(it);
         }
         body.appendChild(h("p", "muted small", `Đã xong ${state.stats.missions || 0} nhiệm vụ từ ngày mở tiệm.`));
+        // huy hiệu (Milestone 5)
+        const bw = h("div", "badge-wall"); bw.id = "badgeWall";
+        bw.appendChild(h("h3", "", `Huy hiệu · ${Object.keys(state.badges || {}).length}/${BADGES.length}`));
+        for (const b of BADGES) { const got = state.badges?.[b.id]; const it = h("div", "bw-item" + (got ? " on" : "")); it.appendChild(h("b", "", b.name)); it.appendChild(h("small", "", got ? `Ngày ${got}` : b.desc)); bw.appendChild(it); }
+        body.appendChild(bw);
       }
       card.appendChild(body);
       const foot = h("footer", "sheet-foot");

@@ -10,16 +10,20 @@ export const SHEETS = {
   actions: "assets/customer-actions.webp", bfx: "assets/barista-fx.webp", journal: "assets/journal-card.png",
   upgrades: "assets/upgrades.webp", pantry: "assets/pantry-supply.webp", tiles: "assets/shop-tiles.webp",
   bscene: "assets/barista-scene.webp", // Cần Codex #7 (chưa có file: atlas trả null, cảnh dùng dáng đứng characters.webp)
+  weather: "assets/weather-fx.webp", // Cần Codex: mưa / chớp / cúp điện (ô 640×360, vẽ ×2 phủ cảnh). Chưa có ⇒ lớp CSS
 };
 
 /** Sheet sắp có (Codex đang vẽ): không bắt buộc có trong manifest, game không tải nếu chưa có. */
-export const OPTIONAL_SHEETS = new Set(["bscene"]);
+export const OPTIONAL_SHEETS = new Set(["bscene", "weather"]);
+/** Sheet lớn không cần trong 10 giây đầu: tải nền sau khi tiệm hiện ra (game.js), không chặn màn đầu. */
+export const LAZY_SHEETS = new Set(["assets/portrait-expressions-hd.webp", "assets/drama-portraits-hd.webp", "assets/weather-fx.webp", "assets/journal-card.png", "assets/street-background.webp"]);
 
 /** Bản cận cảnh vẽ lưới 1× (gấp đôi chi tiết, toạ độ đúng ×2 bản thường). Có frame cùng tên thì dùng bản HD,
  *  trả về toạ độ đã quy về cỡ bản thường ⇒ mọi chỗ gọi giữ nguyên kích thước, chỉ mịn hơn. */
 export const HD_SHEETS = {
   barista: "assets/barista-actions-hd.webp", cup: "assets/cup-layers-hd.webp",
   portraits: "assets/portraits-hd.webp", faces: "assets/portrait-expressions-hd.webp",
+  drama: "assets/drama-portraits-hd.webp", // Cần Codex: chân dung NPC Drama có tên (chỉ có bản HD; chưa có ⇒ mượn vai cũ)
 };
 
 export function makeAtlas(manifest, base = "", { hd = true } = {}) {

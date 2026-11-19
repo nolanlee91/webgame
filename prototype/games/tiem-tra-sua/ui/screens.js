@@ -17,6 +17,8 @@ import { appeal } from "../core/equipment.js?v=m37";
 import { portrait as portraitOf } from "./panels.js?v=m37";
 import { personaCards, PERSONAS } from "./persona.js?v=m37";
 import { demandEstimate, menuStock, STOCKOUT } from "../core/stockout.js?v=m37";
+import { FAIR, fairAvailable, fairToday, nextFairDay, TIERS, tierOf, nextTier, shiftFee } from "../core/fair.js?v=m37";
+import { CHALLENGE_UNLOCK, challengeWeek, activeChallenge, CHALLENGE_REWARD } from "../core/challenge.js?v=m37";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -196,7 +198,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const hd = h("header", "sheet-head");
       hd.appendChild(icon(atlas, ["icons", "journal"], 36));
       const t = h("div"); t.appendChild(h("h2", "", `Chuẩn bị ca · Ngày ${state.day}`));
-      t.appendChild(h("p", "muted", state.tutorialDone ? "Khách hôm nay 6–10 người (thêm nếu review tốt, nhiều người theo dõi), có hai đợt cao điểm. Xem kho trước khi mở cửa." : "Ngày học: 5 khách, mỗi phiếu có gợi ý bước kế tiếp."));
+      t.appendChild(h("p", "muted", state.tutorialDone ? `Khách dự kiến ~${demandEstimate(state).guests} người (thêm nếu review tốt, nhiều người theo dõi, hạng tiệm, hội chợ), có hai đợt cao điểm. Xem kho trước khi mở cửa.` : "Ngày học: 5 khách, mỗi phiếu có gợi ý bước kế tiếp."));
       t.classList.add("grow1");
       hd.appendChild(t);
       const nb = h("button", "btn small", "Sổ"); nb.type = "button"; nb.id = "prepBook";
@@ -286,6 +288,41 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       st.appendChild(sg);
       grid.appendChild(st);
       c.appendChild(grid);
+      // Milestone 5: hội chợ (cấp 18) và lịch ca thử thách (cấp 20)
+      if (state.level >= FAIR.unlock) {
+        const fb = h("div", "box fair"); fb.id = "fairBox";
+        fb.appendChild(h("h3", "", "Hội chợ khu phố"));
+        if (fairToday(state)) fb.appendChild(h("p", "small", `Hôm nay tiệm có gian ở hội chợ: ca dài ${FAIR.duration / 60000} phút, thêm ${FAIR.guests} khách, giá +15%, nhiều đơn nhóm mỗi người một món. Nhập dư hàng nha!`));
+        else {
+          fb.appendChild(h("p", "small", `Thuê gian hàng ${k(FAIR.fee)}: ca hôm nay thành ca hội chợ (dài hơn, đông hơn, giá +15%, khách kém kiên nhẫn hơn, nhiều đơn nhóm kết hợp). Mỗi ${FAIR.every} ngày một lần.`));
+          const b = h("button", "btn primary small", fairAvailable(state) ? `Thuê gian hàng · ${k(FAIR.fee)}` : `Hội chợ kế tiếp: ngày ${nextFairDay(state)}`); b.type = "button"; b.id = "fairBtn";
+          b.disabled = !fairAvailable(state) || state.money < FAIR.fee;
+          b.addEventListener("click", () => { dispatch({ type: "fair" }); prep(hooks.state()); });
+          fb.appendChild(b);
+        }
+        c.appendChild(fb);
+      }
+      if (state.level >= CHALLENGE_UNLOCK) {
+        const cb = h("div", "box challenge"); cb.id = "challengeBox";
+        const on = activeChallenge(state);
+        cb.appendChild(h("h3", "", on ? `Ca thử thách hôm nay: ${on.name}` : "Lịch ca thử thách (tuỳ chọn)"));
+        const ul3 = h("ul", "ch-week");
+        for (const w of challengeWeek(state)) {
+          const li = h("li", w.day === state.day ? "today" : "");
+          li.appendChild(h("b", "", `Ngày ${w.day} · ${w.name}`)); li.appendChild(h("small", "", w.desc));
+          if (state.badges?.["tt-" + w.id]) li.appendChild(h("span", "badge-tag", "Đã có huy hiệu"));
+          ul3.appendChild(li);
+        }
+        cb.appendChild(ul3);
+        if (!on && state.challenge?.day !== state.day) {
+          const today = challengeWeek(state)[0];
+          const R = state.badges?.["tt-" + today.id] ? CHALLENGE_REWARD.again : CHALLENGE_REWARD.first;
+          const b = h("button", "btn primary small", `Nhận thử thách “${today.name}” · đạt +${k(R.money)}, +${R.xp} XP`); b.type = "button"; b.id = "challengeBtn";
+          b.addEventListener("click", () => { dispatch({ type: "challenge", id: today.id }); prep(hooks.state()); });
+          cb.appendChild(b);
+        }
+        c.appendChild(cb);
+      }
       // quảng bá
       if (state.level >= PROMO_UNLOCK) {
         const pb = h("div", "box promo");
@@ -332,11 +369,25 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         gl.appendChild(row);
       }
       up.appendChild(gl);
+      // hạng tiệm: chỗ tiêu tiền cuối game (core/fair.js TIERS)
+      const T = nextTier(state), cur = TIERS[tierOf(state) - 1];
+      const tr = h("div", "grow tier" + (T ? "" : " owned")); tr.id = "tierRow";
+      const ttx = h("div");
+      ttx.appendChild(h("b", "", `Hạng tiệm: ${cur ? cur.name : "Tiệm mới mở"} (${tierOf(state)}/${TIERS.length})`));
+      ttx.appendChild(h("small", "", T ? `Bậc kế: ${T.name} · mỗi bậc +1 khách đi ngang mỗi ca, khách kiên nhẫn hơn 2%` : "Đã lên hạng cao nhất. Cả hẻm biết tên tiệm."));
+      tr.appendChild(ttx);
+      if (T) {
+        const tb = h("button", "btn small primary", state.level < T.unlock ? `Cấp ${T.unlock}` : `Lên hạng ${k(T.price)}`); tb.type = "button"; tb.id = "tierBtn";
+        tb.disabled = state.level < T.unlock || state.money < T.price;
+        tb.addEventListener("click", () => { dispatch({ type: "tier" }); prep(hooks.state()); });
+        tr.appendChild(tb);
+      }
+      up.appendChild(tr);
       c.appendChild(up);
       const nextL = LEVELS[state.level];
       if (state.level < MAX_LEVEL && nextL) { const u = unlocksAt(nextL.level).filter((x) => x.kind !== "note").map((x) => x.name); c.appendChild(h("p", "muted small", `Cấp ${nextL.level} (${nextL.xp} XP) mở: ${u.length ? u.join(", ") : nextL.note}.`)); }
       const foot = h("footer", "sheet-foot");
-      foot.appendChild(h("span", "muted", `Tiền mặt ${k(state.money)} · Phí ca 12k ghi lúc mở cửa`));
+      foot.appendChild(h("span", "muted", `Tiền mặt ${k(state.money)} · Phí ca ${k(shiftFee(state))} ghi lúc mở cửa`));
       const go = h("button", "btn primary big", "Mở quán"); go.id = "openShop"; go.type = "button"; go.dataset.autofocus = "";
       go.addEventListener("click", () => {
         const short = demandEstimate(hooks.state()).short;
@@ -414,6 +465,8 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const meta = h("p", "sum-meta");
       meta.textContent = `Danh tiếng ${S.repDelta >= 0 ? "+" : ""}${S.repDelta} → ${S.rep} · +${S.xp} XP · Cấp ${S.level} · ${S.followers ?? 0} người theo dõi${S.followersDelta ? ` (+${S.followersDelta})` : ""}${S.rating ? ` · đánh giá ${S.rating.toLocaleString("vi-VN")} sao` : ""}${S.multi ? ` · ${S.multi} đơn nhiều ly` : ""} · Tiền mặt ${k(S.money)}`;
       c.appendChild(meta);
+      if (S.challenge) c.appendChild(h("p", "levelup" + (S.challenge.ok ? "" : " miss"), `Ca thử thách “${S.challenge.name}”: ${S.challenge.ok ? `đạt! +${k(S.challenge.reward.money)}, +${S.challenge.reward.xp} XP.` : "chưa đạt."} ${S.challenge.line}`));
+      if (S.badges?.length) { const bb = h("div", "badges-new"); bb.id = "badgesNew"; bb.appendChild(h("b", "", "Huy hiệu mới")); for (const x of S.badges) bb.appendChild(h("span", "badge-tag", x.name)); c.appendChild(bb); }
       if (S.levelUps.length) c.appendChild(h("p", "levelup", `Lên cấp ${S.levelUps.join(", ")}! Mở: ${S.levelUps.flatMap((l) => unlocksAt(l).filter((u) => u.kind !== "note").map((u) => u.name)).join(", ") || "quyền lợi mới"}.`));
       if (S.missions?.length) {
         const mb = h("div", "goals sum-goals");
@@ -452,6 +505,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       go.addEventListener("click", () => { dispatch({ type: "closeSummary" }); hooks.afterSummary ? hooks.afterSummary() : prep(hooks.state()); });
       foot.appendChild(go);
       c.appendChild(foot);
+      replayBlock(c, S.day);
     });
   }
 
@@ -463,8 +517,28 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const go = h("button", "btn primary big", "Tiếp tục ca"); go.id = "resumeBtn"; go.type = "button"; go.dataset.autofocus = "";
       go.addEventListener("click", () => { close(); hooks.resume(); });
       c.appendChild(go);
+      replayBlock(c, state.shift?.day ?? state.day);
       restartBlock(c);
     });
+  }
+
+  /** Nút "Chơi lại ngày hôm nay" + xác nhận: quay về lúc mở bảng Chuẩn bị ca của ngày `day` (bản hiện tại được cất dự phòng). */
+  function replayBlock(c, day) {
+    if (hooks.replayDay?.() !== day) return;
+    const box = h("div", "restart replay");
+    const ask = h("button", "btn small", `Chơi lại ngày ${day}`); ask.type = "button"; ask.id = "replayAsk";
+    ask.addEventListener("click", () => {
+      box.textContent = "";
+      box.appendChild(h("p", "small", `Quay về đầu ngày ${day} (lúc mở bảng Chuẩn bị ca)? Tiền, kho, cấp, review và mọi chuyện của ngày ${day} trở lại như lúc đó. Bản hiện tại được cất một bản dự phòng trên máy này.`));
+      const row = h("div", "row");
+      const yes = h("button", "btn danger small", `Chơi lại ngày ${day}`); yes.type = "button"; yes.id = "replayYes";
+      yes.addEventListener("click", () => { if (!hooks.replay?.()) box.appendChild(h("p", "small", "Chưa có ảnh đầu ngày hoặc trình duyệt không cho lưu.")); });
+      const no = h("button", "btn small", "Thôi"); no.type = "button"; no.id = "replayNo";
+      no.addEventListener("click", () => { box.textContent = ""; box.appendChild(ask); ask.focus(); });
+      row.appendChild(yes); row.appendChild(no); box.appendChild(row); no.focus();
+    });
+    box.appendChild(ask);
+    c.appendChild(box);
   }
 
   /** Nút "Chơi lại từ đầu" + bước xác nhận ngay trong bảng (không mất dữ liệu: bản cũ được cất dự phòng). */

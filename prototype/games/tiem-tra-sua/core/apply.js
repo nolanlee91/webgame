@@ -12,6 +12,8 @@ import { reply, setPersona } from "./reviews.js?v=m37";
 import { consign, promo } from "./business.js?v=m37";
 import { STOCK_IDS } from "../data/ingredients.js?v=m37";
 import { restockToday, resolveStockout } from "./stockout.js?v=m37";
+import { joinFair, buyTier } from "./fair.js?v=m37";
+import { joinChallenge, checkBadges } from "./challenge.js?v=m37";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),
@@ -27,6 +29,9 @@ const HANDLERS = {
   cook: (s, a, ev) => shift.cook(s, a.size, ev),
   restockToday: (s, a, ev) => restockToday(s, ev),
   stockout: (s, a, ev) => resolveStockout(s, a.choice, ev),
+  fair: (s, a, ev) => joinFair(s, ev),
+  challenge: (s, a, ev) => joinChallenge(s, a.id, ev),
+  tier: (s, a, ev) => { const r = buyTier(s, ev); if (r.ok) checkBadges(s, null, ev); return r; },
   buy: (s, a, ev) => buy(s, a.id, ev),
   place: (s, a, ev) => place(s, a.id, a.x, a.y, ev),
   resetPlace: (s, a, ev) => resetPlace(s, a.id, ev),

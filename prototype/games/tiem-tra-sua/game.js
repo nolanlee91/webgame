@@ -1,11 +1,12 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m37";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, icon } from "./render/atlas.js?v=m37";
 import { createScene } from "./render/scene.js?v=m37";
 import { createBrew } from "./ui/brew.js?v=m37";
 import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m37";
 import { createPanels } from "./ui/panels.js?v=m37";
 import { createStockout } from "./ui/stockout.js?v=m37";
+import { TIER_LINES } from "./data/lines-m5.js?v=m37";
 import { apply } from "./core/apply.js?v=m37";
 import { customer } from "./core/shift.js?v=m37";
 import { currentEvent, openEvent } from "./core/drama.js?v=m37";
@@ -29,10 +30,13 @@ async function boot() {
   const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
   const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
   const replaced = new Set(hdOn.map(([al]) => SHEETS[al]));
-  const lazy = new Set([HD_SHEETS.faces]);
+  // tải lười (render/atlas.js LAZY_SHEETS): biểu cảm HD, chân dung NPC, thời tiết, thẻ Nhật Ký, ảnh phố — không cần trong 10 giây đầu;
+  // tải nền khi trình duyệt rảnh sau khi tiệm hiện ra. Sheet tuỳ chọn (OPTIONAL_SHEETS) chỉ tải khi manifest có.
   const want = [...Object.values(SHEETS).filter((src) => files.has(src) && !replaced.has(src)), ...hdOn.map(([, f]) => f)];
-  want.filter((src) => lazy.has(src)).forEach(load);
-  await Promise.all(want.filter((src) => !lazy.has(src)).map(load));
+  const later = want.filter((src) => LAZY_SHEETS.has(src));
+  await Promise.all(want.filter((src) => !LAZY_SHEETS.has(src)).map(load));
+  const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 1200));
+  idle(() => later.forEach(load));
 
   const store = shopSave(browserStorage());
   const seed = params.has("seed") ? Number(params.get("seed")) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
@@ -56,9 +60,12 @@ async function boot() {
   let panels;
   const overlays = createOverlays($("#overlay"), atlas, (a) => act(a), {
     state: () => state,
-    afterIntro: () => overlays.prep(state),
+    afterIntro: () => { store.snapshotDay(state); overlays.prep(state); },
     resume: () => { paused = false; },
     restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
+    // "Chơi lại ngày hôm nay": ảnh đầu ngày (save.js DAY_KEY), bản hiện tại cất sang REPLAY_BACKUP_KEY trước
+    replayDay: () => store.replayInfo()?.day ?? null,
+    replay: () => { if (!store.replayDay()) return false; restarting = true; location.reload(); return true; },
     onClose: () => {},
     notebook: (tab, back) => panels.notebook(state, tab, back),
     journal: (back) => panels.journal(state, back),
@@ -72,7 +79,7 @@ async function boot() {
   /** Sau bảng chốt ca: sự kiện giữa hai ca (nếu có) rồi bảng Chuẩn bị ca. */
   function betweenDays() {
     if (currentEvent(state) && !state.shift) panels.event(state, { onDone: () => betweenDays() });
-    else overlays.prep(state);
+    else { store.snapshotDay(state); overlays.prep(state); }
   }
   function arrange() {
     overlays.close();
@@ -103,6 +110,7 @@ async function boot() {
 
 
   function act(a, fromLoop = false) {
+    if (a?.type === "startShift") store.snapshotDay(state); // bảo đảm có ảnh đầu ngày trước khi mở ca
     const r = apply(state, a);
     if (r.err) {
       if (!fromLoop && ERR[r.err]) { say(ERR[r.err](r), "warn"); play("error"); }
@@ -114,6 +122,7 @@ async function boot() {
       switch (e.type) {
         case "brewed":
           justDid = e.step;
+          if (e.dual?.length && e.line) say(e.line, "good");
           if (e.also?.length && e.step === "cup") say(e.line || `Pha đồng loạt: ${e.also.length + 1} ly cùng yêu cầu.`, "good");
           break;
         case "filled": say(`Đã ghép ly ${e.n}/${e.of} vào đơn. Pha tiếp ly kế!`, "good"); break;
@@ -133,7 +142,8 @@ async function boot() {
         case "restockedToday": play("paper"); say(`Đã nhập đủ cho hôm nay (−${fmtK(e.spent)}).`, "good"); break;
         case "stockoutResolved": play(e.choice === "close" ? "error" : "paper"); break;
         case "complaint": setTimeout(() => state.shift?.dialog && overlays.complaint(state), reduced() ? 0 : 450); break;
-        case "drama": setTimeout(() => { if (state.shift?.dialog?.kind === "event" && !overlays.current) panels.event(state, { onDone: () => {} }); }, reduced() ? 0 : 350); break;
+        case "drama": if (WEATHER[e.id]) { scene.setWeather(WEATHER[e.id].kind); wxUntil = (state.shift?.t || 0) + WEATHER[e.id].ms; }
+          setTimeout(() => { if (state.shift?.dialog?.kind === "event" && !overlays.current) panels.event(state, { onDone: () => {} }); }, reduced() ? 0 : 350); break;
         case "missionDone": say(`Xong nhiệm vụ: ${e.text} (+${e.xp} XP${e.money ? `, +${e.money}k` : ""})${e.line ? " " + e.line : ""}`, "good"); break;
         case "missionsAll": say(e.line, "good"); break;
         case "consignDone": say(e.line, "good"); break;
@@ -143,6 +153,10 @@ async function boot() {
         case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
         case "cooking": say("Bắt đầu nấu mẻ " + e.size + " phần trân châu."); break;
         case "batchDone": say("Mẻ trân châu " + e.size + " phần đã chín!", "good"); break;
+        case "fairJoined": play("level"); say(`Đã thuê gian hàng hội chợ (−${fmtK(e.fee)}). Hôm nay đông lắm, nhập dư hàng nha!`, "good"); break;
+        case "challengeJoined": play("paper"); say(`Nhận thử thách “${e.name}”. Cố lên chủ tiệm!`, "good"); break;
+        case "tierUp": play("level"); say(TIER_LINES[(e.tier - 1) % TIER_LINES.length].replace("{tier}", e.name) + ` (−${fmtK(e.price)})`, "good"); break;
+        case "badge": play("level"); say(e.line, "good"); break;
         case "bought": scene.setOwned(state); say("Đã mua " + EQUIPMENT[e.id].name + " (−" + fmtK(e.price) + ")", "good"); break;
         case "consigned": say(`${e.line ? e.line + " " : "Dì Ba ký gửi một gói hàng. "}(${fmtK(e.owed)}, bán tới đâu trừ tới đó.)`, "good"); break;
         case "promoted": say(e.line, "good"); break;
@@ -157,6 +171,9 @@ async function boot() {
     return r;
   }
 
+  // ---------- thời tiết theo sự kiện (V15 mưa bão, O04 cúp điện): lớp weather-fx khi Codex giao, ngược lại lớp CSS ----------
+  const WEATHER = { V15: { kind: "rain", ms: 70000 }, O04: { kind: "power", ms: 25000 } };
+  let wxUntil = 0;
   // ---------- vòng lặp ----------
   let last = performance.now();
   const shopLabel = $("#shopLabel");
@@ -169,6 +186,9 @@ async function boot() {
     const mode = paused ? "quiet" : shift?.dialog ? "dialog" : running() ? "service" :
       (!shift && (!overlays.current || ["intro", "persona", "prep", "summary"].includes(overlays.current))) ? "prep" : "quiet";
     setSoundScene(mode, mode === "service" && !!shift.kitchen?.batches.length);
+    const wd = state.shift?.dialog;
+    if (wd?.kind === "event" && WEATHER[wd.id] && scene.weather !== WEATHER[wd.id].kind) { scene.setWeather(WEATHER[wd.id].kind); wxUntil = state.shift.t + WEATHER[wd.id].ms; }
+    else if (scene.weather && (!state.shift || state.shift.t > wxUntil)) scene.setWeather(null);
     scene.update(state, { reduced: reduced() });
     scene.setOwned(state);
     rail(state);
@@ -280,6 +300,8 @@ async function boot() {
     showSummary: () => overlays.summary(state),
     sound: () => soundDebug(), // trạng thái âm thanh cho e2e (ctx, cảnh, vòng lặp đang chạy, số tiếng đã phát)
     sceneToClient(x, y) { const r = $("#scene").getBoundingClientRect(); const [sx, sy] = scene.toScreen(x, y); return [r.left + sx, r.top + sy]; },
+    visibleRect: () => scene.visibleRect(),
+    store: () => ({ day: store.replayInfo()?.day ?? null }),
   };
 }
 

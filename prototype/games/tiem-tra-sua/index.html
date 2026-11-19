@@ -84,6 +84,26 @@
     .warn-list li.zero span { font-weight: 800; color: #8a1f14; }
     .warn-txt { font-weight: 800; color: #8a1f14; flex: 1 1 200px; }
     .quickstock .stock { margin: 8px 0 12px; }
+    .fair, .challenge { border: 2px solid var(--teal, #2c6e66); }
+    .ch-week { list-style: none; padding: 0; margin: 6px 0 10px; display: grid; gap: 4px; }
+    .ch-week li { display: grid; gap: 1px; padding: 4px 8px; border-radius: 8px; background: rgba(0, 0, 0, .04); font-size: 13px; }
+    .ch-week li.today { background: var(--amber-l); }
+    .badge-tag { display: inline-block; font-size: 11px; font-weight: 800; background: var(--plum); color: #fff; border-radius: 6px; padding: 1px 7px; margin: 2px 4px 2px 0; }
+    .badges-new { margin: 6px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+    .badge-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; }
+    .badge-wall h3 { grid-column: 1 / -1; margin: 0; }
+    .bw-item { padding: 6px 8px; border-radius: 8px; background: rgba(0, 0, 0, .05); opacity: .6; display: grid; gap: 2px; }
+    .bw-item.on { background: var(--amber-l); opacity: 1; }
+    .bw-item small { font-size: 11px; }
+    .levelup.miss { background: var(--red-l); }
+    /* thời tiết (render/scene.js setWeather): sheet weather-fx.webp nếu có, ngược lại lớp CSS */
+    .wx { position: absolute; inset: 0; pointer-events: none; z-index: 5000; }
+    .wx-art { position: absolute; left: 0; top: 0; image-rendering: pixelated; }
+    .wx.css .wx-art { display: none; }
+    .wx.css.wx-rain { background: linear-gradient(rgba(30, 40, 60, .28), rgba(30, 40, 60, .28)), repeating-linear-gradient(105deg, rgba(200, 220, 255, .0) 0 22px, rgba(200, 220, 255, .38) 22px 24px); background-size: auto, 260px 260px; animation: wxRain .5s linear infinite; }
+    .wx.css.wx-power { background: radial-gradient(ellipse at 45% 55%, rgba(255, 220, 140, .18), rgba(5, 8, 18, .72) 60%); }
+    @keyframes wxRain { to { background-position: 0 0, -60px 260px; } }
+    @media (prefers-reduced-motion: reduce) { .wx.css.wx-rain { animation: none; } }
     .chip.warn { background: var(--amber-l); animation: pulse 1s ease-in-out infinite; }
     .xpbar { width: 54px; height: 6px; border-radius: 4px; background: var(--cream3); overflow: hidden; }
     .xpbar i { display: block; height: 100%; background: var(--teal); }

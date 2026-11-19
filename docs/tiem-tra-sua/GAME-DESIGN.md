@@ -62,3 +62,13 @@ Nhật Ký Làm Chủ ghi doanh thu, giá vốn, hao hụt, chi phí ca, lợi n
 - Đổi lựa chọn cùng một sự kiện phải tạo ít nhất hai hậu quả khác nhau có thể kiểm tra ở ca hiện tại hoặc ca sau.
 - Khôi phục phiên giữa ca giữ ly và đơn tương ứng. Xử lý giao, trừ kho, thưởng và sự kiện đúng một lần khi bấm lặp hoặc tải lại.
 - Claude quyết định kiến trúc, mô hình lưu và engine. Tài liệu dùng công nghệ web và định dạng hiện có làm ràng buộc bàn giao.
+
+## Bổ sung Milestone 5
+
+- **Hết hàng giữa ca**: bảng Chuẩn bị ca dự báo phần hàng cần theo số khách dự kiến và nhắc món thiếu ("Nhập đủ cho hôm nay"); giữa ca hàng còn ≤ 2 phần thì nhân viên nhắc, ô Kho đỏ mở bảng nhập gấp; hết hẳn thì hội thoại: chạy đi mua gấp (quầy bỏ trống), nhờ shipper, mượn tiệm bên, đổi món, đóng cửa sớm, ký gửi khi hết tiền. Không bao giờ kẹt.
+- **Hội chợ khu phố (cấp 18)** và **đơn nhóm kết hợp**: một ca đặc biệt người chơi chủ động chọn, đông và đắt hơn, thử khả năng chuẩn bị kho và pha song song (ECONOMY.md).
+- **Huy hiệu Chủ Tiệm và lịch ca thử thách (cấp 20)**: mục tiêu dài hạn sau khi hết món mở khoá; thử thách tuỳ chọn, không phạt khi hụt.
+- **Máy rót trà hai vòi (cấp 11)**: nâng cấp cho bàn pha đôi, rót trà nền cho cả hai chỗ pha dù hai ly khác loại trà (bàn pha đôi chỉ rót cùng lúc khi hai ly cùng yêu cầu).
+- **Hạng tiệm**: chỗ tiêu tiền cuối game (8 bậc).
+- **Chơi lại ngày hôm nay**: ở bảng Tạm dừng và Chốt ca. Quay về lúc mở bảng Chuẩn bị ca của ngày đó, có xác nhận; bản hiện tại được cất dự phòng (`….before-replay`). Một ảnh đầu ngày mỗi ngày (`….day`).
+- **Thời tiết**: mưa bão (V15) và cúp điện (O04) phủ cảnh bằng lớp mưa / lớp tối (asset `weather-fx.webp` khi Codex giao).

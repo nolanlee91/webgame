@@ -18,8 +18,22 @@ import { PROMOS } from "./business.js?v=m37";
 import { placeError } from "./decor.js?v=m37";
 import { freshDrama } from "./drama.js?v=m37";
 import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m37";
+import { LEVELS } from "../data/levels.js?v=m37";
+import { CHALLENGE, BADGE } from "./challenge.js?v=m37";
+import { TIERS } from "./fair.js?v=m37";
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
+/** Bảng XP tích luỹ trước Milestone 5 (v1–v3). v4 kéo dài đường cong (bộ mô phỏng tools/sim), MIGRATIONS[3] quy đổi XP cũ
+ *  sang đường mới giữ đúng cấp và đúng phần trăm tiến độ trong cấp ⇒ người chơi cũ không tụt cấp, không mất món đã mở. */
+export const OLD_XP = [0, 30, 75, 130, 195, 270, 355, 450, 555, 670, 795, 930, 1075, 1230, 1395, 1570, 1755, 1950, 2155, 2370];
+export function remapXp(xp, from = OLD_XP, to = LEVELS.map((L) => L.xp)) {
+  if (!(xp > 0)) return 0;
+  let lv = 0;
+  for (let i = 0; i < from.length; i++) if (xp >= from[i]) lv = i;
+  if (lv >= from.length - 1) return to[to.length - 1] + Math.round(xp - from[from.length - 1]);
+  const frac = (xp - from[lv]) / (from[lv + 1] - from[lv]);
+  return Math.floor(to[lv] + frac * (to[lv + 1] - to[lv]));
+}
 
 /** v1 → v2: một ly/một phiếu ⇒ chỗ pha 0; khách một ly ⇒ items[1]; thêm các mục mới (để trống). */
 export const MIGRATIONS = {
@@ -57,6 +71,14 @@ export const MIGRATIONS = {
     o.usedDay = [];
     return o;
   },
+  /** v3 → v4 (Milestone 5): đường cong XP mới (giữ cấp + tiến độ), huy hiệu, hạng tiệm, hội chợ, ca thử thách. */
+  3: (d) => {
+    const o = JSON.parse(JSON.stringify(d));
+    o.v = 4;
+    if (typeof o.xp === "number" && Number.isFinite(o.xp)) o.xp = remapXp(o.xp);
+    o.badges = {}; o.tier = 0; o.fair = null; o.challenge = null;
+    return o;
+  },
 };
 
 export function createState(seed = 20261119) {
@@ -69,6 +91,7 @@ export function createState(seed = 20261119) {
     followers: 0, buzz: 0, feed: [], nextReviewId: 1, rating: null, promises: [],
     owner: { persona: null, lastPersona: null, switches: [] }, returning: [], usedDay: [],
     drama: freshDrama(), promo: null, consign: null, debtHB: null,
+    badges: {}, tier: 0, fair: null, challenge: null,
     shift: null, lastSummary: null, journal: [],
   };
 }
@@ -92,6 +115,7 @@ function loadCup(c) {
   const sealed = steps[steps.length - 1].step === "lid";
   const out = { steps, sealed, forCid: Number.isInteger(c.forCid) ? c.forCid : null };
   if (typeof c.at === "number" && Number.isFinite(c.at) && c.at >= 0) out.at = Math.min(c.at, 3_600_000); // M3 nội dung: lúc ghép vào đơn
+  if (c.dual) out.dual = true; // M5: trà nền rót bằng máy hai vòi
   return out;
 }
 
@@ -224,6 +248,7 @@ function loadShift(sh, s) {
       prog: int(m.prog, 0, MISSION[m.id].n, 0), done: !!m.done, reward: { xp: MISSION[m.id].reward.xp, money: MISSION[m.id].reward.money } })),
     drama: { count: int(D.count, 0, 9, 0), max: int(D.max, 0, 9, 0), nextAt: num(D.nextAt, 0, 3_600_000, 60000), log: arr(D.log).filter(obj).slice(0, 10).map(loadHist) },
     followers0: int(sh.followers0, 0, BIG, 0),
+    fair: !!sh.fair, challenge: CHALLENGE[sh.challenge] ? sh.challenge : null, noUndo: !!sh.noUndo,
     // hết hàng giữa ca (core/stockout.js): chạy đi mua, Anh Tèo đang giao, đã mượn Hẻm Bên, đóng cửa sớm, đã nhắc món sắp hết
     away: obj(sh.away) && STOCK[sh.away.id] ? { until: num(sh.away.until, 0, t + 60000, t), id: sh.away.id, n: int(sh.away.n, 0, 99, 0) } : null,
     deliveries: arr(sh.deliveries).filter((x) => obj(x) && STOCK[x.id]).slice(0, 5).map((x) => ({ at: num(x.at, 0, t + 120000, t), id: x.id, n: int(x.n, 0, 99, 0), wrong: STOCK[x.wrong] ? x.wrong : null })),
@@ -309,6 +334,11 @@ export function loadSave(raw) {
   s.drama = loadDrama(d.drama);
   s.promo = obj(d.promo) && PROMOS[d.promo.kind] ? { day: int(d.promo.day, 1, 1e6, 1), kind: d.promo.kind } : null;
   s.consign = obj(d.consign) ? { day: int(d.consign.day, 0, 1e6, 0), owed: int(d.consign.owed, 0, 9999, 0) } : null;
+  s.badges = {};
+  if (obj(d.badges)) for (const [id, v] of Object.entries(d.badges)) if (BADGE[id]) s.badges[id] = int(v, 1, 1e6, 1);
+  s.tier = int(d.tier, 0, TIERS.length, 0);
+  s.fair = obj(d.fair) ? { day: int(d.fair.day, 0, 1e6, 0), last: int(d.fair.last, -99, 1e6, -99), count: int(d.fair.count, 0, 1e6, 0) } : null;
+  s.challenge = obj(d.challenge) && CHALLENGE[d.challenge.id] ? { id: d.challenge.id, day: int(d.challenge.day, 0, 1e6, 0) } : null;
   s.debtHB = obj(d.debtHB) && STOCK[d.debtHB.id] ? { id: d.debtHB.id, n: int(d.debtHB.n, 0, 99, 0), day: int(d.debtHB.day, 1, 1e6, 1) } : null;
   s.shift = loadShift(d.shift, s);
   if (s.shift) { s.shift.day = s.day; s.drama.pending = null; }

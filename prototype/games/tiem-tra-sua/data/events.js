@@ -23,6 +23,7 @@
 import { EVENTS_M3 } from "./events-m3.js?v=m37";
 import { EVENTS_REPLY } from "./events-reply.js?v=m37";
 import { EVENTS_STOCKOUT } from "./events-stockout.js?v=m37";
+import { EVENTS_M5 } from "./events-m5.js?v=m37";
 
 export const EVENTS = [
   // ===== Khách =====
@@ -865,6 +866,7 @@ export const EVENTS = [
   ...EVENTS_M3,
   ...EVENTS_REPLY,
   ...EVENTS_STOCKOUT,
+  ...EVENTS_M5,
 ];
 
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

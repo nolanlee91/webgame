@@ -13,12 +13,13 @@ import { placeError } from "../core/decor.js";
 import { MISSION } from "../data/missions.js";
 import { loadSave, dump } from "../core/state.js";
 import { shop, act, err, advance, untilWaiting, stepsFor, clearDrama } from "./helpers.mjs";
+import { LEVELS } from "../data/levels.js";
 
 /** Ca ngày thường, không sự kiện chen ngang, lịch khách do test đặt. */
 function day(level = 9, guests = [], seed = 3) {
   const s = shop(seed);
   s.tutorialDone = true; s.day = 5; s.money = 3000;
-  s.xp = [0, 0, 30, 75, 130, 195, 270, 355, 450, 555, 670, 795, 930, 1075, 1230, 1395, 1570, 1755, 1950, 2155, 2370][level]; s.level = level;
+  s.xp = LEVELS[level - 1].xp; s.level = level;
   for (const id of STOCK_IDS) s.stock[id] = 6;
   return Object.assign(s, { _guests: guests });
 }
@@ -91,7 +92,7 @@ test("cấp 3 / ngày 3 mới có đơn hai ly; ba ly từ cấp 10 vào giờ c
     let multi = 0, three = 0;
     for (let seed = 1; seed <= 25; seed++) {
       const s = shop(seed); s.tutorialDone = true; s.day = dayN;
-      s.xp = [0, 0, 30, 75, 130, 195, 270, 355, 450, 555, 670][level]; s.level = level;
+      s.xp = LEVELS[level - 1].xp; s.level = level;
       act(s, { type: "startShift" });
       for (const g of s.shift.schedule) { if (g.items.length > 1) multi++; if (g.items.length === 3) three++; }
     }

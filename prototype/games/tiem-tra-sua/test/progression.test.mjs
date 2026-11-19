@@ -5,14 +5,14 @@ import { RECIPES, RECIPE } from "../data/recipes.js";
 import { levelForXp, xpForServe, recipesAt, unlocksAt, xpProgress } from "../core/progression.js";
 import { shop, act, untilWaiting, serveRight, advance, openDay } from "./helpers.mjs";
 
-test("20 cấp, XP tích lũy tăng dần, khớp ECONOMY (cấp 2 = 30, cấp 20 = 2370)", () => {
+test("20 cấp, XP tích lũy tăng dần (đường cong M5 từ bộ mô phỏng, ECONOMY.md)", () => {
   assert.equal(LEVELS.length, MAX_LEVEL);
   for (let i = 1; i < LEVELS.length; i++) assert.ok(LEVELS[i].xp > LEVELS[i - 1].xp);
-  assert.equal(LEVELS[1].xp, 30);
-  assert.equal(LEVELS[19].xp, 2370);
+  assert.ok(LEVELS[1].xp >= 25 && LEVELS[1].xp <= 50);
+  assert.ok(LEVELS[19].xp >= 10000, "cấp 20 là mục tiêu dài hạn (~11 giờ chơi)");
   assert.equal(levelForXp(0), 1);
-  assert.equal(levelForXp(29), 1);
-  assert.equal(levelForXp(30), 2);
+  assert.equal(levelForXp(LEVELS[1].xp - 1), 1);
+  assert.equal(levelForXp(LEVELS[1].xp), 2);
   assert.equal(levelForXp(99999), 20);
 });
 
@@ -32,7 +32,7 @@ test("8 công thức mở dần ở cấp 1, 1, 2, 3, 4, 6, 8, 10", () => {
 
 test("giao ly lên cấp: phát sự kiện levelUp kèm mở khóa; thanh XP tính trong cấp", () => {
   const s = shop();
-  s.xp = 25; s.level = 1;
+  s.xp = LEVELS[1].xp - 5; s.level = 1;
   act(s, { type: "startShift" });
   const c = untilWaiting(s);
   const r = serveRight(s, c);
@@ -41,7 +41,7 @@ test("giao ly lên cấp: phát sự kiện levelUp kèm mở khóa; thanh XP t�
   assert.equal(up.level, 2);
   assert.equal(s.level, 2);
   assert.deepEqual(s.shift.levelUps, [2]);
-  assert.deepEqual(xpProgress(s), { into: 33 - 30, need: 75 - 30 });
+  assert.deepEqual(xpProgress(s), { into: s.xp - LEVELS[1].xp, need: LEVELS[2].xp - LEVELS[1].xp });
 });
 
 test("danh tiếng: review 1–5 sao −3/−1/0/+1/+2, giới hạn ±8 mỗi ca", () => {

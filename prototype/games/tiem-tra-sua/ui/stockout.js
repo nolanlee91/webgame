@@ -58,7 +58,7 @@ export function createStockout(atlas, dispatch, ov, hooks) {
       const me = h("figure", "speaker me"); me.appendChild(icon(atlas, ["faces", done.choice === "close" ? "barista-concerned" : "barista-happy"], 120, "ico portrait")); me.appendChild(h("figcaption", "", "Bạn"));
       const role = done.choice === "borrow" ? "vip" : done.choice === "shipper" ? "courier" : done.choice === "consign" ? "neighbor" : c?.sprite || "neighbor";
       const name = done.choice === "borrow" ? "Chị Lụa Hẻm Bên" : done.choice === "shipper" ? "Anh Tèo shipper" : done.choice === "consign" ? "Dì Ba" : c?.name || "";
-      const cu = h("figure", "speaker cust"); cu.appendChild(portrait(atlas, role, done.choice === "close" ? "annoyed" : "happy", 120)); cu.appendChild(h("figcaption", "", name));
+      const cu = h("figure", "speaker cust"); cu.appendChild(portrait(atlas, role, done.choice === "close" ? "annoyed" : "happy", 120, ["borrow", "shipper", "consign"].includes(done.choice) ? name : null)); cu.appendChild(h("figcaption", "", name));
       stage.appendChild(cu); stage.appendChild(me);
       card.appendChild(stage);
       const say = h("div", "say");

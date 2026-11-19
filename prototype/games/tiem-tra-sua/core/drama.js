@@ -24,7 +24,7 @@ export const IF_KEYS = new Set(["minDay", "minLevel", "minRep", "maxRep", "minFo
   "rush", "lastServe", "pearlsOut", "archWaiting", "lostMin", "cupsMin", "minMoney", "maxMoney", "tMin", "tMax", "reviewLow", "sum", "chain"]);
 /** Cờ do chính game đặt (không cần sự kiện nào đặt): C01 làm lại ly ⇒ fix-<nhóm khách>; nhập vựa sỉ ⇒ si-mua;
  *  quảng bá ⇒ promo-<loại> (chỉ trong ngày); nhận gói ký gửi ⇒ ky-gui; trả đủ ⇒ ky-gui-xong; câu trả lời review ⇒ rep-<kết quả> (core/reviews.js). */
-export const ENGINE_FLAG = /^(fix-|promo-|si-mua$|ky-gui|rep-|muon-hb$|dong-som$|het-hang$)/; // + hết hàng giữa ca (core/stockout.js)
+export const ENGINE_FLAG = /^(fix-|promo-|si-mua$|ky-gui|rep-|muon-hb$|dong-som$|het-hang$|hoi-cho|thu-thach)/; // + hội chợ / ca thử thách (core/fair.js, core/challenge.js) // + hết hàng giữa ca (core/stockout.js)
 /** Đặt cờ của game (hết hạn sau `days` ngày, mặc định DRAMA.flagDays). */
 export function engineFlag(s, f, days = DRAMA.flagDays) { if (s.drama) s.drama.flags[f] = s.day + days; }
 export const ROLES = ["barista", "regular", "vip", "reviewer", "courier", "neighbor", "office-worker"];

@@ -15,6 +15,7 @@ import { appeal } from "./equipment.js?v=m37";
 import { trafficBonus } from "./reviews.js?v=m37";
 import { promoGuests } from "./business.js?v=m37";
 import { next } from "./rng.js?v=m37";
+import { shiftFee } from "./fair.js?v=m37";
 import { fill } from "./text.js?v=m37";
 import { customer, waiting, lineCtx, freshLine, say, review, addRep, orderSpec } from "./shift.js?v=m37";
 
@@ -74,7 +75,7 @@ export function restockToday(s, events) {
   for (let guard = 0; guard < 80; guard++) {
     const { short } = demandEstimate(s);
     const room = capacity(s) - stockUsed(s);
-    const can = short.filter((x) => STOCK[x.id].unlock <= s.level && packPrice(x.id) <= s.money - SHIFT_FEE && packSize(x.id) <= room);
+    const can = short.filter((x) => STOCK[x.id].unlock <= s.level && packPrice(x.id) <= s.money - shiftFee(s) && packSize(x.id) <= room);
     if (!can.length) break;
     const x = can[0], p = packPrice(x.id), n = packSize(x.id);
     s.money -= p; s.stock[x.id] = (s.stock[x.id] || 0) + n; s.stats.spentStock += p; spent += p;
@@ -83,7 +84,7 @@ export function restockToday(s, events) {
   if (!spent) {
     const sh2 = demandEstimate(s).short;
     if (!sh2.length) return { err: "nothing" };
-    return { err: sh2.some((x) => packPrice(x.id) <= s.money - SHIFT_FEE) ? "capacity" : "money" };
+    return { err: sh2.some((x) => packPrice(x.id) <= s.money - shiftFee(s)) ? "capacity" : "money" };
   }
   const left = demandEstimate(s).short;
   events.push({ type: "restockedToday", bought, spent, left: left.map((x) => x.id) });

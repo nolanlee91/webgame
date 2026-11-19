@@ -5,10 +5,11 @@ import { CAPTIONS_M3 } from "../data/lines-m3.js?v=m37";
 import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=m37";
 import { CAPTIONS_STOCKOUT } from "../data/lines-stockout.js?v=m37";
 import { STOCK } from "../data/ingredients.js?v=m37";
+import { CAPTIONS_FAIR, CAPTIONS_CHALLENGE } from "../data/lines-m5.js?v=m37";
 
 const CAPTIONS = { ...BASE_CAPTIONS, missions: CAPTIONS_M3.missions, multi: [...BASE_CAPTIONS.multi, ...CAPTIONS_M3.multi],
   replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip,
-  closed: CAPTIONS_STOCKOUT.closed, ran: CAPTIONS_STOCKOUT.ran };
+  closed: CAPTIONS_STOCKOUT.closed, ran: CAPTIONS_STOCKOUT.ran, fair: CAPTIONS_FAIR, challengeWin: CAPTIONS_CHALLENGE.win, challengeLose: CAPTIONS_CHALLENGE.lose };
 /** Ca bình thường: chủ tiệm đã chọn tính cách thì một nửa số lần dùng câu theo tính cách. */
 const PLAIN = new Set(["good", "few", "perfect"]);
 import { fill } from "./text.js?v=m37";
@@ -18,7 +19,9 @@ import { int } from "./rng.js?v=m37";
 export function captionKind(sum) {
   const moments = sum.moments || [];
   if (sum.closedEarly || moments.some((m) => m.kind === "closed")) return "closed"; // hết hàng, đóng cửa sớm
+  if (sum.challenge) return sum.challenge.ok ? "challengeWin" : "challengeLose"; // ca thử thách (cấp 20)
   if (sum.profit < 0) return "loss";
+  if (sum.fair) return "fair"; // ca hội chợ (cấp 18)
   if (moments.some((m) => m.kind === "ran")) return "ran";
   if (moments.some((m) => m.kind === "reply" && m.outcome === "viral")) return "replyViral";
   if (moments.some((m) => m.kind === "reply" && m.outcome === "phot")) return "replyPhot";
@@ -45,12 +48,13 @@ export function caption(s, sum) {
     cups: sum.cups, lost: sum.lost, profit: Math.abs(sum.profit), multi: sum.multi || 0, followers: Math.max(0, sum.followersDelta || 0),
     drama: (sum.drama || []).length, oops: (sum.moments || []).filter((m) => m.kind === "mistake").length, shop: sum.shopName || s.shopName,
     stars: (sum.avgStars || 0).toLocaleString("vi-VN", { maximumFractionDigits: 1 }),
+    challenge: sum.challenge?.name || "",
     item: (STOCK[sum.closedEarly || (sum.moments || []).find((m) => m.kind === "ran" || m.kind === "closed")?.id]?.name || "hàng").toLocaleLowerCase("vi"), day: sum.day,
     flips: Math.max(3, (s.owner?.switches || []).filter((x) => x.day === sum.day).length),
   });
 }
 
-const JOURNAL_KINDS = new Set(["closed", "ran", "reply", "flip", "drama", "mistake", "five", "multi5", "multi", "promise", "mission-all", "mission-miss", "consign-done"]);
+const JOURNAL_KINDS = new Set(["badge", "challenge", "closed", "ran", "reply", "flip", "drama", "mistake", "five", "multi5", "multi", "promise", "mission-all", "mission-miss", "consign-done"]);
 /** Khoảnh khắc có thể đặt làm câu trích trên thẻ (drama trước, rồi review 5 sao, rồi review hay nhất). */
 export function journalMoments(sum) {
   const out = [];

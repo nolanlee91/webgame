@@ -5,6 +5,7 @@ import { EQUIPMENT, BATCHES } from "../data/equipment.js";
 import { appeal, kitchenSlots } from "../core/equipment.js";
 import { loadSave, dump } from "../core/state.js";
 import { shop, act, err, advance, untilWaiting, serveRight, types, openDay } from "./helpers.mjs";
+import { LEVELS } from "../data/levels.js";
 
 const day2 = (seed = 3) => { const s = shop(seed); s.tutorialDone = true; s.day = 2; return s; };
 
@@ -26,7 +27,7 @@ test("nấu mẻ 3 phần: trừ 3 trân châu sống, 18 giây ca sau có 3 ph�
 
 test("chưa nấu thì không thêm trân châu được; thạch lấy thẳng từ kho", () => {
   const s = day2();
-  s.level = 2; s.xp = 30;
+  s.level = 2; s.xp = LEVELS[2 - 1].xp;
   s.stock.thach = 2; s.stock.da = 8;
   act(s, { type: "startShift" });
   for (const [step, id] of [["cup", "ly"], ["base", "hong-tra"], ["add", "sua"], ["sugar", 50], ["ice", "it"]]) act(s, { type: "brew", step, id });
@@ -71,15 +72,15 @@ test("mua thiết bị: chỉ khi đóng cửa, đủ cấp, đủ tiền, mỗi
   assert.equal(err(s, { type: "buy", id: "flowering-pot" }), "owned");
   act(s, { type: "startShift" });
   assert.equal(err(s, { type: "buy", id: "premium-lantern" }), "shift-open");
-  s.shift = null; s.money = 10; s.level = 4; s.xp = 130;
+  s.shift = null; s.money = 10; s.level = 4; s.xp = LEVELS[4 - 1].xp;
   assert.equal(err(s, { type: "buy", id: "premium-lantern" }), "money");
 });
 
-test("kệ kho mở rộng: sức chứa 90; bếp 2 ngăn: nấu hai mẻ cùng lúc", () => {
+test("kệ kho mở rộng: sức chứa 130; bếp 2 ngăn: nấu hai mẻ cùng lúc", () => {
   const s = shop();
-  s.level = 7; s.xp = 355; s.money = 1000;
+  s.level = 7; s.xp = LEVELS[7 - 1].xp; s.money = 1000;
   act(s, { type: "buy", id: "crate-rack" });
-  assert.equal(s.capacity, 90);
+  assert.equal(s.capacity, 130);
   act(s, { type: "buy", id: "dual-pot-cooker" });
   assert.equal(kitchenSlots(s), 2);
   s.tutorialDone = true;
@@ -92,7 +93,7 @@ test("kệ kho mở rộng: sức chứa 90; bếp 2 ngăn: nấu hai mẻ cùng
 
 test("tủ mát giữ trân châu dư sang ca sau", () => {
   const s = day2();
-  s.level = 13; s.xp = 1075; s.money = 1000;
+  s.level = 13; s.xp = LEVELS[13 - 1].xp; s.money = 1000;
   act(s, { type: "buy", id: "upright-fridge" });
   act(s, { type: "startShift" });
   act(s, { type: "cook", size: 3 });
@@ -108,10 +109,10 @@ test("tủ mát giữ trân châu dư sang ca sau", () => {
 
 test("trang trí cộng điểm hấp dẫn (trần 3): thêm khách và kiên nhẫn", () => {
   const a = day2(9), b = day2(9);
-  b.level = 18; b.xp = 1950; b.money = 2000;
+  b.level = 18; b.xp = LEVELS[18 - 1].xp; b.money = 2000;
   for (const id of ["flowering-pot", "premium-lantern", "tea-table-set", "lit-signboard"]) act(b, { type: "buy", id });
   assert.equal(appeal(b), 3);
-  a.level = 18; a.xp = 1950;
+  a.level = 18; a.xp = LEVELS[18 - 1].xp;
   b.money = a.money;
   openDay(a); openDay(b);
   assert.ok(b.shift.planned >= a.shift.planned, `${b.shift.planned} ≥ ${a.shift.planned}`);
@@ -121,7 +122,7 @@ test("trang trí cộng điểm hấp dẫn (trần 3): thêm khách và kiên n
 test("máy đóng nắp tốt: giao cùng lúc nhưng điểm thời gian cao hơn", () => {
   const run = (sealer) => {
     const s = shop(5);
-    if (sealer) { s.level = 5; s.xp = 195; s.money = 500; act(s, { type: "buy", id: "powered-sealer" }); }
+    if (sealer) { s.level = 5; s.xp = LEVELS[5 - 1].xp; s.money = 500; act(s, { type: "buy", id: "powered-sealer" }); }
     act(s, { type: "startShift" });
     const c = untilWaiting(s);
     advance(s, Math.round(c.patience * 0.7));

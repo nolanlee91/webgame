@@ -15,6 +15,8 @@ import { captionKind, journalMoments } from "../core/journal.js";
 import { fill } from "../core/text.js";
 import { loadSave, dump } from "../core/state.js";
 import { shop, act, advance, stepsFor } from "./helpers.mjs";
+import { LEVELS } from "../data/levels.js";
+import { SAVE_VERSION } from "../core/state.js";
 
 const OUTCOMES = ["allRight", "perfect3", "oneWrong", "swapped", "late", "sync"];
 const VARS = new Set(["self", "call", "drink", "sugar", "ice", "topping", "name", "n"]);
@@ -31,7 +33,7 @@ function checkLines(list, where, vars = VARS) {
   }
   assert.equal(new Set(list).size, list.length, where + ": câu trùng");
 }
-const XP = [0, 0, 30, 75, 130, 195, 270, 355, 450, 555, 670, 795, 930, 1075, 1230, 1395, 1570, 1755, 1950, 2155, 2370];
+const XP = [0, ...LEVELS.map((L) => L.xp)];
 function day(level, guests = [], seed = 3, owned = []) {
   const s = shop(seed);
   s.tutorialDone = true; s.day = 5; s.money = 3000; s.xp = XP[level]; s.level = level;
@@ -354,5 +356,5 @@ test("bản lưu: lúc ghép ly (cup.at) và kết quả đơn nhiều ly giữ 
   assert.equal(b2.shift.reviews.at(-1).reason, "multi");
   const b3 = loadSave(dump(b2));
   assert.equal(b3.shift.lastServe.outcome, "allRight");
-  assert.equal(b3.v, 3, "M3 nội dung không nâng phiên bản (v3 là của trả lời review theo tính cách)");
+  assert.equal(b3.v, SAVE_VERSION, "M3 nội dung không nâng phiên bản riêng");
 });

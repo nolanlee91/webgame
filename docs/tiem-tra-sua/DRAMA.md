@@ -36,3 +36,18 @@ Giữ ít nhất một tình huống tích cực hoặc đời thường trong m
 | Vựa sỉ Anh Út | U01 trà rẻ mà cũ (gọi Anh Út ⇒ chuyện con gà) · U02 Anh Út kể chuyện · U03 giao trễ (hẹn từ U01 / U02) · U04 Dì Ba giảm giá ⇒ U06 Anh Út phản công / hoà giải · U05 quà cảm ơn | cờ `si-mua` khi nhập vựa sỉ |
 | Quảng bá | Q01–Q03 tờ rơi · Q04–Q06 check-in · Q07–Q09 livestream; mỗi loại: lên mạng / phản tác dụng / khách ăn ké | cờ `promo-<loại>` chỉ trong ca hôm đó, chọn xong thì tắt |
 | Ký gửi | B01 Dì Ba ghé trong ca · B02 ngày trả đủ · B03 mẹ hỏi thăm khi lỗ và hụt tiền | cờ `ky-gui`, `ky-gui-xong`; `sum.profitMax` + `maxMoney` |
+
+## Bổ sung (hết hàng giữa ca, Milestone 5)
+
+| ID · nhóm | Kích hoạt | Lựa chọn |
+|---|---|---|
+| H01 · Đời thường | Hẹn từ lựa chọn "Mượn đỡ chị Lụa" khi hết hàng | Trả đủ + hai ly (−20k, +1 DD) · Trả bằng lời giới thiệu (ca sau −1 khách) · Hỏi trả góp bằng nụ cười (hên xui) |
+| H02 · Đời thường | Cờ `dong-som` (đóng cửa sớm vì hết hàng) | Nhờ mẹ viết danh sách kiểm kho · Nói mẹ yên tâm · Nhận bịch ly mẹ mua (+10 ly) |
+| H03 · Mạng | Cờ `het-hang` | Nhận lỗi · Biến thành trend "đi tìm ly" (hên xui) · Kệ (review 3 sao) |
+| FA1 · Đặc biệt | Ca hội chợ, MC mời lên sân khấu | Lên sân khấu · Nhờ MC đọc · Vẫy tay |
+| FA2 · Đặc biệt | Ca hội chợ, gian chị Lụa bên cạnh | Thi đông khách (hên xui) · Gộp "phố trà sữa" · Cười trừ |
+| FA3 · Đặc biệt | Sau ca hội chợ | Nhận chỗ gần cổng · Tài trợ nước · Xin nghỉ |
+| CH1 · Đặc biệt | Ca thử thách, reviewer xin livestream chấm | Livestream (hên xui) · Hẹn quay sau ca · Từ chối |
+| CH2 · Đời thường | Đạt thử thách, mẹ đọc trên nhóm khu phố | Gửi mẹ hình huy hiệu · Mời mẹ ghé · Dặn mẹ đừng khoe |
+| DS1 · Vận hành | Có máy rót hai vòi, máy phun trà lên trần | Vặn van · Gọi là "trình diễn" (hên xui) |
+| DS2 · Mạng | Có máy rót hai vòi, khách xin quay | Rót chậm cho quay · Rót bình thường |

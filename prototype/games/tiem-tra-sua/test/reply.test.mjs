@@ -389,7 +389,7 @@ test("trả lời trong ca: khoảnh khắc vào ca, câu chốt ca theo câu tr
 });
 
 test("bản lưu v2 → v3: chép bản cũ sang khoá dự phòng, trả lời cũ giữ câu, chưa có tính cách (hỏi một lần), dữ liệu khác giữ nguyên", () => {
-  assert.equal(SAVE_VERSION, 3);
+  assert.equal(SAVE_VERSION, 4);
   assert.ok(MIGRATIONS[2]);
   const s = shop(8);
   s.introSeen = true; s.tutorialDone = true; s.money = 321; s.day = 6; s.followers = 77;
@@ -406,7 +406,7 @@ test("bản lưu v2 → v3: chép bản cũ sang khoá dự phòng, trả lời 
   assert.equal(a.migrated, 2);
   assert.equal(mem.getItem(backupKey(2)), raw, "bản v2 nguyên văn");
   const t = a.state;
-  assert.equal(t.v, 3);
+  assert.equal(t.v, SAVE_VERSION);
   assert.equal(t.money, 321); assert.equal(t.day, 6); assert.equal(t.followers, 77);
   assert.equal(t.owner.persona, null);
   assert.equal(t.feed[0].reply.outcome, "legacy");
@@ -415,7 +415,7 @@ test("bản lưu v2 → v3: chép bản cũ sang khoá dự phòng, trả lời 
   assert.equal(t.feed[2].reply, null);
   assert.deepEqual(t.returning, []);
   st.write(t);
-  assert.equal(JSON.parse(mem.getItem(KEY)).v, 3);
+  assert.equal(JSON.parse(mem.getItem(KEY)).v, SAVE_VERSION);
   assert.equal(mem.getItem(backupKey(2)), raw);
   // bản đã nâng: chọn tính cách rồi trả lời tiếp review chưa trả lời
   act(t, { type: "setPersona", persona: "sale" });

@@ -28,6 +28,9 @@ import { caption } from "./journal.js?v=m37";
 import { openStockout, missingFor, lowCheck, stockoutTick, RUN_REVIEW } from "./stockout.js?v=m37";
 import { SWAP_YES_REVIEW } from "../data/lines-stockout.js?v=m37";
 import { PEARL_RAW as RAW } from "../data/equipment.js?v=m37";
+import { FAIR, fairToday, fairDone, shiftFee, tierOf, TIER_GUESTS, TIER_PATIENCE } from "./fair.js?v=m37";
+import { activeChallenge, finishChallenge, checkBadges } from "./challenge.js?v=m37";
+import { FAIR_ORDER, FAIR_REVIEW, CHALLENGE_REVIEW, DUAL_SPOUT_LINES, DUAL_SPOUT_REVIEW } from "../data/lines-m5.js?v=m37";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");
@@ -70,8 +73,9 @@ export function guestItem(s, arch, menu, recipe = null) {
   return { recipe: rid, sugar, ice };
 }
 /** Số ly của một đơn: hai ly từ cấp 3 hoặc ngày 3, ba ly từ cấp 10 vào giờ cao điểm. */
-export function cupsFor(s, arch, inRush) {
+export function cupsFor(s, arch, inRush, fair = false) {
   const M = MULTI_CUP;
+  if (fair) { const r = next(s); return r < FAIR.three ? 3 : r < FAIR.two ? 2 : 1; } // hội chợ: đơn nhóm kết hợp, nhóm khách nào cũng có
   if (!(s.level >= M.twoFrom.level || s.day >= M.twoFrom.day)) return 1;
   if (arch !== "van-phong" && arch !== "hoc-sinh") return 1;
   const r = next(s);
@@ -79,9 +83,9 @@ export function cupsFor(s, arch, inRush) {
   return r < M.two ? 2 : 1;
 }
 
-function genGuests(s, cfg, extra = 0) {
+function genGuests(s, cfg, extra = 0, opt = {}) {
   const menu = recipesAt(s.level).map((r) => r.id);
-  const archs = archetypesFor(s);
+  const archs = opt.archs || archetypesFor(s);
   const n = clamp(cfg.minGuests + Math.floor((s.rep - 35) / 15) + Math.floor(s.level / 4) + appeal(s) + trafficBonus(s) + int(s, 2) + extra, cfg.minGuests, cfg.maxGuests + 3);
   const times = [];
   for (let i = 0; i < n; i++) {
@@ -97,9 +101,9 @@ function genGuests(s, cfg, extra = 0) {
     const arch = weighted(s, archs.map((id) => ({ id, w: ARCHETYPES[id].weight }))).id;
     const A = ARCHETYPES[arch];
     const first = guestItem(s, arch, menu, demand && next(s) < 0.35 ? demand : null);
-    const cups = cupsFor(s, arch, inRush);
+    const cups = cupsFor(s, arch, inRush, !!opt.fair);
     const items = [first];
-    for (let i = 1; i < cups; i++) items.push(arch === "van-phong" ? { ...first } : guestItem(s, arch, menu));
+    for (let i = 1; i < cups; i++) items.push(arch === "van-phong" && !opt.fair ? { ...first } : guestItem(s, arch, menu));
     let name = pick(s, A.names);
     if (used.has(name)) name = pick(s, A.names);
     used.add(name);
@@ -111,22 +115,30 @@ export function startShift(s, events) {
   if (s.shift) return { err: "shift-open" };
   if (s.drama?.pending) return { err: "event-pending" };
   const tut = !s.tutorialDone;
-  const cfg = tut ? TUTORIAL_DAY : NORMAL_DAY;
-  const extra = tut ? 0 : promoGuests(s) + (s.drama?.nextGuests || 0);
-  const guests = tut ? TUTORIAL_DAY.guests.map((g) => ({ at: g.at, arch: g.arch, name: g.name, items: [{ recipe: g.recipe, sugar: g.sugar, ice: g.ice }] })) : genGuests(s, NORMAL_DAY, extra);
+  // Milestone 5: ca hội chợ (core/fair.js), ca thử thách (core/challenge.js), hạng tiệm
+  const fair = !tut && fairToday(s);
+  const ch = tut ? null : activeChallenge(s);
+  const M = ch?.mods || {};
+  const day = fair ? { ...NORMAL_DAY, duration: FAIR.duration, lastAt: FAIR.lastAt, maxGuests: NORMAL_DAY.maxGuests + FAIR.guests } : M.extraGuests ? { ...NORMAL_DAY, maxGuests: NORMAL_DAY.maxGuests + M.extraGuests } : NORMAL_DAY;
+  const cfg = tut ? TUTORIAL_DAY : day;
+  const extra = tut ? 0 : promoGuests(s) + (s.drama?.nextGuests || 0) + tierOf(s) * TIER_GUESTS + (fair ? FAIR.guests : 0) + (M.extraGuests || 0);
+  const archs = M.archs ? M.archs.filter((a) => ARCHETYPES[a]) : null;
+  const guests = tut ? TUTORIAL_DAY.guests.map((g) => ({ at: g.at, arch: g.arch, name: g.name, items: [{ recipe: g.recipe, sugar: g.sugar, ice: g.ice }] })) : genGuests(s, day, extra, { fair, archs });
   if (!tut) for (const g of returningGuests(s, cfg.duration)) guests.push(g); // khách quay lại nhờ câu trả lời review (core/reviews.js)
   guests.sort((a, b) => a.at - b.at);
-  const fee = Math.min(SHIFT_FEE, s.money); // hụt vốn: chủ nhà cho khất phần thiếu (xem thêm gói ký gửi ở core/business.js)
+  const fee = Math.min(shiftFee(s), s.money); // hụt vốn: chủ nhà cho khất phần thiếu (xem thêm gói ký gửi ở core/business.js)
   s.money -= fee;
-  const stations = Array.from({ length: stationCount(s) }, () => ({ cup: null, cid: null, item: null }));
+  const stations = Array.from({ length: M.stations || stationCount(s) }, () => ({ cup: null, cid: null, item: null }));
+  const pm = (fair ? FAIR.patienceMul : 1) * (M.patienceMul || 1) * (1 + TIER_PATIENCE * tierOf(s));
   s.shift = {
-    day: s.day, t: 0, duration: cfg.duration, patienceMult: cfg.patienceMult * (1 + 0.03 * appeal(s) + patienceBonus(s)), hints: cfg.hints, tutorial: tut,
+    day: s.day, t: 0, duration: cfg.duration, patienceMult: cfg.patienceMult * (1 + 0.03 * appeal(s) + patienceBonus(s)) * pm, hints: cfg.hints, tutorial: tut,
     status: "open", schedule: guests, planned: guests.length, customers: [], nextCid: 1, stations, sel: 0, dialog: null,
     ledger: { revenue: 0, cogs: 0, waste: 0, fee, restock: 0, cups: 0, served: 0, lost: 0, refunds: 0, remakes: 0, pearlWaste: 0, multi: 0, consignPaid: 0, eventCash: 0 },
     reviews: [], repDelta: 0, xp: 0, levelUps: [], moments: [], usedLines: [],
     kitchen: { ready: (tut ? TUTORIAL_PRECOOKED : 0) + s.carryPearls, batches: [] },
     mods: { sealMs: 0, spawnPauseUntil: 0 }, lastServe: null, missions: [], drama: null, followers0: s.followers || 0,
     away: null, deliveries: [], borrowDay: null, closedEarly: null, stockouts: 0, lowWarned: {},
+    fair, challenge: ch?.id || null, noUndo: !!M.noUndo,
   };
   s.carryPearls = 0;
   s.usedDay = [];
@@ -145,7 +157,7 @@ function freeSpot(sh) {
 
 function spawn(s, g, events) {
   const sh = s.shift, A = ARCHETYPES[g.arch];
-  const items = g.items.slice(0, MULTI_CUP.maxCups).map((it) => ({ recipe: it.recipe, order: orderSpec(it.recipe, it.sugar, it.ice), price: RECIPE[it.recipe].price }));
+  const items = g.items.slice(0, MULTI_CUP.maxCups).map((it) => ({ recipe: it.recipe, order: orderSpec(it.recipe, it.sugar, it.ice), price: sh.fair ? Math.round(RECIPE[it.recipe].price * FAIR.priceMul) : RECIPE[it.recipe].price }));
   const extra = items.length - 1;
   const c = {
     id: sh.nextCid++, arch: g.arch, sprite: A.sprite, name: g.name, items, filled: items.map(() => null),
@@ -154,8 +166,8 @@ function spawn(s, g, events) {
     t0: sh.t, arriveT: null, phase: "enter", mood: "walk", pinned: false, impatientSaid: false, remade: false,
     say: null, leaveT: null, reactUntil: null, review: null, tag: g.tag || null, tip: g.tip || 0,
   };
-  const lines = items.length > 1 ? poolFor(ORDER_MULTI, c.arch) : [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
-  c.orderLine = g.line ? fill(g.line, lineCtx(c)) : freshLine(s, lines, lineCtx(c)); // không lặp câu trong cùng ca
+  const lines = items.length > 1 ? (sh.fair ? [...FAIR_ORDER, ...poolFor(ORDER_MULTI, c.arch)] : poolFor(ORDER_MULTI, c.arch)) : [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
+  c.orderLine = g.line ? fill(g.line, lineCtx(c)) : freshLine(s, lines, { ...lineCtx(c), shop: s.shopName }); // không lặp câu trong cùng ca
   sh.customers.push(c);
   events.push({ type: "spawn", cid: c.id, arch: c.arch, cups: items.length });
   return c;
@@ -364,8 +376,21 @@ export function brew(s, step, id, events) {
     if (!ord || String(wantOf(ord, step)) !== String(id)) return;
     if (!pour(s, sh, o, step, id, c).err) also.push(j);
   });
-  const line = also.length && step === "cup" ? freshLine(s, BARISTA_PARALLEL, { n: also.length + 1 }) : null; // bàn pha đôi / ba chỗ
-  events.push({ type: "brewed", step, id, station: sh.sel, also, ...(line ? { line } : {}) });
+  // máy rót hai vòi: rót trà nền cho chỗ pha khác đang ở bước trà, mỗi ly đúng loại trà trên phiếu của ly đó
+  const dual = [];
+  if (step === "base" && owns(s, "dual-spout-brewer")) {
+    sh.stations.forEach((o, j) => {
+      if (o === st || o.cid === null || also.includes(j) || nextStep(o.cup) !== "base") return;
+      const ord = orderAt(s, o);
+      const bid = ord && wantOf(ord, "base");
+      const bc = bid && choice("base", bid);
+      if (!bc || !choiceUnlocked("base", bc, s.level)) return;
+      if (!pour(s, sh, o, "base", bid, bc).err) { dual.push(j); o.cup.dual = true; }
+    });
+    if (dual.length) st.cup.dual = true;
+  }
+  const line = dual.length ? freshLine(s, DUAL_SPOUT_LINES, {}) : also.length && step === "cup" ? freshLine(s, BARISTA_PARALLEL, { n: also.length + 1 }) : null; // bàn pha đôi / ba chỗ
+  events.push({ type: "brewed", step, id, station: sh.sel, also, ...(dual.length ? { dual } : {}), ...(line ? { line } : {}) });
   lowCheck(s, Object.keys(c.kitchen ? {} : useOf(step, id)), events);
   return { ok: true };
 }
@@ -376,6 +401,7 @@ export function undo(s, events) {
   const sh = s.shift, st = curStation(sh), cup = st.cup;
   if (sh.dialog) return { err: "dialog" };
   if (sh.away) return awayErr(sh);
+  if (sh.noUndo) return { err: "no-undo" }; // ca thử thách "Một lần là xong"
   if (!cup || !cup.steps.length) return { err: "empty" };
   if (cup.sealed) return { err: "sealed" };
   const last = cup.steps.pop();
@@ -458,6 +484,11 @@ function reviewLine(s, c, sc) {
     if (pool.length) return { line: freshLine(s, pool, ctx), reason, mistake: mk };
     if (err) return { line: freshLine(s, L.REVIEW_LINES[err], ctx), reason: err, mistake: mk };
   }
+  const rctx = { ...ctx, shop: s.shopName };
+  const why = () => (mk ? ERR_ORDER.find((e) => sc.errors.includes(e)) || mk : sc.stars >= 4 ? "good" : "ok");
+  if (s.shift.fair && next(s) < 0.6) return { line: freshLine(s, FAIR_REVIEW[sc.stars >= 4 ? "great" : sc.stars === 3 ? "ok" : "bad"], rctx), reason: why(), mistake: mk };
+  if (s.shift.challenge && next(s) < 0.35) return { line: freshLine(s, CHALLENGE_REVIEW[sc.stars >= 4 ? "win" : "lose"], rctx), reason: why(), mistake: mk };
+  if (c.filled.some((cup) => cup?.dual) && next(s) < 0.55) return { line: freshLine(s, DUAL_SPOUT_REVIEW[sc.stars >= 4 ? "good" : "meh"], rctx), reason: why(), mistake: mk };
   if (!mk && sc.stars >= 3 && c.swapped && next(s) < 0.7) return { line: freshLine(s, SWAP_YES_REVIEW, { ...ctx, sub: RECIPE[c.swapped].name.toLocaleLowerCase("vi"), item: "hàng" }), reason: sc.stars >= 4 ? "good" : "ok" };
   if (c.ranFor && sc.stars >= 2 && next(s) < 0.6) return { line: freshLine(s, RUN_REVIEW, ctx), reason: sc.stars >= 4 ? "good" : "slow" };
   if (!mk && sc.stars >= 4) { const dp = decorPool(s); if (dp.length && next(s) < 0.3) return { line: freshLine(s, dp, ctx), reason: "decor" }; } // trả lời review có câu riêng cho khen trang trí
@@ -681,7 +712,7 @@ export function endShift(s, events) {
   const sum = {
     day: sh.day, cups: Lg.cups, served: Lg.served, lost: Lg.lost, planned: sh.planned, revenue: Lg.revenue, cogs: Lg.cogs, waste: Lg.waste,
     fee: Lg.fee, restock: Lg.restock, refunds: Lg.refunds, remakes: Lg.remakes, pearlWaste: Lg.pearlWaste, carry: s.carryPearls, profit: operatingProfit(Lg),
-    multi: Lg.multi, consignPaid: Lg.consignPaid, eventCash: Lg.eventCash, closedEarly: sh.closedEarly || null, stockouts: sh.stockouts || 0,
+    multi: Lg.multi, consignPaid: Lg.consignPaid, eventCash: Lg.eventCash, closedEarly: sh.closedEarly || null, stockouts: sh.stockouts || 0, fair: !!sh.fair,
     avgStars: Math.round(avg * 10) / 10, reviews: sh.reviews.map((r) => ({ name: r.name, stars: r.stars, line: r.line, reason: r.reason, recipe: r.recipe })),
     best: best ? { name: best.name, stars: best.stars, line: best.line } : null,
     repDelta: sh.repDelta, rep: s.rep, xp: sh.xp, levelUps: [...sh.levelUps], level: s.level, money: s.money, moments: sh.moments.slice(0, 12),
@@ -690,6 +721,11 @@ export function endShift(s, events) {
   };
   archiveShift(s, sum);
   sum.rating = s.rating ?? null;
+  // Milestone 5: ca thử thách, hội chợ, huy hiệu (trước câu chốt ca để Nhật Ký nói đúng chuyện)
+  sum.challenge = finishChallenge(s, sum, gainXp, events);
+  if (sum.challenge?.ok) { sum.money = s.money; sum.level = s.level; }
+  if (sh.fair) fairDone(s);
+  sum.badges = checkBadges(s, sum, events).map((b) => ({ id: b.id, name: b.name, line: b.line }));
   sum.headline = caption(s, sum);
   s.lastSummary = sum;
   s.journal.unshift({ day: sum.day, cups: sum.cups, profit: sum.profit, avgStars: sum.avgStars, headline: sum.headline, moment: sum.moments.find((m) => m.kind === "reply" && (m.outcome === "viral" || m.outcome === "phot"))?.line || sum.moments.find((m) => m.kind === "drama")?.line || sum.best?.line || "" });

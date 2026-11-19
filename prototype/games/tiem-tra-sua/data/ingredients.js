@@ -23,7 +23,7 @@ export const STOCK = {
 export const STOCK_IDS = Object.keys(STOCK);
 
 /** Sức chứa kho lúc đầu (phần) và gói học đủ khoảng 8 ly cơ bản. */
-export const START_CAPACITY = 60;
+export const START_CAPACITY = 80; // M5 cân bằng: 60 quá chật cho menu 5+ món (bộ mô phỏng hết hàng giữa ca liên tục)
 export const START_STOCK = { "ly": 10, "hong-tra": 10, "sua": 8, "duong": 8, "da": 10, "tran-chau-song": 8, "dao": 4 };
 
 /** Bảy bước pha theo đúng thứ tự (GAME-DESIGN: ly → trà → sữa/thành phần khác → đường → đá → topping → nắp). */
