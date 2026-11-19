@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { EQUIPMENT, BATCHES } from "../data/equipment.js";
 import { appeal, kitchenSlots } from "../core/equipment.js";
 import { loadSave, dump } from "../core/state.js";
-import { shop, act, err, advance, untilWaiting, serveRight, types } from "./helpers.mjs";
+import { shop, act, err, advance, untilWaiting, serveRight, types, openDay } from "./helpers.mjs";
 
 const day2 = (seed = 3) => { const s = shop(seed); s.tutorialDone = true; s.day = 2; return s; };
 
@@ -97,19 +97,19 @@ test("tủ mát giữ trân châu dư sang ca sau", () => {
   advance(s, 200);
   assert.equal(s.carryPearls, 3);
   assert.equal(s.lastSummary.pearlWaste, 0);
-  act(s, { type: "startShift" });
+  openDay(s);
   assert.equal(s.shift.kitchen.ready, 3);
   assert.equal(s.carryPearls, 0);
 });
 
 test("trang trí cộng điểm hấp dẫn (trần 3): thêm khách và kiên nhẫn", () => {
   const a = day2(9), b = day2(9);
-  b.level = 20; b.xp = 2370; b.money = 2000;
+  b.level = 18; b.xp = 1950; b.money = 2000;
   for (const id of ["flowering-pot", "premium-lantern", "tea-table-set", "lit-signboard"]) act(b, { type: "buy", id });
   assert.equal(appeal(b), 3);
-  a.level = 20; a.xp = 2370;
+  a.level = 18; a.xp = 1950;
   b.money = a.money;
-  act(a, { type: "startShift" }); act(b, { type: "startShift" });
+  openDay(a); openDay(b);
   assert.ok(b.shift.planned >= a.shift.planned, `${b.shift.planned} ≥ ${a.shift.planned}`);
   assert.ok(Math.abs(b.shift.patienceMult - 1.09) < 1e-9);
 });

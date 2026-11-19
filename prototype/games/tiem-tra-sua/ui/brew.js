@@ -4,7 +4,8 @@ import { icon } from "../render/atlas.js";
 import { createCupView } from "../render/cup.js";
 import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js";
 import { RECIPE } from "../data/recipes.js";
-import { customer, nextStep, patienceLeft } from "../core/shift.js";
+import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js";
+import { cupNotes } from "../core/cupview.js";
 import { hasStock } from "../core/economy.js";
 import { cupSpec } from "../core/score.js";
 import { BATCHES, PEARL_RAW } from "../data/equipment.js";
@@ -20,7 +21,10 @@ const label = (step, id) => (step === "sugar" ? `${id}% đường` : choiceName(
 export function createBrew(root, atlas, dispatch) {
   const $ = (sel) => root.querySelector(sel);
   const cupView = createCupView($("#cupView"), atlas, { scale: 1.5 });
-  const stepsEl = $("#steps"), optsEl = $("#opts"), ticketEl = $("#ticket");
+  const stepsEl = $("#steps"), optsEl = $("#opts"), ticketEl = $("#ticket"), stationsEl = $("#stations");
+  const notesEl = document.createElement("div"); notesEl.className = "cup-notes"; $("#cupView").appendChild(notesEl);
+  let lastStations = "";
+  stationsEl.addEventListener("click", (e) => { const b = e.target.closest("button[data-station]"); if (b && !b.disabled) dispatch({ type: "select", station: Number(b.dataset.station) }); });
   STEPS.forEach((st, i) => {
     const li = document.createElement("li"); li.dataset.step = st;
     li.appendChild(ingIcon(atlas, STEP_ICON[st], 26));
@@ -34,7 +38,7 @@ export function createBrew(root, atlas, dispatch) {
     delete b.dataset.confirm; b.textContent = "Đổ bỏ ly";
     dispatch({ type: "discard" });
   });
-  $("#serveBtn").addEventListener("click", () => { const a = lastState?.shift?.active; if (a) dispatch({ type: "serve", cid: a }); });
+  $("#serveBtn").addEventListener("click", () => { const a = activeCid(lastState?.shift); if (a !== null && a !== undefined) dispatch({ type: "serve", cid: a }); });
   optsEl.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-step]");
     if (!b || b.disabled) return;
@@ -52,8 +56,8 @@ export function createBrew(root, atlas, dispatch) {
     kitchenEl.hidden = !sh;
     if (!sh) return;
     const k = sh.kitchen, slots = kitchenSlots(state), raw = state.stock[PEARL_RAW] || 0;
-    const c = sh.active ? customer(state, sh.active) : null;
-    const needs = !!(c && c.order.topping === "tran-chau" && k.ready < 1 && !k.batches.length);
+    const ord = orderAt(state, curStation(sh));
+    const needs = !!(ord && ord.topping === "tran-chau" && k.ready < 1 && !k.batches.length);
     const key = JSON.stringify([k.ready, k.batches.length, raw, slots, state.level, needs, !!sh.dialog]);
     if (key !== lastKitchen) {
       lastKitchen = key;
@@ -82,9 +86,10 @@ export function createBrew(root, atlas, dispatch) {
   }
 
   function renderTicket(state) {
-    const sh = state.shift, c = sh && sh.active ? customer(state, sh.active) : null;
-    const spec = sh?.cup ? cupSpec(sh.cup) : {};
-    const key = c ? `${c.id}|${JSON.stringify(spec)}|${c.mood}` : sh ? "none" : "closed";
+    const sh = state.shift, cid = activeCid(sh), c = cid !== null ? customer(state, cid) : null;
+    const cup = curCup(sh), st = curStation(sh);
+    const spec = cup ? cupSpec(cup) : {};
+    const key = c ? `${c.id}|${st.item}|${JSON.stringify(spec)}|${c.mood}|${c.filled.map((x) => (x ? 1 : 0)).join("")}|${JSON.stringify(c.items[st.item ?? 0]?.order)}` : sh ? "none" : "closed";
     if (key !== lastTicket) {
       lastTicket = key;
       ticketEl.textContent = "";
@@ -94,19 +99,21 @@ export function createBrew(root, atlas, dispatch) {
         p.textContent = sh ? (sh.customers.some((q) => q.phase === "wait") ? "Chạm vào khách đang chờ (hoặc phiếu bên dưới) để ghim đơn lên quầy." : "Chưa có khách chờ. Lau quầy cho bóng, khách sắp tới.") : "Tiệm đang đóng cửa.";
         ticketEl.appendChild(p);
       } else {
-        const r = RECIPE[c.recipe];
+        const idx = st.item ?? c.filled.findIndex((x) => !x);
+        const item = c.items[idx >= 0 ? idx : 0];
+        const r = RECIPE[item.recipe], o = item.order;
         const head = document.createElement("div"); head.className = "ticket-head";
         head.appendChild(headIcon(atlas, c.sprite, 44, c.mood === "impatient" ? "impatient" : "waiting"));
         const h = document.createElement("div");
         h.innerHTML = `<b class="t-name"></b><span class="t-drink"></span>`;
-        h.querySelector(".t-name").textContent = `#${c.id} · ${c.name}`;
+        h.querySelector(".t-name").textContent = `#${c.id} · ${c.name}${c.items.length > 1 ? ` · ly ${idx + 1}/${c.items.length}` : ""}`;
         h.querySelector(".t-drink").textContent = r.name;
         head.appendChild(h);
         const price = document.createElement("span"); price.className = "t-price"; price.textContent = c.price + "k"; head.appendChild(price);
         ticketEl.appendChild(head);
         const ul = document.createElement("ul"); ul.className = "t-items";
         for (const st of ["base", "add", "sugar", "ice", "topping"]) {
-          const want = orderValue(st, c.order);
+          const want = orderValue(st, o);
           if (st === "add" && want === "none") continue;
           const li = document.createElement("li");
           const ch = CHOICES[st].find((x) => x.id === want);
@@ -118,6 +125,17 @@ export function createBrew(root, atlas, dispatch) {
           ul.appendChild(li);
         }
         ticketEl.appendChild(ul);
+        if (c.items.length > 1) {
+          const tray = document.createElement("div"); tray.className = "tray";
+          c.items.forEach((it, i) => {
+            const sp = document.createElement("span");
+            sp.className = "tray-cup" + (c.filled[i] ? " done" : "") + (i === idx ? " now" : "");
+            sp.appendChild(ingIcon(atlas, c.filled[i] ? ["cupui", "served-milk-tea"] : ["pantry", "cup-stack"], 22));
+            sp.appendChild(document.createTextNode(`${i + 1}. ${RECIPE[it.recipe].short} · ${it.order.sugar}% · ${choiceName("ice", it.order.ice)}`));
+            tray.appendChild(sp);
+          });
+          ticketEl.appendChild(tray);
+        }
         const bar = document.createElement("div"); bar.className = "pbar wide"; bar.appendChild(document.createElement("i")); ticketEl.appendChild(bar);
       }
     }
@@ -129,17 +147,18 @@ export function createBrew(root, atlas, dispatch) {
 
   function renderOptions(state) {
     const sh = state.shift;
-    const step = sh ? nextStep(sh.cup) : null;
-    const c = sh?.active ? customer(state, sh.active) : null;
+    const step = sh ? nextStep(curCup(sh)) : null;
+    const cid = activeCid(sh), c = cid !== null && cid !== undefined ? customer(state, cid) : null;
+    const ord = sh ? orderAt(state, curStation(sh)) : null;
     const dispenser = owns(state, "portion-dispenser") && (step === "sugar" || step === "ice");
-    const hintWant = (sh?.hints || dispenser) && c && step && step !== "cup" && step !== "lid" ? orderValue(step, c.order) : null;
+    const hintWant = (sh?.hints || dispenser) && ord && step && step !== "cup" && step !== "lid" ? orderValue(step, ord) : null;
     const key = JSON.stringify([!!sh, step, state.level, hintWant, step ? CHOICES[step].map((x) => avail(state, step, x)) : 0, sh?.kitchen.ready]);
     if (key === lastKey) return;
     lastKey = key;
     optsEl.textContent = "";
     const title = $("#optsTitle");
     if (!sh) { title.textContent = "Mở quán để bắt đầu pha."; return; }
-    if (!step) { title.textContent = c ? `Ly đã đóng nắp. Giao cho ${c.name}!` : "Ly đã đóng nắp. Chọn khách để giao."; return; }
+    if (!step) { title.textContent = c ? (cupsLeft(c) > 1 ? `Ly đã đóng nắp. Ghép vào đơn của ${c.name}!` : `Ly đã đóng nắp. Giao cho ${c.name}!`) : "Ly đã đóng nắp. Chọn khách để giao."; return; }
     title.textContent = `Bước ${STEPS.indexOf(step) + 1}/7 · ${STEP_VERB[step]}`;
     CHOICES[step].forEach((ch, i) => {
       const b = document.createElement("button");
@@ -167,25 +186,51 @@ export function createBrew(root, atlas, dispatch) {
     lastState = state;
     const sh = state.shift;
     root.classList.toggle("closed", !sh);
-    cupView.update(sh?.cup || null, { justDid, reduced });
-    const step = sh ? nextStep(sh.cup) : null;
+    const cup = curCup(sh);
+    cupView.update(cup, { justDid, reduced });
+    const notes = cupNotes(cup);
+    notesEl.textContent = ""; notesEl.hidden = !notes.length;
+    for (const n of notes) { const sp = document.createElement("span"); sp.textContent = n; notesEl.appendChild(sp); }
+    renderStations(state);
+    const step = sh ? nextStep(cup) : null;
     for (const li of stepsEl.children) {
-      const i = STEPS.indexOf(li.dataset.step), done = sh?.cup ? sh.cup.steps.length : 0;
+      const i = STEPS.indexOf(li.dataset.step), done = cup ? cup.steps.length : 0;
       li.className = i < done ? "done" : li.dataset.step === step ? "now" : "";
     }
     renderTicket(state);
     renderOptions(state);
     renderKitchen(state);
-    const cup = sh?.cup;
     $("#undoBtn").disabled = !cup || cup.sealed || !cup.steps.length || !!sh.dialog;
     $("#discardBtn").disabled = !cup || !!sh?.dialog;
-    const c = sh?.active ? customer(state, sh.active) : null;
+    const cid = activeCid(sh), c = cid !== null && cid !== undefined ? customer(state, cid) : null;
     const sb = $("#serveBtn");
-    sb.disabled = !(cup?.sealed && c && c.phase === "wait") || !!sh.dialog;
-    sb.textContent = c ? `Giao cho ${c.name}` : "Giao ly";
-    sb.classList.toggle("ready", !sb.disabled);
+    const noLid = !!cup && !cup.sealed && cup.steps.length === STEPS.length - 1;
+    sb.disabled = !((cup?.sealed || noLid) && c && c.phase === "wait") || !!sh.dialog;
+    const left = c ? cupsLeft(c) : 0;
+    sb.textContent = c && noLid ? `Giao luôn (chưa đóng nắp!)` : c ? (left > 1 ? `Ghép ly vào đơn ${c.name} (${c.items.length - left + 1}/${c.items.length})` : c.items.length > 1 ? `Giao đủ ${c.items.length} ly cho ${c.name}` : `Giao cho ${c.name}`) : "Giao ly";
+    sb.classList.toggle("ready", !sb.disabled && !!cup?.sealed);
+  }
+  /** Chỗ pha song song (bàn pha đôi / ba): mỗi nút một chỗ, ghi khách + tiến độ ly. */
+  function renderStations(state) {
+    const sh = state.shift;
+    const list = sh?.stations || [];
+    const key = JSON.stringify([sh?.sel, list.map((x) => [x.cid, x.item, x.cup?.steps.length || 0, !!x.cup?.sealed])]);
+    if (key === lastStations) return;
+    lastStations = key;
+    stationsEl.textContent = "";
+    stationsEl.hidden = list.length < 2;
+    if (list.length < 2) return;
+    list.forEach((x, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "stn" + (i === sh.sel ? " on" : ""); b.dataset.station = i;
+      b.setAttribute("aria-pressed", i === sh.sel ? "true" : "false");
+      const c = x.cid !== null ? customer(state, x.cid) : null;
+      const n = x.cup ? x.cup.steps.length : 0;
+      const t = document.createElement("b"); t.textContent = `Chỗ ${i + 1}`; b.appendChild(t);
+      const sm = document.createElement("small"); sm.textContent = (c ? c.name + (c.items.length > 1 ? ` · ly ${(x.item ?? 0) + 1}` : "") : "Trống") + ` · ${x.cup?.sealed ? "xong" : n + "/7"}`; b.appendChild(sm);
+      stationsEl.appendChild(b);
+    });
   }
   /** Cập nhật nhẹ mỗi khung (thanh kiên nhẫn trên phiếu). */
-  function frame(state) { renderTicket(state); renderKitchen(state); renderOptions(state); }
+  function frame(state) { renderTicket(state); renderKitchen(state); renderOptions(state); renderStations(state); }
   return { render, frame, act: (w) => cupView.act(w), setCupScale: (s) => cupView.setScale(s) };
 }

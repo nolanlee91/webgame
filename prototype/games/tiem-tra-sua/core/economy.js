@@ -36,27 +36,39 @@ export function takeStock(s, use) {
   for (const [id, n] of Object.entries(use)) s.stock[id] = (s.stock[id] || 0) - n;
 }
 
-/** Giá một lần nhập (gói) — giữa ca là giao gấp +15%, làm tròn lên. */
-export function packPrice(id, express = false) {
-  const base = STOCK[id].cost * STOCK[id].pack;
+/** Nhà cung cấp: Dì Ba (mặc định, giữa ca giao gấp +15%) và vựa sỉ Anh Út (cấp 12: gói gấp đôi, rẻ hơn 10%, chỉ nhận trước ca). */
+export const SUPPLIERS = {
+  "di-ba": { name: "Tạp hoá Dì Ba", unlock: 1, packMul: 1, priceMul: 1, midShift: true },
+  "si": { name: "Vựa sỉ Anh Út", unlock: 12, packMul: 2, priceMul: 0.9, midShift: false },
+};
+export const packSize = (id, supplier = "di-ba") => STOCK[id].pack * (SUPPLIERS[supplier]?.packMul || 1);
+/** Giá một lần nhập (gói) — giữa ca là giao gấp +15%, làm tròn lên; vựa sỉ gói gấp đôi giảm 10%. */
+export function packPrice(id, express = false, supplier = "di-ba") {
+  const S = SUPPLIERS[supplier] || SUPPLIERS["di-ba"];
+  const base = STOCK[id].cost * packSize(id, supplier);
+  if (S.priceMul !== 1) return Math.round(base * S.priceMul);
   return express ? Math.ceil(base * (1 + EXPRESS_MARKUP)) : base;
 }
 
-/** Nhập một gói. Lỗi: unknown / locked / money / capacity. */
-export function restock(s, id, events) {
+/** Nhập một gói. Lỗi: unknown / locked / money / capacity / supplier. */
+export function restock(s, id, events, supplier = "di-ba") {
   const it = STOCK[id];
   if (!it) return { err: "unknown-stock" };
-  if (s.level < it.unlock) return { err: "locked" };
+  const S = SUPPLIERS[supplier];
+  if (!S) return { err: "bad-supplier" };
+  if (s.level < it.unlock || s.level < S.unlock) return { err: "locked" };
   const express = !!(s.shift && s.shift.status === "open");
-  const price = packPrice(id, express);
+  if (express && !S.midShift) return { err: "supplier-closed" };
+  const price = packPrice(id, express, supplier);
+  const n = packSize(id, supplier);
   if (s.money < price) return { err: "money" };
   const room = capacity(s) - stockUsed(s);
-  if (room < it.pack) return { err: "capacity" };
+  if (room < n) return { err: "capacity" };
   s.money -= price;
-  s.stock[id] = (s.stock[id] || 0) + it.pack;
+  s.stock[id] = (s.stock[id] || 0) + n;
   if (s.shift) s.shift.ledger.restock += price;
   s.stats.spentStock += price;
-  events.push({ type: "restocked", id, n: it.pack, price, express });
+  events.push({ type: "restocked", id, n, price, express, supplier });
   return { ok: true };
 }
 

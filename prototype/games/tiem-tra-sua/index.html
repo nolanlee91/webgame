@@ -312,6 +312,65 @@
       .drama-stage { height: 160px; }
       .speaker .ico { zoom: .8; }
     }
+
+    /* ---- Milestone 3–4 ---- */
+    .overlay.pass { background: transparent; pointer-events: none; place-items: end center; }
+    .overlay.pass .sheet { pointer-events: auto; }
+    .sheet.floating { max-width: 560px; padding: 12px 16px; display: grid; gap: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+    .arr-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .stage.arranging .decor.movable { pointer-events: auto; cursor: grab; touch-action: none; filter: drop-shadow(0 0 2px #fff6d6) drop-shadow(0 0 5px rgba(255, 220, 140, .9)); }
+    .stage.arranging .decor.dragging { cursor: grabbing; filter: drop-shadow(0 0 3px #9ff0dc) drop-shadow(0 0 8px rgba(80, 200, 170, .9)); }
+    .stage.arranging .decor.bad { filter: drop-shadow(0 0 3px #ff8a7a) drop-shadow(0 0 8px rgba(220, 70, 60, .95)); }
+    .place-zone { position: absolute; opacity: .28; border-radius: 18px; outline: 3px dashed rgba(255, 242, 220, .9); pointer-events: none; z-index: 0; }
+    .stations { display: flex; gap: 6px; }
+    .stn { flex: 1; min-height: 44px; border: 0; border-radius: 12px; background: var(--cream2); color: var(--ink); cursor: pointer; display: grid; line-height: 1.15; padding: 4px 8px; text-align: left; box-shadow: 0 2px 0 var(--cream3); }
+    .stn b { font-size: 13px; } .stn small { font-size: 11px; color: var(--ink2); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stn.on { background: var(--teal); color: #fff; } .stn.on small { color: #d6ebe4; }
+    .tray { display: grid; gap: 3px; margin: 0 0 6px; }
+    .tray-cup { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ink2); border-radius: 8px; padding: 1px 6px 1px 2px; }
+    .tray-cup.now { background: var(--amber-l); color: var(--ink); } .tray-cup.done { color: #1d4a44; } .tray-cup.done::after { content: "✓"; margin-left: 2px; }
+    .cups-badge { margin-left: auto; background: var(--plum); color: #fff; border-radius: 8px; font-size: 11px; font-weight: 800; padding: 1px 6px; }
+    .cup-notes { position: absolute; z-index: 3; right: 6px; top: 6px; display: grid; gap: 3px; justify-items: end; }
+    .cup-notes span { background: rgba(255, 242, 220, .95); color: var(--ink); font-size: 11px; font-weight: 800; border-radius: 8px; padding: 1px 7px; }
+    .goals { flex: none; display: grid; align-content: start; gap: 2px; width: 210px; background: rgba(255, 242, 220, .1); border: 1px solid rgba(255, 242, 220, .2); border-radius: var(--r); padding: 6px 10px; font-size: 12px; color: var(--cream); }
+    .goals b { font-size: 12px; color: var(--amber-l); } .goal.done { color: #9fe0c4; }
+    .sum-goals { width: auto; background: #fffaf0; color: var(--ink); border-color: var(--cream3); margin: 6px 0; font-size: 13px; }
+    .sum-goals b { color: var(--caramel); font-size: 13px; } .sum-goals .goal.done { color: var(--teal); font-weight: 700; }
+    .rv.moment { background: var(--amber-l); }
+    .foot-l { display: flex; gap: 8px; flex-wrap: wrap; }
+    .grow1 { flex: 1; }
+    .bail { background: var(--amber-l); margin-bottom: 10px; display: grid; gap: 6px; justify-items: start; } .bail p { margin: 0; }
+    .kho-h { display: flex; align-items: center; gap: 6px; }
+    .seg { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+    .promo { margin-bottom: 8px; } .promo-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+    .gear-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .gear-head h3 { margin: 0; }
+    .drama .ev-tag { position: absolute; z-index: 2; left: 50%; top: 10px; transform: translateX(-50%); background: rgba(22, 32, 45, .78); color: var(--cream); font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 10px; white-space: nowrap; }
+    .drama-stage.small { height: 150px; }
+    .btn.choice .cost { font-size: 11px; font-weight: 800; background: var(--amber-l); color: #5a3a10; border-radius: 6px; padding: 0 6px; }
+    .btn.choice .cost.risk { background: var(--plum); color: #fff; }
+    .btn.choice.primary .cost { background: rgba(255, 255, 255, .85); }
+    .say .quote { font-size: 18px; }
+    .fx-list { list-style: none; padding: 0; margin: 8px 0; display: flex; gap: 6px; flex-wrap: wrap; }
+    .fx-list li { background: var(--teal-l); color: #1d4a44; font-weight: 800; font-size: 13px; border-radius: 10px; padding: 3px 10px; }
+    .fx-list li.neg { background: var(--red-l); color: #7a2a22; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .tab { min-height: 40px; border: 0; border-radius: 12px; padding: 4px 14px; background: var(--cream2); font-weight: 800; cursor: pointer; color: var(--ink); }
+    .tab.on { background: var(--teal); color: #fff; }
+    .nb-body { display: grid; gap: 6px; }
+    .rv-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .rv .reply { color: var(--teal); font-weight: 700; } .rv.replied { opacity: .85; }
+    .jrow { background: #fffaf0; border-radius: 12px; padding: 7px 10px; display: grid; gap: 2px; } .jrow p { margin: 0; } .jrow small { color: var(--ink2); } .jrow.done b { color: var(--teal); }
+    .journal { max-width: 560px; }
+    .jcard { display: grid; place-items: center; margin: 8px 0; }
+    .jcard canvas { width: min(100%, 420px); height: auto; aspect-ratio: 1080 / 1350; border-radius: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
+    .jtools { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .chk { display: flex; align-items: center; gap: 6px; font-weight: 700; min-height: 44px; } .chk input { width: 22px; height: 22px; }
+    @media (max-width: 760px) {
+      .goals { width: 150px; padding: 4px 8px; font-size: 11px; }
+      .stn { min-height: 44px; padding: 2px 6px; }
+      .jcard canvas { width: min(100%, 300px); }
+      .drama .ev-tag { font-size: 11px; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
@@ -323,6 +382,7 @@
     <h1>Tiệm Trà Sữa</h1>
     <span class="shop" id="shopLabel"></span>
     <div class="tools">
+      <button class="tbtn" id="bookBtn" type="button" aria-label="Sổ quản lý"><span class="lg">Sổ</span><span class="sm" aria-hidden="true">Sổ</span></button>
       <button class="tbtn" id="helpBtn" type="button" aria-label="Cách chơi"><span class="lg">Cách chơi</span><span class="sm" aria-hidden="true">?</span></button>
       <button class="tbtn" id="pauseBtn" type="button" aria-label="Tạm dừng"><span class="lg">Tạm dừng</span><span class="sm" aria-hidden="true">II</span></button>
       <button class="tbtn" id="muteBtn" type="button" aria-pressed="false">Tiếng: bật</button>
@@ -335,6 +395,7 @@
     </section>
     <section id="rail" class="rail" aria-label="Phiếu khách đang chờ"></section>
     <section id="brew" class="brew closed" aria-label="Quầy pha">
+      <div id="stations" class="stations" role="group" aria-label="Chỗ pha" hidden></div>
       <div class="brew-top">
         <div id="ticket" class="ticket" aria-live="polite"></div>
         <div class="station"><div id="cupView" class="cupview"></div></div>
@@ -353,7 +414,7 @@
   <div id="overlay" class="overlay" hidden></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <p id="bootError" hidden></p>
-  <script type="module" src="game.js"></script>
+  <script type="module" src="game.js?v=m34"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

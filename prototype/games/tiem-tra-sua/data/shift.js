@@ -35,3 +35,8 @@ export const NORMAL_DAY = {
 export const SPOTS = [[790, 505], [890, 540], [990, 575], [890, 625]];
 export const DOOR = [1190, 470];
 export const BARISTA = [520, 398];
+
+/** Đơn nhiều ly (GAME-DESIGN: ngày 3 có đơn hai ly, sau đó tối đa ba ly giờ cao điểm). Kiên nhẫn cộng thêm mỗi ly thêm. */
+export const MULTI_CUP = { twoFrom: { level: 3, day: 3 }, threeFromLevel: 10, two: 0.22, three: 0.14, patiencePerExtra: 0.6, maxCups: 3 };
+/** Drama trong ca: tối đa bao nhiêu sự kiện chọn mỗi ca, cửa sổ thời gian (ms ca), khoảng cách tối thiểu giữa hai sự kiện. */
+export const DRAMA = { perShiftEarly: 1, perShift: 2, manyFromDay: 4, firstAt: [22000, 55000], gap: [40000, 70000], closeBefore: 12000, betweenDaysChance: 0.75, flagDays: 3 };

@@ -55,10 +55,10 @@ test("hoàn tác và đổ bỏ ghi hao hụt theo phần đã đổ (không ho�
   act(s, { type: "undo" });
   assert.equal(s.shift.ledger.waste, 3);
   assert.equal(s.stock.sua, 7);
-  assert.equal(cupCost(s.shift.cup), 4);
+  assert.equal(cupCost(s.shift.stations[s.shift.sel].cup), 4);
   act(s, { type: "discard" });
   assert.equal(s.shift.ledger.waste, 7);
-  assert.equal(s.shift.cup, null);
+  assert.equal(s.shift.stations[s.shift.sel].cup, null);
 });
 
 test("nhập hàng: trừ tiền theo gói, kiểm khóa cấp / tiền / sức chứa; giữa ca giá gấp +15%", () => {

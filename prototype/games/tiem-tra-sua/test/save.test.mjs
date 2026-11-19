@@ -27,8 +27,8 @@ test("lưu giữa ca giữ ly đang pha, phiếu ghim, khách, thời gian ca, s
   advance(s, 5000);
   const back = loadSave(dump(s));
   assert.deepEqual(back.shift, s.shift);
-  assert.equal(back.shift.cup.steps.length, 3);
-  assert.equal(back.shift.active, c.id);
+  assert.equal(back.shift.stations[0].cup.steps.length, 3);
+  assert.equal(back.shift.stations[0].cid, c.id);
   // tiếp tục chơi trên bản đọc lại: pha tiếp rồi giao đúng một lần
   for (const [step, id] of [["sugar", c.order.sugar], ["ice", c.order.ice], ["topping", c.order.topping], ["lid", "dong-nap"]]) act(back, { type: "brew", step, id });
   const r = act(back, { type: "serve", cid: c.id });
@@ -74,9 +74,9 @@ test("ca hỏng cấu trúc bị bỏ riêng, giữ tiền / cấp / kho", () =>
   assert.equal(back.money, s.money);
   assert.deepEqual(back.stock, s.stock);
   const d2 = JSON.parse(dump(s));
-  d2.shift.cup = { steps: [{ step: "base", id: "hong-tra" }] }; // ly sai thứ tự ⇒ bỏ ly, giữ ca
+  d2.shift.stations[0].cup = { steps: [{ step: "base", id: "hong-tra" }] }; // ly sai thứ tự ⇒ bỏ ly, giữ ca
   d2.shift.customers.length = 1;
-  assert.equal(loadSave(JSON.stringify(d2)).shift.cup, null);
+  assert.equal(loadSave(JSON.stringify(d2)).shift.stations[0].cup, null);
 });
 
 test("không đọc được ⇒ null; phiên bản lạ ⇒ null", () => {

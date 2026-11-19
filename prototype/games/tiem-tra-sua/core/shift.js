@@ -1,88 +1,130 @@
-// Một ca bán hàng: mở quán → khách đến (đi từ cửa, đứng chờ, kiên nhẫn giảm) → ghim phiếu → pha 7 bước → giao → review / tiền / XP
-// → khách về → hết giờ + hết khách ⇒ chốt ca. Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
+// Một ca bán hàng: mở quán → khách đến (đi từ cửa, đứng chờ, kiên nhẫn giảm) → ghim phiếu → pha 7 bước ở một trong các chỗ pha
+// → ghép ly vào đơn (đơn nhiều ly giao chung một lượt) → review / tiền / XP → khách về → hết giờ + hết khách ⇒ chốt ca.
+// Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
+// Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
+// c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
 import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js";
 import { RECIPE } from "../data/recipes.js";
 import { ARCHETYPES } from "../data/customers.js";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
-  TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT,
+  TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
 } from "../data/shift.js";
 import * as L from "../data/lines.js";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js";
 import { next, int, pick, weighted } from "./rng.js";
 import { fill, pickLine } from "./text.js";
 import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js";
 import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js";
-import { scoreServe } from "./score.js";
+import { scoreServe, starsFor } from "./score.js";
 import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js";
-import { appeal, owns, kitchenSlots, SEAL_BONUS_MS } from "./equipment.js";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js";
+import { trafficBonus, archiveShift } from "./reviews.js";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js";
+import { promoGuests, consignRepay } from "./business.js";
+import { caption } from "./journal.js";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");
 export const customer = (s, cid) => s.shift?.customers.find((c) => c.id === cid) || null;
 export const waiting = (s) => (s.shift?.customers || []).filter((c) => c.phase === "wait");
 export const patienceOf = (c) => c.patience + (c.bonus || 0);
+/** Chỗ pha đang chọn, ly ở đó, khách được ghim ở đó. */
+export const curStation = (sh) => sh?.stations?.[sh.sel] || null;
+export const curCup = (sh) => curStation(sh)?.cup || null;
+export const activeCid = (sh) => curStation(sh)?.cid ?? null;
 /** 0..1 phần kiên nhẫn còn lại (1 = vừa tới). */
 export function patienceLeft(s, c) {
   if (c.phase !== "wait") return c.phase === "enter" ? 1 : 0;
   return clamp(1 - (s.shift.t - c.arriveT) / patienceOf(c), 0, 1);
 }
+/** Số ly còn thiếu của đơn. */
+export const cupsLeft = (c) => c.filled.filter((x) => !x).length;
 
 // ---------- tạo ca ----------
-function orderSpec(recipeId, sugar, ice) {
+export function orderSpec(recipeId, sugar, ice) {
   const r = RECIPE[recipeId];
   return { base: r.base, add: r.add, sugar, ice, topping: r.topping };
 }
-function lineCtx(c) {
+export function lineCtx(c) {
   const a = ARCHETYPES[c.arch], r = RECIPE[c.recipe];
   return {
-    self: a.self, call: a.call, drink: r.name.toLocaleLowerCase("vi"), sugar: c.order.sugar + "%",
+    self: a.self, call: a.call, drink: r.name.toLocaleLowerCase("vi"), sugar: c.order.sugar + "%", name: c.name, n: c.items?.length || 1,
     ice: choiceName("ice", c.order.ice).toLocaleLowerCase("vi"), topping: choiceName("topping", r.topping === "none" ? "tran-chau" : r.topping).toLocaleLowerCase("vi"),
   };
 }
 
-function genGuests(s, cfg) {
+/** Một ly của một vị khách theo sở thích nhóm. */
+export function guestItem(s, arch, menu, recipe = null) {
+  const A = ARCHETYPES[arch];
+  const liked = A.likes.filter((id) => menu.includes(id));
+  const rid = recipe || (liked.length && next(s) < 0.55 ? pick(s, liked) : pick(s, menu));
+  const R = RECIPE[rid];
+  const sugar = next(s) < 0.5 ? R.sugar : pick(s, A.prefs.sugar);
+  const ice = next(s) < 0.5 ? R.ice : pick(s, A.prefs.ice);
+  return { recipe: rid, sugar, ice };
+}
+/** Số ly của một đơn: hai ly từ cấp 3 hoặc ngày 3, ba ly từ cấp 10 vào giờ cao điểm. */
+export function cupsFor(s, arch, inRush) {
+  const M = MULTI_CUP;
+  if (!(s.level >= M.twoFrom.level || s.day >= M.twoFrom.day)) return 1;
+  if (arch !== "van-phong" && arch !== "hoc-sinh") return 1;
+  const r = next(s);
+  if (s.level >= M.threeFromLevel && inRush && r < M.three) return 3;
+  return r < M.two ? 2 : 1;
+}
+
+function genGuests(s, cfg, extra = 0) {
   const menu = recipesAt(s.level).map((r) => r.id);
   const archs = archetypesFor(s);
-  const n = clamp(cfg.minGuests + Math.floor((s.rep - 35) / 15) + Math.floor(s.level / 4) + appeal(s) + int(s, 2), cfg.minGuests, cfg.maxGuests);
+  const n = clamp(cfg.minGuests + Math.floor((s.rep - 35) / 15) + Math.floor(s.level / 4) + appeal(s) + trafficBonus(s) + int(s, 2) + extra, cfg.minGuests, cfg.maxGuests + 3);
   const times = [];
   for (let i = 0; i < n; i++) {
     const inRush = next(s) < 0.45;
     const at = inRush ? pick(s, cfg.rushes) + int(s, cfg.rushWindow) : cfg.firstAt + int(s, cfg.lastAt - cfg.firstAt);
-    times.push(at);
+    times.push({ at, inRush });
   }
-  times.sort((a, b) => a - b);
-  for (let i = 1; i < times.length; i++) times[i] = Math.max(times[i], times[i - 1] + 4000);
+  times.sort((a, b) => a.at - b.at);
+  for (let i = 1; i < times.length; i++) times[i].at = Math.max(times[i].at, times[i - 1].at + 4000);
   const used = new Set();
-  return times.filter((t) => t <= cfg.lastAt + 8000).map((at) => {
+  const demand = s.drama?.demand && menu.includes(s.drama.demand) ? s.drama.demand : null;
+  return times.filter((x) => x.at <= cfg.lastAt + 8000).map(({ at, inRush }) => {
     const arch = weighted(s, archs.map((id) => ({ id, w: ARCHETYPES[id].weight }))).id;
     const A = ARCHETYPES[arch];
-    const liked = A.likes.filter((id) => menu.includes(id));
-    const recipe = liked.length && next(s) < 0.55 ? pick(s, liked) : pick(s, menu);
-    const R = RECIPE[recipe];
-    const sugar = next(s) < 0.5 ? R.sugar : pick(s, A.prefs.sugar);
-    const ice = next(s) < 0.5 ? R.ice : pick(s, A.prefs.ice);
+    const first = guestItem(s, arch, menu, demand && next(s) < 0.35 ? demand : null);
+    const cups = cupsFor(s, arch, inRush);
+    const items = [first];
+    for (let i = 1; i < cups; i++) items.push(arch === "van-phong" ? { ...first } : guestItem(s, arch, menu));
     let name = pick(s, A.names);
     if (used.has(name)) name = pick(s, A.names);
     used.add(name);
-    return { at, arch, name, recipe, sugar, ice };
+    return { at, arch, name, items };
   });
 }
 
 export function startShift(s, events) {
   if (s.shift) return { err: "shift-open" };
+  if (s.drama?.pending) return { err: "event-pending" };
   const tut = !s.tutorialDone;
   const cfg = tut ? TUTORIAL_DAY : NORMAL_DAY;
-  const guests = tut ? TUTORIAL_DAY.guests.map((g) => ({ ...g })) : genGuests(s, NORMAL_DAY);
-  const fee = Math.min(SHIFT_FEE, s.money); // hụt vốn: chủ nhà cho khất phần thiếu (gói ký gửi ở Milestone 3)
+  const extra = tut ? 0 : promoGuests(s) + (s.drama?.nextGuests || 0);
+  const guests = tut ? TUTORIAL_DAY.guests.map((g) => ({ at: g.at, arch: g.arch, name: g.name, items: [{ recipe: g.recipe, sugar: g.sugar, ice: g.ice }] })) : genGuests(s, NORMAL_DAY, extra);
+  const fee = Math.min(SHIFT_FEE, s.money); // hụt vốn: chủ nhà cho khất phần thiếu (xem thêm gói ký gửi ở core/business.js)
   s.money -= fee;
+  const stations = Array.from({ length: stationCount(s) }, () => ({ cup: null, cid: null, item: null }));
   s.shift = {
-    day: s.day, t: 0, duration: cfg.duration, patienceMult: cfg.patienceMult * (1 + 0.03 * appeal(s)), hints: cfg.hints, tutorial: tut,
-    status: "open", schedule: guests, planned: guests.length, customers: [], nextCid: 1, active: null, cup: null, dialog: null,
-    ledger: { revenue: 0, cogs: 0, waste: 0, fee, restock: 0, cups: 0, served: 0, lost: 0, refunds: 0, remakes: 0, pearlWaste: 0 },
+    day: s.day, t: 0, duration: cfg.duration, patienceMult: cfg.patienceMult * (1 + 0.03 * appeal(s) + patienceBonus(s)), hints: cfg.hints, tutorial: tut,
+    status: "open", schedule: guests, planned: guests.length, customers: [], nextCid: 1, stations, sel: 0, dialog: null,
+    ledger: { revenue: 0, cogs: 0, waste: 0, fee, restock: 0, cups: 0, served: 0, lost: 0, refunds: 0, remakes: 0, pearlWaste: 0, multi: 0, consignPaid: 0, eventCash: 0 },
     reviews: [], repDelta: 0, xp: 0, levelUps: [], moments: [], usedLines: [],
     kitchen: { ready: (tut ? TUTORIAL_PRECOOKED : 0) + s.carryPearls, batches: [] },
+    mods: { sealMs: 0, spawnPauseUntil: 0 }, lastServe: null, missions: [], drama: null, followers0: s.followers || 0,
   };
   s.carryPearls = 0;
+  if (s.drama) { s.drama.nextGuests = 0; s.drama.demand = null; }
+  startMissions(s);
+  startDrama(s);
   events.push({ type: "shiftStarted", day: s.day, guests: guests.length, fee });
   return { ok: true };
 }
@@ -95,37 +137,53 @@ function freeSpot(sh) {
 
 function spawn(s, g, events) {
   const sh = s.shift, A = ARCHETYPES[g.arch];
+  const items = g.items.slice(0, MULTI_CUP.maxCups).map((it) => ({ recipe: it.recipe, order: orderSpec(it.recipe, it.sugar, it.ice), price: RECIPE[it.recipe].price }));
+  const extra = items.length - 1;
   const c = {
-    id: sh.nextCid++, arch: g.arch, sprite: A.sprite, name: g.name, recipe: g.recipe, order: orderSpec(g.recipe, g.sugar, g.ice),
-    price: RECIPE[g.recipe].price, patience: Math.round(A.patience * sh.patienceMult), bonus: 0, spot: freeSpot(sh),
+    id: sh.nextCid++, arch: g.arch, sprite: A.sprite, name: g.name, items, filled: items.map(() => null),
+    recipe: items[0].recipe, order: { ...items[0].order }, price: items.reduce((a, it) => a + it.price, 0),
+    patience: Math.round(A.patience * sh.patienceMult * (1 + MULTI_CUP.patiencePerExtra * extra) * (g.patienceMul || 1)), bonus: 0, spot: freeSpot(sh),
     t0: sh.t, arriveT: null, phase: "enter", mood: "walk", pinned: false, impatientSaid: false, remade: false,
-    say: null, leaveT: null, reactUntil: null, review: null,
+    say: null, leaveT: null, reactUntil: null, review: null, tag: g.tag || null, tip: g.tip || 0,
   };
-  const lines = [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
-  c.orderLine = freshLine(s, lines, lineCtx(c)); // không lặp câu trong cùng ca
+  const lines = items.length > 1 ? L.ORDER_LINES_MULTI : [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
+  c.orderLine = g.line ? fill(g.line, lineCtx(c)) : freshLine(s, lines, lineCtx(c)); // không lặp câu trong cùng ca
   sh.customers.push(c);
-  events.push({ type: "spawn", cid: c.id, arch: c.arch });
+  events.push({ type: "spawn", cid: c.id, arch: c.arch, cups: items.length });
+  return c;
+}
+/** Thêm lượt khách vào lịch ca (sự kiện đoàn khách, quảng bá giữa ca). */
+export function scheduleGuest(s, g) {
+  const sh = s.shift;
+  sh.schedule.push(g);
+  sh.schedule.sort((a, b) => a.at - b.at);
+  sh.planned++;
 }
 
-function say(sh, c, text) { c.say = { text, at: sh.t }; }
+export function say(sh, c, text) { c.say = { text, at: sh.t }; }
 
+function unpinAll(sh, cid) {
+  for (const st of sh.stations) if (st.cid === cid) { st.cid = null; st.item = null; }
+}
 function leave(sh, c, mood) {
   c.phase = "leave"; c.leaveT = sh.t; c.mood = mood;
-  if (sh.active === c.id) sh.active = null;
+  unpinAll(sh, c.id);
 }
 
-function addRep(s, stars) {
-  const sh = s.shift;
-  const want = clamp(sh.repDelta + REP_BY_STARS[stars], -REP_CAP_PER_SHIFT, REP_CAP_PER_SHIFT);
-  const d = want - sh.repDelta;
-  sh.repDelta = want;
+export function addRep(s, d, capped = true) {
   const before = s.rep;
+  if (capped && s.shift) {
+    const sh = s.shift;
+    const want = clamp(sh.repDelta + d, -REP_CAP_PER_SHIFT, REP_CAP_PER_SHIFT);
+    d = want - sh.repDelta;
+    sh.repDelta = want;
+  }
   s.rep = clamp(s.rep + d, 0, 100);
   return s.rep - before;
 }
 
-function review(s, c, stars, line, reason) {
-  const rep = addRep(s, stars);
+export function review(s, c, stars, line, reason) {
+  const rep = addRep(s, REP_BY_STARS[stars]);
   c.review = { stars, line, reason };
   s.shift.reviews.push({ cid: c.id, name: c.name, arch: c.arch, recipe: c.recipe, stars, line, reason, rep });
   s.stats.reviews[stars] = (s.stats.reviews[stars] || 0) + 1;
@@ -142,7 +200,9 @@ export function tick(s, dt, events) {
   while (sh.schedule.length && sh.schedule[0].at <= t) {
     if (t > sh.duration) { sh.schedule.length = 0; break; }
     const live = sh.customers.filter((c) => c.phase !== "leave").length;
-    if (live >= QUEUE_MAX || freeSpot(sh) < 0) { sh.schedule[0].at = t + SPAWN_RETRY_MS; sh.schedule.sort((a, b) => a.at - b.at); break; }
+    if (live >= QUEUE_MAX || freeSpot(sh) < 0 || t < sh.mods.spawnPauseUntil) {
+      sh.schedule[0].at = Math.max(t + SPAWN_RETRY_MS, sh.mods.spawnPauseUntil); sh.schedule.sort((a, b) => a.at - b.at); break;
+    }
     spawn(s, sh.schedule.shift(), events);
   }
   // bếp topping: mẻ chín
@@ -161,6 +221,7 @@ export function tick(s, dt, events) {
         const tl = [...(L.TIMEOUT_LINES[c.arch] || []), ...L.TIMEOUT_LINES.default];
         say(sh, c, pickLine(s, tl, lineCtx(c)));
         review(s, c, 1, freshLine(s, L.TIMEOUT_REVIEW, lineCtx(c)), "timeout");
+        for (const cup of c.filled) if (cup) sh.ledger.waste += cupCost(cup); // ly đã ghép mà khách bỏ về
         sh.ledger.lost++;
         leave(sh, c, "annoyed");
         sh.moments.push({ kind: "timeout", name: c.name });
@@ -173,19 +234,59 @@ export function tick(s, dt, events) {
     if (c.phase === "react" && t >= c.reactUntil) leave(sh, c, c.mood);
   }
   sh.customers = sh.customers.filter((c) => !(c.phase === "leave" && t >= c.leaveT + WALK_MS));
-  if (!sh.schedule.length && !sh.customers.length) endShift(s, events); // hết giờ nhận khách (lượt còn lại bị bỏ) + quầy trống
+  if (!sh.schedule.length && !sh.customers.length) { endShift(s, events); return { ok: true }; } // hết giờ nhận khách + quầy trống
+  maybeTrigger(s, events);
   return { ok: true };
 }
 
 // ---------- quầy ----------
+/** Ly chưa ghép và chưa có chỗ pha nào nhận (trừ chỗ `except`). */
+function freeItem(sh, c, except = -1) {
+  for (let i = 0; i < c.items.length; i++) {
+    if (c.filled[i]) continue;
+    if (sh.stations.some((st, j) => j !== except && st.cid === c.id && st.item === i)) continue;
+    return i;
+  }
+  return null;
+}
+
 export function pin(s, cid, events) {
   if (!isOpen(s)) return { err: "closed" };
-  if (s.shift.dialog) return { err: "dialog" };
+  const sh = s.shift;
+  if (sh.dialog) return { err: "dialog" };
   const c = customer(s, cid);
   if (!c || c.phase !== "wait") return { err: "not-waiting" };
-  s.shift.active = cid;
+  const mine = sh.stations.findIndex((st) => st.cid === cid);
+  let target;
+  if (sh.stations[sh.sel].cid === cid) target = sh.sel;
+  else if (mine >= 0 && freeItem(sh, c, -2) === null) target = mine; // đủ chỗ cho đơn rồi: chỉ chuyển sang chỗ đó
+  else {
+    const cur = sh.stations[sh.sel];
+    const idle = sh.stations.findIndex((st) => !st.cup && st.cid === null);
+    target = !cur.cup || !cur.cup.steps.length || idle < 0 ? sh.sel : idle;
+  }
+  const st = sh.stations[target];
+  if (st.cid !== cid) { st.cid = cid; st.item = freeItem(sh, c, target); }
+  // các chỗ pha đang rảnh nhận luôn các ly còn lại của cùng đơn (pha song song)
+  for (const o of sh.stations) {
+    if (o === st || o.cup || o.cid !== null) continue;
+    const i = freeItem(sh, c);
+    if (i === null) break;
+    o.cid = cid; o.item = i;
+  }
+  sh.sel = target;
   c.pinned = true;
-  events.push({ type: "pinned", cid });
+  events.push({ type: "pinned", cid, station: target });
+  return { ok: true };
+}
+
+export function select(s, i, events) {
+  if (!isOpen(s)) return { err: "closed" };
+  const sh = s.shift;
+  if (sh.dialog) return { err: "dialog" };
+  if (!Number.isInteger(i) || i < 0 || i >= sh.stations.length) return { err: "bad-station" };
+  sh.sel = i;
+  events.push({ type: "selected", station: i });
   return { ok: true };
 }
 
@@ -195,17 +296,15 @@ export function nextStep(cup) {
   if (cup.sealed) return null;
   return STEPS[cup.steps.length] || null;
 }
+/** Giá trị phiếu ở một bước (lựa chọn đúng). */
+export const wantOf = (order, step) => (step === "cup" ? "ly" : step === "lid" ? "dong-nap" : order[step]);
+export function orderAt(s, st) {
+  const c = st.cid !== null ? customer(s, st.cid) : null;
+  if (!c) return null;
+  return c.items[st.item ?? 0]?.order || c.order;
+}
 
-export function brew(s, step, id, events) {
-  if (!isOpen(s)) return { err: "closed" };
-  const sh = s.shift;
-  if (sh.dialog) return { err: "dialog" };
-  const want = nextStep(sh.cup);
-  if (want === null) return { err: "sealed" };
-  if (step !== want) return { err: "wrong-step", want };
-  const c = choice(step, id);
-  if (!c) return { err: "bad-choice" };
-  if (!choiceUnlocked(step, c, s.level)) return { err: "locked" };
+function pour(s, sh, st, step, id, c) {
   const use = useOf(step, id);
   if (c.kitchen) {
     if (sh.kitchen.ready < 1) return { err: "not-cooked" };
@@ -214,41 +313,65 @@ export function brew(s, step, id, events) {
     if (!hasStock(s, use)) return { err: "out-of-stock", use };
     takeStock(s, use);
   }
-  if (step === "cup") sh.cup = { steps: [], sealed: false, forCid: sh.active };
-  sh.cup.steps.push({ step, id });
-  if (step === "lid") sh.cup.sealed = true;
-  events.push({ type: "brewed", step, id });
+  if (step === "cup") st.cup = { steps: [], sealed: false, forCid: st.cid };
+  st.cup.steps.push({ step, id });
+  if (step === "lid") st.cup.sealed = true;
+  return { ok: true };
+}
+
+export function brew(s, step, id, events) {
+  if (!isOpen(s)) return { err: "closed" };
+  const sh = s.shift;
+  if (sh.dialog) return { err: "dialog" };
+  const st = curStation(sh);
+  const want = nextStep(st.cup);
+  if (want === null) return { err: "sealed" };
+  if (step !== want) return { err: "wrong-step", want };
+  const c = choice(step, id);
+  if (!c) return { err: "bad-choice" };
+  if (!choiceUnlocked(step, c, s.level)) return { err: "locked" };
+  const r = pour(s, sh, st, step, id, c);
+  if (r.err) return r;
+  // pha đồng loạt: chỗ pha khác đang ở cùng bước và phiếu ở đó cũng ghi đúng lựa chọn này
+  const also = [];
+  sh.stations.forEach((o, j) => {
+    if (o === st || o.cid === null || nextStep(o.cup) !== step) return;
+    const ord = orderAt(s, o);
+    if (!ord || String(wantOf(ord, step)) !== String(id)) return;
+    if (!pour(s, sh, o, step, id, c).err) also.push(j);
+  });
+  events.push({ type: "brewed", step, id, station: sh.sel, also });
   return { ok: true };
 }
 
 /** Sửa bước gần nhất trước khi đóng nắp. Nguyên liệu đã đổ vẫn tính hao hụt. */
 export function undo(s, events) {
   if (!isOpen(s)) return { err: "closed" };
-  const sh = s.shift, cup = sh.cup;
+  const sh = s.shift, st = curStation(sh), cup = st.cup;
   if (sh.dialog) return { err: "dialog" };
   if (!cup || !cup.steps.length) return { err: "empty" };
   if (cup.sealed) return { err: "sealed" };
-  const st = cup.steps.pop();
-  sh.ledger.waste += costOfUse(useOf(st.step, st.id));
-  if (!cup.steps.length) sh.cup = null;
-  events.push({ type: "undone", step: st.step });
+  const last = cup.steps.pop();
+  sh.ledger.waste += costOfUse(useOf(last.step, last.id));
+  if (!cup.steps.length) st.cup = null;
+  events.push({ type: "undone", step: last.step });
   return { ok: true };
 }
 
 export function discard(s, events) {
   if (!isOpen(s)) return { err: "closed" };
-  const sh = s.shift;
+  const sh = s.shift, st = curStation(sh);
   if (sh.dialog) return { err: "dialog" };
-  if (!sh.cup) return { err: "empty" };
-  const k = cupCost(sh.cup);
+  if (!st.cup) return { err: "empty" };
+  const k = cupCost(st.cup);
   sh.ledger.waste += k;
-  sh.cup = null;
+  st.cup = null;
   events.push({ type: "discarded", cost: k });
   return { ok: true };
 }
 
 /** Chọn câu, tránh lặp câu đã dùng trong ca nếu còn câu khác. */
-function freshLine(s, list, ctx) {
+export function freshLine(s, list, ctx) {
   const sh = s.shift, used = new Set(sh.usedLines);
   const fresh = list.filter((t) => !used.has(t));
   const tpl = pick(s, fresh.length ? fresh : list);
@@ -257,32 +380,91 @@ function freshLine(s, list, ctx) {
   return fill(tpl, ctx);
 }
 
+/** Gộp câu chung + câu riêng của nhóm khách (data/lines-mistakes.js). */
+export const poolFor = (table, arch) => [...(table?.default || []), ...(table?.[arch] || [])];
+/** Lỗi lớn nhất của ly (để chọn câu): khi lỗi đó tạo ra câu nhận xét chi tiết. */
+const ERR_ORDER = ["toppingMissing", "toppingWrong", "addWrong", "sugarHigh", "sugarLow", "iceHigh", "iceLow", "slow", "toppingExtra"];
 function reviewLine(s, c, sc) {
   const ctx = lineCtx(c);
-  const order = ["toppingMissing", "toppingWrong", "addWrong", "sugarHigh", "sugarLow", "iceHigh", "iceLow", "slow", "toppingExtra"];
-  const err = order.find((e) => sc.errors.includes(e));
-  if (err && sc.stars <= 4) return { line: freshLine(s, L.REVIEW_LINES[err], ctx), reason: err };
-  return { line: freshLine(s, L.REVIEW_LINES[sc.stars], ctx), reason: sc.stars >= 4 ? "good" : "ok" };
+  const mk = mistakeOf(sc.errors);
+  if (mk && sc.stars <= 4) {
+    const pool = poolFor(MISTAKE_REVIEW[mk], c.arch);
+    const err = ERR_ORDER.find((e) => sc.errors.includes(e));
+    const reason = ["noLid", "swapped", "wrongCustomer"].includes(mk) ? mk : err || mk;
+    if (pool.length) return { line: freshLine(s, pool, ctx), reason, mistake: mk };
+    if (err) return { line: freshLine(s, L.REVIEW_LINES[err], ctx), reason: err, mistake: mk };
+  }
+  if (c.items.length > 1 && sc.stars >= 4 && next(s) < 0.5) return { line: freshLine(s, L.REVIEW_MULTI, ctx), reason: "good" };
+  const pool = poolFor(REVIEW_BY_STARS[sc.stars], c.arch);
+  return { line: freshLine(s, pool.length ? pool : L.REVIEW_LINES[sc.stars], ctx), reason: sc.stars >= 4 ? "good" : "ok" };
+}
+/** Câu khách nói ngay khi nhận ly có lỗi (bong bóng thoại). */
+function mistakeSay(s, c, mk) {
+  const pool = poolFor(MISTAKE_SAY[mk], c.arch);
+  return pool.length ? freshLine(s, pool, lineCtx(c)) : null;
 }
 
 function pay(s, c, sc, price, cost, events, reasonOverride) {
   const sh = s.shift;
+  const repay = consignRepay(s, Math.min(cost, price));
   sh.ledger.revenue += price;
   sh.ledger.cogs += cost;
-  sh.ledger.cups++;
+  sh.ledger.cups += c.items.length;
   sh.ledger.served++;
-  s.money += price;
-  s.stats.cups++;
+  sh.ledger.consignPaid += repay;
+  if (c.items.length > 1) sh.ledger.multi++;
+  s.money += price - repay;
+  s.stats.cups += c.items.length;
   s.stats.revenue += price;
-  const { line, reason } = reasonOverride || reviewLine(s, c, sc);
+  const { line, reason, mistake } = reasonOverride || reviewLine(s, c, sc);
   review(s, c, sc.stars, line, reason);
-  const xp = gainXp(s, price > 0 ? xpForServe(RECIPE[c.recipe], sc.stars) : 0, events);
+  const spoken = (!reasonOverride && mistake && mistakeSay(s, c, mistake)) || line;
+  const xp = gainXp(s, price > 0 ? c.items.reduce((a, it) => a + xpForServe(RECIPE[it.recipe], sc.stars), 0) : 0, events);
   sh.xp += xp;
+  let tip = 0;
+  if (c.tip && sc.stars >= 3 && !reasonOverride) { tip = c.tip; s.money += tip; sh.ledger.eventCash += tip; }
   c.phase = "react"; c.reactUntil = sh.t + REACT_MS; c.mood = sc.stars >= 3 ? "happy" : "annoyed";
-  say(sh, c, line);
-  if (sh.active === c.id) sh.active = null;
-  if (sc.stars === 5) sh.moments.push({ kind: "five", name: c.name, line });
-  events.push({ type: "served", cid: c.id, stars: sc.stars, price, xp, raw: sc.raw, errors: sc.errors });
+  say(sh, c, spoken);
+  unpinAll(sh, c.id);
+  if (mistake) sh.moments.push({ kind: "mistake", id: mistake, name: c.name, line: spoken });
+  if (sc.stars === 5) sh.moments.push({ kind: c.items.length > 1 ? "multi5" : "five", name: c.name, line });
+  events.push({ type: "served", cid: c.id, stars: sc.stars, price, xp, raw: sc.raw, errors: sc.errors, cups: c.items.length, tip, repay });
+  if (!reasonOverride) missionsOnServe(s, c, sc, events);
+}
+
+/** Chấm cả đơn: điểm thô trung bình các ly, sai món nền ở ly nào cũng tối đa 2 sao. */
+export function scoreOrder(s, c) {
+  const sh = s.shift;
+  const frac = Math.max(0, sh.t - c.arriveT + sh.mods.sealMs - (owns(s, "powered-sealer") ? SEAL_BONUS_MS : 0)) / patienceOf(c);
+  // ly pha cho khách khác (phiếu đã chuyển) mà không khớp đơn người nhận ⇒ "giao nhầm khách"
+  const wrongFor = (cup, it) => cup.forCid !== null && cup.forCid !== undefined && cup.forCid !== c.id && scoreServe(it.order, cup, 0, "base").recipe < 60;
+  const per = c.items.map((it, i) => scoreServe(it.order, c.filled[i], frac, ARCHETYPES[c.arch].expect, wrongFor(c.filled[i], it)));
+  // đơn nhiều ly: đổi chỗ hai ly thì đúng hết ⇒ "ghi nhầm tên trên ly"
+  if (c.items.length > 1 && per.some((x) => x.recipe < 60)) {
+    const fits = (a, b) => scoreServe(c.items[a].order, c.filled[b], 0, "base").recipe >= 60;
+    const n = c.items.length;
+    const perms = n === 2 ? [[1, 0]] : [[0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+    if (perms.some((pm) => pm.every((b, a) => fits(a, b)))) per[0].errors.push("swapped");
+  }
+  const raw = Math.round(per.reduce((a, x) => a + x.raw, 0) / per.length);
+  const wrong = per.map((x, i) => (x.wrongBase ? i : -1)).filter((i) => i >= 0);
+  let stars = starsFor(raw);
+  if (wrong.length || per.some((x) => x.wrongCustomer)) stars = Math.min(stars, 2);
+  if (c.filled.some((cup) => cup && !cup.sealed)) stars = Math.min(stars, 3); // quên nắp
+  if (c.remade) stars = Math.min(stars, 4);
+  const errors = [...new Set(per.flatMap((x) => x.errors))];
+  return { raw, stars, errors, wrongBase: wrong.length > 0, wrong, per, frac };
+}
+
+/** Ly hợp nhất với ly nào còn thiếu trong đơn (điểm công thức cao nhất). */
+function bestItem(c, cup) {
+  let best = null, pts = -1;
+  c.items.forEach((it, i) => {
+    if (c.filled[i]) return;
+    const p = scoreServe(it.order, cup, 0, "base").recipe;
+    if (p > pts) { pts = p; best = i; }
+  });
+  return best;
 }
 
 export function serve(s, cid, events) {
@@ -291,23 +473,55 @@ export function serve(s, cid, events) {
   if (sh.dialog) return { err: "dialog" };
   const c = customer(s, cid);
   if (!c || c.phase !== "wait") return { err: "not-waiting" };
-  const cup = sh.cup;
-  if (!cup || !cup.sealed) return { err: "not-sealed" };
-  const frac = Math.max(0, sh.t - c.arriveT - (owns(s, "powered-sealer") ? SEAL_BONUS_MS : 0)) / patienceOf(c);
-  const sc = scoreServe(c.order, cup, frac, ARCHETYPES[c.arch].expect);
-  if (c.remade) sc.stars = Math.min(sc.stars, 4);
-  const cost = cupCost(cup);
-  sh.cup = null;
+  const st = curStation(sh), cup = st.cup;
+  // quên đóng nắp: ly đủ 6 bước vẫn giao được (bị trừ điểm, khách có câu riêng)
+  if (!cup || !(cup.sealed || cup.steps.length === STEPS.length - 1)) return { err: "not-sealed" };
+  const best = bestItem(c, cup);
+  const fit = (k) => scoreServe(c.items[k].order, cup, 0, "base").recipe;
+  const i = st.cid === cid && st.item !== null && !c.filled[st.item] && best !== null && fit(st.item) >= fit(best) ? st.item : best;
+  if (i === null) return { err: "order-full" };
+  c.filled[i] = cup;
+  st.cup = null;
+  for (const o of sh.stations) if (o !== st && o.cid === cid && o.item === i) o.item = freeItem(sh, c);
+  if (cupsLeft(c)) {
+    st.cid = cid; st.item = freeItem(sh, c, sh.sel);
+    if (st.item === null) { st.cid = null; }
+    events.push({ type: "filled", cid, n: c.items.length - cupsLeft(c), of: c.items.length });
+    return { ok: true, partial: true };
+  }
+  return finishOrder(s, c, events);
+}
+
+function finishOrder(s, c, events) {
+  const sh = s.shift;
+  const sc = scoreOrder(s, c);
+  const cost = c.filled.reduce((a, cup) => a + cupCost(cup), 0);
   if (sc.wrongBase) {
     // Khách phát hiện sai món ⇒ dừng ca, hỏi cách xử lý. Chưa thu tiền.
     c.mood = "surprised";
-    sh.dialog = { kind: "complaint", cid, cost, stars: sc.stars, raw: sc.raw, errors: sc.errors };
-    say(sh, c, fill(L.COMPLAINT.line, lineCtx(c)));
-    events.push({ type: "complaint", cid, errors: sc.errors });
+    const wrongCost = sc.wrong.reduce((a, i) => a + cupCost(c.filled[i]), 0);
+    const mk = mistakeOf(sc.errors) || "wrongDrink";
+    const said = mistakeSay(s, c, mk) || fill(L.COMPLAINT.line, lineCtx(c));
+    sh.dialog = { kind: "complaint", cid: c.id, cost, wrongCost, wrong: sc.wrong, stars: sc.stars, raw: sc.raw, errors: sc.errors, line: said };
+    say(sh, c, said);
+    sh.moments.push({ kind: "mistake", id: mk, name: c.name, line: said });
+    events.push({ type: "complaint", cid: c.id, errors: sc.errors });
     return { ok: true, complaint: true };
   }
+  setLastServe(s, c, sc);
   pay(s, c, sc, c.price, cost, events);
   return { ok: true };
+}
+
+function setLastServe(s, c, sc) {
+  const sh = s.shift, first = c.filled[0];
+  const spec = {};
+  for (const st of first?.steps || []) spec[st.step] = st.id;
+  sh.lastServe = {
+    t: sh.t, cid: c.id, arch: c.arch, name: c.name, recipe: c.recipe, stars: sc.stars, cups: c.items.length,
+    sugar: c.order.sugar, ice: c.order.ice, sugarOk: spec.sugar === c.order.sugar, iceOk: spec.ice === c.order.ice, topping: c.order.topping,
+    mistake: mistakeOf(sc.errors),
+  };
 }
 
 export function resolve(s, pickId, events) {
@@ -317,16 +531,22 @@ export function resolve(s, pickId, events) {
   if (!c) { sh.dialog = null; return { ok: true }; }
   const ctx = lineCtx(c);
   if (pickId === "remake") {
-    sh.ledger.waste += d.cost;
+    sh.ledger.waste += d.wrongCost ?? d.cost;
     sh.ledger.remakes++;
+    for (const i of d.wrong || [0]) c.filled[i] = null;
     c.bonus += REMAKE_PATIENCE_MS; c.remade = true; c.mood = "waiting";
-    sh.active = c.id;
+    const idle = sh.stations.findIndex((st) => !st.cup);
+    const target = idle >= 0 ? idle : sh.sel;
+    sh.stations[target].cid = c.id; sh.stations[target].item = freeItem(sh, c, target);
+    sh.sel = target;
     say(sh, c, fill(L.COMPLAINT.after.remake, ctx));
     sh.moments.push({ kind: "remake", name: c.name });
+    if (s.drama) s.drama.flags["fix-" + c.arch] = s.day + 3; // C01 → C05: khách nhớ tiệm đã sửa sai
   } else if (pickId === "discount") {
     const sc = { stars: Math.min(d.stars, 2), raw: d.raw, errors: d.errors };
     sh.dialog = null;
     pay(s, c, sc, Math.floor(c.price / 2), d.cost, events, { line: fill(L.COMPLAINT.after.discount, ctx), reason: "discount" });
+    setLastServe(s, c, { ...sc, errors: d.errors });
     events.push({ type: "resolved", choice: pickId, cid: c.id });
     return { ok: true };
   } else if (pickId === "refund") {
@@ -335,8 +555,9 @@ export function resolve(s, pickId, events) {
     review(s, c, 2, fill(L.COMPLAINT.after.refund, ctx), "refund");
     c.phase = "react"; c.reactUntil = sh.t + REACT_MS; c.mood = "happy";
     say(sh, c, fill(L.COMPLAINT.after.refund, ctx));
-    if (sh.active === c.id) sh.active = null;
+    unpinAll(sh, c.id);
     sh.moments.push({ kind: "refund", name: c.name });
+    setLastServe(s, c, { stars: 2, errors: d.errors });
   } else return { err: "bad-choice" };
   sh.dialog = null;
   events.push({ type: "resolved", choice: pickId, cid: c.id });
@@ -359,20 +580,10 @@ export function cook(s, size, events) {
 }
 
 // ---------- chốt ca ----------
-function headline(sum) {
-  const H = L.HEADLINES;
-  const ctx = { cups: sum.cups, lost: sum.lost, profit: Math.abs(sum.profit), stars: sum.avgStars.toLocaleString("vi-VN", { maximumFractionDigits: 1 }) };
-  if (sum.profit < 0) return fill(H.loss, ctx);
-  if (sum.lost > 0) return fill(H.lost, ctx);
-  if (sum.cups <= 2) return fill(H.few, ctx);
-  if (sum.avgStars >= 4.5) return fill(H.perfect, ctx);
-  return fill(H.good, ctx);
-}
-
 export function endShift(s, events) {
   const sh = s.shift;
   if (!sh) return { err: "no-shift" };
-  if (sh.cup) sh.ledger.waste += cupCost(sh.cup); // ly dở cuối ca bỏ đi
+  for (const st of sh.stations) if (st.cup) sh.ledger.waste += cupCost(st.cup); // ly dở cuối ca bỏ đi
   // trân châu đã nấu: tủ mát giữ sang ca sau, không thì hao hụt một lần; mẻ đang nấu dở bỏ
   const pearlCost = costOfUse({ [PEARL_RAW]: 1 });
   const cooking = sh.kitchen.batches.reduce((a, b) => a + b.size, 0);
@@ -380,6 +591,7 @@ export function endShift(s, events) {
   if (owns(s, "upright-fridge")) { s.carryPearls = Math.min(12, left); left -= s.carryPearls; }
   sh.ledger.pearlWaste = left + cooking;
   sh.ledger.waste += (left + cooking) * pearlCost;
+  missionsOnEnd(s, events);
   const Lg = sh.ledger;
   const stars = sh.reviews.map((r) => r.stars);
   const avg = stars.length ? stars.reduce((a, b) => a + b, 0) / stars.length : 0;
@@ -387,19 +599,25 @@ export function endShift(s, events) {
   const sum = {
     day: sh.day, cups: Lg.cups, served: Lg.served, lost: Lg.lost, planned: sh.planned, revenue: Lg.revenue, cogs: Lg.cogs, waste: Lg.waste,
     fee: Lg.fee, restock: Lg.restock, refunds: Lg.refunds, remakes: Lg.remakes, pearlWaste: Lg.pearlWaste, carry: s.carryPearls, profit: operatingProfit(Lg),
+    multi: Lg.multi, consignPaid: Lg.consignPaid, eventCash: Lg.eventCash,
     avgStars: Math.round(avg * 10) / 10, reviews: sh.reviews.map((r) => ({ name: r.name, stars: r.stars, line: r.line, reason: r.reason, recipe: r.recipe })),
     best: best ? { name: best.name, stars: best.stars, line: best.line } : null,
-    repDelta: sh.repDelta, rep: s.rep, xp: sh.xp, levelUps: [...sh.levelUps], level: s.level, money: s.money, moments: sh.moments.slice(0, 8),
+    repDelta: sh.repDelta, rep: s.rep, xp: sh.xp, levelUps: [...sh.levelUps], level: s.level, money: s.money, moments: sh.moments.slice(0, 12),
+    missions: sh.missions.map((m) => ({ id: m.id, text: m.text, done: m.done, reward: m.reward })),
+    drama: (sh.drama?.log || []).slice(0, 6), followers: s.followers || 0, followersDelta: (s.followers || 0) - (sh.followers0 || 0), shopName: s.shopName,
   };
-  sum.headline = headline(sum);
+  archiveShift(s, sum);
+  sum.rating = s.rating ?? null;
+  sum.headline = caption(s, sum);
   s.lastSummary = sum;
-  s.journal.unshift({ day: sum.day, cups: sum.cups, profit: sum.profit, avgStars: sum.avgStars, headline: sum.headline });
+  s.journal.unshift({ day: sum.day, cups: sum.cups, profit: sum.profit, avgStars: sum.avgStars, headline: sum.headline, moment: sum.moments.find((m) => m.kind === "drama")?.line || sum.best?.line || "" });
   s.journal.length = Math.min(s.journal.length, 30);
   s.stats.shifts++;
   s.stats.bestProfit = Math.max(s.stats.bestProfit, sum.profit);
   s.day++;
   s.tutorialDone = true;
   s.shift = null;
+  endDrama(s, sum);
   events.push({ type: "shiftEnded", summary: sum });
   return { ok: true };
 }

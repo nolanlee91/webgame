@@ -117,7 +117,7 @@ test("sai món nền ⇒ khiếu nại (ca dừng, chưa thu tiền) → Làm l�
   assert.equal(s.shift.dialog, null);
   assert.equal(s.shift.ledger.waste, 12); // ly có đào thay sữa: 2+2+4+1+1+2
   assert.equal(s.shift.ledger.remakes, 1);
-  assert.equal(s.shift.active, c.id);
+  assert.equal(s.shift.stations[s.shift.sel].cid, c.id);
   brewFor(s, c);
   const r2 = act(s, { type: "serve", cid: c.id });
   const served = r2.events.find((e) => e.type === "served");
@@ -155,6 +155,6 @@ test("ghim phiếu chỉ với khách đang chờ", () => {
   assert.equal(err(s, { type: "pin", cid: 99 }), "not-waiting");
   const c = untilWaiting(s);
   act(s, { type: "pin", cid: c.id });
-  assert.equal(s.shift.active, c.id);
+  assert.equal(s.shift.stations[s.shift.sel].cid, c.id);
   serveRight(s, s.shift.customers.find((q) => q.id === c.id) ? c : c);
 });

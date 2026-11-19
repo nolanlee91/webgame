@@ -9,7 +9,11 @@ export const SHEETS = {
   barista: "assets/barista-actions.webp", walks: "assets/customer-walk-cycles.webp", reactions: "assets/customer-reactions.webp",
   actions: "assets/customer-actions.webp", bfx: "assets/barista-fx.webp", journal: "assets/journal-card.png",
   upgrades: "assets/upgrades.webp", pantry: "assets/pantry-supply.webp", tiles: "assets/shop-tiles.webp",
+  bscene: "assets/barista-scene.webp", // Cần Codex #7 (chưa có file: atlas trả null, cảnh dùng dáng đứng characters.webp)
 };
+
+/** Sheet sắp có (Codex đang vẽ): không bắt buộc có trong manifest, game không tải nếu chưa có. */
+export const OPTIONAL_SHEETS = new Set(["bscene"]);
 
 export function makeAtlas(manifest, base = "") {
   const byFile = new Map();

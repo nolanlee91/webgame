@@ -35,7 +35,7 @@ export function createCupView(root, atlas, { scale = 1.5 } = {}) {
 
   /** Vẽ theo ly; `justDid` = bước vừa làm để chạy hiệu ứng (bỏ qua nếu reduced). */
   function update(cup, { justDid = null, reduced = false } = {}) {
-    const { layers, stage, step } = cupLayers(cup);
+    const { layers, stage, step } = cupLayers(cup, (n) => atlas.has("cup", n));
     wrap.dataset.stage = stage;
     wrap.dataset.step = step;
     empty.hidden = !!layers.length;

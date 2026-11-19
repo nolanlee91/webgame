@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { LEVELS, MAX_LEVEL } from "../data/levels.js";
 import { RECIPES, RECIPE } from "../data/recipes.js";
 import { levelForXp, xpForServe, recipesAt, unlocksAt, xpProgress } from "../core/progression.js";
-import { shop, act, untilWaiting, serveRight, advance } from "./helpers.mjs";
+import { shop, act, untilWaiting, serveRight, advance, openDay } from "./helpers.mjs";
 
 test("20 cấp, XP tích lũy tăng dần, khớp ECONOMY (cấp 2 = 30, cấp 20 = 2370)", () => {
   assert.equal(LEVELS.length, MAX_LEVEL);
@@ -59,10 +59,10 @@ test("ngày học xong ⇒ ngày 2 là ngày thường 6–10 khách, có giờ 
   advance(s, 400000);
   assert.equal(s.day, 2);
   assert.ok(s.tutorialDone);
-  act(s, { type: "startShift" });
+  openDay(s);
   assert.equal(s.shift.tutorial, false);
-  assert.ok(s.shift.planned >= 6 && s.shift.planned <= 10, String(s.shift.planned));
+  assert.ok(s.shift.planned >= 6 && s.shift.planned <= 13, String(s.shift.planned)); // 6–10 + thưởng review / người theo dõi
   const ats = s.shift.schedule.map((g) => g.at);
   assert.ok(ats.some((t) => t >= 50000 && t <= 64000) || ats.some((t) => t >= 140000 && t <= 154000), "có khách trong đợt cao điểm");
-  for (const g of s.shift.schedule) assert.ok(RECIPE[g.recipe].unlock <= s.level, "chỉ gọi món đã mở");
+  for (const g of s.shift.schedule) assert.ok(RECIPE[g.items[0].recipe].unlock <= s.level, "chỉ gọi món đã mở");
 });

@@ -6,12 +6,15 @@ import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js";
 import { ARCHETYPES } from "../data/customers.js";
 import { COMPLAINT } from "../data/lines.js";
 import { LEVELS, MAX_LEVEL } from "../data/levels.js";
-import { patienceLeft, customer } from "../core/shift.js";
-import { capacity, stockUsed, packPrice, recipeCost } from "../core/economy.js";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js";
+import { owns, stationCount, appealCap } from "../core/equipment.js";
 import { xpProgress, unlocksAt } from "../core/progression.js";
 import { fill } from "../core/text.js";
-import { EQUIPMENT, EQUIPMENT_IDS, APPEAL_CAP } from "../data/equipment.js";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js";
 import { appeal } from "../core/equipment.js";
+import { portrait as portraitOf } from "./panels.js";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -31,6 +34,7 @@ export function createHud(root, atlas) {
   add("hMoney", "coin", "Tiền mặt");
   add("hClock", "clock", "Thời gian ca");
   add("hRep", "review-star", "Danh tiếng");
+  add("hFans", "customer", "Người theo dõi · đánh giá");
   add("hLevel", "upgrade", "Cấp tiệm");
   add("hStock", "storage", "Kho");
   const xpBar = h("div", "xpbar"); xpBar.appendChild(h("i")); items.hLevel.d.appendChild(xpBar);
@@ -44,6 +48,9 @@ export function createHud(root, atlas) {
       items.hClock.d.classList.toggle("warn", left > 0 && left < 20000);
     } else { items.hClock.b.textContent = "Đóng cửa"; items.hClock.sm.textContent = `Ngày ${state.day}`; items.hClock.d.classList.remove("warn"); }
     items.hRep.b.textContent = state.rep; items.hRep.sm.textContent = "Danh tiếng";
+    const f = state.followers || 0;
+    items.hFans.b.textContent = f >= 1000 ? (f / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "k" : String(f);
+    items.hFans.sm.textContent = state.rating ? `${state.rating.toLocaleString("vi-VN")}★` : "theo dõi";
     const xp = xpProgress(state);
     items.hLevel.b.textContent = `Cấp ${state.level}`; items.hLevel.sm.textContent = xp.need ? `${xp.into}/${xp.need} XP` : "Tối đa";
     xpBar.firstChild.style.width = (xp.need ? Math.min(100, (xp.into / xp.need) * 100) : 100) + "%";
@@ -54,12 +61,22 @@ export function createHud(root, atlas) {
 // ---------- phiếu khách ----------
 export function createRail(root, atlas, onPin) {
   const cards = new Map();
+  const goals = h("div", "goals"); goals.hidden = true; root.appendChild(goals);
+  let goalsKey = "";
   const empty = h("p", "rail-empty", "");
   root.appendChild(empty);
   root.addEventListener("click", (e) => { const b = e.target.closest("button[data-cid]"); if (b && !b.disabled) onPin(Number(b.dataset.cid)); });
   return function render(state) {
     const sh = state.shift;
     const list = (sh?.customers || []).filter((c) => c.phase === "wait" || c.phase === "enter");
+    const ms = sh?.missions || [];
+    const gk = JSON.stringify(ms.map((m) => [m.prog, m.done]));
+    goals.hidden = !ms.length;
+    if (gk !== goalsKey) {
+      goalsKey = gk; goals.textContent = "";
+      goals.appendChild(h("b", "", "Nhiệm vụ ngày"));
+      for (const m of ms) { const li = h("span", "goal" + (m.done ? " done" : ""), `${m.done ? "✓ " : ""}${m.text} · ${m.prog}/${m.n}`); goals.appendChild(li); }
+    }
     empty.hidden = list.length > 0;
     empty.textContent = !sh ? "Phiếu gọi món sẽ hiện ở đây khi tiệm mở cửa." : sh.schedule.length ? "Chưa có khách. Khách kế tiếp sắp tới…" : "Hết khách trong ca.";
     const live = new Set();
@@ -72,22 +89,25 @@ export function createRail(root, atlas, onPin) {
         top.appendChild(headIcon(atlas, c.sprite, 34));
         const tx = h("div", "slip-tx");
         tx.appendChild(h("b", "", c.name));
-        tx.appendChild(h("span", "", RECIPE[c.recipe].short));
+        tx.appendChild(h("span", "", c.items.length > 1 ? `${c.items.length} ly · ${RECIPE[c.recipe].short}${c.items.some((it) => it.recipe !== c.recipe) ? " +…" : ""}` : RECIPE[c.recipe].short));
         top.appendChild(tx);
+        if (c.items.length > 1) { const bd = h("span", "cups-badge", ""); top.appendChild(bd); }
         b.appendChild(top);
         b.appendChild(h("small", "slip-spec", `${c.order.sugar}% đường · ${choiceName("ice", c.order.ice)}`));
         const bar = h("div", "pbar"); bar.appendChild(h("i")); b.appendChild(bar);
         const st = h("em", "slip-state"); b.appendChild(st);
         root.appendChild(b);
-        n = { b, bar, st };
+        n = { b, bar, st, bd: top.querySelector(".cups-badge") };
         cards.set(c.id, n);
       }
       const p = patienceLeft(state, c);
       n.bar.firstChild.style.width = p * 100 + "%";
       n.bar.className = "pbar" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
       n.b.disabled = c.phase !== "wait";
-      n.b.classList.toggle("on", sh.active === c.id);
-      n.st.textContent = c.phase === "enter" ? "Đang vào…" : sh.active === c.id ? "Đang pha" : p <= 0.35 ? "Sắp bỏ về!" : "Chạm để ghim";
+      const act = activeCid(sh) === c.id, onAny = sh.stations.some((x) => x.cid === c.id);
+      n.b.classList.toggle("on", act);
+      if (n.bd) n.bd.textContent = `${c.items.length - cupsLeft(c)}/${c.items.length}`;
+      n.st.textContent = c.phase === "enter" ? "Đang vào…" : act ? "Đang pha" : onAny ? "Ở chỗ pha khác" : p <= 0.35 ? "Sắp bỏ về!" : "Chạm để ghim";
     }
     for (const [id, n] of cards) if (!live.has(id)) { n.b.remove(); cards.delete(id); }
   };
@@ -96,10 +116,11 @@ export function createRail(root, atlas, onPin) {
 // ---------- bảng phủ ----------
 export function createOverlays(root, atlas, dispatch, hooks) {
   let current = null;
-  const close = () => { root.textContent = ""; root.hidden = true; current = null; hooks.onClose?.(); };
+  const close = () => { root.textContent = ""; root.hidden = true; root.classList.remove("pass"); current = null; hooks.onClose?.(); };
   function open(kind, build, { modal = true, cls = "" } = {}) {
     root.textContent = "";
     root.hidden = false;
+    root.classList.toggle("pass", !modal);
     current = kind;
     const card = h("section", "sheet " + cls);
     card.setAttribute("role", modal ? "dialog" : "region");
@@ -133,14 +154,31 @@ export function createOverlays(root, atlas, dispatch, hooks) {
     });
   }
 
+  let supplier = "di-ba";
   function prep(state) {
     open("prep", (c) => {
       c.classList.add("prep");
       const hd = h("header", "sheet-head");
       hd.appendChild(icon(atlas, ["icons", "journal"], 36));
       const t = h("div"); t.appendChild(h("h2", "", `Chuẩn bị ca · Ngày ${state.day}`));
-      t.appendChild(h("p", "muted", state.tutorialDone ? "Khách hôm nay 6–10 người, có hai đợt cao điểm. Xem kho trước khi mở cửa." : "Ngày học: 5 khách, mỗi phiếu có gợi ý bước kế tiếp."));
-      hd.appendChild(t); c.appendChild(hd);
+      t.appendChild(h("p", "muted", state.tutorialDone ? "Khách hôm nay 6–10 người (thêm nếu review tốt, nhiều người theo dõi), có hai đợt cao điểm. Xem kho trước khi mở cửa." : "Ngày học: 5 khách, mỗi phiếu có gợi ý bước kế tiếp."));
+      t.classList.add("grow1");
+      hd.appendChild(t);
+      const nb = h("button", "btn small", "Sổ"); nb.type = "button"; nb.id = "prepBook";
+      nb.addEventListener("click", () => hooks.notebook?.("reviews", () => prep(hooks.state())));
+      hd.appendChild(nb);
+      c.appendChild(hd);
+      if (needsBailout(state)) {
+        const bx = h("div", "box bail");
+        bx.appendChild(h("h3", "", "Hụt vốn rồi!"));
+        bx.appendChild(h("p", "", "Không đủ tiền và hàng để pha một ly cơ bản. Dì Ba cho ký gửi một gói hàng (khoảng 6 ly trà đào, 3 ly trà sữa). Bán tới đâu trừ giá vốn tới đó, không lãi, không phạt."));
+        const b = h("button", "btn primary", "Nhận gói ký gửi"); b.type = "button"; b.id = "consignBtn";
+        b.disabled = !consignAvailable(state);
+        if (b.disabled) b.title = "Mỗi ngày nhận một lần";
+        b.addEventListener("click", () => { dispatch({ type: "consign" }); prep(hooks.state()); });
+        bx.appendChild(b);
+        c.appendChild(bx);
+      } else if (state.consign?.owed) c.appendChild(h("p", "muted small", `Còn nợ ký gửi Dì Ba ${k(state.consign.owed)}, tự trừ dần khi bán.`));
       const grid = h("div", "prep-grid");
       // menu
       const menu = h("div", "box");
@@ -150,7 +188,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         const li = h("li", r.unlock > state.level ? "locked" : "");
         li.appendChild(ingIcon(atlas, drinkIcon(r), 40));
         const tx = h("div");
-        tx.appendChild(h("b", "", r.name));
+        tx.appendChild(h("b", "", r.name + (state.drama?.demand === r.id ? " · đang hot" : "")));
         tx.appendChild(h("small", "", r.unlock > state.level ? `Mở ở cấp ${r.unlock}` : `Bán ${k(r.price)} · vốn ${k(recipeCost(r.id))} · lãi ${k(r.price - recipeCost(r.id))}`));
         li.appendChild(tx);
         ul.appendChild(li);
@@ -160,7 +198,18 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       // kho
       const st = h("div", "box");
       const used = stockUsed(state), cap = capacity(state);
-      st.appendChild(h("h3", "", `Kho nguyên liệu · ${used}/${cap} phần`));
+      const sth = h("h3", "kho-h"); sth.appendChild(icon(atlas, ["fixtures", "storage-shelf"], 34)); sth.appendChild(h("span", "", `Kho nguyên liệu · ${used}/${cap} phần`)); st.appendChild(sth);
+      if (state.level >= SUPPLIERS.si.unlock) {
+        const sw = h("div", "seg"); sw.setAttribute("role", "group"); sw.setAttribute("aria-label", "Nhà cung cấp");
+        for (const [id, S] of Object.entries(SUPPLIERS)) {
+          const b = h("button", "btn small" + (supplier === id ? " primary" : ""), S.name); b.type = "button"; b.dataset.supplier = id;
+          b.setAttribute("aria-pressed", supplier === id ? "true" : "false");
+          b.addEventListener("click", () => { supplier = id; prep(hooks.state()); });
+          sw.appendChild(b);
+        }
+        st.appendChild(sw);
+        st.appendChild(h("small", "muted", supplier === "si" ? "Vựa sỉ: gói gấp đôi, rẻ hơn 10%, tốn chỗ kho. Chỉ giao trước ca." : "Dì Ba: gói nhỏ, giữa ca giao gấp +15%."));
+      } else supplier = "di-ba";
       const sg = h("div", "stock");
       for (const id of STOCK_IDS) {
         const it = STOCK[id];
@@ -168,34 +217,57 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         const row = h("div", "srow" + ((state.stock[id] || 0) <= 2 ? " low" : ""));
         row.appendChild(ingIcon(atlas, it.icon, 34));
         const tx = h("div"); tx.appendChild(h("b", "", it.name)); tx.appendChild(h("small", "", `còn ${state.stock[id] || 0} phần`)); row.appendChild(tx);
-        const price = packPrice(id);
-        const b = h("button", "btn small", `+${it.pack} · ${k(price)}`); b.type = "button"; b.dataset.restock = id;
-        b.disabled = state.money < price || cap - used < it.pack;
-        b.title = b.disabled ? (state.money < price ? "Không đủ tiền" : "Kho đầy") : `Nhập ${it.pack} phần ${it.name}`;
-        b.addEventListener("click", () => { dispatch({ type: "restock", id }); prep(hooks.state()); });
+        const price = packPrice(id, false, supplier), n = packSize(id, supplier);
+        const b = h("button", "btn small", `+${n} · ${k(price)}`); b.type = "button"; b.dataset.restock = id;
+        b.disabled = state.money < price || cap - used < n;
+        b.title = b.disabled ? (state.money < price ? "Không đủ tiền" : "Kho đầy") : `Nhập ${n} phần ${it.name}`;
+        b.addEventListener("click", () => { dispatch({ type: "restock", id, supplier }); prep(hooks.state()); });
         row.appendChild(b);
         sg.appendChild(row);
       }
       st.appendChild(sg);
       grid.appendChild(st);
       c.appendChild(grid);
+      // quảng bá
+      if (state.level >= PROMO_UNLOCK) {
+        const pb = h("div", "box promo");
+        const done = state.promo?.day === state.day;
+        pb.appendChild(h("h3", "", done ? `Quảng bá hôm nay: ${PROMOS[state.promo.kind].name}` : "Quảng bá địa phương (một lần mỗi ngày)"));
+        const row = h("div", "promo-row");
+        for (const [id, P] of Object.entries(PROMOS)) {
+          const b = h("button", "btn small choice", ""); b.type = "button"; b.dataset.promo = id;
+          b.appendChild(h("b", "", P.name)); b.appendChild(h("small", "", `${P.price ? k(P.price) : "Miễn phí"} · +${P.guests} khách${P.followers ? ` · +${P.followers} theo dõi` : ""}`));
+          b.disabled = done || state.money < P.price;
+          b.addEventListener("click", () => { dispatch({ type: "promo", kind: id }); prep(hooks.state()); });
+          row.appendChild(b);
+        }
+        pb.appendChild(row);
+        c.appendChild(pb);
+      }
       // nâng cấp + trang trí
       const up = h("div", "box gear-box");
-      up.appendChild(h("h3", "", `Nâng cấp & trang trí · hấp dẫn ${appeal(state)}/${APPEAL_CAP}`));
+      const uph = h("div", "gear-head");
+      uph.appendChild(h("h3", "", `Nâng cấp & trang trí · hấp dẫn ${appeal(state)}/${appealCap(state)} · ${stationCount(state)} chỗ pha`));
+      const canArrange = Object.keys(state.owned).some((id) => EQUIPMENT[id]?.place);
+      const ab = h("button", "btn small", "Xếp chỗ trang trí"); ab.type = "button"; ab.id = "arrangeBtn"; ab.disabled = !canArrange;
+      if (!canArrange) ab.title = "Mua đồ trang trí trước";
+      ab.addEventListener("click", () => hooks.arrange?.());
+      uph.appendChild(ab);
+      up.appendChild(uph);
       const gl = h("div", "gear");
       for (const id of EQUIPMENT_IDS) {
         const it = EQUIPMENT[id];
-        const owned = !!state.owned[id], locked = it.unlock > state.level;
+        const owned = !!state.owned[id], locked = it.unlock > state.level, needs = it.requires && !state.owned[it.requires];
         const row = h("div", "grow" + (owned ? " owned" : "") + (locked ? " locked" : ""));
         row.dataset.item = id;
         row.appendChild(icon(atlas, it.sprite, 54));
         const tx = h("div");
         tx.appendChild(h("b", "", it.name));
-        tx.appendChild(h("small", "", it.effect));
+        tx.appendChild(h("small", "", it.effect + (needs ? ` (cần ${EQUIPMENT[it.requires].name} trước)` : "")));
         row.appendChild(tx);
         const b = h("button", "btn small" + (owned ? "" : " primary"), owned ? "Đã có" : locked ? `Cấp ${it.unlock}` : `Mua ${k(it.price)}`);
         b.type = "button"; b.dataset.buy = id;
-        b.disabled = owned || locked || state.money < it.price;
+        b.disabled = owned || locked || !!needs || state.money < it.price;
         if (!owned && !locked && state.money < it.price) b.title = "Chưa đủ tiền";
         b.addEventListener("click", () => { dispatch({ type: "buy", id }); prep(hooks.state()); });
         row.appendChild(b);
@@ -214,11 +286,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
     });
   }
 
-  function portrait(role, mood) {
-    if (role === "regular") return icon(atlas, ["faces", `regular-${mood === "happy" ? "happy" : mood === "sheepish" ? "sheepish" : "annoyed"}`], 150, "ico portrait");
-    if (atlas.has("portraits", role)) return icon(atlas, ["portraits", role], 150, "ico portrait");
-    return icon(atlas, ["reactions", `${role}-impatient`], 150, "ico portrait body"); // office-worker chưa có chân dung (Cần Codex)
-  }
+  const portrait = (role, mood) => portraitOf(atlas, role, mood);
 
   function complaint(state) {
     const sh = state.shift, d = sh.dialog, c = customer(state, d.cid);
@@ -232,7 +300,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const ctx = { self: ARCHETYPES[c.arch].self, call: ARCHETYPES[c.arch].call, drink: RECIPE[c.recipe].name.toLocaleLowerCase("vi") };
       const say = h("div", "say");
       say.appendChild(h("h2", "", "Sai món rồi!"));
-      say.appendChild(h("p", "line", "“" + fill(COMPLAINT.line, ctx) + "”"));
+      say.appendChild(h("p", "line", "“" + (d.line || fill(COMPLAINT.line, ctx)) + "”"));
       say.appendChild(h("p", "line me", "“" + COMPLAINT.barista + "”"));
       say.appendChild(h("p", "muted small", "Ca đang tạm dừng. Chọn cách xử lý:"));
       card.appendChild(say);
@@ -271,11 +339,26 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       row("Phí ca", "−" + k(S.fee));
       row("Lợi nhuận vận hành", (S.profit >= 0 ? "" : "−") + k(Math.abs(S.profit)), "total");
       if (S.restock) row("Nhập hàng giữa ca (dòng tiền)", "−" + k(S.restock));
+      if (S.eventCash) row("Thu / chi do sự kiện, tiền thưởng (dòng tiền)", (S.eventCash > 0 ? "+" : "−") + k(Math.abs(S.eventCash)));
+      if (S.consignPaid) row("Trả nợ ký gửi (dòng tiền)", "−" + k(S.consignPaid));
       c.appendChild(tbl);
       const meta = h("p", "sum-meta");
-      meta.textContent = `Danh tiếng ${S.repDelta >= 0 ? "+" : ""}${S.repDelta} → ${S.rep} · +${S.xp} XP · Cấp ${S.level} · Tiền mặt ${k(S.money)}`;
+      meta.textContent = `Danh tiếng ${S.repDelta >= 0 ? "+" : ""}${S.repDelta} → ${S.rep} · +${S.xp} XP · Cấp ${S.level} · ${S.followers ?? 0} người theo dõi${S.followersDelta ? ` (+${S.followersDelta})` : ""}${S.rating ? ` · đánh giá ${S.rating.toLocaleString("vi-VN")} sao` : ""}${S.multi ? ` · ${S.multi} đơn nhiều ly` : ""} · Tiền mặt ${k(S.money)}`;
       c.appendChild(meta);
       if (S.levelUps.length) c.appendChild(h("p", "levelup", `Lên cấp ${S.levelUps.join(", ")}! Mở: ${S.levelUps.flatMap((l) => unlocksAt(l).filter((u) => u.kind !== "note").map((u) => u.name)).join(", ") || "quyền lợi mới"}.`));
+      if (S.missions?.length) {
+        const mb = h("div", "goals sum-goals");
+        mb.appendChild(h("b", "", "Nhiệm vụ ngày"));
+        for (const m of S.missions) mb.appendChild(h("span", "goal" + (m.done ? " done" : ""), `${m.done ? "✓ " : "· "}${m.text}${m.done ? ` (+${m.reward.xp} XP${m.reward.money ? `, +${m.reward.money}k` : ""})` : ""}`));
+        c.appendChild(mb);
+      }
+      const dm = (S.moments || []).filter((m) => m.kind === "drama" || m.kind === "promise" || m.kind === "promise-miss");
+      if (dm.length) {
+        const db = h("div", "reviews moments");
+        db.appendChild(h("h3", "", "Khoảnh khắc đáng nhớ"));
+        for (const m of dm) { const it = h("div", "rv moment"); const tx = h("div"); tx.appendChild(h("b", "", m.name || "Tiệm")); tx.appendChild(h("p", "", "“" + m.line + "”")); it.appendChild(tx); db.appendChild(it); }
+        c.appendChild(db);
+      }
       const rv = h("div", "reviews");
       rv.appendChild(h("h3", "", "Review trong ca"));
       if (!S.reviews.length) rv.appendChild(h("p", "muted", "Chưa có review nào. Ca này yên tĩnh quá."));
@@ -284,14 +367,20 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         const stars = h("span", "stars"); stars.setAttribute("aria-label", `${r.stars} sao`);
         for (let i = 0; i < 5; i++) stars.appendChild(icon(atlas, ["icons", "review-star"], 18, "ico" + (i < r.stars ? "" : " off")));
         it.appendChild(stars);
-        const tx = h("div"); tx.appendChild(h("b", "", `${r.name} · ${RECIPE[r.recipe]?.short || ""}`)); tx.appendChild(h("p", "", r.line)); it.appendChild(tx);
+        const tx = h("div"); tx.appendChild(h("b", "", `${r.name} · ${r.reason === "mang" ? "trên mạng" : RECIPE[r.recipe]?.short || ""}`)); tx.appendChild(h("p", "", r.line)); it.appendChild(tx);
         rv.appendChild(it);
       }
       c.appendChild(rv);
       const foot = h("footer", "sheet-foot");
-      foot.appendChild(h("span", "muted small", "Nhật Ký Làm Chủ (ảnh chia sẻ) sẽ có ở bản sau."));
+      const left = h("div", "foot-l");
+      const jb = h("button", "btn", "Nhật Ký · Lưu ảnh"); jb.id = "journalBtn"; jb.type = "button";
+      jb.addEventListener("click", () => hooks.journal?.(() => summary(hooks.state())));
+      const rb = h("button", "btn", "Trả lời review"); rb.id = "replyBtn"; rb.type = "button";
+      rb.addEventListener("click", () => hooks.notebook?.("reviews", () => summary(hooks.state())));
+      left.appendChild(jb); left.appendChild(rb);
+      foot.appendChild(left);
       const go = h("button", "btn primary big", `Chuẩn bị ngày ${state.day}`); go.id = "nextDay"; go.type = "button"; go.dataset.autofocus = "";
-      go.addEventListener("click", () => { dispatch({ type: "closeSummary" }); prep(hooks.state()); });
+      go.addEventListener("click", () => { dispatch({ type: "closeSummary" }); hooks.afterSummary ? hooks.afterSummary() : prep(hooks.state()); });
       foot.appendChild(go);
       c.appendChild(foot);
     });
@@ -319,6 +408,9 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         "Sai bước gần nhất? Bấm Hoàn tác (nguyên liệu đã đổ vẫn tính hao hụt). Đổ bỏ ly nếu sai từ đầu.",
         "Đóng nắp xong bấm Giao. Đúng công thức, nhanh và hợp ý khách thì được nhiều sao, tiền và XP.",
         "Sai món nền: khách khiếu nại, bạn chọn làm lại, giảm giá hoặc không lấy tiền.",
+        "Đơn nhiều ly: pha từng ly rồi bấm Ghép ly vào đơn; đủ ly thì giao chung một lượt. Có bàn pha đôi / ba thì ly cùng yêu cầu được rót cùng lúc.",
+        "Drama: khách, mạng xã hội, mẹ gọi… Ca tạm dừng khi hội thoại mở. Mỗi lựa chọn có hậu quả, có chuyện quay lại ngày sau.",
+        "Sổ: xem và trả lời review, nhật ký từng ngày, sự kiện, nhiệm vụ ngày. Hết vốn thì nhận gói ký gửi ở bảng Chuẩn bị ca.",
         "Phím tắt: 1–7 chọn nguyên liệu, Enter giao, Backspace hoàn tác, P tạm dừng, M tắt tiếng.",
       ]) ol.appendChild(h("li", "", s));
       c.appendChild(ol);
@@ -328,7 +420,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
     });
   }
 
-  return { intro, prep, complaint, summary, pause, help, close, get current() { return current; } };
+  return { intro, prep, complaint, summary, pause, help, close, open, get current() { return current; } };
 }
 
 export function toast(root, text, kind = "") {

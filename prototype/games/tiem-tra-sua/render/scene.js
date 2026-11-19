@@ -5,7 +5,8 @@ import { paint, placeAt, setSnap } from "./atlas.js?v=snap1"; // tag: tránh tr�
 import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js";
 import { patienceLeft } from "../core/shift.js";
 import { cupLayers } from "../core/cupview.js";
-import { EQUIPMENT } from "../data/equipment.js";
+import { EQUIPMENT, PLACE_ZONES } from "../data/equipment.js";
+import { placeOf, placeError } from "../core/decor.js";
 
 const W = 1280, H = 720;
 const BUBBLE_MS = 4200;
@@ -58,51 +59,105 @@ export function createScene(root, atlas, { onCustomer }) {
   const backOwned = el("div", "owned", stage);
   const barista = el("div", "spr barista", stage);
   const fg = el("img", "layer", stage); fg.src = "assets/shop-counter-foreground.webp"; fg.alt = ""; fg.width = W; fg.height = H; fg.draggable = false;
+  const frontOwned = el("div", "owned", stage);
   put("equip", "pearls-jar", 300, 428, 0.42);
   put("equip", "ice-jar", 250, 418, 0.36);
   put("pantry", "cup-stack", 650, 372, 0.42);
-  // ly đang pha đặt trên mặt quầy (thu nhỏ của ly trong Quầy pha)
-  const miniCup = el("div", "minicup", stage);
-  miniCup.style.left = 548 - 80 * 0.3 + "px"; miniCup.style.top = 430 - 174 * 0.3 + "px";
+  // ly đang pha đặt trên mặt quầy (thu nhỏ của ly trong Quầy pha), một ly mỗi chỗ pha
+  const miniCups = [];
+  const miniAt = (i, n) => [548 + (i - (n - 1) / 2) * 46, 430];
+  const zone = el("div", "place-zone", stage); zone.hidden = true;
+  { const z = PLACE_ZONES.floor; Object.assign(zone.style, { left: z.x[0] + "px", top: z.y[0] + "px", width: z.x[1] - z.x[0] + "px", height: z.y[1] - z.y[0] + "px" }); }
+  const tile = atlas.frame("tiles", "terrazzo-floor");
+  if (tile) { // một ô của shop-tiles.webp lặp lại làm nền vùng đặt được (cắt ô qua canvas vì CSS không lặp được một vùng của sheet)
+    const img = new Image();
+    img.onload = () => { const c = document.createElement("canvas"); c.width = tile.w; c.height = tile.h; c.getContext("2d").drawImage(img, tile.x, tile.y, tile.w, tile.h, 0, 0, tile.w, tile.h); zone.style.backgroundImage = `url(${c.toDataURL()})`; };
+    img.src = tile.url;
+  }
   const crowd = el("div", "crowd", stage);
   const fx = el("div", "fx", stage);
   const ui = el("div", "scene-ui", root);
 
   const nodes = new Map();
-  let ownedKey = "", steamAt = 0;
+  let ownedKey = "", steamAt = 0, arranging = null, stoveTok = 0;
   /** Đặt thiết bị / trang trí đã mua vào cảnh (đồ trên sàn xếp theo y cùng khách). */
   function setOwned(state) {
     const ids = Object.keys(state.owned || {}).filter((id) => EQUIPMENT[id]).sort();
-    const key = ids.join(",");
+    const key = ids.join(",") + "|" + JSON.stringify(state.placement || {});
     if (key === ownedKey) return;
     ownedKey = key;
-    backOwned.textContent = "";
+    backOwned.textContent = ""; frontOwned.textContent = "";
     crowd.querySelectorAll(".decor").forEach((e) => e.remove());
     for (const d of Object.values(defaults)) d.hidden = false;
+    const hiddenOwned = new Set(ids.map((id) => EQUIPMENT[id].replacesOwned).filter(Boolean));
     for (const id of ids) {
       const it = EQUIPMENT[id];
+      if (hiddenOwned.has(id)) continue;
       const f = atlas.frame(it.sprite[0], it.sprite[1]);
       if (!f) continue;
-      const floor = it.at[1] >= 430;
-      const e = el("div", "spr decor", floor ? crowd : backOwned);
+      const at = placeOf(state, id);
+      const floor = !it.front && (it.place === "floor" || (!it.place && at[1] >= 430));
+      const e = el("div", "spr decor" + (it.place ? " movable" : ""), it.front ? frontOwned : floor ? crowd : backOwned);
       e.dataset.item = id;
-      paint(e, f, it.scale); placeAt(e, f, it.at[0], it.at[1], it.scale);
-      if (floor) e.style.zIndex = it.at[1];
+      paint(e, f, it.scale); placeAt(e, f, at[0], at[1], it.scale);
+      if (floor) e.style.zIndex = at[1];
       if (it.replaces && defaults[it.replaces]) defaults[it.replaces].hidden = true;
     }
+  }
+
+  // ---------- xếp chỗ trang trí (kéo-thả bằng chuột hoặc chạm) ----------
+  const toScene = (cx, cy) => { const r = root.getBoundingClientRect(); return [(cx - r.left - ox) / k, (cy - r.top - oy) / k]; };
+  let drag = null;
+  function onDown(e) {
+    if (!arranging) return;
+    const t = e.target.closest(".decor.movable");
+    if (!t) return;
+    e.preventDefault();
+    const id = t.dataset.item, it = EQUIPMENT[id], f = atlas.frame(it.sprite[0], it.sprite[1]);
+    const at = placeOf(arranging.state(), id);
+    const [sx, sy] = toScene(e.clientX, e.clientY);
+    drag = { id, it, f, el: t, dx: at[0] - sx, dy: at[1] - sy, x: at[0], y: at[1], pid: e.pointerId };
+    t.classList.add("dragging");
+    try { root.setPointerCapture(e.pointerId); } catch {}
+  }
+  function onMove(e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const [sx, sy] = toScene(e.clientX, e.clientY);
+    drag.x = Math.round(sx + drag.dx); drag.y = Math.round(sy + drag.dy);
+    placeAt(drag.el, drag.f, drag.x, drag.y, drag.it.scale);
+    if (drag.it.place === "floor") drag.el.style.zIndex = drag.y;
+    drag.el.classList.toggle("bad", !!placeError(drag.id, drag.x, drag.y));
+  }
+  function onUp(e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const d = drag; drag = null;
+    d.el.classList.remove("dragging", "bad");
+    ownedKey = ""; // vẽ lại theo trạng thái (vị trí cũ nếu không hợp lệ)
+    arranging?.onDrop(d.id, d.x, d.y);
+  }
+  root.addEventListener("pointerdown", onDown);
+  root.addEventListener("pointermove", onMove);
+  root.addEventListener("pointerup", onUp);
+  root.addEventListener("pointercancel", onUp);
+  /** Bật / tắt chế độ xếp chỗ: opts = { state: () => state, onDrop(id, x, y) }. */
+  function setArrange(opts) {
+    arranging = opts || null;
+    stage.classList.toggle("arranging", !!arranging);
+    zone.hidden = !arranging;
+    ownedKey = "";
   }
   let lastCupStage = "";
   let k = 1, ox = 0, oy = 0;
 
   /** Camera: phủ kín khung (cover) × zoom, canh giữa điểm (camX, camY) nhưng không lộ mép cảnh. */
-  function layout(camX = 640, camY = 360, zoom = 1) {
+  function layout(camX = 640, camY = 360, zoom = 1, exact = false) {
     const w = root.clientWidth, h = root.clientHeight;
     if (!w || !h) return;
     // Pixel art thu nhỏ dưới 1 px thiết bị / 1 px tranh thì mất nét ⇒ phóng thêm tối đa 20% (cắt bớt mép cảnh) để đạt 1:1;
     // nếu vẫn chưa đủ thì chuyển lọc mượt. Gốc và vị trí sprite bắt theo lưới px thiết bị để khách đi không nhấp nháy.
     const dpr = globalThis.devicePixelRatio || 1;
     const base = Math.max(w / W, h / H) * zoom;
-    k = Math.max(base, Math.min(1 / dpr, base * 1.2));
+    k = exact ? base : Math.max(base, Math.min(1 / dpr, base * 1.2)); // exact: khung theo vùng (mobile) không phóng thêm để giữ đủ cửa + nhân viên
     ox = Math.round(Math.min(0, Math.max(w - W * k, w / 2 - camX * k)) * dpr) / dpr;
     oy = Math.round(Math.min(0, Math.max(h - H * k, h / 2 - camY * k)) * dpr) / dpr;
     stage.classList.toggle("smooth", k * dpr < 0.999);
@@ -125,23 +180,56 @@ export function createScene(root, atlas, { onCustomer }) {
     return n;
   }
 
-  function drawMiniCup(cup) {
-    const { layers, stage: st } = cupLayers(cup);
-    if (st === lastCupStage) return;
-    lastCupStage = st;
-    miniCup.textContent = "";
-    for (const name of layers) { const e = el("i", "", miniCup); paint(e, atlas.frame("cup", name), 0.3); }
+  const hasCup = (n) => atlas.has("cup", n);
+  function drawMiniCups(stations) {
+    const n = Math.max(1, stations.length);
+    const key = n + ":" + stations.map((x) => cupLayers(x.cup, hasCup).stage).join("|");
+    if (key === lastCupStage) return;
+    lastCupStage = key;
+    while (miniCups.length < n) miniCups.push(el("div", "minicup", stage));
+    miniCups.forEach((m, i) => {
+      m.hidden = i >= n;
+      if (i >= n) return;
+      const [x, y] = miniAt(i, n);
+      m.style.left = x - 80 * 0.3 + "px"; m.style.top = y - 174 * 0.3 + "px";
+      m.textContent = "";
+      for (const name of cupLayers(stations[i]?.cup || null, hasCup).layers) { const e = el("i", "", m); paint(e, atlas.frame("cup", name), 0.3); }
+    });
+  }
+  // nhân viên trong cảnh: dùng barista-scene.webp (Cần Codex #7: idle-1..2, pour-1..4, serve-1..4) khi có, ngược lại dáng đứng characters.webp
+  function baristaFrame(t, busy, serving) {
+    const B = atlas.sheet("bscene");
+    if (B) {
+      const seq = serving && atlas.has("bscene", "serve-1") ? ["serve-1", "serve-2", "serve-3", "serve-4"] : busy && atlas.has("bscene", "pour-1") ? ["pour-1", "pour-2", "pour-3", "pour-4"] : ["idle-1", "idle-2"];
+      const f = atlas.frame("bscene", seq[Math.floor(t / (busy || serving ? 125 : 400)) % seq.length]);
+      if (f) return [f, 0];
+    }
+    return [atlas.frame("chars", "barista"), busy && Math.floor(t / 250) % 2 ? 1 : 0];
+  }
+  let serveUntil = 0;
+  // bếp đang nấu: clip equipment topping-stove-cooking (Cần Codex #10b) nếu có
+  function stoveAnim(cooking, reduced) {
+    const clip = atlas.clip("equip", "topping-stove-cooking");
+    const d = defaults["topping-stove"];
+    if (!clip || d.hidden) return;
+    if (!cooking || reduced) { if (stoveTok) { stoveTok = 0; const f0 = atlas.frame("equip", "topping-stove"); paint(d, f0, 0.42); placeAt(d, f0, 470, 300, 0.42); } return; }
+    const i = Math.floor(performance.now() / (1000 / clip.fps)) % clip.frames.length;
+    if (stoveTok === i + 1) return;
+    stoveTok = i + 1;
+    const f = atlas.frame("equip", clip.frames[i]);
+    if (f) { paint(d, f, 0.42); placeAt(d, f, 470, 300, 0.42); }
   }
 
   function update(state, opts = {}) {
     const sh = state.shift;
     const t = sh ? sh.t : 0;
     // nhân viên: dáng đứng có ly (characters.webp); nhún nhẹ khi đang pha
-    const fb = atlas.frame("chars", "barista");
+    const busy = (sh?.stations || []).some((x) => x.cup && !x.cup.sealed);
+    const [fb, bob] = baristaFrame(t, busy, performance.now() < serveUntil);
     paint(barista, fb, 1);
-    const busy = sh?.cup && !sh.cup.sealed;
-    placeAt(barista, fb, BARISTA[0], BARISTA[1] + (busy && Math.floor(t / 250) % 2 ? 1 : 0), 1);
-    drawMiniCup(sh?.cup || null);
+    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, 1);
+    drawMiniCups(sh?.stations || [{ cup: null }]);
+    stoveAnim(!!sh?.kitchen?.batches.length, opts.reduced);
     if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
     const live = new Set();
     for (const c of sh?.customers || []) {
@@ -154,8 +242,9 @@ export function createScene(root, atlas, { onCustomer }) {
       n.b.style.zIndex = Math.round(y);
       n.b.style.opacity = alpha;
       n.b.classList.toggle("flip", flip);
-      n.b.classList.toggle("active", sh.active === c.id);
-      n.b.classList.toggle("can-pin", c.phase === "wait" && sh.active !== c.id);
+      const act = sh.stations[sh.sel]?.cid === c.id;
+      n.b.classList.toggle("active", act);
+      n.b.classList.toggle("can-pin", c.phase === "wait" && !act);
       n.b.disabled = c.phase !== "wait";
       n.b.setAttribute("aria-label", `${c.name}${c.phase === "wait" ? ", đang chờ — chạm để ghim phiếu" : ""}`);
       n.b.dataset.phase = c.phase; n.b.dataset.mood = c.mood;
@@ -177,8 +266,8 @@ export function createScene(root, atlas, { onCustomer }) {
         n.bar.style.left = sx + "px"; n.bar.style.top = sy + 8 + "px";
       }
       n.tag.hidden = !(c.phase === "wait" || c.phase === "enter") || showSay;
-      n.tag.textContent = sh.active === c.id ? "Đang pha" : c.name;
-      n.tag.classList.toggle("on", sh.active === c.id);
+      n.tag.textContent = act ? "Đang pha" : c.items.length > 1 ? `${c.name} · ${c.items.length} ly` : c.name;
+      n.tag.classList.toggle("on", act);
       n.tag.style.left = sx + "px"; n.tag.style.top = sy - 16 + "px";
       n.tag.style.opacity = alpha;
     }
@@ -201,5 +290,14 @@ export function createScene(root, atlas, { onCustomer }) {
   }
   const posOf = (state, cid) => { const c = state.shift?.customers.find((q) => q.id === cid); return c ? customerPos(c, state.shift.t) : null; };
 
-  return { update, layout, burst, posOf, toScreen, setOwned, get scale() { return k; } };
+  /** Khung theo vùng: luôn thấy đủ [x0..x1] × [y0..y1] của cảnh (mobile: từ nhân viên tới cửa). */
+  function layoutFit(x0, x1, y0, y1) {
+    const w = root.clientWidth, h = root.clientHeight;
+    if (!w || !h) return;
+    const cover = Math.max(w / W, h / H);
+    const fit = Math.min(w / (x1 - x0), h / (y1 - y0));
+    layout((x0 + x1) / 2, (y0 + y1) / 2, Math.max(1, fit / cover), true);
+  }
+  const served = () => { serveUntil = performance.now() + 500; };
+  return { update, layout, layoutFit, burst, posOf, toScreen, setOwned, setArrange, served, get scale() { return k; } };
 }

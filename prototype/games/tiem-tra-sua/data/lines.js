@@ -125,3 +125,40 @@ export const HEADLINES = {
   few: "Bán {cups} ly. Ca này yên bình tới mức nghe được tiếng đá tan.",
   good: "Bán {cups} ly, trung bình {stars} sao. Khách khen, chủ tiệm tự hào, cái nắp kêu cạch đều tay.",
 };
+
+/** Đơn nhiều ly. {n} = số ly. */
+export const ORDER_LINES_MULTI = [
+  "{Call} ơi cho {self} {n} ly, ly đầu {drink} {sugar} đường {ice}. Mấy ly kia ghi trên phiếu giùm nha, nhóm chat đang réo.",
+  "{Self} gọi {n} ly cho cả phòng. Ai uống gì {self} chụp màn hình gửi {call} rồi đó.",
+  "{n} ly nha {call}. {Self} là người duy nhất trong nhóm chịu đi mua, nên ly nào đúng là công của {self}.",
+];
+export const REVIEW_MULTI = [
+  "Cả nhóm {n} ly đúng hết, nhóm chat im lặng vì bận uống.",
+  "{N} ly giao một lượt, không ai bị đổi ly. Hiếm có khó tìm.",
+];
+
+/** Trả lời review trong Sổ (core/reviews.js). */
+export const REPLIES = {
+  sorry: { label: "Xin lỗi và hứa sửa", hint: "Ca sau đạt trung bình ≥ 4 sao: danh tiếng +2", followers: 2, buzz: 0 },
+  thanks: { label: "Cảm ơn, hẹn quay lại", hint: "+4 người theo dõi", followers: 4, buzz: 0 },
+  meme: { label: "Trả lời bằng meme tự giễu", hint: "+12 người theo dõi, tiệm hot nhẹ", followers: 12, buzz: 0.5 },
+};
+export const REPLY_LINES = {
+  sorry: "Tiệm xin lỗi nha, ca sau tụi mình đo lại từng muỗng. Hứa bằng cả cái nắp kêu cạch.",
+  thanks: "Cảm ơn bạn! Ly sau tiệm vẫn làm bằng cả trái tim với cái cân.",
+  meme: "Tiệm đọc review xong ngồi im lặng 3 giây, rồi đi nấu trân châu tiếp.",
+};
+
+/** Câu chốt ca kiểu meme cho Nhật Ký Làm Chủ (core/journal.js chọn theo dữ kiện). Biến {cups} {lost} {profit} {stars} {shop} {multi} {followers}. */
+export const CAPTIONS = {
+  loss: ["Bán {cups} ly mà lỗ {profit}k. Tiệm đang đầu tư vào… kinh nghiệm.", "Hôm nay lỗ {profit}k nhưng lời được một bài học và ba tấm hình đẹp."],
+  lost: ["Bán {cups} ly, {lost} khách bỏ về vì chờ lâu hơn chờ người yêu nhắn lại.", "{lost} khách về tay không. Tiệm hứa ca sau nhanh hơn deadline của sếp."],
+  perfect: ["Bán {cups} ly, trung bình {stars} sao. Tiệm chạy mượt như trân châu mới nấu.", "{cups} ly, {stars} sao, 0 drama. Hôm nay tiệm là main character."],
+  few: ["Bán {cups} ly. Ca này yên bình tới mức nghe được tiếng đá tan.", "{cups} ly thôi, nhưng ly nào cũng có câu chuyện riêng."],
+  good: ["Bán {cups} ly, trung bình {stars} sao. Khách khen, chủ tiệm tự hào, cái nắp kêu cạch đều tay.", "{cups} ly ra quầy, lời {profit}k. Không giàu nhưng rất có tâm."],
+  multi: ["Giao trọn {multi} đơn nhóm không đổi nhầm ly nào. Nhóm chat cảm ơn tiệm bằng 14 sticker.", "{multi} đơn nhiều ly, 0 lần ghi nhầm tên trên ly. Kỹ năng hiếm."],
+  sugar0: ["Bán {cups} ly và giải thích rằng 0% vẫn là 0%.", "0% đường, 100% hiểu lầm. Tiệm vẫn lời {profit}k."],
+  viral: ["Bán {cups} ly và lên mạng: +{followers} người theo dõi. Mẹ hỏi con nổi tiếng chưa.", "Hôm nay tiệm lên xu hướng nhỏ: +{followers} follow, 0 đồng quảng cáo."],
+  oops: ["Bán {cups} ly, pha nhầm {oops} lần, khách vẫn cười. Tiệm gọi đó là phong cách.", "{oops} lần nhầm, {cups} ly bán, 1 bài học: đọc phiếu hai lần trước khi đóng nắp."],
+  drama: ["Bán {cups} ly, xử lý {drama} tình huống, vẫn giữ được nụ cười và cái nắp.", "Ca này có {drama} drama, {cups} ly và một chủ tiệm bình tĩnh đáng nể."],
+};

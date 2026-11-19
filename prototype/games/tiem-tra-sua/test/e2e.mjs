@@ -1,12 +1,13 @@
 // E2E Tiệm Trà Sữa trên Chrome headless qua CDP — bấm chuột / chạm thật, chụp desktop 1366×768 + mobile 390×844.
 // Chạy (ở gốc repo): PORT=8810 node server.js   rồi   PORT=8810 node prototype/games/tiem-tra-sua/test/e2e.mjs <thư mục ảnh>
 // Kịch bản: mở game → nhận tiệm → mở ca → phục vụ đúng 3 khách (kiểm ly đổi hình ở từng bước) → 1 đơn sai (khiếu nại)
-// → 1 khách hết kiên nhẫn → bảng chốt ca → tải lại giữ tiến trình → giữa ca tải lại giữ ly / phiếu → mobile chơi bằng chạm.
+// → 1 khách hết kiên nhẫn → bảng chốt ca → Nhật Ký Làm Chủ (thẻ ảnh) → sự kiện giữa hai ca (chọn, xem hậu quả) → tải lại giữ tiến trình
+// → kéo-thả trang trí → giữa ca tải lại giữ ly / phiếu → mobile chơi bằng chạm → sự kiện drama trong ca (390 px) → đơn hai ly (desktop).
 import { writeFileSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8810;
-const BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=777`;
+const BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=777&calm=1`; // calm=1: sự kiện trong ca chỉ mở bằng __game.forceEvent
 const b = await launch(OUT, 9391);
 const R = []; let fails = 0;
 const check = (n, c, d = "") => { const s = (c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : ""); if (!c) fails++; R.push(s); console.log(s); };
@@ -70,7 +71,7 @@ for (const [cid, how] of [[1, "scene"], [2, "rail"], [3, "scene"]]) {
   check(`khách #${cid} đi vào và đứng chờ`, await untilWaiting(cid));
   await sleep(250);
   if (how === "scene") await pressSel(`.cust[data-cid="${cid}"]`); else await pressSel(`#rail .slip[data-cid="${cid}"]`);
-  check(`chạm ${how === "scene" ? "khách trong cảnh" : "phiếu ở dải phiếu"} → ghim phiếu #${cid} lên Quầy pha`, (await S("s.shift.active")) === cid && /#\d+ · /.test(await text("#ticket .t-name")));
+  check(`chạm ${how === "scene" ? "khách trong cảnh" : "phiếu ở dải phiếu"} → ghim phiếu #${cid} lên Quầy pha`, (await S("s.shift.stations[s.shift.sel].cid")) === cid && /#\d+ · /.test(await text("#ticket .t-name")));
   const o = await order(cid);
   const money0 = await S("s.money");
   const price = await S(`s.shift.customers.find(c=>c.id===${cid}).price`);
@@ -129,13 +130,44 @@ check("chốt ca: lợi nhuận = doanh thu − giá vốn − hao hụt − ph�
 check("bảng chốt ca hiện review có sao (ui-icons review-star)", await b.ev("document.querySelectorAll('.reviews .rv').length===5&&!!document.querySelector('.rv .stars .ico')"));
 await sleep(3400); // chờ bảng hiện hết + thông báo tắt
 await b.shot(OUT + "/07-desktop-chot-ca.png");
-const snap = await S("JSON.stringify({m:s.money,x:s.xp,l:s.level,r:s.rep,d:s.day,st:s.stock,j:s.journal.length,n:s.shopName})");
+check("M4: chốt ca có nút Nhật Ký và Trả lời review", await visible("#journalBtn") && await visible("#replyBtn"));
+// ----- Nhật Ký Làm Chủ -----
+await pressSel("#journalBtn");
+check("M4: Nhật Ký: thẻ canvas 1080×1350 vẽ trên journal-card.png", await waitFor("!!document.querySelector('#journalCanvas')&&document.querySelector('#journalCanvas').dataset.drawn>='1'") &&
+  await b.ev("(()=>{const c=document.querySelector('#journalCanvas');return c.width===1080&&c.height===1350})()"));
+const px = await b.ev("(()=>{const c=document.querySelector('#journalCanvas').getContext('2d');const a=c.getImageData(540,700,1,1).data,t=c.getImageData(540,1000,1,1).data;return [a[0],a[1],a[2],t[0],t[1],t[2]]})()");
+check("M4: Nhật Ký: có ảnh nền (giữa thẻ không phải màu kem trơn) và vùng chữ kem", !(px[0] > 240 && px[1] > 230 && px[2] > 200) && px[3] > 200, px.join(","));
+const jLabel = await b.ev("document.querySelector('#journalCanvas').getAttribute('aria-label')");
+check("M4: Nhật Ký: câu meme + câu trích", jLabel.includes(sum.headline) && /“.+”/.test(jLabel), jLabel);
+const png = await b.ev("document.querySelector('#journalCanvas').toDataURL('image/png').length");
+check("M4: Nhật Ký: xuất PNG được (canvas không bị khoá)", png > 50000, String(png));
+await b.shot(OUT + "/07b-desktop-nhat-ky.png");
+await pressSel("#jHideName");
+await sleep(300);
+check("M4: Nhật Ký: ẩn tên tiệm vẽ lại thẻ", await b.ev("document.querySelector('#journalCanvas').dataset.drawn>='2'"));
+await pressSel("#jBack");
+check("M4: quay lại bảng chốt ca", await visible("#nextDay"));
 await pressSel("#nextDay");
+// ----- sự kiện giữa hai ca -----
+const dayEv = await waitFor("!!document.querySelector('.sheet[data-kind=event]')", 2500);
+if (dayEv) {
+  const evId = await b.ev("document.querySelector('.sheet[data-kind=event]').dataset.event");
+  check(`M4: sự kiện giữa hai ca ${evId}: chân dung, câu thoại, ≥ 2 lựa chọn`, await b.ev("document.querySelectorAll('.sheet[data-kind=event] .choice').length>=2&&document.querySelectorAll('.sheet[data-kind=event] .portrait').length===2&&document.querySelector('.say .line').textContent.length>10"));
+  await b.shot(OUT + "/07c-desktop-su-kien-giua-ca.png");
+  const h0 = await S("s.drama.history.length");
+  while (await visible(".sheet[data-kind=event]")) {
+    await pressSel(".sheet[data-kind=event] .choice:not([disabled])");
+    check("M4: chọn → bảng hậu quả có câu trả lời và danh sách hậu quả", await waitFor("!!document.querySelector('.sheet[data-kind=\"event-result\"] .quote')") && await b.ev("document.querySelectorAll('.fx-list li').length>=1"));
+    await pressSel("#eventNext");
+  }
+  check("M4: lựa chọn ghi vào lịch sử sự kiện + khoảnh khắc Nhật Ký", (await S("s.drama.history.length")) > h0 && (await S("s.lastSummary.moments.some(m=>m.kind==='drama')")));
+} else check("M4: (seed này không có sự kiện giữa hai ca)", true);
 check("Chuẩn bị ngày 2", /Ngày 2/.test(await text(".sheet h2")));
+const snap = await S("JSON.stringify({m:s.money,x:s.xp,l:s.level,r:s.rep,d:s.day,st:s.stock,j:s.journal.length,n:s.shopName,f:s.followers})");
 
 // ===== 5. Tải lại giữ tiến trình =====
 await b.nav(BASE);
-check("tải lại: tiền, XP, cấp, danh tiếng, ngày, kho, nhật ký, tên tiệm giữ nguyên", (await S("JSON.stringify({m:s.money,x:s.xp,l:s.level,r:s.rep,d:s.day,st:s.stock,j:s.journal.length,n:s.shopName})")) === snap);
+check("tải lại: tiền, XP, cấp, danh tiếng, ngày, kho, nhật ký, tên tiệm, người theo dõi giữ nguyên", (await S("JSON.stringify({m:s.money,x:s.xp,l:s.level,r:s.rep,d:s.day,st:s.stock,j:s.journal.length,n:s.shopName,f:s.followers})")) === snap);
 check("tải lại sau chốt ca mở thẳng bảng Chuẩn bị ngày 2", /Ngày 2/.test(await text(".sheet h2")) && await visible("#openShop"));
 // Milestone 3: mua trang trí, nấu trân châu
 const mBuy = await S("s.money");
@@ -143,9 +175,27 @@ await pressSel('[data-buy="flowering-pot"]');
 check("M3: mua Chậu hoa tím (−40k) → xuất hiện trong cảnh, nút thành “Đã có”", (await S("s.money")) === mBuy - 40 && await S("s.owned['flowering-pot']===true") &&
   await b.ev("!!document.querySelector('.stage .decor[data-item=\"flowering-pot\"]')") && (await text('[data-buy="flowering-pot"]')) === "Đã có");
 await b.shot(OUT + "/08a-desktop-nang-cap.png");
+// ----- kéo-thả trang trí -----
+await pressSel("#arrangeBtn");
+check("M3: chế độ xếp chỗ: thanh công cụ nổi, vùng sàn hiện, chậu hoa kéo được", await visible("#arrangeDone") && await b.ev("!document.querySelector('.place-zone').hidden&&!!document.querySelector('.stage.arranging .decor.movable[data-item=\"flowering-pot\"]')"));
+async function dragTo(fromScene, toScene) {
+  const [x0, y0] = await b.ev(`__game.sceneToClient(${fromScene[0]},${fromScene[1]})`);
+  const [x1, y1] = await b.ev(`__game.sceneToClient(${toScene[0]},${toScene[1]})`);
+  await b.send("Input.dispatchMouseEvent", { type: "mousePressed", x: x0, y: y0, button: "left", clickCount: 1 });
+  for (let i = 1; i <= 8; i++) await b.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: x0 + ((x1 - x0) * i) / 8, y: y0 + ((y1 - y0) * i) / 8, button: "left", buttons: 1 });
+  await b.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: x1, y: y1, button: "left", clickCount: 1 });
+  await sleep(200);
+}
+await dragTo([1080, 435], [1080, 505]); // kéo vào lối đi từ cửa ⇒ bị chặn
+check("M3: kéo chậu hoa vào lối đi → bị chặn, giữ chỗ cũ, báo lý do", (await S("JSON.stringify(s.placement)")) === "{}" && /lối|chỗ/.test(await text("#toasts")));
+await dragTo([1080, 435], [1000, 663]);
+check("M3: kéo chậu hoa ra góc trống → lưu vị trí mới (neo chân = chỗ thả + khoảng lệch lúc cầm)", (await S("JSON.stringify(s.placement['flowering-pot'])")) === "[1000,680]", await S("JSON.stringify(s.placement)"));
+await b.shot(OUT + "/08b-desktop-xep-trang-tri.png");
+await pressSel("#arrangeDone");
+check("M3: xong xếp chỗ → về bảng Chuẩn bị ca", await visible("#openShop"));
 // giữa ca
 await pressSel("#openShop");
-check("ngày 2 là ngày thường (6–10 khách)", await S("!s.shift.tutorial&&s.shift.planned>=6&&s.shift.planned<=10"));
+check("ngày 2 là ngày thường (6–10 khách, thêm tối đa 3 nhờ review / người theo dõi)", await S("!s.shift.tutorial&&s.shift.planned>=6&&s.shift.planned<=13"));
 check("M3: ngày thường bắt đầu chưa có trân châu nấu sẵn, Bếp topping hiện trong Quầy pha", (await S("s.shift.kitchen.ready")) === 0 && await visible("#kitchen [data-cook='3']"));
 const raw0 = await S("s.stock['tran-chau-song']");
 await pressSel("#kitchen [data-cook='3']");
@@ -161,12 +211,12 @@ for (const [step, id] of [["cup", "ly"], ["base", o6.base], ["add", o6.add]]) aw
 const midStage = await stage(), midT = await S("s.shift.t");
 await b.nav(BASE);
 check("tải lại giữa ca: bảng “Ca đang dở dang”, ca tạm dừng", await visible("#resumeBtn") && /dở dang/.test(await text(".sheet h2")) && await b.ev("__game.paused"));
-check("tải lại giữa ca: ly đang pha + phiếu ghim giữ nguyên", (await stage()) === midStage && (await S("s.shift.active")) === firstId && (await S("s.shift.t")) >= midT - 1);
+check("tải lại giữa ca: ly đang pha + phiếu ghim giữ nguyên", (await stage()) === midStage && (await S("s.shift.stations[s.shift.sel].cid")) === firstId && (await S("s.shift.t")) >= midT - 1);
 check("tải lại giữa ca: trân châu đã nấu giữ nguyên", (await S("s.shift.kitchen.ready")) >= 2);
 await b.shot(OUT + "/08-desktop-tai-lai-giua-ca.png");
 await pressSel("#resumeBtn");
 await pressSel(`#opts .opt[data-step="sugar"][data-id="${o6.sugar}"]`);
-check("tiếp tục pha sau khi tải lại", (await S("s.shift.cup.steps.length")) === 4);
+check("tiếp tục pha sau khi tải lại", (await S("s.shift.stations[s.shift.sel].cup.steps.length")) === 4);
 check("desktop 1366: không tràn ngang", await noOverflowX());
 
 // ===== 6. Mobile 390×844, chạm =====
@@ -175,7 +225,7 @@ await b.nav(BASE);
 await pressSel("#resumeBtn");
 check("mobile: cảnh + dải phiếu + quầy pha cùng màn, không tràn ngang", await noOverflowX() && await visible(".world") && await visible("#ticket") && await visible("#opts"));
 for (const [step, id] of [["ice", o6.ice], ["topping", o6.topping], ["lid", "dong-nap"]]) await pressSel(`#opts .opt[data-step="${step}"][data-id="${id}"]`);
-check("mobile: chạm pha tiếp tới đóng nắp", await S("s.shift.cup&&s.shift.cup.sealed") && /dome-lid/.test(await stage()));
+check("mobile: chạm pha tiếp tới đóng nắp", await S("s.shift.stations[s.shift.sel].cup&&s.shift.stations[s.shift.sel].cup.sealed") && /dome-lid/.test(await stage()));
 const m6 = await S("s.money");
 await pressSel("#serveBtn");
 check("mobile: chạm Giao → thu tiền", (await S("s.money")) > m6);
@@ -190,10 +240,66 @@ if (n2) {
   await pressSel(`#opts .opt[data-step="base"][data-id="${(await order(n2)).base}"]`);
 }
 await sleep(500);
-check("mobile: ghim phiếu bằng chạm, bắt đầu pha ly mới", !!n2 && (await S("s.shift.cup.steps.length")) === 2);
+check("mobile: ghim phiếu bằng chạm, bắt đầu pha ly mới", !!n2 && (await S("s.shift.stations[s.shift.sel].cup.steps.length")) === 2);
 await b.shot(OUT + "/09-mobile-390-pha.png");
 await b.ev("document.querySelector('#rail').scrollIntoView()");
 await b.shot(OUT + "/10-mobile-390-full.png", true);
+check("mobile: khung cảnh thấy cả nhân viên sau quầy và cửa ra vào", await b.ev(`(()=>{const r=document.querySelector('#scene').getBoundingClientRect();const a=__game.sceneToClient(472,300),d=__game.sceneToClient(1240,470);return a[0]>=r.left-1&&d[0]<=r.right+1})()`));
+
+// ===== 7. Drama trong ca (mobile 390) =====
+await b.ev("document.querySelector('#brew').scrollTop=0");
+const wid = await S("(s.shift.customers.find(c=>c.phase==='wait')||{}).id||0");
+if (!wid) await b.ev("__game.advance(12000)");
+const forced = await b.ev("JSON.stringify(__game.forceEvent('K11'))");
+check("M4: mở sự kiện K11 (“ít ngọt mà ngọt”) trong ca", /"ok":true/.test(forced), forced);
+check("M4: hội thoại sự kiện: ca tạm dừng, khách đang chờ là người nói, có lựa chọn", await waitFor("!!document.querySelector('.sheet[data-kind=event]')") &&
+  await (async () => { const a = await S("s.shift.t"); await sleep(500); return (await S("s.shift.t")) === a; })() && await b.ev("document.querySelectorAll('.sheet[data-kind=event] .choice').length>=2"));
+check("mobile: nút lựa chọn sự kiện ≥ 44px, không tràn ngang", await noOverflowX() && await b.ev("[...document.querySelectorAll('.sheet[data-kind=event] .choice')].every(e=>e.getBoundingClientRect().height>=44)"));
+await b.shot(OUT + "/11-mobile-390-su-kien.png");
+const mom0 = await S("s.shift.moments.length");
+let steps = 0;
+while (await visible(".sheet[data-kind=event]") && steps++ < 4) {
+  await pressSel(".sheet[data-kind=event] .choice:not([disabled])");
+  await waitFor("!!document.querySelector('.sheet[data-kind=\"event-result\"]')");
+  if (steps === 1) await b.shot(OUT + "/12-mobile-390-hau-qua.png");
+  await pressSel("#eventNext");
+}
+check("M4: chọn xong: hội thoại đóng, ca chạy tiếp, khoảnh khắc lưu vào ca", (await S("s.shift.dialog")) === null && (await S("s.shift.moments.length")) > mom0 && !(await b.ev("__game.paused")));
+await b.nav(BASE);
+check("M4: tải lại sau sự kiện: lịch sử sự kiện giữ nguyên", (await S("s.drama.history.some(h=>h.id==='K11')")));
+
+// ===== 8. Đơn hai ly (desktop) =====
+await b.view(1366, 768, false); await b.touch(false); press = b.click;
+await b.nav(BASE);
+if (await visible("#resumeBtn")) await pressSel("#resumeBtn");
+await b.ev("(()=>{const sh=__game.state.shift;for(const st of sh.stations){st.cup=null;st.cid=null;st.item=null}sh.schedule.unshift({at:sh.t+50,arch:'van-phong',name:'Chị Hằng',items:[{recipe:'tra-dao',sugar:50,ice:'vua'},{recipe:'tra-dao',sugar:30,ice:'it'}]});sh.planned++})()");
+for (let i = 0; i < 40 && !(await S("s.shift.customers.some(c=>c.name==='Chị Hằng'&&c.phase==='wait')")); i++) await b.ev("__game.advance(1500)");
+const gid = await S("(s.shift.customers.find(c=>c.name==='Chị Hằng')||{}).id||0");
+check("M3: khách gọi 2 ly tới quầy, phiếu ghi “2 ly”", !!gid && await waitFor(`!!document.querySelector('#rail .slip[data-cid="${gid}"] .cups-badge')`) && /2 ly/.test(await text(`#rail .slip[data-cid="${gid}"]`)),
+  JSON.stringify({ gid, t: await S("s.shift&&s.shift.t"), ov: await b.ev("__game.overlay"), cs: await S("s.shift&&s.shift.customers.map(c=>c.name+':'+c.phase)"), sch: await S("s.shift&&s.shift.schedule.length"), html: await b.ev(`(document.querySelector('#rail')||{}).innerHTML.slice(0,1500)`), items: await S("JSON.stringify(s.shift.customers.map(c=>c.items.length))") }));
+await pressSel(`#rail .slip[data-cid="${gid}"]`);
+check("M3: phiếu đơn nhiều ly có khay 2 ly, đang pha ly 1/2", await b.ev("document.querySelectorAll('#ticket .tray-cup').length===2") && /ly 1\/2/.test(await text("#ticket .t-name")));
+const items = await S(`JSON.stringify(s.shift.customers.find(c=>c.id===${gid}).items.map(i=>i.order))`).then(JSON.parse);
+await brewClicks(items[0]);
+check("M3: nút đổi thành “Ghép ly vào đơn”", /Ghép ly/.test(await text("#serveBtn")));
+const mg = await S("s.money");
+await pressSel("#serveBtn");
+check("M3: ghép ly 1: chưa thu tiền, phiếu sang ly 2/2", (await S("s.money")) === mg && /ly 2\/2/.test(await text("#ticket .t-name")) && await b.ev("!!document.querySelector('#ticket .tray-cup.done')"));
+const st2 = await brewClicks(items[1]);
+check("M3: ly 2 (30% đường, ít đá) đổi hình theo từng bước", new Set(st2).size >= 5, st2.join(" | "));
+check("M3: nút đổi thành “Giao đủ 2 ly”", /Giao đủ 2 ly/.test(await text("#serveBtn")));
+await b.shot(OUT + "/13-desktop-don-hai-ly.png");
+await pressSel("#serveBtn");
+const price2 = await S(`s.shift.reviews.find(r=>r.cid===${gid})?.stars||0`);
+check("M3: giao đủ 2 ly một lượt: thu tiền cả đơn, review, ghi đơn nhiều ly", (await S("s.money")) === mg + 52 && price2 >= 3 && (await S("s.shift.ledger.multi")) === 1, `money ${mg}→${await S("s.money")}, ${price2} sao`);
+check("desktop: không tràn ngang sau M3–M4", await noOverflowX());
+// Sổ quản lý mở được giữa ca (tạm dừng)
+await pressSel("#bookBtn");
+check("M4: Sổ quản lý: tab Review / Nhật ký / Sự kiện / Nhiệm vụ, sổ review có dữ liệu", await visible(".sheet[data-kind=notebook]") && await b.ev("document.querySelectorAll('.notebook .tab').length===4&&document.querySelectorAll('.notebook .rv').length>=5") && await b.ev("__game.paused"));
+await pressSel('.notebook .tab[data-tab="drama"]');
+check("M4: Sổ: tab Sự kiện ghi lựa chọn đã làm", (await text(".nb-body")).length > 20);
+await b.shot(OUT + "/14-desktop-so-quan-ly.png");
+await pressSel("#nbClose");
 
 check("0 lỗi console / exception", b.errors.length === 0, b.errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);

@@ -39,7 +39,7 @@ export function scoreServe(order, cup, frac, expect, wrongCustomer = false) {
   else if (order.topping === "none") { recipe += 5; errors.push("toppingExtra"); }
   else if (tg === "none") errors.push("toppingMissing");
   else errors.push("toppingWrong");
-  if (cup.sealed) recipe += 5;
+  if (cup.sealed) recipe += 5; else errors.push("noLid");
 
   const f = Math.max(0, frac);
   const time = f <= 0.5 ? 25 : Math.max(5, Math.round(25 - ((Math.min(f, 1) - 0.5) / 0.5) * 20));
@@ -52,9 +52,11 @@ export function scoreServe(order, cup, frac, expect, wrongCustomer = false) {
   else if (expect === "exact") exp = (sugarOk ? 8 : 0) + (iceOk ? 7 : 0);
   else exp = baseOk && addOk ? 15 : 0;
 
+  if (wrongCustomer) errors.push("wrongCustomer");
   const raw = recipe + time + exp;
   const wrongBase = !baseOk || !addOk;
   let stars = starsFor(raw);
   if (wrongBase || wrongCustomer) stars = Math.min(stars, 2);
+  if (!cup.sealed) stars = Math.min(stars, 3); // quên nắp: đổ ra tay khách
   return { raw, stars, recipe, time, expect: exp, errors, wrongBase, wrongCustomer };
 }

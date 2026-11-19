@@ -2,6 +2,8 @@
 import { apply } from "../core/apply.js";
 import { createState } from "../core/state.js";
 import { customer } from "../core/shift.js";
+import { currentEvent, affordable } from "../core/drama.js";
+import { EVENT } from "../data/events.js";
 
 export const shop = (seed = 7) => createState(seed);
 export function act(s, a) { const r = apply(s, a); if (r.err) throw new Error(`${a.type}: ${r.err}`); return r; }
@@ -34,4 +36,15 @@ export function serveRight(s, c, override = {}) {
   brewFor(s, c, override);
   return act(s, { type: "serve", cid: c.id });
 }
+/** Giải quyết sự kiện đang chờ (giữa hai ca hoặc trong ca) bằng lựa chọn miễn phí đầu tiên, lặp qua mọi bước. */
+export function clearDrama(s) {
+  for (let i = 0; i < 10; i++) {
+    const d = currentEvent(s);
+    if (!d) return;
+    const ch = EVENT[d.id].nodes[d.node].choices.find((c) => affordable(s, c));
+    act(s, { type: "choose", choice: ch.id });
+  }
+}
+/** Sang ca mới: dọn sự kiện giữa ngày rồi mở quán. */
+export function openDay(s) { clearDrama(s); return act(s, { type: "startShift" }); }
 export { customer };

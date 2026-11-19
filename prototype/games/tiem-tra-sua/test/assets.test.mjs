@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { makeAtlas, SHEETS } from "../render/atlas.js";
+import { makeAtlas, SHEETS, OPTIONAL_SHEETS } from "../render/atlas.js";
 import { STOCK, CHOICES, STEP_ICON } from "../data/ingredients.js";
 import { ARCHETYPES } from "../data/customers.js";
 import { cupLayers } from "../core/cupview.js";
@@ -19,13 +19,13 @@ test("bản chép manifest trong game khớp docs/tiem-tra-sua/asset-manifest.js
   assert.deepEqual(game, docs);
 });
 
-test("bộ asset Phase 2: 24 file, 243 frame, 27 clip; file tồn tại", () => {
+test("bộ asset Phase 2: ít nhất 24 file, 243 frame, 27 clip (Codex có thể thêm); file tồn tại", () => {
   const items = game.items.filter((i) => i.filename.startsWith("assets/"));
-  assert.equal(items.length, 24);
-  assert.equal(items.reduce((a, i) => a + Object.keys(i.frames || {}).length, 0), 243);
-  assert.equal(items.reduce((a, i) => a + Object.keys(i.animations || {}).length, 0), 27);
+  assert.ok(items.length >= 24);
+  assert.ok(items.reduce((a, i) => a + Object.keys(i.frames || {}).length, 0) >= 243);
+  assert.ok(items.reduce((a, i) => a + Object.keys(i.animations || {}).length, 0) >= 27);
   for (const i of items) assert.ok(existsSync(here("../" + i.filename)), i.filename);
-  for (const f of Object.values(SHEETS)) assert.ok(items.some((i) => i.filename === f), f);
+  for (const [alias, f] of Object.entries(SHEETS)) if (!OPTIONAL_SHEETS.has(alias)) assert.ok(items.some((i) => i.filename === f), f);
 });
 
 test("mọi icon nguyên liệu / bước pha có frame trong atlas", () => {

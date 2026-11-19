@@ -29,7 +29,7 @@ test("hết kiên nhẫn: sốt ruột ở 35%, rồi bỏ về với review 1 s
   assert.equal(s.shift.customers.find((q) => q.id === c.id).mood, "impatient");
   const ev2 = advance(s, c.patience * 0.31);
   assert.ok(ev2.some((e) => e.type === "timeout" && e.cid === c.id));
-  assert.equal(s.shift.active, null);
+  assert.equal(s.shift.stations[s.shift.sel].cid, null);
   assert.ok(s.shift.ledger.lost >= 1);
   const rv = s.shift.reviews.find((r) => r.cid === c.id);
   assert.equal(rv.stars, 1);
@@ -54,7 +54,7 @@ test("hàng chờ tối đa 4 khách; lượt dư lùi lại", () => {
   const s = shop(21);
   s.tutorialDone = true;
   act(s, { type: "startShift" });
-  s.shift.schedule = Array.from({ length: 7 }, (_, i) => ({ at: 100 + i, arch: "hoc-sinh", name: "Khách " + i, recipe: "tra-dao", sugar: 50, ice: "vua" }));
+  s.shift.schedule = Array.from({ length: 7 }, (_, i) => ({ at: 100 + i, arch: "hoc-sinh", name: "Khách " + i, items: [{ recipe: "tra-dao", sugar: 50, ice: "vua" }] }));
   advance(s, 2000);
   assert.equal(s.shift.customers.length, QUEUE_MAX);
   assert.equal(new Set(s.shift.customers.map((c) => c.spot)).size, QUEUE_MAX, "mỗi khách một chỗ đứng");

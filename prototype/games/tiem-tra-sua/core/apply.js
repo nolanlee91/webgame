@@ -6,20 +6,31 @@ import * as shift from "./shift.js";
 import { restock, stockUsed, capacity } from "./economy.js";
 import { levelForXp } from "./progression.js";
 import { buy } from "./equipment.js";
+import { place, resetPlace } from "./decor.js";
+import { choose } from "./drama.js";
+import { reply } from "./reviews.js";
+import { consign, promo } from "./business.js";
 import { STOCK_IDS } from "../data/ingredients.js";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),
   startShift: (s, a, ev) => shift.startShift(s, ev),
   pin: (s, a, ev) => shift.pin(s, a.cid, ev),
+  select: (s, a, ev) => shift.select(s, a.station, ev),
   brew: (s, a, ev) => shift.brew(s, a.step, a.id, ev),
   undo: (s, a, ev) => shift.undo(s, ev),
   discard: (s, a, ev) => shift.discard(s, ev),
   serve: (s, a, ev) => shift.serve(s, a.cid, ev),
   resolve: (s, a, ev) => shift.resolve(s, a.choice, ev),
-  restock: (s, a, ev) => restock(s, a.id, ev),
+  restock: (s, a, ev) => restock(s, a.id, ev, a.supplier || "di-ba"),
   cook: (s, a, ev) => shift.cook(s, a.size, ev),
   buy: (s, a, ev) => buy(s, a.id, ev),
+  place: (s, a, ev) => place(s, a.id, a.x, a.y, ev),
+  resetPlace: (s, a, ev) => resetPlace(s, a.id, ev),
+  choose: (s, a, ev) => choose(s, a.choice, ev),
+  reply: (s, a, ev) => reply(s, a.id, a.kind, ev),
+  consign: (s, a, ev) => consign(s, ev),
+  promo: (s, a, ev) => promo(s, a.kind, ev),
   setName: (s, a) => {
     const n = typeof a.name === "string" ? a.name.replace(/\s+/g, " ").trim().slice(0, 32) : "";
     if (!n) return { err: "empty-name" };
@@ -38,6 +49,7 @@ export function invariantError(s, before) {
   if (u > capacity(s) && u > (before ? stockUsed(before) : 0)) return "capacity";
   if (!(s.rep >= 0 && s.rep <= 100)) return "rep";
   if (s.shift && (!Number.isInteger(s.shift.kitchen.ready) || s.shift.kitchen.ready < 0)) return "kitchen";
+  if (s.shift && !(s.shift.sel >= 0 && s.shift.sel < s.shift.stations.length)) return "station";
   if (s.level !== levelForXp(s.xp)) return "level";
   return null;
 }
