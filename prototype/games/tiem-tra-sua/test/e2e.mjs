@@ -46,9 +46,23 @@ async function brewClicks(o, onStep = null) {
   return stages;
 }
 
+// Gián điệp âm thanh: đếm AudioContext tạo ra và mọi nguồn tiếng bắt đầu phát (AudioBufferSource / HTMLAudio), cài trước khi trang chạy.
+await b.send("Page.addScriptToEvaluateOnNewDocument", { source: `(() => {
+  const spy = window.__audioSpy = { ctx: 0, starts: 0, loops: 0, html: 0 };
+  const AC = window.AudioContext;
+  if (AC) window.AudioContext = class extends AC { constructor(...a) { super(...a); spy.ctx++; } };
+  const st = AudioBufferSourceNode.prototype.start;
+  AudioBufferSourceNode.prototype.start = function (...a) { spy.starts++; if (this.loop) spy.loops++; return st.apply(this, a); };
+  const hp = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function (...a) { spy.html++; return hp.apply(this, a); };
+})();` });
+const audioFetched = () => b.ev("performance.getEntriesByType('resource').filter(e=>e.name.includes('/assets/audio/')).map(e=>e.name.split('/').pop().split('?')[0])");
+
 // ===== 1. Người chơi mới, desktop, chuột =====
 await b.view(1366, 768, false); await b.touch(false); press = b.click;
 await b.nav(BASE); await b.ev("localStorage.clear()"); await b.nav(BASE);
+await sleep(500);
+check("âm thanh: trước thao tác người chơi không tạo AudioContext, không phát, không tải file âm thanh nào", await b.ev("__audioSpy.ctx===0&&__audioSpy.starts===0&&__audioSpy.html===0&&__game.sound().ctx===null") && (await audioFetched()).length === 0, JSON.stringify([await b.ev("JSON.stringify(__audioSpy)"), await audioFetched()]));
 check("mở game: bảng chào mừng có chân dung nhân viên (portraits.webp) và ô tên tiệm", await visible("#introGo") && await visible("#shopName") && await b.ev("!!document.querySelector('.intro .portrait[style*=\"portraits\"]')"));
 check("cảnh tiệm dùng nhân viên 144 × 192 từ barista-scene", await waitFor(`(() => {
   const actor = document.querySelector('.stage .barista');
@@ -74,6 +88,36 @@ check("mở quán: trừ phí ca 12k (160 → 148), đồng hồ ca chạy", (aw
 await sleep(600);
 const t1 = await S("s.shift.t");
 check("đồng hồ ca tăng theo thời gian thật", t1 > 200, String(t1));
+await waitFor("__game.sound().loops.includes('counter-rhythm')", 6000);
+const snd1 = await b.ev("JSON.stringify({spy:__audioSpy,sound:__game.sound()})").then(JSON.parse);
+const got1 = await audioFetched();
+// (_shared/feedback.js của cổng tạo AudioContext riêng cho tiếng bấm nút — game chỉ thêm đúng một)
+check("âm thanh: sau khi bấm, AudioContext của game chạy, có hiệu ứng phát (mở quán), nhạc quầy + âm quán lặp, mỗi vòng lặp một bản",
+  snd1.spy.ctx >= 1 && snd1.spy.ctx <= 2 && snd1.sound.ctx === "running" && snd1.sound.started >= 1 && snd1.sound.scene === "service" &&
+  snd1.sound.loops.includes("counter-rhythm") && snd1.sound.loops.includes("shop-loop") && !snd1.sound.loops.includes("evening-prep") &&
+  new Set(snd1.sound.loops).size === snd1.sound.loops.length && snd1.sound.failed.length === 0, JSON.stringify(snd1));
+check("âm thanh: tải lười — chỉ file cần tới (không tải bài nhạc chưa dùng hết lượt), mỗi file một lần",
+  got1.includes("open.mp3") && got1.includes("counter-rhythm.mp3") && new Set(got1).size === got1.length, got1.join(","));
+// Nút Tiếng xoay vòng: bật hết → chỉ hiệu ứng (nhạc tắt, âm quán còn) → tắt → bật hết
+await pressSel("#muteBtn");
+await waitFor("!__game.sound().loops.includes('counter-rhythm')", 2000);
+check("nút Tiếng lần 1: chỉ hiệu ứng — tắt nhạc quầy, còn âm quán, lưu tts.music=0, wgp.muted vẫn 0",
+  await b.ev("document.querySelector('#muteBtn').dataset.mode==='sfx'&&localStorage.getItem('tts.music')==='0'&&localStorage.getItem('wgp.muted')!=='1'&&__game.sound().loops.includes('shop-loop')&&!__game.sound().loops.includes('counter-rhythm')"));
+await pressSel("#muteBtn");
+check("nút Tiếng lần 2: tắt — wgp.muted=1, không còn vòng lặp", await waitFor("document.querySelector('#muteBtn').dataset.mode==='off'&&localStorage.getItem('wgp.muted')==='1'&&__game.sound().loops.length===0", 2000));
+await pressSel("#muteBtn");
+check("nút Tiếng lần 3: bật lại hết, nhạc chạy tiếp", await waitFor("document.querySelector('#muteBtn').dataset.mode==='all'&&localStorage.getItem('wgp.muted')==='0'&&__game.sound().loops.includes('counter-rhythm')", 3000));
+// Tab khác (hoặc game khác của Lụm Kèo) tắt tiếng chung: sự kiện storage
+await b.ev("localStorage.setItem('wgp.muted','1');dispatchEvent(new StorageEvent('storage',{key:'wgp.muted'}))");
+const startsMuted = await b.ev("__game.sound().started");
+check("tắt tiếng ở tab khác: nút đổi sang tắt, vòng lặp dừng, hiệu ứng không phát", await waitFor("document.querySelector('#muteBtn').dataset.mode==='off'&&__game.sound().loops.length===0", 2000) &&
+  (await b.ev("import('/games/tiem-tra-sua/ui/sfx.js?v=m37').then(m=>m.play('coin'))")) === false && (await b.ev("__game.sound().started")) === startsMuted);
+await b.ev("localStorage.setItem('wgp.muted','0');dispatchEvent(new StorageEvent('storage',{key:'wgp.muted'}))");
+check("bật lại ở tab khác: nhạc chạy lại", await waitFor("document.querySelector('#muteBtn').dataset.mode==='all'&&__game.sound().loops.includes('counter-rhythm')", 3000));
+await pressSel("#pauseBtn");
+check("tạm dừng: âm nền dừng hẳn", await waitFor("__game.sound().scene==='quiet'&&__game.sound().loops.length===0", 2000));
+await pressSel("#resumeBtn");
+check("tiếp tục ca: âm nền chạy lại, không tạo thêm AudioContext", await waitFor(`__game.sound().loops.includes('counter-rhythm')&&__audioSpy.ctx===${snd1.spy.ctx}`, 3000));
 
 // ===== 2. Ba khách phục vụ đúng =====
 const served = [];
@@ -118,6 +162,7 @@ await brewClicks({ ...o4, add: wrongAdd });
 await pressSel("#serveBtn");
 check("giao sai món nền → bảng khiếu nại có chân dung khách + nhân viên và 3 cách xử lý", await waitFor("!!document.querySelector('.sheet[data-kind=complaint]')") && await b.ev("document.querySelectorAll('.choices .choice').length===3&&document.querySelectorAll('.drama .portrait').length===2"));
 check("khiếu nại: chưa thu tiền, đồng hồ ca dừng", (await S("s.money")) === m4 && await (async () => { const a = await S("s.shift.t"); await sleep(500); return (await S("s.shift.t")) === a; })());
+check("khiếu nại: âm nền hạ nhỏ (vẫn một bản nhạc quầy, không có nồi sôi), đã phát tiếng khiếu nại", await b.ev("(()=>{const d=__game.sound();return d.scene==='dialog'&&d.loops.filter(n=>n==='counter-rhythm').length===1&&!d.loops.includes('boil-loop')})()") && (await audioFetched()).includes("complaint.mp3"));
 await b.shot(OUT + "/05-desktop-khieu-nai.png");
 await pressSel('.choices [data-choice="refund"]');
 check("chọn “Xin lỗi, không lấy tiền”: 0 doanh thu, ly tính hao hụt, review 2 sao lý do xin lỗi", (await S("s.money")) === m4 && (await S("s.shift.ledger.refunds")) === 1 && (await S("s.shift.ledger.waste")) > 0 && (await S("s.shift.reviews.find(r=>r.cid===4).stars")) === 2);

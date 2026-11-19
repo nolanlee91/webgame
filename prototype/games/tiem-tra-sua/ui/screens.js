@@ -499,7 +499,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         "Đơn nhiều ly: pha từng ly rồi bấm Ghép ly vào đơn; đủ ly thì giao chung một lượt. Có bàn pha đôi / ba thì ly cùng yêu cầu được rót cùng lúc.",
         "Drama: khách, mạng xã hội, mẹ gọi… Ca tạm dừng khi hội thoại mở. Mỗi lựa chọn có hậu quả, có chuyện quay lại ngày sau.",
         "Sổ: xem và trả lời review, nhật ký từng ngày, sự kiện, nhiệm vụ ngày. Hết vốn thì nhận gói ký gửi ở bảng Chuẩn bị ca.",
-        "Phím tắt: 1–7 chọn nguyên liệu, Enter giao, Backspace hoàn tác, P tạm dừng, M tắt tiếng.",
+        "Phím tắt: 1–7 chọn nguyên liệu, Enter giao, Backspace hoàn tác, P tạm dừng, M đổi tiếng (bật hết → chỉ hiệu ứng → tắt).",
       ]) ol.appendChild(h("li", "", s));
       c.appendChild(ol);
       const ok = h("button", "btn primary", "Đã hiểu"); ok.type = "button"; ok.id = "helpOk"; ok.dataset.autofocus = "";
