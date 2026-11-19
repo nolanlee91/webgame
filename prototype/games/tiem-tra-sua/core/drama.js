@@ -2,21 +2,21 @@
 // và hẹn quay lại ngày sau (later → s.drama.queue). Trong ca: tối đa 1–2 sự kiện, đồng hồ dừng khi hội thoại mở (sh.dialog kind "event").
 // Giữa hai ca: tối đa 1 sự kiện (s.drama.pending), hiện sau bảng chốt ca. Mỗi lựa chọn lưu một khoảnh khắc cho Nhật Ký Làm Chủ.
 // Thuần, RNG của ván ⇒ cùng hạt + cùng thao tác ⇒ cùng sự kiện.
-import { EVENTS, EVENT } from "../data/events.js?v=m36";
-import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { STOCK } from "../data/ingredients.js?v=m36";
-import { EQUIPMENT } from "../data/equipment.js?v=m36";
-import { next, int, pick, weighted } from "./rng.js?v=m36";
-import { fill } from "./text.js?v=m36";
-import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m36";
-import { stockUsed, capacity } from "./economy.js?v=m36";
-import { owns } from "./equipment.js?v=m36";
-import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say, freshLine } from "./shift.js?v=m36";
-import { PERSONA_ASIDE } from "../data/lines-reply.js?v=m36";
-import { missionsOnDrama } from "./missions.js?v=m36";
-import { ratingOf } from "./reviews.js?v=m36";
+import { EVENTS, EVENT } from "../data/events.js?v=m37";
+import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m37";
+import { ARCHETYPES } from "../data/customers.js?v=m37";
+import { RECIPE } from "../data/recipes.js?v=m37";
+import { STOCK } from "../data/ingredients.js?v=m37";
+import { EQUIPMENT } from "../data/equipment.js?v=m37";
+import { next, int, pick, weighted } from "./rng.js?v=m37";
+import { fill } from "./text.js?v=m37";
+import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m37";
+import { stockUsed, capacity } from "./economy.js?v=m37";
+import { owns } from "./equipment.js?v=m37";
+import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say, freshLine } from "./shift.js?v=m37";
+import { PERSONA_ASIDE } from "../data/lines-reply.js?v=m37";
+import { missionsOnDrama } from "./missions.js?v=m37";
+import { ratingOf } from "./reviews.js?v=m37";
 
 export const FX_KEYS = new Set(["money", "rep", "followers", "buzz", "xp", "stock", "patience", "whoPatience", "delaySpawn", "sealMs", "guests", "group",
   "nextGuests", "demand", "flag", "unflag", "review", "kitchen", "swapTopping", "priceWho", "leaveWho", "moment"]);
@@ -24,7 +24,7 @@ export const IF_KEYS = new Set(["minDay", "minLevel", "minRep", "maxRep", "minFo
   "rush", "lastServe", "pearlsOut", "archWaiting", "lostMin", "cupsMin", "minMoney", "maxMoney", "tMin", "tMax", "reviewLow", "sum", "chain"]);
 /** Cờ do chính game đặt (không cần sự kiện nào đặt): C01 làm lại ly ⇒ fix-<nhóm khách>; nhập vựa sỉ ⇒ si-mua;
  *  quảng bá ⇒ promo-<loại> (chỉ trong ngày); nhận gói ký gửi ⇒ ky-gui; trả đủ ⇒ ky-gui-xong; câu trả lời review ⇒ rep-<kết quả> (core/reviews.js). */
-export const ENGINE_FLAG = /^(fix-|promo-|si-mua$|ky-gui|rep-)/;
+export const ENGINE_FLAG = /^(fix-|promo-|si-mua$|ky-gui|rep-|muon-hb$|dong-som$|het-hang$)/; // + hết hàng giữa ca (core/stockout.js)
 /** Đặt cờ của game (hết hạn sau `days` ngày, mặc định DRAMA.flagDays). */
 export function engineFlag(s, f, days = DRAMA.flagDays) { if (s.drama) s.drama.flags[f] = s.day + days; }
 export const ROLES = ["barista", "regular", "vip", "reviewer", "courier", "neighbor", "office-worker"];

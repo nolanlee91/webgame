@@ -2,15 +2,16 @@
 // Chạy trên bản nháp (structuredClone): lỗi ⇒ trạng thái không đổi. Kiểm bất biến một chỗ trước khi ghi:
 // tiền ≥ 0 (số nguyên), kho là số nguyên ≥ 0 và không vượt sức chứa vì hàng mới, danh tiếng 0–100, cấp khớp XP.
 // Bấm lặp / tải lại không cộng hai lần: giao chỉ hợp lệ khi khách còn đang chờ, giải quyết chỉ khi còn hội thoại, bước pha phải đúng thứ tự.
-import * as shift from "./shift.js?v=m36";
-import { restock, stockUsed, capacity } from "./economy.js?v=m36";
-import { levelForXp } from "./progression.js?v=m36";
-import { buy } from "./equipment.js?v=m36";
-import { place, resetPlace } from "./decor.js?v=m36";
-import { choose } from "./drama.js?v=m36";
-import { reply, setPersona } from "./reviews.js?v=m36";
-import { consign, promo } from "./business.js?v=m36";
-import { STOCK_IDS } from "../data/ingredients.js?v=m36";
+import * as shift from "./shift.js?v=m37";
+import { restock, stockUsed, capacity } from "./economy.js?v=m37";
+import { levelForXp } from "./progression.js?v=m37";
+import { buy } from "./equipment.js?v=m37";
+import { place, resetPlace } from "./decor.js?v=m37";
+import { choose } from "./drama.js?v=m37";
+import { reply, setPersona } from "./reviews.js?v=m37";
+import { consign, promo } from "./business.js?v=m37";
+import { STOCK_IDS } from "../data/ingredients.js?v=m37";
+import { restockToday, resolveStockout } from "./stockout.js?v=m37";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),
@@ -24,6 +25,8 @@ const HANDLERS = {
   resolve: (s, a, ev) => shift.resolve(s, a.choice, ev),
   restock: (s, a, ev) => restock(s, a.id, ev, a.supplier || "di-ba"),
   cook: (s, a, ev) => shift.cook(s, a.size, ev),
+  restockToday: (s, a, ev) => restockToday(s, ev),
+  stockout: (s, a, ev) => resolveStockout(s, a.choice, ev),
   buy: (s, a, ev) => buy(s, a.id, ev),
   place: (s, a, ev) => place(s, a.id, a.x, a.y, ev),
   resetPlace: (s, a, ev) => resetPlace(s, a.id, ev),

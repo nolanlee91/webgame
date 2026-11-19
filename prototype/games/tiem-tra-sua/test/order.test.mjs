@@ -79,8 +79,10 @@ test("hết hàng thì không rót được (kho không âm)", () => {
   act(s, { type: "startShift" });
   untilWaiting(s);
   s.stock.ly = 0;
-  assert.equal(err(s, { type: "brew", step: "cup", id: "ly" }), "out-of-stock");
+  act(s, { type: "brew", step: "cup", id: "ly" });
   assert.equal(s.stock.ly, 0);
+  assert.equal(s.shift.dialog?.kind, "stockout", "hết ly ⇒ hội thoại hết hàng");
+  assert.equal(s.shift.stations[0].cup, null);
 });
 
 test("giao chỉ khi ly đã đóng nắp và khách còn đang chờ; bấm giao lặp không cộng hai lần", () => {

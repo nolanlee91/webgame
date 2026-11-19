@@ -81,12 +81,14 @@ test("cấu trúc từng sự kiện hợp lệ: bước, lựa chọn, hậu qu
   }
 });
 
+/** Sự kiện chain do luật game hẹn (không qua lựa chọn sự kiện): H01 ← "Mượn đỡ chị Lụa" (core/stockout.js). */
+const ENGINE_CHAIN = new Set(["H01"]);
 test("mọi cờ điều kiện đều có lựa chọn đặt; mọi sự kiện chain đều có hẹn tới", () => {
   const set = new Set(EVENTS.flatMap((e) => allChoices(e).flatMap(({ c }) => fxOf(c).flatMap((fx) => [].concat(fx.flag || [])))));
   const later = new Set(EVENTS.flatMap((e) => allChoices(e).map(({ c }) => c.later?.id).filter(Boolean)));
   for (const ev of EVENTS) {
     for (const f of ev.if?.flags || []) assert.ok(set.has(f) || ENGINE_FLAG.test(f), `${ev.id}: cờ ${f} không ai đặt`);
-    if (ev.if?.chain) assert.ok(later.has(ev.id), `${ev.id}: chain nhưng không có later nào trỏ tới`);
+    if (ev.if?.chain) assert.ok(later.has(ev.id) || ENGINE_CHAIN.has(ev.id), `${ev.id}: chain nhưng không có later nào trỏ tới`);
   }
 });
 
@@ -279,6 +281,7 @@ test("mô phỏng 14 ngày tự chơi: drama nổ ra đều, nhiều sự kiện
       const d2 = currentEvent(s);
       if (d2) { fired.add(d2.id); clearDrama(s); continue; }
       if (s.shift.dialog?.kind === "complaint") { act(s, { type: "resolve", choice: "refund" }); continue; }
+      if (s.shift.dialog?.kind === "stockout") { act(s, { type: "stockout", choice: stockoutOptions(s).find((o) => o.ok).id }); continue; }
       const c = s.shift.customers.find((q) => q.phase === "wait");
       if (c && !s.shift.dialog) {
         try { serveRight(s, c); } catch { /* đơn đổi giữa chừng: bỏ qua */ }
@@ -291,4 +294,5 @@ test("mô phỏng 14 ngày tự chơi: drama nổ ra đều, nhiều sự kiện
   assert.ok(s.drama.history.length >= 8, `${s.drama.history.length} lựa chọn trong 14 ngày`);
 });
 
+import { stockoutOptions } from "../core/stockout.js";
 export { synth, orderSpec };

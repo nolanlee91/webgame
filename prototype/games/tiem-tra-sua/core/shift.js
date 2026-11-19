@@ -3,28 +3,31 @@
 // Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
 // Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
 // c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
-import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
+import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m37";
+import { RECIPE } from "../data/recipes.js?v=m37";
+import { ARCHETYPES } from "../data/customers.js?v=m37";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
   TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
-} from "../data/shift.js?v=m36";
-import * as L from "../data/lines.js?v=m36";
-import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m36";
-import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m36";
-import { next, int, pick, weighted } from "./rng.js?v=m36";
-import { fill, pickLine } from "./text.js?v=m36";
-import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m36";
-import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m36";
-import { scoreServe, starsFor } from "./score.js?v=m36";
-import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m36";
-import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m36";
-import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m36";
-import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m36";
-import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m36";
-import { promoGuests, consignRepay } from "./business.js?v=m36";
-import { caption } from "./journal.js?v=m36";
+} from "../data/shift.js?v=m37";
+import * as L from "../data/lines.js?v=m37";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m37";
+import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m37";
+import { next, int, pick, weighted } from "./rng.js?v=m37";
+import { fill, pickLine } from "./text.js?v=m37";
+import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m37";
+import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m37";
+import { scoreServe, starsFor } from "./score.js?v=m37";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m37";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m37";
+import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m37";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m37";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m37";
+import { promoGuests, consignRepay } from "./business.js?v=m37";
+import { caption } from "./journal.js?v=m37";
+import { openStockout, missingFor, lowCheck, stockoutTick, RUN_REVIEW } from "./stockout.js?v=m37";
+import { SWAP_YES_REVIEW } from "../data/lines-stockout.js?v=m37";
+import { PEARL_RAW as RAW } from "../data/equipment.js?v=m37";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");
@@ -123,6 +126,7 @@ export function startShift(s, events) {
     reviews: [], repDelta: 0, xp: 0, levelUps: [], moments: [], usedLines: [],
     kitchen: { ready: (tut ? TUTORIAL_PRECOOKED : 0) + s.carryPearls, batches: [] },
     mods: { sealMs: 0, spawnPauseUntil: 0 }, lastServe: null, missions: [], drama: null, followers0: s.followers || 0,
+    away: null, deliveries: [], borrowDay: null, closedEarly: null, stockouts: 0, lowWarned: {},
   };
   s.carryPearls = 0;
   s.usedDay = [];
@@ -200,6 +204,7 @@ export function tick(s, dt, events) {
   if (!Number.isFinite(dt) || dt < 0) return { err: "bad-dt" };
   sh.t += Math.min(dt, 1000);
   const t = sh.t;
+  stockoutTick(s, Math.min(dt, 1000), events); // chủ tiệm chạy đi mua về, Anh Tèo giao hàng (core/stockout.js)
   // khách mới (cửa đóng sau giờ ca: bỏ lượt chưa tới)
   while (sh.schedule.length && sh.schedule[0].at <= t) {
     if (t > sh.duration) { sh.schedule.length = 0; break; }
@@ -239,11 +244,15 @@ export function tick(s, dt, events) {
   }
   sh.customers = sh.customers.filter((c) => !(c.phase === "leave" && t >= c.leaveT + WALK_MS));
   if (!sh.schedule.length && !sh.customers.length) { endShift(s, events); return { ok: true }; } // hết giờ nhận khách + quầy trống
-  maybeTrigger(s, events);
+  if (!sh.away) maybeTrigger(s, events);
   return { ok: true };
 }
 
 // ---------- quầy ----------
+/** Chủ tiệm đang chạy đi mua hàng: quầy bỏ trống, không thao tác được. */
+const awayErr = (sh) => (sh.away ? { err: "away" } : null);
+/** Hàng đang được mang tới (chạy đi mua / Anh Tèo) ⇒ không hỏi lại. */
+const coming = (sh, id) => sh.away?.id === id || (sh.deliveries || []).some((d) => d.id === id && !d.wrong);
 /** Ly chưa ghép và chưa có chỗ pha nào nhận (trừ chỗ `except`). */
 function freeItem(sh, c, except = -1) {
   for (let i = 0; i < c.items.length; i++) {
@@ -258,6 +267,7 @@ export function pin(s, cid, events) {
   if (!isOpen(s)) return { err: "closed" };
   const sh = s.shift;
   if (sh.dialog) return { err: "dialog" };
+  if (sh.away) return awayErr(sh);
   const c = customer(s, cid);
   if (!c || c.phase !== "wait") return { err: "not-waiting" };
   const mine = sh.stations.findIndex((st) => st.cid === cid);
@@ -281,6 +291,10 @@ export function pin(s, cid, events) {
   sh.sel = target;
   c.pinned = true;
   events.push({ type: "pinned", cid, station: target });
+  // đơn cần món hàng đã hết ⇒ hỏi cách xử lý ngay (không đợi tới bước pha)
+  const it = c.items[st.item ?? 0];
+  const miss = it && missingFor(s, it.order, st.cup ? st.cup.steps.length : 0);
+  if (miss && !coming(sh, miss)) openStockout(s, miss, cid, events);
   return { ok: true };
 }
 
@@ -311,7 +325,7 @@ export function orderAt(s, st) {
 function pour(s, sh, st, step, id, c) {
   const use = useOf(step, id);
   if (c.kitchen) {
-    if (sh.kitchen.ready < 1) return { err: "not-cooked" };
+    if (sh.kitchen.ready < 1) return { err: !sh.kitchen.batches.length && (s.stock[RAW] || 0) < 3 ? "out-of-stock" : "not-cooked", use: { [RAW]: 3 } };
     sh.kitchen.ready--;
   } else {
     if (!hasStock(s, use)) return { err: "out-of-stock", use };
@@ -334,7 +348,13 @@ export function brew(s, step, id, events) {
   const c = choice(step, id);
   if (!c) return { err: "bad-choice" };
   if (!choiceUnlocked(step, c, s.level)) return { err: "locked" };
+  if (sh.away) return awayErr(sh);
   const r = pour(s, sh, st, step, id, c);
+  if (r.err === "out-of-stock") {
+    const miss = Object.keys(r.use || {})[0];
+    if (miss && coming(sh, miss)) return { err: "coming", id: miss };
+    if (miss && openStockout(s, miss, st.cid, events)) return { ok: true, stockout: miss }; // hết hàng: hội thoại, không kẹt
+  }
   if (r.err) return r;
   // pha đồng loạt: chỗ pha khác đang ở cùng bước và phiếu ở đó cũng ghi đúng lựa chọn này
   const also = [];
@@ -346,6 +366,7 @@ export function brew(s, step, id, events) {
   });
   const line = also.length && step === "cup" ? freshLine(s, BARISTA_PARALLEL, { n: also.length + 1 }) : null; // bàn pha đôi / ba chỗ
   events.push({ type: "brewed", step, id, station: sh.sel, also, ...(line ? { line } : {}) });
+  lowCheck(s, Object.keys(c.kitchen ? {} : useOf(step, id)), events);
   return { ok: true };
 }
 
@@ -354,6 +375,7 @@ export function undo(s, events) {
   if (!isOpen(s)) return { err: "closed" };
   const sh = s.shift, st = curStation(sh), cup = st.cup;
   if (sh.dialog) return { err: "dialog" };
+  if (sh.away) return awayErr(sh);
   if (!cup || !cup.steps.length) return { err: "empty" };
   if (cup.sealed) return { err: "sealed" };
   const last = cup.steps.pop();
@@ -367,6 +389,7 @@ export function discard(s, events) {
   if (!isOpen(s)) return { err: "closed" };
   const sh = s.shift, st = curStation(sh);
   if (sh.dialog) return { err: "dialog" };
+  if (sh.away) return awayErr(sh);
   if (!st.cup) return { err: "empty" };
   const k = cupCost(st.cup);
   sh.ledger.waste += k;
@@ -435,6 +458,8 @@ function reviewLine(s, c, sc) {
     if (pool.length) return { line: freshLine(s, pool, ctx), reason, mistake: mk };
     if (err) return { line: freshLine(s, L.REVIEW_LINES[err], ctx), reason: err, mistake: mk };
   }
+  if (!mk && sc.stars >= 3 && c.swapped && next(s) < 0.7) return { line: freshLine(s, SWAP_YES_REVIEW, { ...ctx, sub: RECIPE[c.swapped].name.toLocaleLowerCase("vi"), item: "hàng" }), reason: sc.stars >= 4 ? "good" : "ok" };
+  if (c.ranFor && sc.stars >= 2 && next(s) < 0.6) return { line: freshLine(s, RUN_REVIEW, ctx), reason: sc.stars >= 4 ? "good" : "slow" };
   if (!mk && sc.stars >= 4) { const dp = decorPool(s); if (dp.length && next(s) < 0.3) return { line: freshLine(s, dp, ctx), reason: "decor" }; } // trả lời review có câu riêng cho khen trang trí
   if (!mk && sc.stars >= 3) { const pp = promoPool(s); if (pp.length && next(s) < 0.35) return { line: freshLine(s, pp, ctx), reason: sc.stars >= 4 ? "good" : "ok" }; }
   const pool = poolFor(REVIEW_BY_STARS[sc.stars], c.arch);
@@ -521,6 +546,7 @@ export function serve(s, cid, events) {
   if (!isOpen(s)) return { err: "closed" };
   const sh = s.shift;
   if (sh.dialog) return { err: "dialog" };
+  if (sh.away) return awayErr(sh);
   const c = customer(s, cid);
   if (!c || c.phase !== "wait") return { err: "not-waiting" };
   const st = curStation(sh), cup = st.cup;
@@ -622,11 +648,16 @@ export function cook(s, size, events) {
   if (sh.dialog) return { err: "dialog" };
   if (!B) return { err: "bad-size" };
   if (B.unlock > s.level) return { err: "locked" };
+  if (sh.away) return awayErr(sh);
   if (sh.kitchen.batches.length >= kitchenSlots(s)) return { err: "kitchen-busy" };
-  if ((s.stock[PEARL_RAW] || 0) < size) return { err: "out-of-stock", use: { [PEARL_RAW]: size } };
+  if ((s.stock[PEARL_RAW] || 0) < size) {
+    if ((s.stock[PEARL_RAW] || 0) < 3 && !coming(sh, PEARL_RAW) && openStockout(s, PEARL_RAW, activeCid(sh), events)) return { ok: true, stockout: PEARL_RAW };
+    return { err: "out-of-stock", use: { [PEARL_RAW]: size } };
+  }
   s.stock[PEARL_RAW] -= size;
   sh.kitchen.batches.push({ size, doneAt: sh.t + B.ms, ms: B.ms });
   events.push({ type: "cooking", size });
+  lowCheck(s, [PEARL_RAW], events);
   return { ok: true };
 }
 
@@ -650,7 +681,7 @@ export function endShift(s, events) {
   const sum = {
     day: sh.day, cups: Lg.cups, served: Lg.served, lost: Lg.lost, planned: sh.planned, revenue: Lg.revenue, cogs: Lg.cogs, waste: Lg.waste,
     fee: Lg.fee, restock: Lg.restock, refunds: Lg.refunds, remakes: Lg.remakes, pearlWaste: Lg.pearlWaste, carry: s.carryPearls, profit: operatingProfit(Lg),
-    multi: Lg.multi, consignPaid: Lg.consignPaid, eventCash: Lg.eventCash,
+    multi: Lg.multi, consignPaid: Lg.consignPaid, eventCash: Lg.eventCash, closedEarly: sh.closedEarly || null, stockouts: sh.stockouts || 0,
     avgStars: Math.round(avg * 10) / 10, reviews: sh.reviews.map((r) => ({ name: r.name, stars: r.stars, line: r.line, reason: r.reason, recipe: r.recipe })),
     best: best ? { name: best.name, stars: best.stars, line: best.line } : null,
     repDelta: sh.repDelta, rep: s.rep, xp: sh.xp, levelUps: [...sh.levelUps], level: s.level, money: s.money, moments: sh.moments.slice(0, 12),

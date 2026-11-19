@@ -20,8 +20,9 @@
 // Mọi bước phải có ít nhất một lựa chọn không tốn tiền / hàng (test/drama.test.mjs kiểm).
 // Sự kiện cho các cơ chế M3 (đơn nhóm F, bàn pha P, vựa sỉ U, quảng bá Q, ký gửi B) ở data/events-m3.js.
 // Sự kiện sinh ra từ câu trả lời review (R01–R10) ở data/events-reply.js; lựa chọn có thể có sayBy / nút meBy theo tính cách chủ tiệm.
-import { EVENTS_M3 } from "./events-m3.js?v=m36";
-import { EVENTS_REPLY } from "./events-reply.js?v=m36";
+import { EVENTS_M3 } from "./events-m3.js?v=m37";
+import { EVENTS_REPLY } from "./events-reply.js?v=m37";
+import { EVENTS_STOCKOUT } from "./events-stockout.js?v=m37";
 
 export const EVENTS = [
   // ===== Khách =====
@@ -863,6 +864,7 @@ export const EVENTS = [
   },
   ...EVENTS_M3,
   ...EVENTS_REPLY,
+  ...EVENTS_STOCKOUT,
 ];
 
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

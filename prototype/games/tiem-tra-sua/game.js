@@ -1,18 +1,19 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m36";
-import { createScene } from "./render/scene.js?v=m36";
-import { createBrew } from "./ui/brew.js?v=m36";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m36";
-import { createPanels } from "./ui/panels.js?v=m36";
-import { apply } from "./core/apply.js?v=m36";
-import { customer } from "./core/shift.js?v=m36";
-import { currentEvent, openEvent } from "./core/drama.js?v=m36";
-import { PLACE_REASON } from "./core/decor.js?v=m36";
-import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m36";
-import { EQUIPMENT } from "./data/equipment.js?v=m36";
-import { shopSave, browserStorage } from "./save.js?v=m36";
-import { play, isMuted, setMuted } from "./ui/sfx.js?v=m36";
+import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m37";
+import { createScene } from "./render/scene.js?v=m37";
+import { createBrew } from "./ui/brew.js?v=m37";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m37";
+import { createPanels } from "./ui/panels.js?v=m37";
+import { createStockout } from "./ui/stockout.js?v=m37";
+import { apply } from "./core/apply.js?v=m37";
+import { customer } from "./core/shift.js?v=m37";
+import { currentEvent, openEvent } from "./core/drama.js?v=m37";
+import { PLACE_REASON } from "./core/decor.js?v=m37";
+import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m37";
+import { EQUIPMENT } from "./data/equipment.js?v=m37";
+import { shopSave, browserStorage } from "./save.js?v=m37";
+import { play, isMuted, setMuted } from "./ui/sfx.js?v=m37";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -63,8 +64,10 @@ async function boot() {
     journal: (back) => panels.journal(state, back),
     arrange: () => arrange(),
     afterSummary: () => betweenDays(),
+    toast: (t, kind) => say(t, kind),
   });
   panels = createPanels(atlas, (a) => act(a), overlays, { state: () => state, resume: () => { paused = false; }, toast: say });
+  const stockout = createStockout(atlas, (a) => act(a), overlays, { state: () => state, resume: () => { paused = false; } });
 
   /** Sau bảng chốt ca: sự kiện giữa hai ca (nếu có) rồi bảng Chuẩn bị ca. */
   function betweenDays() {
@@ -94,6 +97,8 @@ async function boot() {
     "cannot-afford": () => "Chưa đủ tiền hoặc nguyên liệu cho lựa chọn này.",
     "event-pending": () => "Còn một chuyện cần xử lý trước khi mở quán.",
     "supplier-closed": () => "Vựa sỉ chỉ giao trước ca. Giữa ca nhập gấp ở Dì Ba.",
+    "away": () => "Bạn đang chạy đi mua hàng, quầy bỏ trống. Chờ chút!",
+    "coming": (r) => `${STOCK[r.detail?.id]?.name || "Hàng"} đang được mang tới, pha món khác trước nha.`,
   };
 
   function act(a, fromLoop = false) {
@@ -123,6 +128,11 @@ async function boot() {
           say(`+${fmtK(e.price)}${e.cups > 1 ? ` (${e.cups} ly)` : ""} · ${e.stars} sao${e.xp ? ` · +${e.xp} XP` : ""}${e.tip ? ` · thưởng ${e.tip}k` : ""}${e.repay ? ` · trả ký gửi ${e.repay}k` : ""}`, e.stars >= 4 ? "good" : e.stars <= 2 ? "warn" : "");
           break;
         }
+        case "stockout": play("sad"); setTimeout(() => { if (state.shift?.dialog?.kind === "stockout" && !overlays.current) stockout.dialog(state); }, reduced() ? 0 : 300); break;
+        case "lowStock": play("bell"); say(`Nhân viên: “${e.line}” (bấm ô Kho để nhập gấp)`, "warn"); break;
+        case "ranBack": play("level"); say(e.line, "good"); break;
+        case "delivered": play(e.wrong ? "sad" : "coin"); say(e.line, e.wrong ? "warn" : "good"); break;
+        case "restockedToday": play("coin"); say(`Đã nhập đủ cho hôm nay (−${fmtK(e.spent)}).`, "good"); break;
         case "complaint": play("sad"); setTimeout(() => state.shift?.dialog && overlays.complaint(state), reduced() ? 0 : 450); break;
         case "drama": play("bell"); setTimeout(() => { if (state.shift?.dialog?.kind === "event" && !overlays.current) panels.event(state, { onDone: () => {} }); }, reduced() ? 0 : 350); break;
         case "dramaResolved": play(e.rolled === "lose" ? "sad" : "coin"); break;
@@ -199,6 +209,9 @@ async function boot() {
     if (state.shift) paused = true;
     panels.notebook(state, "reviews", back || (() => { if (state.shift) overlays.pause(state, "pause"); else overlays.prep(state); }));
   });
+  // ô Kho trên HUD: giữa ca mở bảng nhập gấp (Dì Ba +15%)
+  $("#hStock").addEventListener("click", () => { if (!state.shift || overlays.current || state.shift.dialog) return; paused = true; stockout.quick(state); });
+  $("#hStock").setAttribute("role", "button"); $("#hStock").tabIndex = 0;
   $("#pauseBtn").addEventListener("click", () => { if (!state.shift || overlays.current) return; paused = true; overlays.pause(state, "pause"); });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) { save(true); if (state.shift && !overlays.current) { paused = true; overlays.pause(state, "pause"); } }
@@ -227,6 +240,7 @@ async function boot() {
   if (!state.introSeen) overlays.intro(state);
   else if (state.shift?.dialog?.kind === "complaint") overlays.complaint(state);
   else if (state.shift?.dialog?.kind === "event") panels.event(state, { onDone: () => {} });
+  else if (state.shift?.dialog?.kind === "stockout") stockout.dialog(state);
   else if (state.shift) { paused = true; overlays.pause(state, "resume"); }
   else if (state.lastSummary && !state.lastSummary.seen) overlays.summary(state);
   else betweenDays();

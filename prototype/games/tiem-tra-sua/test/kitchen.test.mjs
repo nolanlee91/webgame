@@ -41,7 +41,11 @@ test("mẻ 6 phần mở ở cấp 3; thiếu trân châu sống thì không n�
   assert.equal(err(s, { type: "cook", size: 6 }), "locked");
   assert.equal(err(s, { type: "cook", size: 4 }), "bad-size");
   s.stock["tran-chau-song"] = 2;
-  assert.equal(err(s, { type: "cook", size: 3 }), "out-of-stock");
+  // hết trân châu sống: không nấu được, mở hội thoại hết hàng (không kẹt)
+  act(s, { type: "cook", size: 3 });
+  assert.equal(s.shift.dialog?.kind, "stockout");
+  assert.equal(s.shift.dialog.id, "tran-chau-song");
+  assert.equal(s.stock["tran-chau-song"], 2);
 });
 
 test("cuối ca: trân châu nấu dư + mẻ đang nấu tính hao hụt một lần", () => {

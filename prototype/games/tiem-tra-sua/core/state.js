@@ -5,19 +5,19 @@
 // nhiệm vụ ngày, vị trí trang trí, quảng bá, gói ký gửi.
 // v3: tính cách chủ tiệm (owner), câu trả lời review lưu nguyên văn + hậu quả + câu đáp lại (feed[].reply là object),
 // khách quay lại nhờ câu trả lời (returning), bộ nhớ chống lặp câu giữa hai ca (usedDay).
-import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m36";
-import { RECIPE } from "../data/recipes.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
-import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m36";
-import { levelForXp } from "./progression.js?v=m36";
-import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m36";
-import { capacityFor, stationCount } from "./equipment.js?v=m36";
-import { EVENT } from "../data/events.js?v=m36";
-import { MISSION } from "../data/missions.js?v=m36";
-import { PROMOS } from "./business.js?v=m36";
-import { placeError } from "./decor.js?v=m36";
-import { freshDrama } from "./drama.js?v=m36";
-import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m36";
+import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m37";
+import { RECIPE } from "../data/recipes.js?v=m37";
+import { ARCHETYPES } from "../data/customers.js?v=m37";
+import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m37";
+import { levelForXp } from "./progression.js?v=m37";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m37";
+import { capacityFor, stationCount } from "./equipment.js?v=m37";
+import { EVENT } from "../data/events.js?v=m37";
+import { MISSION } from "../data/missions.js?v=m37";
+import { PROMOS } from "./business.js?v=m37";
+import { placeError } from "./decor.js?v=m37";
+import { freshDrama } from "./drama.js?v=m37";
+import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m37";
 
 export const SAVE_VERSION = 3;
 
@@ -68,7 +68,7 @@ export function createState(seed = 20261119) {
     owned: {}, carryPearls: 0, placement: {},
     followers: 0, buzz: 0, feed: [], nextReviewId: 1, rating: null, promises: [],
     owner: { persona: null, lastPersona: null, switches: [] }, returning: [], usedDay: [],
-    drama: freshDrama(), promo: null, consign: null,
+    drama: freshDrama(), promo: null, consign: null, debtHB: null,
     shift: null, lastSummary: null, journal: [],
   };
 }
@@ -153,6 +153,7 @@ function loadDialog(d, ids) {
     return { kind: "complaint", cid: d.cid, cost: int(d.cost, 0, 999, 0), wrongCost: int(d.wrongCost, 0, 999, int(d.cost, 0, 999, 0)), wrong: wrong.length ? wrong : [0],
       stars: int(d.stars, 1, 2, 1), raw: int(d.raw, 0, 100, 0), errors: arr(d.errors).filter((e) => typeof e === "string").slice(0, 10), ...(typeof d.line === "string" ? { line: d.line.slice(0, 300) } : {}) };
   }
+  if (d.kind === "stockout" && STOCK[d.id]) return { kind: "stockout", id: d.id, cid: Number.isInteger(d.cid) && ids.has(d.cid) ? d.cid : null, line: str(d.line, 300, "") };
   return loadEvent(d, ids);
 }
 function loadEvent(d, ids) {
@@ -223,6 +224,11 @@ function loadShift(sh, s) {
       prog: int(m.prog, 0, MISSION[m.id].n, 0), done: !!m.done, reward: { xp: MISSION[m.id].reward.xp, money: MISSION[m.id].reward.money } })),
     drama: { count: int(D.count, 0, 9, 0), max: int(D.max, 0, 9, 0), nextAt: num(D.nextAt, 0, 3_600_000, 60000), log: arr(D.log).filter(obj).slice(0, 10).map(loadHist) },
     followers0: int(sh.followers0, 0, BIG, 0),
+    // hết hàng giữa ca (core/stockout.js): chạy đi mua, Anh Tèo đang giao, đã mượn Hẻm Bên, đóng cửa sớm, đã nhắc món sắp hết
+    away: obj(sh.away) && STOCK[sh.away.id] ? { until: num(sh.away.until, 0, t + 60000, t), id: sh.away.id, n: int(sh.away.n, 0, 99, 0) } : null,
+    deliveries: arr(sh.deliveries).filter((x) => obj(x) && STOCK[x.id]).slice(0, 5).map((x) => ({ at: num(x.at, 0, t + 120000, t), id: x.id, n: int(x.n, 0, 99, 0), wrong: STOCK[x.wrong] ? x.wrong : null })),
+    borrowDay: Number.isInteger(sh.borrowDay) ? sh.borrowDay : null, closedEarly: STOCK[sh.closedEarly] ? sh.closedEarly : null, stockouts: int(sh.stockouts, 0, 99, 0),
+    lowWarned: obj(sh.lowWarned) ? Object.fromEntries(Object.keys(sh.lowWarned).filter((id) => STOCK[id]).map((id) => [id, true])) : {},
   };
 }
 const loadMoment = (m) => ({ kind: str(m.kind, 20, "note"), name: str(m.name, 40, ""), ...(typeof m.line === "string" ? { line: m.line.slice(0, 300) } : {}), ...(typeof m.id === "string" ? { id: m.id.slice(0, 12) } : {}), ...(typeof m.outcome === "string" ? { outcome: m.outcome.slice(0, 12) } : {}) });
@@ -303,6 +309,7 @@ export function loadSave(raw) {
   s.drama = loadDrama(d.drama);
   s.promo = obj(d.promo) && PROMOS[d.promo.kind] ? { day: int(d.promo.day, 1, 1e6, 1), kind: d.promo.kind } : null;
   s.consign = obj(d.consign) ? { day: int(d.consign.day, 0, 1e6, 0), owed: int(d.consign.owed, 0, 9999, 0) } : null;
+  s.debtHB = obj(d.debtHB) && STOCK[d.debtHB.id] ? { id: d.debtHB.id, n: int(d.debtHB.n, 0, 99, 0), day: int(d.debtHB.day, 1, 1e6, 1) } : null;
   s.shift = loadShift(d.shift, s);
   if (s.shift) { s.shift.day = s.day; s.drama.pending = null; }
   s.lastSummary = obj(d.lastSummary) ? d.lastSummary : null; // chỉ để hiển thị lại bảng chốt ca / Nhật Ký

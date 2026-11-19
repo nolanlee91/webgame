@@ -74,6 +74,16 @@
     .chip { display: flex; align-items: center; gap: 6px; background: rgba(255, 242, 220, .95); color: var(--ink); border-radius: 12px; padding: 3px 10px 3px 5px; box-shadow: 0 3px 10px rgba(0, 0, 0, .25); }
     .chip b { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
     .chip small { font-size: 11px; color: var(--ink2); font-weight: 600; }
+    .chip.low { background: var(--red-l); box-shadow: 0 0 0 2px #c0392b, 0 3px 10px rgba(0, 0, 0, .25); cursor: pointer; }
+    .chip.low small { color: #8a1f14; font-weight: 800; }
+    #hStock { cursor: pointer; }
+    .stock-warn { border: 2px solid #c0392b; background: #fff1ec; }
+    .stock-warn h3 { color: #8a1f14; }
+    .warn-list { list-style: none; margin: 6px 0 10px; padding: 0; display: grid; gap: 4px; }
+    .warn-list li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .warn-list li.zero span { font-weight: 800; color: #8a1f14; }
+    .warn-txt { font-weight: 800; color: #8a1f14; flex: 1 1 200px; }
+    .quickstock .stock { margin: 8px 0 12px; }
     .chip.warn { background: var(--amber-l); animation: pulse 1s ease-in-out infinite; }
     .xpbar { width: 54px; height: 6px; border-radius: 4px; background: var(--cream3); overflow: hidden; }
     .xpbar i { display: block; height: 100%; background: var(--teal); }
@@ -268,6 +278,7 @@
       .hud { gap: 4px; top: 5px; left: 5px; right: 5px; }
       .chip { padding: 2px 7px 2px 3px; gap: 3px; border-radius: 10px; }
       .chip small, .xpbar, #hStock { display: none; }
+      #hStock.low { display: flex; }
       .chip b { font-size: 13px; }
       .chip .ico { zoom: .8; }
       .bubble { font-size: 12px; max-width: 168px; padding: 5px 8px; }
@@ -452,7 +463,7 @@
   <div id="overlay" class="overlay" hidden></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <p id="bootError" hidden></p>
-  <script type="module" src="game.js?v=m36"></script>
+  <script type="module" src="game.js?v=m37"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

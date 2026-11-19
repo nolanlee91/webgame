@@ -12,7 +12,7 @@ const b = await launch(OUT, 9391);
 const R = []; let fails = 0;
 const check = (n, c, d = "") => { const s = (c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : ""); if (!c) fails++; R.push(s); console.log(s); };
 let press = b.click;
-const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]'))return null;e.scrollIntoView({block:'nearest',inline:'nearest'});const r=e.getBoundingClientRect();return r.width?[r.x+r.width/2,r.y+r.height/2]:null})()`);
+const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]'))return null;e.scrollIntoView({block:'nearest',inline:'nearest'});let r=e.getBoundingClientRect();const hit=(q)=>{const x=document.elementFromPoint(q.x+q.width/2,q.y+q.height/2);return !x||e.contains(x)||x.contains(e)};if(r.width&&e.closest('.sheet')&&!hit(r)){e.scrollIntoView({block:'center',inline:'nearest'});r=e.getBoundingClientRect();}return r.width?[r.x+r.width/2,r.y+r.height/2]:null})()`);
 async function pressSel(sel) {
   let p = null;
   for (let i = 0; i < 30 && !(p = await at(sel)); i++) await sleep(100); // phần tử có thể hiện ở khung hình kế tiếp
@@ -231,8 +231,14 @@ check("M3: kéo chậu hoa ra góc trống → lưu vị trí mới (neo chân =
 await b.shot(OUT + "/08b-desktop-xep-trang-tri.png");
 await pressSel("#arrangeDone");
 check("M3: xong xếp chỗ → về bảng Chuẩn bị ca", await visible("#openShop"));
+// hết hàng: bảng Chuẩn bị ngày 2 báo món có thể hết (ngày học đã dùng bớt ly), "Nhập đủ cho hôm nay"
+check("hết hàng: Chuẩn bị ngày 2 có hộp “Coi chừng hết hàng” liệt kê món thiếu + số khách dự kiến", await visible("#stockWarn") && /dự kiến ~\d+ khách/.test(await text("#stockWarn")), await text("#stockWarn"));
+const mFill = await S("s.money");
+await pressSel("#fillToday");
+check("hết hàng: bấm “Nhập đủ cho hôm nay” ⇒ trừ tiền, giữ lại phí ca, ly đủ dùng", (await S("s.money")) < mFill && (await S("s.money")) >= 12 && !(await b.ev("[...document.querySelectorAll('#stockWarn li')].some(l=>/Ly/.test(l.textContent))")));
 // giữa ca
 await pressSel("#openShop");
+if (await visible("#openAnyway")) await pressSel("#openAnyway");
 check("ngày 2 là ngày thường (6–10 khách, thêm tối đa 3 nhờ review / người theo dõi)", await S("!s.shift.tutorial&&s.shift.planned>=6&&s.shift.planned<=13"));
 check("M3: ngày thường bắt đầu chưa có trân châu nấu sẵn, Bếp topping hiện trong Quầy pha", (await S("s.shift.kitchen.ready")) === 0 && await visible("#kitchen [data-cook='3']"));
 const raw0 = await S("s.stock['tran-chau-song']");
@@ -373,6 +379,66 @@ await waitFor("!!document.querySelector('.sheet[data-kind=\"event-result\"]')");
 await pressSel("#eventNext");
 check("M3 nội dung: chọn cúp máy ⇒ hội thoại đóng, hẹn U03 (giao trễ) ca sau, cờ ut-doi, lịch sử ghi U01", (await S("s.shift.dialog")) === null &&
   await S("s.drama.queue.some(q=>q.id==='U03'&&q.day===s.day+1)&&!!s.drama.flags['ut-doi']&&s.drama.history.filter(h=>h.id==='U01').length===2"));
+
+// ===== 10. Hết hàng giữa ca: ngày 2 không còn ly =====
+await b.view(1366, 768, false); await b.touch(false); press = b.click;
+await b.ev("Storage.prototype.setItem=()=>{};localStorage.clear()"); await b.nav(BASE); // chặn pagehide ghi lại bản cũ
+await pressSel("#introGo");
+await b.ev("(()=>{const s=__game.state;s.tutorialDone=true;s.day=2;s.stock.ly=0;s.drama.pending=null;s.drama.queue=[];__game.act({type:'setName',name:'Tiệm Hết Ly'});})()");
+await b.nav(BASE);
+check("hết hàng: ngày 2 còn 0 ly ⇒ hộp cảnh báo ghi “Ly + nắp còn 0”", await waitFor("!!document.querySelector('#stockWarn')") && /Ly \+ nắp còn 0/.test(await text("#stockWarn")), await text("#stockWarn"));
+await b.shot(OUT + "/16-desktop-canh-bao-het-hang.png");
+await pressSel("#openShop");
+check("hết hàng: bấm Mở quán khi còn thiếu ⇒ hỏi lại (Nhập đủ trước / Vẫn mở quán)", await visible("#openAnyway") && await visible("#fillFirst") && !(await S("!!s.shift")));
+await pressSel("#openAnyway");
+check("hết hàng: Vẫn mở quán ⇒ ca mở với 0 ly", await S("!!s.shift&&s.stock.ly===0"));
+await b.ev("__game.state.shift.drama.max=0");
+await untilWaiting(1);
+await pressSel('#rail .slip[data-cid="1"]');
+check("hết hàng: ghim khách cần ly ⇒ hội thoại hết hàng có chân dung, câu nhân viên, 5+ lựa chọn có chi phí", await waitFor("!!document.querySelector('.sheet[data-kind=stockout]')") &&
+  await b.ev("document.querySelectorAll('.sheet[data-kind=stockout] .choice').length>=5&&document.querySelectorAll('.sheet[data-kind=stockout] .portrait').length>=1&&document.querySelectorAll('.sheet[data-kind=stockout] .cost').length>=5"));
+check("hết hàng: đồng hồ ca dừng khi hội thoại mở", await (async () => { const a = await S("s.shift.t"); await sleep(400); return (await S("s.shift.t")) === a; })());
+await b.shot(OUT + "/17-desktop-hoi-thoai-het-hang.png");
+const mRun = await S("s.money");
+await pressSel('.sheet[data-kind=stockout] .choice[data-choice="run"]');
+check("hết hàng: Chạy đi mua gấp ⇒ bảng hậu quả, trừ tiền +30%", await waitFor("!!document.querySelector('.sheet[data-kind=\"stockout-result\"] .quote')") && (await S("s.money")) === mRun - 26);
+await pressSel("#stockoutNext");
+check("hết hàng: quầy bỏ trống (nhân viên rời cảnh), bấm pha bị chặn", await S("!!s.shift.away") && await b.ev("document.querySelector('.stage .barista').style.visibility==='hidden'"));
+await b.shot(OUT + "/18-desktop-chay-di-mua.png");
+await b.ev("__game.advance(12400)");
+await sleep(200);
+check("hết hàng: chạy về ⇒ có 10 ly, nhân viên trở lại quầy", (await S("s.stock.ly")) === 10 && await S("!s.shift.away") && await b.ev("document.querySelector('.stage .barista').style.visibility===''"));
+if (await S("s.shift.customers.find(c=>c.id===1)?.phase==='wait'")) {
+  if ((await S("s.shift.stations[s.shift.sel].cid")) !== 1) await pressSel('#rail .slip[data-cid="1"]');
+  const oR = await order(1);
+  if (oR.topping === "tran-chau") { await pressSel("#kitchen [data-cook='3']"); await b.ev("__game.advance(18400)"); }
+  await brewClicks(oR);
+  const before = await S("s.shift.ledger.served");
+  await pressSel("#serveBtn");
+  check("hết hàng: pha xong và giao được đơn sau khi chạy đi mua", (await S("s.shift.ledger.served")) === before + 1);
+} else check("hết hàng: (khách #1 đã bỏ về trong lúc chạy đi mua — vẫn hợp lệ)", true);
+// đóng cửa sớm
+await b.ev("(()=>{const s=__game.state;s.stock.ly=0;})()");
+const nextC = await S("(s.shift.customers.find(c=>c.phase==='wait'&&!s.shift.stations.some(x=>x.cid===c.id))||{}).id");
+let cidClose = nextC;
+if (!cidClose) { for (let i = 0; i < 200 && !cidClose; i++) { await b.ev("__game.advance(300)"); cidClose = await S("(s.shift.customers.find(c=>c.phase==='wait'&&!s.shift.stations.some(x=>x.cid===c.id))||{}).id"); } }
+await pressSel(`#rail .slip[data-cid="${cidClose}"]`);
+await waitFor("!!document.querySelector('.sheet[data-kind=stockout]')");
+const rep0 = await S("s.rep");
+await pressSel('.sheet[data-kind=stockout] .choice[data-choice="close"]');
+await waitFor("!!document.querySelector('.sheet[data-kind=\"stockout-result\"]')");
+await pressSel("#stockoutNext");
+check("hết hàng: Đóng cửa sớm ⇒ khách về, danh tiếng giảm, bảng chốt ca có câu Nhật Ký “đóng cửa sớm”", await waitFor("!!document.querySelector('.sheet[data-kind=summary]')", 12000) &&
+  (await S("s.rep")) < rep0 && (await S("s.lastSummary.closedEarly")) === "ly" && /ly|đóng cửa/i.test(await text(".sheet[data-kind=summary] .headline")), await text(".headline"));
+await b.shot(OUT + "/19-desktop-dong-cua-som.png");
+// mobile: hộp cảnh báo đọc được ở 390
+await b.view(390, 844, true);
+await b.ev("(()=>{const s=__game.state;s.stock.ly=0;__game.act({type:'closeSummary'});})()");
+await b.nav(BASE);
+await waitFor("!!document.querySelector('#stockWarn')||!!document.querySelector('.sheet[data-kind=event]')");
+if (await visible(".sheet[data-kind=event]")) { await b.ev("(()=>{const s=__game.state;s.drama.pending=null;__game.act({type:'setName',name:'Tiệm Hết Ly'});})()"); await b.nav(BASE); await waitFor("!!document.querySelector('#stockWarn')"); }
+check("hết hàng 390: hộp cảnh báo + nút Nhập đủ hiện, không tràn ngang", await visible("#stockWarn") && await visible("#fillToday") && await noOverflowX());
+await b.shot(OUT + "/20-mobile-canh-bao-het-hang.png");
 
 check("0 lỗi console / exception", b.errors.length === 0, b.errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);

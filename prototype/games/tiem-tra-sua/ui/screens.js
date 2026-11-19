@@ -1,21 +1,22 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon, dpr } from "../render/atlas.js?v=m36";
-import { ingIcon, headIcon } from "./brew.js?v=m36";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m36";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
-import { COMPLAINT } from "../data/lines.js?v=m36";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m36";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m36";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m36";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m36";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m36";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m36";
-import { fill } from "../core/text.js?v=m36";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m36";
-import { appeal } from "../core/equipment.js?v=m36";
-import { portrait as portraitOf } from "./panels.js?v=m36";
-import { personaCards, PERSONAS } from "./persona.js?v=m36";
+import { icon, dpr } from "../render/atlas.js?v=m37";
+import { ingIcon, headIcon } from "./brew.js?v=m37";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m37";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m37";
+import { ARCHETYPES } from "../data/customers.js?v=m37";
+import { COMPLAINT } from "../data/lines.js?v=m37";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m37";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m37";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m37";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m37";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m37";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m37";
+import { fill } from "../core/text.js?v=m37";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m37";
+import { appeal } from "../core/equipment.js?v=m37";
+import { portrait as portraitOf } from "./panels.js?v=m37";
+import { personaCards, PERSONAS } from "./persona.js?v=m37";
+import { demandEstimate, menuStock, STOCKOUT } from "../core/stockout.js?v=m37";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -55,7 +56,11 @@ export function createHud(root, atlas) {
     const xp = xpProgress(state);
     items.hLevel.b.textContent = `Cấp ${state.level}`; items.hLevel.sm.textContent = xp.need ? `${xp.into}/${xp.need} XP` : "Tối đa";
     xpBar.firstChild.style.width = (xp.need ? Math.min(100, (xp.into / xp.need) * 100) : 100) + "%";
-    items.hStock.b.textContent = `${stockUsed(state)}/${capacity(state)}`; items.hStock.sm.textContent = "Kho";
+    items.hStock.b.textContent = `${stockUsed(state)}/${capacity(state)}`;
+    // huy hiệu đỏ: món trên menu còn ≤ 2 phần (giữa ca), bấm ô Kho để nhập gấp
+    const low = sh ? [...menuStock(state)].filter((id) => (state.stock[id] || 0) <= STOCKOUT.LOW_AT).length : 0;
+    items.hStock.sm.textContent = low ? `${low} món sắp hết` : "Kho";
+    items.hStock.d.classList.toggle("low", low > 0);
   };
 }
 
@@ -209,6 +214,29 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         bx.appendChild(b);
         c.appendChild(bx);
       } else if (state.consign?.owed) c.appendChild(h("p", "muted small", `Còn nợ ký gửi Dì Ba ${k(state.consign.owed)}, tự trừ dần khi bán.`));
+      // dự báo hàng cho hôm nay: món nào có thể hết giữa ca (core/stockout.js demandEstimate)
+      const est = demandEstimate(state);
+      if (est.short.length) {
+        const wb = h("div", "box stock-warn"); wb.id = "stockWarn";
+        wb.appendChild(h("h3", "", "Coi chừng hết hàng giữa ca!"));
+        const ul2 = h("ul", "warn-list");
+        for (const x of est.short) {
+          const li = h("li", x.have === 0 ? "zero" : "");
+          li.appendChild(ingIcon(atlas, STOCK[x.id].icon, 28));
+          li.appendChild(h("span", "", `${STOCK[x.id].name} còn ${x.have}, hôm nay dự kiến ~${est.guests} khách (cần ~${x.need} phần)`));
+          ul2.appendChild(li);
+        }
+        wb.appendChild(ul2);
+        const fb = h("button", "btn primary", "Nhập đủ cho hôm nay"); fb.type = "button"; fb.id = "fillToday";
+        fb.addEventListener("click", () => {
+          const r = dispatch({ type: "restockToday" });
+          prep(hooks.state());
+          if (r?.result?.left?.length || r?.err === "money" || r?.err === "capacity") hooks.toast?.(r?.err === "capacity" ? "Kho đầy rồi, không còn chỗ nhập thêm." : "Không đủ tiền hoặc chỗ kho để nhập hết. Đã nhập phần quan trọng trước (ly trước tiên).", "warn");
+        });
+        wb.appendChild(fb);
+        wb.appendChild(h("small", "muted", " Mua ở Dì Ba theo dự báo, chừa lại tiền phí ca."));
+        c.appendChild(wb);
+      }
       const grid = h("div", "prep-grid");
       // menu
       const menu = h("div", "box");
@@ -310,7 +338,18 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const foot = h("footer", "sheet-foot");
       foot.appendChild(h("span", "muted", `Tiền mặt ${k(state.money)} · Phí ca 12k ghi lúc mở cửa`));
       const go = h("button", "btn primary big", "Mở quán"); go.id = "openShop"; go.type = "button"; go.dataset.autofocus = "";
-      go.addEventListener("click", () => { close(); dispatch({ type: "startShift" }); });
+      go.addEventListener("click", () => {
+        const short = demandEstimate(hooks.state()).short;
+        if (!short.length || foot.querySelector("#openAnyway")) { close(); dispatch({ type: "startShift" }); return; }
+        // còn thiếu hàng: hỏi lại một lần ngay trong chân bảng
+        foot.textContent = "";
+        foot.appendChild(h("span", "warn-txt", `Còn thiếu ${short.map((x) => STOCK[x.id].name.toLocaleLowerCase("vi")).join(", ")}. Vẫn mở quán?`));
+        const fill2 = h("button", "btn", "Nhập đủ trước"); fill2.type = "button"; fill2.id = "fillFirst";
+        fill2.addEventListener("click", () => { dispatch({ type: "restockToday" }); prep(hooks.state()); });
+        const yes = h("button", "btn danger big", "Vẫn mở quán"); yes.type = "button"; yes.id = "openAnyway"; yes.dataset.autofocus = "";
+        yes.addEventListener("click", () => { close(); dispatch({ type: "startShift" }); });
+        foot.appendChild(fill2); foot.appendChild(yes); yes.focus();
+      });
       foot.appendChild(go);
       c.appendChild(foot);
     });
