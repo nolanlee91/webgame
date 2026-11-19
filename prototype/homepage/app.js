@@ -23,7 +23,6 @@
   function soon(g) { return !g.url; }
   function soonCls(g) { return soon(g) ? " is-soon" : ""; }
   var SOON = '<span class="soon" aria-hidden="true">Đang cập nhật</span>';
-  function soonSr(g) { return soon(g) ? '<span class="sr-only"> (đang cập nhật)</span>' : ""; }
 
   // Icon người chơi pixel 16×16 (vẽ bằng ô vuông, không nét cong).
   var P1 = '<path d="M6 1h4v1H6zM5 2h1v4H5zM10 2h1v4h-1zM6 6h4v1H6zM4 8h8v1H4zM3 9h1v5H3zM12 9h1v5h-1zM4 14h8v1H4z"/>';
@@ -155,21 +154,15 @@
   }
 
   // ---------- TẦNG 2: kho game ----------
-  var cozyCategory = "tap-lam-chu";
-  function cozyTileHTML(g) {
-    var playable = Boolean(g.url);
-    var tag = playable ? "a" : "article";
-    var link = playable ? ' href="' + esc(g.url) + '"' : "";
-    return "<" + tag + ' class="card cozy-card' + (playable ? " cozy-card--play" : "") + '" data-id="' + g.id + '"' + link + ">" +
-      '<span class="cozy-card__art">' + imgHTML(g) + "</span>" +
-      '<span class="cozy-card__body"><h3 class="cozy-card__name">' + g.name + "</h3>" +
-      '<span class="cozy-card__status">' + (playable ? 'Chơi ngay <span aria-hidden="true">→</span>' : "Sắp ra mắt") + "</span></span></" + tag + ">";
-  }
   function tileHTML(g) {
-    if (group(g) === cozyCategory) return cozyTileHTML(g);
-    return '<a class="card tile' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '">' +
-      '<span class="tile__art">' + imgHTML(g) + badgeHTML(g) + "</span>" +
-      '<span class="tile__body"><h3 class="card__name">' + g.name + soonSr(g) + "</h3>" + metaHTML(g) + "</span></a>";
+    var upcoming = soon(g);
+    var tag = upcoming ? "article" : "a";
+    var link = upcoming ? "" : ' href="' + href(g) + '"';
+    var badge = upcoming ? '<span class="badge badge--soon" aria-hidden="true">Sắp ra mắt</span>' : badgeHTML(g);
+    var detail = upcoming ? '<p class="meta sr-only">Sắp ra mắt</p>' : metaHTML(g);
+    return "<" + tag + ' class="card tile" data-id="' + g.id + '"' + link + ">" +
+      '<span class="tile__art">' + imgHTML(g) + badge + "</span>" +
+      '<span class="tile__body"><h3 class="card__name">' + g.name + "</h3>" + detail + "</span></" + tag + ">";
   }
   // Game chơi được lên trước, game "Đang cập nhật" xuống cuối (giữ thứ tự gốc trong từng nhóm).
   function playableFirst(list) {
@@ -181,10 +174,10 @@
   function group(g) { return duelIds.indexOf(g.id) !== -1 ? "duel" : g.cat; }
   function shelfHTML(cls, title, hint, list) {
     return '<div class="shelf shelf--' + cls + '" id="' + cls + '"><h3 class="shelf__title">' + title + ' <span class="count">' + list.length +
-      '</span>' + (hint ? '<span class="shelf__hint">' + hint + '</span>' : "") + '</h3>' + tileGridHTML(list, cls === cozyCategory) + "</div>";
+      '</span>' + (hint ? '<span class="shelf__hint">' + hint + '</span>' : "") + '</h3>' + tileGridHTML(list) + "</div>";
   }
-  function tileGridHTML(list, cozy) {
-    return '<div class="' + (cozy ? "cozy-grid" : "tiles") + '">' + playableFirst(list).map(tileHTML).join("") + "</div>";
+  function tileGridHTML(list) {
+    return '<div class="tiles">' + playableFirst(list).map(tileHTML).join("") + "</div>";
   }
 
   function matches(g) {
@@ -214,8 +207,7 @@
       var rest = list.filter(function (g) { return !SHELVES.some(function (sh) { return sh.cat === group(g); }); });
       if (rest.length) html += shelfHTML("other", "Game khác", "", rest);
     } else if (list.length) {
-      var onlyCozy = list.every(function (g) { return group(g) === cozyCategory; });
-      html = '<div class="shelf shelf--flat' + (onlyCozy ? " shelf--tap-lam-chu" : "") + '">' + tileGridHTML(list, onlyCozy) + "</div>";
+      html = '<div class="shelf shelf--flat">' + tileGridHTML(list) + "</div>";
     }
     grid.innerHTML = html;
     count.textContent = list.length;

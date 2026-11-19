@@ -23,6 +23,18 @@ Phong cách Art Direction V5 kết hợp chặt chẽ từ 3 nguồn đã đư�
 
 ---
 
+## 0.1. Chuẩn artwork đã duyệt — Detailed HD Pixel Art
+
+Áp dụng cho ảnh bìa, thumbnail, poster và minh họa game mới của Lụm Kèo. Với sprite gameplay, dùng tiếp lưới, tỷ lệ, góc nhìn và điểm neo quy định trong tài liệu từng game.
+
+- Mẫu chuẩn mới ở `prototype/homepage/assets/thumbs/`: `cozy-nong-trai.webp`, `tiem-tra-sua.webp`, `tiem-banh-mi.webp`, `quan-com-tam.webp`. Đối chiếu `ma-soi.webp` và `ai-la-noi-gian.webp` để canh độ sắc của pixel, độ tương phản và cách đặt nhân vật.
+- Bố cục có chủ thể rõ, tách tiền cảnh, trung cảnh và hậu cảnh. Khi phù hợp với game, cho nhân vật thực hiện một hành động kể được nội dung trò chơi. Giữ chủ thể trong vùng giữa để vẫn nhận ra ở kích thước thẻ và khi ảnh bị cắt nhẹ.
+- Dùng cụm pixel có chủ đích, biên bậc thang sắc, viền tối có chọn lọc, mảng sáng tối rõ và dithering tiết chế. Dùng navy hoặc teal cho vùng bóng, vàng hổ phách cho vùng sáng, phối thêm màu theo bối cảnh. Tránh cọ mềm, gradient mịn, bloom, nhiễu hạt kiểu ảnh chụp và chữ trong ảnh.
+- Thumbnail homepage chuẩn 4:3. Bộ Tập Làm Chủ dùng lưới nghệ thuật 240 × 180, phóng nearest-neighbor lên 480 × 360 và xuất WebP lossless. Kiểm tra cạnh thumbnail Đối Kháng ở kích thước thẻ thực tế, cả desktop và mobile.
+- Homepage dùng UI Premium Modern Gaming Portal với nền dark navy, viền mảnh, góc bo vừa và điểm nhấn teal, vàng ấm. Quy tắc khung pixel-cut, bóng cứng ở các mục dưới dành cho HUD trong game.
+
+---
+
 ## 1. Bảng màu chuẩn (Palette Token System)
 
 Hệ thống token màu chuẩn hóa từ `hud.css` và bộ `board-v5`, đảm bảo độ tương phản cao trên nền tối và nhất quán toàn cổng:

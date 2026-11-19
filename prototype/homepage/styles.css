@@ -75,7 +75,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 
 /* Game chưa có bản chơi thật: ảnh mờ + nhãn "Đang cập nhật" giữa ảnh */
 .soon { position: absolute; left: 50%; top: 50%; z-index: 2; transform: translate(-50%, -50%); padding: 5px 9px 4px; white-space: nowrap; font: 800 12px/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--px-ink); background: #2a231b; --b: #000; box-shadow: var(--px-border), 3px 3px 0 0 rgba(0,0,0,.5); }
-.tile__art .soon { font-size: 10px; padding: 4px 6px 3px; }
 .is-soon img:not(.room__host img) { filter: grayscale(.75) blur(1.5px) brightness(.6); transform: scale(1.04); }
 .is-soon .card__name, .is-soon .room__name { color: var(--px-soft); }
 .is-soon .meta { opacity: .7; }
@@ -218,7 +217,7 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 .shelf__hint { flex-basis: 100%; font: 600 13px var(--font-body); color: var(--px-soft); text-shadow: none; }
 
 /* Ô game: lưới gọn 6 cột, ô 4:3, ít chữ — dùng chung cho MỌI kệ (Đối kháng + từng danh mục) */
-.tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px 18px; padding-right: 4px; }
+.tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px 18px; padding-right: 4px; }
 .tile { display: flex; flex-direction: column; text-decoration: none; background: var(--px-panel); --b: var(--px-line); box-shadow: var(--px-border), 4px 4px 0 0 var(--px-shadow); transition: transform .1s; }
 .tile:hover { transform: translate(-2px, -2px); }
 .tile:active { transform: translate(3px, 3px); box-shadow: var(--px-border); }
@@ -233,70 +232,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
   font: 800 10px/1.2 var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: #effff9; background: var(--px-teal); --b: var(--px-teal-d); box-shadow: var(--px-border); }
 .tile__rooms .live { width: 6px; height: 6px; }
 .shelf--flat { margin-top: 4px; }
-
-/* Tập Làm Chủ */
-.shelf--tap-lam-chu {
-  padding: clamp(12px, 2.2vw, 26px);
-  border: 1px solid #56583e;
-  border-radius: 20px;
-  color: #fff0d6;
-  background: #2b392e;
-  box-shadow: 0 6px 0 #101b14;
-}
-.shelf--tap-lam-chu .shelf__title {
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 16px;
-  font-size: clamp(20px, 2.6vw, 29px);
-  text-shadow: none;
-}
-.shelf--tap-lam-chu .count {
-  border-radius: 999px;
-  color: #f2e5c0;
-  background: #47543c;
-  box-shadow: none;
-}
-.cozy-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(8px, 1.3vw, 16px); }
-.cozy-card {
-  min-width: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  overflow: hidden;
-  border: 1px solid #5a5f48;
-  border-radius: 14px;
-  color: #fff0d6;
-  background: #374637;
-  text-decoration: none;
-  box-shadow: 0 3px 0 #1d2a21;
-}
-.cozy-card--play { border-color: #a2ae76; transition: translate .15s ease, border-color .15s ease; }
-.cozy-card--play:hover { translate: 0 -2px; border-color: #dce394; }
-.cozy-card--play:focus-visible { outline: 2px solid #f7dfa1; outline-offset: 3px; }
-.cozy-card__art { display: block; aspect-ratio: 4 / 3; border-bottom: 1px solid #596145; background: #536044; }
-.cozy-card__art img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.cozy-card__body { display: grid; justify-items: start; align-content: space-between; gap: 8px; padding: clamp(8px, 1.1vw, 14px); }
-.cozy-card__name { margin: 0; font: 800 clamp(13px, 1.55vw, 18px)/1.25 var(--font-title); }
-.cozy-card__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  color: #f8e6c5;
-  background: #65513a;
-  font: 800 11px/1.2 var(--font-body);
-}
-.cozy-card--play .cozy-card__status { color: #23301d; background: #deeba9; }
-.tab[data-cat="tap-lam-chu"] { border-radius: 999px; }
-.tab[data-cat="tap-lam-chu"]:hover { background: #354430; }
-.tab[data-cat="tap-lam-chu"][aria-pressed="true"] { color: #23301d; background: #deeba9; box-shadow: none; }
-@media (max-width: 620px) {
-  .cozy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .cozy-card--play { transition: none; }
-  .cozy-card--play:hover { translate: none; }
-}
 
 .empty { color: var(--px-soft); padding: 24px 0; }
 .link { all: unset; cursor: pointer; color: var(--px-ink); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
@@ -347,13 +282,13 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
 @media (max-width: 1180px) {
   .arena { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
   .rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tiles { grid-template-columns: repeat(5, 1fr); }
+  .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .lobby__bar { flex-wrap: wrap; }
   .lobby__create { flex: 1 1 100%; }
 }
 @media (max-width: 1023px) {
   .arena { grid-template-columns: minmax(0, 1fr); }
-  .tiles { grid-template-columns: repeat(4, 1fr); }
+  .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .topbar__inner { grid-template-columns: auto 1fr auto; }
   .lobby { height: auto; min-height: 0; }
   .rooms { max-height: 380px; }
@@ -408,7 +343,7 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
   .shelves__head { display: grid; }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { flex: none; min-height: 40px; }
-  .tiles { grid-template-columns: repeat(3, 1fr); gap: 14px 12px; }
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; }
   .tile__body { padding: 6px 7px 8px; }
   .tile .card__name { font-size: 12px; white-space: normal; overflow: visible; line-height: 1.2; }
   .tile .meta { display: none; }
