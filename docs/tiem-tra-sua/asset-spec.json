@@ -1,0 +1,46 @@
+{
+  "_doc": "Hợp đồng asset Tiệm Trà Sữa (Phase 3). Kiểm: python -I tools/asset-check/check_assets.py docs/tiem-tra-sua/asset-spec.json --preview <thư mục>. Luật chung: docs/tap-lam-chu/PLAYBOOK.md §1–§2.",
+  "game": "tiem-tra-sua",
+  "root": "prototype/games/tiem-tra-sua",
+  "manifest": "../../../docs/tiem-tra-sua/asset-manifest.json",
+  "scene": [1280, 720],
+  "previewBackground": "assets/shop-scene.webp",
+  "defaults": { "grid": 2, "hardAlpha": true },
+  "figureHeightTolerance": 0.08,
+  "sheets": [
+    { "file": "assets/shop-scene.webp" },
+    { "file": "assets/shop-counter-foreground.webp" },
+    { "file": "assets/street-background.webp" },
+
+    { "file": "assets/characters.webp", "role": "character", "cell": [144, 192], "anchor": [72, 174], "figureHeight": [150, 180],
+      "frames": ["{barista,regular,vip,reviewer,courier,neighbor,office-worker}"] },
+    { "file": "assets/customer-walk-cycles.webp", "role": "character", "cell": [144, 192], "anchor": [72, 174], "figureHeight": [150, 180],
+      "frames": ["{vip,reviewer,courier,neighbor,office-worker}-walk-{1..4}"], "animations": ["vip-walk", "reviewer-walk", "courier-walk", "neighbor-walk", "office-worker-walk"] },
+    { "file": "assets/character-motion-sample.webp", "role": "character", "cell": [144, 192], "anchor": [72, 174], "figureHeight": [150, 180],
+      "frames": ["walk-{1..4}"], "roleMap": { "walk": "regular" }, "animations": ["walk"] },
+    { "file": "assets/customer-reactions.webp", "role": "character", "cell": [144, 192], "anchor": [72, 174], "figureHeight": [150, 180],
+      "frames": ["{regular,vip,reviewer,courier,neighbor,office-worker}-{waiting,happy,impatient}"] },
+    { "file": "assets/customer-actions.webp", "role": "character", "cell": [144, 192], "anchor": [72, 174], "figureHeight": [150, 180],
+      "frames": ["{regular,vip,reviewer,courier,neighbor,office-worker}-{order,surprised}-{1..2}"] },
+    { "file": "assets/barista-scene.webp", "role": "character", "cell": [144, 192], "anchor": [72, 174], "figureHeight": [150, 180],
+      "frames": ["idle-{1..2}", "pour-{1..4}", "serve-{1..4}"], "roleMap": { "idle": "barista", "pour": "barista", "serve": "barista" } },
+
+    { "file": "assets/barista-actions-hd.webp", "grid": 1, "cell": [256, 256], "optional": true,
+      "frames": ["{pour,topping,handoff}-{1..6}"], "animations": ["pour", "topping", "handoff"] },
+    { "file": "assets/cup-layers-hd.webp", "grid": 1, "cell": [320, 384], "anchor": [160, 348], "optional": true,
+      "frames": ["syrup-swirl", "brown-sugar-streak", "fruit-peach", "fruit-lychee", "fruit-passion", "pudding-bottom", "matcha-50", "matcha-milk-75", "cream-top"] },
+    { "file": "assets/portraits-hd.webp", "grid": 1, "cell": [384, 320], "anchor": [192, 308], "optional": true,
+      "frames": ["{barista,regular,vip,reviewer,courier,neighbor,office-worker}"] },
+    { "file": "assets/portrait-expressions-hd.webp", "grid": 1, "cell": [384, 320], "anchor": [192, 308], "optional": true,
+      "frames": ["{regular,vip,reviewer,courier,neighbor,office-worker}-{waiting,happy,sheepish,annoyed}", "barista-{neutral,happy,concerned,surprised}"] },
+
+    { "file": "assets/cup-layers.webp", "cell": [160, 192], "anchor": [80, 174],
+      "frames": ["syrup-swirl", "brown-sugar-streak", "fruit-peach", "fruit-lychee", "fruit-passion", "pudding-bottom", "matcha-50", "matcha-milk-75", "cream-top"], "framesOptional": true },
+    { "file": "assets/equipment.webp", "cell": [192, 192], "anchor": [96, 168],
+      "frames": ["topping-stove-cooking-{1..4}"], "framesOptional": true },
+    { "file": "assets/ui-icons.webp", "cell": [48, 48], "anchor": [24, 42],
+      "frames": ["sound-on", "sound-off", "pause", "help"], "framesOptional": true }
+  ],
+  "placements": ["tea-brewer", "cup-sealer", "topping-stove", "pearls-jar", "ice-jar", "cup-stack"],
+  "paths": ["door", "queueSpots", "exitPath"]
+}

@@ -1,20 +1,20 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon } from "../render/atlas.js?v=m34";
-import { ingIcon, headIcon } from "./brew.js?v=m34";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m34";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m34";
-import { ARCHETYPES } from "../data/customers.js?v=m34";
-import { COMPLAINT } from "../data/lines.js?v=m34";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m34";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m34";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m34";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m34";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m34";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m34";
-import { fill } from "../core/text.js?v=m34";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m34";
-import { appeal } from "../core/equipment.js?v=m34";
-import { portrait as portraitOf } from "./panels.js?v=m34";
+import { icon, dpr } from "../render/atlas.js?v=m35";
+import { ingIcon, headIcon } from "./brew.js?v=m35";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m35";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m35";
+import { ARCHETYPES } from "../data/customers.js?v=m35";
+import { COMPLAINT } from "../data/lines.js?v=m35";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m35";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m35";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m35";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m35";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m35";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m35";
+import { fill } from "../core/text.js?v=m35";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m35";
+import { appeal } from "../core/equipment.js?v=m35";
+import { portrait as portraitOf } from "./panels.js?v=m35";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -140,6 +140,14 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const bg = h("img"); bg.src = "assets/street-background.webp"; bg.alt = ""; bg.width = 1280; bg.height = 720; art.appendChild(bg);
       art.appendChild(icon(atlas, ["portraits", "barista"], 150, "ico portrait"));
       c.appendChild(art);
+      // ảnh phố: phủ khung (cover) với hệ số làm tròn lên bội 0,5 px thiết bị ⇒ ô tranh 2×2 đều, không nhòe như object-fit co nhỏ
+      requestAnimationFrame(() => {
+        const w = art.clientWidth, hh = art.clientHeight, d = dpr() * 2;
+        if (!w || !hh) return;
+        const sc = Math.ceil(Math.max(w / 1280, hh / 720) * d - 1e-6) / d;
+        Object.assign(bg.style, { position: "absolute", width: 1280 * sc + "px", height: 720 * sc + "px", maxWidth: "none", objectFit: "fill",
+          left: Math.round(((w - 1280 * sc) / 2) * dpr()) / dpr() + "px", top: Math.round((hh - 720 * sc) * 0.6 * dpr()) / dpr() + "px" });
+      });
       const tx = h("div", "intro-tx");
       tx.appendChild(h("h2", "", "Chào chủ tiệm mới!"));
       tx.appendChild(h("p", "", "Dì Ba giao lại cái tiệm nhỏ đầu hẻm, kèm một câu: \"Pha cho đúng, thối tiền cho đủ, đừng cãi khách về chuyện 0% đường.\" Hôm nay là ngày đầu: 5 vị khách, kiên nhẫn dài hơn và có gợi ý từng bước."));

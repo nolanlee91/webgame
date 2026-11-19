@@ -1,12 +1,12 @@
 // Cảnh tiệm 1280×720 (toạ độ logic của shop-scene.webp). DOM sprite theo atlas, render lại mỗi khung từ trạng thái (thuần hiển thị).
 // Lớp: nền quán → máy trên quầy sau → nhân viên → lớp che quầy (shop-counter-foreground) → đồ trên mặt quầy + ly đang pha → khách (theo y)
 // → bong bóng thoại / thanh kiên nhẫn (lớp UI không phóng to theo cảnh, chữ luôn đọc được).
-import { paint, placeAt, setSnap } from "./atlas.js?v=m34"; // tag: tránh trình duyệt ghép scene mới với atlas cũ trong bộ nhớ đệm
-import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js?v=m34";
-import { patienceLeft } from "../core/shift.js?v=m34";
-import { cupLayers } from "../core/cupview.js?v=m34";
-import { EQUIPMENT, PLACE_ZONES } from "../data/equipment.js?v=m34";
-import { placeOf, placeError } from "../core/decor.js?v=m34";
+import { paint, placeAt, setSnap } from "./atlas.js?v=m35"; // tag: tránh trình duyệt ghép scene mới với atlas cũ trong bộ nhớ đệm
+import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js?v=m35";
+import { patienceLeft } from "../core/shift.js?v=m35";
+import { cupLayers } from "../core/cupview.js?v=m35";
+import { EQUIPMENT, PLACE_ZONES } from "../data/equipment.js?v=m35";
+import { placeOf, placeError } from "../core/decor.js?v=m35";
 
 const W = 1280, H = 720;
 const BUBBLE_MS = 4200;
@@ -16,6 +16,11 @@ const ease = (p) => p * p * (3 - 2 * p);
 function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; parent?.appendChild(e); return e; }
 
 /** Frame cho một khách tại thời điểm ca t. Trả [frame, flip, bob]. */
+// Nhân vật (khách + chủ tiệm) hiển thị cao ~192 px cảnh. Sheet hiện tại ô 128 ⇒ ×1,5 (ô tranh 3×3, còn thô so với cảnh).
+// Khi Codex gửi bản vẽ lớn (ô 192, cùng độ mịn lưới 2× như cảnh) ⇒ tự về ×1, nét như cảnh.
+const CHAR_H = 192;
+export const charScale = (f) => (f ? Math.max(1, Math.round((CHAR_H / f.h) * 2) / 2) : 1);
+
 export function customerFrame(atlas, c, t) {
   const role = c.sprite;
   const walkFrame = () => {
@@ -227,8 +232,10 @@ export function createScene(root, atlas, { onCustomer }) {
     // nhân viên: dáng đứng có ly (characters.webp); nhún nhẹ khi đang pha
     const busy = (sh?.stations || []).some((x) => x.cup && !x.cup.sealed);
     const [fb, bob] = baristaFrame(t, busy, performance.now() < serveUntil);
-    paint(barista, fb, 1);
-    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, 1);
+    // chủ tiệm: cùng cỡ nhân vật với khách (charScale)
+    const bs = charScale(fb);
+    paint(barista, fb, bs);
+    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, bs);
     drawMiniCups(sh?.stations || [{ cup: null }]);
     stoveAnim(!!sh?.kitchen?.batches.length, opts.reduced);
     if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
@@ -238,8 +245,9 @@ export function createScene(root, atlas, { onCustomer }) {
       const n = node(c);
       const [f, flip, bob] = customerFrame(atlas, c, t);
       const [x, y, alpha] = customerPos(c, t);
-      paint(n.b, f, 1);
-      placeAt(n.b, f, x, y - bob, 1);
+      const cs = charScale(f);
+      paint(n.b, f, cs);
+      placeAt(n.b, f, x, y - bob * cs, cs);
       n.b.style.zIndex = Math.round(y);
       n.b.style.opacity = alpha;
       n.b.classList.toggle("flip", flip);
@@ -250,7 +258,7 @@ export function createScene(root, atlas, { onCustomer }) {
       n.b.setAttribute("aria-label", `${c.name}${c.phase === "wait" ? ", đang chờ — chạm để ghim phiếu" : ""}`);
       n.b.dataset.phase = c.phase; n.b.dataset.mood = c.mood;
       // UI trên đầu khách
-      const [sx, sy] = toScreen(x, y - 132);
+      const [sx, sy] = toScreen(x, y - (f ? f.ay * cs : 116) - 16);
       const showSay = c.say && t - c.say.at < BUBBLE_MS;
       n.bubble.hidden = !showSay;
       if (showSay) {

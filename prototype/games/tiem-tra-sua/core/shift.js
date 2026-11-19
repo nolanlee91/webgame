@@ -3,27 +3,28 @@
 // Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
 // Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
 // c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
-import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m34";
-import { RECIPE } from "../data/recipes.js?v=m34";
-import { ARCHETYPES } from "../data/customers.js?v=m34";
+import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m35";
+import { RECIPE } from "../data/recipes.js?v=m35";
+import { ARCHETYPES } from "../data/customers.js?v=m35";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
   TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
-} from "../data/shift.js?v=m34";
-import * as L from "../data/lines.js?v=m34";
-import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m34";
-import { next, int, pick, weighted } from "./rng.js?v=m34";
-import { fill, pickLine } from "./text.js?v=m34";
-import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m34";
-import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m34";
-import { scoreServe, starsFor } from "./score.js?v=m34";
-import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m34";
-import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m34";
-import { trafficBonus, archiveShift } from "./reviews.js?v=m34";
-import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m34";
-import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m34";
-import { promoGuests, consignRepay } from "./business.js?v=m34";
-import { caption } from "./journal.js?v=m34";
+} from "../data/shift.js?v=m35";
+import * as L from "../data/lines.js?v=m35";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m35";
+import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m35";
+import { next, int, pick, weighted } from "./rng.js?v=m35";
+import { fill, pickLine } from "./text.js?v=m35";
+import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m35";
+import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m35";
+import { scoreServe, starsFor } from "./score.js?v=m35";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m35";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m35";
+import { trafficBonus, archiveShift } from "./reviews.js?v=m35";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m35";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m35";
+import { promoGuests, consignRepay } from "./business.js?v=m35";
+import { caption } from "./journal.js?v=m35";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");
@@ -146,7 +147,7 @@ function spawn(s, g, events) {
     t0: sh.t, arriveT: null, phase: "enter", mood: "walk", pinned: false, impatientSaid: false, remade: false,
     say: null, leaveT: null, reactUntil: null, review: null, tag: g.tag || null, tip: g.tip || 0,
   };
-  const lines = items.length > 1 ? L.ORDER_LINES_MULTI : [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
+  const lines = items.length > 1 ? poolFor(ORDER_MULTI, c.arch) : [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
   c.orderLine = g.line ? fill(g.line, lineCtx(c)) : freshLine(s, lines, lineCtx(c)); // không lặp câu trong cùng ca
   sh.customers.push(c);
   events.push({ type: "spawn", cid: c.id, arch: c.arch, cups: items.length });
@@ -220,7 +221,7 @@ export function tick(s, dt, events) {
       if (left <= 0) {
         const tl = [...(L.TIMEOUT_LINES[c.arch] || []), ...L.TIMEOUT_LINES.default];
         say(sh, c, pickLine(s, tl, lineCtx(c)));
-        review(s, c, 1, freshLine(s, L.TIMEOUT_REVIEW, lineCtx(c)), "timeout");
+        review(s, c, 1, freshLine(s, [...L.TIMEOUT_REVIEW, ...(owns(s, "waiting-bench") ? REVIEW_DECOR["waiting-bench"].slow : [])], lineCtx(c)), "timeout");
         for (const cup of c.filled) if (cup) sh.ledger.waste += cupCost(cup); // ly đã ghép mà khách bỏ về
         sh.ledger.lost++;
         leave(sh, c, "annoyed");
@@ -340,7 +341,8 @@ export function brew(s, step, id, events) {
     if (!ord || String(wantOf(ord, step)) !== String(id)) return;
     if (!pour(s, sh, o, step, id, c).err) also.push(j);
   });
-  events.push({ type: "brewed", step, id, station: sh.sel, also });
+  const line = also.length && step === "cup" ? freshLine(s, BARISTA_PARALLEL, { n: also.length + 1 }) : null; // bàn pha đôi / ba chỗ
+  events.push({ type: "brewed", step, id, station: sh.sel, also, ...(line ? { line } : {}) });
   return { ok: true };
 }
 
@@ -372,7 +374,9 @@ export function discard(s, events) {
 
 /** Chọn câu, tránh lặp câu đã dùng trong ca nếu còn câu khác. */
 export function freshLine(s, list, ctx) {
-  const sh = s.shift, used = new Set(sh.usedLines);
+  const sh = s.shift;
+  if (!sh) return fill(pick(s, list), ctx); // giữa hai ca: không có "ca" để chống lặp
+  const used = new Set(sh.usedLines);
   const fresh = list.filter((t) => !used.has(t));
   const tpl = pick(s, fresh.length ? fresh : list);
   sh.usedLines.push(tpl);
@@ -384,17 +388,52 @@ export function freshLine(s, list, ctx) {
 export const poolFor = (table, arch) => [...(table?.default || []), ...(table?.[arch] || [])];
 /** Lỗi lớn nhất của ly (để chọn câu): khi lỗi đó tạo ra câu nhận xét chi tiết. */
 const ERR_ORDER = ["toppingMissing", "toppingWrong", "addWrong", "sugarHigh", "sugarLow", "iceHigh", "iceLow", "slow", "toppingExtra"];
+/** Thời gian (ms ca) giữa ly đầu và ly cuối được ghép vào đơn: từ LATE_MS là "ly tới trễ"; tới SYNC_MS (có bàn pha nhiều chỗ) là "ra cùng lúc". */
+export const LATE_MS = 18000, SYNC_MS = 2500;
+/** Kết quả đơn nhiều ly để chọn câu: swapped | oneWrong | late | perfect3 | sync | allRight | null (đơn một ly / lỗi nặng / chưa tới 4 sao). */
+export function multiOutcome(c, sc, stations = 1) {
+  if (!c.items || c.items.length < 2) return null;
+  const mk = mistakeOf(sc.errors);
+  if (mk === "swapped") return "swapped";
+  if (mk === "wrongCustomer" || mk === "wrongDrink") return null;
+  const bad = (sc.per || []).filter((x) => x.errors.some((e) => e !== "slow" && e !== "toppingExtra")).length;
+  if (bad === 1) return "oneWrong"; // kể cả khi điểm trung bình vẫn 5 sao: người trúng ly lệch vẫn có chuyện để kể
+  if (bad >= 1) return null;
+  const ts = c.filled.map((cup) => cup?.at).filter(Number.isFinite);
+  const gap = ts.length === c.items.length ? Math.max(...ts) - Math.min(...ts) : null;
+  if (gap !== null && gap >= LATE_MS) return "late";
+  if (sc.stars < 4) return null;
+  if (c.items.length === 3 && sc.stars === 5) return "perfect3";
+  if (stations > 1 && gap !== null && gap <= SYNC_MS) return "sync";
+  return "allRight";
+}
+const MULTI_REASON = { allRight: "multi", perfect3: "multi3", sync: "multiSync", late: "multiLate", oneWrong: "multiWrong", swapped: "swapped" };
+/** Câu review nhắc tới đồ trang trí tiệm đang có (4–5 sao). */
+export function decorPool(s) {
+  return Object.keys(REVIEW_DECOR).filter((id) => owns(s, id)).flatMap((id) => REVIEW_DECOR[id].good || []);
+}
+/** Câu review của khách đến nhờ quảng bá hôm nay. */
+export const promoPool = (s) => (s.promo && s.promo.day === s.shift?.day ? PROMO_REVIEW[s.promo.kind] || [] : []);
 function reviewLine(s, c, sc) {
   const ctx = lineCtx(c);
   const mk = mistakeOf(sc.errors);
+  const mo = multiOutcome(c, sc, s.shift.stations.length);
+  if (mo) {
+    let pool = poolFor(MULTI_REVIEW[mo], c.arch);
+    if (mo === "swapped") pool = [...pool, ...poolFor(MISTAKE_REVIEW.swapped, c.arch)];
+    const err = mo === "oneWrong" ? ERR_ORDER.find((e) => sc.errors.includes(e)) : null;
+    return { line: freshLine(s, pool, ctx), reason: err || MULTI_REASON[mo], mistake: mk, outcome: mo };
+  }
   if (mk && sc.stars <= 4) {
-    const pool = poolFor(MISTAKE_REVIEW[mk], c.arch);
+    let pool = poolFor(MISTAKE_REVIEW[mk], c.arch);
+    if (mk === "slow" && owns(s, "waiting-bench")) pool = [...pool, ...REVIEW_DECOR["waiting-bench"].slow];
     const err = ERR_ORDER.find((e) => sc.errors.includes(e));
     const reason = ["noLid", "swapped", "wrongCustomer"].includes(mk) ? mk : err || mk;
     if (pool.length) return { line: freshLine(s, pool, ctx), reason, mistake: mk };
     if (err) return { line: freshLine(s, L.REVIEW_LINES[err], ctx), reason: err, mistake: mk };
   }
-  if (c.items.length > 1 && sc.stars >= 4 && next(s) < 0.5) return { line: freshLine(s, L.REVIEW_MULTI, ctx), reason: "good" };
+  if (!mk && sc.stars >= 4) { const dp = decorPool(s); if (dp.length && next(s) < 0.3) return { line: freshLine(s, dp, ctx), reason: "good" }; }
+  if (!mk && sc.stars >= 3) { const pp = promoPool(s); if (pp.length && next(s) < 0.35) return { line: freshLine(s, pp, ctx), reason: sc.stars >= 4 ? "good" : "ok" }; }
   const pool = poolFor(REVIEW_BY_STARS[sc.stars], c.arch);
   return { line: freshLine(s, pool.length ? pool : L.REVIEW_LINES[sc.stars], ctx), reason: sc.stars >= 4 ? "good" : "ok" };
 }
@@ -406,6 +445,7 @@ function mistakeSay(s, c, mk) {
 
 function pay(s, c, sc, price, cost, events, reasonOverride) {
   const sh = s.shift;
+  const owed0 = s.consign?.owed || 0;
   const repay = consignRepay(s, Math.min(cost, price));
   sh.ledger.revenue += price;
   sh.ledger.cogs += cost;
@@ -416,9 +456,10 @@ function pay(s, c, sc, price, cost, events, reasonOverride) {
   s.money += price - repay;
   s.stats.cups += c.items.length;
   s.stats.revenue += price;
-  const { line, reason, mistake } = reasonOverride || reviewLine(s, c, sc);
+  const { line, reason, mistake, outcome } = reasonOverride || reviewLine(s, c, sc);
   review(s, c, sc.stars, line, reason);
-  const spoken = (!reasonOverride && mistake && mistakeSay(s, c, mistake)) || line;
+  const multiSay = outcome ? poolFor(MULTI_SAY[outcome], c.arch) : [];
+  const spoken = (multiSay.length && freshLine(s, multiSay, lineCtx(c))) || (!reasonOverride && mistake && mistakeSay(s, c, mistake)) || line;
   const xp = gainXp(s, price > 0 ? c.items.reduce((a, it) => a + xpForServe(RECIPE[it.recipe], sc.stars), 0) : 0, events);
   sh.xp += xp;
   let tip = 0;
@@ -427,8 +468,14 @@ function pay(s, c, sc, price, cost, events, reasonOverride) {
   say(sh, c, spoken);
   unpinAll(sh, c.id);
   if (mistake) sh.moments.push({ kind: "mistake", id: mistake, name: c.name, line: spoken });
+  else if (outcome && outcome !== "allRight") sh.moments.push({ kind: "multi", id: outcome, name: c.name, line: spoken });
   if (sc.stars === 5) sh.moments.push({ kind: c.items.length > 1 ? "multi5" : "five", name: c.name, line });
-  events.push({ type: "served", cid: c.id, stars: sc.stars, price, xp, raw: sc.raw, errors: sc.errors, cups: c.items.length, tip, repay });
+  if (owed0 > 0 && !s.consign?.owed) { // trả đủ gói ký gửi
+    const t = freshLine(s, CONSIGN_DONE, lineCtx(c));
+    sh.moments.push({ kind: "consign-done", name: "Dì Ba", line: t });
+    events.push({ type: "consignDone", line: t });
+  }
+  events.push({ type: "served", cid: c.id, stars: sc.stars, price, xp, raw: sc.raw, errors: sc.errors, cups: c.items.length, tip, repay, ...(outcome ? { outcome } : {}) });
   if (!reasonOverride) missionsOnServe(s, c, sc, events);
 }
 
@@ -480,6 +527,7 @@ export function serve(s, cid, events) {
   const fit = (k) => scoreServe(c.items[k].order, cup, 0, "base").recipe;
   const i = st.cid === cid && st.item !== null && !c.filled[st.item] && best !== null && fit(st.item) >= fit(best) ? st.item : best;
   if (i === null) return { err: "order-full" };
+  cup.at = sh.t; // thời điểm ghép vào đơn (ly tới trễ / ra cùng lúc)
   c.filled[i] = cup;
   st.cup = null;
   for (const o of sh.stations) if (o !== st && o.cid === cid && o.item === i) o.item = freeItem(sh, c);
@@ -520,7 +568,7 @@ function setLastServe(s, c, sc) {
   sh.lastServe = {
     t: sh.t, cid: c.id, arch: c.arch, name: c.name, recipe: c.recipe, stars: sc.stars, cups: c.items.length,
     sugar: c.order.sugar, ice: c.order.ice, sugarOk: spec.sugar === c.order.sugar, iceOk: spec.ice === c.order.ice, topping: c.order.topping,
-    mistake: mistakeOf(sc.errors),
+    mistake: mistakeOf(sc.errors), outcome: sc.per ? multiOutcome(c, sc, sh.stations.length) : null,
   };
 }
 

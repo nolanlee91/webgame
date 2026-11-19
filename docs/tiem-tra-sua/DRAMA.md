@@ -26,3 +26,13 @@ Giữ ít nhất một tình huống tích cực hoặc đời thường trong m
 | X03 · Đặc biệt | Một khách vừa rời, ghế có đồ bỏ lại. “Cái túi này ngồi lâu hơn cả người đặt trước.” | **Cất và gọi khách bằng phiếu** mở C05 nếu đúng người. **Ghi vào sổ thất lạc** có thể mở X02 nếu hai khách cùng nhận. |
 | X04 · Đặc biệt | Giờ cao điểm, từ ngày 3, hàng chờ chưa đầy. “Tụi em đi ngang, thấy có chỗ trống nên rủ cả phòng.” | **Nhận đơn nhóm** tối đa ba ly, hoa hồng +8k nếu giao đúng giờ. **Mời đặt khung giờ sau** giảm áp lực quầy, tạo một đơn đầu ca sau. |
 | X05 · Đặc biệt | DD ≥ 75, từng thấy S03 hoặc S04. “Em xin ngồi góc kia. Hôm nay em nổi tiếng với đúng một người là em.” | **Cho khách dùng như mọi người** mở C05 và một dòng nhật ký vui. **Xin phép chụp bảng món cùng ly** nếu khách đồng ý mở S04 và tăng khách đi ngang ngày sau. |
+
+## Mở rộng M3 (data/events-m3.js)
+
+| Nhóm | Sự kiện | Kích hoạt |
+|---|---|---|
+| Đơn nhóm nhiều ly | F01 cả nhà Cô Tư 3 ly · F02 ly tới trễ · F03 ba ly năm sao ⇒ F04 đặt mỗi thứ Hai · F05 một ly lệch | `lastServe.outcome` (late / perfect3 / oneWrong) ngay sau khi giao |
+| Bàn pha đôi / ba | P01 rót nhầm đồng loạt · P02 hai ly giống nhau hai người · P03 (giữa hai ca) mơ thấy ly · P04 ba ly ba người | `owns` bàn pha đôi / ba chỗ |
+| Vựa sỉ Anh Út | U01 trà rẻ mà cũ (gọi Anh Út ⇒ chuyện con gà) · U02 Anh Út kể chuyện · U03 giao trễ (hẹn từ U01 / U02) · U04 Dì Ba giảm giá ⇒ U06 Anh Út phản công / hoà giải · U05 quà cảm ơn | cờ `si-mua` khi nhập vựa sỉ |
+| Quảng bá | Q01–Q03 tờ rơi · Q04–Q06 check-in · Q07–Q09 livestream; mỗi loại: lên mạng / phản tác dụng / khách ăn ké | cờ `promo-<loại>` chỉ trong ca hôm đó, chọn xong thì tắt |
+| Ký gửi | B01 Dì Ba ghé trong ca · B02 ngày trả đủ · B03 mẹ hỏi thăm khi lỗ và hụt tiền | cờ `ky-gui`, `ky-gui-xong`; `sum.profitMax` + `maxMoney` |
