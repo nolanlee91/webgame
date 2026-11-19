@@ -13,7 +13,8 @@ Repo cổng webgame Lụm Kèo: `server.js` phục vụ `prototype/`, các game 
 Luật cứng (vi phạm thì dev phải trả lại):
 - Lưới 2× (1 điểm vẽ = ô 2×2 px) cho cảnh, nhân vật và đồ vật. Cận cảnh (`*-hd.webp`) vẽ lưới 1×. Không phóng to mượt bản cũ.
 - Alpha cứng, WebP lossless.
-- Nhân vật trong cảnh: ô **144×192**, anchor **[72,174]**, cao 150–180 px. Mọi frame của một vai cao bằng nhau (±8%).
+- Nhân vật trong cảnh: cỡ ô và chiều cao **theo asset-spec của từng game**, vì cảnh gần hay xa thì người to hay nhỏ (Trà Sữa ô 144×192, Bánh Mì ô 216×288). Mọi frame của một vai cao bằng nhau (±8%).
+- **Cảnh và người cùng một thước:** đo cửa (2,1 m) hoặc quầy (khoảng 1 m) trong cảnh, quy ra số px của người 1,65 m, ghi vào `manifest.sceneScale["<cảnh>"].humanHeight`. Script kiểm so chiều cao nhân vật với con số này (PLAYBOOK §1.2b).
 - Mỗi vai là **cùng một người** trên mọi sheet.
 - Tên frame đúng mẫu trong asset-spec (code tự nhận theo tên).
 - Đồ đặt trên cảnh: ghi `placements.<id>.at` trong manifest (điểm chạm mặt bàn). Đường đi khách ghi `placements.door`, `queueSpots`, `exitPath`.
