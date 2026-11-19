@@ -89,3 +89,15 @@ Bộ dựng tổng hợp nguyên bản trong assets/audio gồm 29 hiệu ứng 
 
 Âm thanh bắt đầu sau thao tác người chơi. Khi có hội thoại trong ca, nhạc và âm quán hạ âm lượng. Nút Tiếng và khoá chung wgp.muted điều khiển cả bộ. Khi ẩn tab hoặc tạm dừng, âm nền dừng.
 Kiểm ảnh sau tích hợp: `0 lỗi, 2 cảnh báo — ĐẠT, giao được.` Hai cảnh báo đã có ở bản nền và thuộc sheet tùy chọn drama-portraits-hd.webp, weather-fx.webp.
+
+## Chân dung NPC Drama và thời tiết · M5
+
+Asset ở commit `c40ba54`. `drama-portraits-hd.webp` có 28 khung 1×, gồm bảy vai và bốn biểu cảm, ô 384 × 320, neo [192,308]. `weather-fx.webp` có bốn khung mưa lặp, hai khung chớp và một khung cúp điện, ô 640 × 360, neo [0,0]. Thời tiết dùng alpha bán trong suốt theo hợp đồng. Khung cúp điện chứa cả lớp tối và quầng ấm vì trình vẽ chuyển khỏi lớp CSS khi nạp được atlas. Hai bản manifest giống nhau từng byte.
+
+Đã mở ảnh soi nhân vật từ checker và đối chiếu riêng 28 chân dung, cũng như ba trạng thái thời tiết ghép lên cảnh quán.
+
+```text
+python -I tools/asset-check/check_assets.py docs/tiem-tra-sua/asset-spec.json --preview <tmp>
+0 lỗi, 0 cảnh báo — ĐẠT, giao được.
+Ảnh soi nhân vật: <tmp>/nhan-vat-xep-hang-x2.png
+```

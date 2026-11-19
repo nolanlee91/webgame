@@ -222,24 +222,25 @@ test("nội dung M5: 8–12 review mỗi kết cục, câu riêng từng cơ ch�
   assert.ok(!/\p{Extended_Pictographic}/u.test(all));
 });
 
-test("asset Codex chờ giao: chân dung NPC Drama (drama-portraits-hd) + thời tiết (weather-fx) tự nhận khi manifest có, không có thì dự phòng", async () => {
+test("chân dung NPC Drama và thời tiết đọc từ manifest, có dự phòng nếu thiếu sheet", async () => {
   const { makeAtlas, SHEETS, HD_SHEETS, OPTIONAL_SHEETS, LAZY_SHEETS } = await import("../render/atlas.js");
   const { npcFace, NPC_FACES } = await import("../ui/panels.js");
   const { readFileSync } = await import("node:fs");
   const manifest = JSON.parse(readFileSync(new URL("../data/asset-manifest.json", import.meta.url), "utf8"));
   const real = makeAtlas(manifest);
-  assert.equal(real.has("drama", "me-happy"), false, "chưa có sheet ⇒ không có frame (dùng vai mượn)");
-  assert.equal(real.sheet("weather"), null);
+  const fallback = makeAtlas({ ...manifest, items: manifest.items.filter((item) =>
+    item.filename !== HD_SHEETS.drama && item.filename !== SHEETS.weather) });
+  assert.equal(fallback.has("drama", "me-happy"), false);
+  assert.equal(fallback.sheet("weather"), null);
   assert.ok(OPTIONAL_SHEETS.has("weather") && LAZY_SHEETS.has(SHEETS.weather) && LAZY_SHEETS.has(HD_SHEETS.drama));
   for (const [name, id] of [["Mẹ", "me"], ["Dì Ba tạp hoá", "di-ba"], ["Anh Út vựa sỉ", "anh-ut"], ["Anh Tèo shipper", "anh-teo"], ["Bé Bông Official", "be-bong"], ["Chị Lụa Hẻm Bên", "chi-lua"], ["Cô Hạnh tổ kiểm tra phường", "co-to"], ["Bà Tư bán xôi", null]]) assert.equal(npcFace(name), id, name);
   assert.equal(NPC_FACES.length, 7);
-  // giả lập Codex giao: frame HD 384×320 quy về cỡ thường, thời tiết ô 640×360
-  const fake = JSON.parse(JSON.stringify(manifest));
-  fake.items.push({ filename: HD_SHEETS.drama, dimensions: [1536, 2240], frames: { "me-happy": { rect: [384, 0, 384, 320], anchor: [192, 308] } } });
-  fake.items.push({ filename: SHEETS.weather, dimensions: [2560, 720], frames: { "rain-1": { rect: [0, 0, 640, 360], anchor: [0, 0] } }, animations: { rain: { frames: ["rain-1"], fps: 8, loop: true } } });
-  const a = makeAtlas(fake);
-  const f = a.frame("drama", "me-happy");
-  assert.ok(f.hd && f.w === 192 && f.h === 160, JSON.stringify(f));
-  assert.equal(a.frame("weather", "rain-1").w, 640);
-  assert.deepEqual(a.clip("weather", "rain").frames, ["rain-1"]);
+  const portrait = real.frame("drama", "me-happy");
+  assert.ok(portrait?.hd && portrait.w === 192 && portrait.h === 160, JSON.stringify(portrait));
+  const rain = real.frame("weather", "rain-1");
+  assert.equal(rain?.w, 640);
+  assert.equal(rain?.h, 360);
+  assert.deepEqual(real.clip("weather", "rain")?.frames, ["rain-1", "rain-2", "rain-3", "rain-4"]);
+  assert.deepEqual(real.clip("weather", "lightning")?.frames, ["lightning-1", "lightning-2"]);
+  assert.ok(real.has("weather", "power-cut-glow"));
 });

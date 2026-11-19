@@ -300,4 +300,11 @@ Hợp đồng máy đọc được: `docs/nong-trai/asset-spec.json` (kiểm: `p
 | `assets/v3/items-2.webp` / `items-2` | 64 × 64 | [32, 32] | `banh-ngo`, `sinh-to-dau`, `bap-rang-bo`, `che-bi-ngo`, `sua-chua`, `banh-gao`, `so-suu-tap`, `co-phien-cho` (lưới 4 × 2, đúng thứ tự) | Cùng cỡ / nét icon `items.webp`: bánh ngô vàng nướng; ly sinh tố dâu hồng có ống hút; túi bắp rang bơ vàng óng; chén chè bí ngô nước cốt dừa; hũ sữa chua thuỷ tinh nắp giấy; bánh gạo tròn nướng; **so-suu-tap** = cuốn sổ bìa da có dấu ngôi sao; **co-phien-cho** = lá cờ hội đuôi nheo đỏ vàng. |
 | `assets/v3/phien-cho.webp` / `phien-cho` | 192 × 192 | [96, 168] | `co-hoi-1`, `co-hoi-2` + animation `co-hoi` (frames [co-hoi-1, co-hoi-2], fps 3) | Dây cờ hội đuôi nheo nhiều màu + 2 đèn lồng căng trên nóc sạp chợ (đặt chồng lên `market-stall` trên bản đồ), 2 khung cờ bay. Nền trong suốt, không vẽ sạp. |
 
-Hiện game dùng hình dự phòng cho cả 4 sheet (nhà garden, hàng rào gỗ lọc đá, icon gần nghĩa lọc màu, đèn lồng `decor.webp`) — giao sheet nào thì sheet đó tự thay.
+### Kết quả giao asset M6
+
+Đã bổ sung đủ bốn sheet vào manifest ở commit `c40ba54`. Mười bậc nhà giữ bề ngang 270 px và cùng neo chân, hàng rào đá rộng 232 px, tám icon theo đúng thứ tự hợp đồng, clip cờ hội gồm hai khung và chạy 3 fps. Đã cập nhật SHA-256 và mở bảng ảnh soi cả bốn sheet. Checker của Nông Trại chỉ tự xuất ảnh soi khi đặc tả có sheet nhân vật, nên dùng bảng ảnh ghép riêng cho nhóm công trình, vật phẩm và cờ hội.
+
+```text
+python -I tools/asset-check/check_assets.py docs/nong-trai/asset-spec.json --preview <tmp>
+0 lỗi, 0 cảnh báo — ĐẠT, giao được.
+```
