@@ -3,27 +3,27 @@
 // Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
 // Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
 // c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
-import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js";
-import { RECIPE } from "../data/recipes.js";
-import { ARCHETYPES } from "../data/customers.js";
+import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m34";
+import { RECIPE } from "../data/recipes.js?v=m34";
+import { ARCHETYPES } from "../data/customers.js?v=m34";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
   TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
-} from "../data/shift.js";
-import * as L from "../data/lines.js";
-import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js";
-import { next, int, pick, weighted } from "./rng.js";
-import { fill, pickLine } from "./text.js";
-import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js";
-import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js";
-import { scoreServe, starsFor } from "./score.js";
-import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js";
-import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js";
-import { trafficBonus, archiveShift } from "./reviews.js";
-import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js";
-import { maybeTrigger, startDrama, endDrama } from "./drama.js";
-import { promoGuests, consignRepay } from "./business.js";
-import { caption } from "./journal.js";
+} from "../data/shift.js?v=m34";
+import * as L from "../data/lines.js?v=m34";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m34";
+import { next, int, pick, weighted } from "./rng.js?v=m34";
+import { fill, pickLine } from "./text.js?v=m34";
+import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m34";
+import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m34";
+import { scoreServe, starsFor } from "./score.js?v=m34";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m34";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m34";
+import { trafficBonus, archiveShift } from "./reviews.js?v=m34";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m34";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m34";
+import { promoGuests, consignRepay } from "./business.js?v=m34";
+import { caption } from "./journal.js?v=m34";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");

@@ -1,9 +1,9 @@
 // Việc của chủ tiệm ngoài quầy: gói ký gửi khi hụt vốn (không bao giờ kẹt), quảng bá địa phương (cấp 14).
-import { STOCK, useOf } from "../data/ingredients.js";
-import { RECIPE } from "../data/recipes.js";
-import { costOfUse, hasStock, stockUsed, capacity, packPrice, useOfSpec } from "./economy.js";
-import { PEARL_RAW } from "../data/equipment.js";
-import { SHIFT_FEE } from "../data/shift.js";
+import { STOCK, useOf } from "../data/ingredients.js?v=m34";
+import { RECIPE } from "../data/recipes.js?v=m34";
+import { costOfUse, hasStock, stockUsed, capacity, packPrice, useOfSpec } from "./economy.js?v=m34";
+import { PEARL_RAW } from "../data/equipment.js?v=m34";
+import { SHIFT_FEE } from "../data/shift.js?v=m34";
 
 /** Gói ký gửi của Dì Ba: đủ khoảng 6 ly trà đào + 3 ly trà sữa trân châu. Trả dần bằng giá vốn khi bán. */
 export const CONSIGN_KIT = { "ly": 6, "hong-tra": 6, "dao": 4, "sua": 3, "duong": 6, "da": 6, [PEARL_RAW]: 3 };

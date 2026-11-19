@@ -1,9 +1,9 @@
 // Nhiệm vụ ngày: chọn 3 mục ở đầu ca (RNG của ván ⇒ tải lại không đổi), đếm khi giao / xử lý sự kiện / chốt ca, thưởng một lần.
-import { MISSIONS, MISSION, MISSIONS_PER_DAY } from "../data/missions.js";
-import { int } from "./rng.js";
-import { gainXp } from "./progression.js";
-import { fill } from "./text.js";
-import { costOfUse } from "./economy.js";
+import { MISSIONS, MISSION, MISSIONS_PER_DAY } from "../data/missions.js?v=m34";
+import { int } from "./rng.js?v=m34";
+import { gainXp } from "./progression.js?v=m34";
+import { fill } from "./text.js?v=m34";
+import { costOfUse } from "./economy.js?v=m34";
 
 export const missionsUnlocked = (s) => s.level >= 2 && s.tutorialDone;
 

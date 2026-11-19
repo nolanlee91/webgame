@@ -1,8 +1,8 @@
 // Nhật Ký Làm Chủ: câu chốt ca kiểu meme (theo dữ kiện ca) và nội dung thẻ chia sẻ 1080×1350 (ui/journal.js vẽ lên journal-card.png).
 // Thuần: test kiểm câu chọn đúng tình huống và nội dung thẻ đủ dòng.
-import { CAPTIONS } from "../data/lines.js";
-import { fill } from "./text.js";
-import { int } from "./rng.js";
+import { CAPTIONS } from "../data/lines.js?v=m34";
+import { fill } from "./text.js?v=m34";
+import { int } from "./rng.js?v=m34";
 
 /** Chọn nhóm câu theo dữ kiện ca: lỗ > khách bỏ về > drama > 0% đường > lên mạng > đơn nhóm > hoàn hảo > ít khách > ổn. */
 export function captionKind(sum) {

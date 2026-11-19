@@ -1,8 +1,8 @@
 // Kéo-thả trang trí: vị trí hợp lệ khi nằm trong vùng sàn / tường, không đè chỗ khách đứng và không chắn lối từ cửa vào.
 // Thuần (không DOM). s.placement = { id: [x, y] } (toạ độ neo trong cảnh 1280×720). Không có ⇒ dùng `at` mặc định.
-import { EQUIPMENT, PLACE_ZONES, SPOT_CLEARANCE, PATH_CLEARANCE } from "../data/equipment.js";
-import { SPOTS, DOOR } from "../data/shift.js";
-import { owns } from "./equipment.js";
+import { EQUIPMENT, PLACE_ZONES, SPOT_CLEARANCE, PATH_CLEARANCE } from "../data/equipment.js?v=m34";
+import { SPOTS, DOOR } from "../data/shift.js?v=m34";
+import { owns } from "./equipment.js?v=m34";
 
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 function distToSegment(p, a, b) {

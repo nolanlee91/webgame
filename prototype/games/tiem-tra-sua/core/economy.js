@@ -1,6 +1,6 @@
 // Giá vốn, kho, nhập hàng, lời lỗ. Thuần (không DOM). Đơn vị k.
-import { STOCK, STOCK_IDS, START_CAPACITY, useOf } from "../data/ingredients.js";
-import { RECIPE } from "../data/recipes.js";
+import { STOCK, STOCK_IDS, START_CAPACITY, useOf } from "../data/ingredients.js?v=m34";
+import { RECIPE } from "../data/recipes.js?v=m34";
 
 export const EXPRESS_MARKUP = 0.15; // nhập gấp giữa ca
 

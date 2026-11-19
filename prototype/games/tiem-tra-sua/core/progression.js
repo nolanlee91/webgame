@@ -1,9 +1,9 @@
 // Cấp, XP, mở khóa. XP theo sao: 4–5 sao đủ XP công thức, 3 sao 60%, 1–2 sao 25% (làm tròn xuống), hủy / không thu tiền: 0.
-import { LEVELS, MAX_LEVEL } from "../data/levels.js";
-import { RECIPES } from "../data/recipes.js";
-import { CHOICES, STOCK } from "../data/ingredients.js";
-import { ARCHETYPES } from "../data/customers.js";
-import { EQUIPMENT } from "../data/equipment.js";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m34";
+import { RECIPES } from "../data/recipes.js?v=m34";
+import { CHOICES, STOCK } from "../data/ingredients.js?v=m34";
+import { ARCHETYPES } from "../data/customers.js?v=m34";
+import { EQUIPMENT } from "../data/equipment.js?v=m34";
 
 export function levelForXp(xp) {
   let lv = 1;

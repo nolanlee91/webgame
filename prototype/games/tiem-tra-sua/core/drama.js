@@ -2,20 +2,20 @@
 // và hẹn quay lại ngày sau (later → s.drama.queue). Trong ca: tối đa 1–2 sự kiện, đồng hồ dừng khi hội thoại mở (sh.dialog kind "event").
 // Giữa hai ca: tối đa 1 sự kiện (s.drama.pending), hiện sau bảng chốt ca. Mỗi lựa chọn lưu một khoảnh khắc cho Nhật Ký Làm Chủ.
 // Thuần, RNG của ván ⇒ cùng hạt + cùng thao tác ⇒ cùng sự kiện.
-import { EVENTS, EVENT } from "../data/events.js";
-import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js";
-import { ARCHETYPES } from "../data/customers.js";
-import { RECIPE } from "../data/recipes.js";
-import { STOCK } from "../data/ingredients.js";
-import { EQUIPMENT } from "../data/equipment.js";
-import { next, int, pick, weighted } from "./rng.js";
-import { fill } from "./text.js";
-import { gainXp, recipesAt, archetypesFor } from "./progression.js";
-import { stockUsed, capacity } from "./economy.js";
-import { owns } from "./equipment.js";
-import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say } from "./shift.js";
-import { missionsOnDrama } from "./missions.js";
-import { ratingOf } from "./reviews.js";
+import { EVENTS, EVENT } from "../data/events.js?v=m34";
+import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m34";
+import { ARCHETYPES } from "../data/customers.js?v=m34";
+import { RECIPE } from "../data/recipes.js?v=m34";
+import { STOCK } from "../data/ingredients.js?v=m34";
+import { EQUIPMENT } from "../data/equipment.js?v=m34";
+import { next, int, pick, weighted } from "./rng.js?v=m34";
+import { fill } from "./text.js?v=m34";
+import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m34";
+import { stockUsed, capacity } from "./economy.js?v=m34";
+import { owns } from "./equipment.js?v=m34";
+import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say } from "./shift.js?v=m34";
+import { missionsOnDrama } from "./missions.js?v=m34";
+import { ratingOf } from "./reviews.js?v=m34";
 
 export const FX_KEYS = new Set(["money", "rep", "followers", "buzz", "xp", "stock", "patience", "whoPatience", "delaySpawn", "sealMs", "guests", "group",
   "nextGuests", "demand", "flag", "unflag", "review", "kitchen", "swapTopping", "priceWho", "leaveWho", "moment"]);

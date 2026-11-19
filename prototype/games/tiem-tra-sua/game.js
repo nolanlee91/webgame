@@ -1,18 +1,18 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, icon } from "./render/atlas.js?v=snap2";
-import { createScene } from "./render/scene.js";
-import { createBrew } from "./ui/brew.js";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js";
-import { createPanels } from "./ui/panels.js";
-import { apply } from "./core/apply.js";
-import { customer } from "./core/shift.js";
-import { currentEvent, openEvent } from "./core/drama.js";
-import { PLACE_REASON } from "./core/decor.js";
-import { STEP_VERB, STOCK } from "./data/ingredients.js";
-import { EQUIPMENT } from "./data/equipment.js";
-import { shopSave, browserStorage } from "./save.js";
-import { play, isMuted, setMuted } from "./ui/sfx.js";
+import { makeAtlas, SHEETS, icon } from "./render/atlas.js?v=m34";
+import { createScene } from "./render/scene.js?v=m34";
+import { createBrew } from "./ui/brew.js?v=m34";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m34";
+import { createPanels } from "./ui/panels.js?v=m34";
+import { apply } from "./core/apply.js?v=m34";
+import { customer } from "./core/shift.js?v=m34";
+import { currentEvent, openEvent } from "./core/drama.js?v=m34";
+import { PLACE_REASON } from "./core/decor.js?v=m34";
+import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m34";
+import { EQUIPMENT } from "./data/equipment.js?v=m34";
+import { shopSave, browserStorage } from "./save.js?v=m34";
+import { play, isMuted, setMuted } from "./ui/sfx.js?v=m34";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
