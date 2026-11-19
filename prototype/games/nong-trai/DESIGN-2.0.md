@@ -214,7 +214,7 @@ Mỗi milestone chỉ đẩy lên bản thật khi chủ dự án đồng ý.
 
 ---
 
-## 9. Milestone 5 — 12 tiêu chí nghiệm thu (bản đề xuất của Dev, chờ chủ dự án duyệt)
+## 9. Milestone 5 — 12 tiêu chí nghiệm thu (chủ dự án đã duyệt ngày 19/11/2026)
 
 > Lộ trình §8 ghi "Đủ 12 tiêu chí nghiệm thu" nhưng bản thiết kế chưa liệt kê. Dev đề xuất 12 tiêu chí dưới đây, mỗi tiêu chí có cách kiểm tự động. Chủ dự án có thể sửa danh sách khi duyệt.
 
