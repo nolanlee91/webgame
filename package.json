@@ -16,7 +16,8 @@
     "test:dat-bom:e2e": "node games-server/dat-bom/test/browser-e2e.mjs",
     "test:noi-tu": "node --test --test-concurrency=1 --test-timeout=20000 games-server/noi-tu/test/*.test.mjs",
     "test:ws": "node --test games-server/ws-coalesce.test.mjs games-server/ws-heartbeat.test.mjs",
-    "test:esm": "node --test games-server/esm-load.test.mjs"
+    "test:esm": "node --test games-server/esm-load.test.mjs",
+    "test:disband": "node --test --test-concurrency=1 games-server/disband.test.mjs"
   },
   "engines": {
     "node": ">=18"

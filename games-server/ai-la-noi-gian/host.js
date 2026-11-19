@@ -125,6 +125,14 @@ function createNoiGianHost(server, opts = {}) {
       if (entry.room.closed) dropRoom(entry); else checkIdle(entry);
       return reply(conn, { t: "left" });
     }
+    if (m.t === "disband") { // chủ phòng hủy phòng (phòng chờ / ván đã xong): báo mọi người rồi đóng phòng
+      const room = entry.room, host = room.hostSeat ?? room.host;
+      if (seat !== host) return reply(conn, { t: "err", code: "not-host", req: m.t });
+      if (room.phase !== "lobby" && room.phase !== "over" && room.phase !== "end") return reply(conn, { t: "err", code: "phase", req: m.t });
+      const all = [...entry.conns]; entry.conns.clear(); // giữ kết nối mở: người chơi về màn đầu, tạo / vào phòng khác ngay
+      for (const c of all) { c.token = null; c.entry = null; reply(c, { t: "closed" }); }
+      return dropRoom(entry);
+    }
     const r = entry.room.handle(seat, m);
     if (r?.err) reply(conn, { t: "err", code: r.err, req: m.t });
   }
