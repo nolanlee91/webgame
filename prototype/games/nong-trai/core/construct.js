@@ -1,17 +1,17 @@
 // Milestone 3 — ghép luật xây dựng thuần (core/build.js, data/buildings.js) vào trạng thái nông trại. Chỉ gọi qua apply().
 // - Công trình: startBuild / startUpgrade (một cửa cho Nhà kho, Nhà kính, Khu đất phía Đông, Sạp chợ, Xưởng).
-//   Công trình của milestone sau (chuồng gà, chuồng bò — M4) bị từ chối với mã "milestone" (không có nút giả ở giao diện).
+//   Công trình có milestone > CURRENT_MILESTONE bị từ chối với mã "milestone" (từ Milestone 4 = 4: chuồng gà / chuồng bò xây được; chưa có công trình M5).
 // - Trang trí: placeDecor / removeDecor (túi s.decor ⇄ ô DECOR_SLOTS trên bản đồ).
 // - sync: build.tick (công trình xây xong khi offline cũng báo đúng một lần) + applyEffects.
 // - applyEffects: mọi thứ suy ra từ công trình — s.warehouse = mốc kho (inventory.capacity đọc nó), mở ô Nhà kính / phía Đông.
-import * as B from "./build.js?v=m3b";
-import { BUILDING, DECOR_ITEM, maxLevel } from "../data/buildings.js?v=m3b";
-import { LEVELS, CURRENT_MILESTONE } from "../data/levels.js?v=m3b";
-import { WAREHOUSE } from "../data/warehouse.js?v=m3b";
-import { MACHINES_NOW } from "./workshop.js?v=m3b";
-import { grantMachine } from "./production.js?v=m3b";
-import { bag, wallet } from "./inventory.js?v=m3b";
-import { EAST_FIRST, EAST_COUNT, GH_FIRST, GH_COUNT, blankPlot } from "./plots.js?v=m3b";
+import * as B from "./build.js?v=m4";
+import { BUILDING, DECOR_ITEM, maxLevel } from "../data/buildings.js?v=m4";
+import { LEVELS, CURRENT_MILESTONE } from "../data/levels.js?v=m4";
+import { WAREHOUSE } from "../data/warehouse.js?v=m4";
+import { MACHINES_NOW } from "./workshop.js?v=m4";
+import { grantMachine } from "./production.js?v=m4";
+import { bag, wallet } from "./inventory.js?v=m4";
+import { EAST_FIRST, EAST_COUNT, GH_FIRST, GH_COUNT, blankPlot } from "./plots.js?v=m4";
 
 const MILESTONE_OF_FEATURE = Object.fromEntries(LEVELS.flatMap((l) => l.unlocks).filter((u) => u.kind === "feature").map((u) => [u.id, u.milestone]));
 /** Bản (milestone) đưa công trình vào game: theo tính năng của mốc xây đầu tiên trong data/levels.js. */
@@ -19,7 +19,7 @@ export function milestoneOf(id) {
   const f = BUILDING[id]?.levels[0]?.feature;
   return f && MILESTONE_OF_FEATURE[f] !== undefined ? MILESTONE_OF_FEATURE[f] : 1;
 }
-/** Công trình đã có trong bản hiện tại (chuồng gà / chuồng bò là Milestone 4 ⇒ false). */
+/** Công trình đã có trong bản hiện tại (milestone ≤ CURRENT_MILESTONE; chuồng gà / bò mở từ Milestone 4). */
 export const inMilestone = (id) => !!BUILDING[id] && milestoneOf(id) <= CURRENT_MILESTONE;
 const nameOf = (id) => BUILDING[id]?.name || id;
 

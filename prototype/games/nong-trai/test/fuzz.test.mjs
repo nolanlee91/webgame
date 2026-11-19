@@ -1,21 +1,22 @@
 // Fuzz: vài nghìn action ngẫu nhiên (hợp lệ lẫn rác) qua apply(), sau mỗi bước kiểm bất biến.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply, invariantError } from "../core/apply.js?v=m2b";
-import { createState, loadV3, dump } from "../core/state.js?v=m2b";
-import { used, capacity, overflowCount } from "../core/inventory.js?v=m2b";
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2b";
-import { TUTORIAL } from "../data/quests.js?v=m2b";
-import { CROPS } from "../data/crops.js?v=m2b";
-import { ITEMS } from "../data/catalog.js?v=m2b";
-import { MACHINES } from "../data/machines.js?v=m2b";
-import { RECIPES } from "../data/recipes.js?v=m2b";
-import { QUESTS } from "../data/quests.js?v=m2b";
-import { capacity as queueCap } from "../core/production.js?v=m2b";
-import { BUILDINGS, DECOR, DECOR_SLOTS } from "../data/buildings.js?v=m3b";
-import { effects } from "../core/build.js?v=m3b";
-import { WAREHOUSE } from "../data/warehouse.js?v=m3b";
-import { extraSlots } from "../core/workshop.js?v=m2b";
+import { apply, invariantError } from "../core/apply.js?v=m4";
+import { createState, loadV3, dump } from "../core/state.js?v=m4";
+import { used, capacity, overflowCount } from "../core/inventory.js?v=m4";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
+import { TUTORIAL } from "../data/quests.js?v=m4";
+import { CROPS } from "../data/crops.js?v=m4";
+import { ITEMS } from "../data/catalog.js?v=m4";
+import { MACHINES } from "../data/machines.js?v=m4";
+import { RECIPES } from "../data/recipes.js?v=m4";
+import { QUESTS } from "../data/quests.js?v=m4";
+import { capacity as queueCap } from "../core/production.js?v=m4";
+import { BUILDINGS, DECOR, DECOR_SLOTS } from "../data/buildings.js?v=m4";
+import { effects } from "../core/build.js?v=m4";
+import { WAREHOUSE } from "../data/warehouse.js?v=m4";
+import { extraSlots } from "../core/workshop.js?v=m4";
+import { m4InvariantError } from "../core/m4-handlers.js?v=m4";
 
 function prng(seed) { return () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296); }
 
@@ -69,7 +70,7 @@ function checkAll(s, before) {
   // Milestone 3: công trình, trang trí, ô vùng mới, sức chứa từ công trình
   assert.equal(s.plots.length, 43);
   assert.equal(capacity(s), WAREHOUSE[effects(s, Infinity).warehouseTier].cap, "sức chứa = mốc Nhà kho");
-  assert.ok(!s.buildings["chuong-ga"] && !s.buildings["chuong-bo"], "công trình Milestone 4 không xây được");
+  assert.equal(m4InvariantError(s), null, "đàn vật nuôi hợp lệ (Milestone 4)");
   const slots = s.decorPlaced.map((d) => d.slot);
   assert.equal(new Set(slots).size, slots.length, "mỗi ô trang trí 1 món");
   for (const q of Object.values(s.decor)) assert.ok(Number.isInteger(q) && q > 0);
@@ -172,3 +173,39 @@ function pickM3(r, s) {
   if (k < 0.9) return { type: "harvestAll" };
   return { type: "sellAll" };
 }
+
+test("fuzz Milestone 4: 4 000 action chăn nuôi / làng qua apply() ở cấp 7 / 9 / 14 — bất biến, lỗi không đổi gì, lưu / tải giữ đàn + làng", () => {
+  let bought = 0, collected = 0, talked = 0, claimed = 0;
+  const NPCS = ["chi-ba", "co-hai", "bac-tu", "anh-ut", "__proto__", "x"];
+  for (const [seed, lv] of [[31, 7], [32, 9], [33, 14]]) {
+    const r = prng(seed), pick = (xs) => xs[Math.floor(r() * xs.length)];
+    let t = 3_000_000;
+    const s = createState(t, seed);
+    s.level = lv; s.coins = 50_000; s.quests.tut = QUESTS.length;
+    s.inv = { "thuc-an-gia-suc": 40, "bot-gao": 6, lua: 10, "banh-trung": 4, sua: 4 };
+    apply(s, { type: "startBuild", id: "chuong-ga" }, t); apply(s, { type: "startBuild", id: "chuong-bo" }, t);
+    for (let k = 0; k < 1333; k++) {
+      t += Math.floor(r() * (r() < 0.1 ? 600_000 : 60_000));
+      const uid = s.animals.list.length && r() < 0.85 ? pick(s.animals.list).uid : pick([0, 99, "1", -1]);
+      const a = r() < 0.25 ? randomAction(r, s) : pick([
+        { type: "buyAnimal", kind: pick(["ga", "bo-sua", "bo", "voi"]) }, { type: "feedAnimal", uid }, { type: "feedAll" }, { type: "feedAll", kind: "ga" },
+        { type: "collectAnimal", uid }, { type: "collectAllAnimals" }, { type: "talkNpc", npc: pick(NPCS) },
+        { type: "claimProgressQuest", id: s.village.prog.i < 6 ? ["xay-chuong-ga", "mua-ga-dau", "thu-trung-dau", "giao-don-trung-sua", "lam-banh-trung", "xay-chuong-bo"][s.village.prog.i] : "x" },
+        { type: "claimChainStep", npc: pick(NPCS), step: pick([0, 1, 2, 3, -1]) },
+        { type: "claimBoardQuest", uid: s.village.board.slots.length ? pick(s.village.board.slots).uid : 1 },
+      ]);
+      const before = structuredClone(s);
+      const res = apply(s, a, t);
+      if (res.err) assert.deepEqual(s, before, `lỗi ${res.err} không được đổi trạng thái (${a.type})`);
+      for (const e of res.events || []) {
+        if (e.type === "animalBought") bought++;
+        if (e.type === "animalCollected") collected++;
+        if (e.type === "npcTalked") talked++;
+        if (e.type === "villageQuestClaimed") claimed++;
+      }
+      checkAll(s, before);
+      if (k % 150 === 0) { const back = loadV3(dump(s, t), t); assert.deepEqual(back.animals, s.animals); assert.deepEqual(back.village, s.village); Object.assign(s, back); }
+    }
+  }
+  assert.ok(bought >= 5 && collected >= 10 && talked >= 10 && claimed >= 1, `quá ít thao tác M4: ${bought} ${collected} ${talked} ${claimed}`);
+});

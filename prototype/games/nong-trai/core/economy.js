@@ -1,12 +1,11 @@
-// Bán hàng, nâng kho, nâng trang trí, lưới an toàn. Chỉ gọi qua apply().
+// Bán hàng, nâng trang trí, lưới an toàn. Chỉ gọi qua apply(). (Nâng kho: Nhà kho là công trình — startUpgrade nha-kho, core/construct.js.)
 // Giá bán: MỘT nguồn — core/market.js priceOf(id, now) (±15 % theo chu kỳ 3 giờ). Đơn hàng giữ thưởng cố định riêng.
-import { ITEM } from "../data/catalog.js?v=m2b";
-import { WAREHOUSE } from "../data/warehouse.js?v=m2b";
-import { UPGRADES } from "../data/decor.js?v=m2b";
-import { CROPS } from "../data/crops.js?v=m2b";
-import { have, take } from "./inventory.js?v=m2b";
-import { MARKET } from "./market.js?v=m2b";
-import { cropUnlocked } from "./progression.js?v=m2b";
+import { ITEM } from "../data/catalog.js?v=m4";
+import { UPGRADES } from "../data/decor.js?v=m4";
+import { CROPS } from "../data/crops.js?v=m4";
+import { have, take } from "./inventory.js?v=m4";
+import { MARKET } from "./market.js?v=m4";
+import { cropUnlocked } from "./progression.js?v=m4";
 
 export const SAFETY_GIFT = 3, SAFETY_COOLDOWN_MS = 10 * 60_000;
 export const sellable = (id) => !!ITEM[id] && ITEM[id].sell > 0;
@@ -50,20 +49,6 @@ export function sellOverflow(s, now, events) {
   return r.err ? { err: "basket-empty" } : r;
 }
 
-export function nextWarehouse(s) { return WAREHOUSE[s.warehouse + 1] || null; }
-export function upgradeWarehouse(s, events) {
-  const next = nextWarehouse(s);
-  if (!next) return { err: "warehouse-max" };
-  if (s.level < next.minLevel) return { err: "warehouse-level" };
-  if (s.coins < next.cost) return { err: "coins" };
-  for (const [m, q] of Object.entries(next.materials)) if (have(s, m) < q) return { err: "materials" };
-  s.coins -= next.cost;
-  for (const [m, q] of Object.entries(next.materials)) take(s, m, q);
-  s.warehouse++;
-  events.push({ type: "warehouseUpgraded", level: s.warehouse, cap: next.cap, cost: next.cost });
-  return { ok: true, cap: next.cap };
-}
-
 export function upgradeFarm(s, events) {
   const u = UPGRADES[s.upgrade];
   if (!u) return { err: "upgraded" };
@@ -76,11 +61,20 @@ export function upgradeFarm(s, events) {
 }
 
 export const cheapestSeed = (s) => Math.min(...CROPS.filter((c) => cropUnlocked(s, c.id)).map((c) => c.seed));
-/** Kẹt: không đủ xu mua hạt rẻ nhất, không có hạt tặng, không cây nào đang trồng, không gì bán được. */
+/** Vật nuôi còn đường ra hàng (Milestone 4): có con đang làm trứng / sữa hoặc đã chín chờ thu (fedAt có giá trị),
+ *  hoặc có con đói mà kho còn thức ăn để cho ăn. Không có s.animals (save cũ) ⇒ false. */
+export function animalsBusy(s) {
+  const list = Array.isArray(s.animals?.list) ? s.animals.list : [];
+  if (!list.length) return false;
+  if (list.some((a) => a && Number.isFinite(a.fedAt) && Number.isFinite(a.readyAt))) return true; // đang làm / chờ thu
+  return have(s, "thuc-an-gia-suc") > 0; // đói nhưng còn thức ăn ⇒ cho ăn được
+}
+/** Kẹt: không đủ xu mua hạt rẻ nhất, không có hạt tặng, không cây nào đang trồng, không vật nuôi sắp ra hàng, không gì bán được. */
 export function stuck(s) {
   if (s.coins >= cheapestSeed(s) || s.freeSeeds > 0) return false;
   if (s.plots.some((p) => p.crop)) return false;
   if (Object.values(s.production?.machines || {}).some((m) => m.queue.length)) return false; // máy còn hàng sẽ ra
+  if (animalsBusy(s)) return false; // gà / bò sắp có trứng / sữa, hoặc còn thức ăn để cho ăn
   return ![...Object.entries(s.inv), ...Object.entries(s.overflow)].some(([id, q]) => q > 0 && sellable(id));
 }
 /** Lưới an toàn (DESIGN §2.1): Chị Ba tặng 3 hạt cà rốt, tối đa 1 lần / 10 phút. */

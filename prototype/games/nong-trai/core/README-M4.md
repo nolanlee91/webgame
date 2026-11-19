@@ -13,9 +13,9 @@ Mọi hàm trả `{ ok: true, ..., events }` hoặc `{ err }`. Khi trả `err` t
 XP **không** được cộng bên trong module: kết quả có trường `xp`, handler cộng qua `addXp(s, r.xp, ev)` như `production.collect`.
 
 ## core/animals.js
-Save: `animals = { list: [{ uid, kind, fedAt, readyAt }], nextUid }`. `kind` là `"ga"` hoặc `"bo"` (khớp `producer.kind = "animal"` trong `data/catalog.js`).
+Save: `animals = { list: [{ uid, kind, fedAt, readyAt }], nextUid }`. `kind` là `"ga"` hoặc `"bo-sua"` (đổi từ `"bo"`, xem sửa e bên dưới).
 Trạng thái `"hungry" | "producing" | "ready"` **không lưu**, mà suy ra từ timestamp bằng `stateOf(a, now)`, nên offline bao lâu cũng đúng.
-Lưu ý: id vật nuôi `"bo"` (bò) không phải món `"bo"` (Bơ). Kho chỉ nhận `ANIMAL[kind].product`.
+Id con bò là `"bo-sua"` để không trùng món `"bo"` (Bơ). Kho chỉ nhận `ANIMAL[kind].product`.
 
 | Hàm | Ghi chú |
 |---|---|
@@ -25,7 +25,7 @@ Lưu ý: id vật nuôi `"bo"` (bò) không phải món `"bo"` (Bơ). Kho chỉ 
 | `collect(farm, inv, uid, now)` | Chỉ khi chín. Kho đầy thì trả `full` và sản phẩm vẫn nằm trên con vật. Thu xong con vật về trạng thái đói, nên không thu 2 lần được. Trả `{ item, qty, xp, overflow }` |
 | `feedAll(farm, inv, now, kind?)` | Cho ăn mọi con đang đói. Thiếu 2 bao cho bò thì vẫn cho gà ăn (`short: true`). Lỗi: `none` (không con nào đói), `feed` (không đủ cho con nào) |
 | `collectAll(farm, inv, now, kind?)` | Dừng khi kho đầy. Trả `{ collected, items, xp, full }` |
-| `status(farm, now, ctx)` | `{ list: [{ uid, kind, state, remaining, readyAt, sprite }], kinds: { ga/bo: { count, capacity, unlocked, hungry, producing, ready, nextReadyAt, feedNeeded } } }` |
+| `status(farm, now, ctx)` | `{ list: [{ uid, kind, state, remaining, readyAt, sprite }], kinds: { ga / "bo-sua": { count, capacity, unlocked, hungry, producing, ready, nextReadyAt, feedNeeded } } }` |
 | `spriteOf(a, now)` | `{ sheet: "animals", frame, bubble, flip }`: ăn 2 giây sau khi cho ăn, đôi khi đi tại chỗ, có bong bóng trứng / sữa / đói |
 | `readyWhileAway(farm, lastSeen, now)` | `{ "trung-ga": n, sua: n }` cho màn "Trong lúc bạn vắng" |
 | `capacity(kind, ctx)` / `defaultCapacity` / `buildingLevel` / `canBuy` / `countOf` / `stateOf` | Dùng cho giao diện |
@@ -110,3 +110,103 @@ Nhiệm vụ xây chuồng dùng điều kiện trạng thái (`hasBuilding`), k
 5. **Túi trang trí**: thưởng trang trí hiếm (đèn lồng, bù nhìn, giếng đá, cổng tre) đi qua `io.decor`. Nếu M2/M3 cho `inv.add` tự chuyển trang trí vào túi thì có thể bỏ `io.decor`.
 6. **Hiệu ứng thân thiết**: hiện không có tác dụng kinh tế. Có thể dùng `friendLevel` để mở câu thoại, hoặc tăng nhẹ thưởng đơn của NPC đó ở M5.
 7. **XP khi thu sản phẩm**: gà +2, bò +5 mỗi lần thu. §2.4 không ghi XP cho vật nuôi, đây là số đề xuất.
+
+---
+
+## Cập nhật lần 2 (sửa luật + giao diện, chờ ghép)
+
+File mới: `core/m4-handlers.js` (handler sẵn cho apply), `ui/m4-art.js`, `ui/scene-animals.js`, `ui/scene-village.js`, `ui/truck.js`,
+`ui/dev-m4.html` + `ui/dev-m4.js` (trang thử, dev-only, `noindex`, không liên kết), `test/m4-handlers.test.mjs`, `test/e2e-m4.mjs` (CDP).
+File đã sửa: `data/animals.js`, `core/animals.js`, `core/village.js`, `core/orders.js`, `core/economy.js` và test của chúng.
+
+### Các sửa luật (a–f)
+| | Sửa | Ở đâu |
+|---|---|---|
+| a | Bộ sinh đơn đưa `trung-ga` / `sua` vào đơn khi có gà / bò (`animalGoods(s)` đọc `s.animals.list`), cùng mọi thành phẩm làm từ chúng mà máy đã xây làm được (`banh-trung`, `banh-bi-ngo`; `bo`, `pho-mai` khi Máy bơ sữa có `milestone ≤ CURRENT_MILESTONE`). Số lượng theo đàn thật: `animalUnit` = số con (kẹp 1..12); thành phẩm có nguyên liệu vật nuôi bị kẹp ≤ 1 lứa của đàn. Không có `s.animals` ⇒ y như cũ (cùng chuỗi ngẫu nhiên, có test). | `core/orders.js` |
+| b | Sự kiện `delivered` có thêm `items: { ...order.items }` (bản sao). `orderType`, `npc` đã có sẵn. | `core/orders.js deliver` |
+| c | `stuck()` trả false khi có con đang làm / chờ thu, hoặc có con đói mà kho còn thức ăn (`animalsBusy(s)`). | `core/economy.js` |
+| d | `data/animals.js` đọc giá mua / thức ăn / chu kỳ từ `ANIMAL_REF` và giá bán từ `ITEM[product].sell` (`productValue(kind)`) ⇒ chỉ cần sửa `catalog.js`. Số đề xuất ở `PROPOSED_SELL` và mục "Balance" bên dưới. | `data/animals.js` |
+| e | Id con bò: `"bo"` → `"bo-sua"` (không trùng món Bơ `bo`). `sanitize()` đổi `kind: "bo"` cũ → `"bo-sua"` (`LEGACY_KIND`). Frame sprite vẫn là `bo-*`. | `data/animals.js`, `core/animals.js` |
+| f | Nhiệm vụ tiến trình M4 chỉ mở khi hướng dẫn M1 xong: `tutorialDone(s)` (`s.quests.tut >= TUTORIAL.length`) truyền vào `ctx.tutorialDone`. Giá trị `false` ⇒ không đếm, không nhận, `questLog().progressionNext.reason = "tutorial"`. Bỏ trống ⇒ không chặn (tương thích). Bảng lặp lại và chuỗi NPC không phụ thuộc cờ này. | `core/village.js` |
+| + | `npcTalked` có thêm `line` (giao diện hiện câu thoại từ sự kiện, vì `exec` của game.js không trả kết quả). | `core/village.js talk` |
+
+### Balance to apply during wiring (data/catalog.js — chưa sửa vì file đang thuộc M3)
+| Món | Hiện tại | Đề xuất | Kiểm |
+|---|---|---|---|
+| `trung-ga.sell` | 26 | **32** | mua thức ăn 48 > 32 × 1,15 = 36,8 ⇒ vẫn lỗ |
+| `sua.sell` | 58 | **72** | 2 × 48 = 96 > 72 × 1,15 = 82,8 ⇒ vẫn lỗ; bơ 192 > 172,5; phô mai 288 > 276 |
+
+Lãi / giờ với thức ăn tự làm: gà 100 → ~190 xu, bò 145 → ~250 xu. `test/animals.test.mjs` chạy chính `MARKET.assertEconomy()` với giá đề xuất (đổi tạm thể hiện `catalog.js` mà `market.js` dùng, rồi khôi phục): 0 vi phạm.
+Cũng trong `catalog.js` khi ghép: `sua.producer = { kind: "animal", id: "bo-sua" }`, `source` của trứng / sữa bỏ "(sắp có)". `ANIMAL_REF` giữ `id: "bo"` cũng được (data/animals.js tra qua trường `ref`); nếu đổi thành `"bo-sua"` thì sửa `ref` trong `data/animals.js`.
+
+## Wiring (cho lead)
+
+### 1. `core/apply.js`
+```js
+import { bindM4, m4Sync, m4Track, m4InvariantError } from "./m4-handlers.js";
+import { bag, wallet } from "./inventory.js";
+import { addXp } from "./progression.js";
+const M4DEPS = { bag, wallet, addXp,
+  // tuỳ chọn — bỏ ⇒ core/animals.js đọc s.buildings["chuong-ga"].level theo capacityByLevel
+  capacity: (s, kind, now) => { const e = effectsOf(s, now); return kind === "ga" ? e.chickenCap ?? 0 : e.cowCap ?? 0; },
+  isBuilt: (s, id, now) => build.isBuilt(s, id, now) };   // M3
+const HANDLERS = { ...hiện có, ...bindM4(M4DEPS) };
+// buyAnimal{kind} feedAnimal{uid} feedAll{kind?} collectAnimal{uid} collectAllAnimals{kind?} talkNpc{npc}
+// claimProgressQuest{id} claimChainStep{npc, step} claimBoardQuest{uid}
+function sync(s, now, events) { ...hiện có; m4Sync(s, now, events, M4DEPS); }
+// trong apply(), sau handler + sync lần 2:
+quests.track(draft, events);
+m4Track(draft, events, now, M4DEPS); // MỘT lần mỗi action, cả tick. Gán s.lastDeliveryAt = now khi có "delivered".
+// invariantError(): thêm  const m = m4InvariantError(s); if (m) return m;
+```
+XP (thu trứng / sữa, nhận nhiệm vụ) đi qua `addXp` ⇒ có `levelUp`. Thưởng trang trí vào `s.decor`.
+
+### 2. `core/state.js` (save)
+- `createState`: `ensureM4(s, null, now)` ⇒ `animals = { list: [], nextUid: 1 }`, `village = createVillage()`, `lastDeliveryAt = null`.
+- `loadSave`: sau các field khác gọi `ensureM4(s, d, now)` (sanitize cả hai, đổi `bo` → `bo-sua`, bỏ `lastDeliveryAt` ở tương lai). Không bắt buộc tăng `SAVE_VERSION` (thiếu field ⇒ tạo mới); nếu muốn v6 thì thêm 6 vào `READABLE_VERSIONS` và giữ đọc v5.
+- **`loadOrder` phải nhận món chăn nuôi:** hiện chỉ cho nông sản hoặc thành phẩm máy ⇒ đơn có `trung-ga` / `sua` bị bỏ khi tải lại. Đổi điều kiện thành
+  `CROP[id] ? cropUnlocked(s, id) : ITEM[id].cat === "chan-nuoi" || (ITEM[id].producer.kind === "machine" && ITEM[id].cat === "thanh-pham")`.
+
+### 3. Sự kiện
+Đếm nhiệm vụ: `delivered{npc, orderType, items}` (đã sửa) · `harvested{crop}` · `planted` · `sold{count, items}` (chợ M2 `marketSell` phải phát `sold` có `count`) · `jobCollected{machine, recipe, item, qty}` mỗi ô · `animalBought / animalFed / animalCollected` · `npcTalked{npc, line}`.
+Sự kiện mới cho `feedback()` của game.js: `animalBought animalFed animalCollected npcTalked villageQuestDone villageQuestClaimed boardRefilled friendUp chainComplete` (cảnh tự xử lý hiệu ứng + toast khi đang mở; khi ở bản đồ nên toast `villageQuestDone`).
+Mã lỗi mới cho `fail()`: `no-housing capacity feed not-hungry not-ready none give-stock` — mỗi cảnh có `errorText(code)` trả câu tiếng Việt.
+
+### 4. game.js — gắn hai cảnh
+```js
+import { createAnimalsScene } from "./ui/scene-animals.js";
+import { createVillageScene } from "./ui/scene-village.js";
+import { createTruck } from "./ui/truck.js";
+import { tutorialDone } from "./core/village.js";
+const m4ctx = { ...sceneCtx, host: document.querySelector(".wrap"), onBack: () => goScene("farm"),
+  rulesCtx: () => ({ level: s.level, seed: s.seed, buildings: s.buildings, tutorialDone: tutorialDone(s),
+    capacity: (k) => M4DEPS.capacity(s, k, now()), hasBuilding: (id) => M4DEPS.isBuilt(s, id, now()) }) };
+const animals = createAnimalsScene(m4ctx), village = createVillageScene(m4ctx);
+```
+- Cảnh **tự tạo DOM + `<style>` riêng** (`an-*`, `vl-*`, `m4-*`) trong `host`, không cần markup trong index.html, tự nạp atlas (không dùng `ui/sprites.js` vì `loadSprites()` nhớ một danh sách atlas cố định). API: `show()/hide()` (= `open/close`), `render()`, `onEvents(events, origin)`, `errorText(code)`.
+- `goScene`: thêm `"animals"` / `"village"`, `HASH = { ..., animals: "#chan-nuoi", village: "#lang" }`, ẩn / hiện như workshop / market; `render()` gọi `animals.render(); village.render()` (cảnh ẩn tự bỏ qua).
+- Trong `run()` sau `feedback(r.events, origin)`: `animals.onEvents(r.events, origin); village.onEvents(r.events, origin);`. `fail(code)`: thử `animals.errorText(code) || village.errorText(code)` trước `ERR`.
+- Nút điều hướng: "Chăn nuôi" (khoá + "Cấp 7" khi `s.level < 7`), "Làng" (khoá + "Cấp 6"). Điểm chạm trên bản đồ: chuồng gà / chuồng bò (lô `lo-chuong-ga`, `lo-chuong-bo` khi đã xây) ⇒ `goScene("animals")`; biển Làng (`bien-lang`, auto từ cấp 6) ⇒ `goScene("village")`.
+- Xe giao hàng: `const truck = createTruck(phầnTửỞCổng, { now, lastDeliveryAt: () => s.lastDeliveryAt, level: () => s.level })`; khi có `delivered` gọi `truck.kick()`. Dưới cấp 11 không hiện.
+- "Trong lúc bạn vắng": `A.readyWhileAway(s.animals, s.lastSeen, now)` ⇒ "3 quả trứng".
+
+### 5. Gating `CURRENT_MILESTONE`
+`data/levels.js` đang `CURRENT_MILESTONE = 3`. Khi bật M4 đặt `4` ⇒ `unlocksAt` báo Làng, Chuồng gà, Chuồng bò, Máy bơ sữa, Nồi đường, Nhiệm vụ chuỗi; `orderableProducts` tự cho `bo` / `pho-mai`. Có thể ghép code trước nhưng ẩn nút "Chăn nuôi" / "Làng" và điểm chạm khi `CURRENT_MILESTONE < 4`.
+
+### Trang thử
+`PORT=8805 node server.js` (gốc repo) ⇒ `http://127.0.0.1:8805/games/nong-trai/ui/dev-m4.html` (`#lang` mở Làng). Thanh đỏ: tua giờ (+1 ph … +4 giờ), cấp, xu, thức ăn, hàng trao tay, nâng chuồng, bật / tắt "hướng dẫn M1 xong", sự kiện giả (thu lúa, giao đơn có trứng, nhận mẻ Xưởng, bán). `window.__m4` cho test. E2E: `PORT=8805 node prototype/games/nong-trai/test/e2e-m4.mjs <thư mục>`.
+
+## Đã ghép (Milestone 4 chạy trong game)
+- `core/apply.js`: `M4DEPS` (bag, wallet, addXp, sức chứa chuồng = `build.effects().chickenCap / cowCap`, `isBuilt`), `...bindM4(M4DEPS)` trong HANDLERS,
+  `m4Sync` cuối `sync()`, `m4Track` ngay sau `quests.track` (một lần mỗi action, cả tick ⇒ `lastDeliveryAt`), `m4InvariantError` trong `invariantError`.
+  `rulesCtx(s, now)` (= `m4Ctx`, có `tutorialDone`) dùng chung cho luật và giao diện.
+- Save **v6** (`wgp.nongtrai.v6`): `ensureM4` trong `createState` / `loadSave`; đọc v3–v6, v5 gốc chép sang `wgp.nongtrai.v5.backup`, không xoá khoá cũ.
+  `loadOrder` nhận món `chan-nuoi` ⇒ đơn có trứng / sữa giữ được khi tải lại.
+- `data/levels.js` `CURRENT_MILESTONE = 4` ⇒ chuồng gà (cấp 7) / chuồng bò (cấp 9) xây được, Máy bơ sữa (cấp 12) + Nồi đường (cấp 13) có trong Xưởng.
+- Giá (`data/catalog.js`): trứng 32, sữa 72 (`sua.producer = bo-sua`). Để giữ cả hai luật — chế biến 1,25–1,45× (test/market) và nuôi bằng thức ăn mua
+  luôn lỗ (`MARKET.assertEconomy`) — chỉnh thêm: thức ăn mua 48 → **56**, bánh trứng 160 → 175, bơ 150 → 185, phô mai 240 → 280, bánh flan 330 → 370.
+- Giao diện: nút "Chăn nuôi" / "Làng" (khoá "Cấp 7" / "Cấp 6"), `#chan-nuoi` / `#lang`, chạm chuồng ⇒ Chăn nuôi, chạm biển Làng ⇒ Làng,
+  huy hiệu trứng / sữa chờ thu trên chuồng + số trên nút, "!" trên biển Làng khi có nhiệm vụ chờ nhận, xe Anh Út ở cổng (từ cấp 11, `#truckLane`),
+  thanh nhiệm vụ hiện tiến trình Chăn nuôi k/6 sau sổ M1 + M2 (nút Nhận ⇒ `claimProgressQuest`), "Trong lúc bạn vắng" báo trứng / sữa.
+- Mọi module dùng một thẻ `?v=m4` (kể cả test, tools/sim, trang thử) ⇒ không có hai thể hiện module.
+- Trang thử `ui/dev-m4.html` giữ lại (noindex, không liên kết; `test/e2e-m4.mjs` vẫn xanh). E2E trong game thật: mục 8 của `test/e2e.mjs`.

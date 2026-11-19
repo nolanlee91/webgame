@@ -1,9 +1,9 @@
 // Phân tích kết quả mô phỏng: mục tiêu §3, nguồn thu, khựng, vòng lặp lời vô hạn, lợi nhuận chuỗi A/B/C,
 // dò đường cong XP hợp mục tiêu, và gợi ý chỉnh số (KHÔNG áp dụng — chỉ đề xuất).
 import { CROP, CROPS, ITEM, RECIPE, ANIMAL, MARKET, xpNeed } from "./harness.mjs";
-import { ORDER_TYPES } from "../../data/orders.js?v=m2";
-import { WATER_FACTOR, plotCost } from "../../core/plots.js?v=m2";
-import { BUILDING } from "../../data/buildings.js?v=m3";
+import { ORDER_TYPES } from "../../data/orders.js?v=m4";
+import { WATER_FACTOR, plotCost } from "../../core/plots.js?v=m4";
+import { BUILDING } from "../../data/buildings.js?v=m4";
 import { runBugChecks } from "./bugs.mjs";
 
 /** §3: thời gian CHƠI (phút) mong muốn tới cấp. Cấp 20: 10–12 giờ ⇒ lấy 11 giờ làm điểm giữa. */
@@ -189,12 +189,12 @@ export function recommend(results, extra = {}) {
         (fitCham ? ` Với đường cong đề xuất: "chăm" mở đất phía Đông sau ${fmt(fitCham.firsts["built:dat-phia-dong@1"])} chơi và vẫn kết thúc tuần với ${fitCham.final.coins.toLocaleString("en")} xu.` : "") });
   }
   // 4) vật nuôi lãi thấp hơn 1 ô ruộng
-  const ga = animalTable().find((a) => a.id === "ga"), bo = animalTable().find((a) => a.id === "bo");
+  const ga = animalTable().find((a) => a.id === "ga"), bo = animalTable().find((a) => a.id === "bo-sua");
   const tomato = cropTable().find((c) => c.id === "ca-chua");
   if (ga.profitPerHourFarmFeed < tomato.coinPerPlotMin * 60) {
     recs.push({ priority: 4, file: "data/catalog.js — trung-ga.sell, sua.sell (và ANIMAL_REF); hoặc data/recipes.js thuc-an-gia-suc qty",
       from: `trứng 26, sữa 58; 2 ngô → 3 bao thức ăn`, to: "trứng 32, sữa 72 — hoặc 2 ngô → 4 bao thức ăn",
-      why: `Một con gà lãi ${ga.profitPerHourFarmFeed} xu/giờ, bò ${bo.profitPerHourFarmFeed} xu/giờ (thức ăn tự làm) — kém 1 ô cà chua (${Math.round(tomato.coinPerPlotMin * 60)} xu/giờ chưa tưới). Gà 60 xu cần ~${ga.paybackCycles} chu kỳ mới hoàn vốn. Lý do duy nhất để nuôi là nhiệm vụ / bánh. Kiểm lại MARKET.assertEconomy() sau khi đổi (mua thức ăn 48 → bán trứng phải còn lỗ).` });
+      why: `Một con gà lãi ${ga.profitPerHourFarmFeed} xu/giờ, bò ${bo.profitPerHourFarmFeed} xu/giờ (thức ăn tự làm) — kém 1 ô cà chua (${Math.round(tomato.coinPerPlotMin * 60)} xu/giờ chưa tưới). Gà 60 xu cần ~${ga.paybackCycles} chu kỳ mới hoàn vốn. Lý do duy nhất để nuôi là nhiệm vụ / bánh. Kiểm lại MARKET.assertEconomy() sau khi đổi (mua thức ăn 56 → bán trứng phải còn lỗ).` });
   }
   // 5) vật liệu Nhà kính
   const greenhouse = BUILDING["nha-kinh"].levels[0];

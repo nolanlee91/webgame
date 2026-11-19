@@ -1,28 +1,31 @@
-// Trạng thái nông trại: tạo mới, đọc + kẹp bản lưu v5 (và v3 / v4 ⇒ di chuyển lên v5), di chuyển bản lưu v2. Thuần, nhận `now`.
+// Trạng thái nông trại: tạo mới, đọc + kẹp bản lưu v6 (và v3 / v4 / v5 ⇒ di chuyển lên v6), di chuyển bản lưu v2. Thuần, nhận `now`.
 // v4 (Milestone 2) thêm: production (Xưởng), buildings.xuong (công trình Xưởng), decor (túi trang trí). Giá chợ suy ra từ thời gian, không lưu.
 // v5 (Milestone 3) thêm: buildings đủ loại (core/build.js), decorPlaced (đồ đặt trên bản đồ), plots 43 ô (25 ruộng + 9 phía Đông + 9 Nhà kính).
 //   Sức chứa kho suy ra từ công trình Nhà kho: s.warehouse chỉ là bản sao mốc kho (core/construct.js applyEffects), không đọc từ save v5.
 //   Di chuyển v3/v4: s.warehouse ≥ 1 (đã nâng kho bằng xu) ⇒ Nhà kho coi như đã xây, level = mốc + 1 (build.migrate) — không ai mất sức chứa.
-import { CROP, CROPS } from "../data/crops.js?v=m3b";
-import { ITEM, isDecor } from "../data/catalog.js?v=m3b";
-import { WORKSHOP } from "../data/workshop.js?v=m3b";
-import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m3b";
-import { MACHINES_NOW } from "./workshop.js?v=m3b";
-import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m3b";
-import { applyEffects } from "./construct.js?v=m3b";
-import { NPC } from "../data/npcs.js?v=m3b";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m3b";
-import { UPGRADES } from "../data/decor.js?v=m3b";
-import { QUESTS, TUTORIAL } from "../data/quests.js?v=m3b";
+// v6 (Milestone 4) thêm: animals (đàn gà / bò, core/animals.js), village (thân thiết, nhiệm vụ làng, core/village.js), lastDeliveryAt
+//   (xe giao hàng). Save cũ thiếu field ⇒ tạo mới (core/m4-handlers.js ensureM4). Đơn có trứng / sữa giữ được khi tải lại.
+import { CROP, CROPS } from "../data/crops.js?v=m4";
+import { ITEM, isDecor } from "../data/catalog.js?v=m4";
+import { WORKSHOP } from "../data/workshop.js?v=m4";
+import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m4";
+import { MACHINES_NOW } from "./workshop.js?v=m4";
+import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m4";
+import { applyEffects } from "./construct.js?v=m4";
+import { NPC } from "../data/npcs.js?v=m4";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
+import { UPGRADES } from "../data/decor.js?v=m4";
+import { QUESTS, TUTORIAL } from "../data/quests.js?v=m4";
 const TUTORIAL_LENGTH = TUTORIAL.length;
-import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m3b";
-import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m3b";
-import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m3b";
-import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m3b";
+import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m4";
+import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m4";
+import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m4";
+import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m4";
+import { ensureM4 } from "./m4-handlers.js?v=m4";
 
-export const SAVE_VERSION = 5;
-/** Phiên bản đọc được (v3 = Milestone 1, chưa có Xưởng; v4 = Milestone 2, chưa có xây dựng đầy đủ). */
-export const READABLE_VERSIONS = [3, 4, 5];
+export const SAVE_VERSION = 6;
+/** Phiên bản đọc được (v3 = Milestone 1, chưa có Xưởng; v4 = Milestone 2, chưa có xây dựng đầy đủ; v5 = Milestone 3, chưa có chăn nuôi / làng). */
+export const READABLE_VERSIONS = [3, 4, 5, 6];
 export const START_COINS = 24;
 export const SKIP_TUTORIAL_LEVEL = 3; // bản lưu cũ đã cấp ≥ 3 ⇒ bỏ qua hướng dẫn
 
@@ -45,6 +48,7 @@ export function createState(now = 0, seed = (now >>> 0) ^ 0x9e3779b9) {
     stats: { harvested: 0, earned: 0, delivered: 0 },
   };
   s.orders.slots = FIRST_ORDERS.map((o) => ({ rev: 0, order: makeOrder(s, o, now), refillAt: now }));
+  ensureM4(s, null, now); // animals, village, lastDeliveryAt (Milestone 4)
   return s;
 }
 
@@ -88,7 +92,8 @@ function loadOrder(s, o, slot, now) {
   const items = {};
   if (!o.items || typeof o.items !== "object") return null;
   for (const id of Object.keys(o.items)) {
-    const okItem = ITEM[id] && (CROP[id] ? cropUnlocked(s, id) : ITEM[id].producer.kind === "machine" && ITEM[id].cat === "thanh-pham");
+    // nông sản đã mở · trứng / sữa (Milestone 4) · thành phẩm máy
+    const okItem = ITEM[id] && (CROP[id] ? cropUnlocked(s, id) : ITEM[id].cat === "chan-nuoi" || (ITEM[id].producer.kind === "machine" && ITEM[id].cat === "thanh-pham"));
     if (!okItem) return null; // món chưa mở / lạ ⇒ bỏ đơn, ô sẽ sinh đơn mới
     items[id] = int(o.items[id], 1, 99, 1);
   }
@@ -131,7 +136,7 @@ function loadWorkshop(s, d, now) {
   }
 }
 
-/** Đọc bản lưu v4 — hoặc v3 của Milestone 1 (di chuyển: thêm Xưởng trống, túi trang trí). Hỏng / sai phiên bản ⇒ null. Mọi số kẹp về khoảng hợp lệ. */
+/** Đọc bản lưu v6 — hoặc v5 / v4 / v3 (di chuyển: Xưởng trống, túi trang trí, Nhà kho, đàn / làng trống). Hỏng / sai phiên bản ⇒ null. Mọi số kẹp về khoảng hợp lệ. */
 export function loadSave(raw, now) {
   const d = parse(raw);
   if (!d || typeof d !== "object" || !READABLE_VERSIONS.includes(d.v) || !Array.isArray(d.plots)) return null;
@@ -179,6 +184,7 @@ export function loadSave(raw, now) {
   s.orders.slots = slots.map((x, k) => slotFrom(x, k));
   if (s.level >= SPECIAL_LEVEL && o.special) s.orders.special = slotFrom(o.special, "special");
   s.orders.nextId = Math.max(int(o.nextId, 1, MAX_REV, 1), ...[...ids].map((id) => id + 1));
+  ensureM4(s, d, now); // đàn (kind "bo" cũ ⇒ "bo-sua"), làng, lastDeliveryAt không ở tương lai
   return s;
 }
 
@@ -212,7 +218,7 @@ export function migrateV2(raw, now) {
   return s;
 }
 
-/** Tên cũ (Milestone 1) — đọc v3, v4, v5. */
+/** Tên cũ (Milestone 1) — đọc v3, v4, v5, v6. */
 export const loadV3 = loadSave;
 
 export const dump = (s, now) => JSON.stringify({ ...s, lastSeen: now });

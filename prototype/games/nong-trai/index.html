@@ -114,7 +114,7 @@
 
     /* khay hạt giống */
     .farm-controls { width: min(100%, 1000px); background: #201c12; padding: 5px; }
-    .farm-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 9px; }
+    .farm-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 9px; }
     .farm-nav button { min-width: 0; padding-inline: 3px; font-size: clamp(10px, 2.7vw, 14px); white-space: nowrap; }
     .farm-nav button[aria-pressed="true"] { background: #485832; --b: #9aa761; }
     .farm-panel { margin: 5px; padding: 6px; }
@@ -263,7 +263,7 @@
       .wh-item .it { --sz: 40px; }
       .wh-btns { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
     }
-    @media (max-width: 520px) { .farm-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tools .btn { padding-inline: 8px; } }
+    @media (max-width: 520px) { .farm-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; } .tools .btn { padding-inline: 8px; } }
     @media (max-width: 520px) { .tag { display: none; } .bar { white-space: nowrap; } }
     @media (max-width: 360px) {
       .farm-nav button { font-size: 9px; letter-spacing: 0; }
@@ -295,6 +295,16 @@
     .scene-top { display: flex; align-items: center; gap: 14px; }
     .scene-top h2 { margin: 0; font: 800 20px/1.1 "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
     body[data-scene="workshop"] .farm-world, body[data-scene="market"] .farm-world { display: none; }
+    /* Milestone 4: cảnh Chăn nuôi / Làng (ui/scene-animals.js, ui/scene-village.js tự chèn style riêng) nằm ở vùng "world" */
+    .an-scene, .vl-scene { grid-area: world; min-width: 0; }
+    body[data-scene="animals"] .farm-world, body[data-scene="village"] .farm-world { display: none; }
+    .farm-nav button { position: relative; }
+    .farm-nav button small { display: block; margin-top: 1px; font-size: 10px; line-height: 1; color: var(--soft); font-weight: 700; }
+    .farm-nav button.is-locked { opacity: .78; }
+    .nav-badge { position: absolute; top: -7px; right: -5px; min-width: 20px; height: 20px; padding: 0 4px; display: grid; place-items: center; background: var(--red); color: #fff;
+      font: 800 11px/1 "Be Vietnam Pro", system-ui; box-shadow: 0 0 0 2px #3a1410; pointer-events: none; }
+    .truck-lane { position: absolute; z-index: 2; pointer-events: none; }
+    .farm-map[data-truck="busy"] .bld[data-id="xe-giao-hang"] { visibility: hidden; }
 
     /* Xưởng: tường gỗ + chân tường, sàn gỗ A/B, máy dọc tường */
     .ws-room { position: relative; --b: #2a1a0e; box-shadow: var(--border), var(--drop); background: #4a3120; }
@@ -395,7 +405,7 @@
     @media (prefers-reduced-motion: reduce) { .mach-badge, .slot--done, .recipe-card { animation: none; } .fx { display: none; } }
     @media (max-width: 900px) { .mk-cols { grid-template-columns: minmax(0, 1fr); } }
     @media (max-width: 760px) {
-      .farm-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .farm-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
       .ws-wall { height: 104px; }
       .ws-deco--win1, .ws-deco--win2 { width: 64px; height: 64px; top: 10px; } .ws-deco--shelf { display: none; }
       .ws-plate { position: relative; top: auto; left: auto; transform: none; margin: -30px 8px 0; width: auto; max-width: none; }
@@ -545,6 +555,8 @@
           <img class="world-art world-flowers--upgrade1" data-art="150,204,70" src="assets/garden/flowers.webp" alt="">
           <img class="world-art world-flowers--upgrade2" data-art="704,506,58" src="assets/garden/flowers.webp" alt="">
           <div class="bld-layer" id="bldLayer"></div>
+          <!-- Milestone 4: xe giao hàng của Anh Út chạy qua cổng sau mỗi lần giao đơn (từ cấp 11) — ui/truck.js -->
+          <div class="truck-lane" id="truckLane" data-art="290,0,380,116" aria-hidden="true"></div>
           <div class="decor-layer" id="decorLayer" aria-hidden="true"></div>
           <span id="saleReward" class="sale-reward" aria-hidden="true" hidden></span>
           <div class="field" id="field" role="group" aria-label="Ruộng 5 × 5"></div>
@@ -563,6 +575,8 @@
           <button class="btn" id="upgradeTool" aria-pressed="false" type="button">Nâng cấp</button>
           <button class="btn" id="workshopTool" type="button">Xưởng</button>
           <button class="btn" id="marketTool" type="button">Chợ</button>
+          <button class="btn" id="animalsTool" type="button">Chăn nuôi</button>
+          <button class="btn" id="villageTool" type="button">Làng</button>
         </nav>
         <div class="seeds" id="seeds" role="radiogroup" aria-label="Hạt giống"></div>
         <p class="farm-panel" id="waterHint" hidden>Chạm vào cây đang lớn để tưới. Mỗi cây tưới được một lần.</p>
@@ -665,7 +679,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m3b";
+    import { mount } from "./game.js?v=m4";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

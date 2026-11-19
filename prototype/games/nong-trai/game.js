@@ -1,11 +1,14 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m3b";
-import { browserStorage, farmSave } from "./save.js?v=m3b";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m3b";
-import { createMarketScene } from "./ui/scene-market.js?v=m3b";
-import { loadSprites, playFx } from "./ui/sprites.js?v=m3b";
-import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m3b";
+import * as L from "./logic.js?v=m4";
+import { browserStorage, farmSave } from "./save.js?v=m4";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m4";
+import { createMarketScene } from "./ui/scene-market.js?v=m4";
+import { loadSprites, playFx } from "./ui/sprites.js?v=m4";
+import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m4";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m4";
+import { createVillageScene } from "./ui/scene-village.js?v=m4";
+import { createTruck } from "./ui/truck.js?v=m4";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
@@ -113,6 +116,16 @@ const ERR_M2 = {
   "empty-stock": "Không còn hàng này để bán.", requires: "Cần công trình khác trước.", bad: "Không làm được.",
 };
 const M2_ACTIONS = new Set(["buildWorkshop", "upgradeWorkshop", "buildMachine", "upgradeMachine", "enqueue", "collect", "collectAll", "marketSell", "marketBuy"]);
+/** Lỗi chăn nuôi / làng (Milestone 4) — cảnh tự có errorText(code) cho vài mã, còn lại ở đây. */
+const ERR_M4 = {
+  locked: "Chưa đủ cấp.", "no-housing": "Cần xây chuồng trước (nút Xây trên bản đồ).", capacity: "Chuồng đã đầy — nâng chuồng để thêm chỗ.", coins: "Chưa đủ xu.",
+  feed: "Hết thức ăn gia súc — Cối xay: 2 ngô → 3 bao, hoặc mua ở Khu chợ.", "not-hungry": "Con này đang no.", "not-ready": "Chưa có gì để thu.",
+  "not-found": "Không thấy con vật này.", none: "Không con nào đang đói.", full: "Kho và giỏ tràn đều đầy — bán bớt rồi thu tiếp.",
+  "give-stock": "Chưa đủ hàng để trao.", "quest-incomplete": "Nhiệm vụ chưa xong.", "quest-claimed": "Đã nhận thưởng nhiệm vụ này.", bad: "Không làm được.",
+};
+const M4_ACTIONS = new Set(["buyAnimal", "feedAnimal", "feedAll", "collectAnimal", "collectAllAnimals", "talkNpc", "claimProgressQuest", "claimChainStep", "claimBoardQuest"]);
+/** Cấp mở Khu chăn nuôi (gà, data/animals.js). */
+const ANIMALS_LEVEL = Math.min(...L.ANIMALS.map((a) => a.level));
 const npcOf = (id) => L.NPC[id] || L.NPCS[0];
 /** Icon vật phẩm từ assets/v3/items.webp (CSS background-position, nearest-neighbour). */
 function iconHtml(id, cls = "") {
@@ -146,6 +159,8 @@ export function mount(root, ctx = {}) {
     ovBuild: $("ovBuild"), buildBody: $("buildBody"), buildOk: $("buildOk"), buildCancel: $("buildCancel"), buildEnter: $("buildEnter"), buildTitle: $("buildTitle"),
     buildBtn: $("buildBtn"), buildBar: $("buildBar"), pan: $("panBtn"), buildExit: $("buildExit"), fieldEast: $("fieldEast"),
     ovDecor: $("ovDecor"), decorBody: $("decorBody"), ovGh: $("ovGreenhouse"), ghSeeds: $("ghSeeds"), ghGrid: $("ghGrid"), ghNote: $("ghNote"), ghClose: $("ghClose"),
+    animalsTool: $("animalsTool"), villageTool: $("villageTool"), truckLane: $("truckLane"), farmMap: $("farmMap"),
+    coopBadge: $("coopBadge"), barnBadge: $("barnBadge"), villageBadge: $("villageBadge"),
     quest: $("quest"), qFace: $("qFace"), qStep: $("qStep"), qTitle: $("qTitle"), qHint: $("qHint"), qBar: $("qBar"), qProg: $("qProg"), qReward: $("qReward"), qClaim: $("qClaim"),
   };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-kim-cuong", "qua-man", "trung-da", "thang"], sdk);
@@ -154,7 +169,7 @@ export function mount(root, ctx = {}) {
   let s = save.read(now()).state;
   const fresh = first.fresh, migrated = first.migrated;
   let mode = "seed", pick = L.FIELD_CROPS[0].id, cursor = 12, confirmAt = -1, confirmT = 0, toastT = 0, tickTimer = 0, secTimer = 0;
-  let cancelArm = null, cancelT = 0, rewardTimer = 0, scene = "farm", lastFinished = 0, workshop = null, market = null;
+  let cancelArm = null, cancelT = 0, rewardTimer = 0, scene = "farm", lastFinished = 0, workshop = null, market = null, animals = null, village = null, truck = null;
   let buildMode = false, cardFor = null, decorFor = null, ghPick = "mia";
 
   // ---------- dựng DOM ----------
@@ -203,6 +218,7 @@ export function mount(root, ctx = {}) {
     if (r.err) { fail(r.err, action); render(); return null; }
     persist();
     feedback(r.events, origin);
+    animals?.onEvents(r.events, origin); village?.onEvents(r.events, origin); // cảnh Milestone 4: hiệu ứng + toast riêng khi đang mở
     render();
     return r;
   }
@@ -253,7 +269,7 @@ export function mount(root, ctx = {}) {
   /** fx.webp tại phần tử bất kỳ (tính theo khung bản đồ / cảnh đang mở). */
   function fxOn(el, kinds, text, color, size = 64) {
     if (!el) return;
-    const host = scene === "workshop" ? ui.wsRoot : scene === "market" ? ui.mkRoot : ui.farm;
+    const host = scene === "workshop" ? ui.wsRoot : scene === "market" ? ui.mkRoot : scene === "animals" ? animals.root : scene === "village" ? village.root : ui.farm;
     const r = el.getBoundingClientRect(), h = host.getBoundingClientRect();
     const x = r.left - h.left + r.width / 2, y = r.top - h.top + r.height / 2;
     for (const k of kinds) playFx(host, k, x, y, size);
@@ -298,6 +314,7 @@ export function mount(root, ctx = {}) {
           msgs.push(`${npcOf(e.npc).name} đã nhận hàng: +${fmtNum(e.coins)} xu, +${e.xp} XP` +
             (Object.keys(e.materials).length ? `, ${Object.entries(e.materials).map(([m, q]) => `${q} ${L.ITEM[m].name}`).join(", ")}` : "") + ".");
           sdk.reportScore?.(s.stats.earned);
+          truck?.kick(); markTruck(); // xe Anh Út ghé cổng (từ cấp 11)
           break;
         case "orderCancelled": msgs.push(e.slot === "special" ? "Đã bỏ đơn đặc biệt." : "Đã bỏ đơn. Đơn mới sau 2 phút."); sound ??= ["buoc-nhay", 0.4, 0.8]; break;
         case "orderNew": if (origin.tick) { pulse(ui.board); pulse(ui.orderTool); } break;
@@ -348,6 +365,16 @@ export function mount(root, ctx = {}) {
         case "bought": sound = ["qua-man", 0.55, 1.2]; fxOn(origin.el, ["lap-lanh"], `−${fmtNum(e.coins)} xu`, "#ffe9a8");
           msgs.push(`Đã mua ${e.count} ${L.ITEM[e.id].name} (−${fmtNum(e.coins)} xu)${L.isDecor(e.id) ? " — cất trong túi trang trí" : ""}.`); break;
         case "levelUp": { sound = ["qua-man", 0.8]; const u = unlockNames(e.level); msgs.push(`Lên cấp ${e.level}!` + (u.length ? ` Mở khoá: ${u.join(", ")}.` : "")); break; }
+        // Milestone 4 — cảnh Chăn nuôi / Làng tự phát hiệu ứng + toast khi đang mở; ở bản đồ thì báo ở đây
+        case "villageQuestDone":
+          sound ??= ["trung-kim-cuong", 0.6, 1.2];
+          if (scene !== "village") { pulse(ui.villageTool); msgs.push(`Nhiệm vụ làng xong: ${e.title} — ${e.scope === "progression" ? "bấm “Nhận” ở thanh nhiệm vụ" : "vào Làng để nhận thưởng"}.`); }
+          if (e.scope === "progression") pulse(ui.quest);
+          break;
+        case "villageQuestClaimed":
+          if (scene !== "village") { sound = ["qua-man", 0.7]; msgs.push(`Nhận thưởng: ${e.title}` + (e.reward?.coins ? ` +${fmtNum(e.reward.coins)} xu` : "") + (e.reward?.xp ? `, +${e.reward.xp} XP` : "") + "."); }
+          break;
+        case "animalCollected": if (scene !== "animals") { sound ??= ["trung-kim-cuong", 0.7]; msgs.push(`+${e.qty} ${L.ITEM[e.item].name}.`); } break;
       }
     }
     if (sound) sfx.play(...sound);
@@ -478,10 +505,31 @@ export function mount(root, ctx = {}) {
     setHtml(ui.slips, html);
   }
 
+  /** Milestone 4: hết sổ hướng dẫn + tiến trình M2 ⇒ thanh nhiệm vụ hiện nhiệm vụ tiến trình chăn nuôi của Chị Ba (core/village.js). */
+  function renderVillageQuest() {
+    const lg = L.villageLog(s.village, L.rulesCtx(s, now()), L.bag(s)), q = lg.progression, nx = lg.progressionNext;
+    const k = L.VILLAGE_PROGRESSION.findIndex((x) => x.id === (q || nx)?.id);
+    ui.quest.hidden = k < 0;
+    if (k < 0) return;
+    const def = L.VILLAGE_PROGRESSION[k], done = !!q?.claimable;
+    ui.qStep.textContent = `Chị Ba · Chăn nuôi ${k + 1}/${L.VILLAGE_PROGRESSION.length}`;
+    ui.qTitle.textContent = def.title;
+    ui.qHint.textContent = done ? "Xong rồi! Bấm “Nhận” để lấy thưởng." : q ? def.hint : `Lên cấp ${def.minLevel} để bắt đầu — giao đơn và chế biến để lấy kinh nghiệm.`;
+    const p = q ? Math.min(q.progress, q.count) : 0, n = q ? q.count : def.count;
+    ui.qBar.style.width = Math.round((100 * p) / n) + "%";
+    ui.qProg.textContent = q ? `${p}/${n}` : `Cấp ${s.level}/${def.minLevel}`;
+    const r = def.reward;
+    ui.qReward.innerHTML = `${iconHtml("dong-xu", "it--sm")}${r.coins || 0}` + (r.xp ? ` ${iconHtml("sao-xp", "it--sm")}${r.xp}` : "") +
+      Object.entries(r.items || {}).map(([id, c]) => ` ${iconHtml(id, "it--sm")}${c}`).join("");
+    ui.qClaim.hidden = !done;
+    ui.qClaim.dataset.id = def.id; ui.qClaim.dataset.kind = "village";
+    ui.quest.classList.toggle("done", done);
+  }
   function renderQuest() {
     const q = L.currentQuest(s);
-    ui.quest.hidden = !q;
-    if (!q) return;
+    if (!q) return renderVillageQuest();
+    ui.quest.hidden = false;
+    ui.qClaim.dataset.kind = "";
     const done = L.questComplete(s), k = L.QUESTS.indexOf(q);
     const tut = k < L.TUTORIAL.length;
     ui.qStep.textContent = tut ? `Chị Ba · Nhiệm vụ ${k + 1}/${L.TUTORIAL.length}` : `Chị Ba · Tiến trình ${k - L.TUTORIAL.length + 1}/${L.PROGRESSION.length}`;
@@ -591,6 +639,49 @@ export function mount(root, ctx = {}) {
     if (cardFor && !ui.ovBuild.hidden) renderBuildCard(t, true);
     return layout;
   }
+  // ---------- Milestone 4: nút điều hướng + huy hiệu Chăn nuôi / Làng, xe giao hàng ----------
+  let lastAnimalsReady = -1;
+  const navHtml = (name, locked, badge) => esc(name) + (locked ? `<small>Cấp ${locked}</small>` : "") + (badge ? `<span class="nav-badge">${esc(badge)}</span>` : "");
+  function renderM4(t) {
+    const rc = L.rulesCtx(s, t), st = L.animalStatus(s.animals, t, rc);
+    const egg = st.kinds.ga?.ready || 0, milk = st.kinds["bo-sua"]?.ready || 0, ready = egg + milk;
+    const aLocked = s.level < ANIMALS_LEVEL, vLocked = s.level < L.VILLAGE_LEVEL;
+    setHtml(ui.animalsTool, navHtml("Chăn nuôi", aLocked && ANIMALS_LEVEL, !aLocked && ready ? String(ready) : ""));
+    ui.animalsTool.classList.toggle("is-locked", aLocked);
+    ui.animalsTool.setAttribute("aria-label", aLocked ? `Chăn nuôi — mở ở cấp ${ANIMALS_LEVEL}` : ready ? `Chăn nuôi — ${egg ? egg + " trứng" : ""}${egg && milk ? ", " : ""}${milk ? milk + " sữa" : ""} chờ thu` : "Chăn nuôi");
+    ui.coopBadge.hidden = !egg; ui.coopBadge.textContent = egg ? String(egg) : "";
+    ui.barnBadge.hidden = !milk; ui.barnBadge.textContent = milk ? String(milk) : "";
+    const lg = vLocked ? null : L.villageLog(s.village, rc, L.bag(s));
+    const claim = lg ? (lg.progression?.claimable ? 1 : 0) + lg.board.filter((q) => q.claimable).length + lg.chains.filter((c) => c.quest?.claimable && !c.locked).length : 0;
+    setHtml(ui.villageTool, navHtml("Làng", vLocked && L.VILLAGE_LEVEL, claim ? "!" : ""));
+    ui.villageTool.classList.toggle("is-locked", vLocked);
+    ui.villageTool.setAttribute("aria-label", vLocked ? `Làng — mở ở cấp ${L.VILLAGE_LEVEL}` : claim ? `Làng — ${claim} nhiệm vụ chờ nhận thưởng` : "Làng");
+    ui.villageBadge.hidden = !claim; ui.villageBadge.textContent = claim ? "!" : "";
+    if (lastAnimalsReady >= 0 && ready > lastAnimalsReady && scene !== "animals") {
+      toast(`${egg ? `${egg} trứng gà` : ""}${egg && milk ? " · " : ""}${milk ? `${milk} sữa` : ""} đã sẵn sàng — vào Chăn nuôi để thu!`, 3000);
+      sfx.play("trung-kim-cuong", 0.35, 1.2); pulse(ui.animalsTool);
+    }
+    lastAnimalsReady = ready;
+  }
+  /** Xe Anh Út đang chạy qua cổng ⇒ ẩn xe đứng yên trên bản đồ (khỏi thấy 2 xe), giữ vòng vẽ chạy. */
+  function markTruck() {
+    if (!truck) return;
+    const busy = truck.phase !== "idle";
+    const v = busy ? "busy" : "";
+    const changed = ui.farmMap.dataset.truck !== v;
+    if (changed) ui.farmMap.dataset.truck = v;
+    if (busy || changed) truck.kick(); // vừa hết lượt ⇒ vẽ thêm 1 khung để xoá canvas (vòng rAF có thể đã dừng khi tab bị ẩn / chụp ảnh)
+  }
+  function openAnimals() {
+    if (s.level < ANIMALS_LEVEL) { toast(`Chăn nuôi mở ở cấp ${ANIMALS_LEVEL} — giao đơn, chế biến để lên cấp.`); sfx.play("trung-da", 0.3); return; }
+    if (buildMode) setBuildMode(false, true);
+    goScene("animals");
+  }
+  function openVillage() {
+    if (s.level < L.VILLAGE_LEVEL) { toast(`Làng mở ở cấp ${L.VILLAGE_LEVEL}.`); sfx.play("trung-da", 0.3); return; }
+    if (buildMode) setBuildMode(false, true);
+    goScene("village");
+  }
   /** Bản đồ rộng hơn khung (khung hẹp / đã mở phía Đông): nút cuộn nhanh sang Đông / về ruộng, nằm ở mép phải khung. */
   function placePan() {
     const f = ui.farm, wide = f.scrollWidth > f.clientWidth + 8;
@@ -615,6 +706,7 @@ export function mount(root, ctx = {}) {
   /** Lối vào công trình đã xây (ngoài chế độ Xây chạm là vào). null ⇒ không có cảnh riêng. */
   function enterOf(id) {
     const t = now();
+    if ((id === "chuong-ga" || id === "chuong-bo") && L.levelOf(s, id, t) >= 1) return { label: "Vào Chăn nuôi", go: () => goScene("animals") };
     if (id === "xuong" && L.workshopState(s, t) === "done") return { label: "Vào Xưởng", go: () => goScene("workshop") };
     if (id === "coi-xay-gio" && L.workshopState(s, t) === "done") return { label: "Vào Xưởng", go: () => goScene("workshop") };
     if (id === "sap-cho") return { label: "Vào Khu chợ", go: () => goScene("market") };
@@ -626,6 +718,7 @@ export function mount(root, ctx = {}) {
   function bldTap(id) {
     const it = fmap.layout?.items.find((x) => x.id === id);
     if (!it) return;
+    if (id === "bien-lang") { openVillage(); return; } // biển Làng (tự hiện từ cấp 6): luôn là lối vào cảnh Làng, cả trong chế độ Xây
     if (!buildMode && L.inMilestone(id) && (it.status === "done" || it.status === "upgradeable")) {
       const e = enterOf(id);
       if (e) { e.go(); return; }
@@ -641,7 +734,8 @@ export function mount(root, ctx = {}) {
       case "dat-phia-dong": return "+9 ô ruộng phía Đông và 1 lô xây — bản đồ mở rộng sang phải";
       case "sap-cho": return "Sạp nhỏ thành quầy chợ hoàn chỉnh (trang trí bản đồ)";
       case "coi-xay-gio": return "Lắp Cối xay trong Xưởng (thức ăn gia súc, bột gạo) — cối xay gió quay cánh trên bản đồ";
-      case "chuong-ga": case "chuong-bo": return "Chăn nuôi " + (id === "chuong-ga" ? "gà (trứng)" : "bò (sữa)") + " — mở trong bản cập nhật sau";
+      case "chuong-ga": return to === 1 ? "Nuôi tối đa <b>6 gà</b> (60 xu / con): cho ăn 1 bao thức ăn gia súc ⇒ 1 trứng sau 4 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng gà chứa <b>${L.BUILDING[id].levels[to - 1].effect.chickenCap} gà</b>`;
+      case "chuong-bo": return to === 1 ? "Nuôi tối đa <b>4 bò sữa</b> (180 xu / con): cho ăn 2 bao thức ăn ⇒ 1 sữa sau 8 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng bò chứa <b>${L.BUILDING[id].levels[to - 1].effect.cowCap} bò</b>`;
       default: return "";
     }
   }
@@ -779,20 +873,26 @@ export function mount(root, ctx = {}) {
   ui.ghClose.onclick = () => { ui.ovGh.hidden = true; fmap.el("nha-kinh")?.focus({ preventScroll: true }); };
 
   // ---------- cảnh ----------
-  const HASH = { workshop: "#xuong", market: "#cho" };
+  const HASH = { workshop: "#xuong", market: "#cho", animals: "#chan-nuoi", village: "#lang" };
   function goScene(next, quiet) {
     if (next === "workshop" && L.workshopState(s, now()) !== "done") next = "farm";
-    if (!["farm", "workshop", "market"].includes(next)) next = "farm";
+    if (next === "animals" && s.level < ANIMALS_LEVEL) next = "farm";
+    if (next === "village" && s.level < L.VILLAGE_LEVEL) next = "farm";
+    if (!["farm", "workshop", "market", "animals", "village"].includes(next)) next = "farm";
     const prev = scene;
     scene = next;
     document.body.dataset.scene = next;
     if (next === "workshop") workshop.show(); else workshop.hide();
     if (next === "market") market.show(); else market.hide();
+    if (next === "animals") animals.show(); else animals.hide();
+    if (next === "village") village.show(); else village.hide();
     try { history.replaceState(null, "", location.pathname + location.search + (HASH[next] || "")); } catch {}
     if (prev !== next) {
       if (!quiet) sfx.play("buoc-nhay", 0.4, next === "farm" ? 0.9 : 1.15);
       window.scrollTo({ top: Math.max(0, document.querySelector(".wrap").offsetTop - 4) });
-      const focus = next === "farm" ? (prev === "workshop" ? ui.lot : ui.market) : document.querySelector(`#${next}Scene [data-back]`);
+      const shown = (id) => { const el = fmap.el(id); return el && !el.hidden ? el : null; };
+      const back = { workshop: ui.lot, market: ui.market, animals: shown("chuong-ga") || shown("chuong-bo") || ui.animalsTool, village: shown("bien-lang") || ui.villageTool };
+      const focus = next === "farm" ? back[prev] || ui.market : document.querySelector(`#${next}Scene [data-back], #${next}Scene [data-act="back"]`);
       if (next !== "farm") buildMode = false;
       focus?.focus({ preventScroll: true });
     }
@@ -810,14 +910,21 @@ export function mount(root, ctx = {}) {
   };
   workshop = createWorkshopScene(sceneCtx); market = createMarketScene(sceneCtx);
   ui.wsRoot = workshop.root; ui.mkRoot = market.root;
+  // Milestone 4: cảnh Chăn nuôi + Làng tự dựng DOM / style trong .wrap (vùng "world"); ctx luật dùng chung với apply() (core/apply.js rulesCtx)
+  const m4ctx = { ...sceneCtx, host: document.querySelector(".wrap"), onBack: () => goScene("farm"), rulesCtx: () => L.rulesCtx(s, now()) };
+  Object.defineProperty(m4ctx, "s", { get: () => s }); // spread chép giá trị getter ⇒ đặt lại getter để luôn đọc trạng thái mới
+  animals = createAnimalsScene(m4ctx); village = createVillageScene(m4ctx);
+  truck = createTruck(ui.truckLane, { now, lastDeliveryAt: () => s.lastDeliveryAt, level: () => s.level });
   loadSprites().then(() => { fmap.invalidate(); render(); });
 
   function render() {
     renderHud();
     renderMap(now());
+    renderM4(now());
     renderGreenhouse();
     workshop?.render();
     market?.render();
+    animals?.render(); village?.render(); // cảnh ẩn tự bỏ qua
     renderWarehouse();
     renderOrders();
     renderQuest();
@@ -829,6 +936,8 @@ export function mount(root, ctx = {}) {
     const t = now();
     for (const el of document.querySelectorAll("[data-until]")) el.textContent = fmtClock(Number(el.dataset.until) - t);
     if (scene === "farm") renderMap(t);
+    renderM4(t);
+    markTruck();
     if (!ui.ovGh.hidden) renderField(t);
     if (scene === "workshop") workshop.render(); else if (scene === "market") market.render();
     const fin = L.finishedJobs(s, t);
@@ -845,7 +954,9 @@ export function mount(root, ctx = {}) {
     if (!L.cropUnlocked(s, id)) { toast(`${L.CROP[id].name} mở khoá ở cấp ${L.CROP[id].level}.`); sfx.play("trung-da", 0.4); return; }
     pick = id; selectMode("seed"); sfx.play("buoc-nhay", 0.3, 1.3); render();
   }
-  function fail(code, action) { toast((M3_ACTIONS.has(action?.type) && ERR_M3[code]) || (M2_ACTIONS.has(action?.type) && ERR_M2[code]) || ERR[code] || ERR_M2[code] || ERR_M3[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
+  function fail(code, action) {
+    if (M4_ACTIONS.has(action?.type)) { toast(animals.errorText(code) || village.errorText(code) || ERR_M4[code] || "Không làm được."); sfx.play("trung-da", 0.4); return; }
+    toast((M3_ACTIONS.has(action?.type) && ERR_M3[code]) || (M2_ACTIONS.has(action?.type) && ERR_M2[code]) || ERR[code] || ERR_M2[code] || ERR_M3[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
   function act(i) {
     const p = s.plots[i], t = now();
     if (!p.open) {
@@ -887,6 +998,8 @@ export function mount(root, ctx = {}) {
   ui.improve.onclick = () => openPanel("upgrade");
   ui.mkTool.onclick = () => goScene("market"); // sạp trên bản đồ: bldTap ⇒ enterOf("sap-cho")
   ui.wsTool.onclick = () => (L.workshopState(s, now()) === "done" ? goScene("workshop") : openBuildCard("xuong"));
+  ui.animalsTool.onclick = () => openAnimals();
+  ui.villageTool.onclick = () => openVillage();
   ui.buildBtn.onclick = () => setBuildMode(!buildMode);
   ui.buildExit.onclick = () => setBuildMode(false);
   ui.pan.onclick = () => {
@@ -929,7 +1042,7 @@ export function mount(root, ctx = {}) {
     cancelArm = null;
     exec({ type: "cancelOrder", slot, id, rev });
   });
-  ui.qClaim.onclick = () => exec({ type: "claimQuest", id: ui.qClaim.dataset.id });
+  ui.qClaim.onclick = () => exec(ui.qClaim.dataset.kind === "village" ? { type: "claimProgressQuest", id: ui.qClaim.dataset.id } : { type: "claimQuest", id: ui.qClaim.dataset.id }, { el: ui.qClaim });
   ui.upgrade.onclick = () => exec({ type: "upgradeFarm" });
   ui.all.addEventListener("click", () => exec({ type: "harvestAll" }));
   function setMuted(m) {
@@ -990,6 +1103,8 @@ export function mount(root, ctx = {}) {
 
   // ---------- chào mừng / vắng mặt ----------
   const away = L.readyWhileAway(s, now()), awayJobs = L.finishedWhileAway(s, now());
+  const awayAnimals = L.animalsReadyWhileAway(s.animals, s.lastSeen, now());
+  const awayGoods = Object.entries(awayAnimals).filter(([, n]) => n > 0).map(([id, n]) => `${n} ${L.ITEM[id].name.toLowerCase()}`);
   lastFinished = L.finishedJobs(s, now());
   mutate(() => {
     const r = L.apply(s, { type: "tick" }, now());
@@ -997,13 +1112,15 @@ export function mount(root, ctx = {}) {
     const built = r.ok ? [...new Set(r.events.filter((e) => e.type === "buildingDone").map((e) => e.name))] : [];
     if (r.ok && r.events.length) { persist(); render(); }
     if (r.ok) feedback(r.events.filter((e) => e.type === "gift" || e.type === "levelUp"));
-    if (HASH.workshop === location.hash) goScene("workshop", true); else if (HASH.market === location.hash) goScene("market", true);
+    const hashScene = Object.keys(HASH).find((k) => HASH[k] === location.hash);
+    if (hashScene) goScene(hashScene, true);
     if (fresh) showHelp(true);
+    else if (migrated && first.from === "v5") toast("Nông trại đã cập nhật: Chăn nuôi (chuồng gà cấp 7, chuồng bò cấp 9) và Làng với 4 người bạn (cấp 6). Tiến trình vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v4") toast("Nông trại đã cập nhật: chế độ Xây (nút búa) — Nhà kho, Nhà kính, Khu đất phía Đông và trang trí trên bản đồ. Tiến trình và kho đã nâng vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v3") toast("Nông trại đã cập nhật: có Xưởng chế biến (từ cấp 4) và Khu chợ với giá đổi theo giờ. Tiến trình cũ vẫn giữ nguyên!", 5200);
     else if (migrated) toast("Nông trại đã được nâng cấp: có Bảng đơn, Nhà kho có sức chứa và nhiệm vụ của Chị Ba. Tiến trình cũ vẫn giữ nguyên!", 5200);
-    else if (away || newOrders || awayJobs || built.length) {
-      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, built.length && `${built.join(", ")} đã xây xong`, newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
+    else if (away || newOrders || awayJobs || built.length || awayGoods.length) {
+      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, awayGoods.length && `${awayGoods.join(", ")} chờ thu ở chuồng`, built.length && `${built.join(", ")} đã xây xong`, newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
       toast(`Trong lúc bạn vắng: ${parts.join(" · ")}.` + (away ? ' Bấm "Thu hết" để gom!' : ""), 4200);
     }
   });
@@ -1013,7 +1130,7 @@ export function mount(root, ctx = {}) {
 
   return {
     destroy() {
-      clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave();
+      clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave(); truck?.destroy(); animals?.hide(); village?.hide();
       window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onVisibility); window.removeEventListener("pagehide", onLeave);
       window.removeEventListener("storage", onStorage); window.removeEventListener("resize", placePan);
     },

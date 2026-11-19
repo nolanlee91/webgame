@@ -2,7 +2,7 @@
 //
 // TRẠNG THÁI (lưu trong save, field `animals`):
 //   animals = {
-//     list: [{ uid, kind, fedAt, readyAt }],   // kind ∈ data/animals.js; fedAt/readyAt = null ⇒ đang đói
+//     list: [{ uid, kind, fedAt, readyAt }],   // kind ∈ data/animals.js ("ga" | "bo-sua"); fedAt/readyAt = null ⇒ đang đói
 //     nextUid: số nguyên ≥ 1,                   // uid tăng dần, không dùng lại
 //   }
 //   Trạng thái hiển thị KHÔNG lưu mà suy ra từ timestamp (đúng cả khi offline bao lâu cũng được):
@@ -21,7 +21,7 @@
 // Hàm trả { ok: true, ..., events: [...] } hoặc { err: "<mã>" }; khi err thì KHÔNG đổi gì (farm, inv, wallet).
 // `events` là sự kiện gợi ý cho apply() đẩy vào danh sách chung (nhiệm vụ ở core/village.js đếm từ đây).
 
-import { ANIMAL, ANIMALS, FEED, HARD_MAX, EAT_ANIM_MS } from "../data/animals.js?v=m4";
+import { ANIMAL, ANIMALS, FEED, HARD_MAX, EAT_ANIM_MS, LEGACY_KIND } from "../data/animals.js?v=m4";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", NO_HOUSING: "no-housing", CAPACITY: "capacity", COINS: "coins", NOT_FOUND: "not-found",
@@ -209,7 +209,7 @@ export function readyWhileAway(farm, lastSeen, now) {
   return out;
 }
 
-/** Kẹp / sửa dữ liệu đọc từ save. Bỏ loại lạ, uid trùng / không nguyên, vượt HARD_MAX mỗi loại;
+/** Kẹp / sửa dữ liệu đọc từ save. Đổi kind cũ "bo" → "bo-sua". Bỏ loại lạ, uid trùng / không nguyên, vượt HARD_MAX mỗi loại;
  *  readyAt luôn tính lại = fedAt + cycleMs theo dữ liệu; fedAt ở tương lai (đồng hồ lùi / sửa save) ⇒ kẹp về now. */
 export function sanitize(raw, now) {
   const farm = createAnimals();
@@ -218,16 +218,29 @@ export function sanitize(raw, now) {
   const seen = new Set(), per = {};
   for (const a of raw.list) {
     if (!a || typeof a !== "object") continue;
-    const def = typeof a.kind === "string" ? ANIMAL[a.kind] : null;
+    // id cũ "bo" (trùng món Bơ) ⇒ "bo-sua"
+    const kind = typeof a.kind === "string" ? (Object.prototype.hasOwnProperty.call(LEGACY_KIND, a.kind) ? LEGACY_KIND[a.kind] : a.kind) : null;
+    const def = kind ? ANIMAL[kind] : null;
     if (!def || !Number.isSafeInteger(a.uid) || a.uid <= 0 || seen.has(a.uid)) continue;
-    if ((per[a.kind] || 0) >= HARD_MAX) continue;
+    if ((per[kind] || 0) >= HARD_MAX) continue;
     seen.add(a.uid);
-    per[a.kind] = (per[a.kind] || 0) + 1;
+    per[kind] = (per[kind] || 0) + 1;
     let fedAt = isTime(a.fedAt) && a.fedAt >= 0 ? a.fedAt : null;
     if (fedAt !== null && isTime(now) && fedAt > now) fedAt = now;
-    farm.list.push({ uid: a.uid, kind: a.kind, fedAt, readyAt: fedAt === null ? null : fedAt + def.cycleMs });
+    farm.list.push({ uid: a.uid, kind, fedAt, readyAt: fedAt === null ? null : fedAt + def.cycleMs });
     if (a.uid >= nextUid) nextUid = a.uid + 1;
   }
   farm.nextUid = nextUid;
   return farm;
+}
+
+/** Sản phẩm vật nuôi trang trại SẢN XUẤT ĐƯỢC (có ≥ 1 con loại đó): { "trung-ga": số quả mỗi chu kỳ, sua: ... }.
+ *  core/orders.js dùng cùng quy tắc (đọc s.animals) để đưa trứng / sữa vào đơn. */
+export function producibleGoods(farm) {
+  const out = {};
+  for (const a of Array.isArray(farm?.list) ? farm.list : []) {
+    const def = ANIMAL[a?.kind];
+    if (def) out[def.product] = (out[def.product] || 0) + def.qty;
+  }
+  return out;
 }

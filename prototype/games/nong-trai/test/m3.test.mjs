@@ -3,18 +3,18 @@
 // công trình Milestone 4 bị từ chối, save v5 + sao lưu.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m3b";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m3b";
-import { capacity } from "../core/inventory.js?v=m3b";
-import { extraSlots } from "../core/workshop.js?v=m3b";
-import { inMilestone } from "../core/construct.js?v=m3b";
-import { mapLayout } from "../core/levels-map.js?v=m3b";
-import { BUILDING } from "../data/buildings.js?v=m3b";
-import { CROP } from "../data/crops.js?v=m3b";
-import { TUTORIAL } from "../data/quests.js?v=m3b";
-import { CURRENT_MILESTONE, LEVELS } from "../data/levels.js?v=m3b";
-import { WAREHOUSE } from "../data/warehouse.js?v=m3b";
-import { farmSave, KEY, V4_KEY, V4_BACKUP_KEY } from "../save.js?v=m3b";
+import { apply } from "../core/apply.js?v=m4";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m4";
+import { capacity } from "../core/inventory.js?v=m4";
+import { extraSlots } from "../core/workshop.js?v=m4";
+import { inMilestone } from "../core/construct.js?v=m4";
+import { mapLayout } from "../core/levels-map.js?v=m4";
+import { BUILDING } from "../data/buildings.js?v=m4";
+import { CROP } from "../data/crops.js?v=m4";
+import { TUTORIAL } from "../data/quests.js?v=m4";
+import { CURRENT_MILESTONE, LEVELS } from "../data/levels.js?v=m4";
+import { WAREHOUSE } from "../data/warehouse.js?v=m4";
+import { farmSave, KEY, V4_KEY, V4_BACKUP_KEY } from "../save.js?v=m4";
 
 const T = 3_000_000, MIN = 60_000;
 const act = (s, a, t = T) => { const r = apply(s, a, t); if (r.err) throw new Error(`${a.type}: ${r.err}`); return r; };
@@ -31,17 +31,21 @@ const memStorage = (init = {}) => {
   return { map: m, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
 };
 
-test("CURRENT_MILESTONE = 3; chuồng gà / chuồng bò (M4) không xây được qua apply, kể cả đủ cấp và đủ tiền", () => {
-  assert.equal(CURRENT_MILESTONE, 3);
+test("CURRENT_MILESTONE = 4: chuồng gà (cấp 7) / chuồng bò (cấp 9) xây được qua apply; dưới cấp ⇒ locked; id lạ ⇒ lỗi", () => {
+  assert.equal(CURRENT_MILESTONE, 4);
   assert.ok(inMilestone("nha-kho") && inMilestone("nha-kinh") && inMilestone("dat-phia-dong") && inMilestone("xuong"));
-  assert.ok(!inMilestone("chuong-ga") && !inMilestone("chuong-bo"));
+  assert.ok(inMilestone("chuong-ga") && inMilestone("chuong-bo"));
+  const low = player(6, 5000), lowBefore = structuredClone(low);
+  assert.equal(err(low, { type: "startBuild", id: "chuong-ga" }), "locked");
+  assert.deepEqual(low, lowBefore, "từ chối ⇒ không đổi gì");
+  const lv9 = player(9, 5000);
+  const r = act(lv9, { type: "startBuild", id: "chuong-ga" });
+  assert.ok(r.events.some((e) => e.type === "buildStarted" && e.id === "chuong-ga" && e.cost === 300));
+  assert.equal(lv9.coins, 4700);
+  act(lv9, { type: "startBuild", id: "chuong-bo" });
+  assert.equal(lv9.coins, 4100);
   const s = player(20);
   const before = structuredClone(s);
-  for (const id of ["chuong-ga", "chuong-bo"]) {
-    assert.equal(err(s, { type: "startBuild", id }), "milestone");
-    assert.equal(err(s, { type: "startUpgrade", id }), "milestone");
-  }
-  assert.deepEqual(s, before, "từ chối ⇒ không đổi gì");
   for (const bad of [{ id: "__proto__" }, { id: "nha" }, { id: 5 }, {}, { id: "bien-lang" }, { id: "coi-xay-gio" }]) assert.ok(err(s, { type: "startBuild", ...bad }));
   assert.deepEqual(s, before);
 });
@@ -92,7 +96,7 @@ test("di chuyển save v4 (M2) đã nâng kho ở cấp 2: Nhà kho level 2, s�
   assert.equal(first.migrated, true); assert.equal(first.from, "v4");
   assert.equal(st.getItem(V4_BACKUP_KEY), raw4); assert.equal(st.getItem(V4_KEY), raw4, "bản v4 gốc vẫn còn");
   assert.equal(JSON.parse(st.getItem(KEY)).v, SAVE_VERSION);
-  assert.equal(SAVE_VERSION, 5);
+  assert.equal(SAVE_VERSION, 6);
   const s = save.read(T + 1000).state;
   assert.equal(s.level, 2);
   assert.deepEqual(s.buildings["nha-kho"], { level: 2, done: true, startAt: T, readyAt: T });

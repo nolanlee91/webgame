@@ -1,14 +1,17 @@
 // Bản đồ nông trại (Milestone 3): vẽ công trình / bản vẽ / giàn giáo / trang trí theo core/levels-map.js mapLayout().
 // Chỉ hiển thị — mọi thay đổi trạng thái đi qua apply() ở game.js (onTap / onSlot gọi ra ngoài).
 // Toạ độ chuẩn hoá theo bản đồ 960 × 600 (data/buildings.js); bản đồ rộng EAST_W lần khi tới cấp 17 / mở Khu đất phía Đông.
-import { frame, sheet as sheetOf } from "./sprites.js?v=m3b";
+import { frame, sheet as sheetOf } from "./sprites.js?v=m4";
 
 const MW = 960, MH = 600;
 const GARDEN = { house: [269, 184], market: [205, 190] }; // kích thước gốc ảnh assets/garden (neo đáy-giữa)
 export const STATUS_TEXT = { locked: "Khoá", available: "Có thể xây", building: "Đang xây", done: "Hoàn thành", upgradeable: "Nâng cấp được" };
 const SPECIAL_ID = { xuong: "workshopLot", "sap-cho": "market", "bang-don-hang": "boardBtn" };
-const NORMAL_TAG = { xuong: "Xưởng chế biến", "sap-cho": "Khu chợ", "bang-don-hang": "Bảng đơn", "nha-kho": "Nhà kho", "nha-kinh": "Nhà kính" };
-const STATIC = new Set(["nha", "bien-lang", "xe-giao-hang"]); // cảnh vật, không chạm
+const NORMAL_TAG = { xuong: "Xưởng chế biến", "sap-cho": "Khu chợ", "bang-don-hang": "Bảng đơn", "nha-kho": "Nhà kho", "nha-kinh": "Nhà kính",
+  "chuong-ga": "Chuồng gà", "chuong-bo": "Chuồng bò", "bien-lang": "Làng" };
+const STATIC = new Set(["nha", "xe-giao-hang"]); // cảnh vật, không chạm (biển Làng chạm được từ Milestone 4 ⇒ cảnh Làng)
+/** Huy hiệu trên công trình (id cũ của M2 giữ nguyên). Milestone 4: trứng / sữa chờ thu trên chuồng, "!" trên biển Làng. */
+const BADGE_ID = { xuong: "wsBadge", "bang-don-hang": "boardBadge", "chuong-ga": "coopBadge", "chuong-bo": "barnBadge", "bien-lang": "villageBadge" };
 
 /** CSS nền cho khung `id` của atlas `sheet` (assets/v3). null khi manifest chưa nạp. */
 export function spriteCss(sheet, id) {
@@ -36,7 +39,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     b.hidden = true;
     b.innerHTML = `<span class="pic"></span><span class="up-arrow" hidden></span><span class="lot-bar"${def.id === "xuong" ? ' id="lotBar"' : ""} hidden><i></i></span>` +
       `<span class="market-tag"${def.id === "xuong" ? ' id="lotTag"' : ""}></span>` +
-      (def.id === "xuong" ? '<span class="badge" id="wsBadge" hidden></span>' : def.id === "bang-don-hang" ? '<span class="badge" id="boardBadge" hidden></span>' : "");
+      (BADGE_ID[def.id] ? `<span class="badge" id="${BADGE_ID[def.id]}" hidden></span>` : "");
     if (!STATIC.has(def.id)) b.addEventListener("click", () => onTap(def.id, b));
     layer.append(b);
     els[def.id] = { b, pic: b.querySelector(".pic"), tag: b.querySelector(".market-tag"), bar: b.querySelector(".lot-bar"), arrow: b.querySelector(".up-arrow"), key: "" };
@@ -85,7 +88,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
   function teaserOf(layout, level) {
     let best = null;
     for (const it of layout.items) {
-      if (it.view !== "locked" || !L.inMilestone(it.id) || it.kind === "machine" || it.area === "east") continue;
+      if (it.view !== "locked" || !L.inMilestone(it.id) || it.kind === "machine" || it.kind === "auto" || it.area === "east") continue;
       if (it.unlockLevel > level && (!best || it.unlockLevel < best.unlockLevel)) best = it;
     }
     return best?.id || null;

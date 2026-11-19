@@ -6,26 +6,26 @@
 // Khác biệt có chủ ý so với bản đang chạy trong trình duyệt (ghi trong README):
 //  - Mọi máy / công trình M2–M4 đều dùng được (không lọc CURRENT_MILESTONE), công trình theo core/build.js (M3).
 //  - Nhà kính: 6 ô thêm vào cuối s.plots (chỉ trồng Mía / cây thường), coi như luôn được tưới. Khu đất Đông: +9 ô.
-import { CROP, CROPS } from "../../data/crops.js?v=m2";
-import { ITEM } from "../../data/catalog.js?v=m2";
-import { FIRST_ORDERS, ORDER_TYPES } from "../../data/orders.js?v=m2";
-import { WAREHOUSE, OVERFLOW_MAX } from "../../data/warehouse.js?v=m2";
-import { QUESTS } from "../../data/quests.js?v=m2";
-import { RECIPE } from "../../data/recipes.js?v=m2";
-import { MACHINE } from "../../data/machines.js?v=m2";
+import { CROP, CROPS } from "../../data/crops.js?v=m4";
+import { ITEM } from "../../data/catalog.js?v=m4";
+import { FIRST_ORDERS, ORDER_TYPES } from "../../data/orders.js?v=m4";
+import { WAREHOUSE, OVERFLOW_MAX } from "../../data/warehouse.js?v=m4";
+import { QUESTS } from "../../data/quests.js?v=m4";
+import { RECIPE } from "../../data/recipes.js?v=m4";
+import { MACHINE } from "../../data/machines.js?v=m4";
 import { ANIMAL } from "../../data/animals.js?v=m4";
-import { BUILDING } from "../../data/buildings.js?v=m3";
-import * as plots from "../../core/plots.js?v=m2";
-import * as orders from "../../core/orders.js?v=m2";
-import * as eco from "../../core/economy.js?v=m2";
-import * as quests from "../../core/quests.js?v=m2";
-import * as P from "../../core/production.js?v=m2";
+import { BUILDING } from "../../data/buildings.js?v=m4";
+import * as plots from "../../core/plots.js?v=m4";
+import * as orders from "../../core/orders.js?v=m4";
+import * as eco from "../../core/economy.js?v=m4";
+import * as quests from "../../core/quests.js?v=m4";
+import * as P from "../../core/production.js?v=m4";
 import * as A from "../../core/animals.js?v=m4";
 import * as V from "../../core/village.js?v=m4";
-import * as B from "../../core/build.js?v=m3";
-import { MARKET } from "../../core/market.js?v=m2";
-import { addXp, xpNeed } from "../../core/progression.js?v=m2";
-import { bag, have, settleOverflow, used, capacity, overflowCount } from "../../core/inventory.js?v=m2";
+import * as B from "../../core/build.js?v=m4";
+import { MARKET } from "../../core/market.js?v=m4";
+import { addXp, xpNeed } from "../../core/progression.js?v=m4";
+import { bag, have, settleOverflow, used, capacity, overflowCount } from "../../core/inventory.js?v=m4";
 
 export const START_COINS = 24; // = core/state.js START_COINS (không import state.js)
 export const GREENHOUSE_BASE = plots.W * plots.H; // ô nhà kính bắt đầu từ chỉ số 25
@@ -107,11 +107,11 @@ export class Farm {
   prodCtx(now = this.now) { return { level: this.s.level, buildings: this.builtIds(now), extraSlots: this.eff(now).extraQueueSlots }; }
   animalCtx(now = this.now) {
     const e = this.eff(now);
-    return { level: this.s.level, capacity: (k) => (k === "ga" ? e.chickenCap : k === "bo" ? e.cowCap : 0) };
+    return { level: this.s.level, capacity: (k) => (k === "ga" ? e.chickenCap : k === "bo-sua" ? e.cowCap : 0) };
   }
   villageCtx(now = this.now) {
     const s = this.s;
-    return { level: s.level, seed: s.seed, buildings: s.buildings, hasBuilding: (id) => B.isBuilt(s, id, now) };
+    return { level: s.level, seed: s.seed, buildings: s.buildings, hasBuilding: (id) => B.isBuilt(s, id, now), tutorialDone: V.tutorialDone(s) }; // như core/apply.js rulesCtx
   }
   io() {
     const s = this.s;

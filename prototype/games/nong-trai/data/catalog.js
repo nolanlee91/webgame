@@ -6,9 +6,10 @@
 // buy / shopLevel: có ⇒ chợ bán món này với giá `buy`, từ cấp `shopLevel` (hạt giống: giá trong data/crops.js, trả lúc gieo).
 // producer: { kind: "crop", id } | { kind: "machine", id, recipe } | { kind: "animal", id } | { kind: "reward" } | { kind: "shop" }.
 // icon: ô trong assets/v3/items.webp (8 × 4) hoặc assets/v3/decor.webp (4 × 2).
-import { CROPS } from "./crops.js?v=m3b";
-import { RECIPES } from "./recipes.js?v=m3b";
-import { MACHINE } from "./machines.js?v=m3b";
+import { CROPS } from "./crops.js?v=m4";
+import { RECIPES } from "./recipes.js?v=m4";
+import { MACHINE } from "./machines.js?v=m4";
+import { CURRENT_MILESTONE } from "./levels.js?v=m4";
 
 // Thứ tự ô trong assets/v3/items.webp (8 × 4, ô 64 px), khớp assets/v3/manifest.json.
 export const ICON_IDS = [
@@ -39,7 +40,7 @@ function usesOf(id, extra = []) {
 function product(id, name, sell, extra = {}) {
   const r = recipeOf(id), m = MACHINE[r.machine];
   return { id, name, cat: "thanh-pham", sell, counts: true, producer: { kind: "machine", id: r.machine, recipe: r.id },
-    source: `Xưởng chế biến · ${m.name}${m.milestone > 2 ? " (sắp có)" : ""}`, uses: usesOf(id, ["Đơn hàng"]), ...extra };
+    source: `Xưởng chế biến · ${m.name}${m.milestone > CURRENT_MILESTONE ? " (sắp có)" : ""}`, uses: usesOf(id, ["Đơn hàng"]), ...extra };
 }
 const material = (id, name, buy, shopLevel, uses) => ({ id, name, cat: "vat-lieu", sell: 0, counts: false, producer: { kind: "reward" },
   source: "Đơn đặc biệt · thu hoạch (hiếm) · chợ", uses, buy, shopLevel });
@@ -48,24 +49,27 @@ const decor = (id, name, buy, shopLevel, uses = "Trang trí nông trại") => ({
 
 export const ITEMS = [
   ...CROPS.map((c) => ({ id: c.id, name: c.name, cat: "nong-san", sell: c.sell, counts: true, producer: { kind: "crop", id: c.id },
-    source: c.requires ? "Trồng trong Nhà kính (sắp có)" : "Trồng ở ruộng", uses: usesOf(c.id, ["Đơn hàng"]) })),
+    source: c.requires ? "Trồng trong Nhà kính" : "Trồng ở ruộng", uses: usesOf(c.id, ["Đơn hàng"]) })),
   // Thành phẩm Xưởng (§2.3)
   product("mut-dau", "Mứt dâu", 74),
   product("sot-ca-chua", "Sốt cà chua", 48),
   product("nuoc-ep-ca-rot", "Nước ép cà rốt", 32),
-  // Thức ăn gia súc: chợ bán dự phòng, giá 48 (≥ ngưỡng chống lời khi đổi thức ăn mua → sữa → bơ / phô mai, xem core/market.js).
-  product("thuc-an-gia-suc", "Thức ăn gia súc", 19, { uses: "Cho gà (1 bao), bò (2 bao) ăn — chuồng sắp có · Đơn hàng", buy: 48, shopLevel: 7 }),
+  // Thức ăn gia súc: chợ bán dự phòng, giá 56 (≥ ngưỡng chống lời khi đổi thức ăn mua → sữa → bơ / phô mai, xem core/market.js).
+  // Milestone 4: 48 → 56 vì sữa 72 ⇒ bơ / phô mai phải ≥ 1,25 × 2 / 3 sữa (180 / 270) mà vẫn lỗ khi nuôi bằng thức ăn mua
+  // (4 bao × 56 = 224 > bơ 185 × 1,15; 6 × 56 = 336 > phô mai 280 × 1,15). Với 48 hai điều kiện này mâu thuẫn.
+  product("thuc-an-gia-suc", "Thức ăn gia súc", 19, { uses: "Cho gà (1 bao), bò (2 bao) ăn · Đơn hàng", buy: 56, shopLevel: 7 }),
   product("bot-gao", "Bột gạo", 70),
   product("bap-rang", "Bắp rang", 78),
-  product("banh-trung", "Bánh trứng", 160),
+  product("banh-trung", "Bánh trứng", 175), // M4: trứng 26 → 32 ⇒ giữ chế biến ≥ 1,25× (2 × 32 + 70 = 134)
   product("banh-bi-ngo", "Bánh bí ngô", 190),
-  product("bo", "Bơ", 150),
-  product("pho-mai", "Phô mai", 240),
+  product("bo", "Bơ", 185), // M4: sữa 58 → 72 (2 × 72 = 144 ⇒ ×1,28)
+  product("pho-mai", "Phô mai", 280), // 3 × 72 = 216 ⇒ ×1,30
   product("duong", "Đường", 150),
-  product("banh-flan", "Bánh flan", 330), // Lò bánh level 2 (recipe.machineLevel = 2), không phải máy riêng
-  // Sản phẩm vật nuôi (§2.4) — Milestone 4
-  { id: "trung-ga", name: "Trứng gà", cat: "chan-nuoi", sell: 26, counts: true, producer: { kind: "animal", id: "ga" }, source: "Chuồng gà (sắp có)", uses: usesOf("trung-ga") },
-  { id: "sua", name: "Sữa", cat: "chan-nuoi", sell: 58, counts: true, producer: { kind: "animal", id: "bo" }, source: "Chuồng bò (sắp có)", uses: usesOf("sua") },
+  product("banh-flan", "Bánh flan", 370), // M4: 2 trứng + sữa + đường = 286 ⇒ ×1,29. Lò bánh level 2 (recipe.machineLevel = 2), không phải máy riêng
+  // Sản phẩm vật nuôi (§2.4) — Milestone 4. Giá theo mô phỏng (data/animals.js PROPOSED_SELL, core/README-M4.md "Balance"):
+  // mua thức ăn 48 > trứng 32 × 1,15 và 2 × 48 > sữa 72 × 1,15 ⇒ mua thức ăn để nuôi vẫn lỗ (MARKET.assertEconomy).
+  { id: "trung-ga", name: "Trứng gà", cat: "chan-nuoi", sell: 32, counts: true, producer: { kind: "animal", id: "ga" }, source: "Chuồng gà", uses: usesOf("trung-ga", ["Đơn hàng"]) },
+  { id: "sua", name: "Sữa", cat: "chan-nuoi", sell: 72, counts: true, producer: { kind: "animal", id: "bo-sua" }, source: "Chuồng bò", uses: usesOf("sua", ["Đơn hàng"]) },
   // Vật liệu (§2.7): không bán lại được. Chợ bán đắt để đơn đặc biệt / nhiệm vụ vẫn là nguồn chính.
   material("van-go", "Ván gỗ", 120, 6, "Nâng Nhà kho, Nhà kính, công trình cấp 2"),
   material("hop-dinh", "Hộp đinh", 90, 6, "Nâng Nhà kho, công trình cấp 2"),
@@ -93,7 +97,8 @@ export function iconCell(id) {
   return d < 0 ? null : { sheet: "decor", col: d % 4, row: Math.floor(d / 4) };
 }
 
-// Vật nuôi (§2.4) — chỉ dùng để kiểm chống lời (mua thức ăn → nuôi → bán / chế biến) ở core/market.js. Luật chăn nuôi: Milestone 4.
+// Vật nuôi (§2.4) — giá mua / thức ăn / chu kỳ (data/animals.js đọc qua trường `ref`; id "bo" ở đây là id tham chiếu, con bò trong luật là "bo-sua")
+// + kiểm chống lời (mua thức ăn → nuôi → bán / chế biến) ở core/market.js. Luật chăn nuôi: core/animals.js (Milestone 4).
 export const ANIMAL_REF = [
   { id: "ga", name: "Gà", level: 7, buy: 60, feed: 1, cycleMs: 240_000, output: "trung-ga", qty: 1, max: 6 },
   { id: "bo", name: "Bò", level: 9, buy: 180, feed: 2, cycleMs: 480_000, output: "sua", qty: 1, max: 4 },

@@ -1,6 +1,6 @@
 // Tiện ích chung cho test luật Nông Trại.
-import { apply } from "../core/apply.js?v=m2b";
-import { createState } from "../core/state.js?v=m2b";
+import { apply } from "../core/apply.js?v=m4";
+import { createState } from "../core/state.js?v=m4";
 export const START = 1_000_000;
 export const CENTER = 12;
 export function farm(seed = 7, now = START) { return createState(now, seed); }

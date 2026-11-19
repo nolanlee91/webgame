@@ -3,31 +3,50 @@
 //
 // s.orders = { nextId, slots: [{ rev, order | null, refillAt }], special: { rev, order | null, refillAt } | null }
 // order = { id, type, npc, items: { id: qty }, mult, coins, xp, materials: { id: qty }, createdAt, expiresAt | null }
-import { CROP, CROPS } from "../data/crops.js?v=m2b";
-import { ITEM, MATERIALS } from "../data/catalog.js?v=m2b";
-import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m2b";
-import { featureLevel } from "../data/levels.js?v=m2b";
-import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m2b";
-import { have, take, add } from "./inventory.js?v=m2b";
-import { rand, randInt, pick, sample } from "./rng.js?v=m2b";
-import { RECIPES } from "../data/recipes.js?v=m2b";
-import { MACHINE } from "../data/machines.js?v=m2b";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m2b";
-import { capacity as queueCap } from "./production.js?v=m2b";
-import { extraSlots } from "./workshop.js?v=m2b";
+import { CROP, CROPS } from "../data/crops.js?v=m4";
+import { ITEM, MATERIALS } from "../data/catalog.js?v=m4";
+import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m4";
+import { featureLevel } from "../data/levels.js?v=m4";
+import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m4";
+import { have, take, add } from "./inventory.js?v=m4";
+import { rand, randInt, pick, sample } from "./rng.js?v=m4";
+import { RECIPES } from "../data/recipes.js?v=m4";
+import { MACHINE } from "../data/machines.js?v=m4";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m4";
+import { capacity as queueCap } from "./production.js?v=m4";
+import { extraSlots } from "./workshop.js?v=m4";
+import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m4";
 
 export const COMBO_LEVEL = featureLevel("orders-combo"), SPECIAL_LEVEL = featureLevel("orders-special");
 
 /** Nông sản có thể yêu cầu trong đơn (đã mở). */
 export const orderableCrops = (s) => CROPS.filter((c) => cropUnlocked(s, c.id)).map((c) => c.id);
 /**
+ * Sản phẩm vật nuôi trang trại sản xuất được (Milestone 4): { "trung-ga": số quả / chu kỳ, sua: ... } — chỉ loại có ≥ 1 con
+ * trong s.animals.list. Không có s.animals (save M1–M3) ⇒ {} ⇒ bộ sinh đơn y như cũ (cùng chuỗi ngẫu nhiên).
+ * Kind cũ "bo" (trước khi đổi tên) vẫn được hiểu là bò sữa.
+ */
+export function animalGoods(s) {
+  const out = {};
+  for (const a of Array.isArray(s?.animals?.list) ? s.animals.list : []) {
+    const k = a && typeof a.kind === "string" ? (Object.prototype.hasOwnProperty.call(LEGACY_KIND, a.kind) ? LEGACY_KIND[a.kind] : a.kind) : null;
+    const def = k ? ANIMAL[k] : null;
+    if (def) out[def.product] = (out[def.product] || 0) + def.qty;
+  }
+  return out;
+}
+/** Trứng / sữa có thể yêu cầu trong đơn (thứ tự cố định theo data/animals.js). */
+export const orderableAnimalGoods = (s) => { const g = animalGoods(s); return ANIMALS.map((a) => a.product).filter((id) => g[id] > 0); };
+/** "Một lứa" trứng / sữa theo đàn thật: số con × sản phẩm mỗi chu kỳ (1 gà ⇒ đơn đòi 1 trứng, 6 gà ⇒ 3–6). */
+export const animalUnit = (s, id) => Math.max(1, Math.min(12, animalGoods(s)[id] || 0));
+/**
  * Thành phẩm người chơi THẬT SỰ làm được lúc now (DESIGN §2.6): máy đã xây xong, đủ cấp công thức + level máy,
- * và mọi nguyên liệu cũng có được (nông sản đã mở hoặc thành phẩm làm được — vd. bột gạo từ lúa). Trứng / sữa (Milestone 4) ⇒ không.
+ * và mọi nguyên liệu cũng có được (nông sản đã mở, trứng / sữa khi có gà / bò, hoặc thành phẩm làm được — vd. bột gạo từ lúa).
  * easy=true ⇒ chỉ công thức nhanh (≤ 2 ph) từ nông sản thô (cho đơn thường "món dễ").
  */
 export function orderableProducts(s, now, easy = false) {
   const machines = s.production?.machines || {};
-  const ok = new Set(orderableCrops(s)), out = [];
+  const ok = new Set([...orderableCrops(s), ...orderableAnimalGoods(s)]), out = [];
   for (let pass = 0, grew = true; grew && pass < 4; pass++) {
     grew = false;
     for (const r of RECIPES) {
@@ -42,14 +61,20 @@ export function orderableProducts(s, now, easy = false) {
   return out;
 }
 /** Món có thể yêu cầu trong đơn (nông sản đã mở + thành phẩm làm được). */
-export const orderableItems = (s, now = 0) => [...orderableCrops(s), ...orderableProducts(s, now)];
+export const orderableItems = (s, now = 0) => [...orderableCrops(s), ...orderableAnimalGoods(s), ...orderableProducts(s, now)];
 /** Thành phẩm Bác Tư thích (lò bánh + mứt) — được chọn gấp đôi trong đơn kết hợp. */
 const FAVOURITE = (id) => { const r = RECIPES.find((x) => x.output === id); return !!r && (r.machine === "lo-banh" || id === "mut-dau"); };
 /** "Một mẻ" thành phẩm theo máy thật: số ô hàng chờ × số món mỗi ô (không đòi 20 bánh khi mới có 1 máy). */
 export function productUnit(s, id) {
   const r = RECIPES.find((x) => x.output === id), m = r && s.production?.machines?.[r.machine];
   if (!m) return 1;
-  return Math.max(1, Math.min(12, queueCap(m, { extraSlots: extraSlots(s) }) * r.qty));
+  let unit = Math.max(1, Math.min(12, queueCap(m, { extraSlots: extraSlots(s) }) * r.qty));
+  // nguyên liệu từ vật nuôi: không đòi quá 1 lứa của đàn hiện có (1 gà ⇒ 1 bánh trứng / 1 bánh bí ngô mỗi đơn)
+  const goods = animalGoods(s);
+  for (const [id, need] of Object.entries(r.inputs)) {
+    if (goods[id] > 0) unit = Math.min(unit, Math.max(1, Math.floor(goods[id] / need)));
+  }
+  return unit;
 }
 
 /** "Một vụ" của món theo ruộng thật: số ô đang mở × hệ số theo thời gian lớn (cây nhanh đòi nhiều hơn). */
@@ -82,7 +107,7 @@ export function generate(s, type, now) {
   const T = ORDER_TYPES[type];
   // Đơn thường: nông sản + thành phẩm "dễ". Đơn kết hợp / đặc biệt: mọi thành phẩm làm được; kết hợp có ≥ 1 thành phẩm (nếu có máy).
   const products = orderableProducts(s, now, type === "thuong");
-  const pool = [...orderableCrops(s), ...products];
+  const pool = [...orderableCrops(s), ...orderableAnimalGoods(s), ...products];
   const minKinds = type === "ket-hop" ? 3 : 1;
   if (pool.length < minKinds) return null;
   const busy = new Set(allOrders(s).map((o) => Object.keys(o.items).sort().join()));
@@ -97,7 +122,7 @@ export function generate(s, type, now) {
       chosen[chosen.length - 1] = pick(s, weighted);
     }
     for (const id of chosen) {
-      const u = CROP[id] ? cropUnit(s, id) : productUnit(s, id);
+      const u = CROP[id] ? cropUnit(s, id) : ITEM[id]?.cat === "chan-nuoi" ? animalUnit(s, id) : productUnit(s, id);
       const lo = Math.max(1, Math.ceil(u * T.qty[0] * scale)), hi = Math.max(lo, Math.round(u * T.qty[1] * scale));
       items[id] = randInt(s, lo, hi);
     }
@@ -168,7 +193,8 @@ export function deliver(s, slot, id, rev, now, events) {
   s.stats.earned += order.coins;
   s.stats.delivered++;
   for (const [m, q] of Object.entries(order.materials)) add(s, m, q);
-  events.push({ type: "delivered", slot, id: order.id, orderType: order.type, npc: order.npc, coins: order.coins, xp: order.xp, materials: { ...order.materials },
+  // items: bản sao món đã giao — nhiệm vụ M4 (core/village.js hasItem) đếm "đơn có trứng / sữa", "đơn kết hợp có bánh"
+  events.push({ type: "delivered", slot, id: order.id, orderType: order.type, npc: order.npc, items: { ...order.items }, coins: order.coins, xp: order.xp, materials: { ...order.materials },
     withProduct: Object.keys(order.items).some((it) => ITEM[it]?.cat === "thanh-pham") });
   x.rev++;
   if (slot === "special") { x.order = null; x.refillAt = now + SPECIAL_COOLDOWN_MS; }

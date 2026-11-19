@@ -1,7 +1,7 @@
 // Tiến trình 20 cấp (DESIGN-2.0 §3) dưới dạng dữ liệu. XP mỗi cấp: core/progression.js xpNeed (60·cấp²).
 // milestone: bản nào hiện thực món mở khoá. Giao diện chỉ báo / dùng món có milestone ≤ CURRENT_MILESTONE ⇒ không có nút giả.
 // Hàng rào đá chưa có sprite ⇒ milestone 5 (không báo khi lên cấp).
-export const CURRENT_MILESTONE = 3;
+export const CURRENT_MILESTONE = 4;
 export const MAX_LEVEL = 20;
 
 const crop = (id, name) => ({ kind: "crop", id, name, milestone: 1 });

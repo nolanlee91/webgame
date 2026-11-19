@@ -95,7 +95,7 @@ test("nhiệm vụ tiến trình: đếm từ sự kiện, lọc theo món, ch�
   assert.equal(V.claimProgression(vs, "xay-chuong-ga", io(inv, w), c).err, "quest-claimed"); // không nhận 2 lần
   assert.equal(w.value, 40);
   // mua gà: chỉ gà mới tính
-  emit(vs, c, { type: "animalBought", kind: "bo" });
+  emit(vs, c, { type: "animalBought", kind: "bo-sua" });
   assert.equal(vs.prog.progress, 0);
   emit(vs, c, { type: "animalBought", kind: "ga" });
   assert.ok(V.claimProgression(vs, "mua-ga-dau", io(inv, w), c).ok);
@@ -383,7 +383,7 @@ test("fuzz: nghìn sự kiện / lệnh nhận ngẫu nhiên — xu ≥ 0, món 
     () => ({ type: "delivered", npc: pick(npcs), orderType: pick(["thuong", "ket-hop", "dac-biet"]), items: { [pick(items)]: 1 } }),
     () => ({ type: "jobCollected", item: pick(items), qty: pick([1, 3, 0, -2, 1.5]) }),
     () => ({ type: "animalCollected", item: pick(["trung-ga", "sua"]), qty: 1 }),
-    () => ({ type: "animalBought", kind: pick(["ga", "bo"]) }),
+    () => ({ type: "animalBought", kind: pick(["ga", "bo-sua"]) }),
     () => ({ type: "villageQuestDone" }), () => null, () => ({ type: 5 }),
   ])();
   for (let run = 0; run < 4; run++) {
@@ -427,4 +427,34 @@ test("fuzz: nghìn sự kiện / lệnh nhận ngẫu nhiên — xu ≥ 0, món 
     }
     assert.ok(claims > 5, `fuzz quá ít lần nhận (${claims})`);
   }
+});
+
+test("tiến trình M4 chờ hướng dẫn M1 xong: tutorialDone(s) + ctx.tutorialDone; bảng / chuỗi không bị chặn; thoại có line", () => {
+  assert.equal(V.tutorialDone({ quests: { tut: 0 } }), false);
+  assert.equal(V.tutorialDone({ quests: { tut: TUTORIAL.length - 1 } }), false);
+  assert.equal(V.tutorialDone({ quests: { tut: TUTORIAL.length } }), true);
+  assert.equal(V.tutorialDone({ quests: { tut: TUTORIAL.length + 3 } }), true, "đã sang nhiệm vụ M2 vẫn là xong hướng dẫn");
+  assert.equal(V.tutorialDone(null), false);
+  const vs = V.createVillage();
+  const locked = ctx(7, { buildings: { "chuong-ga": 1 }, tutorialDone: false });
+  emit(vs, locked, { type: "tick" });
+  assert.equal(vs.prog.progress, 0, "chuồng gà đã xây nhưng hướng dẫn chưa xong ⇒ chưa tính");
+  const log = V.questLog(vs, locked);
+  assert.equal(log.progression, null);
+  assert.deepEqual([log.progressionNext.id, log.progressionNext.reason], ["xay-chuong-ga", "tutorial"]);
+  assert.equal(V.claimProgression(vs, "xay-chuong-ga", io(), locked).err, "locked");
+  assert.equal(log.board.length, BOARD_SIZE, "bảng lặp lại vẫn chạy");
+  assert.equal(V.questLog(vs, ctx(5, { tutorialDone: true })).progressionNext.reason, "level");
+  // hướng dẫn xong ⇒ trạng thái (chuồng đã xây) tính ngay
+  const open = { ...locked, tutorialDone: true };
+  const out = emit(vs, open, { type: "tick" });
+  assert.ok(out.some((e) => e.type === "villageQuestDone" && e.id === "xay-chuong-ga"));
+  assert.ok(V.claimProgression(vs, "xay-chuong-ga", io(), open).ok);
+  // không truyền cờ (undefined) ⇒ không chặn (tương thích)
+  assert.ok(V.questLog(V.createVillage(), ctx(7)).progression);
+  // thoại: sự kiện npcTalked mang line (giao diện hiện câu thoại từ sự kiện)
+  const t = V.talk(vs, "bac-tu", T0, ctx(7));
+  assert.equal(t.events[0].type, "npcTalked");
+  assert.equal(t.events[0].line, t.line);
+  assert.ok(VILLAGER["bac-tu"].lines.includes(t.line));
 });

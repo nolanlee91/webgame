@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createState, loadV3, migrateV2, dump, START_COINS } from "../core/state.js?v=m2b";
-import { apply } from "../core/apply.js?v=m2b";
-import { readyWhileAway, stage } from "../core/plots.js?v=m2b";
-import { used, capacity } from "../core/inventory.js?v=m2b";
-import { farmSave, KEY, V2_KEY, BACKUP_KEY } from "../save.js";
+import { createState, loadV3, migrateV2, dump, START_COINS } from "../core/state.js?v=m4";
+import { apply } from "../core/apply.js?v=m4";
+import { readyWhileAway, stage } from "../core/plots.js?v=m4";
+import { used, capacity } from "../core/inventory.js?v=m4";
+import { farmSave, KEY, V2_KEY, BACKUP_KEY, V5_KEY, V5_BACKUP_KEY } from "../save.js?v=m4";
 import { START } from "./helpers.mjs";
-import { xpNeed } from "../core/progression.js?v=m2b";
+import { xpNeed } from "../core/progression.js?v=m4";
 
 /** Bản lưu v2 thật (định dạng của logic.js cũ + đơn hàng chưa commit). */
 function v2Save(t) {
@@ -30,7 +30,7 @@ const memStorage = (init = {}) => {
 test("di chuyển v2 → v3: giữ xu, XP, cấp, ô đã mua, cây đang trồng (timestamp tuyệt đối), kho, hạt tặng, nâng cấp, đơn", () => {
   const v2 = v2Save(START);
   const s = migrateV2(JSON.stringify(v2), START);
-  assert.equal(s.v, 5);
+  assert.equal(s.v, 6);
   assert.equal(s.coins, 137); assert.equal(s.xp, 12); assert.equal(s.level, 3); assert.equal(s.bought, 2);
   assert.equal(s.freeSeeds, 0); assert.equal(s.upgrade, 1);
   assert.deepEqual(s.inv, { "ca-rot": 4, "ca-chua": 70, "dau-tay": 2 }, "kho cũ giữ nguyên, kể cả vượt 60");
@@ -68,7 +68,7 @@ test("save adapter: lần đầu có v2 ⇒ ghi v3, chép v2 sang backup, không
   save.initialize(START);
   assert.equal(st.getItem(BACKUP_KEY), raw);
   assert.equal(st.getItem(V2_KEY), raw, "dữ liệu v2 gốc vẫn còn");
-  assert.equal(JSON.parse(st.getItem(KEY)).v, 5);
+  assert.equal(JSON.parse(st.getItem(KEY)).v, 6);
   const second = save.read(START + 1000);
   assert.equal(second.migrated, false);
   assert.equal(second.state.coins, 137);
@@ -149,4 +149,31 @@ test("load kẹp dữ liệu rác: số âm / NaN / quá lớn, món lạ, cây 
   const after = apply(l, { type: "tick" }, START);
   assert.ok(after.ok);
   assert.ok(l.orders.slots[1].order, "ô bị bỏ được lấp ngay");
+});
+
+test("Milestone 4: save v5 → v6 (đàn / làng trống, sao lưu v5 không xoá); đơn có trứng / sữa giữ qua lưu-tải; kind \"bo\" cũ ⇒ \"bo-sua\"", () => {
+  const s5 = createState(START, 9);
+  Object.assign(s5, { v: 5, level: 9, coins: 777, inv: { "trung-ga": 2 } });
+  delete s5.animals; delete s5.village; delete s5.lastDeliveryAt;
+  const raw5 = JSON.stringify(s5);
+  const st = memStorage({ [V5_KEY]: raw5 });
+  const save = farmSave(st);
+  const first = save.initialize(START);
+  assert.equal(first.migrated, true); assert.equal(first.from, "v5");
+  assert.equal(st.getItem(V5_BACKUP_KEY), raw5); assert.equal(st.getItem(V5_KEY), raw5, "bản v5 gốc vẫn còn");
+  assert.equal(KEY, "wgp.nongtrai.v6");
+  const s = save.read(START + 1000).state;
+  assert.equal(s.v, 6); assert.equal(s.coins, 777); assert.deepEqual(s.inv, { "trung-ga": 2 });
+  assert.deepEqual(s.animals, { list: [], nextUid: 1 }); assert.ok(s.village && s.village.board); assert.equal(s.lastDeliveryAt, null);
+  // đơn có trứng + sữa trong ô 0 ⇒ tải lại vẫn còn (loadOrder nhận món chăn nuôi)
+  s.orders.slots[0].order.items = { "trung-ga": 2, sua: 1 };
+  s.animals.list.push({ uid: 1, kind: "bo", fedAt: null, readyAt: null }); s.animals.nextUid = 2;
+  s.lastDeliveryAt = START + 500;
+  const back = loadV3(dump(s, START + 1000), START + 1000);
+  assert.deepEqual(back.orders.slots[0].order.items, { "trung-ga": 2, sua: 1 });
+  assert.equal(back.orders.slots[0].order.id, s.orders.slots[0].order.id);
+  assert.equal(back.animals.list[0].kind, "bo-sua");
+  assert.equal(back.lastDeliveryAt, START + 500);
+  const future = JSON.parse(dump(s, START)); future.lastDeliveryAt = START * 10;
+  assert.equal(loadV3(future, START).lastDeliveryAt, null, "mốc xe ở tương lai bị bỏ");
 });

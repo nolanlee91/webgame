@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as G from "../core/progression.js?v=m2b";
-import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m2b";
-import { CROPS } from "../data/crops.js?v=m2b";
+import * as G from "../core/progression.js?v=m4";
+import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m4";
+import { CROPS } from "../data/crops.js?v=m4";
 import { farm, START } from "./helpers.mjs";
-import { loadSave, migrateV2, dump } from "../core/state.js?v=m2b";
+import { loadSave, migrateV2, dump } from "../core/state.js?v=m4";
 
 test("đường XP 60·cấp², tăng dần", () => {
   assert.equal(G.xpNeed(1), 60);
@@ -36,7 +36,8 @@ test("cộng XP lên nhiều cấp cùng lúc, mỗi cấp một sự kiện có
   assert.ok(ev[0].unlocks.includes("Dâu tây"));
   assert.ok(ev[1].unlocks.includes("Ngô") && ev[1].unlocks.includes("Ô đơn thứ 4"));
   assert.ok(ev[2].unlocks.includes("Xưởng + Bếp sên"), "Milestone 2: Xưởng được báo khi lên cấp 4");
-  assert.ok(!G.unlocksAt(7).some((u) => u.name === "Chuồng gà"), "tính năng của milestone sau không được báo");
+  assert.ok(G.unlocksAt(7).some((u) => u.name === "Chuồng gà"), "Milestone 4: Chuồng gà được báo khi lên cấp 7");
+  assert.ok(!G.unlocksAt(15).some((u) => u.name === "Hàng rào đá"), "tính năng của milestone sau (5) không được báo");
   for (const l of LEVELS) for (const u of G.unlocksAt(l.lv)) assert.ok(u.milestone <= CURRENT_MILESTONE);
 });
 

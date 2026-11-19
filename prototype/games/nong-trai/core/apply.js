@@ -6,14 +6,28 @@
 // (marketSell, marketBuy). Bán ở Nhà kho / giỏ tràn dùng cùng giá chợ (core/market.js priceOf).
 // Milestone 3: xây dựng (startBuild, startUpgrade — thay cho upgradeWarehouse cũ; buildWorkshop / upgradeWorkshop giữ làm tên
 // gọi tắt cho Xưởng), trang trí (placeDecor, removeDecor). Sức chứa kho, ô Nhà kính / phía Đông suy ra từ công trình (core/construct.js).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m3b";
-import * as plots from "./plots.js?v=m3b";
-import * as orders from "./orders.js?v=m3b";
-import * as eco from "./economy.js?v=m3b";
-import * as quests from "./quests.js?v=m3b";
-import * as ws from "./workshop.js?v=m3b";
-import * as build from "./construct.js?v=m3b";
-import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m3b";
+// Milestone 4: chăn nuôi + làng (core/m4-handlers.js — handler, sync bảng nhiệm vụ làng, track sau quests.track, bất biến đàn).
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
+import * as plots from "./plots.js?v=m4";
+import * as orders from "./orders.js?v=m4";
+import * as eco from "./economy.js?v=m4";
+import * as quests from "./quests.js?v=m4";
+import * as ws from "./workshop.js?v=m4";
+import * as build from "./construct.js?v=m4";
+import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m4";
+import { addXp } from "./progression.js?v=m4";
+import { effects, isBuilt } from "./build.js?v=m4";
+import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m4";
+
+/** Milestone 4 (chăn nuôi + làng, core/m4-handlers.js): kho / ví / XP tiêm vào; sức chứa chuồng từ công trình (core/build.js effects),
+ *  chuồng đang xây lần đầu ⇒ 0 (chưa mua được). Nhiệm vụ tiến trình M4 chỉ mở khi hướng dẫn M1 xong (ctx.tutorialDone). */
+export const M4DEPS = Object.freeze({
+  bag, wallet, addXp,
+  capacity: (s, kind, now) => { const e = effects(s, now); return kind === "ga" ? e.chickenCap || 0 : kind === "bo-sua" ? e.cowCap || 0 : 0; },
+  isBuilt: (s, id, now) => isBuilt(s, id, now),
+});
+/** ctx cho core/animals.js / core/village.js (giao diện dùng chung với luật ⇒ không lệch). */
+export const rulesCtx = (s, now) => m4Ctx(s, now, M4DEPS);
 
 function sync(s, now, events) {
   build.sync(s, now, events); // công trình xây xong (kể cả Xưởng) + hiệu ứng: sức chứa kho, ô Nhà kính / phía Đông
@@ -21,6 +35,7 @@ function sync(s, now, events) {
   const moved = settleOverflow(s);
   if (moved) events.push({ type: "overflowSettled", count: moved });
   eco.safetyNet(s, now, events);
+  m4Sync(s, now, events, M4DEPS); // lấp bảng nhiệm vụ làng khi làng mở / lên cấp
 }
 
 const HANDLERS = {
@@ -50,6 +65,8 @@ const HANDLERS = {
   startUpgrade: (s, a, now, ev) => build.startUpgrade(s, a, now, ev),
   placeDecor: (s, a, now, ev) => build.placeDecor(s, a, now, ev),
   removeDecor: (s, a, now, ev) => build.removeDecor(s, a, now, ev),
+  // Milestone 4: buyAnimal feedAnimal feedAll collectAnimal collectAllAnimals talkNpc claimProgressQuest claimChainStep claimBoardQuest
+  ...bindM4(M4DEPS),
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
@@ -66,6 +83,8 @@ export function invariantError(s, before) {
   if (q) return q;
   const b = build.invariantError(s);
   if (b) return b;
+  const m = m4InvariantError(s);
+  if (m) return m;
   return null;
 }
 
@@ -80,6 +99,7 @@ export function apply(state, action, now) {
   if (!result || result.err) return { err: result?.err || "bad", events: [] };
   if (type !== "tick") sync(draft, now, events); // giao đơn / lên cấp có thể mở ô đơn, bán có thể dọn giỏ tràn
   quests.track(draft, events);
+  m4Track(draft, events, now, M4DEPS); // MỘT lần mỗi action (cả tick): nhiệm vụ làng + mốc xe giao hàng (lastDeliveryAt)
   const bad = invariantError(draft, state);
   if (bad) return { err: "invariant-" + bad, events: [] };
   for (const k of Object.keys(state)) delete state[k];

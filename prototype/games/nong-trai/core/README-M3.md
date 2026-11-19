@@ -95,3 +95,4 @@ Mã lỗi: `bad locked built not-built building max coins materials not-buildabl
 - `upgradeWarehouse` đã bỏ khỏi `apply()` (dùng `startUpgrade { id: "nha-kho" }`). `buildWorkshop` / `upgradeWorkshop` giữ làm tên gọi tắt cho Xưởng.
 - Save v5 (`wgp.nongtrai.v5`): đọc v3/v4 (25 ô) ⇒ `build.migrate` Nhà kho từ `s.warehouse`; bản gốc v4/v3/v2 chép sang `*.backup`, không xoá.
 - Giao diện: `ui/farm-map.js` vẽ bản đồ từ `mapLayout()`; chế độ Xây, thẻ xây, trang trí, bảng Nhà kính ở `game.js`.
+- Milestone 4: chuồng gà / chuồng bò không còn bị chặn (`CURRENT_MILESTONE = 4`), biển Làng chạm được — xem README-M4 "Đã ghép". `eco.upgradeWarehouse` / `nextWarehouse` (mã chết) đã xoá.

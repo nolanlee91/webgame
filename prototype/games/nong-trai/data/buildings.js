@@ -21,10 +21,10 @@
 //   effect: giá trị mà core/build.js effects() cộng dồn (mốc sau ghi đè mốc trước).
 // SPRITE: { sheet, id } — sheet là key trong assets/v3/manifest.json `sheets`, hoặc "garden" = assets/garden/<id>.webp.
 
-import { featureLevel } from "./levels.js?v=m3b";
+import { featureLevel } from "./levels.js?v=m4";
 // Cấp của một tính năng trong data/levels.js; tính năng chưa có trong bản levels.js đang dùng ⇒ số dự phòng (theo §3).
 const fl = (id, fallback) => (Number.isFinite(featureLevel(id)) ? featureLevel(id) : fallback);
-import { WAREHOUSE } from "./warehouse.js?v=m3b";
+import { WAREHOUSE } from "./warehouse.js?v=m4";
 
 export const MAP_W = 960, MAP_H = 600;
 export const EAST_W = 1.5; // bề rộng bản đồ (đơn vị bản đồ gốc) khi đã mở Khu đất phía Đông

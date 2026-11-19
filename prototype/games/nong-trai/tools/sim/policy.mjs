@@ -3,7 +3,7 @@
 //   → bán dư → xây / nâng / mua theo danh sách ưu tiên → gieo (cây hợp với thời gian tới lần nhìn tiếp) → tưới.
 // Chỉ dùng hàm của harness (⇒ luật thật). Không đọc giờ thật.
 import { CROP, CROPS, ITEM, RECIPE, MACHINE, ANIMAL, BUILDING, QUESTS, MARKET, plots, orders, P, A, V, B } from "./harness.mjs";
-import { RECIPES } from "../../data/recipes.js?v=m2";
+import { RECIPES } from "../../data/recipes.js?v=m4";
 import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m4";
 
 export const XP_WORTH = 2;          // 1 XP ≈ 2 xu khi chọn cây (người chơi muốn lên cấp)
@@ -33,11 +33,11 @@ function queuedOutputs(f) {
   return out;
 }
 function animalCounts(f) {
-  const c = { ga: 0, bo: 0 };
+  const c = { ga: 0, "bo-sua": 0 };
   for (const a of f.s.animals.list) c[a.kind]++;
   return c;
 }
-const feedNeedPerCycle = (f) => { const c = animalCounts(f); return c.ga * ANIMAL.ga.feed + c.bo * ANIMAL.bo.feed; };
+const feedNeedPerCycle = (f) => { const c = animalCounts(f); return c.ga * ANIMAL.ga.feed + c["bo-sua"] * ANIMAL["bo-sua"].feed; };
 
 /** Dự trữ không bán: đơn/chuỗi + nguyên liệu cho máy đang có. */
 function keepOf(f, need) {
@@ -217,7 +217,7 @@ function plan(f) {
   machine("lo-banh", true);
   if (s.bought < 8) plot();
   building("chuong-bo", true);
-  animals("bo");
+  animals("bo-sua");
   building("nha-kinh", true);
   machine("may-bo-sua", true);
   machine("noi-duong", true);

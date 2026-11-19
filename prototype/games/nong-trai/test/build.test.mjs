@@ -1,11 +1,11 @@
 // Test luật xây dựng (Milestone 3) — core/build.js + data/buildings.js. Không phụ thuộc apply/state (đang sửa song song).
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as B from "../core/build.js?v=m3b";
-import { BUILDING, BUILDINGS, DECOR, DECOR_SLOTS, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m3b";
-import { WAREHOUSE } from "../data/warehouse.js?v=m3b";
-import { featureLevel } from "../data/levels.js?v=m3b";
-import { MACHINE } from "../data/machines.js?v=m3b";
+import * as B from "../core/build.js?v=m4";
+import { BUILDING, BUILDINGS, DECOR, DECOR_SLOTS, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m4";
+import { WAREHOUSE } from "../data/warehouse.js?v=m4";
+import { featureLevel } from "../data/levels.js?v=m4";
+import { MACHINE } from "../data/machines.js?v=m4";
 
 const T0 = 1_000_000;
 const MIN = 60_000, HOUR = 3_600_000;
@@ -331,13 +331,13 @@ test("fuzz: vài nghìn action ngẫu nhiên giữ bất biến", () => {
 
 test("khớp dữ liệu của M2 / M4 nếu có: data/workshop.js, data/animals.js", async () => {
   const load = async (f) => { try { return await import(f); } catch { return null; } };
-  const ws = await load("../data/workshop.js?v=m3b");
+  const ws = await load("../data/workshop.js?v=m4");
   if (ws?.WORKSHOP) {
     const W = ws.WORKSHOP, L = BUILDING[W.id].levels;
     assert.deepEqual([L[0].cost, L[0].ms, L[0].unlock], [W.cost, W.buildMs, W.unlock]);
     W.upgrades.forEach((u, k) => { assert.equal(L[k + 1].cost, u.cost); assert.equal(L[k + 1].unlock, u.level); assert.equal(L[k + 1].effect.extraQueueSlots, u.extraSlots); });
   }
-  const an = await load("../data/animals.js?v=m3b");
+  const an = await load("../data/animals.js?v=m4");
   if (an?.ANIMALS) {
     const key = { "chuong-ga": "chickenCap", "chuong-bo": "cowCap" };
     for (const a of an.ANIMALS) {

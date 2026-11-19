@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as O from "../core/orders.js?v=m2b";
-import { orderSlotCount, cropUnlocked, xpNeed } from "../core/progression.js?v=m2b";
-import { loadV3, dump } from "../core/state.js?v=m2b";
-import { apply } from "../core/apply.js?v=m2b";
-import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2b";
-import { NPC } from "../data/npcs.js?v=m2b";
+import * as O from "../core/orders.js?v=m4";
+import { orderSlotCount, cropUnlocked, xpNeed } from "../core/progression.js?v=m4";
+import { loadV3, dump } from "../core/state.js?v=m4";
+import { apply } from "../core/apply.js?v=m4";
+import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m4";
+import { NPC } from "../data/npcs.js?v=m4";
 import { farm, act, err, START } from "./helpers.mjs";
 
 const board = (s) => O.boardView(s).slots;
@@ -185,4 +185,106 @@ test("bỏ đơn: ô trống, đơn mới đúng sau 2 phút, giữ qua lưu/t�
   const r = act(reopened, { type: "tick" }, START + 60 * 60_000);
   assert.ok(r.events.some((e) => e.type === "orderNew" && e.slot === 1));
   assert.ok(reopened.orders.slots[1].order);
+});
+
+// ---------- Milestone 4: trứng / sữa trong đơn, delivered.items ----------
+import * as V4 from "../core/village.js?v=m4";
+import { MACHINE as MACHINE4 } from "../data/machines.js?v=m4";
+import { CURRENT_MILESTONE as CM4 } from "../data/levels.js?v=m4";
+
+const machine = () => ({ level: 1, slots: 2, readyAt: 0, queue: [], nextUid: 1 });
+/** Cấp `lv`, có Cối xay + Lò bánh (+ Máy bơ sữa) đã xây, đàn `herd` = { ga: n, "bo-sua": n }. */
+function ranch(lv, herd = {}, seed = 5) {
+  const s = atLevel(lv, seed);
+  for (const id of ["coi-xay", "lo-banh", "may-bo-sua"]) s.production.machines[id] = machine();
+  let uid = 1;
+  s.animals = { list: [], nextUid: 1 };
+  for (const [kind, n] of Object.entries(herd)) for (let k = 0; k < n; k++) s.animals.list.push({ uid: uid++, kind, fedAt: null, readyAt: null });
+  s.animals.nextUid = uid;
+  return s;
+}
+const EGG_GOODS = ["trung-ga", "banh-trung", "banh-bi-ngo"], MILK_GOODS = ["sua", "bo", "pho-mai"];
+
+test("M4 đơn: không có vật nuôi ⇒ không bao giờ đòi trứng / sữa / món từ chúng, chuỗi sinh đơn y như cũ", () => {
+  const a = ranch(16), b = ranch(16);
+  delete a.animals; // save M1–M3: không có field animals
+  const items = O.orderableItems(b, START);
+  for (const id of [...EGG_GOODS, ...MILK_GOODS, "banh-flan"]) assert.ok(!items.includes(id), id);
+  for (let k = 0; k < 60; k++) {
+    for (const type of ["thuong", "ket-hop", "dac-biet"]) {
+      const oa = O.generate(a, type, START), ob = O.generate(b, type, START);
+      assert.deepEqual(oa, ob, "cùng seed ⇒ cùng đơn dù có / không có field animals rỗng");
+      for (const id of Object.keys(oa?.items || {})) assert.ok(![...EGG_GOODS, ...MILK_GOODS].includes(id), id);
+    }
+  }
+});
+
+test("M4 đơn: có gà ⇒ trứng + bánh trứng / bánh bí ngô vào đơn; có bò ⇒ sữa (+ bơ / phô mai khi Máy bơ sữa đã vào bản)", () => {
+  const s = ranch(12, { ga: 2 });
+  const items = O.orderableItems(s, START);
+  for (const id of EGG_GOODS) assert.ok(items.includes(id), id);
+  for (const id of MILK_GOODS) assert.ok(!items.includes(id), "chưa có bò ⇒ không " + id);
+  const c = ranch(12, { ga: 2, "bo-sua": 1 });
+  const all = O.orderableItems(c, START);
+  assert.ok(all.includes("sua"));
+  const butterLive = MACHINE4["may-bo-sua"].milestone <= CM4;
+  for (const id of ["bo", "pho-mai"]) assert.equal(all.includes(id), butterLive, `${id}: Máy bơ sữa milestone ${MACHINE4["may-bo-sua"].milestone}, bản ${CM4}`);
+  assert.ok(!all.includes("banh-flan"), "flan cần Lò bánh cấp 2 + đường");
+  // chỉ món làm được: Lò bánh chưa xây ⇒ có trứng nhưng không có bánh
+  const noOven = ranch(12, { ga: 1 });
+  delete noOven.production.machines["lo-banh"];
+  const ni = O.orderableItems(noOven, START);
+  assert.ok(ni.includes("trung-ga") && !ni.includes("banh-trung") && !ni.includes("banh-bi-ngo"));
+  // kind cũ "bo" (trước khi đổi tên) vẫn là bò sữa
+  const legacy = ranch(12);
+  legacy.animals.list.push({ uid: 1, kind: "bo", fedAt: null, readyAt: null });
+  assert.deepEqual(O.animalGoods(legacy), { sua: 1 });
+  // sinh nhiều đơn ⇒ thực sự xuất hiện trứng / sữa / bánh trứng
+  const seen = new Set();
+  for (let k = 0; k < 400; k++) for (const type of ["thuong", "ket-hop", "dac-biet"]) Object.keys(O.generate(c, type, START)?.items || {}).forEach((id) => seen.add(id));
+  for (const id of ["trung-ga", "sua", "banh-trung"]) assert.ok(seen.has(id), "chưa thấy " + id);
+});
+
+test("M4 đơn: số lượng theo đàn thật — 1 gà ⇒ tối đa 1 trứng / 1 bánh trứng mỗi đơn; 6 gà ⇒ nhiều hơn nhưng ≤ 8", () => {
+  const one = ranch(12, { ga: 1 }), six = ranch(12, { ga: 6 }, 9);
+  assert.equal(O.animalUnit(one, "trung-ga"), 1);
+  assert.equal(O.animalUnit(six, "trung-ga"), 6);
+  assert.equal(O.productUnit(one, "banh-trung"), 1, "2 trứng / bánh, 1 gà ⇒ 1 bánh");
+  assert.equal(O.productUnit(six, "banh-trung"), 2, "vẫn kẹp theo hàng chờ máy (2 ô)");
+  let maxSix = 0;
+  for (let k = 0; k < 300; k++) {
+    for (const type of ["thuong", "ket-hop", "dac-biet"]) {
+      const o1 = O.generate(one, type, START), o6 = O.generate(six, type, START);
+      if (o1?.items["trung-ga"]) assert.equal(o1.items["trung-ga"], 1);
+      if (o1?.items["banh-trung"]) assert.equal(o1.items["banh-trung"], 1);
+      if (o1?.items["banh-bi-ngo"]) assert.equal(o1.items["banh-bi-ngo"], 1);
+      if (o6?.items["trung-ga"]) { assert.ok(o6.items["trung-ga"] <= 8); maxSix = Math.max(maxSix, o6.items["trung-ga"]); }
+    }
+  }
+  assert.ok(maxSix >= 3, "đàn 6 gà ⇒ đơn đòi được ≥ 3 trứng");
+});
+
+test("M4 delivered: sự kiện có items (bản sao), orderType, npc ⇒ nhiệm vụ giao-don-trung-sua và Bác Tư bước 3 đếm được", () => {
+  const s = ranch(12, { ga: 1 });
+  const x = s.orders.slots[0];
+  x.order = { id: 900, type: "ket-hop", npc: "bac-tu", items: { "trung-ga": 1, "banh-trung": 1, "ca-rot": 2 }, mult: 1.3, coins: 0, xp: 0, materials: {}, createdAt: START, expiresAt: null };
+  Object.assign(x.order, O.priceOrder(x.order));
+  s.inv = { "trung-ga": 1, "banh-trung": 1, "ca-rot": 2 };
+  const ev = [];
+  const r = O.deliver(s, 0, 900, x.rev, START, ev);
+  assert.ok(r.ok, r.err);
+  const d = ev.find((e) => e.type === "delivered");
+  assert.deepEqual(d.items, { "trung-ga": 1, "banh-trung": 1, "ca-rot": 2 });
+  assert.equal(d.orderType, "ket-hop");
+  assert.equal(d.npc, "bac-tu");
+  d.items["trung-ga"] = 99;
+  assert.notEqual(s.orders.slots[0].order?.items?.["trung-ga"], 99, "items là bản sao, không phải tham chiếu");
+  d.items["trung-ga"] = 1;
+  // nhiệm vụ M4 đếm từ sự kiện thật
+  const vs = V4.createVillage(), c = { level: 14, seed: 1, buildings: {}, tutorialDone: true };
+  vs.prog.i = 3; // giao-don-trung-sua
+  vs.chains["bac-tu"].step = 2; // "Giao 1 đơn kết hợp có bánh"
+  const out = V4.track(vs, ev, c);
+  assert.ok(out.some((e) => e.type === "villageQuestDone" && e.id === "giao-don-trung-sua"));
+  assert.ok(out.some((e) => e.type === "villageQuestDone" && e.id === "tu-3"));
 });

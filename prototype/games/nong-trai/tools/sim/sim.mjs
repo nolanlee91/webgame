@@ -97,7 +97,7 @@ function closeRun(run, f) {
 function closeWait(w) {
   return { key: w.key, startActiveMin: +(w.startActive / 60_000).toFixed(1), startRealH: +(w.startReal / 3600_000).toFixed(2), minutes: w.ms / 60_000, level: w.level };
 }
-function countAnimals(f) { const c = { ga: 0, bo: 0 }; for (const a of f.s.animals.list) c[a.kind]++; return c; }
+function countAnimals(f) { const c = { ga: 0, "bo-sua": 0 }; for (const a of f.s.animals.list) c[a.kind]++; return c; }
 
 // ---------------- CLI ----------------
 function parseArgs(argv) {

@@ -11,8 +11,10 @@
 // và đủ tiến độ ⇒ chỉ số tăng / ô bị thay ⇒ không thể nhận 2 lần.
 //
 // GIAO DIỆN TIÊM VÀO:
-//   ctx = { level, seed?, buildings?, hasBuilding?(id) -> bool }
+//   ctx = { level, seed?, buildings?, hasBuilding?(id) -> bool, tutorialDone? }
 //         hasBuilding: công trình đã XÂY XONG (M3). Không có ⇒ đọc ctx.buildings (object {id: level|{level}|true}, mảng, Set).
+//         tutorialDone: false ⇒ nhiệm vụ TIẾN TRÌNH M4 chưa mở (chờ hướng dẫn M1 xong). Ghép: tutorialDone: tutorialDone(s).
+//         Bỏ trống (undefined) ⇒ coi như đã xong (tương thích test / công cụ cũ). Bảng lặp lại + chuỗi NPC không phụ thuộc cờ này.
 //   io  = { inv, wallet, decor? }   inv / wallet như core/production.js; decor = { add(id, n) } (túi trang trí).
 //         Không có decor ⇒ trang trí thưởng đi qua inv.add.
 // XP thưởng KHÔNG cộng ở đây: kết quả trả `xp`, apply() cộng qua progression (lên cấp, sự kiện) như production.collect.
@@ -22,6 +24,7 @@ import {
   VILLAGE_LEVEL, CHAIN_LEVEL, BOARD_SIZE, FRIEND_LEVELS, FRIEND_POINTS, TALK_COOLDOWN_MS, FRIEND_MAX,
   VILLAGERS, VILLAGER, PROGRESSION, REPEATABLE, REPEATABLE_BY_ID, TRUCK,
 } from "../data/village.js?v=m4";
+import { TUTORIAL } from "../data/quests.js?v=m4";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", CLAIMED: "quest-claimed", INCOMPLETE: "quest-incomplete", GIVE: "give-stock", FULL: "full",
@@ -41,6 +44,10 @@ export function createVillage() {
 }
 
 export const villageUnlocked = (ctx) => (ctx?.level ?? 0) >= VILLAGE_LEVEL;
+/** Hướng dẫn M1 đã xong (s.quests.tut đã qua hết TUTORIAL) ⇒ nhiệm vụ tiến trình M4 được mở. Truyền vào ctx.tutorialDone. */
+export const tutorialDone = (s) => Number.isInteger(s?.quests?.tut) && s.quests.tut >= TUTORIAL.length;
+/** Cờ trong ctx: chỉ false tường minh mới chặn (undefined ⇒ không chặn). */
+const tutOk = (ctx) => ctx?.tutorialDone !== false;
 export const chainsUnlocked = (ctx) => (ctx?.level ?? 0) >= CHAIN_LEVEL;
 
 function hasBuilding(ctx, id) {
@@ -100,7 +107,7 @@ function advance(q, progress, events, ctx) {
 
 // ---------- Chọn nhiệm vụ ----------
 export const currentProgression = (vs) => PROGRESSION[vs.prog.i] || null;
-const progActive = (vs, ctx) => { const q = currentProgression(vs); return !!q && (ctx?.level ?? 0) >= (q.minLevel ?? 0); };
+const progActive = (vs, ctx) => { const q = currentProgression(vs); return !!q && tutOk(ctx) && (ctx?.level ?? 0) >= (q.minLevel ?? 0); };
 export const currentChainStep = (vs, npc) => VILLAGER[npc]?.chain.steps[vs.chains[npc]?.step] || null;
 
 function hash32(a, b) {
@@ -279,7 +286,7 @@ export function talk(vs, npc, now, ctx) {
     addPoints(vs, npc, points, events);
   }
   const step = chainsUnlocked(ctx) ? currentChainStep(vs, npc) : null;
-  events.unshift({ type: "npcTalked", npc, points });
+  events.unshift({ type: "npcTalked", npc, points, line });
   return { ok: true, npc, line, points, friendship: { points: f.points, ...friendLevel(f.points) },
     chain: step ? { title: v.chain.title, intro: vs.chains[npc].step === 0 ? v.chain.intro : null, step: vs.chains[npc].step, quest: step.title } : null,
     events };
@@ -302,7 +309,8 @@ export function questLog(vs, ctx, inv) {
   return {
     villageUnlocked: villageUnlocked(ctx),
     progression: pq && progActive(vs, ctx) ? view(pq, vs.prog.progress, inv) : null,
-    progressionNext: pq && !progActive(vs, ctx) ? { id: pq.id, title: pq.title, minLevel: pq.minLevel } : null,
+    progressionNext: pq && !progActive(vs, ctx)
+      ? { id: pq.id, title: pq.title, minLevel: pq.minLevel, reason: !tutOk(ctx) ? "tutorial" : "level" } : null,
     chains: VILLAGERS.map((v) => {
       const st = vs.chains[v.id], q = currentChainStep(vs, v.id);
       return { npc: v.id, title: v.chain.title, step: st.step, total: v.chain.steps.length,

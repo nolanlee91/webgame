@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SHOP, RESALE_MIN_RATIO } from "../data/shop.js?v=m2b";
-import { ITEM, ITEMS } from "../data/catalog.js?v=m2b";
-import { CROP } from "../data/crops.js?v=m2b";
-import { SAFETY_COOLDOWN_MS } from "../core/economy.js?v=m2b";
-import { apply } from "../core/apply.js?v=m2b";
+import { SHOP, RESALE_MIN_RATIO } from "../data/shop.js?v=m4";
+import { ITEM, ITEMS } from "../data/catalog.js?v=m4";
+import { CROP } from "../data/crops.js?v=m4";
+import { SAFETY_COOLDOWN_MS } from "../core/economy.js?v=m4";
+import { apply } from "../core/apply.js?v=m4";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("không vòng mua → bán có lời: mọi món chợ bán ra hoặc không bán lại được, hoặc giá mua ≥ 1,6 × giá bán lại", () => {
@@ -56,4 +56,28 @@ test("lưới an toàn không tặng khi còn đường đi: đủ xu, có cây 
   }
   const s = farm(); s.coins = 0; s.freeSeeds = 0; s.inv["van-go"] = 3; // vật liệu không bán được ⇒ vẫn kẹt
   assert.ok(apply(s, { type: "tick" }, START + SAFETY_COOLDOWN_MS).events.some((e) => e.type === "gift"));
+});
+
+// ---------- Milestone 4: vật nuôi trong lưới an toàn ----------
+import { stuck, animalsBusy } from "../core/economy.js?v=m4";
+
+test("M4 lưới an toàn: gà đang làm trứng / trứng chờ thu / còn thức ăn cho con đói ⇒ không coi là kẹt", () => {
+  const broke = () => { const s = farm(); s.coins = 0; s.freeSeeds = 0; s.inv = {}; s.overflow = {}; return s; };
+  const base = broke();
+  assert.equal(stuck(base), true, "không vật nuôi (save cũ, không có field animals) ⇒ vẫn kẹt như trước");
+  base.animals = { list: [], nextUid: 1 };
+  assert.equal(stuck(base), true, "đàn rỗng ⇒ vẫn kẹt");
+  const hen = (fedAt) => ({ uid: 1, kind: "ga", fedAt, readyAt: fedAt === null ? null : fedAt + 240_000 });
+  const producing = broke(); producing.animals = { list: [hen(START)], nextUid: 2 };
+  assert.equal(animalsBusy(producing), true);
+  assert.equal(stuck(producing), false, "gà đang làm trứng");
+  const ready = broke(); ready.animals = { list: [hen(START - 999_999)], nextUid: 2 };
+  assert.equal(stuck(ready), false, "trứng chín chờ thu");
+  const hungryFeed = broke(); hungryFeed.animals = { list: [hen(null)], nextUid: 2 }; hungryFeed.inv["thuc-an-gia-suc"] = 1;
+  assert.equal(stuck(hungryFeed), false, "gà đói nhưng còn thức ăn");
+  const hungryNoFeed = broke(); hungryNoFeed.animals = { list: [hen(null)], nextUid: 2 };
+  assert.equal(stuck(hungryNoFeed), true, "gà đói, hết thức ăn, hết xu, kho trống ⇒ kẹt thật");
+  // qua apply(): không tặng hạt khi gà đang làm trứng
+  assert.equal(apply(producing, { type: "tick" }, START + SAFETY_COOLDOWN_MS).events.some((e) => e.type === "gift"), false);
+  assert.ok(apply(hungryNoFeed, { type: "tick" }, START + SAFETY_COOLDOWN_MS).events.some((e) => e.type === "gift"));
 });
