@@ -4,13 +4,13 @@
 // tuỳ sao và lý do review. Câu trả lời được lưu dưới review (r.reply.text) kèm hậu quả thấy được (r.reply.fx) và câu đáp lại (r.reply.comeback).
 // Đổi tính cách lúc nào cũng được (ngay trên bảng trả lời); đổi nhiều lần trong ngày thì cư dân mạng để ý (rep-flip, R09 / R10, câu Nhật Ký).
 // Xin lỗi review có lỗi thật tạo lời hứa; ca sau giữ trung bình ≥ 4 sao mới được cộng danh tiếng.
-import { PERSONAS, REPLY_OPTIONS, REPLY_LINES, MISTAKE_TEXT, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_HANDLES, NET_REVIEW, RETURN_LINES, CAPTIONS_REPLY } from "../data/lines-reply.js?v=m36audio";
-import { RECIPE } from "../data/recipes.js?v=m36audio";
-import { ARCHETYPES } from "../data/customers.js?v=m36audio";
-import { addRep, freshLine } from "./shift.js?v=m36audio";
-import { recipesAt } from "./progression.js?v=m36audio";
-import { next, pick } from "./rng.js?v=m36audio";
-import { fill } from "./text.js?v=m36audio";
+import { PERSONAS, REPLY_OPTIONS, REPLY_LINES, MISTAKE_TEXT, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_HANDLES, NET_REVIEW, RETURN_LINES, CAPTIONS_REPLY } from "../data/lines-reply.js?v=m36snd";
+import { RECIPE } from "../data/recipes.js?v=m36snd";
+import { ARCHETYPES } from "../data/customers.js?v=m36snd";
+import { addRep, freshLine } from "./shift.js?v=m36snd";
+import { recipesAt } from "./progression.js?v=m36snd";
+import { next, pick } from "./rng.js?v=m36snd";
+import { fill } from "./text.js?v=m36snd";
 
 export const FEED_MAX = 40, RATING_N = 20;
 /** Số lần đổi tính trong một ngày để cư dân mạng bắt đầu bàn tán (cờ rep-flip, sự kiện R09, câu Nhật Ký "flip"). */

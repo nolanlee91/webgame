@@ -1,5 +1,5 @@
 // Điền biến vào câu thoại. {Call} = viết hoa chữ đầu của {call}.
-import { pick } from "./rng.js?v=m36audio";
+import { pick } from "./rng.js?v=m36snd";
 const cap = (v) => (v ? v[0].toLocaleUpperCase("vi") + v.slice(1) : v);
 export function fill(tpl, ctx) {
   return String(tpl).replace(/\{(\w+)\}/g, (m, k) => {
