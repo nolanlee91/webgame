@@ -5366,6 +5366,481 @@
           "loop": false
         }
       }
+    },
+    {
+      "filename": "assets/drama-portraits-hd.webp",
+      "category": "characters",
+      "dimensions": [
+        1536,
+        2240
+      ],
+      "pixelScale": 1,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Chân dung hội thoại NPC",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-m5",
+      "frames": {
+        "me-neutral": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-happy": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-annoyed": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-surprised": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "di-ba-neutral": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "di-ba-happy": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "di-ba-annoyed": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "di-ba-surprised": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-ut-neutral": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-ut-happy": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-ut-annoyed": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-ut-surprised": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-teo-neutral": {
+          "rect": [
+            0,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-teo-happy": {
+          "rect": [
+            384,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-teo-annoyed": {
+          "rect": [
+            768,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-teo-surprised": {
+          "rect": [
+            1152,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-bong-neutral": {
+          "rect": [
+            0,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-bong-happy": {
+          "rect": [
+            384,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-bong-annoyed": {
+          "rect": [
+            768,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-bong-surprised": {
+          "rect": [
+            1152,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-lua-neutral": {
+          "rect": [
+            0,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-lua-happy": {
+          "rect": [
+            384,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-lua-annoyed": {
+          "rect": [
+            768,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-lua-surprised": {
+          "rect": [
+            1152,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-to-neutral": {
+          "rect": [
+            0,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-to-happy": {
+          "rect": [
+            384,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-to-annoyed": {
+          "rect": [
+            768,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-to-surprised": {
+          "rect": [
+            1152,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/weather-fx.webp",
+      "category": "weather",
+      "dimensions": [
+        2560,
+        720
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "rain": 4,
+        "lightning": 2
+      },
+      "transparency": "layer opacity",
+      "intendedUse": "Cảnh thời tiết và mất điện",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-m5",
+      "frames": {
+        "rain-1": {
+          "rect": [
+            0,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-2": {
+          "rect": [
+            640,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-3": {
+          "rect": [
+            1280,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-4": {
+          "rect": [
+            1920,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "lightning-1": {
+          "rect": [
+            0,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "lightning-2": {
+          "rect": [
+            640,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "power-cut-glow": {
+          "rect": [
+            1280,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "animations": {
+        "rain": {
+          "frames": [
+            "rain-1",
+            "rain-2",
+            "rain-3",
+            "rain-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "lightning": {
+          "frames": [
+            "lightning-1",
+            "lightning-2"
+          ],
+          "fps": 8,
+          "loop": false
+        }
+      }
     }
   ],
   "rectConvention": "[x, y, width, height] in atlas pixels from upper left",
