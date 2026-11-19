@@ -277,11 +277,14 @@ test("ghế chờ (shop-fixtures) tăng kiên nhẫn 8%", () => {
   assert.ok(Math.abs(b.shift.patienceMult - a.shift.patienceMult - 0.08) < 1e-9);
 });
 
-test("kho không vượt sức chứa vì gói ký gửi", () => {
+test("kho đầy hàng khác vẫn nhận được gói ký gửi (Dì Ba để dưới gầm quầy) ⇒ không kẹt; nhập thường vẫn bị chặn", () => {
   const s = day(1);
   s.money = 0;
   for (const id of STOCK_IDS) s.stock[id] = 0;
   s.stock.thach = 58;
   act(s, { type: "consign" });
-  assert.ok(stockUsed(s) <= capacity(s));
+  assert.ok(s.stock.ly >= 6 && s.stock.duong >= 6, "đủ món cơ bản");
+  assert.ok(stockUsed(s) > capacity(s));
+  s.money = 100;
+  assert.equal(err(s, { type: "restock", id: "ly" }), "capacity");
 });

@@ -234,3 +234,18 @@ test("nội dung: câu nhân viên mỗi nhóm hàng, review mỗi kết cục �
   const all = JSON.stringify([LOW_LINES, OUT_LINES, CHOICE_SAY, RUN_REVIEW, SWAP_YES_REVIEW, SWAP_NO_REVIEW, CLOSE_REVIEW, CLOSE_SAY, TEO_WRONG, AWAY_SAY]);
   assert.ok(!/\p{Extended_Pictographic}/u.test(all), "không emoji");
 });
+
+test("kho đầy hàng khác: chạy đi mua / ký gửi vẫn có hàng (để dưới gầm quầy), trả tiền là có hàng; hết tiền thì ký gửi lại được", () => {
+  const { s } = outOfCups();
+  s.stock.thach = capacity(s); // kho chật cứng thạch
+  act(s, { type: "stockout", choice: "run" });
+  advance(s, STOCKOUT.RUN_MS + 200);
+  assert.equal(s.stock.ly, 10, "mua gấp không bị sức chứa nuốt mất");
+  // hết tiền, ký gửi đã nhận hôm nay: vẫn được ký gửi thêm (nợ cộng dồn)
+  const p = outOfCups(5, 0).s;
+  act(p, { type: "stockout", choice: "consign" });
+  p.stock.ly = 0;
+  act(p, { type: "brew", step: "cup", id: "ly" });
+  const o = stockoutOptions(p).find((x) => x.id === "consign");
+  assert.ok(o && o.ok, "ký gửi lần hai khi không đủ tiền");
+});

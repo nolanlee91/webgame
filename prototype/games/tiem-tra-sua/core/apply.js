@@ -46,11 +46,13 @@ const HANDLERS = {
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
-export function invariantError(s, before) {
+/** Hàng Dì Ba ký gửi để tạm dưới gầm quầy: được vượt sức chứa kho (không bao giờ kẹt vì kho đầy hàng khác). */
+const OVER_CAP_OK = new Set(["consign", "stockout", "tick"]); // tick: hàng chạy đi mua / Anh Tèo mang về (core/stockout.js)
+export function invariantError(s, before, type = "") {
   if (!Number.isSafeInteger(s.money) || s.money < 0) return "money";
   for (const id of STOCK_IDS) { const q = s.stock[id]; if (!Number.isInteger(q) || q < 0) return "stock"; }
   const u = stockUsed(s);
-  if (u > capacity(s) && u > (before ? stockUsed(before) : 0)) return "capacity";
+  if (u > capacity(s) && u > (before ? stockUsed(before) : 0) && !OVER_CAP_OK.has(type)) return "capacity";
   if (!(s.rep >= 0 && s.rep <= 100)) return "rep";
   if (s.shift && (!Number.isInteger(s.shift.kitchen.ready) || s.shift.kitchen.ready < 0)) return "kitchen";
   if (s.shift && !(s.shift.sel >= 0 && s.shift.sel < s.shift.stations.length)) return "station";
@@ -65,7 +67,7 @@ export function apply(state, action) {
   const events = [];
   const result = HANDLERS[type](draft, action, events);
   if (!result || result.err) return { err: result?.err || "bad", detail: result, events: [] };
-  const bad = invariantError(draft, state);
+  const bad = invariantError(draft, state, type);
   if (bad) return { err: "invariant-" + bad, events: [] };
   for (const k of Object.keys(state)) delete state[k];
   Object.assign(state, draft);

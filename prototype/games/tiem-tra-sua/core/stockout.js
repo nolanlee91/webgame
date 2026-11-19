@@ -152,7 +152,8 @@ export function substituteFor(s, c, id) {
   }
   return null;
 }
-const consignOk = (s) => s.consign?.day !== s.day;
+/** Ký gửi giữa ca: lần đầu trong ngày luôn được; đã nhận rồi mà vẫn không đủ tiền cho lựa chọn trả tiền thì Dì Ba cho thêm (nợ cộng dồn) ⇒ không bao giờ kẹt. */
+const consignOk = (s, poor = false) => s.consign?.day !== s.day || poor;
 
 /** Các lựa chọn của hội thoại hết hàng (kèm chi phí hiện trước). */
 export function stockoutOptions(s, d = s.shift?.dialog) {
@@ -162,7 +163,7 @@ export function stockoutOptions(s, d = s.shift?.dialog) {
   const rp = runPrice(id), sp = shipPrice(id);
   const out = [];
   const poor = s.money < Math.min(rp, sp);
-  const cons = { id: "consign", label: "Gọi Dì Ba ký gửi", hint: `Dì Ba mang ${n} phần ${name} ra liền, bán tới đâu trừ giá vốn tới đó`, cost: `Nợ ký gửi ${costOfUse({ [id]: n })}k`, ok: consignOk(s) };
+  const cons = { id: "consign", label: "Gọi Dì Ba ký gửi", hint: `Dì Ba mang ${n} phần ${name} ra liền, bán tới đâu trừ giá vốn tới đó`, cost: `Nợ ký gửi ${costOfUse({ [id]: n })}k`, ok: consignOk(s, poor) };
   if (poor && cons.ok) out.push(cons);
   out.push({ id: "run", label: "Chạy đi mua gấp", hint: `${Math.round(STOCKOUT.RUN_MS / 1000)} giây bỏ trống quầy: đồng hồ vẫn chạy, khách sốt ruột nhanh hơn. Về là có ${n} phần`, cost: `${rp}k (+30%)`, ok: s.money >= rp && !sh.away });
   out.push({ id: "shipper", label: "Nhờ Anh Tèo mua giùm", hint: `Tới sau khoảng ${Math.round(STOCKOUT.SHIP_MS / 1000)} giây, bạn vẫn pha món khác được. Có khi mua nhầm`, cost: `${sp}k (gồm ${STOCKOUT.SHIP_TIP}k tip)`, ok: s.money >= sp, risk: true });
@@ -174,11 +175,10 @@ export function stockoutOptions(s, d = s.shift?.dialog) {
   return out;
 }
 
+/** Hàng mua gấp / mượn / ký gửi giữa ca: để tạm dưới gầm quầy, được vượt sức chứa kho (core/apply.js OVER_CAP_OK) ⇒ trả tiền là có hàng. */
 function addStock(s, id, n) {
-  const room = Math.max(0, capacity(s) - stockUsed(s));
-  const k = Math.min(n, room);
-  s.stock[id] = (s.stock[id] || 0) + k;
-  return k;
+  s.stock[id] = (s.stock[id] || 0) + n;
+  return n;
 }
 function closeDialog(sh) { sh.dialog = null; }
 
@@ -197,7 +197,7 @@ export function resolveStockout(s, pickId, events) {
   let sayText = freshLine(s, SAY[pickId] || SAY.close, { ...ctx, sub: opt.sub ? lower(RECIPE[opt.sub].name) : "" });
   let extra = null;
   if (pickId === "consign") {
-    const got = addStock(s, id, n);
+    s.stock[id] = (s.stock[id] || 0) + n; const got = n; // Dì Ba để dưới gầm quầy: được vượt sức chứa
     const owed = costOfUse({ [id]: got });
     s.consign = { day: s.day, owed: (s.consign?.owed || 0) + owed };
     if (s.drama) s.drama.flags["ky-gui"] = s.day + DRAMA.flagDays;

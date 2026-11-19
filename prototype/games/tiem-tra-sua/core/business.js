@@ -38,10 +38,10 @@ export function consign(s, events) {
   if (s.shift) return { err: "shift-open" };
   if (!needsBailout(s)) return { err: "not-needed" };
   if (s.consign?.day === s.day) return { err: "once-per-day" };
-  let room = capacity(s) - stockUsed(s);
+  let room = 99; // để tạm dưới gầm quầy, được vượt sức chứa (core/apply.js OVER_CAP_OK)
   const got = {};
   for (const [id, n] of Object.entries(CONSIGN_KIT)) {
-    const k = Math.max(0, Math.min(n, room));
+    const k = Math.max(0, Math.min(n - (s.stock[id] || 0), room)); // bù cho đủ gói (kho đầy hàng khác vẫn có chỗ cho món cơ bản)
     if (!k) continue;
     s.stock[id] = (s.stock[id] || 0) + k; got[id] = k; room -= k;
   }
