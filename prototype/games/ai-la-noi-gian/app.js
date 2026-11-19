@@ -153,8 +153,15 @@ function send(o) {
 
 function onMsg(m) {
   switch (m.t) {
-    case "joined": save({ code: m.code, token: m.token }); history.replaceState(null, "", `?p=${m.code}`); break;
-    case "state": { offset = m.now - Date.now(); const prev = v; v = m.v; render(); soundFor(prev, v); break; }
+    case "joined":
+      save({ code: m.code, token: m.token }); history.replaceState(null, "", `?p=${m.code}`);
+      if (vsBots) for (let k = 1; k < 6; k++) send({ t: "add-bot" }); // "Chơi với máy": phòng kín + 5 bot ⇒ đủ 6 người
+      break;
+    case "state": {
+      offset = m.now - Date.now(); const prev = v; v = m.v;
+      if (vsBots && v.phase === "lobby" && v.host === v.seat && v.players.length >= v.min) { vsBots = false; send({ t: "start" }); }
+      render(); soundFor(prev, v); break;
+    }
     case "err":
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
       toast(ERR[m.code] || "Có lỗi xảy ra."); sfx.play("err", 0.7); break;
@@ -172,6 +179,8 @@ function needName() {
 }
 try { $("nameInp").value = localStorage.getItem(NAME) || ""; } catch {}
 const qp = new URLSearchParams(location.search).get("p"); if (qp) $("codeInp").value = qp.toUpperCase().slice(0, 5);
+let vsBots = false; // bấm "Chơi với máy" ⇒ tự tạo phòng kín, thêm bot, bắt đầu luôn (dùng bot của máy chủ)
+$("botBtn").onclick = () => { const n = needName(); if (n) { vsBots = true; homeMsg("Đang dọn bàn với máy…"); send({ t: "create", name: n, public: false }); } };
 $("createBtn").onclick = () => { const n = needName(); if (n) { homeMsg("Đang tạo phòng…"); send({ t: "create", name: n, public: !$("privateRoom").checked }); } };
 $("joinBtn").onclick = () => {
   const n = needName(); if (!n) return;
