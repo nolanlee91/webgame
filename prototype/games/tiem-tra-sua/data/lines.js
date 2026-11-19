@@ -126,16 +126,7 @@ export const HEADLINES = {
   good: "Bán {cups} ly, trung bình {stars} sao. Khách khen, chủ tiệm tự hào, cái nắp kêu cạch đều tay.",
 };
 
-/** Đơn nhiều ly. {n} = số ly. */
-export const ORDER_LINES_MULTI = [
-  "{Call} ơi cho {self} {n} ly, ly đầu {drink} {sugar} đường {ice}. Mấy ly kia ghi trên phiếu giùm nha, nhóm chat đang réo.",
-  "{Self} gọi {n} ly cho cả phòng. Ai uống gì {self} chụp màn hình gửi {call} rồi đó.",
-  "{n} ly nha {call}. {Self} là người duy nhất trong nhóm chịu đi mua, nên ly nào đúng là công của {self}.",
-];
-export const REVIEW_MULTI = [
-  "Cả nhóm {n} ly đúng hết, nhóm chat im lặng vì bận uống.",
-  "{N} ly giao một lượt, không ai bị đổi ly. Hiếm có khó tìm.",
-];
+/** Đơn nhiều ly: câu gọi món, review và câu nói theo kết quả ở data/lines-m3.js (ORDER_MULTI, MULTI_REVIEW, MULTI_SAY). */
 
 /** Trả lời review trong Sổ (core/reviews.js). */
 export const REPLIES = {

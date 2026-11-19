@@ -1,14 +1,14 @@
 // Bảng phủ Milestone 3–4: hội thoại sự kiện Drama (chân dung + lựa chọn + hậu quả), Sổ quản lý (review, nhật ký, sự kiện, nhiệm vụ),
 // Nhật Ký Làm Chủ (thẻ ảnh, lưu / chia sẻ), thanh xếp chỗ trang trí. Dùng chung khung open/close của ui/screens.js.
-import { icon } from "../render/atlas.js?v=m34";
-import { EVENT } from "../data/events.js?v=m34";
-import { RECIPE } from "../data/recipes.js?v=m34";
-import { REPLIES } from "../data/lines.js?v=m34";
-import { currentEvent, textOf, affordable, fxSummary } from "../core/drama.js?v=m34";
-import { customer } from "../core/shift.js?v=m34";
-import { canReply } from "../core/reviews.js?v=m34";
-import { EQUIPMENT } from "../data/equipment.js?v=m34";
-import { drawJournal, download, share } from "./journal.js?v=m34";
+import { icon } from "../render/atlas.js?v=m35";
+import { EVENT } from "../data/events.js?v=m35";
+import { RECIPE } from "../data/recipes.js?v=m35";
+import { REPLIES } from "../data/lines.js?v=m35";
+import { currentEvent, textOf, affordable, fxSummary } from "../core/drama.js?v=m35";
+import { customer } from "../core/shift.js?v=m35";
+import { canReply } from "../core/reviews.js?v=m35";
+import { EQUIPMENT } from "../data/equipment.js?v=m35";
+import { drawJournal, download, share } from "./journal.js?v=m35";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const GROUP_LABEL = { khach: "Khách", mang: "Trên mạng", "van-hanh": "Vận hành", "dac-biet": "Đặc biệt", doi: "Đời thường" };

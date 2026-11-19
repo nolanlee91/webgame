@@ -292,6 +292,9 @@ await b.shot(OUT + "/13-desktop-don-hai-ly.png");
 await pressSel("#serveBtn");
 const price2 = await S(`s.shift.reviews.find(r=>r.cid===${gid})?.stars||0`);
 check("M3: giao đủ 2 ly một lượt: thu tiền cả đơn, review, ghi đơn nhiều ly", (await S("s.money")) === mg + 52 && price2 >= 3 && (await S("s.shift.ledger.multi")) === 1, `money ${mg}→${await S("s.money")}, ${price2} sao`);
+const mrv = await S(`JSON.stringify(s.shift.reviews.find(r=>r.cid===${gid})||null)`).then(JSON.parse);
+const msay = await S(`(s.shift.customers.find(c=>c.id===${gid})||{say:{}}).say.text||''`);
+check("M3 nội dung: đơn hai ly đúng hết ⇒ review từ bảng đơn nhiều ly (lý do multi…), khách nói câu riêng của đơn nhóm", !!mrv && /^multi/.test(mrv.reason) && mrv.line.length > 15 && msay.length > 10 && msay !== mrv.line, JSON.stringify({ mrv, msay }));
 check("desktop: không tràn ngang sau M3–M4", await noOverflowX());
 // Sổ quản lý mở được giữa ca (tạm dừng)
 await pressSel("#bookBtn");
@@ -300,6 +303,21 @@ await pressSel('.notebook .tab[data-tab="drama"]');
 check("M4: Sổ: tab Sự kiện ghi lựa chọn đã làm", (await text(".nb-body")).length > 20);
 await b.shot(OUT + "/14-desktop-so-quan-ly.png");
 await pressSel("#nbClose");
+
+// ===== 9. Sự kiện vựa sỉ qua ?event=ID (U01: bao trà rẻ mà cũ, nhiều bước) =====
+await b.nav(BASE + "&event=U01");
+check("M3 nội dung: ?event=U01 mở sự kiện vựa sỉ trong ca: chân dung, câu thoại, 3 lựa chọn", await waitFor("!!document.querySelector('.sheet[data-kind=event][data-event=U01]')") &&
+  await b.ev("document.querySelectorAll('.sheet[data-kind=event] .choice').length===3") && /vựa sỉ/.test(await text(".sheet[data-kind=event] .say .line")));
+await b.shot(OUT + "/15-desktop-su-kien-vua-si.png");
+await pressSel('.sheet[data-kind=event] .choice[data-choice="call"]');
+check("M3 nội dung: gọi Anh Út ⇒ bảng hậu quả, rồi sang bước hai (chuyện con gà)", await waitFor("!!document.querySelector('.sheet[data-kind=\"event-result\"] .quote')"));
+await pressSel("#eventNext");
+check("M3 nội dung: bước hai có lựa chọn nghe hết / cúp máy", await waitFor("!!document.querySelector('.sheet[data-kind=event] .choice[data-choice=\"polite\"]')") && /con gà/.test(await text(".sheet[data-kind=event] .say .line")));
+await pressSel('.sheet[data-kind=event] .choice[data-choice="polite"]');
+await waitFor("!!document.querySelector('.sheet[data-kind=\"event-result\"]')");
+await pressSel("#eventNext");
+check("M3 nội dung: chọn cúp máy ⇒ hội thoại đóng, hẹn U03 (giao trễ) ca sau, cờ ut-doi, lịch sử ghi U01", (await S("s.shift.dialog")) === null &&
+  await S("s.drama.queue.some(q=>q.id==='U03'&&q.day===s.day+1)&&!!s.drama.flags['ut-doi']&&s.drama.history.filter(h=>h.id==='U01').length===2"));
 
 check("0 lỗi console / exception", b.errors.length === 0, b.errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);

@@ -1,9 +1,14 @@
 // Việc của chủ tiệm ngoài quầy: gói ký gửi khi hụt vốn (không bao giờ kẹt), quảng bá địa phương (cấp 14).
-import { STOCK, useOf } from "../data/ingredients.js?v=m34";
-import { RECIPE } from "../data/recipes.js?v=m34";
-import { costOfUse, hasStock, stockUsed, capacity, packPrice, useOfSpec } from "./economy.js?v=m34";
-import { PEARL_RAW } from "../data/equipment.js?v=m34";
-import { SHIFT_FEE } from "../data/shift.js?v=m34";
+import { STOCK, useOf } from "../data/ingredients.js?v=m35";
+import { RECIPE } from "../data/recipes.js?v=m35";
+import { costOfUse, hasStock, stockUsed, capacity, packPrice, useOfSpec } from "./economy.js?v=m35";
+import { PEARL_RAW } from "../data/equipment.js?v=m35";
+import { SHIFT_FEE, DRAMA } from "../data/shift.js?v=m35";
+import { CONSIGN_LINES } from "../data/lines-m3.js?v=m35";
+import { pick } from "./rng.js?v=m35";
+
+/** Cờ của game cho Drama Engine (core/drama.js ENGINE_FLAG). until = ngày cuối còn hiệu lực. */
+const flag = (s, f, until) => { if (s.drama) s.drama.flags[f] = until; };
 
 /** Gói ký gửi của Dì Ba: đủ khoảng 6 ly trà đào + 3 ly trà sữa trân châu. Trả dần bằng giá vốn khi bán. */
 export const CONSIGN_KIT = { "ly": 6, "hong-tra": 6, "dao": 4, "sua": 3, "duong": 6, "da": 6, [PEARL_RAW]: 3 };
@@ -42,7 +47,8 @@ export function consign(s, events) {
   }
   const owed = costOfUse(got);
   s.consign = { day: s.day, owed: (s.consign?.owed || 0) + owed };
-  events.push({ type: "consigned", got, owed });
+  flag(s, "ky-gui", s.day + DRAMA.flagDays); // Dì Ba ghé hỏi thăm trong ca (sự kiện B01)
+  events.push({ type: "consigned", got, owed, line: pick(s, CONSIGN_LINES) });
   return { ok: true };
 }
 /** Khi bán: trừ dần nợ ký gửi bằng giá vốn ly (không vượt tiền thu). Trả về số trừ. */
@@ -51,6 +57,7 @@ export function consignRepay(s, max) {
   if (!owed || max <= 0) return 0;
   const d = Math.min(owed, max);
   s.consign.owed = owed - d;
+  if (!s.consign.owed && s.drama) { delete s.drama.flags["ky-gui"]; flag(s, "ky-gui-xong", s.day + DRAMA.flagDays); } // ngày trả đủ (sự kiện B02)
   return d;
 }
 
@@ -72,6 +79,7 @@ export function promo(s, kind, events) {
   s.promo = { day: s.day, kind };
   s.followers = (s.followers || 0) + P.followers;
   s.buzz = (s.buzz || 0) + P.buzz;
+  flag(s, "promo-" + kind, s.day); // chỉ ca hôm nay: lên mạng / phản tác dụng / khách ăn ké (sự kiện Q01–Q09)
   events.push({ type: "promoted", kind, price: P.price, line: P.line });
   return { ok: true };
 }

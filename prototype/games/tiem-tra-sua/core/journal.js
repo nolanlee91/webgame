@@ -1,10 +1,13 @@
 // Nhật Ký Làm Chủ: câu chốt ca kiểu meme (theo dữ kiện ca) và nội dung thẻ chia sẻ 1080×1350 (ui/journal.js vẽ lên journal-card.png).
 // Thuần: test kiểm câu chọn đúng tình huống và nội dung thẻ đủ dòng.
-import { CAPTIONS } from "../data/lines.js?v=m34";
-import { fill } from "./text.js?v=m34";
-import { int } from "./rng.js?v=m34";
+import { CAPTIONS as BASE_CAPTIONS } from "../data/lines.js?v=m35";
+import { CAPTIONS_M3 } from "../data/lines-m3.js?v=m35";
 
-/** Chọn nhóm câu theo dữ kiện ca: lỗ > khách bỏ về > drama > 0% đường > lên mạng > đơn nhóm > hoàn hảo > ít khách > ổn. */
+const CAPTIONS = { ...BASE_CAPTIONS, missions: CAPTIONS_M3.missions, multi: [...BASE_CAPTIONS.multi, ...CAPTIONS_M3.multi] };
+import { fill } from "./text.js?v=m35";
+import { int } from "./rng.js?v=m35";
+
+/** Chọn nhóm câu theo dữ kiện ca: lỗ > khách bỏ về > drama > 0% đường > pha nhầm > xong cả 3 nhiệm vụ > lên mạng > đơn nhóm > hoàn hảo > ít khách > ổn. */
 export function captionKind(sum) {
   const moments = sum.moments || [];
   if (sum.profit < 0) return "loss";
@@ -12,6 +15,7 @@ export function captionKind(sum) {
   if ((sum.drama || []).length >= 2) return "drama";
   if (moments.some((m) => m.kind === "drama" && /0%/.test(m.line || ""))) return "sugar0";
   if (moments.filter((m) => m.kind === "mistake").length >= 2) return "oops";
+  if ((sum.missions || []).length >= 3 && sum.missions.every((m) => m.done)) return "missions";
   if ((sum.followersDelta || 0) >= 20) return "viral";
   if (sum.multi >= 2) return "multi";
   if (sum.lost > 0) return "lost";
@@ -31,10 +35,11 @@ export function caption(s, sum) {
   });
 }
 
+const JOURNAL_KINDS = new Set(["drama", "mistake", "five", "multi5", "multi", "promise", "mission-all", "mission-miss", "consign-done"]);
 /** Khoảnh khắc có thể đặt làm câu trích trên thẻ (drama trước, rồi review 5 sao, rồi review hay nhất). */
 export function journalMoments(sum) {
   const out = [];
-  for (const m of sum.moments || []) if (m.line && (m.kind === "drama" || m.kind === "mistake" || m.kind === "five" || m.kind === "multi5" || m.kind === "promise")) out.push({ who: m.name, line: m.line });
+  for (const m of sum.moments || []) if (m.line && JOURNAL_KINDS.has(m.kind)) out.push({ who: m.name, line: m.line });
   if (sum.best?.line && !out.some((o) => o.line === sum.best.line)) out.push({ who: sum.best.name, line: sum.best.line });
   for (const r of sum.reviews || []) if (out.length < 6 && !out.some((o) => o.line === r.line) && r.stars <= 2) out.push({ who: r.name, line: r.line });
   if (!out.length) out.push({ who: "", line: "Một ngày bình thường ở tiệm: pha, cười, lau quầy." });

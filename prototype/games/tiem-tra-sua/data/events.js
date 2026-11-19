@@ -9,7 +9,7 @@
 //   priority  1..3 (3 = do người chơi gây ra, ưu tiên), w = trọng số (mặc định 1), cooldown = số ngày nghỉ (mặc định 2), once
 //   if        điều kiện khai báo (core/drama.js meets): minDay minLevel minRep maxRep minFollowers minMoney maxMoney flags noFlags owns notOwns
 //             reviewLow sum{lostMin profitMax profitMin starsMin starsMax cupsMin} chain (chỉ mở qua hẹn "later")
-//             — chỉ trong ca: waitingMin queueFree rush pearlsOut archWaiting lostMin cupsMin tMin tMax lastServe{sugar sugarOk iceOk minStars maxStars arch notArch cups topping maxAgeMs}
+//             — chỉ trong ca: waitingMin queueFree rush pearlsOut archWaiting lostMin cupsMin tMin tMax lastServe{sugar sugarOk iceOk minStars maxStars arch notArch cups topping mistake outcome maxAgeMs}
 //   who       "waiting" | { arch } (khách đang chờ nói) | "lastServed" (khách vừa nhận ly) — hoặc npc: { role, name, self, call }
 //             role ∈ barista regular vip reviewer courier neighbor office-worker (ảnh chân dung)
 //   nodes     { start: { line, mood, me?, choices: [...] }, <bước khác>: {...} }
@@ -18,6 +18,8 @@
 //             nextGuests demand("who"|recipe) flag unflag review{stars line name} swapTopping priceWho leaveWho moment(chuỗi | false)
 // Biến trong câu: {name} {self} {Self} {call} {Call} {drink} {sugar} {ice} {topping} {shop} {n} {followers}.
 // Mọi bước phải có ít nhất một lựa chọn không tốn tiền / hàng (test/drama.test.mjs kiểm).
+// Sự kiện cho các cơ chế M3 (đơn nhóm F, bàn pha P, vựa sỉ U, quảng bá Q, ký gửi B) ở data/events-m3.js.
+import { EVENTS_M3 } from "./events-m3.js?v=m35";
 
 export const EVENTS = [
   // ===== Khách =====
@@ -857,6 +859,7 @@ export const EVENTS = [
       },
     },
   },
+  ...EVENTS_M3,
 ];
 
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

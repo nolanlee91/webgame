@@ -1,20 +1,20 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon, dpr } from "../render/atlas.js?v=m34";
-import { ingIcon, headIcon } from "./brew.js?v=m34";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m34";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m34";
-import { ARCHETYPES } from "../data/customers.js?v=m34";
-import { COMPLAINT } from "../data/lines.js?v=m34";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m34";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m34";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m34";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m34";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m34";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m34";
-import { fill } from "../core/text.js?v=m34";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m34";
-import { appeal } from "../core/equipment.js?v=m34";
-import { portrait as portraitOf } from "./panels.js?v=m34";
+import { icon, dpr } from "../render/atlas.js?v=m35";
+import { ingIcon, headIcon } from "./brew.js?v=m35";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m35";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m35";
+import { ARCHETYPES } from "../data/customers.js?v=m35";
+import { COMPLAINT } from "../data/lines.js?v=m35";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m35";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m35";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m35";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m35";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m35";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m35";
+import { fill } from "../core/text.js?v=m35";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m35";
+import { appeal } from "../core/equipment.js?v=m35";
+import { portrait as portraitOf } from "./panels.js?v=m35";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
