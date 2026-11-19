@@ -50,6 +50,18 @@ def main():
     man_path = root / spec.get("manifest", "data/asset-manifest.json")
     manifest = json.loads(man_path.read_text(encoding="utf-8"))
     items = {it["filename"]: it for it in manifest.get("items", [])}
+    # Định dạng Nông Trại (assets/v3/manifest.json): {"sheets": {alias: {file, frames:[{id,x,y,width,height,anchor}], animations}}}
+    base_dir = spec.get("sheetDir", "")
+    for alias, sh in (manifest.get("sheets") or {}).items():
+        fn = base_dir + sh["file"]
+        try: dims = list(Image.open(root / fn).size)
+        except Exception: dims = []
+        anims = {}
+        for k, a in (sh.get("animations") or {}).items():  # chỉ kiểm clip dạng danh sách tên frame; dạng khác (chỉ số khung) bỏ qua
+            fr = a.get("frames") if isinstance(a, dict) else a
+            if isinstance(fr, list) and all(isinstance(f, str) for f in fr):
+                anims[k] = {"frames": fr, "fps": (a.get("fps") if isinstance(a, dict) else None) or sh.get("fps") or 1}
+        items[fn] = {"filename": fn, "dimensions": dims, "frames": {f["id"]: {"rect": [f["x"], f["y"], f["width"], f["height"]], "anchor": f.get("anchor", [0, 0])} for f in sh.get("frames", [])}, "animations": anims}
     dflt = spec.get("defaults", {})
     scene_w, scene_h = spec.get("scene", [1280, 720])
     heights = {}   # (group, role) -> [(sheet, frame, h)]
