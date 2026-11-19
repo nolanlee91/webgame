@@ -144,8 +144,10 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     Object.assign(el.style, { left: X(x - (w * ax) / fw), top: Y(y - (h * ay) / fh), width: X(w), height: Y(h) });
   }
   /** Cờ hội Phiên chợ: phien-cho.webp (co-hoi-1/2, Codex) khi có, không thì 2 đèn lồng của decor.webp. */
+  // Có cả co-hoi-2 ⇒ chồng khung 2 lên, CSS bật / tắt 3 fps (clip "co-hoi"), không cần vòng JS
   const fairFlagHtml = () => frame("phien-cho", "co-hoi-1")
-    ? `<span class="fair-flag fair-flag--art" style="${spriteCss("phien-cho", "co-hoi-1")}"></span>`
+    ? `<span class="fair-flag fair-flag--art" style="${spriteCss("phien-cho", "co-hoi-1")}"></span>` +
+      (frame("phien-cho", "co-hoi-2") ? `<span class="fair-flag fair-flag--art fair-flag--b" style="${spriteCss("phien-cho", "co-hoi-2")}"></span>` : "")
     : `<span class="fair-flag"><i style="${spriteCss("decor", "den-long") || ""}"></i><i style="${spriteCss("decor", "den-long") || ""}"></i></span>`;
   const picHtml = (sprite, cls = "spr") => !sprite ? "" : sprite.sheet === "garden"
     ? `<img class="${cls}${sprite.filter ? " spr--" + sprite.filter : ""}" src="assets/garden/${sprite.id}.webp" alt="">`

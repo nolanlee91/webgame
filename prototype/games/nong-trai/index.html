@@ -275,6 +275,11 @@
       .nav-badge { top: -9px; right: -6px; }
       .tools .btn { padding-inline: 8px; }
       #bookBtn { gap: 4px; } #bookBtn .bk-name { display: none; } /* M6: nút Sổ gọn (icon + 13/30) để hàng công cụ vẫn 2 hàng */
+      /* Khung chỉ số chiếm trọn hàng, 5 nút công cụ thành MỘT hàng ngang bên dưới (trước đây cột nút 3 hàng làm khung chỉ số cao, trống phía trên) */
+      .hud { flex-direction: column; gap: 8px; }
+      .stats { flex: none; align-items: center; }
+      .tools { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr) 48px 48px; gap: 8px; margin: 0 7px 4px 3px; }
+      .tools .btn { justify-content: center; min-width: 0; white-space: nowrap; }
     }
     @media (max-width: 520px) { .tag { display: none; } .bar { white-space: nowrap; } }
     @media (max-width: 360px) {
@@ -517,7 +522,9 @@
     .fair-flag i { width: 30%; height: 100%; image-rendering: pixelated; background-repeat: no-repeat; animation: flag-bob 1.2s steps(2) infinite alternate; }
     .fair-flag--art { left: 20%; right: 20%; top: -30%; height: 60%; background-repeat: no-repeat; image-rendering: pixelated; }
     @keyframes flag-bob { to { transform: translateY(-2px); } }
-    @media (prefers-reduced-motion: reduce) { .fair-flag i { animation: none; } }
+    .fair-flag--b { animation: flag-swap .667s steps(1) infinite; }
+    @keyframes flag-swap { 0% { opacity: 0; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .fair-flag i { animation: none; } .fair-flag--b { animation: none; opacity: 0; } }
     .nav-badge--fair { background: #b8741a; }
     .mk-fair { margin: 8px 0 0; padding: 8px 12px; background: #3d2a12; color: #ffe9a8; font-weight: 700; box-shadow: inset 0 2px #6b4a20, 0 0 0 3px #1a120a; }
     .mk-fair.on { background: #7a3d12; } .mk-fair b { color: #fff3c8; } .mk-fair .hot { display: inline-flex; align-items: center; gap: 2px; margin-right: 8px; }

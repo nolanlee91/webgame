@@ -1,7 +1,7 @@
 // Phản hồi chung cho mọi trang Lụm Kèo: bấm nút ⇒ lún xuống (chiều sâu) + tiếng "tách"; gửi chat ⇒ tiếng "vút".
 // Nhúng: <script type="module" src="../_shared/feedback.js"></script>. Tôn trọng khoá tắt tiếng chung "wgp.muted".
 // Dùng thuộc tính CSS `translate`/`scale` (độc lập với `transform`) nên không phá nút đang được căn giữa bằng transform.
-// Bỏ qua một phần tử: thêm data-nosfx (không tiếng) hoặc data-nopress (không lún).
+// Bỏ qua một phần tử: thêm data-nosfx (không tiếng) hoặc data-nopress (không lún). data-nosfx đặt trên vùng cha ⇒ cả vùng im (game có tiếng riêng).
 
 const BTN = 'button, .btn, .px-btn, [role="button"], a.btn, a.px-link, input[type="submit"]';
 
@@ -48,7 +48,7 @@ export function play(name) {
 const usable = (el) => el && !el.disabled && el.getAttribute("aria-disabled") !== "true";
 let lastAt = 0;
 function clickFx(el) {
-  if (!usable(el) || el.hasAttribute("data-nosfx")) return;
+  if (!usable(el) || el.closest("[data-nosfx]")) return;
   const now = performance.now(); if (now - lastAt < 40) return; lastAt = now; // chạm + click giả không kêu 2 lần
   play("click");
 }

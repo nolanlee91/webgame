@@ -186,7 +186,7 @@ await sleep(300);
 check("mobile 390: không tràn ngang", await noOverflowX(), await ev("document.documentElement.scrollWidth"));
 const small = await ev(`[...document.querySelectorAll('.farm-nav button, #seeds .seed, .tools .btn')].filter(b=>{const r=b.getBoundingClientRect();return r.height<44||r.width<44}).map(b=>b.id||b.dataset.id)`);
 check("mobile: nút điều hướng / hạt / công cụ ≥ 44px", small.length === 0, JSON.stringify(small));
-check("mobile: HUD — số kho không bị che / tràn khỏi ô chỉ số", await ev("(()=>{const a=document.getElementById('hStore').getBoundingClientRect(),b=document.querySelector('.stats').getBoundingClientRect(),c=document.getElementById('allBtn').getBoundingClientRect();return a.right<=b.right&&b.right<=c.left})()"));
+check("mobile: HUD — số kho không bị che / tràn khỏi ô chỉ số", await ev("(()=>{const a=document.getElementById('hStore').getBoundingClientRect(),b=document.querySelector('.stats').getBoundingClientRect(),c=document.getElementById('allBtn').getBoundingClientRect();return a.right<=b.right&&(b.right<=c.left||b.bottom<=c.top)})()"));
 await shot("06-mobile-chinh.png");
 await pressSel("#ordersTool");
 check("mobile: bảng đơn mở, không tràn ngang, nút Giao/Bỏ ≥ 44px", await visible("#ordersPanel") && await noOverflowX() &&

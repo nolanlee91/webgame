@@ -100,7 +100,9 @@ export function createScene(root, atlas, { onCustomer }) {
       if (hiddenOwned.has(id)) continue;
       const f = atlas.frame(it.sprite[0], it.sprite[1]);
       if (!f) continue;
-      const at = placeOf(state, id);
+      let at = placeOf(state, id);
+      // đồ xếp được đặt từ trước khi có kẹp (hoặc màn hẹp hơn lúc đặt): vẽ kẹp trong vùng đang thấy, không đổi bản lưu
+      if (it.place && !arranging) { const d = { x: at[0], y: at[1], f, it }; clampVisible(d); at = [d.x, d.y]; }
       const floor = !it.front && (it.place === "floor" || (!it.place && at[1] >= 430));
       const e = el("div", "spr decor" + (it.place ? " movable" : ""), it.front ? frontOwned : floor ? crowd : backOwned);
       e.dataset.item = id;
