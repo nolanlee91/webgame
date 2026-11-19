@@ -49,7 +49,7 @@ async function brewClicks(o, onStep = null) {
 // ===== 1. Người chơi mới, desktop, chuột =====
 await b.view(1366, 768, false); await b.touch(false); press = b.click;
 await b.nav(BASE); await b.ev("localStorage.clear()"); await b.nav(BASE);
-check("mở game: bảng chào mừng có chân dung nhân viên (portraits.webp) và ô tên tiệm", await visible("#introGo") && await visible("#shopName") && await b.ev("!!document.querySelector('.intro .portrait[style*=\"portraits.webp\"]')"));
+check("mở game: bảng chào mừng có chân dung nhân viên (portraits.webp) và ô tên tiệm", await visible("#introGo") && await visible("#shopName") && await b.ev("!!document.querySelector('.intro .portrait[style*=\"portraits\"]')"));
 check("cảnh tiệm dùng nhân viên 144 × 192 từ barista-scene", await waitFor(`(() => {
   const actor = document.querySelector('.stage .barista');
   return !!document.querySelector('.stage img[src$="shop-scene.webp"]') &&
@@ -89,8 +89,8 @@ for (const [cid, how] of [[1, "scene"], [2, "rail"], [3, "scene"]]) {
   if (cid === 1) check("ngày học: ở mỗi bước, đúng một nút theo phiếu được đánh dấu “Phiếu ghi”", hintOk);
   if (cid === 1) {
     check("ly đổi hình ở MỖI bước (7 bước → 8 trạng thái khác nhau, từ ly trống tới có nắp)", new Set(stages).size === 8, stages.join(" | "));
-    check("lớp ly cuối: sữa 75% + trân châu + đá + thành ly + nắp", stages.at(-1) === "milk-75+pearls-bottom+ice-top+empty-cup+dome-lid", stages.at(-1));
-    check("ly nhỏ trên mặt quầy trong cảnh cũng có nắp", await b.ev("document.querySelectorAll('.minicup i').length===5"));
+    check("lớp ly cuối: sữa 75% + vệt siro (asset mới) + trân châu + đá + thành ly + nắp", stages.at(-1) === "milk-75+syrup-swirl+pearls-bottom+ice-top+empty-cup+dome-lid", stages.at(-1));
+    check("ly nhỏ trên mặt quầy trong cảnh cũng có nắp", await b.ev("[...document.querySelectorAll('.minicup i')].some(e=>/cup-layers/.test(e.style.backgroundImage))&&document.querySelectorAll('.minicup i').length===6"));
     check("phiếu tích đúng từng mục đã pha", await b.ev("document.querySelectorAll('#ticket .t-items li.ok').length===document.querySelectorAll('#ticket .t-items li').length"));
     await b.shot(OUT + "/03-desktop-pha-xong.png");
   } else check(`ly #${cid} đổi hình ở từng bước có nguyên liệu`, new Set(stages).size >= 6, stages.join(" | "));

@@ -15,10 +15,19 @@ export const SHEETS = {
 /** Sheet sắp có (Codex đang vẽ): không bắt buộc có trong manifest, game không tải nếu chưa có. */
 export const OPTIONAL_SHEETS = new Set(["bscene"]);
 
-export function makeAtlas(manifest, base = "") {
+/** Bản cận cảnh vẽ lưới 1× (gấp đôi chi tiết, toạ độ đúng ×2 bản thường). Có frame cùng tên thì dùng bản HD,
+ *  trả về toạ độ đã quy về cỡ bản thường ⇒ mọi chỗ gọi giữ nguyên kích thước, chỉ mịn hơn. */
+export const HD_SHEETS = {
+  barista: "assets/barista-actions-hd.webp", cup: "assets/cup-layers-hd.webp",
+  portraits: "assets/portraits-hd.webp", faces: "assets/portrait-expressions-hd.webp",
+};
+
+export function makeAtlas(manifest, base = "", { hd = true } = {}) {
   const byFile = new Map();
   for (const it of manifest.items || []) if (it.filename.startsWith("assets/")) byFile.set(it.filename, it);
   const frame = (alias, name) => {
+    const hf = hd && HD_SHEETS[alias], hi = hf && byFile.get(hf), g = hi?.frames?.[name];
+    if (g) return { url: base + hf, hd: true, sw: hi.dimensions[0] / 2, sh: hi.dimensions[1] / 2, x: g.rect[0] / 2, y: g.rect[1] / 2, w: g.rect[2] / 2, h: g.rect[3] / 2, ax: g.anchor[0] / 2, ay: g.anchor[1] / 2 };
     const file = SHEETS[alias] || alias;
     const it = byFile.get(file);
     const f = it?.frames?.[name];

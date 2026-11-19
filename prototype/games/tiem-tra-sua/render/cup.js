@@ -1,7 +1,7 @@
 // Ly lớn ở Quầy pha: các lớp cup-layers.webp cùng ô 160×192 xếp chồng (core/cupview.js quyết định lớp), hiệu ứng rót / đá / topping / nắp
 // từ clip manifest (cup-fx, lid-and-ice-fx), nhân viên thân trên (barista-actions) diễn đúng thao tác. Lớp mới hiện sau ~frame 3–4 của clip.
-import { paint, crisp } from "./atlas.js?v=m35";
-import { cupLayers } from "../core/cupview.js?v=m35";
+import { paint, crisp } from "./atlas.js?v=m35hd";
+import { cupLayers } from "../core/cupview.js?v=m35hd";
 
 const FX_FOR = { cup: null, base: ["cupfx", "pour"], add: ["cupfx", "pour"], sugar: ["cupfx", "pour"], ice: ["lidfx", "ice"], topping: ["cupfx", "topping"], lid: ["lidfx", "seal"] };
 const BARISTA_FOR = { base: "pour", add: "pour", sugar: "pour", ice: "topping", topping: "topping", lid: "handoff", serve: "handoff" };

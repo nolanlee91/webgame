@@ -3,18 +3,18 @@
 // ngược lại bỏ riêng ca (giữ tiền / cấp / kho). MIGRATIONS[v] nâng v → v+1. save.js giữ bản sao bản cũ trước khi nâng.
 // v2 (Milestone 3–4): chỗ pha song song (shift.stations), đơn nhiều ly (customer.items / filled), drama, sổ review, người theo dõi,
 // nhiệm vụ ngày, vị trí trang trí, quảng bá, gói ký gửi.
-import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m35";
-import { RECIPE } from "../data/recipes.js?v=m35";
-import { ARCHETYPES } from "../data/customers.js?v=m35";
-import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m35";
-import { levelForXp } from "./progression.js?v=m35";
-import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m35";
-import { capacityFor, stationCount } from "./equipment.js?v=m35";
-import { EVENT } from "../data/events.js?v=m35";
-import { MISSION } from "../data/missions.js?v=m35";
-import { PROMOS } from "./business.js?v=m35";
-import { placeError } from "./decor.js?v=m35";
-import { freshDrama } from "./drama.js?v=m35";
+import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m35hd";
+import { RECIPE } from "../data/recipes.js?v=m35hd";
+import { ARCHETYPES } from "../data/customers.js?v=m35hd";
+import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m35hd";
+import { levelForXp } from "./progression.js?v=m35hd";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m35hd";
+import { capacityFor, stationCount } from "./equipment.js?v=m35hd";
+import { EVENT } from "../data/events.js?v=m35hd";
+import { MISSION } from "../data/missions.js?v=m35hd";
+import { PROMOS } from "./business.js?v=m35hd";
+import { placeError } from "./decor.js?v=m35hd";
+import { freshDrama } from "./drama.js?v=m35hd";
 
 export const SAVE_VERSION = 2;
 

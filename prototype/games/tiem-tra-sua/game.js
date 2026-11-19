@@ -1,18 +1,18 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, icon } from "./render/atlas.js?v=m35";
-import { createScene } from "./render/scene.js?v=m35";
-import { createBrew } from "./ui/brew.js?v=m35";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m35";
-import { createPanels } from "./ui/panels.js?v=m35";
-import { apply } from "./core/apply.js?v=m35";
-import { customer } from "./core/shift.js?v=m35";
-import { currentEvent, openEvent } from "./core/drama.js?v=m35";
-import { PLACE_REASON } from "./core/decor.js?v=m35";
-import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m35";
-import { EQUIPMENT } from "./data/equipment.js?v=m35";
-import { shopSave, browserStorage } from "./save.js?v=m35";
-import { play, isMuted, setMuted } from "./ui/sfx.js?v=m35";
+import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m35hd";
+import { createScene } from "./render/scene.js?v=m35hd";
+import { createBrew } from "./ui/brew.js?v=m35hd";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m35hd";
+import { createPanels } from "./ui/panels.js?v=m35hd";
+import { apply } from "./core/apply.js?v=m35hd";
+import { customer } from "./core/shift.js?v=m35hd";
+import { currentEvent, openEvent } from "./core/drama.js?v=m35hd";
+import { PLACE_REASON } from "./core/decor.js?v=m35hd";
+import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m35hd";
+import { EQUIPMENT } from "./data/equipment.js?v=m35hd";
+import { shopSave, browserStorage } from "./save.js?v=m35hd";
+import { play, isMuted, setMuted } from "./ui/sfx.js?v=m35hd";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -24,7 +24,14 @@ async function boot() {
   const atlas = makeAtlas(manifest);
   // chỉ tải sheet có trong manifest (sheet Codex đang vẽ sẽ tự được dùng khi thêm vào manifest)
   const files = new Set((manifest.items || []).map((i) => i.filename));
-  await Promise.all(Object.values(SHEETS).filter((src) => files.has(src)).map((src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; })));
+  // sheet có bản HD thì tải bản HD thay bản thường; biểu cảm HD (lớn, dùng muộn) tải nền, không chờ
+  const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
+  const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
+  const replaced = new Set(hdOn.map(([al]) => SHEETS[al]));
+  const lazy = new Set([HD_SHEETS.faces]);
+  const want = [...Object.values(SHEETS).filter((src) => files.has(src) && !replaced.has(src)), ...hdOn.map(([, f]) => f)];
+  want.filter((src) => lazy.has(src)).forEach(load);
+  await Promise.all(want.filter((src) => !lazy.has(src)).map(load));
 
   const store = shopSave(browserStorage());
   const seed = params.has("seed") ? Number(params.get("seed")) >>> 0 : (Math.random() * 2 ** 32) >>> 0;

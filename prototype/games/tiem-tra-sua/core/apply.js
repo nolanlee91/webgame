@@ -2,15 +2,15 @@
 // Chạy trên bản nháp (structuredClone): lỗi ⇒ trạng thái không đổi. Kiểm bất biến một chỗ trước khi ghi:
 // tiền ≥ 0 (số nguyên), kho là số nguyên ≥ 0 và không vượt sức chứa vì hàng mới, danh tiếng 0–100, cấp khớp XP.
 // Bấm lặp / tải lại không cộng hai lần: giao chỉ hợp lệ khi khách còn đang chờ, giải quyết chỉ khi còn hội thoại, bước pha phải đúng thứ tự.
-import * as shift from "./shift.js?v=m35";
-import { restock, stockUsed, capacity } from "./economy.js?v=m35";
-import { levelForXp } from "./progression.js?v=m35";
-import { buy } from "./equipment.js?v=m35";
-import { place, resetPlace } from "./decor.js?v=m35";
-import { choose } from "./drama.js?v=m35";
-import { reply } from "./reviews.js?v=m35";
-import { consign, promo } from "./business.js?v=m35";
-import { STOCK_IDS } from "../data/ingredients.js?v=m35";
+import * as shift from "./shift.js?v=m35hd";
+import { restock, stockUsed, capacity } from "./economy.js?v=m35hd";
+import { levelForXp } from "./progression.js?v=m35hd";
+import { buy } from "./equipment.js?v=m35hd";
+import { place, resetPlace } from "./decor.js?v=m35hd";
+import { choose } from "./drama.js?v=m35hd";
+import { reply } from "./reviews.js?v=m35hd";
+import { consign, promo } from "./business.js?v=m35hd";
+import { STOCK_IDS } from "../data/ingredients.js?v=m35hd";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),

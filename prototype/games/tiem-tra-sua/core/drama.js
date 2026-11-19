@@ -2,20 +2,20 @@
 // và hẹn quay lại ngày sau (later → s.drama.queue). Trong ca: tối đa 1–2 sự kiện, đồng hồ dừng khi hội thoại mở (sh.dialog kind "event").
 // Giữa hai ca: tối đa 1 sự kiện (s.drama.pending), hiện sau bảng chốt ca. Mỗi lựa chọn lưu một khoảnh khắc cho Nhật Ký Làm Chủ.
 // Thuần, RNG của ván ⇒ cùng hạt + cùng thao tác ⇒ cùng sự kiện.
-import { EVENTS, EVENT } from "../data/events.js?v=m35";
-import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m35";
-import { ARCHETYPES } from "../data/customers.js?v=m35";
-import { RECIPE } from "../data/recipes.js?v=m35";
-import { STOCK } from "../data/ingredients.js?v=m35";
-import { EQUIPMENT } from "../data/equipment.js?v=m35";
-import { next, int, pick, weighted } from "./rng.js?v=m35";
-import { fill } from "./text.js?v=m35";
-import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m35";
-import { stockUsed, capacity } from "./economy.js?v=m35";
-import { owns } from "./equipment.js?v=m35";
-import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say } from "./shift.js?v=m35";
-import { missionsOnDrama } from "./missions.js?v=m35";
-import { ratingOf } from "./reviews.js?v=m35";
+import { EVENTS, EVENT } from "../data/events.js?v=m35hd";
+import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m35hd";
+import { ARCHETYPES } from "../data/customers.js?v=m35hd";
+import { RECIPE } from "../data/recipes.js?v=m35hd";
+import { STOCK } from "../data/ingredients.js?v=m35hd";
+import { EQUIPMENT } from "../data/equipment.js?v=m35hd";
+import { next, int, pick, weighted } from "./rng.js?v=m35hd";
+import { fill } from "./text.js?v=m35hd";
+import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m35hd";
+import { stockUsed, capacity } from "./economy.js?v=m35hd";
+import { owns } from "./equipment.js?v=m35hd";
+import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say } from "./shift.js?v=m35hd";
+import { missionsOnDrama } from "./missions.js?v=m35hd";
+import { ratingOf } from "./reviews.js?v=m35hd";
 
 export const FX_KEYS = new Set(["money", "rep", "followers", "buzz", "xp", "stock", "patience", "whoPatience", "delaySpawn", "sealMs", "guests", "group",
   "nextGuests", "demand", "flag", "unflag", "review", "kitchen", "swapTopping", "priceWho", "leaveWho", "moment"]);

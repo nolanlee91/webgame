@@ -19,7 +19,7 @@
 // Biến trong câu: {name} {self} {Self} {call} {Call} {drink} {sugar} {ice} {topping} {shop} {n} {followers}.
 // Mọi bước phải có ít nhất một lựa chọn không tốn tiền / hàng (test/drama.test.mjs kiểm).
 // Sự kiện cho các cơ chế M3 (đơn nhóm F, bàn pha P, vựa sỉ U, quảng bá Q, ký gửi B) ở data/events-m3.js.
-import { EVENTS_M3 } from "./events-m3.js?v=m35";
+import { EVENTS_M3 } from "./events-m3.js?v=m35hd";
 
 export const EVENTS = [
   // ===== Khách =====

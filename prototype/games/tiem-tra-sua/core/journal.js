@@ -1,11 +1,11 @@
 // Nhật Ký Làm Chủ: câu chốt ca kiểu meme (theo dữ kiện ca) và nội dung thẻ chia sẻ 1080×1350 (ui/journal.js vẽ lên journal-card.png).
 // Thuần: test kiểm câu chọn đúng tình huống và nội dung thẻ đủ dòng.
-import { CAPTIONS as BASE_CAPTIONS } from "../data/lines.js?v=m35";
-import { CAPTIONS_M3 } from "../data/lines-m3.js?v=m35";
+import { CAPTIONS as BASE_CAPTIONS } from "../data/lines.js?v=m35hd";
+import { CAPTIONS_M3 } from "../data/lines-m3.js?v=m35hd";
 
 const CAPTIONS = { ...BASE_CAPTIONS, missions: CAPTIONS_M3.missions, multi: [...BASE_CAPTIONS.multi, ...CAPTIONS_M3.multi] };
-import { fill } from "./text.js?v=m35";
-import { int } from "./rng.js?v=m35";
+import { fill } from "./text.js?v=m35hd";
+import { int } from "./rng.js?v=m35hd";
 
 /** Chọn nhóm câu theo dữ kiện ca: lỗ > khách bỏ về > drama > 0% đường > pha nhầm > xong cả 3 nhiệm vụ > lên mạng > đơn nhóm > hoàn hảo > ít khách > ổn. */
 export function captionKind(sum) {

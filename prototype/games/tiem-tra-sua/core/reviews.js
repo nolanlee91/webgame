@@ -1,8 +1,8 @@
 // Review: sổ review lưu qua các ngày (s.feed), điểm đánh giá trung bình 20 review gần nhất (s.rating) và người theo dõi (s.followers).
 // Điểm đánh giá + người theo dõi + "độ hot" ngắn hạn (s.buzz, giảm một nửa mỗi ngày) đổi lượng khách ca sau (trafficBonus).
 // Trả lời review: một lần cho mỗi review. Xin lỗi review có lỗi thật tạo lời hứa; ca sau giữ trung bình ≥ 4 sao mới được cộng danh tiếng.
-import { REPLIES, REPLY_LINES } from "../data/lines.js?v=m35";
-import { addRep } from "./shift.js?v=m35";
+import { REPLIES, REPLY_LINES } from "../data/lines.js?v=m35hd";
+import { addRep } from "./shift.js?v=m35hd";
 
 export const FEED_MAX = 40, RATING_N = 20;
 const REAL_ERRORS = new Set(["toppingMissing", "toppingWrong", "addWrong", "sugarHigh", "sugarLow", "iceHigh", "iceLow", "slow", "timeout", "discount", "refund", "noLid", "swapped", "wrongCustomer", "wrongDrink", "sugar", "ice", "topping", "multiLate", "multiWrong"]);

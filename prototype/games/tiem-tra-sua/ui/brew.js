@@ -1,19 +1,23 @@
 // Quầy pha: phiếu đang ghim, ly lớn đổi hình theo từng bước, dải 7 bước, lựa chọn nguyên liệu (hình từ atlas + chữ + tồn kho), hành động.
 // Chỉ gửi action qua dispatch() — không tự đổi trạng thái.
-import { icon, crisp } from "../render/atlas.js?v=m35";
-import { createCupView } from "../render/cup.js?v=m35";
-import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js?v=m35";
-import { RECIPE } from "../data/recipes.js?v=m35";
-import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js?v=m35";
-import { cupNotes } from "../core/cupview.js?v=m35";
-import { hasStock } from "../core/economy.js?v=m35";
-import { cupSpec } from "../core/score.js?v=m35";
-import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m35";
-import { kitchenSlots, owns } from "../core/equipment.js?v=m35";
+import { icon, crisp } from "../render/atlas.js?v=m35hd";
+import { createCupView } from "../render/cup.js?v=m35hd";
+import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js?v=m35hd";
+import { RECIPE } from "../data/recipes.js?v=m35hd";
+import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js?v=m35hd";
+import { cupNotes } from "../core/cupview.js?v=m35hd";
+import { hasStock } from "../core/economy.js?v=m35hd";
+import { cupSpec } from "../core/score.js?v=m35hd";
+import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m35hd";
+import { kitchenSlots, owns } from "../core/equipment.js?v=m35hd";
 
 const CROP = { cupui: [8, 52, 144, 132] };
 export const ingIcon = (atlas, ref, px) => icon(atlas, ref, px, "ico", ref && CROP[ref[0]] && !/cup|tea-|milk-high|served|dome/.test(ref[1]) ? CROP[ref[0]] : null);
-export const headIcon = (atlas, role, px = 40, mood = "waiting") => icon(atlas, ["reactions", `${role}-${mood}`], px, "ico face", [26, 6, 44, 44]);
+// mặt cắt từ dáng chờ; vùng cắt tính theo ô gốc 96×128, nhân theo cỡ ô thật (sheet nhân vật mới ô 144×192)
+export const headIcon = (atlas, role, px = 40, mood = "waiting") => {
+  const f = atlas.frame("reactions", `${role}-${mood}`), k = f ? f.w / 96 : 1;
+  return icon(atlas, ["reactions", `${role}-${mood}`], px, "ico face", [26 * k, 6 * k, 44 * k, 44 * k].map(Math.round));
+};
 
 const orderValue = (step, o) => (step === "sugar" ? o.sugar : o[step]);
 const label = (step, id) => (step === "sugar" ? `${id}% đường` : choiceName(step, id));

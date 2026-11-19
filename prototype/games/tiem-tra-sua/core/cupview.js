@@ -3,7 +3,7 @@
 // đường rót thêm siro (mực nước nhích lên; 0% thì không), "không đá" ⇒ thêm trà thay chỗ đá (mực nước cao hơn, không có lớp đá),
 // topping lắng, nắp hiện sau khi đóng (GAME-DESIGN "Pha").
 // Lớp mới mà Codex đang vẽ (DEV-NOTES "Cần Codex" #4–#6) được dùng tự động khi manifest có frame cùng tên — truyền `has` (atlas.has trên "cup").
-import { choice } from "../data/ingredients.js?v=m35";
+import { choice } from "../data/ingredients.js?v=m35hd";
 
 /** Frame có sẵn trong cup-layers.webp hiện tại (dùng khi không có atlas, ví dụ test). */
 export const BASE_FRAMES = new Set(["empty-cup", "amber-25", "amber-50", "amber-75", "milk-25", "milk-50", "milk-75", "matcha-75", "pearls-bottom", "jelly-bottom", "ice-top", "dome-lid"]);
