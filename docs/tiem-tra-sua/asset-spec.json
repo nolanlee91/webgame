@@ -34,6 +34,11 @@
     { "file": "assets/portrait-expressions-hd.webp", "grid": 1, "cell": [384, 320], "anchor": [192, 308], "optional": true,
       "frames": ["{regular,vip,reviewer,courier,neighbor,office-worker}-{waiting,happy,sheepish,annoyed}", "barista-{neutral,happy,concerned,surprised}"] },
 
+    { "file": "assets/drama-portraits-hd.webp", "grid": 1, "cell": [384, 320], "anchor": [192, 308], "optional": true,
+      "frames": ["{me,di-ba,anh-ut,anh-teo,be-bong,chi-lua,co-to}-{neutral,happy,annoyed,surprised}"] },
+    { "file": "assets/weather-fx.webp", "cell": [640, 360], "anchor": [0, 0], "optional": true, "hardAlpha": false,
+      "frames": ["rain-{1..4}", "lightning-{1..2}", "power-cut-glow"], "animations": ["rain", "lightning"] },
+
     { "file": "assets/cup-layers.webp", "cell": [160, 192], "anchor": [80, 174],
       "frames": ["syrup-swirl", "brown-sugar-streak", "fruit-peach", "fruit-lychee", "fruit-passion", "pudding-bottom", "matcha-50", "matcha-milk-75", "cream-top"], "framesOptional": true },
     { "file": "assets/equipment.webp", "cell": [192, 192], "anchor": [96, 168],
