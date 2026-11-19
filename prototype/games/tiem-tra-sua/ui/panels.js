@@ -1,6 +1,6 @@
 // Bảng phủ Milestone 3–4: hội thoại sự kiện Drama (chân dung + lựa chọn + hậu quả), Sổ quản lý (review, nhật ký, sự kiện, nhiệm vụ),
 // Nhật Ký Làm Chủ (thẻ ảnh, lưu / chia sẻ), thanh xếp chỗ trang trí. Dùng chung khung open/close của ui/screens.js.
-import { icon } from "../render/atlas.js";
+import { icon } from "../render/atlas.js?v=snap2";
 import { EVENT } from "../data/events.js";
 import { RECIPE } from "../data/recipes.js";
 import { REPLIES } from "../data/lines.js";

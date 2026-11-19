@@ -135,7 +135,7 @@ check("M4: chốt ca có nút Nhật Ký và Trả lời review", await visible(
 await pressSel("#journalBtn");
 check("M4: Nhật Ký: thẻ canvas 1080×1350 vẽ trên journal-card.png", await waitFor("!!document.querySelector('#journalCanvas')&&document.querySelector('#journalCanvas').dataset.drawn>='1'") &&
   await b.ev("(()=>{const c=document.querySelector('#journalCanvas');return c.width===1080&&c.height===1350})()"));
-const px = await b.ev("(()=>{const c=document.querySelector('#journalCanvas').getContext('2d');const a=c.getImageData(540,700,1,1).data,t=c.getImageData(540,1000,1,1).data;return [a[0],a[1],a[2],t[0],t[1],t[2]]})()");
+const px = await b.ev("(()=>{const c=document.querySelector('#journalCanvas').getContext('2d');const a=c.getImageData(540,700,1,1).data,t=c.getImageData(60,1100,1,1).data;return [a[0],a[1],a[2],t[0],t[1],t[2]]})()");
 check("M4: Nhật Ký: có ảnh nền (giữa thẻ không phải màu kem trơn) và vùng chữ kem", !(px[0] > 240 && px[1] > 230 && px[2] > 200) && px[3] > 200, px.join(","));
 const jLabel = await b.ev("document.querySelector('#journalCanvas').getAttribute('aria-label')");
 check("M4: Nhật Ký: câu meme + câu trích", jLabel.includes(sum.headline) && /“.+”/.test(jLabel), jLabel);

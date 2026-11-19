@@ -1,20 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as G from "../core/progression.js?v=m4";
-import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m4";
-import { CROPS } from "../data/crops.js?v=m4";
+import * as G from "../core/progression.js?v=m5";
+import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m5";
+import { CROPS } from "../data/crops.js?v=m5";
 import { farm, START } from "./helpers.mjs";
-import { loadSave, migrateV2, dump } from "../core/state.js?v=m4";
+import { loadSave, migrateV2, dump } from "../core/state.js?v=m5";
 
-test("đường XP 60·cấp², tăng dần", () => {
-  assert.equal(G.xpNeed(1), 60);
-  assert.equal(G.xpNeed(4), 960);
-  assert.equal(G.xpNeed(19), 21660);
+test("đường XP (bảng data/levels.js XP_TO_NEXT, Milestone 5): tăng dần, ≈ 45·cấp², tổng tới cấp 20 ≈ 104 000 XP", () => {
+  assert.equal(G.xpNeed(1), 50);
+  assert.equal(G.xpNeed(4), 500);
+  assert.equal(G.xpNeed(19), 14950);
+  assert.equal(G.xpNeed(25), G.xpNeed(MAX_LEVEL), "trên cấp 20 ⇒ trần cấp 20");
+  assert.equal(G.xpNeed(0), G.xpNeed(1));
+  let total = 0;
   for (let lv = 1; lv <= MAX_LEVEL; lv++) {
-    assert.equal(G.xpNeed(lv), 60 * lv * lv);
-    assert.ok(Number.isInteger(G.xpNeed(lv)));
+    assert.ok(Number.isInteger(G.xpNeed(lv)) && G.xpNeed(lv) % 10 === 0);
     if (lv > 1) assert.ok(G.xpNeed(lv) > G.xpNeed(lv - 1));
+    if (lv < MAX_LEVEL) total += G.xpNeed(lv);
+    assert.ok(Math.abs(G.xpNeed(lv) / (45 * lv * lv) - 1) <= 0.31, `cấp ${lv} lệch xa 45·cấp²`);
   }
+  assert.equal(total, 104_190);
 });
 
 test("bảng 20 cấp trong data; mỗi cây mở đúng cấp của bảng cây", () => {

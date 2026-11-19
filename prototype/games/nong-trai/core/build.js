@@ -27,8 +27,8 @@
 //   ctx    = { level }   (cấp người chơi)
 // Hàm đổi trạng thái trả { ok: true, ... } hoặc { err: "<mã>" }; khi err thì KHÔNG đổi gì (b, wallet, inv).
 
-import { BUILDING, BUILDINGS, BUILDABLE_KINDS, DECOR_ITEM, DECOR_SLOT, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m4";
-import { WAREHOUSE } from "../data/warehouse.js?v=m4";
+import { BUILDING, BUILDINGS, BUILDABLE_KINDS, DECOR_ITEM, DECOR_SLOT, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m5";
+import { WAREHOUSE } from "../data/warehouse.js?v=m5";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", BUILT: "built", NOT_BUILT: "not-built", BUILDING: "building", MAX: "max",
@@ -181,11 +181,11 @@ export function builtIds(b, now, level) {
  * Giá trị suy ra từ công trình (đọc ở đây thay vì s.warehouse / s.buildings.xuong.level / hằng số):
  *   warehouseTier (index vào data/warehouse.js), warehouseCap, extraQueueSlots (ctx.extraSlots của production),
  *   workshopLevel, chickenCap, cowCap (0 = chưa có chuồng), greenhousePlots, greenhouseNoWater, eastOpen, eastPlots, eastLots,
- *   marketFull, levels: { [id]: level }.
+ *   marketFull, fameLevel (bậc Nhà = "Nông trại danh tiếng", Milestone 5), orderBonus (xu cộng thêm khi giao đơn), levels: { [id]: level }.
  */
 export function effects(b, now) {
   const e = { warehouseTier: 0, warehouseCap: 0, workshopLevel: 0, extraQueueSlots: 0, chickenCap: 0, cowCap: 0,
-    greenhousePlots: 0, greenhouseNoWater: false, eastOpen: false, eastPlots: 0, eastLots: 0, marketFull: false, levels: {} };
+    greenhousePlots: 0, greenhouseNoWater: false, eastOpen: false, eastPlots: 0, eastLots: 0, marketFull: false, fameLevel: 1, orderBonus: 0, levels: {} };
   for (const def of BUILDINGS) {
     if (!BUILDABLE_KINDS.includes(def.kind)) continue;
     const lv = levelOf(b, def.id, now);

@@ -108,14 +108,14 @@ Quyết định thường gặp: bán thô hay chế biến · ô đất hay nâ
 - Sinh đơn: chỉ dùng món người chơi **đã mở khoá**, số lượng theo sản lượng thực tế (không đòi 20 bánh khi mới có 1 máy).
 
 ### 2.7 Nhà kho & vật liệu
-- Sức chứa: 60 → 90 → 130 → 180 → 250 (nâng bằng xu, từ cấp 2 nâng cần thêm vật liệu). Nông sản + thành phẩm + sản phẩm động vật tính chung; vật liệu không tính.
+- Sức chứa: 60 → 90 → 130 → 180 → 250 (nâng bằng xu, từ cấp 2 nâng cần thêm vật liệu). Milestone 5 thêm mốc 320 (cấp 19). Nông sản + thành phẩm + sản phẩm động vật tính chung; vật liệu không tính.
 - Vật liệu (ván gỗ, đinh, sơn) đến từ đơn đặc biệt, nhiệm vụ và thu hoạch (2 % rơi ngẫu nhiên có seed) — dùng cho nâng kho cấp 3+, công trình cấp 2.
 
 ---
 
 ## 3. Tiến trình 20 cấp
 
-XP mỗi cấp: giữ công thức hiện có `10·lv^1,5` (cấp 1→2: 10 XP … cấp 19→20: 828 XP; tổng ~6 300 XP). Ước lượng: cấp 4 trong ~10 phút, cấp 7 ~40 phút, cấp 10 ~2 giờ, cấp 20 ~10–12 giờ chơi rải nhiều ngày.
+XP mỗi cấp: ~~`10·lv^1,5`~~ → bảng `data/levels.js XP_TO_NEXT` ≈ 45·cấp² (Milestone 5, cân bằng bằng `tools/sim`; tổng ~104 000 XP). Ước lượng: cấp 4 trong ~10 phút, cấp 7 ~40 phút, cấp 10 ~2 giờ, cấp 20 ~10–12 giờ chơi rải nhiều ngày.
 
 | Cấp | Mở khoá chính | Thay đổi trên bản đồ |
 |---|---|---|
@@ -207,6 +207,32 @@ prototype/games/nong-trai/
 | 2 | Xưởng (Bếp sên, Cối xay), hàng chờ, Khu chợ + giá biến động, chuỗi A & C | e2e: trồng→chế biến→giao đơn; offline máy chạy đúng |
 | 3 | Chế độ xây dựng, trạng thái công trình, bản đồ đổi theo cấp, 20 cấp | e2e: xây→xuất hiện bản đồ, nâng kho→sức chứa đổi |
 | 4 | Chăn nuôi (gà, bò), Lò bánh, Làng + NPC + nhiệm vụ, chuỗi B | e2e: ngô→thức ăn→gà→trứng→bánh |
-| 5 | Animation, âm thanh, cân bằng, điện thoại, hiệu năng, test hồi quy | Đủ 12 tiêu chí nghiệm thu |
+| 5 | Animation, âm thanh, cân bằng, điện thoại, hiệu năng, test hồi quy | Đủ 12 tiêu chí nghiệm thu (§9) |
 
 Mỗi milestone chỉ đẩy lên bản thật khi chủ dự án đồng ý.
+
+---
+
+## 9. Milestone 5 — 12 tiêu chí nghiệm thu (bản đề xuất của Dev, chờ chủ dự án duyệt)
+
+> Lộ trình §8 ghi "Đủ 12 tiêu chí nghiệm thu" nhưng bản thiết kế chưa liệt kê. Dev đề xuất 12 tiêu chí dưới đây, mỗi tiêu chí có cách kiểm tự động. Chủ dự án có thể sửa danh sách khi duyệt.
+
+| # | Tiêu chí | Cách kiểm | Trạng thái |
+|---|---|---|---|
+| 1 | Nhịp lên cấp đúng §3 (hồ sơ "chăm"): cấp 4 ≈ 10 ph, cấp 7 ≈ 40 ph, cấp 10 ≈ 2 h, cấp 20 trong 10–12 h chơi | `tools/sim` + test `sim.test.mjs` (khoảng 7–14 / 30–55 / 90–160 / 600–720 ph) | Đạt: 9 ph / 38 ph / 1,9 h / 11,3 h |
+| 2 | Xu cuối game vẫn có giá trị: xu ngày 7 của người chơi chăm < tổng chỗ tiêu còn lại, < 400 000 | `sim.test.mjs` | Đạt: 249 000 xu (bản M4: 920 000), còn 632 000 xu chỗ tiêu |
+| 3 | Không vòng lặp lời (mua ở chợ → bán lời), thu nhập/giờ không siêu tuyến tính | `MARKET.assertEconomy()`, report §6 | Đạt |
+| 4 | Không mất dữ liệu người chơi: save v6 giữ nguyên dạng; save v2–v5 di chuyển kèm bản sao `*.backup`; XP cũ dư so với đường XP mới được dồn lên cấp | test `state`, `m3`, `m5` | Đạt (không đổi dạng save ⇒ vẫn v6) |
+| 5 | Bản đồ: không công trình / nhãn nào bị cắt mép (đặc biệt chuồng gà, chuồng bò, Nhà kính ở mép dưới), không đè ruộng | test `m5` (hộp vẽ theo manifest), e2e desktop + 390 px | Đạt (bản đồ 960 × 640) |
+| 6 | Điện thoại 390 × 844: không tràn ngang, mọi nút ≥ 44 px, thanh điều hướng không cắt chữ | e2e (`mobile 390 …`, `M5 mobile …`) | Đạt (10 nút / 2 hàng × 5, cao 52 px) |
+| 7 | Animation dùng đúng khung manifest: cây 5 giai đoạn, máy idle/running, NPC idle/vẫy, gà/bò (cảnh Chăn nuôi + đi lại trên bản đồ), cối xay gió, fx (xu bay, lấp lánh, nước tưới, khói xây, giao đơn, âm vật nuôi) | e2e (canvas có pixel, `.critter` dùng animals.webp), xem ảnh chụp | Đạt; tôn trọng `prefers-reduced-motion` |
+| 8 | Âm thanh cho thao tác chính (gieo, tưới, thu, bán, giao đơn, xây / nâng, lên cấp, nhận thưởng, lỗi) và tôn trọng khoá tắt tiếng chung `wgp.muted` (kể cả đổi ở tab khác) | e2e (`sfx.log`, `wgp.muted đổi ở tab khác …`) | Đạt |
+| 9 | Hiệu năng: không vẽ lại canvas khi không có gì đổi (Làng, Chợ, Xưởng vẽ theo khoá khung), đồng bộ mỗi giây chỉ chép trạng thái 1 lần, gà/bò bản đồ chạy bằng CSS | test `m5` (needsSync), đọc code | Đạt |
+| 10 | Một tag module `?v=m5` cho mọi import (trình duyệt không lẫn bản cũ) | test `m5` | Đạt |
+| 11 | Bất biến luật giữ nguyên: xu ≥ 0, món nguyên ≥ 0, không nhận 2 lần — qua fuzz + mô phỏng 7 ngày × 3 hồ sơ | test `fuzz`, `sim.test.mjs` (0 vi phạm) | Đạt |
+| 12 | Hồi quy: toàn bộ test luật + e2e trình duyệt (bản chơi + trang thử M4) qua, 0 lỗi console | `node --test test/*.test.mjs`, `test/e2e.mjs`, `test/e2e-m4.mjs` | Đạt |
+
+**Thay đổi cân bằng M5** (chi tiết: `tools/sim/report.md`):
+- Đường XP: bảng `data/levels.js XP_TO_NEXT` ≈ 45·cấp² (cấp 4–6 ×0,7, từ cấp 14 ×0,92), tổng tới cấp 20 ≈ 104 000 XP (bản M4 60·cấp²: 148 200).
+- Chỗ tiêu xu cuối game: **Nhà = "Nông trại danh tiếng"** — 10 bậc nâng từ cấp 10 (3 000 → 595 000 xu, ×1,8 mỗi bậc, bậc cao cần vật liệu), mỗi bậc một danh hiệu và mọi đơn hàng +2 % xu (tối đa +20 %); Nhà kho mốc 320 chỗ (cấp 19, 24 000 xu + vật liệu).
+- Để milestone 6: đơn đặc biệt hai lúc, Phiên chợ, hàng rào đá (chưa có sprite), sổ sưu tập 30 món.

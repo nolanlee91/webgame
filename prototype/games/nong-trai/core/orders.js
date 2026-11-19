@@ -3,19 +3,26 @@
 //
 // s.orders = { nextId, slots: [{ rev, order | null, refillAt }], special: { rev, order | null, refillAt } | null }
 // order = { id, type, npc, items: { id: qty }, mult, coins, xp, materials: { id: qty }, createdAt, expiresAt | null }
-import { CROP, CROPS } from "../data/crops.js?v=m4";
-import { ITEM, MATERIALS } from "../data/catalog.js?v=m4";
-import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m4";
-import { featureLevel } from "../data/levels.js?v=m4";
-import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m4";
-import { have, take, add } from "./inventory.js?v=m4";
-import { rand, randInt, pick, sample } from "./rng.js?v=m4";
-import { RECIPES } from "../data/recipes.js?v=m4";
-import { MACHINE } from "../data/machines.js?v=m4";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m4";
-import { capacity as queueCap } from "./production.js?v=m4";
-import { extraSlots } from "./workshop.js?v=m4";
-import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m4";
+import { CROP, CROPS } from "../data/crops.js?v=m5";
+import { ITEM, MATERIALS } from "../data/catalog.js?v=m5";
+import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m5";
+import { featureLevel } from "../data/levels.js?v=m5";
+import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m5";
+import { have, take, add } from "./inventory.js?v=m5";
+import { rand, randInt, pick, sample } from "./rng.js?v=m5";
+import { RECIPES } from "../data/recipes.js?v=m5";
+import { MACHINE } from "../data/machines.js?v=m5";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m5";
+import { capacity as queueCap } from "./production.js?v=m5";
+import { extraSlots } from "./workshop.js?v=m5";
+import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m5";
+import { effects as buildEffects } from "./build.js?v=m5";
+
+/** Xu thật nhận khi giao đơn: thưởng của phiếu + danh tiếng Nhà (Milestone 5, +2 % mỗi bậc). Phiếu lưu giá gốc ⇒ nâng Nhà có tác dụng ngay. */
+export function orderPayout(s, order, now) {
+  const bonus = s?.buildings ? buildEffects(s, now).orderBonus || 0 : 0;
+  return Math.round(order.coins * (1 + bonus));
+}
 
 export const COMBO_LEVEL = featureLevel("orders-combo"), SPECIAL_LEVEL = featureLevel("orders-special");
 
@@ -189,12 +196,13 @@ export function deliver(s, slot, id, rev, now, events) {
   const { x } = c, order = x.order;
   for (const [item, q] of Object.entries(order.items)) if (have(s, item) < q) return { err: "order-stock" };
   for (const [item, q] of Object.entries(order.items)) take(s, item, q);
-  s.coins += order.coins;
-  s.stats.earned += order.coins;
+  const coins = orderPayout(s, order, now);
+  s.coins += coins;
+  s.stats.earned += coins;
   s.stats.delivered++;
   for (const [m, q] of Object.entries(order.materials)) add(s, m, q);
   // items: bản sao món đã giao — nhiệm vụ M4 (core/village.js hasItem) đếm "đơn có trứng / sữa", "đơn kết hợp có bánh"
-  events.push({ type: "delivered", slot, id: order.id, orderType: order.type, npc: order.npc, items: { ...order.items }, coins: order.coins, xp: order.xp, materials: { ...order.materials },
+  events.push({ type: "delivered", slot, id: order.id, orderType: order.type, npc: order.npc, items: { ...order.items }, coins, baseCoins: order.coins, xp: order.xp, materials: { ...order.materials },
     withProduct: Object.keys(order.items).some((it) => ITEM[it]?.cat === "thanh-pham") });
   x.rev++;
   if (slot === "special") { x.order = null; x.refillAt = now + SPECIAL_COOLDOWN_MS; }
@@ -204,7 +212,7 @@ export function deliver(s, slot, id, rev, now, events) {
     else x.refillAt = now;
   }
   addXp(s, order.xp, events);
-  return { ok: true, coins: order.coins, xp: order.xp };
+  return { ok: true, coins, xp: order.xp };
 }
 
 /** Bỏ đơn: ô trống, đơn mới sau 2 phút (đơn đặc biệt: sau thời gian chờ). Không mất gì. */

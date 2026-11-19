@@ -1,6 +1,6 @@
 // Quầy pha: phiếu đang ghim, ly lớn đổi hình theo từng bước, dải 7 bước, lựa chọn nguyên liệu (hình từ atlas + chữ + tồn kho), hành động.
 // Chỉ gửi action qua dispatch() — không tự đổi trạng thái.
-import { icon } from "../render/atlas.js";
+import { icon, crisp } from "../render/atlas.js?v=snap2";
 import { createCupView } from "../render/cup.js";
 import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js";
 import { RECIPE } from "../data/recipes.js";
@@ -21,6 +21,9 @@ const label = (step, id) => (step === "sugar" ? `${id}% đường` : choiceName(
 export function createBrew(root, atlas, dispatch) {
   const $ = (sel) => root.querySelector(sel);
   const cupView = createCupView($("#cupView"), atlas, { scale: 1.5 });
+  // nền Quầy pha = cắt cảnh tiệm: cỡ crisp để ô tranh 2×2 phủ số nguyên px thiết bị (không nhòe)
+  const station = $("#cupView")?.closest(".station");
+  if (station) { const s = crisp(1); station.style.backgroundSize = `${1280 * s}px ${720 * s}px`; station.style.backgroundPosition = `${-250 * s}px ${-40 * s}px`; }
   const stepsEl = $("#steps"), optsEl = $("#opts"), ticketEl = $("#ticket"), stationsEl = $("#stations");
   const notesEl = document.createElement("div"); notesEl.className = "cup-notes"; $("#cupView").appendChild(notesEl);
   let lastStations = "";

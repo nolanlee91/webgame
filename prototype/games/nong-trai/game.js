@@ -1,14 +1,14 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m4";
-import { browserStorage, farmSave } from "./save.js?v=m4";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m4";
-import { createMarketScene } from "./ui/scene-market.js?v=m4";
-import { loadSprites, playFx } from "./ui/sprites.js?v=m4";
-import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m4";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m4";
-import { createVillageScene } from "./ui/scene-village.js?v=m4";
-import { createTruck } from "./ui/truck.js?v=m4";
+import * as L from "./logic.js?v=m5";
+import { browserStorage, farmSave } from "./save.js?v=m5";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m5";
+import { createMarketScene } from "./ui/scene-market.js?v=m5";
+import { loadSprites, playFx } from "./ui/sprites.js?v=m5";
+import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m5";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m5";
+import { createVillageScene } from "./ui/scene-village.js?v=m5";
+import { createTruck } from "./ui/truck.js?v=m5";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
@@ -292,13 +292,14 @@ export function mount(root, ctx = {}) {
   /** Phản hồi cho mọi sự kiện luật trả về: hiệu ứng ô, âm thanh, thông báo. */
   function feedback(events, origin = {}) {
     let msgs = [];
-    let sound = null;
+    let sound = null, fxBudget = 6;
     for (const e of events) {
       switch (e.type) {
         case "planted": plotEffect(e.i, "plant"); sound ??= ["buoc-nhay", 0.6]; if (e.free) float(e.i, "Hạt tặng", "#c8f0a0"); break;
-        case "watered": plotEffect(e.i, "water"); float(e.i, "Tưới!", "#9fd8ff"); sound ??= ["buoc-nhay", 0.5, 1.4]; break;
+        case "watered": plotEffect(e.i, "water"); float(e.i, "Tưới!", "#9fd8ff"); if (fxBudget-- > 0) fxOn(cells[e.i].b, ["nuoc-tuoi"], null, null, 56); sound ??= ["buoc-nhay", 0.5, 1.4]; break;
         case "harvested":
           plotEffect(e.i, "harvest");
+          if (fxBudget-- > 0) fxOn(cells[e.i].b, ["lap-lanh"], null, null, 56); // "Thu hết" 30 ô ⇒ chỉ vài ô có lấp lánh (đỡ tốn DOM)
           float(e.i, e.overflow ? "+1 giỏ tràn" : "+1 vào kho", e.overflow ? "#ffb08a" : "#ffe9a8");
           sound ??= ["trung-kim-cuong", 0.7, 0.95 + Math.random() * 0.1];
           if (e.material) msgs.push(`Nhặt được 1 ${L.ITEM[e.material].name}!`);
@@ -341,7 +342,8 @@ export function mount(root, ctx = {}) {
             "nha-kinh": "Nhà kính xong! Chạm vào để trồng mía — 6 ô, không cần tưới.",
             "dat-phia-dong": "Khu đất phía Đông đã mở: +9 ô ruộng! Kéo bản đồ sang phải để gieo.",
           };
-          msgs.push(e.upgraded ? (e.id === "nha-kho" ? null : `${e.name} lên cấp ${e.level}!` + (e.id === "xuong" ? " Mọi máy thêm 1 ô hàng chờ." : e.id === "nha-kinh" ? " Nhà kính có 9 ô." : ""))
+          msgs.push(e.upgraded ? (e.id === "nha-kho" ? null : e.id === "nha" ? `Nhà lên bậc ★${e.level - 1}: “${L.FAME_TITLES[e.level - 1]}” — đơn hàng +${Math.round(L.BUILDING.nha.levels[e.level - 1].effect.orderBonus * 100)} % xu!`
+            : `${e.name} lên cấp ${e.level}!` + (e.id === "xuong" ? " Mọi máy thêm 1 ô hàng chờ." : e.id === "nha-kinh" ? " Nhà kính có 9 ô." : ""))
             : DONE[e.id] || `${e.name} đã xây xong!`);
           if (e.id === "dat-phia-dong") setTimeout(() => fmap.scrollToX(L.EAST_FIELD.x + L.EAST_FIELD.w / 2, true), 120);
           break;
@@ -364,7 +366,7 @@ export function mount(root, ctx = {}) {
         case "jobsCollected": if (origin.el) fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${e.xp} XP`, "#ffe9a8"); msgs.push(`Nhận ${e.count} mẻ, +${e.xp} XP${e.full ? " — kho đầy, còn mẻ chưa nhận" : ""}.`); break;
         case "bought": sound = ["qua-man", 0.55, 1.2]; fxOn(origin.el, ["lap-lanh"], `−${fmtNum(e.coins)} xu`, "#ffe9a8");
           msgs.push(`Đã mua ${e.count} ${L.ITEM[e.id].name} (−${fmtNum(e.coins)} xu)${L.isDecor(e.id) ? " — cất trong túi trang trí" : ""}.`); break;
-        case "levelUp": { sound = ["qua-man", 0.8]; const u = unlockNames(e.level); msgs.push(`Lên cấp ${e.level}!` + (u.length ? ` Mở khoá: ${u.join(", ")}.` : "")); break; }
+        case "levelUp": { sound = ["qua-man", 0.8]; { const st = ui.level.closest(".stat"); playFx(st, "lap-lanh", st.clientWidth / 2, st.clientHeight / 2, 72); pulse(st); } const u = unlockNames(e.level); msgs.push(`Lên cấp ${e.level}!` + (u.length ? ` Mở khoá: ${u.join(", ")}.` : "")); break; }
         // Milestone 4 — cảnh Chăn nuôi / Làng tự phát hiệu ứng + toast khi đang mở; ở bản đồ thì báo ở đây
         case "villageQuestDone":
           sound ??= ["trung-kim-cuong", 0.6, 1.2];
@@ -382,8 +384,12 @@ export function mount(root, ctx = {}) {
     if (msgs.length) toast(msgs.slice(-2).join(" "), msgs.some((m) => m.startsWith("Lên cấp")) ? 4200 : 2600);
   }
 
+  let shownCoins = null;
   function renderHud() {
-    ui.coins.textContent = fmtNum(s.coins);
+    if (shownCoins !== s.coins) {
+      if (shownCoins !== null && s.coins > shownCoins) { const st = ui.coins.closest(".stat"); st.classList.remove("bump"); void st.offsetWidth; st.classList.add("bump"); }
+      shownCoins = s.coins; ui.coins.textContent = fmtNum(s.coins);
+    }
     ui.level.textContent = s.level;
     const need = L.xpNeed(s.level);
     ui.xp.style.width = Math.round((100 * s.xp) / need) + "%";
@@ -409,7 +415,7 @@ export function mount(root, ctx = {}) {
     });
     const total = used + over;
     ui.depot.textContent = total ? `Kho (${total})` : "Kho";
-    const ready = L.boardView(s).slots.filter((x) => x.ready).length + (L.boardView(s).special?.ready ? 1 : 0);
+    const bv = L.boardView(s), ready = bv.slots.filter((x) => x.ready).length + (bv.special?.ready ? 1 : 0);
     ui.boardBadge.textContent = ready || "";
     ui.boardBadge.hidden = !ready;
     ui.orderTool.textContent = ready ? `Đơn (${ready})` : "Đơn hàng";
@@ -483,11 +489,11 @@ export function mount(root, ctx = {}) {
     const o = v.order, npc = npcOf(o.npc), T = L.ORDER_TYPES[o.type];
     const items = v.items.map((it) => `<li class="${it.owned >= it.need ? "ok" : ""}">${iconHtml(it.id)}<span>${esc(L.ITEM[it.id].name)}</span><b>${Math.min(it.owned, it.need)}/${it.need}</b></li>`).join("");
     const mats = Object.entries(o.materials).map(([m, q]) => `${iconHtml(m, "it--sm")}${q}`).join(" ");
-    const armed = cancelArm === `${slotKey}:${o.id}`;
+    const armed = cancelArm === `${slotKey}:${o.id}`, pay = L.orderPayout(s, o, now()); // xu thật nhận (gồm danh tiếng Nhà, Milestone 5)
     return `<li class="slip slip--${o.type}${v.ready ? " ready" : ""}" data-slot="${slotKey}">` +
       `<div class="slip-head">${faceHtml(o.npc)}<div><b>${esc(npc.name)}</b><small>${esc(T.name)}${o.expiresAt ? ` · còn ${until(o.expiresAt)}` : ""}</small></div></div>` +
       `<ul class="slip-items">${items}</ul>` +
-      `<p class="slip-reward">${iconHtml("dong-xu", "it--sm")}<b>${fmtNum(o.coins)}</b> ${iconHtml("sao-xp", "it--sm")}<b>${o.xp} XP</b>${mats ? ` <span class="mats">${mats}</span>` : ""}</p>` +
+      `<p class="slip-reward">${iconHtml("dong-xu", "it--sm")}<b>${fmtNum(pay)}</b>${pay > o.coins ? `<small class="fame-plus" title="Danh tiếng Nhà: đơn hàng trả thêm xu">★+${fmtNum(pay - o.coins)}</small>` : ""} ${iconHtml("sao-xp", "it--sm")}<b>${o.xp} XP</b>${mats ? ` <span class="mats">${mats}</span>` : ""}</p>` +
       `<p class="slip-status">${v.ready ? "Đủ hàng — giao được!" : "Còn thiếu hàng"}</p>` +
       `<div class="slip-btns"><button class="btn btn--teal" type="button" data-act="deliver" data-slot="${slotKey}" data-id="${o.id}" data-rev="${v.rev}" data-key="${key}-giao"${v.ready ? "" : " disabled"} aria-label="Giao đơn của ${esc(npc.name)}">Giao</button>` +
       `<button class="btn btn--sm${armed ? " armed" : ""}" type="button" data-act="cancel" data-slot="${slotKey}" data-id="${o.id}" data-rev="${v.rev}" data-key="${key}-bo">${armed ? "Bấm lần nữa" : "Bỏ đơn"}</button></div></li>`;
@@ -733,6 +739,11 @@ export function mount(root, ctx = {}) {
       case "nha-kinh": return to === 1 ? "6 ô Nhà kính: trồng <b>mía</b> (chỉ trồng được ở đây), cây trong nhà kính <b>không cần tưới</b>" : "Thêm 3 ô Nhà kính (tổng 9 ô)";
       case "dat-phia-dong": return "+9 ô ruộng phía Đông và 1 lô xây — bản đồ mở rộng sang phải";
       case "sap-cho": return "Sạp nhỏ thành quầy chợ hoàn chỉnh (trang trí bản đồ)";
+      case "nha": { // Milestone 5: bậc Nhà = danh tiếng nông trại
+        const ef = L.BUILDING.nha.levels[to - 1]?.effect || {};
+        return to <= 1 ? `Danh hiệu <b>“${L.FAME_TITLES[0]}”</b>. Nâng Nhà từ cấp ${L.BUILDING.nha.levels[1].unlock} để có danh hiệu mới và đơn hàng trả thêm xu`
+          : `Danh hiệu <b>“${L.FAME_TITLES[to - 1]}”</b> · mọi đơn hàng <b>+${Math.round(ef.orderBonus * 100)} % xu</b> (bậc ★${to - 1}/${L.FAME_TITLES.length - 1})`;
+      }
       case "coi-xay-gio": return "Lắp Cối xay trong Xưởng (thức ăn gia súc, bột gạo) — cối xay gió quay cánh trên bản đồ";
       case "chuong-ga": return to === 1 ? "Nuôi tối đa <b>6 gà</b> (60 xu / con): cho ăn 1 bao thức ăn gia súc ⇒ 1 trứng sau 4 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng gà chứa <b>${L.BUILDING[id].levels[to - 1].effect.chickenCap} gà</b>`;
       case "chuong-bo": return to === 1 ? "Nuôi tối đa <b>4 bò sữa</b> (180 xu / con): cho ăn 2 bao thức ăn ⇒ 1 sữa sau 8 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng bò chứa <b>${L.BUILDING[id].levels[to - 1].effect.cowCap} bò</b>`;
@@ -777,7 +788,8 @@ export function mount(root, ctx = {}) {
         rows += `<li>${iconHtml(m, "it--sm")}${esc(L.ITEM[m].name)}: <b class="${have >= q ? "ok" : "miss"}">${have}/${q}</b></li>`;
       }
       rows += `<li>Thời gian: <b>${step.ms ? fmtLeft(step.ms) + "</b> — tắt máy vẫn xây tiếp" : "xây ngay</b>"}</li>`;
-      rows += `<li>${effectText(id, toLv)}</li>`;
+      if (id === "nha") rows += `<li>Hiện tại: ${effectText(id, Math.max(1, it.level))}</li>`;
+      rows += `<li>${id === "nha" ? "Bậc tiếp: " : ""}${effectText(id, toLv)}</li>`;
       if (s.level < step.unlock) rows += `<li class="miss">${isUp ? "Nâng" : "Xây"} được từ cấp ${step.unlock} (bạn đang cấp ${s.level})</li>`;
     } else rows += `<li>${it.level >= def.levels.length && def.levels.length > 1 ? "Đã nâng tối đa." : "Đã xây xong."} ${effectText(id, Math.max(1, it.level))}</li>`;
     const statusTxt = !inMs ? (s.level >= def.levels[0].unlock ? "Khoá · sắp có" : `Khoá · Cấp ${def.levels[0].unlock}`) : status === "locked" ? `Khoá · Cấp ${it.unlockLevel}` : STATUS_TEXT[status];
@@ -1087,6 +1099,11 @@ export function mount(root, ctx = {}) {
   }
   window.addEventListener("keydown", onKey);
   function onStorage(e) {
+    if (e.key === MUTE_KEY && e.newValue !== null) { // tắt / bật tiếng ở tab khác (trang chủ, game khác) ⇒ theo khoá chung wgp.muted
+      sdk.sound = sdk.sound || {}; sdk.sound.muted = e.newValue === "1";
+      ui.mute.setAttribute("aria-pressed", String(sdk.sound.muted)); ui.muteIc.src = sdk.sound.muted ? "assets/ui/icon-am-thanh-tat.png" : "assets/ui/icon-am-thanh-bat.png";
+      return;
+    }
     if (e.storageArea !== storage || document.hidden) return;
     const current = save.read(now());
     if (!current.fresh) { s = current.state; render(); }

@@ -6,6 +6,8 @@ import { createState, loadSave, dump, saveVersion, SAVE_VERSION } from "./core/s
 export const KEY = "wgp.tiemtrasua.v1";
 export const CORRUPT_KEY = KEY + ".corrupt";
 export const backupKey = (v) => `${KEY}.bak-v${v}`;
+/** "Chơi lại từ đầu": tiến trình cũ không bị xoá mà chép sang đây (ghi đè bản dự phòng trước đó). */
+export const BACKUP_KEY = KEY + ".backup";
 
 export function browserStorage() { try { return window.localStorage; } catch { return null; } }
 
@@ -25,5 +27,11 @@ export function shopSave(storage) {
       return { state: createState(seed), fresh: true, corrupt: true, migrated: null };
     },
     write: (state) => set(KEY, dump(state)),
+    /** Cất bản hiện tại sang BACKUP_KEY rồi bỏ KEY ⇒ lần mở sau là tiệm mới. */
+    reset() {
+      const raw = get(KEY);
+      if (raw !== null && !set(BACKUP_KEY, raw)) return false;
+      try { storage?.removeItem(KEY); return true; } catch { return false; }
+    },
   };
 }

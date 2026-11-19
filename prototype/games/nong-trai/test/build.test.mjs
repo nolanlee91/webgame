@@ -1,11 +1,11 @@
 // Test luật xây dựng (Milestone 3) — core/build.js + data/buildings.js. Không phụ thuộc apply/state (đang sửa song song).
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as B from "../core/build.js?v=m4";
-import { BUILDING, BUILDINGS, DECOR, DECOR_SLOTS, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m4";
-import { WAREHOUSE } from "../data/warehouse.js?v=m4";
-import { featureLevel } from "../data/levels.js?v=m4";
-import { MACHINE } from "../data/machines.js?v=m4";
+import * as B from "../core/build.js?v=m5";
+import { BUILDING, BUILDINGS, DECOR, DECOR_SLOTS, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m5";
+import { WAREHOUSE } from "../data/warehouse.js?v=m5";
+import { featureLevel } from "../data/levels.js?v=m5";
+import { MACHINE } from "../data/machines.js?v=m5";
 
 const T0 = 1_000_000;
 const MIN = 60_000, HOUR = 3_600_000;
@@ -153,9 +153,9 @@ test("nhà kho: các mốc khớp data/warehouse.js", () => {
     assert.ok(r.ok && r.instant); assert.equal(coins - w.n, WAREHOUSE[t].cost);
     assert.equal(B.effects(b).warehouseTier, t); assert.equal(B.effects(b).warehouseCap, WAREHOUSE[t].cap);
   }
-  assert.equal(B.effects(b).warehouseCap, 250);
+  assert.equal(B.effects(b).warehouseCap, 320, "Milestone 5: mốc cuối 320");
   assert.equal(B.startUpgrade(b, w, i, "nha-kho", T0, { level: 20 }).err, "max");
-  assert.equal(B.levelOf(b, "nha-kho", T0), 5);
+  assert.equal(B.levelOf(b, "nha-kho", T0), 6);
 });
 
 test("xưởng cấp 2 ⇒ +1 ô hàng chờ; chuồng / nhà kính / đất phía Đông", () => {
@@ -247,7 +247,7 @@ test("sanitize: kẹp rác + đọc bản ghi Xưởng của M2", () => {
     decor: { "chau-hoa": 3.7, "ghe-tre": -2, x: 5, "den-long": 1e9, "co-lau": "7" },
   };
   const s = B.sanitize(raw, now);
-  assert.deepEqual(s.buildings["nha-kho"], { level: 5, done: true, startAt: now, readyAt: now });
+  assert.deepEqual(s.buildings["nha-kho"], { level: WAREHOUSE.length, done: true, startAt: now, readyAt: now });
   assert.deepEqual(s.buildings["chuong-ga"], { level: 0, done: false, startAt: now, readyAt: now + 2 * MIN });
   assert.deepEqual(s.buildings["chuong-bo"], { level: 0, done: false, startAt: now - 3 * MIN, readyAt: now });
   assert.deepEqual(s.buildings["nha-kinh"], { level: 2, done: true, startAt: 1, readyAt: 1 });
@@ -271,7 +271,7 @@ test("migrate: kho đã nâng ở M1 ⇒ Nhà kho đã xây đúng mốc", () =>
   const b = B.migrate({ warehouseTier: 1 }, T0);
   assert.equal(B.effects(b).warehouseCap, WAREHOUSE[1].cap);
   assert.equal(B.levelOf(b, "nha-kho", T0), 2);
-  assert.equal(B.effects(B.migrate({ warehouseTier: 77 }, T0)).warehouseCap, 250);
+  assert.equal(B.effects(B.migrate({ warehouseTier: 77 }, T0)).warehouseCap, WAREHOUSE[WAREHOUSE.length - 1].cap);
 });
 
 test("fuzz: vài nghìn action ngẫu nhiên giữ bất biến", () => {
@@ -331,13 +331,13 @@ test("fuzz: vài nghìn action ngẫu nhiên giữ bất biến", () => {
 
 test("khớp dữ liệu của M2 / M4 nếu có: data/workshop.js, data/animals.js", async () => {
   const load = async (f) => { try { return await import(f); } catch { return null; } };
-  const ws = await load("../data/workshop.js?v=m4");
+  const ws = await load("../data/workshop.js?v=m5");
   if (ws?.WORKSHOP) {
     const W = ws.WORKSHOP, L = BUILDING[W.id].levels;
     assert.deepEqual([L[0].cost, L[0].ms, L[0].unlock], [W.cost, W.buildMs, W.unlock]);
     W.upgrades.forEach((u, k) => { assert.equal(L[k + 1].cost, u.cost); assert.equal(L[k + 1].unlock, u.level); assert.equal(L[k + 1].effect.extraQueueSlots, u.extraSlots); });
   }
-  const an = await load("../data/animals.js?v=m4");
+  const an = await load("../data/animals.js?v=m5");
   if (an?.ANIMALS) {
     const key = { "chuong-ga": "chickenCap", "chuong-bo": "cowCap" };
     for (const a of an.ANIMALS) {

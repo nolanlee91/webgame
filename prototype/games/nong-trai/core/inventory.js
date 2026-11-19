@@ -2,8 +2,8 @@
 // s.inv: { id: số lượng } trong Nhà kho. s.overflow: { id: số lượng } trong giỏ tràn (tổng ≤ OVERFLOW_MAX).
 // Vật liệu (counts=false) luôn vào kho, không tính sức chứa, không vào giỏ tràn.
 // Trang trí (ITEM.bag = "decor") nằm ở túi riêng s.decor: không tính sức chứa, không vào kho / giỏ tràn.
-import { ITEM, isDecor } from "../data/catalog.js?v=m4";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m4";
+import { ITEM, isDecor } from "../data/catalog.js?v=m5";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m5";
 
 export const capacity = (s) => WAREHOUSE[s.warehouse].cap;
 const sum = (bag, pred = () => true) => Object.entries(bag).reduce((n, [id, q]) => n + (pred(id) ? q : 0), 0);

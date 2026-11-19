@@ -1,7 +1,7 @@
 // Công trình trên bản đồ nông trại (DESIGN-2.0 §1 khu 8, §2.7, §3). Thuần dữ liệu — luật ở core/build.js,
 // bản đồ theo cấp ở core/levels-map.js.
 //
-// TOẠ ĐỘ: chuẩn hoá theo bản đồ gốc 960×600 px (tỉ lệ 1,6:1, giống proto/): x = px/960, y = px/600, (x, y) là
+// TOẠ ĐỘ: chuẩn hoá theo bản đồ gốc 960×640 px (tỉ lệ 1,5:1): x = px/960, y = px/640, (x, y) là
 // ĐIỂM NEO đáy-giữa của sprite (khớp `anchor` trong assets/v3/manifest.json). w = bề rộng vẽ / 960.
 // Bản đồ gốc: x 0..1. Khu đất phía Đông (cấp 17) nối sang phải: x 1..EAST_W (bản đồ khi mở rộng rộng 1,5 lần).
 // Ruộng 5×5 (ô 64 px) nằm giữa: FIELD. Cổng + đường đất ở giữa cạnh trên (bảng đơn cạnh cổng, biển "Làng" ở cuối đường).
@@ -21,12 +21,14 @@
 //   effect: giá trị mà core/build.js effects() cộng dồn (mốc sau ghi đè mốc trước).
 // SPRITE: { sheet, id } — sheet là key trong assets/v3/manifest.json `sheets`, hoặc "garden" = assets/garden/<id>.webp.
 
-import { featureLevel } from "./levels.js?v=m4";
+import { featureLevel } from "./levels.js?v=m5";
 // Cấp của một tính năng trong data/levels.js; tính năng chưa có trong bản levels.js đang dùng ⇒ số dự phòng (theo §3).
 const fl = (id, fallback) => (Number.isFinite(featureLevel(id)) ? featureLevel(id) : fallback);
-import { WAREHOUSE } from "./warehouse.js?v=m4";
+import { WAREHOUSE } from "./warehouse.js?v=m5";
 
-export const MAP_W = 960, MAP_H = 600;
+// Milestone 5: bản đồ cao 600 → 640 px (thêm dải cỏ dưới cùng) — chuồng gà / chuồng bò / Nhà kính ở mép dưới không còn bị cắt nhãn,
+// có chỗ cho gà / bò đi lại trước chuồng. Mọi toạ độ ghi bằng px gốc nên công trình giữ nguyên chỗ.
+export const MAP_W = 960, MAP_H = 640;
 export const EAST_W = 1.5; // bề rộng bản đồ (đơn vị bản đồ gốc) khi đã mở Khu đất phía Đông
 export const FIELD = Object.freeze({ x: 320 / MAP_W, y: 200 / MAP_H, w: 320 / MAP_W, h: 320 / MAP_H, cols: 5, rows: 5 });
 export const EAST_FIELD = Object.freeze({ x: 1000 / MAP_W, y: 230 / MAP_H, w: 192 / MAP_W, h: 192 / MAP_H, cols: 3, rows: 3 });
@@ -48,16 +50,31 @@ const B2 = (id) => S("buildings-2", id);
 // Nhà kho: level L ⇔ mốc sức chứa WAREHOUSE[L-1] (data/warehouse.js — giá, cấp, vật liệu lấy thẳng từ đó).
 // Chưa xây ⇒ mốc 0 (60 chỗ, "kho tạm" như M1). Xây ở cấp 3 giá 60 xu (§3) ⇒ level 1 = vẫn 60 chỗ, mở cảnh Nhà kho
 // + các mốc nâng. Kho cấp 4 (180) dùng sprite "nha-kho-2" (§3 cấp 15 "Kho to hơn").
-const WAREHOUSE_FEATURE = { 3: "warehouse-4", 4: "warehouse-5" };
+const WAREHOUSE_FEATURE = { 3: "warehouse-4", 4: "warehouse-5", 5: "warehouse-6" };
 const warehouseLevels = WAREHOUSE.map((t, i) => i === 0
   ? { feature: "build-warehouse", cost: 60, materials: {}, ms: 0, sprite: B("nha-kho"), effect: { warehouseTier: 0 } }
   : { feature: WAREHOUSE_FEATURE[i], minLevel: t.minLevel, cost: t.cost, materials: { ...t.materials }, ms: 0,
       sprite: i >= 3 ? B2("nha-kho-2") : B("nha-kho"), effect: { warehouseTier: i } });
 
+// Danh hiệu theo bậc Nhà (level 1 = nhà ban đầu). orderBonus: phần xu cộng thêm khi giao đơn (+2 % mỗi bậc, tối đa +20 %).
+export const FAME_TITLES = Object.freeze(["Nông trại nhỏ", "Nông trại chăm chỉ", "Nông trại khá giả", "Nông trại có tiếng", "Nông trại nổi tiếng trong làng",
+  "Nông trại kiểu mẫu", "Nông trại danh tiếng", "Nông trại vang danh", "Nông trại huyền thoại", "Điền trang vàng", "Nông trại mạ vàng"]);
+export const FAME_BONUS_STEP = 0.02;
+const HOUSE_UNLOCK = [1, 10, 12, 14, 16, 17, 18, 19, 20, 20, 20];
+const HOUSE_LEVELS = FAME_TITLES.map((title, i) => i === 0
+  ? { unlock: 1, sprite: S("garden", "house"), effect: { fameLevel: 1, orderBonus: 0 } }
+  : { ...(i === 1 ? { feature: "fame-house" } : {}), unlock: HOUSE_UNLOCK[i], cost: Math.round((3000 * 1.8 ** (i - 1)) / 100) * 100,
+      materials: i < 3 ? {} : { "van-go": i, "hop-dinh": i - 1, ...(i >= 6 ? { "thung-son": i - 4 } : {}) },
+      ms: 120_000, sprite: S("garden", "house"), effect: { fameLevel: i + 1, orderBonus: +(FAME_BONUS_STEP * i).toFixed(2) } });
+
 const RAW = [
+  // Nhà = "Nông trại danh tiếng" (§3 cấp 20, Milestone 5): chỗ tiêu xu dài hạn cuối game. Mỗi lần nâng ⇒ danh hiệu mới + đơn hàng
+  // trả thêm xu (effect.orderBonus, core/orders.js orderPayout). Giá ×1,8 mỗi bậc (3 000 → ~595 000, tổng ~1,33 triệu) ⇒ người chơi
+  // chăm vẫn có mục tiêu tới hết tuần (tools/sim/report.md: bản M4 tích 920 000 xu ngày 7). Chưa có sprite nhà cấp cao ⇒ dùng lại
+  // ảnh garden/house, bản đồ hiện "★ bậc" trên nhãn.
   { id: "nha", name: "Nhà", kind: "prebuilt", lot: "lo-nha", size: "big", ...px(165, 175, 230),
-    levels: [{ unlock: 1, sprite: S("garden", "house") }] },
-  { id: "sap-cho", name: "Sạp chợ", kind: "prebuilt", lot: "lo-cho", size: "small", ...px(835, 165, 190),
+    levels: HOUSE_LEVELS },
+  { id: "sap-cho", name: "Sạp chợ", kind: "prebuilt", lot: "lo-cho", size: "small", ...px(835, 177, 190), // M5: hạ 12 px — mái sạp không bị cắt ở mép trên
     levels: [
       { unlock: 1, sprite: S("garden", "market"), effect: { marketFull: false } },
       // §3 cấp 3 "Khu chợ đầy đủ" — sạp nhỏ thành quầy chợ, công trình nhỏ ⇒ tức thì.
@@ -84,20 +101,20 @@ const RAW = [
     ] },
   { id: "coi-xay-gio", name: "Cối xay gió", kind: "machine", machine: "coi-xay", lot: "lo-coi-xay", size: "big", ...px(870, 470, 110),
     levels: [{ feature: "mill", sprite: B("than-coi-xay"), rotor: B("canh-coi-xay") }] },
-  { id: "chuong-ga", name: "Chuồng gà", kind: "build", lot: "lo-chuong-ga", size: "big", ...px(120, 580, 130),
+  { id: "chuong-ga", name: "Chuồng gà", kind: "build", lot: "lo-chuong-ga", size: "big", ...px(104, 584, 130),
     // Sức chứa khớp data/animals.js capacityByLevel (gà [6, 8, 10]). Nâng dùng vật liệu (§2.7 "công trình cấp 2").
     levels: [
       { feature: "chicken", cost: 300, materials: {}, ms: 120_000, sprite: B("chuong-ga"), effect: { chickenCap: 6 } },
       { unlock: 10, cost: 700, materials: { "van-go": 3, "hop-dinh": 2 }, ms: 120_000, sprite: B2("chuong-ga-2"), effect: { chickenCap: 8 } },
       { unlock: 14, cost: 1400, materials: { "van-go": 5, "hop-dinh": 4, "thung-son": 1 }, ms: 180_000, sprite: B2("chuong-ga-2"), effect: { chickenCap: 10 } },
     ] },
-  { id: "chuong-bo", name: "Chuồng bò", kind: "build", lot: "lo-chuong-bo", size: "big", ...px(252, 590, 140),
+  { id: "chuong-bo", name: "Chuồng bò", kind: "build", lot: "lo-chuong-bo", size: "big", ...px(240, 592, 140),
     // bò [4, 6] (data/animals.js). Chưa có sprite chuồng bò cấp 2 ⇒ dùng lại "chuong-bo".
     levels: [
       { feature: "cow", cost: 600, materials: {}, ms: 180_000, sprite: B("chuong-bo"), effect: { cowCap: 4 } },
       { unlock: 12, cost: 1000, materials: { "van-go": 4, "hop-dinh": 3 }, ms: 180_000, sprite: B("chuong-bo"), effect: { cowCap: 6 } },
     ] },
-  { id: "nha-kinh", name: "Nhà kính", kind: "build", lot: "lo-nha-kinh", size: "big", ...px(840, 598, 140),
+  { id: "nha-kinh", name: "Nhà kính", kind: "build", lot: "lo-nha-kinh", size: "big", ...px(846, 614, 136), // M5: hạ xuống dải mới, không đè chân Cối xay gió
     levels: [
       // 10 → 4 ván gỗ (tools/sim/report.md gợi ý 5): ván chỉ rơi ~0,7 %/vụ trước cấp 11 ⇒ 10 tấm buộc mua 1 200 xu ở chợ.
       // Chọn giảm vật liệu thay vì tăng tỉ lệ rơi 2 % → 5 %: chỉ đụng một mốc, không làm vật liệu dư thừa cho mọi mốc khác.
@@ -156,11 +173,11 @@ export const DECOR_SLOTS = Object.freeze([
   slot("hien-nha", 215, 218, "s"),       // hiên nhà
   slot("goc-ruong-tl", 300, 215, "s"),
   slot("goc-ruong-tr", 660, 215, "s"),
-  slot("goc-ruong-bl", 300, 540, "s"),
+  slot("goc-ruong-bl", 345, 590, "s"),  // M5: dời khỏi mái Chuồng bò
   slot("goc-ruong-br", 660, 540, "s"),
   slot("bo-ao", 676, 402, "s"),
   slot("san-kho", 262, 340, "l"),        // sân trước nhà kho — Giếng đá
-  slot("loi-di", 400, 575, "s"),
+  slot("loi-di", 420, 606, "s"),
   slot("dong-1", 1000, 470, "l", 17, "east"),
   slot("dong-2", 1200, 250, "s", 17, "east"),
   slot("dong-3", 1200, 420, "s", 17, "east"),

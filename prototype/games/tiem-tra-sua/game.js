@@ -1,6 +1,6 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, icon } from "./render/atlas.js";
+import { makeAtlas, SHEETS, icon } from "./render/atlas.js?v=snap2";
 import { createScene } from "./render/scene.js";
 import { createBrew } from "./ui/brew.js";
 import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js";
@@ -30,9 +30,10 @@ async function boot() {
   const seed = params.has("seed") ? Number(params.get("seed")) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
   const loaded = store.read(seed);
   let state = loaded.state;
-  let paused = false, lastSave = 0, dirty = false;
+  let paused = false, lastSave = 0, dirty = false, restarting = false;
 
   const save = (force = false) => {
+    if (restarting) return; // đang chơi lại: không ghi đè bản vừa cất
     const now = performance.now();
     if (!force && now - lastSave < 2500) { dirty = true; return; }
     store.write(state); lastSave = now; dirty = false;
@@ -49,6 +50,7 @@ async function boot() {
     state: () => state,
     afterIntro: () => overlays.prep(state),
     resume: () => { paused = false; },
+    restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
     onClose: () => {},
     notebook: (tab, back) => panels.notebook(state, tab, back),
     journal: (back) => panels.journal(state, back),

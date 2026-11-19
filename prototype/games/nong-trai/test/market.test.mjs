@@ -1,12 +1,12 @@
 // Test luật Khu chợ (core/market.js) + fuzz Xưởng/Chợ. Chạy: node --test prototype/games/nong-trai/test/market.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createMarket, CYCLE_MS, nextChangeAt, swing, seedId, RESALE_MIN_RATIO } from "../core/market.js?v=m4";
-import * as P from "../core/production.js?v=m4";
-import { ITEMS, ITEM as GOOD } from "../data/catalog.js?v=m4";
+import { createMarket, CYCLE_MS, nextChangeAt, swing, seedId, RESALE_MIN_RATIO } from "../core/market.js?v=m5";
+import * as P from "../core/production.js?v=m5";
+import { ITEMS, ITEM as GOOD } from "../data/catalog.js?v=m5";
 const GOODS = ITEMS.filter((it) => it.producer.kind !== "crop"); // món không phải nông sản (trước M2: data/goods.js)
-import { RECIPES } from "../data/recipes.js?v=m4";
-import { MACHINES } from "../data/machines.js?v=m4";
+import { RECIPES } from "../data/recipes.js?v=m5";
+import { MACHINES } from "../data/machines.js?v=m5";
 
 /** Kho / ví trong bộ nhớ, chỉ cho test (giống production.test.mjs). */
 function memInv(init = {}, cap = Infinity) {
