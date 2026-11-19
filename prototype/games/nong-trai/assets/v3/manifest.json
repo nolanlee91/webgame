@@ -2314,6 +2314,125 @@
           "frameMs": 240
         }
       }
+    },
+    "crops-2": {
+      "file": "crops-2.webp",
+      "frameWidth": 80,
+      "frameHeight": 80,
+      "columns": 5,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "lua-seed",
+          "x": 0,
+          "y": 0,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "lua-sprout",
+          "x": 80,
+          "y": 0,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "lua-grow",
+          "x": 160,
+          "y": 0,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "lua-mature",
+          "x": 240,
+          "y": 0,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "lua-ready",
+          "x": 320,
+          "y": 0,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "mia-seed",
+          "x": 0,
+          "y": 80,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "mia-sprout",
+          "x": 80,
+          "y": 80,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "mia-grow",
+          "x": 160,
+          "y": 80,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "mia-mature",
+          "x": 240,
+          "y": 80,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        },
+        {
+          "id": "mia-ready",
+          "x": 320,
+          "y": 80,
+          "width": 80,
+          "height": 80,
+          "anchor": [
+            40,
+            74
+          ]
+        }
+      ]
     }
   }
 }

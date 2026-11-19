@@ -1,15 +1,19 @@
 // Cửa duy nhất đổi trạng thái: apply(state, action, now) ⇒ { ok: true, events, result } | { err, events: [] }.
 // Chạy trên bản nháp (structuredClone): lỗi ⇒ trạng thái không đổi chút nào. Kiểm bất biến ở MỘT chỗ trước khi ghi:
 // xu ≥ 0, số món là số nguyên ≥ 0, kho không vượt sức chứa vì hàng mới, giỏ tràn ≤ 10 ⇒ không âm xu, không dùng món không có.
-// Mỗi action đều đồng bộ trước theo `now` (lấp ô đơn, hết hạn đơn đặc biệt, giỏ tràn về kho, lưới an toàn).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m1";
-import * as plots from "./plots.js?v=m1";
-import * as orders from "./orders.js?v=m1";
-import * as eco from "./economy.js?v=m1";
-import * as quests from "./quests.js?v=m1";
-import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m1";
+// Mỗi action đều đồng bộ trước theo `now` (Xưởng xây xong, lấp ô đơn, hết hạn đơn đặc biệt, giỏ tràn về kho, lưới an toàn).
+// Milestone 2: Xưởng (buildWorkshop, upgradeWorkshop, buildMachine, upgradeMachine, enqueue, collect, collectAll) và Khu chợ
+// (marketSell, marketBuy). Bán ở Nhà kho / giỏ tràn dùng cùng giá chợ (core/market.js priceOf).
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2";
+import * as plots from "./plots.js?v=m2";
+import * as orders from "./orders.js?v=m2";
+import * as eco from "./economy.js?v=m2";
+import * as quests from "./quests.js?v=m2";
+import * as ws from "./workshop.js?v=m2";
+import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m2";
 
 function sync(s, now, events) {
+  ws.sync(s, now, events);
   orders.sync(s, now, events);
   const moved = settleOverflow(s);
   if (moved) events.push({ type: "overflowSettled", count: moved });
@@ -23,14 +27,23 @@ const HANDLERS = {
   harvest: (s, a, now, ev) => plots.harvest(s, a.i, now, ev),
   harvestAll: (s, a, now, ev) => plots.harvestAll(s, now, ev),
   buyPlot: (s, a, now, ev) => plots.buyPlot(s, a.i, ev),
-  sell: (s, a, now, ev) => eco.sell(s, a.id, a.n, ev),
-  sellAll: (s, a, now, ev) => eco.sellAll(s, ev),
-  sellOverflow: (s, a, now, ev) => eco.sellOverflow(s, ev),
+  sell: (s, a, now, ev) => eco.sell(s, a.id, a.n, now, ev),
+  sellAll: (s, a, now, ev) => eco.sellAll(s, now, ev),
+  sellOverflow: (s, a, now, ev) => eco.sellOverflow(s, now, ev),
   deliver: (s, a, now, ev) => orders.deliver(s, a.slot, a.id, a.rev, now, ev),
   cancelOrder: (s, a, now, ev) => orders.cancel(s, a.slot, a.id, a.rev, now, ev),
   upgradeWarehouse: (s, a, now, ev) => eco.upgradeWarehouse(s, ev),
   upgradeFarm: (s, a, now, ev) => eco.upgradeFarm(s, ev),
   claimQuest: (s, a, now, ev) => quests.claim(s, a.id, ev),
+  buildWorkshop: (s, a, now, ev) => ws.buildWorkshop(s, now, ev),
+  upgradeWorkshop: (s, a, now, ev) => ws.upgradeWorkshop(s, now, ev),
+  buildMachine: (s, a, now, ev) => ws.buildMachine(s, a, now, ev),
+  upgradeMachine: (s, a, now, ev) => ws.upgradeMachine(s, a, now, ev),
+  enqueue: (s, a, now, ev) => ws.enqueue(s, a, now, ev),
+  collect: (s, a, now, ev) => ws.collect(s, a, now, ev),
+  collectAll: (s, a, now, ev) => ws.collectAll(s, a, now, ev),
+  marketSell: (s, a, now, ev) => ws.marketSell(s, a, now, ev),
+  marketBuy: (s, a, now, ev) => ws.marketBuy(s, a, now, ev),
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
@@ -39,10 +52,12 @@ const isCount = (q) => Number.isInteger(q) && q >= 0;
 export function invariantError(s, before) {
   if (!Number.isSafeInteger(s.coins) || s.coins < 0) return "coins";
   if (!Number.isInteger(s.freeSeeds) || s.freeSeeds < 0) return "seeds";
-  for (const bag of [s.inv, s.overflow]) for (const q of Object.values(bag)) if (!isCount(q)) return "count";
+  for (const bag of [s.inv, s.overflow, s.decor || {}]) for (const q of Object.values(bag)) if (!isCount(q)) return "count";
   if (overflowCount(s) > OVERFLOW_MAX) return "overflow";
   const u = used(s);
   if (u > capacity(s) && u > (before ? used(before) : 0)) return "capacity";
+  const q = ws.queueError(s, before);
+  if (q) return q;
   return null;
 }
 

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TUTORIAL } from "../data/quests.js?v=m1";
-import { currentQuest } from "../core/quests.js?v=m1";
+import { TUTORIAL } from "../data/quests.js?v=m2";
+import { currentQuest } from "../core/quests.js?v=m2";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("8 nhiệm vụ hướng dẫn đúng thứ tự thiết kế, mỗi cái có thưởng", () => {
@@ -65,6 +65,6 @@ test("đi hết hướng dẫn bằng cơ chế thật: bán, giao đơn, mở �
   } else assert.ok(r.events.some((e) => e.type === "questDone" && e.id === "len-cap-3"));
   assert.ok(s.level >= 3);
   act(s, { type: "claimQuest", id: "len-cap-3" }, t + 30_000);
-  assert.equal(currentQuest(s), null);
+  assert.equal(currentQuest(s).id, "xay-xuong", "hết hướng dẫn ⇒ nhiệm vụ tiến trình của Milestone 2");
   assert.equal(err(s, { type: "claimQuest", id: "len-cap-3" }), "quest-claimed");
 });

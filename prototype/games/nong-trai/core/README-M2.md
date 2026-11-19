@@ -58,7 +58,15 @@ Mỗi handler nên đẩy một event, ví dụ `machineBuilt`, `jobQueued`, `jo
 **Save v3 cần thêm:** `production` (khởi tạo bằng `createProduction()`, khi đọc thì chạy `sanitize(raw, now)`). Có thể thêm `buildings` và `workshopLevel` nếu M3 chưa thêm. Không cần lưu field nào cho `market`, vì giá được suy ra từ thời gian.
 Phần "Trong lúc bạn vắng" lấy từ `status(prod, now)[id].finished`.
 
-## Việc cần chốt khi ghép
+## Đã ghép (Milestone 2)
+- `data/goods.js` đã gộp vào `data/catalog.js` (một nguồn: tên, nhóm, giá gốc, `buy` / `shopLevel`, "dùng cho" tính từ công thức). Trang trí ở túi riêng `s.decor`.
+- Save v4 (`wgp.nongtrai.v4`): thêm `production`, `decor`; `buildings` theo mô hình `core/build.js` (M3). Bản v3 / v2 được chép sang `*.backup` trước lần ghi v4 đầu, không xoá.
+- `core/workshop.js`: `buildWorkshop` (= `build.startBuild("xuong")` + tặng Bếp sên), `upgradeWorkshop` (= `build.startUpgrade`), `buildMachine`, `upgradeMachine`, `enqueue`, `collect`, `collectAll` (XP qua `progression.addXp`), `marketSell`, `marketBuy`. `sync` gọi `build.tick`.
+- Nhà kho / giỏ tràn bán theo `MARKET.priceOf`. "Bán hết nông sản" chỉ bán nông sản thô.
+- Đơn: `orderableProducts(s, now)` — chỉ thành phẩm máy đã xây làm được; đơn kết hợp có ≥ 1 thành phẩm (khi có), Bác Tư ưu tiên đồ lò bánh / mứt; số lượng theo `productUnit`.
+- Nhiệm vụ tiến trình: `data/quests.js` `PROGRESSION`, nối sau hướng dẫn.
+
+## Việc cần chốt khi ghép (ghi chú gốc, đã xử lý ở trên)
 - `data/items.js` của M1 đã có sẵn các món này với cùng id và cùng giá bán. Có thể gộp `buy`, `shopLevel`, `uses` vào đó rồi bỏ `data/goods.js`.
 - `data/items.js` của M1 ghi producer của Bánh flan là `"lo-banh-2"`. Ở M2, Bánh flan nằm ở `lo-banh` và cần máy level 2.
 - Vật liệu và trang trí mua về đi vào `inv.add`. Trong M1, vật liệu không tính vào sức chứa; trang trí chưa có trong `ITEM` nên `canAdd` sẽ từ chối. Cần thêm trang trí vào `ITEM`, hoặc chuyển trang trí sang một túi riêng ở M3.

@@ -33,3 +33,9 @@ Contact sheet có mẫu ghép hai gian dùng chung cột và Cô Hai sau quầy.
 - `machines-2.webp` có ba hàng gồm máy bơ sữa, nồi đường và lò bánh hai cửa. Mỗi hàng dùng một khung đứng và hai khung chạy, ô 192 × 192. Khung chạy dùng chung thân máy với khung đứng, phần tay quay, lửa và hơi nước thay đổi.
 
 Contact sheet hiện gồm cả A và B. Hoạt ảnh và chuyển cảnh vẫn cần được xem lại ở tỷ lệ hiển thị thực tế khi ghép vào game.
+
+## Lúa, mía và lò bánh cấp 2
+
+- `crops-2.webp` là atlas 400 × 160, gồm hai hàng lúa và mía, mỗi hàng có năm ô 80 × 80. Các cột lần lượt là hạt vừa gieo, mầm, đang lớn, gần chín, chín. Mười khung mới dùng điểm neo chân [40, 74] như atlas `garden/crops.webp`.
+- Hàng 3 của `machines-2.webp` là lò bánh cấp 2. Thân lò rộng khoảng 1,29 lần bản cấp 1, có hai cửa lửa, ống khói cao và kệ bánh gỗ. Hai khung chạy thay đổi lửa và khói. Ba khung dùng ô 192 × 192 và giữ neo [96, 168].
+- `contact-sheet-3.png` đặt lúa và mía cạnh cà rốt, ngô ở cùng tỷ lệ, đồng thời đối chiếu hai cấp lò. Sprite xuất WebP lossless, alpha cứng, mỗi pixel nghệ thuật phủ 2 × 2 pixel ảnh.

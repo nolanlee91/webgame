@@ -7,3 +7,12 @@ export const NPCS = [
 ];
 export const NPC = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(NPCS.map((n) => [n.id, n]))));
 export const NPC_SHEET = { cols: 4, rows: 2, cell: 128 };
+/** Cô Hai nói sau quầy chợ (xoay vòng). {up} ⇒ tên một món đang lên giá (nếu có). */
+export const MARKET_LINES = [
+  "Hôm nay {up} được giá đó con, bán đi!",
+  "Hạt giống cô để sẵn, con gieo tới đâu trả tới đó.",
+  "Trời này trồng ngô là trúng mùa nha.",
+  "Giá đổi mỗi ba tiếng, canh mũi tên lên mà bán.",
+  "Mứt dâu nhà làm bán chạy lắm, Bác Tư mê lắm.",
+  "Đơn của bà con trả hơn chợ, nhớ giữ hàng cho đơn nghen.",
+];

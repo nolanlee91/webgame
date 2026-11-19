@@ -1,6 +1,6 @@
 // XP / cấp / mở khoá — đọc bảng cấp từ data/levels.js.
-import { CROP } from "../data/crops.js?v=m1";
-import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel } from "../data/levels.js?v=m1";
+import { CROP } from "../data/crops.js?v=m2";
+import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel } from "../data/levels.js?v=m2";
 
 /** XP cần để đi từ cấp `lv` lên `lv + 1`. */
 export const xpNeed = (lv) => Math.round(10 * lv ** 1.5);
@@ -9,7 +9,7 @@ export const xpNeed = (lv) => Math.round(10 * lv ** 1.5);
 export function cropUnlocked(s, id) {
   const c = CROP[id];
   if (!c || s.level < c.level) return false;
-  return !c.requires || !!s.buildings?.[c.requires];
+  return !c.requires || (s.buildings?.[c.requires]?.level ?? 0) >= 1; // công trình đã xây xong (core/build.js level)
 }
 /** Tính năng đã mở theo cấp (chỉ tính năng có trong bảng cấp). */
 export const hasFeature = (s, id) => s.level >= featureLevel(id);

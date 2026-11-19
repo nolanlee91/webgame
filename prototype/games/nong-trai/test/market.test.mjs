@@ -3,7 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createMarket, CYCLE_MS, nextChangeAt, swing, seedId, RESALE_MIN_RATIO } from "../core/market.js?v=m2";
 import * as P from "../core/production.js?v=m2";
-import { GOODS, GOOD } from "../data/goods.js?v=m2";
+import { ITEMS, ITEM as GOOD } from "../data/catalog.js?v=m2";
+const GOODS = ITEMS.filter((it) => it.producer.kind !== "crop"); // món không phải nông sản (trước M2: data/goods.js)
 import { RECIPES } from "../data/recipes.js?v=m2";
 import { MACHINES } from "../data/machines.js?v=m2";
 

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import * as P from "../core/production.js?v=m2";
 import { MACHINES, MACHINE, BASE_SLOTS, MAX_SLOTS } from "../data/machines.js?v=m2";
 import { RECIPES, RECIPE } from "../data/recipes.js?v=m2";
-import { GOOD, CROP_IDS } from "../data/goods.js?v=m2";
+import { ITEM } from "../data/catalog.js?v=m2";
 
 const T0 = 1_700_000_000_000, MIN = 60_000, HOUR = 3600_000;
 
@@ -32,7 +32,7 @@ function built(...ids) {
 }
 
 test("dữ liệu: mọi công thức trỏ tới máy + món có thật, đúng bảng §2.3", () => {
-  const known = new Set([...CROP_IDS, ...Object.keys(GOOD)]);
+  const known = new Set(Object.keys(ITEM));
   for (const r of RECIPES) {
     assert.ok(MACHINE[r.machine], r.id);
     assert.ok(known.has(r.output), r.output);

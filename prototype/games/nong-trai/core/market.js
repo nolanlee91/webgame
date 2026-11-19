@@ -4,7 +4,7 @@
 //   giá = gốc + trunc(gốc × 0,15 × hệ số) (≥ 1) ⇒ |giá − gốc| ≤ 15 % gốc, cùng `now` ⇒ cùng giá, không lưu gì vào save.
 //   Đơn hàng KHÔNG dùng giá này (dùng giá gốc). Giá MUA ở chợ cố định.
 // CHỢ BÁN RA: hạt giống (từ danh sách cây truyền vào — mua lúc gieo ở ô đất, `buy` từ chối với "plant-only"),
-//   thức ăn gia súc dự phòng, vật liệu, trang trí (data/goods.js: `buy`, `shopLevel`).
+//   thức ăn gia súc dự phòng, vật liệu, trang trí (data/catalog.js: `buy`, `shopLevel`).
 // CHỐNG LỜI VÔ HẠN: assertEconomy() kiểm (1) mọi món chợ bán: giá mua ≥ 1,6 × giá bán lại cao nhất (gốc × 1,15);
 //   (2) mọi chuỗi chỉ dùng hàng mua ở chợ (công thức Xưởng, vật nuôi ăn thức ăn mua) đều lỗ ở giá chợ cao nhất.
 //   Nông sản không tính là "mua được" — hạt giống cần ô đất + thời gian trồng, lời là chủ ý của game.
@@ -14,7 +14,8 @@
 //   wallet = { coins() -> number, spend(n) -> bool, earn(n) }
 //   ctx    = { level }
 
-import { GOODS, ANIMAL_REF } from "../data/goods.js?v=m2";
+import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m2";
+import { CROPS } from "../data/crops.js?v=m2";
 import { RECIPES } from "../data/recipes.js?v=m2";
 
 export const CYCLE_MS = 3 * 3600_000;
@@ -40,15 +41,17 @@ export function swing(id, cycle) {
  * Tạo chợ. crops: [{ id, name, seed, sell, level }] (đúng hình dạng CROPS của data/crops.js — truyền vào, không import).
  * Trả object chứa mọi hàm của chợ.
  */
-export function createMarket({ crops = [] } = {}) {
+export function createMarket({ crops = CROPS } = {}) {
   const base = Object.create(null);   // id → giá bán gốc (> 0 ⇒ bán được ở chợ)
   const names = Object.create(null);
   for (const c of crops) { base[c.id] = c.sell; names[c.id] = c.name; }
+  const cropIds = new Set(crops.map((c) => c.id));
+  const GOODS = ITEMS.filter((it) => !cropIds.has(it.id) && it.producer.kind !== "crop");
   for (const g of GOODS) { if (g.sell > 0) base[g.id] = g.sell; names[g.id] = g.name; }
 
   const shop = [
     ...crops.map((c) => ({ id: seedId(c.id), name: "Hạt " + c.name.toLowerCase(), kind: "seed", crop: c.id, buy: c.seed, level: c.level })),
-    ...GOODS.filter((g) => g.buy > 0).map((g) => ({ id: g.id, name: g.name, kind: g.category === "special" ? "decor" : g.category === "material" ? "material" : "feed", buy: g.buy, level: g.shopLevel })),
+    ...GOODS.filter((g) => g.buy > 0).map((g) => ({ id: g.id, name: g.name, kind: g.bag === "decor" ? "decor" : g.cat === "vat-lieu" ? "material" : "feed", buy: g.buy, level: g.shopLevel })),
   ];
   const SHOP = Object.assign(Object.create(null), Object.fromEntries(shop.map((s) => [s.id, s])));
 
@@ -136,3 +139,6 @@ export function createMarket({ crops = [] } = {}) {
 
   return { priceOf, trend, nextChangeAt, board, catalogue, sell, buy, sellable, basePrice, maxSell, assertEconomy, shop: SHOP };
 }
+
+/** Chợ dùng chung của game (một nguồn giá: chợ, Nhà kho "Bán nhanh", giỏ tràn). */
+export const MARKET = createMarket({ crops: CROPS });

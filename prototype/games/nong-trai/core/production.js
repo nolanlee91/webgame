@@ -68,6 +68,14 @@ export function buildMachine(prod, wallet, machineId, now, ctx) {
   return { ok: true, machine: machineId, cost: def.buildCost, readyAt: m.readyAt };
 }
 
+/** Máy tặng kèm công trình (Bếp sên đi cùng Xưởng): không trừ xu, dùng được từ readyAt. Đã có ⇒ err "built". */
+export function grantMachine(prod, machineId, readyAt) {
+  if (!MACHINE[machineId] || !isTime(readyAt)) return { err: ERR.BAD };
+  if (prod.machines[machineId]) return { err: ERR.BUILT };
+  prod.machines[machineId] = { level: 1, slots: BASE_SLOTS, readyAt, queue: [], nextUid: 1 };
+  return { ok: true, machine: machineId, readyAt };
+}
+
 /** Giá nâng cấp kế tiếp (null ⇒ đã tối đa / chưa xây). */
 export function nextUpgrade(prod, machineId) {
   const m = prod.machines[machineId], def = MACHINE[machineId];

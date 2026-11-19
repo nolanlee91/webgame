@@ -1,13 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m1";
-import { browserStorage, farmSave } from "./save.js?v=m1";
+import * as L from "./logic.js?v=m2";
+import { browserStorage, farmSave } from "./save.js?v=m2";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m2";
+import { createMarketScene } from "./ui/scene-market.js?v=m2";
+import { loadSprites, playFx } from "./ui/sprites.js?v=m2";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
 const STAGE_SCALE = { seed: 0.4, sprout: 0.55, grow: 0.7, mature: 0.85, ready: 1 }; // cây chưa có atlas: vẽ icon theo cỡ
 const ATLAS_CELL = 80, ICON_CELL = 64;
-const atlas = new Image(), icons = new Image();
+const atlas = new Image(), atlas2 = new Image(), icons = new Image();
 const ART = {
   onReady: null,
   draw(canvas, key) {
@@ -19,8 +22,9 @@ const ART = {
     if (!c) return;
     g.imageSmoothingEnabled = false;
     if (c.atlasRow !== null) {
-      if (!atlas.complete || !atlas.naturalWidth) return;
-      g.drawImage(atlas, STAGE_COL[stage] * ATLAS_CELL, c.atlasRow * ATLAS_CELL, ATLAS_CELL, ATLAS_CELL, 0, 0, canvas.width, canvas.height);
+      const im = c.atlas === "crops-2" ? atlas2 : atlas;
+      if (!im.complete || !im.naturalWidth) return;
+      g.drawImage(im, STAGE_COL[stage] * ATLAS_CELL, c.atlasRow * ATLAS_CELL, ATLAS_CELL, ATLAS_CELL, 0, 0, canvas.width, canvas.height);
     } else {
       const cell = L.iconCell(crop);
       if (!cell || !icons.complete || !icons.naturalWidth) return;
@@ -29,12 +33,13 @@ const ART = {
     }
   },
 };
-let pending = 2;
+let pending = 3;
 const loaded = () => { if (--pending <= 0) ART.onReady?.(); };
-atlas.onload = icons.onload = loaded;
-atlas.onerror = icons.onerror = loaded;
+atlas.onload = atlas2.onload = icons.onload = loaded;
+atlas.onerror = atlas2.onerror = icons.onerror = loaded;
 atlas.src = new URL("assets/garden/crops.webp", import.meta.url).href;
 icons.src = new URL("assets/v3/items.webp", import.meta.url).href;
+atlas2.src = new URL("assets/v3/crops-2.webp", import.meta.url).href;
 
 // ---------- âm thanh ----------
 function makeSfx(dir, names, sdk) {
@@ -88,11 +93,21 @@ const ERR = {
   "order-stock": "Kho chưa đủ hàng để giao đơn này.", "order-changed": "Đơn này đã đổi. Hãy xem đơn mới.", "order-expired": "Đơn này đã hết hạn.",
   "quest-incomplete": "Nhiệm vụ chưa xong.", "quest-claimed": "Đã nhận thưởng nhiệm vụ này.",
 };
+/** Lỗi của Xưởng / chợ (Milestone 2) — cùng mã "locked" nhưng nghĩa là chưa đủ cấp. */
+const ERR_M2 = {
+  locked: "Chưa đủ cấp.", "workshop-level": "Chưa đủ cấp — Xưởng mở ở cấp 4, nâng Xưởng cấp 2 ở cấp 13.", built: "Đã xây rồi.",
+  "no-workshop": "Cần xây xong Xưởng chế biến trước.", "not-built": "Máy này chưa xây.", building: "Đang xây, chờ chút nhé.",
+  inputs: "Thiếu nguyên liệu.", "queue-full": "Hàng chờ đã đầy — nâng máy để thêm ô.", "not-ready": "Mẻ này chưa xong.",
+  "not-found": "Ô này đã được nhận rồi.", full: "Kho và giỏ tràn đều đầy — bán bớt rồi nhận tiếp.", max: "Đã nâng tối đa.",
+  "machine-level": "Cần nâng máy lên cấp cao hơn.", "plant-only": "Hạt giống trả tiền lúc gieo ở ô đất.", "bad-count": "Số lượng không hợp lệ.",
+  "empty-stock": "Không còn hàng này để bán.", requires: "Cần công trình khác trước.", bad: "Không làm được.",
+};
+const M2_ACTIONS = new Set(["buildWorkshop", "upgradeWorkshop", "buildMachine", "upgradeMachine", "enqueue", "collect", "collectAll", "marketSell", "marketBuy"]);
 const npcOf = (id) => L.NPC[id] || L.NPCS[0];
 /** Icon vật phẩm từ assets/v3/items.webp (CSS background-position, nearest-neighbour). */
 function iconHtml(id, cls = "") {
   const c = L.iconCell(id);
-  return c ? `<i class="it ${cls}" style="--c:${c.col};--r:${c.row}" aria-hidden="true"></i>` : "";
+  return c ? `<i class="it${c.sheet === "decor" ? " it--decor" : ""} ${cls}" style="--c:${c.col};--r:${c.row}" aria-hidden="true"></i>` : "";
 }
 function faceHtml(npcId, cls = "") {
   const n = npcOf(npcId);
@@ -115,6 +130,8 @@ export function mount(root, ctx = {}) {
     upgrade: $("upgradeBuy"), upgradeInfo: $("upgradeInfo"), sell: $("sellAll"),
     water: $("waterTool"), grow: $("seedTool"), depot: $("stockTool"), orderTool: $("ordersTool"), sellTool: $("sellTool"), improve: $("upgradeTool"),
     market: $("market"), board: $("boardBtn"), boardBadge: $("boardBadge"),
+    lot: $("workshopLot"), lotTag: $("lotTag"), lotBar: $("lotBar"), wsBadge: $("wsBadge"), wsTool: $("workshopTool"), mkTool: $("marketTool"),
+    ovBuild: $("ovBuild"), buildBody: $("buildBody"), buildOk: $("buildOk"), buildCancel: $("buildCancel"),
     quest: $("quest"), qFace: $("qFace"), qStep: $("qStep"), qTitle: $("qTitle"), qHint: $("qHint"), qBar: $("qBar"), qProg: $("qProg"), qReward: $("qReward"), qClaim: $("qClaim"),
   };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-kim-cuong", "qua-man", "trung-da", "thang"], sdk);
@@ -123,7 +140,7 @@ export function mount(root, ctx = {}) {
   let s = save.read(now()).state;
   const fresh = first.fresh, migrated = first.migrated;
   let mode = "seed", pick = L.FIELD_CROPS[0].id, cursor = 12, confirmAt = -1, confirmT = 0, toastT = 0, tickTimer = 0, secTimer = 0;
-  let cancelArm = null, cancelT = 0, rewardTimer = 0;
+  let cancelArm = null, cancelT = 0, rewardTimer = 0, scene = "farm", lastFinished = 0, workshop = null, market = null;
 
   // ---------- dựng DOM ----------
   const cells = s.plots.map((_, i) => {
@@ -168,7 +185,7 @@ export function mount(root, ctx = {}) {
   /** Chạy một action qua luật. Lỗi ⇒ báo, không đổi gì. Gọi bên trong mutate(). */
   function run(action, origin) {
     const r = L.apply(s, action, now());
-    if (r.err) { fail(r.err); render(); return null; }
+    if (r.err) { fail(r.err, action); render(); return null; }
     persist();
     feedback(r.events, origin);
     render();
@@ -209,6 +226,24 @@ export function mount(root, ctx = {}) {
     clearTimeout(rewardTimer);
     rewardTimer = setTimeout(() => { reward.hidden = true; }, 1000);
   }
+  /** Chữ nổi tại (x, y) trong host (position: relative). */
+  function floatAt(host, x, y, text, color) {
+    const f = document.createElement("span");
+    f.className = "float"; f.textContent = text; if (color) f.style.color = color;
+    f.style.left = x + "px"; f.style.top = y + "px";
+    f.setAttribute("aria-hidden", "true");
+    host.append(f);
+    setTimeout(() => f.remove(), 1000);
+  }
+  /** fx.webp tại phần tử bất kỳ (tính theo khung bản đồ / cảnh đang mở). */
+  function fxOn(el, kinds, text, color, size = 64) {
+    if (!el) return;
+    const host = scene === "workshop" ? ui.wsRoot : scene === "market" ? ui.mkRoot : ui.farm;
+    const r = el.getBoundingClientRect(), h = host.getBoundingClientRect();
+    const x = r.left - h.left + r.width / 2, y = r.top - h.top + r.height / 2;
+    for (const k of kinds) playFx(host, k, x, y, size);
+    if (text) floatAt(host, x, y - 18, text, color);
+  }
   function pulse(el) { if (!el) return; el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); }
 
   /** Phản hồi cho mọi sự kiện luật trả về: hiệu ứng ô, âm thanh, thông báo. */
@@ -226,9 +261,13 @@ export function mount(root, ctx = {}) {
           if (e.material) msgs.push(`Nhặt được 1 ${L.ITEM[e.material].name}!`);
           break;
         case "plotBought": plotEffect(e.i, "till"); float(e.i, `−${e.cost} xu`, "#ffe9a8"); sound = ["thang", 0.6]; msgs.push("Đã mở thêm một ô ruộng!"); break;
-        case "sold": saleBurst(e.coins); sound = ["trung-kim-cuong", 0.8]; msgs.push(`Đã bán ${e.count} món, nhận ${fmtNum(e.coins)} xu.`); sdk.reportScore?.(s.stats.earned); break;
+        case "sold":
+          sound = ["trung-kim-cuong", 0.8];
+          if (e.market) { fxOn(origin.el, ["xu-bay"], `+${fmtNum(e.coins)} xu`, "#ffe9a8"); msgs.push(`Bán ${e.count} ${L.ITEM[Object.keys(e.items)[0]].name} giá ${fmtNum(e.price)} ${e.trend}: +${fmtNum(e.coins)} xu.`); }
+          else { saleBurst(e.coins); msgs.push(`Đã bán ${e.count} món theo giá chợ hôm nay, nhận ${fmtNum(e.coins)} xu.`); }
+          sdk.reportScore?.(s.stats.earned); break;
         case "delivered":
-          sound = ["trung-kim-cuong", 0.9]; saleBurst(e.coins);
+          sound = ["trung-kim-cuong", 0.9]; saleBurst(e.coins); fxOn(origin.el, ["giao-don", "xu-bay"]);
           msgs.push(`${npcOf(e.npc).name} đã nhận hàng: +${fmtNum(e.coins)} xu, +${e.xp} XP` +
             (Object.keys(e.materials).length ? `, ${Object.entries(e.materials).map(([m, q]) => `${q} ${L.ITEM[m].name}`).join(", ")}` : "") + ".");
           sdk.reportScore?.(s.stats.earned);
@@ -241,6 +280,26 @@ export function mount(root, ctx = {}) {
         case "gift": sound = ["qua-man", 0.6]; msgs.push("Chị Ba tặng bạn 3 hạt cà rốt — trồng lại từ đầu nhé!"); break;
         case "questDone": pulse(ui.quest); sound ??= ["trung-kim-cuong", 0.6, 1.2]; break;
         case "questClaimed": sound = ["qua-man", 0.7]; msgs.push(`Nhiệm vụ xong: +${e.reward.coins} xu${e.reward.xp ? `, +${e.reward.xp} XP` : ""}.`); break;
+        case "buildStarted": sound = ["thang", 0.7]; fxOn(ui.lot, ["khoi-xay-dung"], `−${fmtNum(e.cost)} xu`, "#ffe9a8", 96);
+          msgs.push(`Bắt đầu xây ${e.name} — xong sau ${fmtLeft(e.readyAt - now())}. Tắt máy vẫn xây tiếp.`); break;
+        case "buildingDone": sound = ["qua-man", 0.8]; fxOn(ui.lot, ["khoi-xay-dung", "lap-lanh"], null, null, 96); pulse(ui.lot);
+          msgs.push(`${e.name} đã xây xong! Chạm vào Xưởng để chế biến — Bếp sên đã sẵn sàng.`); break;
+        case "machineBuildStarted": sound = ["thang", 0.7]; fxOn(origin.el, ["khoi-xay-dung"], `−${fmtNum(e.cost)} xu`, "#ffe9a8");
+          msgs.push(`Đang lắp ${L.MACHINE[e.machine].name} — xong sau ${fmtLeft(e.readyAt - now())}.`); break;
+        case "machineUpgraded": sound = ["thang", 0.7]; fxOn(origin.el, ["lap-lanh"]); msgs.push(`${L.MACHINE[e.machine].name} lên cấp ${e.level}: ${e.slots} ô hàng chờ.`); break;
+        case "workshopUpgraded": sound = ["thang", 0.8]; fxOn(origin.el, ["lap-lanh"]); msgs.push(`Xưởng lên cấp ${e.level}: mọi máy thêm ${e.extraSlots} ô hàng chờ!`); break;
+        case "jobQueued": sound ??= ["buoc-nhay", 0.6, 0.85];
+          msgs.push(`${L.MACHINE[e.machine].name}: ${e.startAt > now() ? "xếp hàng" : "bắt đầu"} ${L.RECIPE[e.recipe].name} — xong sau ${fmtLeft(e.endAt - now())}.`); break;
+        case "jobCollected": {
+          const it = L.ITEM[e.item];
+          sound = ["trung-kim-cuong", 0.85, 1.05];
+          if (origin.el) fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${e.qty} ${it.name}${e.xp ? ` · +${e.xp} XP` : ""}`, "#ffe9a8");
+          if (e.xp) msgs.push(`Nhận ${e.qty} ${it.name}, +${e.xp} XP${e.overflow ? " (vào giỏ tràn)" : ""}.`);
+          break;
+        }
+        case "jobsCollected": if (origin.el) fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${e.xp} XP`, "#ffe9a8"); msgs.push(`Nhận ${e.count} mẻ, +${e.xp} XP${e.full ? " — kho đầy, còn mẻ chưa nhận" : ""}.`); break;
+        case "bought": sound = ["qua-man", 0.55, 1.2]; fxOn(origin.el, ["lap-lanh"], `−${fmtNum(e.coins)} xu`, "#ffe9a8");
+          msgs.push(`Đã mua ${e.count} ${L.ITEM[e.id].name} (−${fmtNum(e.coins)} xu)${L.isDecor(e.id) ? " — cất trong túi trang trí" : ""}.`); break;
         case "levelUp": sound = ["qua-man", 0.8]; msgs.push(`Lên cấp ${e.level}!` + (e.unlocks.length ? ` Mở khoá: ${e.unlocks.join(", ")}.` : "")); break;
       }
     }
@@ -300,15 +359,16 @@ export function mount(root, ctx = {}) {
     const row = (id, q, where) => {
       const it = L.ITEM[id], sellable = L.sellable(id), want = need[id] || 0;
       return `<li class="wh-item">${iconHtml(id)}<div class="wh-info"><b>${esc(it.name)} <span class="qty">×${fmtNum(q)}</span></b>` +
+        (sellable ? `<small>Giá chợ hôm nay: ${fmtNum(L.priceOf(id, now()))} xu ${L.MARKET.trend(id, now())}</small>` : "") +
         `<small>Nguồn: ${esc(it.source)} · Dùng cho: ${esc(it.uses)}</small>` +
         (want ? `<small class="want">Đơn đang cần: ${want}</small>` : "") + `</div>` +
         (sellable ? `<div class="wh-btns"><button class="btn btn--sm" type="button" data-act="sell1" data-id="${id}" data-key="s1-${where}-${id}" aria-label="Bán 1 ${esc(it.name)}">Bán 1</button>` +
-          `<button class="btn btn--sm" type="button" data-act="sellN" data-id="${id}" data-key="sn-${where}-${id}" aria-label="Bán hết ${esc(it.name)}">Hết · ${fmtNum(q * it.sell)} xu</button></div>` : "") + `</li>`;
+          `<button class="btn btn--sm" type="button" data-act="sellN" data-id="${id}" data-key="sn-${where}-${id}" aria-label="Bán hết ${esc(it.name)}">Hết · ${fmtNum(q * L.priceOf(id, now()))} xu</button></div>` : "") + `</li>`;
     };
     let html = `<div class="wh-head"><b>Nhà kho</b><span class="wh-cap${used >= cap ? " full" : ""}">${used}/${cap} chỗ</span>` +
       `<div class="px-bar wh-bar" aria-hidden="true"><i style="width:${Math.min(100, Math.round((100 * used) / cap))}%"></i></div></div>`;
     if (over) {
-      const value = Object.entries(s.overflow).reduce((n, [id, q]) => n + q * L.ITEM[id].sell, 0);
+      const value = Object.entries(s.overflow).reduce((n, [id, q]) => n + q * (L.priceOf(id, now()) || 0), 0);
       html += `<div class="basket" id="basket"><p><b>Giỏ tràn ${over}/${L.OVERFLOW_MAX}</b> — kho đầy nên hàng mới nằm tạm ở đây. Bán bớt hoặc nâng kho; có chỗ trống hàng sẽ tự vào kho.</p>` +
         `<div class="basket-items">${Object.entries(s.overflow).map(([id, q]) => `<span>${iconHtml(id, "it--sm")}×${q}</span>`).join("")}</div>` +
         `<button class="btn btn--primary" type="button" id="sellBasket" data-act="sellBasket" data-key="basket">Bán nhanh giỏ tràn · ${fmtNum(value)} xu</button></div>`;
@@ -318,6 +378,8 @@ export function mount(root, ctx = {}) {
       return ids.length ? `<h3>${esc(cat.name)}</h3><ul class="wh-list">${ids.map((id) => row(id, s.inv[id], "inv")).join("")}</ul>` : "";
     }).join("");
     html += groups || `<p class="wh-empty">Kho trống. Thu hoạch cây chín để đưa nông sản vào kho.</p>`;
+    const decor = Object.keys(s.decor || {}).filter((id) => s.decor[id] > 0);
+    if (decor.length) html += `<h3>Trang trí (túi riêng)</h3><ul class="wh-list">${decor.map((id) => `<li class="wh-item">${iconHtml(id)}<div class="wh-info"><b>${esc(L.ITEM[id].name)} <span class="qty">×${s.decor[id]}</span></b><small>Không tính sức chứa · đặt lên bản đồ ở chế độ xây dựng (bản sau)</small></div></li>`).join("")}</ul>`;
     const nx = L.nextWarehouse(s);
     if (nx) {
       const mats = Object.entries(nx.materials);
@@ -328,7 +390,7 @@ export function mount(root, ctx = {}) {
         `<button class="btn btn--teal" type="button" id="whUpgrade" data-act="whUpgrade" data-key="wh-up"${okLevel && okCoins && okMats ? "" : " disabled"}>Nâng kho</button></div>`;
     } else html += `<p class="wh-up">Nhà kho đã ở mức lớn nhất.</p>`;
     setHtml(ui.whBody, html);
-    ui.sell.disabled = !Object.entries({ ...s.inv, ...s.overflow }).some(([id, q]) => q > 0 && L.sellable(id));
+    ui.sell.disabled = !Object.entries({ ...s.inv, ...s.overflow }).some(([id, q]) => q > 0 && L.ITEM[id]?.cat === "nong-san");
   }
 
   function slipHtml(v, slotKey) {
@@ -365,12 +427,15 @@ export function mount(root, ctx = {}) {
     const q = L.currentQuest(s);
     ui.quest.hidden = !q;
     if (!q) return;
-    const done = L.questComplete(s), k = L.TUTORIAL.indexOf(q);
-    ui.qStep.textContent = `Chị Ba · Nhiệm vụ ${k + 1}/${L.TUTORIAL.length}`;
+    const done = L.questComplete(s), k = L.QUESTS.indexOf(q);
+    const tut = k < L.TUTORIAL.length;
+    ui.qStep.textContent = tut ? `Chị Ba · Nhiệm vụ ${k + 1}/${L.TUTORIAL.length}` : `Chị Ba · Tiến trình ${k - L.TUTORIAL.length + 1}/${L.PROGRESSION.length}`;
     ui.qTitle.textContent = q.title;
     let hint = q.hint;
     if (q.id === "mo-o-dat" && !L.hasFeature(s, "plots")) hint = "Lên cấp 2 để mở thêm ô đất — thu hoạch và giao đơn để lấy kinh nghiệm.";
     if (q.id === "nang-kho" && L.nextWarehouse(s) && s.coins < L.nextWarehouse(s).cost) hint = `Để dành ${L.nextWarehouse(s).cost} xu rồi mở Kho, bấm “Nâng kho” — kho đầy thì hàng rơi vào giỏ tràn.`;
+    if (q.id === "xay-xuong" && s.level < L.WORKSHOP.unlock) hint = `Lên cấp ${L.WORKSHOP.unlock} để mở Xưởng chế biến — giao đơn và thu hoạch để lấy kinh nghiệm.`;
+    if ((q.id === "lam-thuc-an" || q.id === "giao-ket-hop") && s.level < 5) hint = "Lên cấp 5 để mở " + (q.id === "lam-thuc-an" ? "Cối xay trong Xưởng." : "đơn kết hợp của Bác Tư.");
     ui.qHint.textContent = done ? "Xong rồi! Bấm “Nhận” để lấy thưởng." : hint;
     const prog = q.level ? (done ? 1 : Math.min(1, s.level / q.level)) : s.quests.progress / q.count;
     ui.qBar.style.width = Math.round(prog * 100) + "%";
@@ -392,8 +457,16 @@ export function mount(root, ctx = {}) {
         case "plot-empty": el = mode === "seed" ? firstPlot((p) => p.open && !p.crop) : ui.grow; break;
         case "plot-growing": el = mode === "water" ? firstPlot((p) => p.crop && !p.watered && !L.isReady(p, t)) : (s.plots.some((p) => p.crop && !p.watered && !L.isReady(p, t)) ? ui.water : ui.grow); break;
         case "plot-ready": el = firstPlot((p) => L.isReady(p, t)); break;
-        case "sell": el = ui.warehouse.hidden ? ui.sellTool : ui.sell.disabled ? null : ui.sell; break;
-        case "orders": el = ui.orders.hidden ? ui.orderTool : ui.slips.querySelector('[data-act="deliver"]:not([disabled])'); break;
+        case "sell": el = scene === "market" ? ui.mkRoot.querySelector('#mkSell [data-act="sell"]') : ui.warehouse.hidden ? ui.sellTool : ui.sell.disabled ? null : ui.sell; break;
+        case "workshop-lot": el = s.level >= L.WORKSHOP.unlock ? (scene === "farm" ? ui.lot : ui.wsRoot.querySelector("[data-back]")) : null; break;
+        case "workshop": {
+          if (L.workshopState(s, t) !== "done") { el = null; break; }
+          if (scene !== "workshop") { el = scene === "farm" ? ui.lot : null; break; }
+          el = ui.wsRoot.querySelector(".slot--done") || (workshop.recipeOpen ? document.querySelector('#recipeBody [data-act="start"]:not([disabled])') : ui.wsRoot.querySelector('.mach-foot [data-act="build"]:not([disabled])') || ui.wsRoot.querySelector('.mach[data-state="ready"] .mach-btn'));
+          break;
+        }
+        case "market": el = scene === "farm" ? ui.market : null; break;
+        case "orders": el = scene !== "farm" ? null : ui.orders.hidden ? ui.orderTool : ui.slips.querySelector('[data-act="deliver"]:not([disabled])'); break;
         case "plot-buy": el = L.hasFeature(s, "plots") ? firstPlot((p, k) => L.canBuy(s, k)) : null; break;
         case "warehouse-upgrade": el = ui.warehouse.hidden ? ui.depot : ui.whBody.querySelector("#whUpgrade:not([disabled])"); break;
       }
@@ -445,8 +518,76 @@ export function mount(root, ctx = {}) {
     clearTimeout(tickTimer);
     if (!document.hidden && s.plots.some((p) => p.crop && !L.isReady(p, t))) tickTimer = setTimeout(() => renderField(now()), 250);
   }
+  // ---------- lô Xưởng trên bản đồ ----------
+  function renderLot(t) {
+    const st = L.workshopState(s, t), w = L.workshopOf(s), lv = L.workshopLevel(s, t);
+    ui.lot.dataset.state = st; ui.lot.dataset.level = String(lv);
+    let tag, aria;
+    if (st === "locked") { tag = `Xưởng · cấp ${L.WORKSHOP.unlock}`; aria = `Lô Xưởng chế biến — mở ở cấp ${L.WORKSHOP.unlock}`; }
+    else if (st === "available") { tag = "Có thể xây"; aria = `Xưởng chế biến — có thể xây (${L.WORKSHOP.cost} xu)`; }
+    else if (st === "building") { tag = `Đang xây ${fmtClock(w.readyAt - t)}`; aria = `Xưởng đang xây — còn ${fmtLeft(w.readyAt - t)}`; }
+    else { tag = "Xưởng chế biến"; aria = "Vào Xưởng chế biến"; }
+    if (ui.lotTag.textContent !== tag) ui.lotTag.textContent = tag;
+    ui.lot.setAttribute("aria-label", aria); ui.lot.title = aria;
+    ui.lotBar.hidden = st !== "building";
+    if (st === "building") { const span = w.readyAt - w.startAt || L.WORKSHOP.buildMs; ui.lotBar.firstChild.style.width = Math.round(100 * Math.min(1, Math.max(0, 1 - (w.readyAt - t) / span))) + "%"; }
+    const fin = st === "done" ? L.finishedJobs(s, t) : 0;
+    ui.wsBadge.hidden = !fin; ui.wsBadge.textContent = fin || "";
+    ui.wsTool.textContent = fin ? `Xưởng (${fin})` : "Xưởng";
+  }
+  function lotTap() {
+    const t = now(), st = L.workshopState(s, t);
+    if (st === "locked") { toast(`Xưởng chế biến mở ở cấp ${L.WORKSHOP.unlock}. Giao đơn, thu hoạch để lên cấp nhé!`); sfx.play("trung-da", 0.3); return; }
+    if (st === "building") { toast(`Xưởng đang xây, còn ${fmtLeft(L.workshopOf(s).readyAt - t)}. Tắt máy vẫn xây tiếp.`); sfx.play("buoc-nhay", 0.3); return; }
+    if (st === "done") { goScene("workshop"); return; }
+    const W = L.WORKSHOP, ok = s.coins >= W.cost;
+    ui.buildBody.innerHTML = `<ul><li>Giá: ${iconHtml("dong-xu", "it--sm")}<b>${fmtNum(W.cost)} xu</b> (bạn có ${fmtNum(s.coins)})</li><li>Thời gian xây: <b>${fmtLeft(W.buildMs)}</b> — tắt máy vẫn xây tiếp</li>` +
+      `<li>Tặng kèm <b>Bếp sên</b>: mứt dâu, sốt cà chua, nước ép cà rốt</li><li>Cối xay (cấp 5) và Lò bánh (cấp 8) lắp thêm bên trong Xưởng</li></ul>` +
+      (ok ? "" : `<p class="need">Còn thiếu ${fmtNum(W.cost - s.coins)} xu.</p>`);
+    ui.buildOk.disabled = !ok; ui.buildOk.textContent = ok ? `Xây · ${fmtNum(W.cost)} xu` : "Chưa đủ xu";
+    ui.ovBuild.hidden = false; (ok ? ui.buildOk : ui.buildCancel).focus();
+    sfx.play("buoc-nhay", 0.35, 1.1);
+  }
+  const closeBuild = () => { ui.ovBuild.hidden = true; ui.lot.focus({ preventScroll: true }); };
+
+  // ---------- cảnh ----------
+  const HASH = { workshop: "#xuong", market: "#cho" };
+  function goScene(next, quiet) {
+    if (next === "workshop" && L.workshopState(s, now()) !== "done") next = "farm";
+    if (!["farm", "workshop", "market"].includes(next)) next = "farm";
+    const prev = scene;
+    scene = next;
+    document.body.dataset.scene = next;
+    if (next === "workshop") workshop.show(); else workshop.hide();
+    if (next === "market") market.show(); else market.hide();
+    try { history.replaceState(null, "", location.pathname + location.search + (HASH[next] || "")); } catch {}
+    if (prev !== next) {
+      if (!quiet) sfx.play("buoc-nhay", 0.4, next === "farm" ? 0.9 : 1.15);
+      window.scrollTo({ top: Math.max(0, document.querySelector(".wrap").offsetTop - 4) });
+      const focus = next === "farm" ? (prev === "workshop" ? ui.lot : ui.market) : document.querySelector(`#${next}Scene [data-back]`);
+      focus?.focus({ preventScroll: true });
+    }
+    render();
+  }
+  function plantSeed(crop) {
+    const c = L.CROP[crop];
+    if (!L.cropUnlocked(s, crop)) { toast(`${c.name} mở ở cấp ${c.level}.`); sfx.play("trung-da", 0.3); return; }
+    pick = crop; goScene("farm"); selectMode("seed");
+    toast(`Đã chọn hạt ${c.name.toLowerCase()} — chạm ô đất trống để gieo, trả ${c.seed} xu mỗi hạt.`);
+  }
+  const sceneCtx = {
+    L, esc, fmtNum, fmtClock, fmtLeft, iconHtml, until: (x) => until(x), setHtml: (el, h) => setHtml(el, h),
+    get s() { return s; }, now, exec: (a, o) => exec(a, o), toast: (m, ms) => toast(m, ms), sfx: (...a) => sfx.play(...a), floatAt, plantSeed,
+  };
+  workshop = createWorkshopScene(sceneCtx); market = createMarketScene(sceneCtx);
+  ui.wsRoot = workshop.root; ui.mkRoot = market.root;
+  loadSprites();
+
   function render() {
     renderHud();
+    renderLot(now());
+    workshop?.render();
+    market?.render();
     renderWarehouse();
     renderOrders();
     renderQuest();
@@ -457,6 +598,14 @@ export function mount(root, ctx = {}) {
     if (document.hidden) return;
     const t = now();
     for (const el of document.querySelectorAll("[data-until]")) el.textContent = fmtClock(Number(el.dataset.until) - t);
+    renderLot(t);
+    if (scene === "workshop") workshop.render(); else if (scene === "market") market.render();
+    const fin = L.finishedJobs(s, t);
+    if (fin > lastFinished) {
+      const done = Object.entries(s.production.machines).flatMap(([id, m]) => m.queue.filter((j) => j.endAt <= t && j.endAt > t - 1500).map((j) => `${L.MACHINE[id].name} xong ${L.RECIPE[j.recipe].name}`));
+      if (done.length) { toast(done.join(" · ") + (scene === "workshop" ? " — chạm ô để nhận!" : " — vào Xưởng để nhận!"), 3200); sfx.play("trung-kim-cuong", 0.35, 1.3); pulse(ui.lot); pulse(ui.wsTool); }
+    }
+    lastFinished = fin;
     if (L.needsSync(s, t)) mutate(() => { const r = L.apply(s, { type: "tick" }, now()); if (r.ok && r.events.length) { persist(); feedback(r.events, { tick: true }); render(); } });
   }
 
@@ -465,7 +614,7 @@ export function mount(root, ctx = {}) {
     if (!L.cropUnlocked(s, id)) { toast(`${L.CROP[id].name} mở khoá ở cấp ${L.CROP[id].level}.`); sfx.play("trung-da", 0.4); return; }
     pick = id; selectMode("seed"); sfx.play("buoc-nhay", 0.3, 1.3); render();
   }
-  function fail(code) { toast(ERR[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
+  function fail(code, action) { toast((M2_ACTIONS.has(action?.type) && ERR_M2[code]) || ERR[code] || ERR_M2[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
   function act(i) {
     const p = s.plots[i], t = now();
     if (!p.open) {
@@ -504,7 +653,12 @@ export function mount(root, ctx = {}) {
   ui.depot.onclick = () => openPanel("stock");
   ui.orderTool.onclick = ui.board.onclick = () => { openPanel("orders"); if (ui.board === document.activeElement) ui.orders.scrollIntoView({ block: "nearest" }); };
   ui.improve.onclick = () => openPanel("upgrade");
-  ui.market.onclick = ui.sellTool.onclick = () => {
+  ui.market.onclick = ui.mkTool.onclick = () => goScene("market");
+  ui.lot.onclick = ui.wsTool.onclick = lotTap;
+  ui.buildCancel.onclick = closeBuild;
+  ui.buildOk.onclick = () => { ui.ovBuild.hidden = true; exec({ type: "buildWorkshop" }, { el: ui.lot }); };
+  for (const b of document.querySelectorAll("[data-back]")) b.onclick = () => goScene("farm");
+  ui.sellTool.onclick = () => {
     openPanel("stock");
     (ui.sell.disabled ? ui.depot : ui.sell).focus({ preventScroll: true });
     ui.warehouse.scrollIntoView({ block: "nearest" });
@@ -523,7 +677,7 @@ export function mount(root, ctx = {}) {
     const b = e.target.closest("button[data-act]");
     if (!b || b.disabled) return;
     const slot = b.dataset.slot === "special" ? "special" : Number(b.dataset.slot), id = Number(b.dataset.id), rev = Number(b.dataset.rev);
-    if (b.dataset.act === "deliver") { cancelArm = null; exec({ type: "deliver", slot, id, rev }); return; }
+    if (b.dataset.act === "deliver") { cancelArm = null; exec({ type: "deliver", slot, id, rev }, { el: b }); return; }
     const arm = `${b.dataset.slot}:${id}`;
     if (cancelArm !== arm) { // bỏ đơn cũng bấm 2 lần cho chắc
       cancelArm = arm; clearTimeout(cancelT); cancelT = setTimeout(() => { cancelArm = null; render(); }, 2500);
@@ -550,6 +704,13 @@ export function mount(root, ctx = {}) {
   ui.helpOk.addEventListener("click", () => showHelp(false));
   function onKey(e) {
     if (!ui.ovHelp.hidden) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); showHelp(false); } return; }
+    if (!ui.ovBuild.hidden) { if (e.key === "Escape") { e.preventDefault(); closeBuild(); } return; }
+    if (workshop.onKey(e)) return;
+    if (scene !== "farm") {
+      if (e.key === "Escape") { e.preventDefault(); goScene("farm"); }
+      else if (e.key.toLowerCase() === "m") setMuted(!sdk.sound.muted);
+      return;
+    }
     if (e.target?.closest?.("button:not(.plot), a") && (e.key === "Enter" || e.key === " ")) return;
     const mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (mv) {
@@ -581,16 +742,20 @@ export function mount(root, ctx = {}) {
   selectMode("seed");
 
   // ---------- chào mừng / vắng mặt ----------
-  const away = L.readyWhileAway(s, now());
+  const away = L.readyWhileAway(s, now()), awayJobs = L.finishedWhileAway(s, now());
+  lastFinished = L.finishedJobs(s, now());
   mutate(() => {
     const r = L.apply(s, { type: "tick" }, now());
     const newOrders = r.ok ? r.events.filter((e) => e.type === "orderNew").length : 0;
+    const built = r.ok && r.events.some((e) => e.type === "buildingDone");
     if (r.ok && r.events.length) { persist(); render(); }
     if (r.ok) feedback(r.events.filter((e) => e.type === "gift" || e.type === "levelUp"));
+    if (HASH.workshop === location.hash) goScene("workshop", true); else if (HASH.market === location.hash) goScene("market", true);
     if (fresh) showHelp(true);
+    else if (migrated && first.from === "v3") toast("Nông trại đã cập nhật: có Xưởng chế biến (từ cấp 4) và Khu chợ với giá đổi theo giờ. Tiến trình cũ vẫn giữ nguyên!", 5200);
     else if (migrated) toast("Nông trại đã được nâng cấp: có Bảng đơn, Nhà kho có sức chứa và nhiệm vụ của Chị Ba. Tiến trình cũ vẫn giữ nguyên!", 5200);
-    else if (away || newOrders) {
-      const parts = [away && `${away} ô đã chín`, newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
+    else if (away || newOrders || awayJobs || built) {
+      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, built && "Xưởng chế biến đã xây xong", newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
       toast(`Trong lúc bạn vắng: ${parts.join(" · ")}.` + (away ? ' Bấm "Thu hết" để gom!' : ""), 4200);
     }
   });
@@ -607,6 +772,8 @@ export function mount(root, ctx = {}) {
     set state(v) { s = v; persist(); render(); },
     get pick() { return pick; },
     get mode() { return mode; },
+    get scene() { return scene; },
+    goScene,
     get sfx() { return { log: sfx.log.slice() }; },
     now,
     render,

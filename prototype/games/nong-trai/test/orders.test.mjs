@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as O from "../core/orders.js?v=m1";
-import { orderSlotCount, cropUnlocked } from "../core/progression.js?v=m1";
-import { loadV3, dump } from "../core/state.js?v=m1";
-import { apply } from "../core/apply.js?v=m1";
-import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m1";
-import { NPC } from "../data/npcs.js?v=m1";
+import * as O from "../core/orders.js?v=m2";
+import { orderSlotCount, cropUnlocked } from "../core/progression.js?v=m2";
+import { loadV3, dump } from "../core/state.js?v=m2";
+import { apply } from "../core/apply.js?v=m2";
+import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2";
+import { NPC } from "../data/npcs.js?v=m2";
 import { farm, act, err, START } from "./helpers.mjs";
 
 const board = (s) => O.boardView(s).slots;

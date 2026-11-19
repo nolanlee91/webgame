@@ -1,16 +1,24 @@
-// Trạng thái nông trại: tạo mới, đọc + kẹp bản lưu v3, di chuyển bản lưu v2 → v3. Thuần, nhận `now`.
-import { CROP, CROPS } from "../data/crops.js?v=m1";
-import { ITEM } from "../data/catalog.js?v=m1";
-import { NPC } from "../data/npcs.js?v=m1";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m1";
-import { UPGRADES } from "../data/decor.js?v=m1";
-import { TUTORIAL } from "../data/quests.js?v=m1";
-import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m1";
-import { W, H, START_OPEN, emptyPlot } from "./plots.js?v=m1";
-import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m1";
-import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m1";
+// Trạng thái nông trại: tạo mới, đọc + kẹp bản lưu v4 (và v3 của Milestone 1 ⇒ di chuyển lên v4), di chuyển bản lưu v2. Thuần, nhận `now`.
+// v4 (Milestone 2) thêm: production (Xưởng), buildings.xuong (công trình Xưởng), decor (túi trang trí). Giá chợ suy ra từ thời gian, không lưu.
+import { CROP, CROPS } from "../data/crops.js?v=m2";
+import { ITEM, isDecor } from "../data/catalog.js?v=m2";
+import { WORKSHOP } from "../data/workshop.js?v=m2";
+import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m2";
+import { MACHINES_NOW } from "./workshop.js?v=m2";
+import { sanitize as sanitizeBuild } from "./build.js?v=m3";
+import { NPC } from "../data/npcs.js?v=m2";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m2";
+import { UPGRADES } from "../data/decor.js?v=m2";
+import { QUESTS, TUTORIAL } from "../data/quests.js?v=m2";
+const TUTORIAL_LENGTH = TUTORIAL.length;
+import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2";
+import { W, H, START_OPEN, emptyPlot } from "./plots.js?v=m2";
+import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m2";
+import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m2";
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
+/** Phiên bản đọc được (v3 = Milestone 1, chưa có Xưởng). */
+export const READABLE_VERSIONS = [3, 4];
 export const START_COINS = 24;
 export const SKIP_TUTORIAL_LEVEL = 3; // bản lưu cũ đã cấp ≥ 3 ⇒ bỏ qua hướng dẫn
 
@@ -25,7 +33,8 @@ export function createState(now = 0, seed = (now >>> 0) ^ 0x9e3779b9) {
   const s = {
     v: SAVE_VERSION, coins: START_COINS, xp: 0, level: 1, bought: 0, lastSeen: now, seed: seed >>> 0,
     freeSeeds: 3, giftAt: 0, upgrade: 0, warehouse: 0, buildings: {},
-    inv: {}, overflow: {},
+    inv: {}, overflow: {}, decor: {},
+    production: createProduction(),
     orders: { nextId: 1, slots: [], special: null },
     quests: { tut: 0, progress: 0 },
     plots: Array.from({ length: W * H }, (_, i) => emptyPlot(START_OPEN.has(i))),
@@ -71,7 +80,8 @@ function loadOrder(s, o, slot, now) {
   const items = {};
   if (!o.items || typeof o.items !== "object") return null;
   for (const id of Object.keys(o.items)) {
-    if (!ITEM[id] || !cropUnlocked(s, id)) return null; // món chưa mở / lạ ⇒ bỏ đơn, ô sẽ sinh đơn mới
+    const okItem = ITEM[id] && (CROP[id] ? cropUnlocked(s, id) : ITEM[id].producer.kind === "machine" && ITEM[id].cat === "thanh-pham");
+    if (!okItem) return null; // món chưa mở / lạ ⇒ bỏ đơn, ô sẽ sinh đơn mới
     items[id] = int(o.items[id], 1, 99, 1);
   }
   const kinds = Object.keys(items).length;
@@ -92,10 +102,26 @@ function loadOrder(s, o, slot, now) {
   return order;
 }
 
-/** Đọc bản lưu v3 (chuỗi JSON hoặc object). Hỏng / sai phiên bản ⇒ null. Mọi số kẹp về khoảng hợp lệ. */
-export function loadV3(raw, now) {
+/** Công trình (core/build.js sanitize — cùng mô hình với Milestone 3) + máy trong bản lưu (v4). Xưởng chưa có ⇒ không có máy. */
+function loadWorkshop(s, d, now) {
+  s.buildings = sanitizeBuild({ buildings: d.buildings }, now).buildings;
+  s.production = createProduction();
+  if (s.buildings.xuong && s.level < WORKSHOP.unlock) delete s.buildings.xuong;
+  const b = s.buildings.xuong;
+  if (!b) return;
+  const readyAt = b.level >= 1 ? Math.min(b.startAt, b.readyAt) : b.readyAt; // Xưởng dùng được từ lúc xây xong lần đầu
+  s.production = sanitizeProduction(d.production, now);
+  for (const id of Object.keys(s.production.machines)) if (!MACHINES_NOW.some((m) => m.id === id)) delete s.production.machines[id];
+  for (const m of MACHINES_NOW.filter((m) => m.withWorkshop)) {
+    if (!s.production.machines[m.id]) grantMachine(s.production, m.id, readyAt);
+    else s.production.machines[m.id].readyAt = Math.min(s.production.machines[m.id].readyAt, readyAt);
+  }
+}
+
+/** Đọc bản lưu v4 — hoặc v3 của Milestone 1 (di chuyển: thêm Xưởng trống, túi trang trí). Hỏng / sai phiên bản ⇒ null. Mọi số kẹp về khoảng hợp lệ. */
+export function loadSave(raw, now) {
   const d = parse(raw);
-  if (!d || typeof d !== "object" || d.v !== SAVE_VERSION || !Array.isArray(d.plots) || d.plots.length !== W * H) return null;
+  if (!d || typeof d !== "object" || !READABLE_VERSIONS.includes(d.v) || !Array.isArray(d.plots) || d.plots.length !== W * H) return null;
   const s = createState(now);
   s.coins = int(d.coins, 0, 1e12, START_COINS);
   s.level = int(d.level, 1, 999, 1);
@@ -107,9 +133,10 @@ export function loadV3(raw, now) {
   s.giftAt = num(d.giftAt, 0, now, 0);
   s.upgrade = int(d.upgrade, 0, UPGRADES.length, 0);
   s.warehouse = int(d.warehouse, 0, WAREHOUSE.length - 1, 0);
-  s.buildings = {}; // công trình: Milestone 3
-  s.inv = loadBag(d.inv);
-  s.overflow = loadBag(d.overflow, (id) => ITEM[id].counts);
+  loadWorkshop(s, d, now);
+  s.inv = loadBag(d.inv, (id) => !isDecor(id));
+  s.decor = loadBag(d.decor, isDecor);
+  s.overflow = loadBag(d.overflow, (id) => ITEM[id].counts && !isDecor(id));
   let extra = Object.values(s.overflow).reduce((a, b) => a + b, 0) - OVERFLOW_MAX;
   for (const id of Object.keys(s.overflow)) { // giỏ tràn quá 10 ⇒ phần thừa về kho (không xoá hàng của người chơi)
     if (extra <= 0) break;
@@ -121,8 +148,8 @@ export function loadV3(raw, now) {
   s.stats.harvested = int(d.stats?.harvested, 0, 1e12, 0);
   s.stats.earned = int(d.stats?.earned, 0, 1e15, 0);
   s.stats.delivered = int(d.stats?.delivered, 0, 1e12, 0);
-  s.quests.tut = int(d.quests?.tut, 0, TUTORIAL.length, 0);
-  s.quests.progress = s.quests.tut < TUTORIAL.length ? int(d.quests?.progress, 0, TUTORIAL[s.quests.tut].count, 0) : 0;
+  s.quests.tut = int(d.quests?.tut, 0, QUESTS.length, 0);
+  s.quests.progress = s.quests.tut < QUESTS.length ? int(d.quests?.progress, 0, QUESTS[s.quests.tut].count, 0) : 0;
   // bảng đơn
   const o = d.orders && typeof d.orders === "object" ? d.orders : {};
   s.orders = { nextId: 1, slots: [], special: null };
@@ -167,8 +194,11 @@ export function migrateV2(raw, now) {
     s.orders.slots.push({ rev: int(o?.revision, 0, MAX_REV, 0), order: ok ? makeOrder(s, { type: "thuong", npc: npcs[k % 3], items, mult: 1.2 }, now) : null, refillAt: now });
   });
   if (!s.orders.slots.length) s.orders.slots = FIRST_ORDERS.map((o) => ({ rev: 0, order: makeOrder(s, o, now), refillAt: now }));
-  if (s.level >= SKIP_TUTORIAL_LEVEL) s.quests.tut = TUTORIAL.length;
+  if (s.level >= SKIP_TUTORIAL_LEVEL) s.quests.tut = TUTORIAL_LENGTH;
   return s;
 }
+
+/** Tên cũ (Milestone 1) — đọc cả v3 lẫn v4. */
+export const loadV3 = loadSave;
 
 export const dump = (s, now) => JSON.stringify({ ...s, lastSeen: now });

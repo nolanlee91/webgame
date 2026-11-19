@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m1";
-import * as P from "../core/plots.js?v=m1";
-import { CROPS } from "../data/crops.js?v=m1";
-import { START_COINS } from "../core/state.js?v=m1";
+import { apply } from "../core/apply.js?v=m2";
+import * as P from "../core/plots.js?v=m2";
+import { CROPS } from "../data/crops.js?v=m2";
+import { START_COINS } from "../core/state.js?v=m2";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("ruộng mới: 25 ô, mở 9, xu khởi đầu, 3 hạt cà rốt tặng", () => {

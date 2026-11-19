@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as G from "../core/progression.js?v=m1";
-import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m1";
-import { CROPS } from "../data/crops.js?v=m1";
+import * as G from "../core/progression.js?v=m2";
+import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m2";
+import { CROPS } from "../data/crops.js?v=m2";
 import { farm } from "./helpers.mjs";
 
 test("đường XP giữ 10·lv^1,5", () => {
@@ -28,7 +28,8 @@ test("cộng XP lên nhiều cấp cùng lúc, mỗi cấp một sự kiện có
   assert.deepEqual(ev.map((e) => e.level), [2, 3, 4]);
   assert.ok(ev[0].unlocks.includes("Dâu tây"));
   assert.ok(ev[1].unlocks.includes("Ngô") && ev[1].unlocks.includes("Ô đơn thứ 4"));
-  assert.ok(!ev[2].unlocks.includes("Xưởng + Bếp sên"), "tính năng của milestone sau không được báo");
+  assert.ok(ev[2].unlocks.includes("Xưởng + Bếp sên"), "Milestone 2: Xưởng được báo khi lên cấp 4");
+  assert.ok(!G.unlocksAt(7).some((u) => u.name === "Chuồng gà"), "tính năng của milestone sau không được báo");
   for (const l of LEVELS) for (const u of G.unlocksAt(l.lv)) assert.ok(u.milestone <= CURRENT_MILESTONE);
 });
 
