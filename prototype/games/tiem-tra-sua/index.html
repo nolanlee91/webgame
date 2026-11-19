@@ -208,7 +208,7 @@
     .grow small { font-size: 12px; color: var(--ink2); }
     .grow.locked { opacity: .5; }
     .grow.owned { background: var(--teal-l); }
-    .intro { padding: 0; overflow: hidden; display: grid; }
+    .intro { padding: 0; overflow: hidden auto; display: grid; }
     .intro-art { position: relative; height: 230px; overflow: hidden; }
     .intro-art img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
     .intro-art .portrait { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); }
@@ -362,7 +362,37 @@
     .tab.on { background: var(--teal); color: #fff; }
     .nb-body { display: grid; gap: 6px; }
     .rv-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-    .rv .reply { color: var(--teal); font-weight: 700; } .rv.replied { opacity: .85; }
+    /* trả lời review theo tính cách chủ tiệm */
+    .sheet.noanim { animation: none; }
+    .rv-tx { min-width: 0; flex: 1; display: grid; gap: 4px; justify-items: start; }
+    .rv.just { box-shadow: 0 0 0 2px var(--teal) inset; }
+    .rv-reply { width: 100%; display: grid; gap: 6px; background: var(--cream2); border-radius: 12px; padding: 8px; }
+    .persona-switch { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .persona-switch .ps-l { font-size: 12px; font-weight: 800; color: var(--ink2); margin-right: 2px; }
+    .persona-switch .ps { min-height: 36px; padding: 4px 10px; border-radius: 18px; font-size: 12px; }
+    .persona-switch .ps.on { background: var(--teal); color: #fff; }
+    .rv-acts .ropt { flex: 1 1 200px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; text-align: left; gap: 2px; }
+    .ropt small { font-weight: 600; font-size: 11.5px; opacity: .85; }
+    .ropt .cost.risk { font-size: 11px; font-weight: 800; background: var(--plum); color: #fff; border-radius: 6px; padding: 0 6px; }
+    .rv-thread { width: 100%; display: grid; gap: 4px; border-left: 3px solid var(--teal); padding: 2px 0 2px 8px; }
+    .rv-thread[data-outcome="phot"], .rv-thread[data-outcome="annoyed"] { border-left-color: var(--red); }
+    .rv-thread[data-outcome="viral"] { border-left-color: var(--amber); }
+    .rv-thread .rp { color: var(--ink); } .rv-thread .rp b { color: var(--teal); }
+    .rp-res { display: flex; flex-wrap: wrap; gap: 4px; }
+    .rp-res .oc, .rp-res .chip { font-size: 11.5px; font-weight: 800; border-radius: 8px; padding: 1px 7px; background: var(--teal-l); color: var(--teal); }
+    .rp-res .oc { background: var(--teal); color: #fff; }
+    .rp-res .oc-viral { background: var(--amber); color: #3b2209; } .rp-res .oc-phot, .rp-res .oc-annoyed { background: var(--red); color: #fff; } .rp-res .oc-flop { background: var(--sage); }
+    .rp-res .chip.neg { background: var(--red-l); color: var(--red); }
+    .rv-thread .cb { font-size: 13px; color: var(--ink2); } .rv-thread .cb b { font-size: 12px; } .rv-thread .cb.flip b { color: var(--plum); }
+    .rv.replied { opacity: 1; }
+    .aside { font-style: italic; color: var(--ink2); margin: 2px 0; }
+    .persona-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 4px 0 10px; }
+    .pcard { display: grid; gap: 2px; text-align: left; border: 0; border-radius: 12px; padding: 8px 10px; background: var(--cream2); color: var(--ink); cursor: pointer; min-height: 44px; font: inherit; box-shadow: 0 0 0 1.5px var(--cream3) inset; }
+    .pcard b { font-size: 14px; } .pcard small { font-size: 12px; color: var(--ink2); }
+    .pcard.on { background: var(--teal-l); box-shadow: 0 0 0 2.5px var(--teal) inset; }
+    .pcard.on b { color: var(--teal); }
+    .pc-h { margin: 6px 0 2px; }
+    .persona-ask { max-width: 640px; }
     .jrow { background: #fffaf0; border-radius: 12px; padding: 7px 10px; display: grid; gap: 2px; } .jrow p { margin: 0; } .jrow small { color: var(--ink2); } .jrow.done b { color: var(--teal); }
     .journal { max-width: 560px; }
     .jcard { display: grid; place-items: center; margin: 8px 0; }
@@ -374,6 +404,10 @@
       .stn { min-height: 44px; padding: 2px 6px; }
       .jcard canvas { width: min(100%, 300px); }
       .drama .ev-tag { font-size: 11px; }
+      .persona-cards { grid-template-columns: 1fr; }
+      .pcard small { font-size: 11px; }
+      .persona-switch .ps { min-height: 44px; }
+      .rv { flex-direction: column; gap: 4px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -418,7 +452,7 @@
   <div id="overlay" class="overlay" hidden></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <p id="bootError" hidden></p>
-  <script type="module" src="game.js?v=m35hd"></script>
+  <script type="module" src="game.js?v=m36"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

@@ -1,20 +1,21 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon, dpr } from "../render/atlas.js?v=m35hd";
-import { ingIcon, headIcon } from "./brew.js?v=m35hd";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m35hd";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m35hd";
-import { ARCHETYPES } from "../data/customers.js?v=m35hd";
-import { COMPLAINT } from "../data/lines.js?v=m35hd";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m35hd";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m35hd";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m35hd";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m35hd";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m35hd";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m35hd";
-import { fill } from "../core/text.js?v=m35hd";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m35hd";
-import { appeal } from "../core/equipment.js?v=m35hd";
-import { portrait as portraitOf } from "./panels.js?v=m35hd";
+import { icon, dpr } from "../render/atlas.js?v=m36";
+import { ingIcon, headIcon } from "./brew.js?v=m36";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m36";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m36";
+import { ARCHETYPES } from "../data/customers.js?v=m36";
+import { COMPLAINT } from "../data/lines.js?v=m36";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m36";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m36";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m36";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m36";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m36";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m36";
+import { fill } from "../core/text.js?v=m36";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m36";
+import { appeal } from "../core/equipment.js?v=m36";
+import { portrait as portraitOf } from "./panels.js?v=m36";
+import { personaCards, PERSONAS } from "./persona.js?v=m36";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -154,8 +155,12 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const lab = h("label", "field"); lab.appendChild(h("span", "", "Tên tiệm của bạn"));
       const inp = h("input"); inp.id = "shopName"; inp.maxLength = 32; inp.value = state.shopName; inp.autocomplete = "off"; inp.dataset.autofocus = "";
       lab.appendChild(inp); tx.appendChild(lab);
+      // tính cách chủ tiệm: đổi giọng trả lời review, một chút thoại drama và câu Nhật Ký; đổi lại được bất cứ lúc nào ở bảng trả lời
+      let pick = state.owner?.persona || "hien";
+      tx.appendChild(h("h3", "pc-h", "Tính cách chủ tiệm"));
+      tx.appendChild(personaCards(pick, (id) => { pick = id; }));
       const go = h("button", "btn primary big", "Nhận tiệm"); go.id = "introGo"; go.type = "button";
-      go.addEventListener("click", () => { dispatch({ type: "setName", name: inp.value || state.shopName }); dispatch({ type: "seeIntro" }); hooks.afterIntro(); });
+      go.addEventListener("click", () => { dispatch({ type: "setName", name: inp.value || state.shopName }); dispatch({ type: "setPersona", persona: pick }); dispatch({ type: "seeIntro" }); hooks.afterIntro(); });
       inp.addEventListener("keydown", (e) => { if (e.key === "Enter") go.click(); });
       tx.appendChild(go);
       c.appendChild(tx);
@@ -163,7 +168,24 @@ export function createOverlays(root, atlas, dispatch, hooks) {
   }
 
   let supplier = "di-ba";
+  /** Bản lưu cũ chưa có tính cách chủ tiệm: hỏi một lần trước bảng Chuẩn bị ca. */
+  function askPersona(state) {
+    let pick = "hien";
+    open("persona", (c) => {
+      c.classList.add("persona-ask");
+      c.appendChild(h("h2", "", "Chủ tiệm là người thế nào?"));
+      c.appendChild(h("p", "muted", "Tính cách quyết định cách tiệm trả lời review (và đôi câu trong drama, Nhật Ký). Đổi lại được ngay trên bảng trả lời review, bất cứ lúc nào."));
+      c.appendChild(personaCards(pick, (id) => { pick = id; }));
+      const foot = h("footer", "sheet-foot");
+      const go = h("button", "btn primary big", "Chọn tính cách này"); go.id = "personaGo"; go.type = "button"; go.dataset.autofocus = "";
+      go.addEventListener("click", () => { dispatch({ type: "setPersona", persona: pick }); prep(hooks.state()); });
+      foot.appendChild(go);
+      c.appendChild(foot);
+    });
+  }
+
   function prep(state) {
+    if (state.introSeen && !PERSONAS[state.owner?.persona]) { askPersona(state); return; }
     open("prep", (c) => {
       c.classList.add("prep");
       const hd = h("header", "sheet-head");
@@ -360,7 +382,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         for (const m of S.missions) mb.appendChild(h("span", "goal" + (m.done ? " done" : ""), `${m.done ? "✓ " : "· "}${m.text}${m.done ? ` (+${m.reward.xp} XP${m.reward.money ? `, +${m.reward.money}k` : ""})` : ""}`));
         c.appendChild(mb);
       }
-      const dm = (S.moments || []).filter((m) => m.kind === "drama" || m.kind === "promise" || m.kind === "promise-miss");
+      const dm = (S.moments || []).filter((m) => ["drama", "promise", "promise-miss", "reply", "flip"].includes(m.kind));
       if (dm.length) {
         const db = h("div", "reviews moments");
         db.appendChild(h("h3", "", "Khoảnh khắc đáng nhớ"));

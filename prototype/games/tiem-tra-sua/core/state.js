@@ -3,20 +3,23 @@
 // ngược lại bỏ riêng ca (giữ tiền / cấp / kho). MIGRATIONS[v] nâng v → v+1. save.js giữ bản sao bản cũ trước khi nâng.
 // v2 (Milestone 3–4): chỗ pha song song (shift.stations), đơn nhiều ly (customer.items / filled), drama, sổ review, người theo dõi,
 // nhiệm vụ ngày, vị trí trang trí, quảng bá, gói ký gửi.
-import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m35hd";
-import { RECIPE } from "../data/recipes.js?v=m35hd";
-import { ARCHETYPES } from "../data/customers.js?v=m35hd";
-import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m35hd";
-import { levelForXp } from "./progression.js?v=m35hd";
-import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m35hd";
-import { capacityFor, stationCount } from "./equipment.js?v=m35hd";
-import { EVENT } from "../data/events.js?v=m35hd";
-import { MISSION } from "../data/missions.js?v=m35hd";
-import { PROMOS } from "./business.js?v=m35hd";
-import { placeError } from "./decor.js?v=m35hd";
-import { freshDrama } from "./drama.js?v=m35hd";
+// v3: tính cách chủ tiệm (owner), câu trả lời review lưu nguyên văn + hậu quả + câu đáp lại (feed[].reply là object),
+// khách quay lại nhờ câu trả lời (returning), bộ nhớ chống lặp câu giữa hai ca (usedDay).
+import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m36";
+import { RECIPE } from "../data/recipes.js?v=m36";
+import { ARCHETYPES } from "../data/customers.js?v=m36";
+import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m36";
+import { levelForXp } from "./progression.js?v=m36";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m36";
+import { capacityFor, stationCount } from "./equipment.js?v=m36";
+import { EVENT } from "../data/events.js?v=m36";
+import { MISSION } from "../data/missions.js?v=m36";
+import { PROMOS } from "./business.js?v=m36";
+import { placeError } from "./decor.js?v=m36";
+import { freshDrama } from "./drama.js?v=m36";
+import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m36";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 /** v1 → v2: một ly/một phiếu ⇒ chỗ pha 0; khách một ly ⇒ items[1]; thêm các mục mới (để trống). */
 export const MIGRATIONS = {
@@ -41,6 +44,19 @@ export const MIGRATIONS = {
     }
     return o;
   },
+  /** v2 → v3: trả lời review cũ (chỉ có loại) ⇒ object có câu cũ; chưa có tính cách (hỏi một lần ở Chuẩn bị ca). */
+  2: (d) => {
+    const o = JSON.parse(JSON.stringify(d));
+    o.v = 3;
+    for (const r of Array.isArray(o.feed) ? o.feed : []) {
+      if (r && typeof r === "object" && typeof r.reply === "string")
+        r.reply = LEGACY_REPLY[r.reply] ? { kind: "legacy-" + r.reply, persona: null, text: LEGACY_REPLY[r.reply], outcome: "legacy", fx: [], comeback: [], day: r.day } : null;
+    }
+    o.owner = { persona: null, lastPersona: null, switches: [] };
+    o.returning = [];
+    o.usedDay = [];
+    return o;
+  },
 };
 
 export function createState(seed = 20261119) {
@@ -51,6 +67,7 @@ export function createState(seed = 20261119) {
     stats: { cups: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {}, missions: 0 },
     owned: {}, carryPearls: 0, placement: {},
     followers: 0, buzz: 0, feed: [], nextReviewId: 1, rating: null, promises: [],
+    owner: { persona: null, lastPersona: null, switches: [] }, returning: [], usedDay: [],
     drama: freshDrama(), promo: null, consign: null,
     shift: null, lastSummary: null, journal: [],
   };
@@ -208,7 +225,7 @@ function loadShift(sh, s) {
     followers0: int(sh.followers0, 0, BIG, 0),
   };
 }
-const loadMoment = (m) => ({ kind: str(m.kind, 20, "note"), name: str(m.name, 40, ""), ...(typeof m.line === "string" ? { line: m.line.slice(0, 300) } : {}), ...(typeof m.id === "string" ? { id: m.id.slice(0, 12) } : {}) });
+const loadMoment = (m) => ({ kind: str(m.kind, 20, "note"), name: str(m.name, 40, ""), ...(typeof m.line === "string" ? { line: m.line.slice(0, 300) } : {}), ...(typeof m.id === "string" ? { id: m.id.slice(0, 12) } : {}), ...(typeof m.outcome === "string" ? { outcome: m.outcome.slice(0, 12) } : {}) });
 const loadHist = (h) => ({ day: int(h.day, 1, 1e6, 1), id: str(h.id, 12, ""), choice: str(h.choice, 30, ""), label: str(h.label, 80, ""), line: str(h.line, 300, ""), who: str(h.who, 40, "") });
 
 function loadDrama(D) {
@@ -224,6 +241,15 @@ function loadDrama(D) {
   out.demand = RECIPE[D.demand] ? D.demand : null;
   out.recent = arr(D.recent).filter((x) => x === "good" || x === "other").slice(-6);
   return out;
+}
+
+/** Câu trả lời review (v3): { kind, persona, text, outcome, fx[], comeback[{who,line,net,flip?}], day }. */
+function loadReply(x) {
+  if (!obj(x) || typeof x.text !== "string" || !x.text.trim()) return null;
+  return { kind: str(x.kind, 30, "legacy"), persona: PERSONAS[x.persona] ? x.persona : null, text: x.text.slice(0, 300), outcome: OUTCOME_LABEL[x.outcome] ? x.outcome : "legacy",
+    fx: arr(x.fx).filter((f) => typeof f === "string").slice(0, 8).map((f) => f.slice(0, 120)),
+    comeback: arr(x.comeback).filter((c) => obj(c) && typeof c.line === "string").slice(0, 3).map((c) => ({ who: str(c.who, 40, "Cư dân mạng"), line: c.line.slice(0, 300), net: !!c.net, ...(c.flip ? { flip: true } : {}) })),
+    day: int(x.day, 1, 1e6, 1) };
 }
 
 const parse = (raw) => { if (typeof raw !== "string") return raw; try { return JSON.parse(raw); } catch { return null; } };
@@ -264,9 +290,15 @@ export function loadSave(raw) {
   s.nextReviewId = int(d.nextReviewId, 1, BIG, 1);
   s.feed = arr(d.feed).filter(obj).slice(0, 40).map((r) => ({
     id: int(r.id, 1, BIG, 1), day: int(r.day, 1, 1e6, 1), name: str(r.name, 40, "Khách"), arch: ARCHETYPES[r.arch] ? r.arch : "hoc-sinh", recipe: RECIPE[r.recipe] ? r.recipe : "tra-dao",
-    stars: int(r.stars, 1, 5, 3), line: str(r.line, 300, ""), reason: str(r.reason, 30, ""), reply: ["sorry", "thanks", "meme"].includes(r.reply) ? r.reply : null, src: r.src === "mang" ? "mang" : "quan" }));
+    stars: int(r.stars, 1, 5, 3), line: str(r.line, 300, ""), reason: str(r.reason, 30, ""), reply: loadReply(r.reply), src: r.src === "mang" ? "mang" : "quan" }));
   s.nextReviewId = Math.max(s.nextReviewId, ...s.feed.map((r) => r.id + 1));
   s.rating = s.feed.length ? Math.round((s.feed.slice(0, 20).reduce((a, r) => a + r.stars, 0) / Math.min(20, s.feed.length)) * 10) / 10 : null;
+  const O = obj(d.owner) ? d.owner : {};
+  s.owner = { persona: PERSONAS[O.persona] ? O.persona : null, lastPersona: PERSONAS[O.lastPersona] ? O.lastPersona : null,
+    switches: arr(O.switches).filter((x) => obj(x) && PERSONAS[x.from] && PERSONAS[x.to]).slice(-20).map((x) => ({ day: int(x.day, 1, 1e6, 1), from: x.from, to: x.to })) };
+  s.returning = arr(d.returning).filter(obj).slice(0, 6).map((g) => ({ name: str(g.name, 40, "Khách"), arch: ARCHETYPES[g.arch] ? g.arch : "hoc-sinh", recipe: RECIPE[g.recipe] ? g.recipe : "tra-dao",
+    persona: PERSONAS[g.persona] ? g.persona : "hien", day: int(g.day, 1, 1e6, 1) }));
+  s.usedDay = arr(d.usedDay).filter((x) => typeof x === "string").slice(-40).map((x) => x.slice(0, 300));
   s.promises = arr(d.promises).filter(obj).slice(0, 10).map((p) => ({ day: int(p.day, 1, 1e6, 1), name: str(p.name, 40, "Khách"), reviewId: int(p.reviewId, 0, BIG, 0) }));
   s.drama = loadDrama(d.drama);
   s.promo = obj(d.promo) && PROMOS[d.promo.kind] ? { day: int(d.promo.day, 1, 1e6, 1), kind: d.promo.kind } : null;

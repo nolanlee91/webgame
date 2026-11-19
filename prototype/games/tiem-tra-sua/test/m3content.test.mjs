@@ -354,5 +354,5 @@ test("bản lưu: lúc ghép ly (cup.at) và kết quả đơn nhiều ly giữ 
   assert.equal(b2.shift.reviews.at(-1).reason, "multi");
   const b3 = loadSave(dump(b2));
   assert.equal(b3.shift.lastServe.outcome, "allRight");
-  assert.equal(b3.v, 2, "không cần nâng phiên bản bản lưu");
+  assert.equal(b3.v, 3, "M3 nội dung không nâng phiên bản (v3 là của trả lời review theo tính cách)");
 });

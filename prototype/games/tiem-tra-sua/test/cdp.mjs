@@ -33,10 +33,21 @@ export async function launch(outDir, dbgPort = 9371) {
   await send("Runtime.enable"); await send("Log.enable"); await send("Page.enable");
   const api = {
     send, ev, errors,
+    /** Mở trang rồi chờ tới khi game sẵn sàng (window.__game có state, #app.ready). Hết giờ thì tải lại một lần, vẫn không có thì báo lỗi
+     *  (trước đây có lúc bước ngay sau tải lại gặp "__game is not defined" vì chỉ chờ cố định rồi đi tiếp). */
     async nav(url) {
-      await send("Page.navigate", { url }); await sleep(400);
-      for (let i = 0; i < 60 && !(await ev('typeof __game==="object"').catch(() => false)); i++) await sleep(200);
-      await sleep(300);
+      const ready = () => ev('typeof window.__game==="object"&&!!window.__game&&!!window.__game.state&&!!document.querySelector("#app.ready")').catch(() => false);
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await send("Page.navigate", { url });
+        await sleep(300);
+        for (let i = 0; i < 100; i++) { if (await ready()) { await sleep(250); return; } await sleep(150); }
+      }
+      throw new Error("game không sẵn sàng sau khi mở " + url);
+    },
+    /** Chờ window.__game (dùng sau mọi lần trang tự tải lại, ví dụ Chơi lại từ đầu). */
+    async waitGame(ms = 15000) {
+      for (let t = 0; t < ms; t += 150) { if (await ev('typeof window.__game==="object"&&!!window.__game&&!!window.__game.state').catch(() => false)) return true; await sleep(150); }
+      throw new Error("không thấy window.__game");
     },
     view: (w, h, mobile = false, dpr = 1) => send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: dpr, mobile }),
     touch: (on) => send("Emulation.setTouchEmulationEnabled", { enabled: on, maxTouchPoints: on ? 5 : 1 }),

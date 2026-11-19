@@ -1,11 +1,11 @@
 // Nhiệm vụ ngày: chọn 3 mục ở đầu ca (RNG của ván ⇒ tải lại không đổi), đếm khi giao / xử lý sự kiện / chốt ca, thưởng một lần.
-import { MISSIONS, MISSION, MISSIONS_PER_DAY } from "../data/missions.js?v=m35hd";
-import { int } from "./rng.js?v=m35hd";
-import { gainXp } from "./progression.js?v=m35hd";
-import { fill } from "./text.js?v=m35hd";
-import { costOfUse } from "./economy.js?v=m35hd";
-import { MISSION_DONE, MISSION_MISS, MISSION_ALL } from "../data/lines-m3.js?v=m35hd";
-import { freshLine } from "./shift.js?v=m35hd";
+import { MISSIONS, MISSION, MISSIONS_PER_DAY } from "../data/missions.js?v=m36";
+import { int } from "./rng.js?v=m36";
+import { gainXp } from "./progression.js?v=m36";
+import { fill } from "./text.js?v=m36";
+import { costOfUse } from "./economy.js?v=m36";
+import { MISSION_DONE, MISSION_MISS, MISSION_ALL } from "../data/lines-m3.js?v=m36";
+import { freshLine } from "./shift.js?v=m36";
 
 /** Câu vui khi xong / hụt nhiệm vụ: câu riêng theo kind + câu chung, không lặp trong ca. */
 export const missionLines = (table, kind) => [...(table[kind] || []), ...table.default];

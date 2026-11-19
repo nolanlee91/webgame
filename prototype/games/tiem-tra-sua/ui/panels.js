@@ -1,14 +1,14 @@
 // Bảng phủ Milestone 3–4: hội thoại sự kiện Drama (chân dung + lựa chọn + hậu quả), Sổ quản lý (review, nhật ký, sự kiện, nhiệm vụ),
 // Nhật Ký Làm Chủ (thẻ ảnh, lưu / chia sẻ), thanh xếp chỗ trang trí. Dùng chung khung open/close của ui/screens.js.
-import { icon } from "../render/atlas.js?v=m35hd";
-import { EVENT } from "../data/events.js?v=m35hd";
-import { RECIPE } from "../data/recipes.js?v=m35hd";
-import { REPLIES } from "../data/lines.js?v=m35hd";
-import { currentEvent, textOf, affordable, fxSummary } from "../core/drama.js?v=m35hd";
-import { customer } from "../core/shift.js?v=m35hd";
-import { canReply } from "../core/reviews.js?v=m35hd";
-import { EQUIPMENT } from "../data/equipment.js?v=m35hd";
-import { drawJournal, download, share } from "./journal.js?v=m35hd";
+import { icon } from "../render/atlas.js?v=m36";
+import { EVENT } from "../data/events.js?v=m36";
+import { RECIPE } from "../data/recipes.js?v=m36";
+import { currentEvent, textOf, affordable, fxSummary, byPersona } from "../core/drama.js?v=m36";
+import { customer } from "../core/shift.js?v=m36";
+import { replyOptions, optionHint, personaOf, PERSONAS, OUTCOME_LABEL } from "../core/reviews.js?v=m36";
+import { personaSwitch } from "./persona.js?v=m36";
+import { EQUIPMENT } from "../data/equipment.js?v=m36";
+import { drawJournal, download, share } from "./journal.js?v=m36";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const GROUP_LABEL = { khach: "Khách", mang: "Trên mạng", "van-hanh": "Vận hành", "dac-biet": "Đặc biệt", doi: "Đời thường" };
@@ -41,7 +41,8 @@ export function createPanels(atlas, dispatch, ov, hooks) {
       card.appendChild(stage);
       const say = h("div", "say");
       say.appendChild(h("p", "line", "“" + textOf(state, d, node.line) + "”"));
-      if (node.me) say.appendChild(h("p", "line me", "“" + textOf(state, d, node.me) + "”"));
+      const me = byPersona(state, node.meBy, node.me);
+      if (me) say.appendChild(h("p", "line me", "“" + textOf(state, d, me) + "”"));
       card.appendChild(say);
       const ch = h("div", "choices");
       node.choices.forEach((o, i) => {
@@ -81,6 +82,7 @@ export function createPanels(atlas, dispatch, ov, hooks) {
       for (const f of done.fx) fx.appendChild(h("li", /^−|bớt|chậm|Tạm ngưng/i.test(f) ? "neg" : "", f));
       if (!done.fx.length && done.goto) fx.appendChild(h("li", "", "Chuyện còn tiếp…"));
       say.appendChild(fx);
+      if (done.aside) say.appendChild(h("p", "aside small", done.aside));
       say.appendChild(h("p", "muted small", "Đã lưu vào Nhật Ký Làm Chủ."));
       card.appendChild(say);
       const foot = h("div", "choices");
@@ -92,14 +94,21 @@ export function createPanels(atlas, dispatch, ov, hooks) {
   }
 
   // ---------- Sổ quản lý ----------
-  function notebook(state, tab = "reviews", back = null) {
-    ov.open("notebook", (card) => {
+  /** Sổ quản lý. ui = { keep: vẽ lại giữ chỗ cuộn, focus: id review vừa trả lời }. openRv = review đang mở bảng trả lời. */
+  let openRv = null;
+  function notebook(state, tab = "reviews", back = null, ui = {}) {
+    const prev = document.querySelector('.sheet[data-kind="notebook"]');
+    const keep = prev && ui.keep ? prev.scrollTop : 0;
+    if (!ui.keep) openRv = null;
+    const sheet = ov.open("notebook", (card) => {
       card.classList.add("notebook");
+      if (ui.keep) card.classList.add("noanim");
       const hd = h("header", "sheet-head");
       hd.appendChild(icon(atlas, ["icons", "journal"], 36));
       const t = h("div"); t.appendChild(h("h2", "", "Sổ quản lý"));
       const r = state.rating;
-      t.appendChild(h("p", "muted", `Đánh giá ${r ? r.toLocaleString("vi-VN") + " sao" : "chưa có"} · ${(state.followers || 0).toLocaleString("vi-VN")} người theo dõi · Danh tiếng ${state.rep}`));
+      const P = PERSONAS[personaOf(state)];
+      t.appendChild(h("p", "muted", `Đánh giá ${r ? r.toLocaleString("vi-VN") + " sao" : "chưa có"} · ${(state.followers || 0).toLocaleString("vi-VN")} người theo dõi · Danh tiếng ${state.rep}${P ? " · Chủ tiệm " + P.short.toLocaleLowerCase("vi") : ""}`));
       hd.appendChild(t); card.appendChild(hd);
       const tabs = h("div", "tabs"); tabs.setAttribute("role", "tablist");
       const TABS = [["reviews", "Review"], ["journal", "Nhật ký"], ["drama", "Sự kiện"], ["missions", "Nhiệm vụ"]];
@@ -112,25 +121,45 @@ export function createPanels(atlas, dispatch, ov, hooks) {
       const body = h("div", "nb-body");
       if (tab === "reviews") {
         if (!state.feed?.length) body.appendChild(h("p", "muted", "Chưa có review nào. Mở quán và pha ly đầu tiên nhé."));
+        const firstOpen = (state.feed || []).find((x) => !x.reply);
+        const showing = openRv ?? firstOpen?.id ?? null;
+        const again = (extra = {}) => notebook(hooks.state(), "reviews", back, { keep: true, ...extra });
         for (const rv of state.feed || []) {
-          const it = h("div", "rv" + (rv.reply ? " replied" : ""));
+          const it = h("div", "rv" + (rv.reply ? " replied" : "") + (ui.focus === rv.id ? " just" : ""));
           it.dataset.review = rv.id;
           const stars = h("span", "stars"); stars.setAttribute("aria-label", `${rv.stars} sao`);
           for (let i = 0; i < 5; i++) stars.appendChild(icon(atlas, ["icons", "review-star"], 16, "ico" + (i < rv.stars ? "" : " off")));
           it.appendChild(stars);
-          const tx = h("div");
+          const tx = h("div", "rv-tx");
           tx.appendChild(h("b", "", `${rv.name} · Ngày ${rv.day}${rv.src === "mang" ? " · trên mạng" : RECIPE[rv.recipe] ? " · " + RECIPE[rv.recipe].short : ""}`));
           tx.appendChild(h("p", "", rv.line));
-          if (rv.reply) tx.appendChild(h("small", "reply", "Tiệm đã trả lời: " + REPLIES[rv.reply].label.toLocaleLowerCase("vi")));
-          else {
+          if (rv.reply) tx.appendChild(thread(rv));
+          else if (showing === rv.id) {
+            // bảng trả lời: hàng đổi tính cách ngay trên các lựa chọn, đổi là lựa chọn đổi theo
+            const pane = h("div", "rv-reply");
+            const cur = personaOf(state) || "hien";
+            pane.appendChild(personaSwitch(cur, (id) => { dispatch({ type: "setPersona", persona: id }); openRv = rv.id; again(); }));
             const acts = h("div", "rv-acts");
-            for (const kind of Object.keys(REPLIES)) {
-              if (!canReply(rv, kind)) continue;
-              const b = h("button", "btn small", REPLIES[kind].label); b.type = "button"; b.dataset.reply = kind; b.title = REPLIES[kind].hint;
-              b.addEventListener("click", () => { dispatch({ type: "reply", id: rv.id, kind }); notebook(hooks.state(), "reviews", back); });
+            for (const o of replyOptions(state, rv, cur)) {
+              const b = h("button", "btn small ropt", ""); b.type = "button"; b.dataset.reply = o.id;
+              b.appendChild(h("b", "", o.label));
+              b.appendChild(h("small", "", optionHint(rv, o)));
+              if (o.out.roll) b.appendChild(h("span", "cost risk", "Hên xui"));
+              if (o.cost && state.money < o.cost) { b.disabled = true; b.title = "Không đủ tiền"; }
+              b.addEventListener("click", () => {
+                const res = dispatch({ type: "reply", id: rv.id, kind: o.id });
+                if (res?.err) return;
+                openRv = null;
+                again({ focus: rv.id });
+              });
               acts.appendChild(b);
             }
-            if (acts.childNodes.length) tx.appendChild(acts);
+            pane.appendChild(acts);
+            tx.appendChild(pane);
+          } else {
+            const b = h("button", "btn small ghost", "Trả lời"); b.type = "button"; b.dataset.openReply = rv.id;
+            b.addEventListener("click", () => { openRv = rv.id; again(); });
+            tx.appendChild(b);
           }
           it.appendChild(tx);
           body.appendChild(it);
@@ -179,6 +208,34 @@ export function createPanels(atlas, dispatch, ov, hooks) {
       foot.appendChild(go);
       card.appendChild(foot);
     });
+    // Vẽ lại sau khi trả lời / đổi tính cách: giữ chỗ cuộn và đưa review vừa trả lời vào tầm nhìn.
+    // (Lỗi cũ "trả lời bằng meme không hiện gì": sổ vẽ lại từ đầu nên nhảy về review đầu tiên, còn câu trả lời chỉ hiện 2,6 giây trong thông báo.)
+    if (ui.keep && sheet) {
+      sheet.scrollTop = keep;
+      const el = sheet.querySelector(ui.focus ? `.rv[data-review="${ui.focus}"]` : ".rv-reply");
+      el?.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  /** Câu trả lời đã đăng dưới review: chủ tiệm (tính cách), kết quả, hậu quả, câu đáp lại. */
+  function thread(rv) {
+    const R = rv.reply;
+    const box = h("div", "rv-thread"); box.dataset.outcome = R.outcome;
+    const who = h("p", "rp");
+    who.appendChild(h("b", "", "Chủ tiệm" + (PERSONAS[R.persona] ? " · " + PERSONAS[R.persona].short : "")));
+    who.appendChild(h("span", "rp-text", " “" + R.text + "”"));
+    box.appendChild(who);
+    const res = h("div", "rp-res");
+    res.appendChild(h("span", "oc oc-" + R.outcome, OUTCOME_LABEL[R.outcome] || "Đã trả lời"));
+    for (const f of R.fx || []) res.appendChild(h("span", "chip" + (/^−|Danh tiếng −|→/.test(f) && (f.startsWith("−") || /Danh tiếng −/.test(f) || R.outcome === "phot") ? " neg" : ""), f));
+    box.appendChild(res);
+    for (const c of R.comeback || []) {
+      const p = h("p", "cb" + (c.net ? " net" : "") + (c.flip ? " flip" : ""));
+      p.appendChild(h("b", "", (c.net && c.who !== rv.name ? "Cư dân mạng · " : "") + c.who));
+      p.appendChild(h("span", "", " " + c.line));
+      box.appendChild(p);
+    }
+    return box;
   }
 
   // ---------- Nhật Ký Làm Chủ ----------
