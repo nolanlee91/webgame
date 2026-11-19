@@ -1,11 +1,11 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m3";
-import { browserStorage, farmSave } from "./save.js?v=m3";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m3";
-import { createMarketScene } from "./ui/scene-market.js?v=m3";
-import { loadSprites, playFx } from "./ui/sprites.js?v=m3";
-import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m3";
+import * as L from "./logic.js?v=m3b";
+import { browserStorage, farmSave } from "./save.js?v=m3b";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m3b";
+import { createMarketScene } from "./ui/scene-market.js?v=m3b";
+import { loadSprites, playFx } from "./ui/sprites.js?v=m3b";
+import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m3b";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };

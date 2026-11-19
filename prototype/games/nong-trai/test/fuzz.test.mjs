@@ -12,9 +12,9 @@ import { MACHINES } from "../data/machines.js?v=m2b";
 import { RECIPES } from "../data/recipes.js?v=m2b";
 import { QUESTS } from "../data/quests.js?v=m2b";
 import { capacity as queueCap } from "../core/production.js?v=m2b";
-import { BUILDINGS, DECOR, DECOR_SLOTS } from "../data/buildings.js?v=m3";
-import { effects } from "../core/build.js?v=m3";
-import { WAREHOUSE } from "../data/warehouse.js?v=m3";
+import { BUILDINGS, DECOR, DECOR_SLOTS } from "../data/buildings.js?v=m3b";
+import { effects } from "../core/build.js?v=m3b";
+import { WAREHOUSE } from "../data/warehouse.js?v=m3b";
 import { extraSlots } from "../core/workshop.js?v=m2b";
 
 function prng(seed) { return () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296); }

@@ -1,6 +1,6 @@
 // XP / cấp / mở khoá — đọc bảng cấp từ data/levels.js.
-import { CROP } from "../data/crops.js?v=m3";
-import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel, MAX_LEVEL } from "../data/levels.js?v=m3";
+import { CROP } from "../data/crops.js?v=m3b";
+import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel, MAX_LEVEL } from "../data/levels.js?v=m3b";
 
 /** XP cần để đi từ cấp `lv` lên `lv + 1`. */
 // 60·cấp² — mô phỏng (tools/sim): cấp 4 ≈ 9 ph, cấp 7 ≈ 47 ph, cấp 10 ≈ 2 giờ, cấp 20 ≈ 14 giờ chơi (DESIGN §3). Bản cũ 10·cấp^1,5 nhanh gấp 6–8 lần.

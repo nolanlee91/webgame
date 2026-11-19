@@ -2,7 +2,7 @@
 // Save v5 (Milestone 3) ở KEY. Chưa có v5 ⇒ di chuyển tự động từ v4 (Milestone 2), không có thì v3 (Milestone 1), rồi v2.
 // Chính sách giữ dữ liệu cũ: bản gốc v4 / v3 / v2 được chép sang khoá *.backup trước lần ghi v5 đầu tiên và KHÔNG bao giờ bị xoá
 // (khoá gốc cũng giữ nguyên — chỉ đọc).
-import { createState, loadSave, migrateV2, dump } from "./core/state.js?v=m3";
+import { createState, loadSave, migrateV2, dump } from "./core/state.js?v=m3b";
 
 export const KEY = "wgp.nongtrai.v5";
 export const V4_KEY = "wgp.nongtrai.v4";

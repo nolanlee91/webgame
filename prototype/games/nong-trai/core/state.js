@@ -3,22 +3,22 @@
 // v5 (Milestone 3) thêm: buildings đủ loại (core/build.js), decorPlaced (đồ đặt trên bản đồ), plots 43 ô (25 ruộng + 9 phía Đông + 9 Nhà kính).
 //   Sức chứa kho suy ra từ công trình Nhà kho: s.warehouse chỉ là bản sao mốc kho (core/construct.js applyEffects), không đọc từ save v5.
 //   Di chuyển v3/v4: s.warehouse ≥ 1 (đã nâng kho bằng xu) ⇒ Nhà kho coi như đã xây, level = mốc + 1 (build.migrate) — không ai mất sức chứa.
-import { CROP, CROPS } from "../data/crops.js?v=m3";
-import { ITEM, isDecor } from "../data/catalog.js?v=m3";
-import { WORKSHOP } from "../data/workshop.js?v=m3";
-import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m3";
-import { MACHINES_NOW } from "./workshop.js?v=m3";
-import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m3";
-import { applyEffects } from "./construct.js?v=m3";
-import { NPC } from "../data/npcs.js?v=m3";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m3";
-import { UPGRADES } from "../data/decor.js?v=m3";
-import { QUESTS, TUTORIAL } from "../data/quests.js?v=m3";
+import { CROP, CROPS } from "../data/crops.js?v=m3b";
+import { ITEM, isDecor } from "../data/catalog.js?v=m3b";
+import { WORKSHOP } from "../data/workshop.js?v=m3b";
+import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m3b";
+import { MACHINES_NOW } from "./workshop.js?v=m3b";
+import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m3b";
+import { applyEffects } from "./construct.js?v=m3b";
+import { NPC } from "../data/npcs.js?v=m3b";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m3b";
+import { UPGRADES } from "../data/decor.js?v=m3b";
+import { QUESTS, TUTORIAL } from "../data/quests.js?v=m3b";
 const TUTORIAL_LENGTH = TUTORIAL.length;
-import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m3";
-import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m3";
-import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m3";
-import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m3";
+import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m3b";
+import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m3b";
+import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m3b";
+import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m3b";
 
 export const SAVE_VERSION = 5;
 /** Phiên bản đọc được (v3 = Milestone 1, chưa có Xưởng; v4 = Milestone 2, chưa có xây dựng đầy đủ). */

@@ -6,14 +6,14 @@
 // (marketSell, marketBuy). Bán ở Nhà kho / giỏ tràn dùng cùng giá chợ (core/market.js priceOf).
 // Milestone 3: xây dựng (startBuild, startUpgrade — thay cho upgradeWarehouse cũ; buildWorkshop / upgradeWorkshop giữ làm tên
 // gọi tắt cho Xưởng), trang trí (placeDecor, removeDecor). Sức chứa kho, ô Nhà kính / phía Đông suy ra từ công trình (core/construct.js).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m3";
-import * as plots from "./plots.js?v=m3";
-import * as orders from "./orders.js?v=m3";
-import * as eco from "./economy.js?v=m3";
-import * as quests from "./quests.js?v=m3";
-import * as ws from "./workshop.js?v=m3";
-import * as build from "./construct.js?v=m3";
-import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m3";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m3b";
+import * as plots from "./plots.js?v=m3b";
+import * as orders from "./orders.js?v=m3b";
+import * as eco from "./economy.js?v=m3b";
+import * as quests from "./quests.js?v=m3b";
+import * as ws from "./workshop.js?v=m3b";
+import * as build from "./construct.js?v=m3b";
+import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m3b";
 
 function sync(s, now, events) {
   build.sync(s, now, events); // công trình xây xong (kể cả Xưởng) + hiệu ứng: sức chứa kho, ô Nhà kính / phía Đông

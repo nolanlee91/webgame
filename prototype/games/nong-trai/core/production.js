@@ -24,8 +24,8 @@
 //            buildings: công trình đã có (Nồi đường cần "nha-kinh"). extraSlots: ô cộng thêm cho mọi máy (vd. Xưởng cấp 2, §3 cấp 13).
 // Hàm trả { ok: true, ... } hoặc { err: "<mã>" }; khi err thì KHÔNG đổi gì (prod, inv, wallet).
 
-import { MACHINE, BASE_SLOTS, MAX_SLOTS } from "../data/machines.js?v=m3";
-import { RECIPE } from "../data/recipes.js?v=m3";
+import { MACHINE, BASE_SLOTS, MAX_SLOTS } from "../data/machines.js?v=m3b";
+import { RECIPE } from "../data/recipes.js?v=m3b";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", REQUIRES: "requires", BUILT: "built", NOT_BUILT: "not-built", BUILDING: "building",

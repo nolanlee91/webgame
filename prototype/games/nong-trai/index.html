@@ -665,7 +665,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m3";
+    import { mount } from "./game.js?v=m3b";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};
