@@ -6,7 +6,7 @@ import * as L from "../logic.js";
 test("logic.js gom đủ API mà game.js dùng", () => {
   for (const name of ["apply", "needsSync", "createState", "loadV3", "migrateV2", "dump", "boardView", "demand", "currentQuest",
     "capacity", "used", "overflowCount", "have", "stage", "progress", "isReady", "canBuy", "plotCost", "readyWhileAway", "xpNeed",
-    "cropUnlocked", "nextWarehouse", "iconCell", "unlocksAt", "nextUnlock"]) assert.equal(typeof L[name], "function", name);
+    "cropUnlocked", "iconCell", "unlocksAt", "nextUnlock", "mapLayout", "mapUnlocksAt", "effects", "nextStep", "inMilestone"]) assert.equal(typeof L[name], "function", name);
   assert.equal(L.CROPS.length, 7);
   assert.equal(L.FIELD_CROPS.length, 6);
   assert.equal(L.TUTORIAL.length, 8);

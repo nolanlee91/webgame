@@ -39,7 +39,7 @@ test("dữ liệu: cấp mở khớp data/levels.js và §3", () => {
   assert.deepEqual([BUILDING["xuong"].levels[0].cost, BUILDING["xuong"].levels[0].ms], [150, MIN]);
   assert.deepEqual([BUILDING["chuong-ga"].levels[0].cost, BUILDING["chuong-ga"].levels[0].ms], [300, 2 * MIN]);
   assert.deepEqual([BUILDING["chuong-bo"].levels[0].cost, BUILDING["chuong-bo"].levels[0].ms], [600, 3 * MIN]);
-  assert.deepEqual([BUILDING["nha-kinh"].levels[0].cost, BUILDING["nha-kinh"].levels[0].ms, BUILDING["nha-kinh"].levels[0].materials], [900, 5 * MIN, { "van-go": 10 }]);
+  assert.deepEqual([BUILDING["nha-kinh"].levels[0].cost, BUILDING["nha-kinh"].levels[0].ms, BUILDING["nha-kinh"].levels[0].materials], [900, 5 * MIN, { "van-go": 4 }]); // M3: 10 → 4 (tools/sim gợi ý 5)
   assert.equal(BUILDING["coi-xay-gio"].machine, "coi-xay");
   assert.ok(MACHINE["coi-xay"]);
   for (const d of BUILDINGS) {
@@ -113,12 +113,12 @@ test("xây tức thì: Nhà kho xong ngay, nâng kho tức thì", () => {
 });
 
 test("không trừ 2 lần; thiếu xu / vật liệu ⇒ từ chối, không đổi gì", () => {
-  const b = B.createBuild(); const w = wallet(1000), i = inv({ "van-go": 9 });
+  const b = B.createBuild(); const w = wallet(1000), i = inv({ "van-go": 3 });
   assert.equal(B.startBuild(b, w, i, "nha-kinh", T0, { level: 10 }).err, "materials");
-  assert.equal(snap(b, w.n, i.bag), snap(B.createBuild(), 1000, { "van-go": 9 }));
+  assert.equal(snap(b, w.n, i.bag), snap(B.createBuild(), 1000, { "van-go": 3 }));
   i.add("van-go", 1); w.n = 899;
   assert.equal(B.startBuild(b, w, i, "nha-kinh", T0, { level: 10 }).err, "coins");
-  assert.equal(snap(b, w.n, i.bag), snap(B.createBuild(), 899, { "van-go": 10 }));
+  assert.equal(snap(b, w.n, i.bag), snap(B.createBuild(), 899, { "van-go": 4 }));
   w.n = 1000;
   assert.ok(B.startBuild(b, w, i, "nha-kinh", T0, { level: 10 }).ok);
   assert.equal(w.n, 100); assert.deepEqual(i.bag, {});
@@ -128,9 +128,9 @@ test("không trừ 2 lần; thiếu xu / vật liệu ⇒ từ chối, không đ
     assert.equal(snap(b, w.n, i.bag), before);
   }
   // ví từ chối dù coins() báo đủ ⇒ hoàn vật liệu
-  const b2 = B.createBuild(), liar = { coins: () => 1e9, spend: () => false, earn() {} }, i2 = inv({ "van-go": 10 });
+  const b2 = B.createBuild(), liar = { coins: () => 1e9, spend: () => false, earn() {} }, i2 = inv({ "van-go": 4 });
   assert.equal(B.startBuild(b2, liar, i2, "nha-kinh", T0, { level: 10 }).err, "coins");
-  assert.deepEqual(i2.bag, { "van-go": 10 }); assert.deepEqual(b2.buildings, {});
+  assert.deepEqual(i2.bag, { "van-go": 4 }); assert.deepEqual(b2.buildings, {});
   // kho từ chối giữa chừng ⇒ hoàn phần đã lấy
   const b3 = B.createBuild(), w3 = wallet(1e6), i3 = inv({ "van-go": 99, "hop-dinh": 99 });
   B.startBuild(b3, w3, i3, "chuong-ga", T0, { level: 13 });

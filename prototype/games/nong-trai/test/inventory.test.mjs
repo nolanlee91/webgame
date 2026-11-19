@@ -74,24 +74,34 @@ test("bán hết: kho + giỏ tràn, giữ vật liệu", () => {
   assert.equal(err(s, { type: "sellAll" }), "empty-stock");
 });
 
-test("nâng kho: cần cấp, xu, vật liệu; không trừ khi thiếu", () => {
+test("nâng kho (Milestone 3: Nhà kho là công trình): xây ở cấp 3, nâng cần cấp, xu, vật liệu; không trừ khi thiếu", () => {
   const s = farm();
   s.coins = 1000;
-  assert.equal(err(s, { type: "upgradeWarehouse" }), "warehouse-level");
+  assert.equal(err(s, { type: "upgradeWarehouse" }), "bad-action", "action cũ đã bỏ — dùng startUpgrade nha-kho");
+  assert.equal(err(s, { type: "startUpgrade", id: "nha-kho" }), "not-built");
   s.level = 2;
-  act(s, { type: "upgradeWarehouse" });
+  assert.equal(err(s, { type: "startBuild", id: "nha-kho" }), "locked", "xây Nhà kho từ cấp 3");
+  s.level = 3;
+  act(s, { type: "startBuild", id: "nha-kho" });
+  assert.equal(I.capacity(s), 60, "xây xong vẫn 60 chỗ");
+  assert.equal(s.coins, 940);
+  act(s, { type: "startUpgrade", id: "nha-kho" });
   assert.equal(I.capacity(s), 90);
-  assert.equal(s.coins, 920);
+  assert.equal(s.coins, 860);
+  assert.equal(err(s, { type: "startUpgrade", id: "nha-kho" }), "locked");
   s.level = 6;
-  assert.equal(err(s, { type: "upgradeWarehouse" }), "materials");
-  assert.equal(s.coins, 920);
+  assert.equal(err(s, { type: "startUpgrade", id: "nha-kho" }), "materials");
+  assert.equal(s.coins, 860);
   s.inv["van-go"] = 2; s.inv["hop-dinh"] = 3;
-  act(s, { type: "upgradeWarehouse" });
+  act(s, { type: "startUpgrade", id: "nha-kho" });
   assert.equal(I.capacity(s), 130);
   assert.deepEqual(s.inv, { "hop-dinh": 1 });
   s.coins = 10;
   s.level = 15;
-  assert.equal(err(s, { type: "upgradeWarehouse" }), "coins");
+  assert.equal(err(s, { type: "startUpgrade", id: "nha-kho" }), "coins");
+  s.coins = 100_000;
+  assert.equal(err(s, { type: "startUpgrade", id: "nha-kho" }), "materials");
+  assert.equal(s.coins, 100_000);
 });
 
 test("kho cũ (v2) vượt sức chứa được giữ, chỉ hàng mới bị đẩy sang giỏ tràn", () => {

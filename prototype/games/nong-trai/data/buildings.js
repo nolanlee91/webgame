@@ -73,12 +73,13 @@ const RAW = [
   { id: "nha-kho", name: "Nhà kho", kind: "build", lot: "lo-kho", size: "small", ...px(140, 370, 150),
     levels: warehouseLevels },
   // Id "xuong" = s.buildings.xuong của Milestone 2 (core/workshop.js, data/workshop.js) + nhiệm vụ { building: "xuong" }.
-  // Giá / thời gian khớp data/workshop.js: xây 150 xu, 1 ph (tặng kèm Bếp sên); nâng cấp 2 ở cấp 13: 1500 xu, tức thì.
+  // Giá / thời gian khớp data/workshop.js: xây 150 xu, 1 ph (tặng kèm Bếp sên); nâng cấp 2 ở cấp 13: 6000 xu, tức thì.
   { id: "xuong", name: "Xưởng chế biến", kind: "build", lot: "lo-xuong", size: "big", ...px(820, 340, 170),
     levels: [
       { feature: "workshop", cost: 150, materials: {}, ms: 60_000, sprite: B("xuong-che-bien"), effect: { workshopLevel: 1, extraQueueSlots: 0 } },
       // §3 cấp 13: xưởng cấp 2 ⇒ +1 ô hàng chờ cho MỌI máy (ctx.extraSlots của core/production.js).
-      { unlock: fl("workshop-2", 13), cost: 1500, materials: {}, ms: 0, sprite: B2("xuong-che-bien-2"),
+      // Giá ×4 (1 500 → 6 000): chỗ tiêu xu muộn (tools/sim/report.md gợi ý 3).
+      { unlock: fl("workshop-2", 13), cost: 6000, materials: {}, ms: 0, sprite: B2("xuong-che-bien-2"),
         effect: { workshopLevel: 2, extraQueueSlots: 1 } },
     ] },
   { id: "coi-xay-gio", name: "Cối xay gió", kind: "machine", machine: "coi-xay", lot: "lo-coi-xay", size: "big", ...px(870, 470, 110),
@@ -98,14 +99,17 @@ const RAW = [
     ] },
   { id: "nha-kinh", name: "Nhà kính", kind: "build", lot: "lo-nha-kinh", size: "big", ...px(840, 598, 140),
     levels: [
-      { feature: "greenhouse", cost: 900, materials: { "van-go": 10 }, ms: 300_000, sprite: B("nha-kinh"),
+      // 10 → 4 ván gỗ (tools/sim/report.md gợi ý 5): ván chỉ rơi ~0,7 %/vụ trước cấp 11 ⇒ 10 tấm buộc mua 1 200 xu ở chợ.
+      // Chọn giảm vật liệu thay vì tăng tỉ lệ rơi 2 % → 5 %: chỉ đụng một mốc, không làm vật liệu dư thừa cho mọi mốc khác.
+      { feature: "greenhouse", cost: 900, materials: { "van-go": 4 }, ms: 300_000, sprite: B("nha-kinh"),
         effect: { greenhousePlots: 6, greenhouseNoWater: true } },
-      { unlock: 16, cost: 1500, materials: { "van-go": 6, "hop-dinh": 4, "thung-son": 2 }, ms: 300_000, sprite: B2("nha-kinh-2"),
+      { unlock: 16, cost: 7500, materials: { "van-go": 6, "hop-dinh": 4, "thung-son": 2 }, ms: 300_000, sprite: B2("nha-kinh-2"), // ×5
         effect: { greenhousePlots: 9, greenhouseNoWater: true } },
     ] },
   // §3 cấp 17: +9 ô + 1 lô xây. Bản vẽ / giàn giáo đặt ở mép Đông (UI hé một dải bên phải khi "Có thể xây").
   { id: "dat-phia-dong", name: "Khu đất phía Đông", kind: "expansion", lot: "lo-dong-mo", size: "big", ...px(1096, 470, 200),
-    levels: [{ feature: "east-land", cost: 3000, materials: { "van-go": 8, "hop-dinh": 8 }, ms: 300_000, sprite: null,
+    // Giá ×5 (3 000 → 15 000): mục tiêu tiết kiệm dài hạn (tools/sim/report.md gợi ý 3).
+    levels: [{ feature: "east-land", cost: 15000, materials: { "van-go": 8, "hop-dinh": 8 }, ms: 300_000, sprite: null,
       effect: { eastOpen: true, eastPlots: EAST_PLOTS, eastLots: 1 } }] },
 ];
 
@@ -145,17 +149,17 @@ export const DECOR = Object.freeze([
 export const DECOR_ITEM = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(DECOR.map((d) => [d.id, d]))));
 export const DECOR_BAG_MAX = 9999; // tối đa mỗi loại trong túi trang trí (s.decor) mà addDecor / sanitize chấp nhận
 
-/** Ô đặt trang trí cố định. size "l" nhận mọi đồ, "s" chỉ đồ nhỏ. area "east" chỉ dùng khi đã mở đất phía Đông. */
+/** Ô đặt trang trí cố định (M3: dời cong / hien-nha / bo-ao / san-kho để ô không chồng nhau, không đè ruộng / lô Nhà kho). size "l" nhận mọi đồ, "s" chỉ đồ nhỏ. area "east" chỉ dùng khi đã mở đất phía Đông. */
 const slot = (id, x, y, size, unlock = 3, area = "base") => Object.freeze({ id, ...px(x, y, size === "l" ? 96 : 64), size, unlock, area });
 export const DECOR_SLOTS = Object.freeze([
-  slot("cong", 480, 60, "l"),            // ngay cổng — chỗ đẹp cho Cổng tre
-  slot("hien-nha", 285, 190, "s"),       // hiên nhà
+  slot("cong", 480, 92, "l"),            // ngay cổng — chỗ đẹp cho Cổng tre
+  slot("hien-nha", 215, 218, "s"),       // hiên nhà
   slot("goc-ruong-tl", 300, 215, "s"),
   slot("goc-ruong-tr", 660, 215, "s"),
   slot("goc-ruong-bl", 300, 540, "s"),
   slot("goc-ruong-br", 660, 540, "s"),
-  slot("bo-ao", 640, 430, "s"),
-  slot("san-kho", 230, 330, "l"),        // sân trước nhà kho — Giếng đá
+  slot("bo-ao", 676, 402, "s"),
+  slot("san-kho", 262, 340, "l"),        // sân trước nhà kho — Giếng đá
   slot("loi-di", 400, 575, "s"),
   slot("dong-1", 1000, 470, "l", 17, "east"),
   slot("dong-2", 1200, 250, "s", 17, "east"),

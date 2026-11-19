@@ -4,16 +4,19 @@
 // Mỗi action đều đồng bộ trước theo `now` (Xưởng xây xong, lấp ô đơn, hết hạn đơn đặc biệt, giỏ tràn về kho, lưới an toàn).
 // Milestone 2: Xưởng (buildWorkshop, upgradeWorkshop, buildMachine, upgradeMachine, enqueue, collect, collectAll) và Khu chợ
 // (marketSell, marketBuy). Bán ở Nhà kho / giỏ tràn dùng cùng giá chợ (core/market.js priceOf).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2b";
-import * as plots from "./plots.js?v=m2b";
-import * as orders from "./orders.js?v=m2b";
-import * as eco from "./economy.js?v=m2b";
-import * as quests from "./quests.js?v=m2b";
-import * as ws from "./workshop.js?v=m2b";
-import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m2b";
+// Milestone 3: xây dựng (startBuild, startUpgrade — thay cho upgradeWarehouse cũ; buildWorkshop / upgradeWorkshop giữ làm tên
+// gọi tắt cho Xưởng), trang trí (placeDecor, removeDecor). Sức chứa kho, ô Nhà kính / phía Đông suy ra từ công trình (core/construct.js).
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m3";
+import * as plots from "./plots.js?v=m3";
+import * as orders from "./orders.js?v=m3";
+import * as eco from "./economy.js?v=m3";
+import * as quests from "./quests.js?v=m3";
+import * as ws from "./workshop.js?v=m3";
+import * as build from "./construct.js?v=m3";
+import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m3";
 
 function sync(s, now, events) {
-  ws.sync(s, now, events);
+  build.sync(s, now, events); // công trình xây xong (kể cả Xưởng) + hiệu ứng: sức chứa kho, ô Nhà kính / phía Đông
   orders.sync(s, now, events);
   const moved = settleOverflow(s);
   if (moved) events.push({ type: "overflowSettled", count: moved });
@@ -32,7 +35,6 @@ const HANDLERS = {
   sellOverflow: (s, a, now, ev) => eco.sellOverflow(s, now, ev),
   deliver: (s, a, now, ev) => orders.deliver(s, a.slot, a.id, a.rev, now, ev),
   cancelOrder: (s, a, now, ev) => orders.cancel(s, a.slot, a.id, a.rev, now, ev),
-  upgradeWarehouse: (s, a, now, ev) => eco.upgradeWarehouse(s, ev),
   upgradeFarm: (s, a, now, ev) => eco.upgradeFarm(s, ev),
   claimQuest: (s, a, now, ev) => quests.claim(s, a.id, ev),
   buildWorkshop: (s, a, now, ev) => ws.buildWorkshop(s, now, ev),
@@ -44,6 +46,10 @@ const HANDLERS = {
   collectAll: (s, a, now, ev) => ws.collectAll(s, a, now, ev),
   marketSell: (s, a, now, ev) => ws.marketSell(s, a, now, ev),
   marketBuy: (s, a, now, ev) => ws.marketBuy(s, a, now, ev),
+  startBuild: (s, a, now, ev) => build.startBuild(s, a, now, ev),
+  startUpgrade: (s, a, now, ev) => build.startUpgrade(s, a, now, ev),
+  placeDecor: (s, a, now, ev) => build.placeDecor(s, a, now, ev),
+  removeDecor: (s, a, now, ev) => build.removeDecor(s, a, now, ev),
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
@@ -58,6 +64,8 @@ export function invariantError(s, before) {
   if (u > capacity(s) && u > (before ? used(before) : 0)) return "capacity";
   const q = ws.queueError(s, before);
   if (q) return q;
+  const b = build.invariantError(s);
+  if (b) return b;
   return null;
 }
 

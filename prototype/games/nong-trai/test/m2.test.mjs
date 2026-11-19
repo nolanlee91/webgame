@@ -162,7 +162,7 @@ test("chợ mua: cấp mở, thức ăn vào kho (tính sức chứa), trang tr�
   assert.deepEqual(loadSave(dump(s, START), START).decor, { "ghe-tre": 1 });
 });
 
-test("di chuyển save v3 (Milestone 1) → v4: giữ mọi thứ, Xưởng trống, sao lưu v3 không xoá", () => {
+test("di chuyển save v3 (Milestone 1) → v5: giữ mọi thứ, Xưởng trống, sao lưu v3 không xoá", () => {
   const m1 = createState(START, 4);
   Object.assign(m1, { v: 3, coins: 321, level: 4, xp: 20, inv: { "dau-tay": 7 } });
   delete m1.production; delete m1.decor;
@@ -176,7 +176,7 @@ test("di chuyển save v3 (Milestone 1) → v4: giữ mọi thứ, Xưởng tr�
   assert.equal(st.getItem(V3_KEY), raw3, "bản v3 gốc vẫn còn");
   const v4 = JSON.parse(st.getItem(KEY));
   assert.equal(v4.v, SAVE_VERSION);
-  assert.equal(SAVE_VERSION, 4);
+  assert.equal(SAVE_VERSION, 5);
   const s = save.read(START + 1000).state;
   assert.equal(s.coins, 321); assert.equal(s.level, 4); assert.equal(s.xp, 20);
   assert.deepEqual(s.inv, { "dau-tay": 7 });

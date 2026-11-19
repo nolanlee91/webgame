@@ -1,10 +1,11 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m2b";
-import { browserStorage, farmSave } from "./save.js?v=m2b";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m2b";
-import { createMarketScene } from "./ui/scene-market.js?v=m2b";
-import { loadSprites, playFx } from "./ui/sprites.js?v=m2b";
+import * as L from "./logic.js?v=m3";
+import { browserStorage, farmSave } from "./save.js?v=m3";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m3";
+import { createMarketScene } from "./ui/scene-market.js?v=m3";
+import { loadSprites, playFx } from "./ui/sprites.js?v=m3";
+import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m3";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
@@ -92,7 +93,16 @@ const ERR = {
   "warehouse-level": "Chưa đủ cấp để nâng kho.", "warehouse-max": "Nhà kho đã ở mức lớn nhất.", materials: "Chưa đủ vật liệu để nâng kho.",
   "order-stock": "Kho chưa đủ hàng để giao đơn này.", "order-changed": "Đơn này đã đổi. Hãy xem đơn mới.", "order-expired": "Đơn này đã hết hạn.",
   "quest-incomplete": "Nhiệm vụ chưa xong.", "quest-claimed": "Đã nhận thưởng nhiệm vụ này.",
+  "greenhouse-only": "Mía chỉ trồng được trong Nhà kính.", greenhouse: "Cây trong Nhà kính không cần tưới.",
 };
+/** Lỗi xây dựng / trang trí (Milestone 3). */
+const ERR_M3 = {
+  locked: "Chưa đủ cấp.", built: "Công trình này đã xây rồi.", "not-built": "Cần xây công trình trước.", building: "Đang xây, chờ chút nhé.",
+  max: "Đã nâng tối đa.", coins: "Chưa đủ xu.", materials: "Chưa đủ vật liệu (ván gỗ / hộp đinh / thùng sơn).", milestone: "Công trình này mở trong bản cập nhật sau.",
+  "not-buildable": "Không xây được ở đây.", slot: "Ô trang trí này chưa mở.", "slot-taken": "Ô này đã có đồ trang trí.", "slot-empty": "Ô này đang trống.",
+  "slot-size": "Đồ này cần ô lớn.", "no-decor": "Túi trang trí không còn món này.", "bag-full": "Túi trang trí đã đầy.", bad: "Không làm được.",
+};
+const M3_ACTIONS = new Set(["startBuild", "startUpgrade", "placeDecor", "removeDecor"]);
 /** Lỗi của Xưởng / chợ (Milestone 2) — cùng mã "locked" nhưng nghĩa là chưa đủ cấp. */
 const ERR_M2 = {
   locked: "Chưa đủ cấp.", "workshop-level": "Chưa đủ cấp — Xưởng mở ở cấp 4, nâng Xưởng cấp 2 ở cấp 13.", built: "Đã xây rồi.",
@@ -122,6 +132,8 @@ export function mount(root, ctx = {}) {
   const storage = ctx.storage ?? browserStorage();
   const save = farmSave(storage);
   const $ = (id) => document.getElementById(id);
+  // bản đồ (Milestone 3) dựng trước để các nút công trình có id cũ (#workshopLot, #market, #boardBtn) tồn tại khi gom ui
+  const fmap = createFarmMap({ L, farm: $("farm"), map: $("farmMap"), esc, fmtClock, onTap: (id, el) => bldTap(id, el), onSlot: (id, el) => slotTap(id, el) });
   const ui = {
     field: $("field"), seeds: $("seeds"), coins: $("hCoins"), level: $("hLevel"), xp: $("hXp"), xpTxt: $("hXpTxt"),
     store: $("hStore"), over: $("hOver"), storeBar: $("hStoreBar"), storeStat: $("hStoreStat"), plots: $("hPlots"), all: $("allBtn"), mute: $("muteBtn"), muteIc: $("muteIc"),
@@ -131,7 +143,9 @@ export function mount(root, ctx = {}) {
     water: $("waterTool"), grow: $("seedTool"), depot: $("stockTool"), orderTool: $("ordersTool"), sellTool: $("sellTool"), improve: $("upgradeTool"),
     market: $("market"), board: $("boardBtn"), boardBadge: $("boardBadge"),
     lot: $("workshopLot"), lotTag: $("lotTag"), lotBar: $("lotBar"), wsBadge: $("wsBadge"), wsTool: $("workshopTool"), mkTool: $("marketTool"),
-    ovBuild: $("ovBuild"), buildBody: $("buildBody"), buildOk: $("buildOk"), buildCancel: $("buildCancel"),
+    ovBuild: $("ovBuild"), buildBody: $("buildBody"), buildOk: $("buildOk"), buildCancel: $("buildCancel"), buildEnter: $("buildEnter"), buildTitle: $("buildTitle"),
+    buildBtn: $("buildBtn"), buildBar: $("buildBar"), pan: $("panBtn"), buildExit: $("buildExit"), fieldEast: $("fieldEast"),
+    ovDecor: $("ovDecor"), decorBody: $("decorBody"), ovGh: $("ovGreenhouse"), ghSeeds: $("ghSeeds"), ghGrid: $("ghGrid"), ghNote: $("ghNote"), ghClose: $("ghClose"),
     quest: $("quest"), qFace: $("qFace"), qStep: $("qStep"), qTitle: $("qTitle"), qHint: $("qHint"), qBar: $("qBar"), qProg: $("qProg"), qReward: $("qReward"), qClaim: $("qClaim"),
   };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-kim-cuong", "qua-man", "trung-da", "thang"], sdk);
@@ -141,6 +155,7 @@ export function mount(root, ctx = {}) {
   const fresh = first.fresh, migrated = first.migrated;
   let mode = "seed", pick = L.FIELD_CROPS[0].id, cursor = 12, confirmAt = -1, confirmT = 0, toastT = 0, tickTimer = 0, secTimer = 0;
   let cancelArm = null, cancelT = 0, rewardTimer = 0, scene = "farm", lastFinished = 0, workshop = null, market = null;
+  let buildMode = false, cardFor = null, decorFor = null, ghPick = "mia";
 
   // ---------- dựng DOM ----------
   const cells = s.plots.map((_, i) => {
@@ -151,8 +166,8 @@ export function mount(root, ctx = {}) {
     const bar = document.createElement("span"); bar.className = "bar2"; const fill = document.createElement("i"); bar.append(fill);
     const drop = document.createElement("span"); drop.className = "drop"; drop.hidden = true;
     b.append(cv, lbl, bar, drop);
-    b.addEventListener("click", () => { cursor = i; mutate(() => act(i)); });
-    ui.field.append(b);
+    b.addEventListener("click", () => { if (i < L.BASE_PLOTS) cursor = i; mutate(() => act(i)); });
+    (i < L.BASE_PLOTS ? ui.field : i < L.GH_FIRST ? ui.fieldEast : ui.ghGrid).append(b);
     return { b, cv, lbl, bar, fill, drop, key: null };
   });
   const seedBtns = L.FIELD_CROPS.map((c, n) => {
@@ -246,9 +261,21 @@ export function mount(root, ctx = {}) {
   }
   function pulse(el) { if (!el) return; el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); }
 
+  /** Mở khoá khi lên cấp (core/levels-map.js unlocksAt): chỉ món đã có trong bản hiện tại (milestone ≤ CURRENT_MILESTONE). */
+  function unlockNames(level) {
+    const u = L.mapUnlocksAt(level);
+    const names = u.features.filter((f) => f.milestone <= L.CURRENT_MILESTONE).map((f) => f.name);
+    for (const b of u.build) {
+      const step = L.BUILDING[b.id].levels[b.toLevel - 1];
+      if (b.action !== "upgrade" || step.feature || b.id === "xuong" || !L.inMilestone(b.id)) continue; // đã có trong danh sách tính năng
+      names.push(b.id === "nha-kho" ? `Nâng Nhà kho lên ${L.WAREHOUSE[b.toLevel - 1].cap} chỗ` : `Nâng ${b.name} cấp ${b.toLevel}`);
+    }
+    if (u.decor.length) names.push("Trang trí: " + u.decor.map((d) => d.name).join(", "));
+    return names;
+  }
   /** Phản hồi cho mọi sự kiện luật trả về: hiệu ứng ô, âm thanh, thông báo. */
   function feedback(events, origin = {}) {
-    const msgs = [];
+    let msgs = [];
     let sound = null;
     for (const e of events) {
       switch (e.type) {
@@ -275,15 +302,35 @@ export function mount(root, ctx = {}) {
         case "orderCancelled": msgs.push(e.slot === "special" ? "Đã bỏ đơn đặc biệt." : "Đã bỏ đơn. Đơn mới sau 2 phút."); sound ??= ["buoc-nhay", 0.4, 0.8]; break;
         case "orderNew": if (origin.tick) { pulse(ui.board); pulse(ui.orderTool); } break;
         case "orderExpired": msgs.push("Đơn đặc biệt của Anh Út đã hết hạn."); break;
-        case "warehouseUpgraded": sound = ["thang", 0.7]; msgs.push(`Nhà kho đã nâng lên ${e.cap} chỗ!`); break;
+        case "warehouseUpgraded": sound = ["thang", 0.7]; pulse(ui.storeStat); msgs.push(`Nhà kho đã nâng lên ${e.cap} chỗ!`); break;
         case "farmUpgraded": sound = ["thang", 0.6]; msgs.push(`Đã mở ${e.name.toLowerCase()}!`); break;
         case "gift": sound = ["qua-man", 0.6]; msgs.push("Chị Ba tặng bạn 3 hạt cà rốt — trồng lại từ đầu nhé!"); break;
         case "questDone": pulse(ui.quest); sound ??= ["trung-kim-cuong", 0.6, 1.2]; break;
         case "questClaimed": sound = ["qua-man", 0.7]; msgs.push(`Nhiệm vụ xong: +${e.reward.coins} xu${e.reward.xp ? `, +${e.reward.xp} XP` : ""}.`); break;
-        case "buildStarted": sound = ["thang", 0.7]; fxOn(ui.lot, ["khoi-xay-dung"], `−${fmtNum(e.cost)} xu`, "#ffe9a8", 96);
-          msgs.push(`Bắt đầu xây ${e.name} — xong sau ${fmtLeft(e.readyAt - now())}. Tắt máy vẫn xây tiếp.`); break;
-        case "buildingDone": sound = ["qua-man", 0.8]; fxOn(ui.lot, ["khoi-xay-dung", "lap-lanh"], null, null, 96); pulse(ui.lot);
-          msgs.push(`${e.name} đã xây xong! Chạm vào Xưởng để chế biến — Bếp sên đã sẵn sàng.`); break;
+        case "buildStarted": {
+          sound = ["thang", 0.7]; const el = fmap.el(e.id);
+          fxOn(el, ["khoi-xay-dung"], e.cost ? `−${fmtNum(e.cost)} xu` : null, "#ffe9a8", 96);
+          if (!e.instant && e.readyAt > now()) msgs.push(`Bắt đầu xây ${e.name} — xong sau ${fmtLeft(e.readyAt - now())}. Tắt máy vẫn xây tiếp.`);
+          break;
+        }
+        case "upgradeStarted": sound = ["thang", 0.75]; fxOn(fmap.el(e.id), ["lap-lanh"], e.cost ? `−${fmtNum(e.cost)} xu` : null, "#ffe9a8", 96);
+          if (!e.instant) msgs.push(`Đang nâng ${e.name} lên cấp ${e.level} — xong sau ${fmtLeft(e.readyAt - now())}. Trong lúc nâng vẫn dùng được.`); break;
+        case "buildingDone": {
+          sound = ["qua-man", 0.8]; const el = fmap.el(e.id);
+          fxOn(el, ["khoi-xay-dung", "lap-lanh"], null, null, 96); pulse(el);
+          const DONE = {
+            xuong: "Xưởng chế biến đã xây xong! Chạm vào Xưởng để chế biến — Bếp sên đã sẵn sàng.",
+            "nha-kho": "Nhà kho đã xây xong! Nâng kho trong chế độ Xây hoặc ở bảng Kho để thêm chỗ.",
+            "nha-kinh": "Nhà kính xong! Chạm vào để trồng mía — 6 ô, không cần tưới.",
+            "dat-phia-dong": "Khu đất phía Đông đã mở: +9 ô ruộng! Kéo bản đồ sang phải để gieo.",
+          };
+          msgs.push(e.upgraded ? (e.id === "nha-kho" ? null : `${e.name} lên cấp ${e.level}!` + (e.id === "xuong" ? " Mọi máy thêm 1 ô hàng chờ." : e.id === "nha-kinh" ? " Nhà kính có 9 ô." : ""))
+            : DONE[e.id] || `${e.name} đã xây xong!`);
+          if (e.id === "dat-phia-dong") setTimeout(() => fmap.scrollToX(L.EAST_FIELD.x + L.EAST_FIELD.w / 2, true), 120);
+          break;
+        }
+        case "decorPlaced": sound = ["qua-man", 0.6, 1.15]; setTimeout(() => fxOn(fmap.slotEl(e.slot), ["lap-lanh"]), 30); msgs.push(`Đã đặt ${e.name} lên bản đồ.`); break;
+        case "decorRemoved": sound = ["buoc-nhay", 0.5, 0.9]; fxOn(origin.slot ? fmap.slotEl(origin.slot) : null, ["lap-lanh"]); msgs.push(`Đã cất ${e.name} vào túi trang trí.`); break;
         case "machineBuildStarted": sound = ["thang", 0.7]; fxOn(origin.el, ["khoi-xay-dung"], `−${fmtNum(e.cost)} xu`, "#ffe9a8");
           msgs.push(`Đang lắp ${L.MACHINE[e.machine].name} — xong sau ${fmtLeft(e.readyAt - now())}.`); break;
         case "machineUpgraded": sound = ["thang", 0.7]; fxOn(origin.el, ["lap-lanh"]); msgs.push(`${L.MACHINE[e.machine].name} lên cấp ${e.level}: ${e.slots} ô hàng chờ.`); break;
@@ -300,10 +347,11 @@ export function mount(root, ctx = {}) {
         case "jobsCollected": if (origin.el) fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${e.xp} XP`, "#ffe9a8"); msgs.push(`Nhận ${e.count} mẻ, +${e.xp} XP${e.full ? " — kho đầy, còn mẻ chưa nhận" : ""}.`); break;
         case "bought": sound = ["qua-man", 0.55, 1.2]; fxOn(origin.el, ["lap-lanh"], `−${fmtNum(e.coins)} xu`, "#ffe9a8");
           msgs.push(`Đã mua ${e.count} ${L.ITEM[e.id].name} (−${fmtNum(e.coins)} xu)${L.isDecor(e.id) ? " — cất trong túi trang trí" : ""}.`); break;
-        case "levelUp": sound = ["qua-man", 0.8]; msgs.push(`Lên cấp ${e.level}!` + (e.unlocks.length ? ` Mở khoá: ${e.unlocks.join(", ")}.` : "")); break;
+        case "levelUp": { sound = ["qua-man", 0.8]; const u = unlockNames(e.level); msgs.push(`Lên cấp ${e.level}!` + (u.length ? ` Mở khoá: ${u.join(", ")}.` : "")); break; }
       }
     }
     if (sound) sfx.play(...sound);
+    msgs = msgs.filter(Boolean);
     if (msgs.length) toast(msgs.slice(-2).join(" "), msgs.some((m) => m.startsWith("Lên cấp")) ? 4200 : 2600);
   }
 
@@ -320,7 +368,9 @@ export function mount(root, ctx = {}) {
     ui.storeBar.style.width = Math.min(100, Math.round((100 * used) / cap)) + "%";
     ui.storeStat.classList.toggle("full", used >= cap);
     ui.storeStat.title = over ? `Kho đầy — ${over} món đang ở giỏ tràn` : `Kho: ${used}/${cap} chỗ`;
-    ui.plots.textContent = `${s.plots.filter((p) => p.open).length}/${L.W * L.H}`;
+    const baseOpen = s.plots.slice(0, L.BASE_PLOTS).filter((p) => p.open).length, extraOpen = s.plots.slice(L.BASE_PLOTS).filter((p) => p.open).length;
+    ui.plots.textContent = `${baseOpen}/${L.W * L.H}` + (extraOpen ? ` +${extraOpen}` : "");
+    ui.plots.title = extraOpen ? `${baseOpen}/25 ô ruộng chính · ${extraOpen} ô Nhà kính / phía Đông` : "";
     L.FIELD_CROPS.forEach((c, n) => {
       const b = seedBtns[n], ok = L.cropUnlocked(s, c.id);
       b.classList.toggle("locked", !ok);
@@ -379,14 +429,19 @@ export function mount(root, ctx = {}) {
     }).join("");
     html += groups || `<p class="wh-empty">Kho trống. Thu hoạch cây chín để đưa nông sản vào kho.</p>`;
     const decor = Object.keys(s.decor || {}).filter((id) => s.decor[id] > 0);
-    if (decor.length) html += `<h3>Trang trí (túi riêng)</h3><ul class="wh-list">${decor.map((id) => `<li class="wh-item">${iconHtml(id)}<div class="wh-info"><b>${esc(L.ITEM[id].name)} <span class="qty">×${s.decor[id]}</span></b><small>Không tính sức chứa · đặt lên bản đồ ở chế độ xây dựng (bản sau)</small></div></li>`).join("")}</ul>`;
-    const nx = L.nextWarehouse(s);
-    if (nx) {
+    if (decor.length) html += `<h3>Trang trí (túi riêng)</h3><ul class="wh-list">${decor.map((id) => `<li class="wh-item">${iconHtml(id)}<div class="wh-info"><b>${esc(L.ITEM[id].name)} <span class="qty">×${s.decor[id]}</span></b><small>Không tính sức chứa · đặt lên bản đồ ở chế độ Xây (nút búa)</small></div></li>`).join("")}</ul>`;
+    // Nhà kho là công trình (Milestone 3): xây ở cấp 3 trên bản đồ, nâng = startUpgrade nha-kho
+    const tw = now(), whLv = L.levelOf(s, "nha-kho", tw), nx = whLv >= 1 ? L.nextStep(s, "nha-kho", tw) : null;
+    if (whLv < 1) {
+      html += s.level >= 3 ? `<div class="wh-up"><p><b>Đang dùng kho tạm ${cap} chỗ.</b> Xây Nhà kho trên bản đồ (60 xu, xây ngay) để mở các mốc nâng sức chứa.</p>` +
+        `<button class="btn btn--teal" type="button" id="whBuild" data-act="whBuild" data-key="wh-build">Xây Nhà kho</button></div>`
+        : `<p class="wh-up">Kho tạm ${cap} chỗ. Nhà kho xây được từ cấp 3.</p>`;
+    } else if (nx) {
       const mats = Object.entries(nx.materials);
-      const okLevel = s.level >= nx.minLevel, okCoins = s.coins >= nx.cost, okMats = mats.every(([m, q]) => L.have(s, m) >= q);
-      html += `<div class="wh-up"><p><b>Nâng kho lên ${nx.cap} chỗ</b> · ${fmtNum(nx.cost)} xu` +
+      const okLevel = s.level >= nx.unlock, okCoins = s.coins >= nx.cost, okMats = mats.every(([m, q]) => L.have(s, m) >= q);
+      html += `<div class="wh-up"><p><b>Nâng kho lên ${L.WAREHOUSE[nx.level - 1].cap} chỗ</b> · ${fmtNum(nx.cost)} xu` +
         (mats.length ? ` · ${mats.map(([m, q]) => `${iconHtml(m, "it--sm")}${L.have(s, m)}/${q} ${esc(L.ITEM[m].name)}`).join(" · ")}` : "") +
-        (okLevel ? "" : ` · <span class="need">cần cấp ${nx.minLevel}</span>`) + `</p>` +
+        (okLevel ? "" : ` · <span class="need">cần cấp ${nx.unlock}</span>`) + `</p>` +
         `<button class="btn btn--teal" type="button" id="whUpgrade" data-act="whUpgrade" data-key="wh-up"${okLevel && okCoins && okMats ? "" : " disabled"}>Nâng kho</button></div>`;
     } else html += `<p class="wh-up">Nhà kho đã ở mức lớn nhất.</p>`;
     setHtml(ui.whBody, html);
@@ -433,7 +488,7 @@ export function mount(root, ctx = {}) {
     ui.qTitle.textContent = q.title;
     let hint = q.hint;
     if (q.id === "mo-o-dat" && !L.hasFeature(s, "plots")) hint = "Lên cấp 2 để mở thêm ô đất — thu hoạch và giao đơn để lấy kinh nghiệm.";
-    if (q.id === "nang-kho" && L.nextWarehouse(s) && s.coins < L.nextWarehouse(s).cost) hint = `Để dành ${L.nextWarehouse(s).cost} xu rồi mở Kho, bấm “Nâng kho” — kho đầy thì hàng rơi vào giỏ tràn.`;
+    if (q.id === "xay-nha-kho" && s.coins < 60) hint = "Để dành 60 xu rồi bấm “Xây” (cái búa), chạm lô Nhà kho bên trái ruộng — kho đầy thì hàng rơi vào giỏ tràn.";
     if (q.id === "xay-xuong" && s.level < L.WORKSHOP.unlock) hint = `Lên cấp ${L.WORKSHOP.unlock} để mở Xưởng chế biến — giao đơn và thu hoạch để lấy kinh nghiệm.`;
     if ((q.id === "lam-thuc-an" || q.id === "giao-ket-hop") && s.level < 5) hint = "Lên cấp 5 để mở " + (q.id === "lam-thuc-an" ? "Cối xay trong Xưởng." : "đơn kết hợp của Bác Tư.");
     ui.qHint.textContent = done ? "Xong rồi! Bấm “Nhận” để lấy thưởng." : hint;
@@ -458,7 +513,8 @@ export function mount(root, ctx = {}) {
         case "plot-growing": el = mode === "water" ? firstPlot((p) => p.crop && !p.watered && !L.isReady(p, t)) : (s.plots.some((p) => p.crop && !p.watered && !L.isReady(p, t)) ? ui.water : ui.grow); break;
         case "plot-ready": el = firstPlot((p) => L.isReady(p, t)); break;
         case "sell": el = scene === "market" ? ui.mkRoot.querySelector('#mkSell [data-act="sell"]') : ui.warehouse.hidden ? ui.sellTool : ui.sell.disabled ? null : ui.sell; break;
-        case "workshop-lot": el = s.level >= L.WORKSHOP.unlock ? (scene === "farm" ? ui.lot : ui.wsRoot.querySelector("[data-back]")) : null; break;
+        case "workshop-lot": el = s.level >= L.WORKSHOP.unlock ? (scene === "farm" ? (buildMode || ui.lot.hidden ? ui.buildBtn : ui.lot) : ui.wsRoot.querySelector("[data-back]")) : null; break;
+        case "build:nha-kho": { const b = fmap.el("nha-kho"); el = scene !== "farm" ? null : b && !b.hidden ? b : ui.buildBtn; break; }
         case "workshop": {
           if (L.workshopState(s, t) !== "done") { el = null; break; }
           if (scene !== "workshop") { el = scene === "farm" ? ui.lot : null; break; }
@@ -479,6 +535,7 @@ export function mount(root, ctx = {}) {
 
   function renderPlot(i, t) {
     const p = s.plots[i], c = cells[i], cost = L.plotCost(s);
+    if (i >= L.BASE_PLOTS) { c.b.hidden = !p.open; if (!p.open) return; } // ô phía Đông / Nhà kính: chỉ hiện khi đã mở
     const st = p.open ? L.stage(p, t) : "locked";
     const key = st === "locked" || st === "empty" ? null : p.crop + ":" + st;
     if (c.key !== key) {
@@ -518,37 +575,208 @@ export function mount(root, ctx = {}) {
     clearTimeout(tickTimer);
     if (!document.hidden && s.plots.some((p) => p.crop && !L.isReady(p, t))) tickTimer = setTimeout(() => renderField(now()), 250);
   }
-  // ---------- lô Xưởng trên bản đồ ----------
-  function renderLot(t) {
-    const st = L.workshopState(s, t), w = L.workshopOf(s), lv = L.workshopLevel(s, t);
-    ui.lot.dataset.state = st; ui.lot.dataset.level = String(lv);
-    let tag, aria;
-    if (st === "locked") { tag = `Xưởng · cấp ${L.WORKSHOP.unlock}`; aria = `Lô Xưởng chế biến — mở ở cấp ${L.WORKSHOP.unlock}`; }
-    else if (st === "available") { tag = "Có thể xây"; aria = `Xưởng chế biến — có thể xây (${L.WORKSHOP.cost} xu)`; }
-    else if (st === "building") { tag = `Đang xây ${fmtClock(w.readyAt - t)}`; aria = `Xưởng đang xây — còn ${fmtLeft(w.readyAt - t)}`; }
-    else { tag = "Xưởng chế biến"; aria = "Vào Xưởng chế biến"; }
-    if (ui.lotTag.textContent !== tag) ui.lotTag.textContent = tag;
-    ui.lot.setAttribute("aria-label", aria); ui.lot.title = aria;
-    ui.lotBar.hidden = st !== "building";
-    if (st === "building") { const span = w.readyAt - w.startAt || L.WORKSHOP.buildMs; ui.lotBar.firstChild.style.width = Math.round(100 * Math.min(1, Math.max(0, 1 - (w.readyAt - t) / span))) + "%"; }
-    const fin = st === "done" ? L.finishedJobs(s, t) : 0;
+  // ---------- bản đồ: công trình, chế độ Xây, trang trí, Nhà kính (Milestone 3) ----------
+  const affordErr = (step) => (step ? L.affordError(step, { coins: () => s.coins }, { has: (id, n) => L.have(s, id) >= n }) : "max");
+  const canAffordId = (id) => { const st = L.nextStep(s, id, now()); return !!st && s.level >= st.unlock && !affordErr(st); };
+  const millBusy = (t) => (s.production.machines["coi-xay"]?.queue || []).some((j) => j.startAt <= t && t < j.endAt);
+  function renderMap(t) {
+    const layout = fmap.render({ s, t, buildMode, canAfford: canAffordId, busyMill: millBusy(t) });
+    // Xưởng: số mẻ xong chờ nhận (huy hiệu trên công trình + nút điều hướng)
+    const fin = L.workshopState(s, t) === "done" ? L.finishedJobs(s, t) : 0;
     ui.wsBadge.hidden = !fin; ui.wsBadge.textContent = fin || "";
     ui.wsTool.textContent = fin ? `Xưởng (${fin})` : "Xưởng";
+    ui.buildBtn.setAttribute("aria-pressed", String(buildMode));
+    ui.buildBar.hidden = !buildMode || scene !== "farm";
+    placePan();
+    if (cardFor && !ui.ovBuild.hidden) renderBuildCard(t, true);
+    return layout;
   }
-  function lotTap() {
-    const t = now(), st = L.workshopState(s, t);
-    if (st === "locked") { toast(`Xưởng chế biến mở ở cấp ${L.WORKSHOP.unlock}. Giao đơn, thu hoạch để lên cấp nhé!`); sfx.play("trung-da", 0.3); return; }
-    if (st === "building") { toast(`Xưởng đang xây, còn ${fmtLeft(L.workshopOf(s).readyAt - t)}. Tắt máy vẫn xây tiếp.`); sfx.play("buoc-nhay", 0.3); return; }
-    if (st === "done") { goScene("workshop"); return; }
-    const W = L.WORKSHOP, ok = s.coins >= W.cost;
-    ui.buildBody.innerHTML = `<ul><li>Giá: ${iconHtml("dong-xu", "it--sm")}<b>${fmtNum(W.cost)} xu</b> (bạn có ${fmtNum(s.coins)})</li><li>Thời gian xây: <b>${fmtLeft(W.buildMs)}</b> — tắt máy vẫn xây tiếp</li>` +
-      `<li>Tặng kèm <b>Bếp sên</b>: mứt dâu, sốt cà chua, nước ép cà rốt</li><li>Cối xay (cấp 5) và Lò bánh (cấp 8) lắp thêm bên trong Xưởng</li></ul>` +
-      (ok ? "" : `<p class="need">Còn thiếu ${fmtNum(W.cost - s.coins)} xu.</p>`);
-    ui.buildOk.disabled = !ok; ui.buildOk.textContent = ok ? `Xây · ${fmtNum(W.cost)} xu` : "Chưa đủ xu";
-    ui.ovBuild.hidden = false; (ok ? ui.buildOk : ui.buildCancel).focus();
+  /** Bản đồ rộng hơn khung (khung hẹp / đã mở phía Đông): nút cuộn nhanh sang Đông / về ruộng, nằm ở mép phải khung. */
+  function placePan() {
+    const f = ui.farm, wide = f.scrollWidth > f.clientWidth + 8;
+    ui.pan.hidden = !wide || scene !== "farm";
+    if (ui.pan.hidden) return;
+    const atEnd = f.scrollLeft + f.clientWidth >= f.scrollWidth - 8;
+    const txt = atEnd ? "← Về ruộng" : fmap.bw > 1 ? "Phía Đông →" : "Xem thêm →";
+    if (ui.pan.textContent !== txt) ui.pan.textContent = txt;
+    ui.pan.style.top = `${f.offsetTop + 8}px`;
+    ui.pan.style.right = `${Math.max(8, f.parentElement.clientWidth - f.offsetLeft - f.offsetWidth + 8)}px`;
+  }
+  function setBuildMode(on, quiet) {
+    buildMode = !!on;
+    if (!quiet) sfx.play("buoc-nhay", 0.45, buildMode ? 1.25 : 0.9);
+    if (buildMode && scene !== "farm") goScene("farm", true);
+    render();
+    if (buildMode) {
+      if (s.level < 3) toast("Nhà kho mở ở cấp 3 — lô mờ là công trình sắp mở.", 3200);
+      ui.farm.scrollIntoView({ block: "nearest" });
+    }
+  }
+  /** Lối vào công trình đã xây (ngoài chế độ Xây chạm là vào). null ⇒ không có cảnh riêng. */
+  function enterOf(id) {
+    const t = now();
+    if (id === "xuong" && L.workshopState(s, t) === "done") return { label: "Vào Xưởng", go: () => goScene("workshop") };
+    if (id === "coi-xay-gio" && L.workshopState(s, t) === "done") return { label: "Vào Xưởng", go: () => goScene("workshop") };
+    if (id === "sap-cho") return { label: "Vào Khu chợ", go: () => goScene("market") };
+    if (id === "bang-don-hang") return { label: "Mở Bảng đơn", go: () => { openPanel("orders"); ui.orders.scrollIntoView({ block: "nearest" }); } };
+    if (id === "nha-kho" && L.levelOf(s, id, t) >= 1) return { label: "Mở Nhà kho", go: () => { openPanel("stock"); ui.warehouse.scrollIntoView({ block: "nearest" }); } };
+    if (id === "nha-kinh" && L.levelOf(s, id, t) >= 1) return { label: "Vào Nhà kính", go: () => openGreenhouse() };
+    return null;
+  }
+  function bldTap(id) {
+    const it = fmap.layout?.items.find((x) => x.id === id);
+    if (!it) return;
+    if (!buildMode && L.inMilestone(id) && (it.status === "done" || it.status === "upgradeable")) {
+      const e = enterOf(id);
+      if (e) { e.go(); return; }
+    }
+    openBuildCard(id);
+  }
+  /** Mô tả hiệu ứng của mốc xây / nâng (lên level `to`). */
+  function effectText(id, to) {
+    switch (id) {
+      case "nha-kho": return to === 1 ? `Nhà kho trên bản đồ (${L.WAREHOUSE[0].cap} chỗ) + mở các mốc nâng sức chứa` : `Sức chứa kho ${L.WAREHOUSE[to - 2].cap} → <b>${L.WAREHOUSE[to - 1].cap} chỗ</b>`;
+      case "xuong": return to === 1 ? "Mở Xưởng chế biến, tặng kèm <b>Bếp sên</b>: mứt dâu, sốt cà chua, nước ép cà rốt. Cối xay (cấp 5) và Lò bánh (cấp 8) lắp thêm bên trong" : "+1 ô hàng chờ cho <b>mọi máy</b> trong Xưởng";
+      case "nha-kinh": return to === 1 ? "6 ô Nhà kính: trồng <b>mía</b> (chỉ trồng được ở đây), cây trong nhà kính <b>không cần tưới</b>" : "Thêm 3 ô Nhà kính (tổng 9 ô)";
+      case "dat-phia-dong": return "+9 ô ruộng phía Đông và 1 lô xây — bản đồ mở rộng sang phải";
+      case "sap-cho": return "Sạp nhỏ thành quầy chợ hoàn chỉnh (trang trí bản đồ)";
+      case "coi-xay-gio": return "Lắp Cối xay trong Xưởng (thức ăn gia súc, bột gạo) — cối xay gió quay cánh trên bản đồ";
+      case "chuong-ga": case "chuong-bo": return "Chăn nuôi " + (id === "chuong-ga" ? "gà (trứng)" : "bò (sữa)") + " — mở trong bản cập nhật sau";
+      default: return "";
+    }
+  }
+  function openBuildCard(id) {
+    cardFor = id;
+    renderBuildCard(now());
+    ui.ovBuild.hidden = false;
+    (ui.buildOk.hidden || ui.buildOk.disabled ? (ui.buildEnter.hidden ? ui.buildCancel : ui.buildEnter) : ui.buildOk).focus();
     sfx.play("buoc-nhay", 0.35, 1.1);
   }
-  const closeBuild = () => { ui.ovBuild.hidden = true; ui.lot.focus({ preventScroll: true }); };
+  /** Thẻ xây / nâng cấp (khung ui-kit): giá xu + vật liệu có/cần, thời gian, hiệu ứng, cấp mở / lý do. */
+  function renderBuildCard(t, live) {
+    const id = cardFor, def = L.BUILDING[id], it = fmap.layout?.items.find((x) => x.id === id);
+    if (!def || !it) { ui.ovBuild.hidden = true; return; }
+    const inMs = L.inMilestone(id), status = inMs ? it.status : "locked";
+    const machine = def.kind === "machine";
+    const step = !machine && inMs ? L.nextStep(s, id, t) : null; // mốc kế tiếp (xây nếu level 0)
+    const isUp = it.level >= 1, toLv = it.level + 1;
+    const title = machine ? def.name : status === "building" ? `${def.name} — đang ${it.upgrading ? "nâng cấp" : "xây"}` : step && status !== "done" ? `${isUp ? "Nâng cấp" : "Xây"} ${def.name}` : def.name;
+    const pic = status === "building" && !it.upgrading ? { sheet: "buildings", id: "gian-giao" } : (step?.sprite || it.sprite || def.levels[0].sprite);
+    const picCss = pic && pic.sheet !== "garden" ? spriteCss(pic.sheet, pic.id) : null;
+    const picHtml = picCss ? `<span class="bc-pic" style="${picCss}" aria-hidden="true"></span>` : pic?.sheet === "garden" ? `<img class="bc-pic" src="assets/garden/${pic.id}.webp" alt="">` : "";
+    let rows = "";
+    const lvTxt = def.levels.length > 1 && it.level >= 1 ? ` · cấp ${it.level}/${def.levels.length}` : "";
+    if (!inMs) rows += `<li>${effectText(id, 1)}. Cần cấp ${def.levels[0].unlock}.</li>`;
+    else if (machine) {
+      rows += `<li>${effectText(id, 1)}</li>`;
+      if (status === "locked") rows += `<li class="miss">Mở ở cấp ${it.unlockLevel}</li>`;
+      else if (status === "available") rows += `<li>${L.workshopState(s, t) === "done" ? "Vào Xưởng, chạm ô Cối xay để lắp (250 xu)." : `<span class="miss">Cần xây Xưởng chế biến trước.</span>`}</li>`;
+      else if (status === "building") rows += `<li>Đang lắp — xong sau <b>${fmtLeft(it.remainingMs)}</b></li>`;
+    } else if (status === "building") {
+      const u = it.upgrading, prog = u ? u.progress : it.progress, left = u ? u.remainingMs : it.remainingMs;
+      rows += `<li>${u ? `Nâng lên cấp ${u.toLevel}` : "Đang xây"} — còn <b>${fmtLeft(left)}</b>. Tắt máy vẫn xây tiếp.</li><li><div class="bc-bar"><i style="width:${Math.round(prog * 100)}%"></i></div></li>`;
+    } else if (step) {
+      const okCoins = s.coins >= step.cost;
+      rows += `<li>Giá: ${iconHtml("dong-xu", "it--sm")}<b class="${okCoins ? "ok" : "miss"}">${fmtNum(step.cost)} xu</b> (bạn có ${fmtNum(s.coins)})</li>`;
+      for (const [m, q] of Object.entries(step.materials)) {
+        const have = L.have(s, m);
+        rows += `<li>${iconHtml(m, "it--sm")}${esc(L.ITEM[m].name)}: <b class="${have >= q ? "ok" : "miss"}">${have}/${q}</b></li>`;
+      }
+      rows += `<li>Thời gian: <b>${step.ms ? fmtLeft(step.ms) + "</b> — tắt máy vẫn xây tiếp" : "xây ngay</b>"}</li>`;
+      rows += `<li>${effectText(id, toLv)}</li>`;
+      if (s.level < step.unlock) rows += `<li class="miss">${isUp ? "Nâng" : "Xây"} được từ cấp ${step.unlock} (bạn đang cấp ${s.level})</li>`;
+    } else rows += `<li>${it.level >= def.levels.length && def.levels.length > 1 ? "Đã nâng tối đa." : "Đã xây xong."} ${effectText(id, Math.max(1, it.level))}</li>`;
+    const statusTxt = !inMs ? (s.level >= def.levels[0].unlock ? "Khoá · sắp có" : `Khoá · Cấp ${def.levels[0].unlock}`) : status === "locked" ? `Khoá · Cấp ${it.unlockLevel}` : STATUS_TEXT[status];
+    const html = `<div class="bc-head">${picHtml}<div><span class="bc-status" data-s="${status}">${statusTxt}</span><small>${lvTxt}</small></div></div><ul>${rows}</ul>`;
+    ui.buildTitle.textContent = title;
+    setHtml(ui.buildBody, html);
+    // nút
+    const can = inMs && !!step && status !== "building" && s.level >= step.unlock && (isUp ? status === "upgradeable" : status === "available");
+    const err = can ? affordErr(step) : null;
+    ui.buildOk.hidden = !(inMs && step && status !== "building" && (status === "available" || status === "upgradeable" || (status === "locked" && step)));
+    ui.buildOk.disabled = !can || !!err;
+    ui.buildOk.textContent = !can ? (step && s.level < step.unlock ? `Cần cấp ${step.unlock}` : "Chưa xây được") : err === "coins" ? "Thiếu xu" : err === "materials" ? "Thiếu vật liệu" : `${isUp ? "Nâng cấp" : "Xây"} · ${fmtNum(step.cost)} xu`;
+    ui.buildOk.dataset.action = isUp ? "startUpgrade" : "startBuild";
+    const enter = inMs && (status === "done" || status === "upgradeable" || (machine && status === "available")) ? (enterOf(id) || (machine && L.workshopState(s, t) === "done" ? { label: "Vào Xưởng" } : null)) : null;
+    ui.buildEnter.hidden = !enter; if (enter) ui.buildEnter.textContent = enter.label;
+    ui.buildCancel.textContent = ui.buildOk.hidden && !enter ? "Đóng" : "Để sau";
+    if (!live) ui.ovBuild.querySelector(".build-card").scrollTop = 0;
+  }
+  const closeBuild = () => { const id = cardFor; ui.ovBuild.hidden = true; cardFor = null; fmap.el(id)?.focus({ preventScroll: true }); };
+  function confirmBuild() {
+    const id = cardFor, type = ui.buildOk.dataset.action;
+    if (!id || ui.buildOk.disabled) return;
+    ui.ovBuild.hidden = true; cardFor = null;
+    exec({ type, id }, { el: fmap.el(id) });
+  }
+
+  // ---- trang trí: chạm ô (chế độ Xây) ⇒ chọn món trong túi để đặt, hoặc cất món đang đặt ----
+  function slotTap(slotId) {
+    decorFor = slotId;
+    renderDecorSheet();
+    ui.ovDecor.hidden = false;
+    ui.decorBody.querySelector("button:not([disabled])")?.focus();
+    sfx.play("buoc-nhay", 0.35, 1.15);
+  }
+  function renderDecorSheet() {
+    const slot = L.DECOR_SLOT[decorFor];
+    if (!slot) { ui.ovDecor.hidden = true; return; }
+    const placed = (s.decorPlaced || []).find((d) => d.slot === decorFor);
+    let html = `<div class="rc-head"><b id="decorTitle">${placed ? "Đồ trang trí" : `Đặt trang trí · ô ${slot.size === "l" ? "lớn" : "nhỏ"}`}</b>` +
+      `<button class="btn btn--sm rc-close" type="button" data-act="close" aria-label="Đóng">✕</button></div>`;
+    if (placed) {
+      const d = L.DECOR_ITEM[placed.id];
+      html += `<ul class="dc-list"><li class="dc-row">${iconHtml(placed.id)}<div><b>${esc(d.name)}</b><br><small>Đang đặt ở ô này${d.rare ? " · đồ hiếm" : ""}</small></div>` +
+        `<button class="btn btn--teal" type="button" data-act="remove" data-key="dc-remove">Cất vào túi</button></li></ul>`;
+    } else {
+      const ids = Object.keys(s.decor || {}).filter((k) => s.decor[k] > 0 && L.DECOR_ITEM[k]);
+      if (!ids.length) html += `<p class="rc-note">Túi trang trí trống. Cô Hai bán chậu hoa, ghế tre, cỏ lau, đống bí ngô ở Khu chợ (đồ hiếm từ cấp 19).</p>` +
+        `<div class="actions"><button class="btn btn--primary" type="button" data-act="market">Đến Khu chợ</button></div>`;
+      else html += `<ul class="dc-list">${ids.map((k) => {
+        const d = L.DECOR_ITEM[k], big = d.size === "l" && slot.size !== "l", low = s.level < d.unlock;
+        return `<li class="dc-row">${iconHtml(k)}<div><b>${esc(d.name)} <span class="qty">×${s.decor[k]}</span></b><br><small>${d.size === "l" ? "Đồ lớn — chỉ đặt ở ô lớn" : "Đồ nhỏ"}${d.rare ? " · hiếm" : ""}</small></div>` +
+          `<button class="btn btn--primary btn--sm" type="button" data-act="place" data-id="${k}" data-key="dc-${k}"${big || low ? " disabled" : ""}>${big ? "Cần ô lớn" : low ? `Cấp ${d.unlock}` : "Đặt"}</button></li>`;
+      }).join("")}</ul><p class="rc-note">Đồ đặt rồi vẫn cất lại túi được bất cứ lúc nào.</p>`;
+    }
+    setHtml(ui.decorBody, html);
+  }
+  const closeDecor = () => { ui.ovDecor.hidden = true; const id = decorFor; decorFor = null; fmap.slotEl(id)?.focus?.({ preventScroll: true }); };
+  ui.decorBody.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]");
+    if (!b || b.disabled) return;
+    const slot = decorFor;
+    if (b.dataset.act === "close") return closeDecor();
+    if (b.dataset.act === "market") { closeDecor(); setBuildMode(false, true); goScene("market"); return; }
+    ui.ovDecor.hidden = true; decorFor = null;
+    if (b.dataset.act === "place") exec({ type: "placeDecor", id: b.dataset.id, slot }, { slot });
+    else if (b.dataset.act === "remove") exec({ type: "removeDecor", slot }, { slot });
+  });
+
+  // ---- Nhà kính: bảng riêng với 6 (9) ô, hạt chọn riêng (mía mặc định) ----
+  function openGreenhouse() {
+    ui.ovGh.hidden = false;
+    renderGreenhouse();
+    sfx.play("buoc-nhay", 0.4, 1.15);
+    (ui.ghSeeds.querySelector('[aria-checked="true"]') || ui.ghClose).focus();
+  }
+  function renderGreenhouse() {
+    if (ui.ovGh.hidden) return;
+    const crops = L.CROPS.filter((c) => c.id === "mia" || L.FIELD_CROPS.includes(c));
+    if (!L.cropUnlocked(s, ghPick)) ghPick = crops.find((c) => L.cropUnlocked(s, c.id))?.id || "ca-rot";
+    setHtml(ui.ghSeeds, crops.map((c) => {
+      const ok = L.cropUnlocked(s, c.id);
+      return `<button type="button" class="gh-seed${ok ? "" : " locked"}" role="radio" aria-checked="${ghPick === c.id}" data-id="${c.id}" data-key="gh-${c.id}"${ok ? "" : ' aria-disabled="true"'}>${iconHtml(c.id)}${esc(c.name)} <small>${ok ? c.seed + " xu" : "cấp " + c.level}</small></button>`;
+    }).join(""));
+    const open = s.plots.filter((p) => p.gh && p.open).length;
+    ui.ghNote.textContent = `${open} ô · gieo xong là tự tưới (chín nhanh như đã tưới). ` + (open < 9 ? `Nâng Nhà kính (cấp 16) để có 9 ô.` : "");
+  }
+  ui.ghSeeds.addEventListener("click", (e) => {
+    const b = e.target.closest(".gh-seed");
+    if (!b) return;
+    if (!L.cropUnlocked(s, b.dataset.id)) { toast(`${L.CROP[b.dataset.id].name} mở ở cấp ${L.CROP[b.dataset.id].level}.`); sfx.play("trung-da", 0.3); return; }
+    ghPick = b.dataset.id; sfx.play("buoc-nhay", 0.3, 1.3); renderGreenhouse();
+  });
+  ui.ghClose.onclick = () => { ui.ovGh.hidden = true; fmap.el("nha-kinh")?.focus({ preventScroll: true }); };
 
   // ---------- cảnh ----------
   const HASH = { workshop: "#xuong", market: "#cho" };
@@ -565,6 +793,7 @@ export function mount(root, ctx = {}) {
       if (!quiet) sfx.play("buoc-nhay", 0.4, next === "farm" ? 0.9 : 1.15);
       window.scrollTo({ top: Math.max(0, document.querySelector(".wrap").offsetTop - 4) });
       const focus = next === "farm" ? (prev === "workshop" ? ui.lot : ui.market) : document.querySelector(`#${next}Scene [data-back]`);
+      if (next !== "farm") buildMode = false;
       focus?.focus({ preventScroll: true });
     }
     render();
@@ -581,11 +810,12 @@ export function mount(root, ctx = {}) {
   };
   workshop = createWorkshopScene(sceneCtx); market = createMarketScene(sceneCtx);
   ui.wsRoot = workshop.root; ui.mkRoot = market.root;
-  loadSprites();
+  loadSprites().then(() => { fmap.invalidate(); render(); });
 
   function render() {
     renderHud();
-    renderLot(now());
+    renderMap(now());
+    renderGreenhouse();
     workshop?.render();
     market?.render();
     renderWarehouse();
@@ -598,7 +828,8 @@ export function mount(root, ctx = {}) {
     if (document.hidden) return;
     const t = now();
     for (const el of document.querySelectorAll("[data-until]")) el.textContent = fmtClock(Number(el.dataset.until) - t);
-    renderLot(t);
+    if (scene === "farm") renderMap(t);
+    if (!ui.ovGh.hidden) renderField(t);
     if (scene === "workshop") workshop.render(); else if (scene === "market") market.render();
     const fin = L.finishedJobs(s, t);
     if (fin > lastFinished) {
@@ -614,7 +845,7 @@ export function mount(root, ctx = {}) {
     if (!L.cropUnlocked(s, id)) { toast(`${L.CROP[id].name} mở khoá ở cấp ${L.CROP[id].level}.`); sfx.play("trung-da", 0.4); return; }
     pick = id; selectMode("seed"); sfx.play("buoc-nhay", 0.3, 1.3); render();
   }
-  function fail(code, action) { toast((M2_ACTIONS.has(action?.type) && ERR_M2[code]) || ERR[code] || ERR_M2[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
+  function fail(code, action) { toast((M3_ACTIONS.has(action?.type) && ERR_M3[code]) || (M2_ACTIONS.has(action?.type) && ERR_M2[code]) || ERR[code] || ERR_M2[code] || ERR_M3[code] || "Không làm được."); sfx.play("trung-da", 0.4); }
   function act(i) {
     const p = s.plots[i], t = now();
     if (!p.open) {
@@ -629,6 +860,7 @@ export function mount(root, ctx = {}) {
       return run({ type: "buyPlot", i });
     }
     if (!p.crop) {
+      if (p.gh) return run({ type: "plant", i, crop: ghPick }, { el: cells[i].b }); // Nhà kính: hạt chọn riêng trong bảng Nhà kính
       if (mode === "water") { toast("Ô này chưa có cây để tưới."); sfx.play("trung-da", 0.25); return; }
       return run({ type: "plant", i, crop: pick });
     }
@@ -651,12 +883,22 @@ export function mount(root, ctx = {}) {
   ui.grow.onclick = () => openPanel("seed");
   ui.water.onclick = () => openPanel("water");
   ui.depot.onclick = () => openPanel("stock");
-  ui.orderTool.onclick = ui.board.onclick = () => { openPanel("orders"); if (ui.board === document.activeElement) ui.orders.scrollIntoView({ block: "nearest" }); };
+  ui.orderTool.onclick = () => openPanel("orders"); // Bảng đơn trên bản đồ: farm-map ⇒ bldTap ⇒ enterOf("bang-don-hang")
   ui.improve.onclick = () => openPanel("upgrade");
-  ui.market.onclick = ui.mkTool.onclick = () => goScene("market");
-  ui.lot.onclick = ui.wsTool.onclick = lotTap;
+  ui.mkTool.onclick = () => goScene("market"); // sạp trên bản đồ: bldTap ⇒ enterOf("sap-cho")
+  ui.wsTool.onclick = () => (L.workshopState(s, now()) === "done" ? goScene("workshop") : openBuildCard("xuong"));
+  ui.buildBtn.onclick = () => setBuildMode(!buildMode);
+  ui.buildExit.onclick = () => setBuildMode(false);
+  ui.pan.onclick = () => {
+    const f = ui.farm, atEnd = f.scrollLeft + f.clientWidth >= f.scrollWidth - 8;
+    sfx.play("buoc-nhay", 0.3, 1.2);
+    if (atEnd) fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2, true); else f.scrollTo({ left: f.scrollWidth, behavior: "smooth" });
+  };
+  ui.farm.addEventListener("scroll", () => placePan(), { passive: true });
+  window.addEventListener("resize", placePan);
+  ui.buildEnter.onclick = () => { const e = enterOf(cardFor); ui.ovBuild.hidden = true; cardFor = null; e?.go(); };
   ui.buildCancel.onclick = closeBuild;
-  ui.buildOk.onclick = () => { ui.ovBuild.hidden = true; exec({ type: "buildWorkshop" }, { el: ui.lot }); };
+  ui.buildOk.onclick = confirmBuild;
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = () => goScene("farm");
   ui.sellTool.onclick = () => {
     openPanel("stock");
@@ -671,7 +913,8 @@ export function mount(root, ctx = {}) {
     if (b.dataset.act === "sell1") exec({ type: "sell", id, n: 1 });
     else if (b.dataset.act === "sellN") exec({ type: "sell", id });
     else if (b.dataset.act === "sellBasket") exec({ type: "sellOverflow" });
-    else if (b.dataset.act === "whUpgrade") exec({ type: "upgradeWarehouse" });
+    else if (b.dataset.act === "whUpgrade") exec({ type: "startUpgrade", id: "nha-kho" }, { el: fmap.el("nha-kho") });
+    else if (b.dataset.act === "whBuild") { setBuildMode(true, true); openBuildCard("nha-kho"); }
   });
   ui.slips.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-act]");
@@ -705,6 +948,8 @@ export function mount(root, ctx = {}) {
   function onKey(e) {
     if (!ui.ovHelp.hidden) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); showHelp(false); } return; }
     if (!ui.ovBuild.hidden) { if (e.key === "Escape") { e.preventDefault(); closeBuild(); } return; }
+    if (!ui.ovDecor.hidden) { if (e.key === "Escape") { e.preventDefault(); closeDecor(); } return; }
+    if (!ui.ovGh.hidden) { if (e.key === "Escape") { e.preventDefault(); ui.ghClose.click(); } return; }
     if (workshop.onKey(e)) return;
     if (scene !== "farm") {
       if (e.key === "Escape") { e.preventDefault(); goScene("farm"); }
@@ -723,6 +968,8 @@ export function mount(root, ctx = {}) {
     if (/^[1-6]$/.test(e.key) && L.FIELD_CROPS[+e.key - 1]) { choose(L.FIELD_CROPS[+e.key - 1].id); return; }
     const k = e.key.toLowerCase();
     if (k === "h") exec({ type: "harvestAll" });
+    else if (k === "b") setBuildMode(!buildMode);
+    else if (k === "escape" && buildMode) setBuildMode(false);
     else if (k === "m") setMuted(!sdk.sound.muted);
   }
   window.addEventListener("keydown", onKey);
@@ -747,25 +994,28 @@ export function mount(root, ctx = {}) {
   mutate(() => {
     const r = L.apply(s, { type: "tick" }, now());
     const newOrders = r.ok ? r.events.filter((e) => e.type === "orderNew").length : 0;
-    const built = r.ok && r.events.some((e) => e.type === "buildingDone");
+    const built = r.ok ? [...new Set(r.events.filter((e) => e.type === "buildingDone").map((e) => e.name))] : [];
     if (r.ok && r.events.length) { persist(); render(); }
     if (r.ok) feedback(r.events.filter((e) => e.type === "gift" || e.type === "levelUp"));
     if (HASH.workshop === location.hash) goScene("workshop", true); else if (HASH.market === location.hash) goScene("market", true);
     if (fresh) showHelp(true);
+    else if (migrated && first.from === "v4") toast("Nông trại đã cập nhật: chế độ Xây (nút búa) — Nhà kho, Nhà kính, Khu đất phía Đông và trang trí trên bản đồ. Tiến trình và kho đã nâng vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v3") toast("Nông trại đã cập nhật: có Xưởng chế biến (từ cấp 4) và Khu chợ với giá đổi theo giờ. Tiến trình cũ vẫn giữ nguyên!", 5200);
     else if (migrated) toast("Nông trại đã được nâng cấp: có Bảng đơn, Nhà kho có sức chứa và nhiệm vụ của Chị Ba. Tiến trình cũ vẫn giữ nguyên!", 5200);
-    else if (away || newOrders || awayJobs || built) {
-      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, built && "Xưởng chế biến đã xây xong", newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
+    else if (away || newOrders || awayJobs || built.length) {
+      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, built.length && `${built.join(", ")} đã xây xong`, newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
       toast(`Trong lúc bạn vắng: ${parts.join(" · ")}.` + (away ? ' Bấm "Thu hết" để gom!' : ""), 4200);
     }
   });
   secTimer = setInterval(second, 1000);
+  // khung hẹp: bản đồ rộng hơn màn ⇒ đặt ruộng vào giữa khung cuộn
+  requestAnimationFrame(() => fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2));
 
   return {
     destroy() {
       clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave();
       window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onVisibility); window.removeEventListener("pagehide", onLeave);
-      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", placePan);
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return s; },

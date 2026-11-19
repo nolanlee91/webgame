@@ -1,10 +1,10 @@
-// E2E Nông Trại (Milestone 1 + 2: Xưởng chế biến, Khu chợ) trên Chrome headless — bấm chuột / chạm thật qua CDP, chụp ảnh desktop + mobile.
-// Chạy: (ở gốc repo) PORT=8802 node server.js   rồi   PORT=8802 node prototype/games/nong-trai/test/e2e.mjs <thư mục output>
+// E2E Nông Trại (Milestone 1 + 2: Xưởng chế biến, Khu chợ + 3: chế độ Xây, Nhà kính, Khu đất phía Đông, trang trí) trên Chrome headless — bấm chuột / chạm thật qua CDP, chụp ảnh desktop + mobile.
+// Chạy: (ở gốc repo) PORT=8804 node server.js   rồi   PORT=8804 node prototype/games/nong-trai/test/e2e.mjs <thư mục output>
 // Đồng hồ: trang mở với ?testclock ⇒ window.__ntOffset (ms) dịch thời gian để cây chín ngay, không phải chờ.
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8801, BASE = `http://127.0.0.1:${PORT}/games/nong-trai/?testclock`;
-const DBG = 9361;
+const DBG = Number(process.env.DBG_PORT || 9384);
 mkdirSync(OUT, { recursive: true });
 const PROF = OUT + "/prof";
 const chrome = spawn("C:/Program Files/Google/Chrome/Application/chrome.exe",
@@ -54,7 +54,7 @@ const text = (sel) => ev(`(document.querySelector(${JSON.stringify(sel)})||{}).t
 const advance = async (ms) => { await ev(`window.__ntOffset=(window.__ntOffset||0)+${ms}`); await sleep(400); };
 /** Tải lại thật (kể cả khi URL chỉ khác #hash), giữ đồng hồ thử (sessionStorage) để không "lùi giờ" sau khi tua. */
 const reload = async (hash = "") => { await ev("sessionStorage.setItem('ntOffset',String(window.__ntOffset||0))"); await send("Page.navigate", { url: "about:blank" }); await sleep(300); await nav(BASE + hash); await ev("sessionStorage.removeItem('ntOffset')"); };
-const questId = () => S("(s.quests.tut<8)?['gieo-hat','tuoi-cay','thu-hoach','ban-hang','giao-don','mo-o-dat','nang-kho','len-cap-3'][s.quests.tut]:null");
+const questId = () => S("(s.quests.tut<8)?['gieo-hat','tuoi-cay','thu-hoach','ban-hang','giao-don','mo-o-dat','len-cap-3','xay-nha-kho'][s.quests.tut]:null");
 const noOverflowX = () => ev("document.documentElement.scrollWidth<=document.documentElement.clientWidth");
 const claim = async () => { await pressSel("#qClaim"); await sleep(150); };
 
@@ -135,11 +135,20 @@ const buyI = await ev("+document.querySelector('#field .plot.locked.qhl').datase
 await plot(buyI); await plot(buyI);
 check("mở ô (bấm 2 lần) → ô mở, NV6 xong", await S(`s.plots[${buyI}].open`) && await visible("#qClaim"));
 await claim();
+check("NV7 lên cấp 3 đang mở (M3: Nhà kho xây từ cấp 3)", (await questId()) === "len-cap-3");
+await ev(`(()=>{const s=__game.state;s.level=3;s.xp=0;__game.state=s})()`);
+await sleep(300);
+await ev(`import('./logic.js?v=m3').then(L=>{const r=L.apply(__game.state,{type:'tick'},Date.now()+(window.__ntOffset||0));__game.state=__game.state})`);
+await claim();
+check("NV8 xây Nhà kho: chỉ vào lô bản vẽ Nhà kho trên bản đồ", (await questId()) === "xay-nha-kho" && await ev("document.querySelector('.bld[data-id=\"nha-kho\"]').classList.contains('qhl')"));
+await pressSel('.bld[data-id="nha-kho"]');
+check("chạm lô Nhà kho ⇒ thẻ xây: 60 xu, xây ngay", await visible("#ovBuild") && /60 xu/.test(await text("#buildBody")) && /xây ngay/.test(await text("#buildBody")));
+await pressSel("#buildOk");
+check("xây Nhà kho ⇒ NV8 xong, kho vẫn 60 chỗ", (await text("#hStore")).endsWith("/60") && await visible("#qClaim") && (await S("s.buildings['nha-kho'].level")) === 1);
+await claim();
 await pressSel("#stockTool");
 await pressSel("#whUpgrade");
-check("NV7 nâng kho 60 → 90", (await text("#hStore")).endsWith("/90") && await visible("#qClaim"));
-await claim();
-check("NV8 lên cấp 3 đang mở", (await questId()) === "len-cap-3");
+check("nâng kho 60 → 90 (bảng Kho ⇒ startUpgrade nha-kho)", (await text("#hStore")).endsWith("/90"));
 
 // ===== 3. Kho đầy → giỏ tràn =====
 await ev(`(()=>{const s=__game.state;s.inv={'ca-chua':90};const t=Date.now()+(window.__ntOffset||0);for(const i of [6,7,8]){s.plots[i]={open:true,crop:'ca-rot',plantAt:t-40000,readyAt:t-1000,watered:false}}__game.state=s})()`);
@@ -161,8 +170,8 @@ const v2 = { v: 2, coins: 137, xp: 12, level: 3, bought: 1, lastSeen: t2 - 300_0
 await ev(`localStorage.clear();localStorage.setItem('wgp.nongtrai.v2',${JSON.stringify(JSON.stringify(v2))})`);
 await nav(BASE.replace("?testclock", ""));
 const mig = await S("({v:s.v,c:s.coins,l:s.level,x:s.xp,b:s.bought,inv:s.inv,ngo:s.plots[6].crop,ngoAt:s.plots[6].readyAt,d:s.plots[12].crop,up:s.upgrade,o0:s.orders.slots[0].order&&s.orders.slots[0].order.items,slots:s.orders.slots.length,tut:s.quests.tut})");
-check("v2 → v3: xu 137, cấp 3, XP 12, ô mua, kho (vượt 60 vẫn giữ), cây đang trồng, nâng cấp, đơn cũ", mig.v === 4 && mig.c === 137 && mig.l === 3 && mig.x === 12 && mig.b === 1 && mig.inv["ca-chua"] === 70 && mig.ngo === "ngo" && mig.ngoAt === t2 + 120_000 && mig.d === "dau-tay" && mig.up === 1 && JSON.stringify(mig.o0) === JSON.stringify({ "dau-tay": 2, "ca-chua": 1 }) && mig.slots === 4, JSON.stringify(mig));
-check("v2: giữ bản gốc ở wgp.nongtrai.v2.backup và không xoá v2; đã ghi v4", await ev(`localStorage.getItem('wgp.nongtrai.v2.backup')===localStorage.getItem('wgp.nongtrai.v2')&&!!localStorage.getItem('wgp.nongtrai.v2')&&JSON.parse(localStorage.getItem('wgp.nongtrai.v4')).v===4`));
+check("v2 → v3: xu 137, cấp 3, XP 12, ô mua, kho (vượt 60 vẫn giữ), cây đang trồng, nâng cấp, đơn cũ", mig.v === 5 && mig.c === 137 && mig.l === 3 && mig.x === 12 && mig.b === 1 && mig.inv["ca-chua"] === 70 && mig.ngo === "ngo" && mig.ngoAt === t2 + 120_000 && mig.d === "dau-tay" && mig.up === 1 && JSON.stringify(mig.o0) === JSON.stringify({ "dau-tay": 2, "ca-chua": 1 }) && mig.slots === 4, JSON.stringify(mig));
+check("v2: giữ bản gốc ở wgp.nongtrai.v2.backup và không xoá v2; đã ghi v5", await ev(`localStorage.getItem('wgp.nongtrai.v2.backup')===localStorage.getItem('wgp.nongtrai.v2')&&!!localStorage.getItem('wgp.nongtrai.v2')&&JSON.parse(localStorage.getItem('wgp.nongtrai.v5')).v===5`));
 check("v2: thông báo nâng cấp, người chơi cấp 3 bỏ qua hướng dẫn ⇒ nhiệm vụ tiến trình 'Xây Xưởng'", /nâng cấp/.test(await text("#toast")) && mig.tut === 8 && /Xây Xưởng/.test(await text("#qTitle")));
 check("v2: ô dâu tây đã chín trong lúc vắng", await ev("document.querySelector('#field .plot[data-i=\"12\"]').classList.contains('ready')"));
 check("kho vượt sức chứa sau di chuyển: HUD đỏ 76/60", (await text("#hStore")) === "76/60" && await ev("document.getElementById('hStoreStat').classList.contains('full')"));
@@ -307,6 +316,120 @@ await pressSel(".mach[data-m=bep-sen] .mach-btn");
 check("mobile: bảng công thức vừa màn, không tràn ngang", await visible("#ovRecipe") && await noOverflowX() && await ev("document.querySelector('.recipe-card').getBoundingClientRect().right<=innerWidth"));
 await shot("m2-11-mobile-cong-thuc.png");
 await view(1280, 900, false); await touch(false); press = click;
+
+// ===== 7. Milestone 3: chế độ Xây, Nhà kho / Nhà kính / Khu đất phía Đông, trang trí (desktop, chuột) =====
+await view(1280, 900, false); await touch(false); press = click;
+await ev("localStorage.clear()"); await nav(BASE);
+await pressSel("#helpOk");
+// người chơi cấp 10 đã xong mọi nhiệm vụ (seed qua state), có 4 ván gỗ cho Nhà kính
+await ev(`(()=>{const s=__game.state;s.level=10;s.xp=0;s.coins=3000;s.quests.tut=13;s.quests.progress=0;s.inv={'van-go':4};__game.state=s})()`);
+await sleep(400);
+const bld = (id) => `.bld[data-id="${id}"]`;
+const bstat = (id) => ev(`(()=>{const b=document.querySelector('${bld(id)}');return b&&!b.hidden?b.dataset.status+'|'+b.dataset.view+'|'+b.querySelector('.market-tag').textContent:null})()`);
+check("M3 cấp 10 (ngoài chế độ Xây): bản vẽ 'Có thể xây' của Nhà kho + Nhà kính hiện trên bản đồ, chuồng (M4) ẩn",
+  /^available\|blueprint\|Có thể xây/.test(await bstat("nha-kho")) && /^available/.test(await bstat("nha-kinh")) && (await bstat("chuong-ga")) === null);
+await pressSel("#buildBtn");
+check("nút Xây (búa) ⇒ chế độ Xây: thanh trạng thái, ruộng mờ, nhãn trạng thái chuẩn", await visible("#buildBar") && await ev("document.getElementById('farm').classList.contains('building')") &&
+  /Hoàn thành/.test(await bstat("nha")) && /Nâng cấp được/.test(await bstat("sap-cho")) && /Có thể xây/.test(await bstat("nha-kinh")) && /^locked\|locked\|Khoá/.test(await bstat("chuong-ga")),
+  [await bstat("nha"), await bstat("sap-cho"), await bstat("chuong-ga")].join(" / "));
+check("bản vẽ lo-ban-ve vẽ từ buildings.webp", await ev(`getComputedStyle(document.querySelector('${bld("nha-kinh")} .spr')).backgroundImage.includes('buildings.webp')`));
+await pressSel(bld("chuong-ga"));
+check("chuồng gà (Milestone 4): thẻ không có nút Xây (không nút giả)", await visible("#ovBuild") && !(await visible("#buildOk")) && /bản cập nhật sau/.test(await text("#buildBody")));
+await pressSel("#buildCancel");
+await shot("m3-01-che-do-xay.png");
+await pressSel(bld("nha-kho"));
+check("thẻ xây Nhà kho: giá 60 xu (có/cần), xây ngay, hiệu ứng, khung ui-kit", /60 xu/.test(await text("#buildBody")) && /xây ngay/.test(await text("#buildBody")) && /bạn có 3\.000/.test(await text("#buildBody")));
+await pressSel("#buildOk");
+check("xây Nhà kho (tức thì): công trình hiện trên bản đồ, HUD kho 0/60, −60 xu", /^upgradeable\|built/.test(await bstat("nha-kho")) && (await text("#hStore")) === "0/60" && (await S("s.coins")) === 2940);
+await pressSel(bld("nha-kho"));
+check("Nhà kho 'Nâng cấp được' ⇒ thẻ nâng: 60 → 90 chỗ, 80 xu", /Nâng cấp được/.test(await text("#buildBody")) && /90 chỗ/.test(await text("#buildBody")) && /Nâng cấp · 80 xu/i.test(await text("#buildOk")));
+await pressSel("#buildOk");
+check("nâng kho ⇒ HUD kho đổi 0/90 ngay", (await text("#hStore")) === "0/90" && (await S("s.warehouse")) === 1);
+await pressSel(bld("nha-kinh"));
+check("thẻ Nhà kính: 900 xu, 4/4 ván gỗ, 5 phút, mía + không cần tưới", /900 xu/.test(await text("#buildBody")) && /4\/4/.test(await text("#buildBody")) && /5:00/.test(await text("#buildBody")) && /không cần tưới/.test(await text("#buildBody")));
+await shot("m3-02-the-xay-nha-kinh.png");
+await pressSel("#buildOk");
+await sleep(300);
+check("xây Nhà kính ⇒ giàn giáo gian-giao + 'Đang xây' + thanh tiến độ, trừ ván gỗ", /^building\|scaffold\|Đang xây \d:\d\d/.test(await bstat("nha-kinh")) &&
+  await ev(`!document.querySelector('${bld("nha-kinh")} .lot-bar').hidden`) && !(await S("s.inv['van-go']||0")), await bstat("nha-kinh"));
+await shot("m3-03-gian-giao.png");
+await advance(301_000); await sleep(1300);
+check("tua 5 phút ⇒ Nhà kính xong (sprite nha-kinh), báo xây xong", /^(done|upgradeable)\|built/.test(await bstat("nha-kinh")) && await ev(`getComputedStyle(document.querySelector('${bld("nha-kinh")} .spr')).backgroundPosition.startsWith('66.6')`), await bstat("nha-kinh"));
+await pressSel("#buildExit");
+check("thoát chế độ Xây", !(await visible("#buildBar")) && !(await ev("document.getElementById('farm').classList.contains('building')")));
+check("khay hạt ruộng chính không có Mía; luật chặn mía ở ô thường", await ev("!document.querySelector('#seeds [data-id=mia]')") &&
+  (await ev(`import('./logic.js?v=m3').then(L=>L.apply(structuredClone(__game.state),{type:'plant',i:12,crop:'mia'},Date.now()+(window.__ntOffset||0)).err)`)) === "greenhouse-only");
+await pressSel(bld("nha-kinh"));
+check("chạm Nhà kính ⇒ bảng Nhà kính: 6 ô, hạt Mía chọn sẵn", await visible("#ovGreenhouse") && (await ev("[...document.querySelectorAll('#ghGrid .plot')].filter(b=>!b.hidden).length")) === 6 &&
+  await ev("document.querySelector('#ghSeeds [data-id=mia]').getAttribute('aria-checked')==='true'"));
+await pressSel('#ghGrid .plot[data-i="34"]');
+check("gieo mía ở ô Nhà kính 34: đã tưới sẵn (không cần tưới), −24 xu", (await S("s.plots[34].crop")) === "mia" && await S("s.plots[34].watered") && (await S("s.coins")) === 2940 - 80 - 900 - 24);
+await shot("m3-04-nha-kinh-mia.png");
+await pressSel("#ghClose");
+
+// ---- cấp 17: Khu đất phía Đông ----
+await ev(`(()=>{const s=__game.state;s.level=17;s.coins=20000;s.inv={'van-go':8,'hop-dinh':8};__game.state=s})()`);
+await sleep(400);
+check("cấp 17: bản đồ rộng 1,5 lần, dải đất phía Đông hé ra (cuộn ngang trong khung, trang không tràn)", (await ev("getComputedStyle(document.getElementById('farmMap')).getPropertyValue('--bw').trim()")) === "1.5" &&
+  await visible("#eastWild") && await ev("(()=>{const f=document.getElementById('farm');return f.scrollWidth>f.clientWidth+50})()") && await noOverflowX());
+await pressSel("#buildBtn");
+await pressSel(bld("dat-phia-dong"));
+check("thẻ Khu đất phía Đông: 15.000 xu, 8 ván gỗ + 8 hộp đinh, +9 ô", /15\.000 xu/.test(await text("#buildBody")) && /8\/8/.test(await text("#buildBody")) && /\+9 ô/.test(await text("#buildBody")));
+await pressSel("#buildOk");
+check("mở đất ⇒ giàn giáo + đồng hồ", /^building\|scaffold/.test(await bstat("dat-phia-dong")));
+await advance(301_000); await sleep(1500);
+check("tua 5 phút ⇒ 9 ô phía Đông (25–33) hiện trên bản đồ, dải hoang biến mất", !(await visible("#eastWild")) && await visible("#fieldEast") &&
+  (await ev("[...document.querySelectorAll('#fieldEast .plot')].filter(b=>!b.hidden).map(b=>+b.dataset.i).join(',')")) === "25,26,27,28,29,30,31,32,33");
+await pressSel("#buildExit");
+await pressSel(`#fieldEast .plot[data-i="25"]`);
+check("ô phía Đông 25 gieo được (hạt đang chọn)", (await S("s.plots[25].crop")) === "ca-rot", await S("JSON.stringify(s.plots[25])"));
+await shot("m3-05-dat-phia-dong.png");
+
+// ---- trang trí: mua ở chợ ⇒ đặt lên ô ⇒ cất lại ----
+await pressSel("#marketTool");
+await pressSel('#mkBuy [data-act=buy][data-id="chau-hoa"]');
+check("mua Chậu hoa ở chợ ⇒ vào túi trang trí", (await S("s.decor['chau-hoa']")) === 1);
+await pressSel("#marketScene [data-back]");
+await pressSel("#buildBtn");
+check("chế độ Xây: ô trang trí viền vàng (≥ 44px)", await ev("document.querySelectorAll('#slotLayer .dslot').length>=9") &&
+  await ev("[...document.querySelectorAll('#slotLayer .dslot')].every(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44})"));
+await pressSel('#slotLayer .dslot[data-slot="hien-nha"]');
+check("chạm ô ⇒ bảng chọn đồ trong túi", await visible("#ovDecor") && /Chậu hoa/.test(await text("#decorBody")));
+await pressSel('#decorBody [data-act=place][data-id="chau-hoa"]');
+check("đặt Chậu hoa ⇒ hiện trên bản đồ (decor.webp), túi −1", (await S("JSON.stringify(s.decorPlaced)")) === JSON.stringify([{ id: "chau-hoa", slot: "hien-nha" }]) && !(await S("s.decor['chau-hoa']||0")) &&
+  await ev(`getComputedStyle(document.querySelector('#decorLayer [data-slot="hien-nha"]')).backgroundImage.includes('decor.webp')`),
+  await S("JSON.stringify([s.decorPlaced,s.decor])") + " " + await ev(`(document.querySelector('#decorLayer [data-slot="hien-nha"]')||{}).outerHTML`));
+await shot("m3-06-trang-tri.png");
+await pressSel('#slotLayer .dslot[data-slot="hien-nha"]');
+await pressSel('#decorBody [data-act=remove]');
+check("cất Chậu hoa ⇒ về túi, ô trống", (await S("s.decor['chau-hoa']")) === 1 && (await S("s.decorPlaced.length")) === 0 && !(await ev(`!!document.querySelector('#decorLayer [data-slot="hien-nha"]')`)));
+await pressSel('#slotLayer .dslot[data-slot="goc-ruong-tl"]');
+await pressSel('#decorBody [data-act=place][data-id="chau-hoa"]');
+// ---- tải lại giữ mọi thứ ----
+const snapM3 = await S("JSON.stringify({b:s.buildings,d:s.decor,dp:s.decorPlaced,p25:s.plots[25].crop,p34:s.plots[34].crop,w:s.warehouse,c:s.coins})");
+await reload();
+check("tải lại: công trình, trang trí, ô phía Đông + Nhà kính, kho giữ nguyên; bản đồ vẫn vẽ đúng", (await S("JSON.stringify({b:s.buildings,d:s.decor,dp:s.decorPlaced,p25:s.plots[25].crop,p34:s.plots[34].crop,w:s.warehouse,c:s.coins})")) === snapM3 &&
+  (await text("#hStore")).endsWith("/90") && await visible("#fieldEast") && await ev(`!!document.querySelector('#decorLayer [data-slot="goc-ruong-tl"]')`), snapM3);
+// ---- mobile 390×844: chế độ Xây ----
+await view(390, 844, true, 2); await touch(true); press = tap;
+await reload();
+await pressSel("#buildBtn");
+check("mobile 390: chế độ Xây — trang không tràn ngang, bản đồ cuộn trong khung", await visible("#buildBar") && await noOverflowX() &&
+  await ev("(()=>{const f=document.getElementById('farm');return f.scrollWidth>f.clientWidth})()"), await ev("document.documentElement.scrollWidth"));
+check("mobile: công trình / ô trang trí / nút Xây ≥ 44px", await ev(`[...document.querySelectorAll('.bld:not([hidden]):not(.static), #slotLayer .dslot, #buildBtn, #buildExit')].every(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44})`),
+  await ev(`[...document.querySelectorAll('.bld:not([hidden]):not(.static), #slotLayer .dslot')].filter(b=>{const r=b.getBoundingClientRect();return r.width<44||r.height<44}).map(b=>(b.dataset.id||b.dataset.slot)+Math.round(b.getBoundingClientRect().width)).join(',')`));
+await shot("m3-07-mobile-che-do-xay.png");
+await pressSel(bld("nha-kho"));
+check("mobile: thẻ nâng kho vừa màn, nút ≥ 44px", await visible("#ovBuild") && await noOverflowX() && await ev("document.querySelector('.build-card').getBoundingClientRect().right<=innerWidth") &&
+  await ev("[...document.querySelectorAll('#ovBuild .actions .btn')].filter(b=>b.offsetParent).every(b=>b.getBoundingClientRect().height>=44)"));
+await shot("m3-08-mobile-the-xay.png");
+await pressSel("#buildCancel");
+await ev("document.getElementById('farm').scrollLeft=99999"); await sleep(200);
+await shot("m3-09-mobile-phia-dong.png");
+await pressSel("#buildExit");
+await view(1280, 900, false); await touch(false); press = click;
+await reload();
+await shotFull("m3-10-desktop-toan-trang.png");
 
 check("0 lỗi console / exception", errors.length === 0, errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);

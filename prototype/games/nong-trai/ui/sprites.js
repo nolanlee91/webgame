@@ -7,7 +7,7 @@ let readyP = null;
 const loadImg = (src) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
 
 /** Nạp manifest + các atlas cần (một lần). Trả Promise<boolean>. */
-export function loadSprites(names = ["machines", "machines-2", "workshop", "ui-kit", "market-stall", "npc-market", "fx", "items", "buildings"]) {
+export function loadSprites(names = ["machines", "machines-2", "workshop", "ui-kit", "market-stall", "npc-market", "fx", "items", "buildings", "buildings-2", "decor"]) {
   readyP ||= (async () => {
     let man = null;
     try { const r = await fetch(BASE + "manifest.json"); if (r.ok) man = await r.json(); } catch {}

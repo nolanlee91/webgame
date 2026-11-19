@@ -1,15 +1,15 @@
 // Nhiệm vụ hướng dẫn: tuần tự, tiến độ chỉ đếm sự kiện xảy ra khi nhiệm vụ đang mở (dạy đúng cơ chế, không bấm-để-nhận).
 // s.quests = { tut: chỉ số nhiệm vụ hiện tại trong QUESTS (hướng dẫn rồi tiến trình; = QUESTS.length ⇒ xong), progress }
 // Nhận thưởng: chỉ khi đúng id nhiệm vụ hiện tại và đã đủ tiến độ ⇒ chỉ số tăng ⇒ không nhận 2 lần.
-import { QUESTS } from "../data/quests.js?v=m2b";
-import { addXp } from "./progression.js?v=m2b";
-import { add } from "./inventory.js?v=m2b";
+import { QUESTS } from "../data/quests.js?v=m3";
+import { addXp } from "./progression.js?v=m3";
+import { add } from "./inventory.js?v=m3";
 
 export const currentQuest = (s) => QUESTS[s.quests.tut] || null;
 const matches = (e, where) => !where || Object.entries(where).every(([k, v]) => e[k] === v);
 const condMet = (s, c) => !!c.building && !!s.buildings?.[c.building]?.done;
 // Việc làm một lần (có thể đã làm TRƯỚC khi tới bước này) ⇒ xét theo trạng thái thật, tránh kẹt nhiệm vụ mãi.
-const ALREADY = { "mo-o-dat": (s) => s.bought >= 1, "nang-kho": (s) => s.warehouse >= 1 };
+const ALREADY = { "mo-o-dat": (s) => s.bought >= 1 }; // "xay-nha-kho" dùng cond (công trình), tự xét theo trạng thái
 export const questComplete = (s) => { const q = currentQuest(s); return !!q && s.quests.progress >= q.count; };
 
 /** Cập nhật tiến độ theo sự kiện vừa xảy ra. Đủ ⇒ thêm sự kiện questDone (một lần). */

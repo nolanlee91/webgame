@@ -4,15 +4,15 @@
 // Công trình dùng MỘT mô hình với Milestone 3 — core/build.js (data/buildings.js id "xuong", số liệu khớp data/workshop.js):
 //   s.buildings.xuong = { level (level ĐÃ XONG; 0 khi đang xây lần đầu), done, startAt, readyAt }
 // s.production = { machines: { [id]: { level, slots, readyAt, queue: [{ uid, recipe, startAt, endAt }], nextUid } } }
-import { WORKSHOP } from "../data/workshop.js?v=m2b";
-import { MACHINE, MACHINES } from "../data/machines.js?v=m2b";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m2b";
-import { ITEM } from "../data/catalog.js?v=m2b";
-import * as P from "./production.js?v=m2b";
+import { WORKSHOP } from "../data/workshop.js?v=m3";
+import { MACHINE, MACHINES } from "../data/machines.js?v=m3";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m3";
+import { ITEM } from "../data/catalog.js?v=m3";
+import * as P from "./production.js?v=m3";
 import * as B from "./build.js?v=m3";
-import { MARKET } from "./market.js?v=m2b";
-import { bag, wallet } from "./inventory.js?v=m2b";
-import { addXp } from "./progression.js?v=m2b";
+import { MARKET } from "./market.js?v=m3";
+import { bag, wallet } from "./inventory.js?v=m3";
+import { addXp } from "./progression.js?v=m3";
 
 const ID = WORKSHOP.id; // "xuong"
 export const workshopOf = (s) => s.buildings?.[ID] || null;
@@ -39,10 +39,7 @@ export function nextWorkshopUpgrade(s, now = Infinity) {
   return st ? { level: st.unlock ?? WORKSHOP.unlock, cost: st.cost, toLevel: st.level, materials: st.materials } : null;
 }
 
-/** Đồng bộ theo thời gian: công trình xây / nâng xong ⇒ báo một lần (core/build.js tick). */
-export function sync(s, now, events) {
-  for (const f of B.tick(s, now)) events.push({ type: "buildingDone", ...f, name: f.id === ID ? WORKSHOP.name : f.id });
-}
+// Đồng bộ công trình (Xưởng xây xong khi offline): core/construct.js sync (build.tick) — gọi trong apply().
 
 /** Xây Xưởng = build.startBuild("xuong") + tặng Bếp sên (dùng được cùng lúc Xưởng xong). */
 export function buildWorkshop(s, now, events) {

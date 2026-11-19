@@ -267,7 +267,9 @@ export function sanitize(raw, now) {
     if (!done && ms <= 0) { level += 1; done = true; } // mốc tức thì không thể "đang xây"
     let readyAt = isTime(r.readyAt) ? r.readyAt : (isTime(now) ? now : 0);
     if (isTime(now)) readyAt = Math.min(readyAt, now + ms);
-    out.buildings[id] = { level, done, startAt: readyAt - ms, readyAt };
+    // xong rồi: giữ startAt cũ nếu hợp lệ (lưu / tải không đổi bản ghi); đang xây: startAt suy từ thời gian mốc
+    const startAt = done && r.done !== false ? (isTime(r.startAt) && r.startAt <= readyAt && r.startAt >= readyAt - 3_600_000 ? r.startAt : readyAt) : readyAt - ms;
+    out.buildings[id] = { level, done, startAt, readyAt };
   }
   const bag = raw.decor && typeof raw.decor === "object" && !Array.isArray(raw.decor) ? raw.decor : {};
   for (const [id, n] of Object.entries(bag)) {

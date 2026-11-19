@@ -5,5 +5,5 @@
 // upgrades[i]: nâng Xưởng lên level i+2. Xưởng cấp 2 (§3 cấp 13): +1 ô hàng chờ cho MỌI máy (4 → 5).
 export const WORKSHOP = {
   id: "xuong", name: "Xưởng chế biến", unlock: 4, cost: 150, buildMs: 60_000,
-  sprite: "xuong-che-bien", upgrades: [{ level: 13, cost: 1500, extraSlots: 1, sprite: "xuong-che-bien-2" }],
+  sprite: "xuong-che-bien", upgrades: [{ level: 13, cost: 6000, extraSlots: 1, sprite: "xuong-che-bien-2" }],
 };

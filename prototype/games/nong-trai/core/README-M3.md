@@ -88,3 +88,10 @@ Mã lỗi: `bad locked built not-built building max coins materials not-buildabl
   Người đã nâng kho ở cấp 2 vẫn giữ mốc nhờ `migrate`. Nên chuyển hoặc bỏ dòng "warehouse-upgrade" ở cấp 2.
 - **Xưởng**: số liệu theo `data/workshop.js`. Xây 150 xu, 1 phút, tặng Bếp sên. Nâng cấp 2 ở cấp 13: 1500 xu, tức thì, +1 ô.
 - **Chưa có sprite nên chưa làm**: hàng rào đá (cấp 15), biển tên mạ vàng (cấp 20), khói / ống khói lò bánh, cờ hội (cấp 18), chuồng bò cấp 2 (dùng lại sprite cấp 1). Lô xây phía Đông `lo-dong` để trống cho nội dung sau.
+
+## Đã ghép (Milestone 3 chạy được)
+- `core/construct.js`: action `startBuild` / `startUpgrade` / `placeDecor` / `removeDecor` trong `apply()`; `sync` = `build.tick` + `applyEffects`
+  (`s.warehouse` = mốc kho từ `effects`, mở ô phía Đông 25–33 và Nhà kính 34–42). Công trình milestone > `CURRENT_MILESTONE` (chuồng gà / bò) ⇒ lỗi `milestone`.
+- `upgradeWarehouse` đã bỏ khỏi `apply()` (dùng `startUpgrade { id: "nha-kho" }`). `buildWorkshop` / `upgradeWorkshop` giữ làm tên gọi tắt cho Xưởng.
+- Save v5 (`wgp.nongtrai.v5`): đọc v3/v4 (25 ô) ⇒ `build.migrate` Nhà kho từ `s.warehouse`; bản gốc v4/v3/v2 chép sang `*.backup`, không xoá.
+- Giao diện: `ui/farm-map.js` vẽ bản đồ từ `mapLayout()`; chế độ Xây, thẻ xây, trang trí, bảng Nhà kính ở `game.js`.

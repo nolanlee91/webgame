@@ -9,8 +9,10 @@ export const TUTORIAL = [
   { id: "ban-hang", title: "Bán nông sản", hint: "Mở Kho (hoặc chạm Khu chợ trên bản đồ) rồi bấm Bán — giá theo chợ hôm nay.", event: "sold", count: 1, reward: { coins: 10, xp: 12 }, target: "sell", arrow: true },
   { id: "giao-don", title: "Giao đơn hàng đầu tiên", hint: "Mở Bảng đơn, gom đủ món rồi bấm “Giao”. Đơn trả cao hơn chợ.", event: "delivered", count: 1, reward: { coins: 20, xp: 20 }, target: "orders", arrow: true },
   { id: "mo-o-dat", title: "Mở thêm 1 ô đất", hint: "Từ cấp 2: chạm ô cỏ có giá cạnh ruộng, chạm lần nữa để mua.", event: "plotBought", count: 1, reward: { coins: 20, xp: 60 }, target: "plot-buy", arrow: false },
-  { id: "nang-kho", title: "Nâng cấp Nhà kho", hint: "Kho đầy thì hàng thu hoạch rơi vào giỏ tràn. Mở Kho và nâng lên 90 chỗ.", event: "warehouseUpgraded", count: 1, reward: { coins: 30, xp: 80 }, target: "warehouse-upgrade", arrow: false },
-  { id: "len-cap-3", title: "Lên cấp 3", hint: "Thu hoạch và giao đơn để lấy kinh nghiệm. Cấp 3 mở cây ngô và ô đơn thứ 4.", level: 3, count: 1, reward: { coins: 40, xp: 0 }, target: null, arrow: false },
+  { id: "len-cap-3", title: "Lên cấp 3", hint: "Thu hoạch và giao đơn để lấy kinh nghiệm. Cấp 3 mở cây ngô, ô đơn thứ 4 và lô xây Nhà kho.", level: 3, count: 1, reward: { coins: 40, xp: 0 }, target: null, arrow: false },
+  // Milestone 3: Nhà kho là công trình trên bản đồ (cấp 3, 60 xu, xây ngay) — thay cho bước "Nâng cấp Nhà kho" cũ (nâng ở cấp 2).
+  // cond ⇒ đã xây TRƯỚC khi tới bước này (hoặc kho đã nâng từ bản cũ, được di chuyển thành Nhà kho) thì tới nơi là xong ngay.
+  { id: "xay-nha-kho", title: "Xây Nhà kho", hint: "Bấm “Xây” (cái búa) ở thanh trên, chạm lô bản vẽ Nhà kho bên trái ruộng rồi bấm “Xây” — 60 xu, xây ngay. Sau đó nâng kho lên 90 chỗ.", cond: { building: "nha-kho" }, count: 1, reward: { coins: 30, xp: 80 }, target: "build:nha-kho", arrow: true },
 ];
 
 // Nhiệm vụ tiến trình Milestone 2 (DESIGN-2.0 §5) — nối tiếp hướng dẫn, cùng một sổ theo dõi, nhận thưởng một lần.

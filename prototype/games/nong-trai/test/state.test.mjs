@@ -30,7 +30,7 @@ const memStorage = (init = {}) => {
 test("di chuyển v2 → v3: giữ xu, XP, cấp, ô đã mua, cây đang trồng (timestamp tuyệt đối), kho, hạt tặng, nâng cấp, đơn", () => {
   const v2 = v2Save(START);
   const s = migrateV2(JSON.stringify(v2), START);
-  assert.equal(s.v, 4);
+  assert.equal(s.v, 5);
   assert.equal(s.coins, 137); assert.equal(s.xp, 12); assert.equal(s.level, 3); assert.equal(s.bought, 2);
   assert.equal(s.freeSeeds, 0); assert.equal(s.upgrade, 1);
   assert.deepEqual(s.inv, { "ca-rot": 4, "ca-chua": 70, "dau-tay": 2 }, "kho cũ giữ nguyên, kể cả vượt 60");
@@ -68,7 +68,7 @@ test("save adapter: lần đầu có v2 ⇒ ghi v3, chép v2 sang backup, không
   save.initialize(START);
   assert.equal(st.getItem(BACKUP_KEY), raw);
   assert.equal(st.getItem(V2_KEY), raw, "dữ liệu v2 gốc vẫn còn");
-  assert.equal(JSON.parse(st.getItem(KEY)).v, 4);
+  assert.equal(JSON.parse(st.getItem(KEY)).v, 5);
   const second = save.read(START + 1000);
   assert.equal(second.migrated, false);
   assert.equal(second.state.coins, 137);
@@ -128,7 +128,7 @@ test("load kẹp dữ liệu rác: số âm / NaN / quá lớn, món lạ, cây 
   assert.equal(l.level, 1);
   assert.equal(l.xp, xpNeed(1) - 1, "XP kẹp dưới mức lên cấp");
   assert.equal(l.freeSeeds, 3);
-  assert.equal(l.warehouse, 4);
+  assert.equal(l.warehouse, 0, "v5: mốc kho suy ra từ công trình Nhà kho, không tin field warehouse");
   assert.equal(l.upgrade, 0);
   assert.ok(Number.isInteger(l.seed));
   assert.ok(l.giftAt <= START);

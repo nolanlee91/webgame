@@ -34,8 +34,8 @@ function firstFive(s, t) {
 }
 
 
-test("8 nhiệm vụ hướng dẫn đúng thứ tự thiết kế, mỗi cái có thưởng", () => {
-  assert.deepEqual(TUTORIAL.map((q) => q.id), ["gieo-hat", "tuoi-cay", "thu-hoach", "ban-hang", "giao-don", "mo-o-dat", "nang-kho", "len-cap-3"]);
+test("8 nhiệm vụ hướng dẫn đúng thứ tự thiết kế (M3: lên cấp 3 rồi xây Nhà kho), mỗi cái có thưởng", () => {
+  assert.deepEqual(TUTORIAL.map((q) => q.id), ["gieo-hat", "tuoi-cay", "thu-hoach", "ban-hang", "giao-don", "mo-o-dat", "len-cap-3", "xay-nha-kho"]);
   for (const q of TUTORIAL) assert.ok(q.reward.coins > 0 && q.hint && q.title);
 });
 
@@ -83,44 +83,45 @@ test("đi hết hướng dẫn bằng cơ chế thật: bán, giao đơn, cày l
   const b = act(s, { type: "buyPlot", i: 2 }, t);
   assert.ok(b.events.some((e) => e.type === "questDone" && e.id === "mo-o-dat"));
   claim("mo-o-dat");
-  assert.equal(currentQuest(s).id, "nang-kho");
-  assert.equal(err(s, { type: "claimQuest", id: "nang-kho" }, t), "quest-incomplete");
-  const w = act(s, { type: "upgradeWarehouse" }, t);
-  assert.ok(w.events.some((e) => e.type === "questDone" && e.id === "nang-kho"));
-  const r = claim("nang-kho");
   assert.equal(currentQuest(s).id, "len-cap-3");
   if (s.level < 3) {
-    assert.ok(!r.events.some((e) => e.type === "questDone" && e.id === "len-cap-3"));
     assert.equal(err(s, { type: "claimQuest", id: "len-cap-3" }, t), "quest-incomplete");
+    assert.equal(err(s, { type: "startBuild", id: "nha-kho" }, t), "locked", "Nhà kho mở ở cấp 3");
     let done = false;
     t = grind(s, t, () => s.level >= 3, (ev) => { if (ev.some((e) => e.type === "questDone" && e.id === "len-cap-3")) done = true; });
     assert.ok(done, "lên cấp 3 ⇒ báo xong nhiệm vụ đúng lúc");
-  } else assert.ok(r.events.some((e) => e.type === "questDone" && e.id === "len-cap-3"));
+  }
   claim("len-cap-3");
+  assert.equal(currentQuest(s).id, "xay-nha-kho");
+  assert.equal(err(s, { type: "claimQuest", id: "xay-nha-kho" }, t), "quest-incomplete");
+  t = grind(s, t, () => s.coins >= 100);
+  const w = act(s, { type: "startBuild", id: "nha-kho" }, t);
+  assert.ok(w.events.some((e) => e.type === "questDone" && e.id === "xay-nha-kho"));
+  claim("xay-nha-kho");
   assert.equal(currentQuest(s).id, "xay-xuong", "hết hướng dẫn ⇒ nhiệm vụ tiến trình của Milestone 2");
-  assert.equal(err(s, { type: "claimQuest", id: "len-cap-3" }, t), "quest-claimed");
+  assert.equal(err(s, { type: "claimQuest", id: "xay-nha-kho" }, t), "quest-claimed");
 });
 
-test("đã mở ô và nâng kho TRƯỚC khi tới bước đó ⇒ tới nơi là xong ngay, không kẹt; nhiệm vụ tiến trình mở tiếp", () => {
+test("đã mở ô và xây Nhà kho TRƯỚC khi tới bước đó ⇒ tới nơi là xong ngay, không kẹt; nhiệm vụ tiến trình mở tiếp", () => {
   const s = farm();
   let t = firstFive(s, START);
-  // còn đang ở "giao-don" (chưa nhận): cày lên cấp 2, mua ô, nâng kho trước
-  t = grind(s, t, () => s.level >= 2 && s.coins >= 200);
+  // còn đang ở "giao-don" (chưa nhận): cày lên cấp 3, mua ô, xây Nhà kho trước
+  t = grind(s, t, () => s.level >= 3 && s.coins >= 200);
   act(s, { type: "buyPlot", i: 2 }, t);
-  act(s, { type: "upgradeWarehouse" }, t);
+  act(s, { type: "startBuild", id: "nha-kho" }, t);
   assert.equal(s.bought, 1);
-  assert.equal(s.warehouse >= 1, true);
+  assert.equal(s.buildings["nha-kho"].done, true);
   assert.equal(currentQuest(s).id, "giao-don");
   const c1 = act(s, { type: "claimQuest", id: "giao-don" }, t);
   assert.equal(currentQuest(s).id, "mo-o-dat");
   assert.ok(c1.events.some((e) => e.type === "questDone" && e.id === "mo-o-dat"), "tới bước mở ô ⇒ xong ngay");
   const c2 = act(s, { type: "claimQuest", id: "mo-o-dat" }, t);
-  assert.equal(currentQuest(s).id, "nang-kho");
-  assert.ok(c2.events.some((e) => e.type === "questDone" && e.id === "nang-kho"), "tới bước nâng kho ⇒ xong ngay");
-  act(s, { type: "claimQuest", id: "nang-kho" }, t);
   assert.equal(currentQuest(s).id, "len-cap-3");
-  t = grind(s, t, () => s.level >= 3);
-  act(s, { type: "claimQuest", id: "len-cap-3" }, t);
+  assert.ok(c2.events.some((e) => e.type === "questDone" && e.id === "len-cap-3"));
+  const c3 = act(s, { type: "claimQuest", id: "len-cap-3" }, t);
+  assert.equal(currentQuest(s).id, "xay-nha-kho");
+  assert.ok(c3.events.some((e) => e.type === "questDone" && e.id === "xay-nha-kho"), "tới bước xây kho ⇒ xong ngay");
+  act(s, { type: "claimQuest", id: "xay-nha-kho" }, t);
   assert.equal(currentQuest(s).id, "xay-xuong", "nhiệm vụ tiến trình mở tiếp");
   // xây Xưởng (cấp 4) bằng cơ chế thật ⇒ nhiệm vụ tiến trình đầu xong, sang làm mứt
   t = grind(s, t, () => s.level >= 4 && s.coins >= 400);
