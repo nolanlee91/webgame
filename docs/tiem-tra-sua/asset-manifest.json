@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "phase": 1,
+  "productionFilesRoot": "prototype/games/tiem-tra-sua/",
+  "conceptFilesRoot": "docs/tiem-tra-sua/",
+  "dimensionsConvention": "width, height",
+  "plannedDimensionsMayChangeAfterReview": true,
+  "items": [
+    {
+      "filename": "concepts/main-shop.webp",
+      "category": "screen",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "pixelScale": null,
+      "animationFrames": 1,
+      "transparency": "opaque",
+      "intendedUse": "Toàn cảnh tiệm và hàng chờ",
+      "type": "UI mockup",
+      "productionStatus": "review-phase-1"
+    },
+    {
+      "filename": "concepts/brewing-station.webp",
+      "category": "screen",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "pixelScale": null,
+      "animationFrames": 1,
+      "transparency": "opaque",
+      "intendedUse": "Thao tác pha chế và phiếu đang xử lý",
+      "type": "UI mockup",
+      "productionStatus": "review-phase-1"
+    },
+    {
+      "filename": "concepts/drama-event.webp",
+      "category": "screen",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "pixelScale": null,
+      "animationFrames": 1,
+      "transparency": "opaque",
+      "intendedUse": "Hội thoại C02 và lựa chọn",
+      "type": "UI mockup",
+      "productionStatus": "review-phase-1"
+    },
+    {
+      "filename": "assets/shop-tiles.webp",
+      "category": "environment",
+      "dimensions": [
+        512,
+        256
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "32 ô 64 × 64 cho tường, sàn, cửa, cửa sổ và gạch men.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/shop-layers.webp",
+      "category": "environment",
+      "dimensions": [
+        1536,
+        768
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Lớp phố xa, hiên, tường nền, chi tiết tiền cảnh và bóng ô cửa.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/shop-fixtures.webp",
+      "category": "environment",
+      "dimensions": [
+        768,
+        512
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Quầy hai đầu và đoạn giữa, bếp, kệ kho, ghế chờ, khung giao ly; tọa độ riêng theo vùng.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/equipment.webp",
+      "category": "equipment",
+      "dimensions": [
+        768,
+        576
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Máy pha, nồi topping, tủ lạnh, máy đóng nắp, hũ, khay đá, thiết bị nâng cấp; 12 ô 192 × 192.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/ingredients.webp",
+      "category": "ingredients",
+      "dimensions": [
+        512,
+        256
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "32 ô 64 × 64. Trà nền, sữa, kem, đường, đá, trân châu, thạch, pudding, 3 loại quả, sốt đường đen và bao bì.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/cup-layers.webp",
+      "category": "drinks",
+      "dimensions": [
+        1280,
+        768
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "32 ô 160 × 192, lớp chung cho ly/nắp, mực nước, sắc trà, topping, đá, phản sáng và ly mẫu.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/cup-actions.webp",
+      "category": "drinks",
+      "dimensions": [
+        960,
+        768
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "pour": 6,
+        "topping": 5,
+        "ice": 4,
+        "seal": 5,
+        "handoff": 4
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "24 ô 160 × 192, hiệu ứng chồng lên ly theo cùng điểm neo.",
+      "type": "animation spritesheet",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/characters.webp",
+      "category": "characters",
+      "dimensions": [
+        768,
+        768
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "6 hàng 96 × 128. Nhân viên, khách thường, VIP, reviewer, shipper, nhân vật sự kiện; biến thể màu và dáng.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/customer-actions.webp",
+      "category": "characters",
+      "dimensions": [
+        1728,
+        768
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "idle": 2,
+        "walk": 4,
+        "order": 2,
+        "wait": 2,
+        "happy": 3,
+        "annoyed": 3,
+        "surprised": 2
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "18 cột, 6 hàng × 96 × 128; đi hướng phải, đối xứng khi phù hợp.",
+      "type": "animation spritesheet",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/barista-actions.webp",
+      "category": "characters",
+      "dimensions": [
+        2016,
+        128
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "pour": 6,
+        "topping": 5,
+        "seal": 5,
+        "handoff": 5
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "21 frame 96 × 128 của nhân viên sau quầy.",
+      "type": "animation spritesheet",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/portraits.webp",
+      "category": "characters",
+      "dimensions": [
+        768,
+        1024
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "6 hàng nhân vật và 4 biểu cảm, ô 192 × 160, kèm lề dưới 64 px.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/barista-fx.webp",
+      "category": "effects",
+      "dimensions": [
+        384,
+        192
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "steam": 6,
+        "spark": 6,
+        "coins": 6
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "3 hàng 64 × 64, hơi nước, đồ uống hoàn chỉnh và phản hồi bán.",
+      "type": "animation spritesheet",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/decor.webp",
+      "category": "decoration",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "48 ô 128 × 128 cho bàn ghế, cây, đèn, tranh, biển trống, biến thể cấp nâng.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/ui-icons.webp",
+      "category": "ui",
+      "dimensions": [
+        256,
+        128
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "32 ô 32 × 32 cho kho, khách, ca, đánh giá, tiền, công thức và trạng thái.",
+      "type": "game-ready sprite",
+      "productionStatus": "planned-phase-2"
+    },
+    {
+      "filename": "assets/journal-card.png",
+      "category": "sharing",
+      "dimensions": [
+        1080,
+        1350
+      ],
+      "pixelScale": null,
+      "animationFrames": 1,
+      "transparency": "opaque",
+      "intendedUse": "Mẫu nền PNG hoặc ảnh composited cho Nhật Ký Làm Chủ; chữ được render động.",
+      "type": "UI mockup",
+      "productionStatus": "planned-phase-2"
+    }
+  ]
+}
