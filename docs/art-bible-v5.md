@@ -25,13 +25,14 @@ Phong cách Art Direction V5 kết hợp chặt chẽ từ 3 nguồn đã đư�
 
 ## 0.1. Chuẩn artwork đã duyệt — Detailed HD Pixel Art
 
-Áp dụng cho ảnh bìa, thumbnail, poster và minh họa game mới của Lụm Kèo. Với sprite gameplay, dùng tiếp lưới, tỷ lệ, góc nhìn và điểm neo quy định trong tài liệu từng game.
+Detailed HD Pixel Art là chuẩn hình ảnh bắt buộc cho toàn bộ dòng Tập Làm Chủ, từ Nông Trại đến Tiệm Trà Sữa, Tiệm Bánh Mì, Quán Cơm Tấm và các game ra sau. Cùng một phong cách áp dụng từ ảnh bìa đến trong game: cảnh và bản đồ, nội thất, công trình, NPC, chân dung, máy móc, đạo cụ, sản phẩm, icon vật phẩm và hiệu ứng.
 
-- Mẫu chuẩn mới ở `prototype/homepage/assets/thumbs/`: `cozy-nong-trai.webp`, `tiem-tra-sua.webp`, `tiem-banh-mi.webp`, `quan-com-tam.webp`. Đối chiếu `ma-soi.webp` và `ai-la-noi-gian.webp` để canh độ sắc của pixel, độ tương phản và cách đặt nhân vật.
-- Bố cục có chủ thể rõ, tách tiền cảnh, trung cảnh và hậu cảnh. Khi phù hợp với game, cho nhân vật thực hiện một hành động kể được nội dung trò chơi. Giữ chủ thể trong vùng giữa để vẫn nhận ra ở kích thước thẻ và khi ảnh bị cắt nhẹ.
-- Dùng cụm pixel có chủ đích, biên bậc thang sắc, viền tối có chọn lọc, mảng sáng tối rõ và dithering tiết chế. Dùng navy hoặc teal cho vùng bóng, vàng hổ phách cho vùng sáng, phối thêm màu theo bối cảnh. Tránh cọ mềm, gradient mịn, bloom, nhiễu hạt kiểu ảnh chụp và chữ trong ảnh.
-- Thumbnail homepage chuẩn 4:3. Bộ Tập Làm Chủ dùng lưới nghệ thuật 240 × 180, phóng nearest-neighbor lên 480 × 360 và xuất WebP lossless. Kiểm tra cạnh thumbnail Đối Kháng ở kích thước thẻ thực tế, cả desktop và mobile.
-- Homepage dùng UI Premium Modern Gaming Portal với nền dark navy, viền mảnh, góc bo vừa và điểm nhấn teal, vàng ấm. Quy tắc khung pixel-cut, bóng cứng ở các mục dưới dành cho HUD trong game.
+- **Mẫu gốc khi tạo ảnh.** Dùng bộ ảnh đã duyệt ở `prototype/homepage/assets/thumbs/`: `cozy-nong-trai.webp`, `tiem-tra-sua.webp`, `tiem-banh-mi.webp`, `quan-com-tam.webp`. Khi viết prompt hoặc brief, đính kèm ảnh của game tương ứng và ghi rõ các đặc điểm cần giữ: hình khối, mật độ pixel, tương phản, ánh sáng và chất liệu. Game mới dùng ảnh gần nhất về bối cảnh làm mẫu.
+- **Cảnh chơi và công trình.** Tách rõ tiền cảnh, trung cảnh, hậu cảnh. Tạo chiều sâu bằng bố cục, vật thể che nhau và mảng sáng tối. Giữ chất liệu dễ nhận ra như gỗ, tre, gạch men, vải và kim loại qua cụm pixel có chủ đích. Dùng navy hoặc teal trong bóng và vàng hổ phách ở vùng sáng, phối màu theo bối cảnh của game.
+- **NPC, vật phẩm và hiệu ứng.** Giữ tỷ lệ nhân vật tự nhiên, dáng dễ nhận, đường biên bậc thang sắc và viền tối có chọn lọc. Icon nhỏ ưu tiên hình dáng và mảng màu đặc trưng của vật phẩm. Tạo chuyển sắc bằng cụm pixel hoặc dithering tiết chế. Tránh cọ mềm, viền anti-alias, gradient mịn, bloom và nhiễu hạt kiểu ảnh chụp.
+- **Khi đưa vào game.** Giữ góc nhìn, kích thước ô, tỷ lệ pixel, điểm neo, hướng sáng và thứ tự frame của atlas đích. Đặt asset mới cạnh nhân vật, công trình và vật phẩm cùng cảnh để kiểm tra độ đồng nhất. Giữ thân và điểm chạm đất ổn định giữa các frame, xuất sprite với alpha cứng và phóng nguyên bội bằng nearest-neighbor.
+- **Duyệt trước khi làm cả bộ.** Làm một cảnh mẫu và một cụm asset gồm nhân vật, đạo cụ hoặc vật phẩm, rồi đặt trực tiếp vào màn chơi ở kích thước thật. Duyệt đường biên, ánh sáng, độ chi tiết, khả năng đọc và sự nhất quán với ảnh mẫu trước khi mở rộng. Với thumbnail homepage, dùng 4:3, dựng 240 × 180 pixel nghệ thuật, phóng nearest-neighbor lên 480 × 360 và xuất WebP lossless. Kiểm tra cạnh `ma-soi.webp` và `ai-la-noi-gian.webp` ở kích thước thẻ desktop và mobile.
+- Homepage dùng UI Premium Modern Gaming Portal với nền dark navy, viền mảnh, góc bo vừa và điểm nhấn teal, vàng ấm. Quy tắc khung pixel-cut và bóng cứng ở các mục dưới dành cho HUD trong game.
 
 ---
 
