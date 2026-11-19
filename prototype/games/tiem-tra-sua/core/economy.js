@@ -1,6 +1,6 @@
 // Giá vốn, kho, nhập hàng, lời lỗ. Thuần (không DOM). Đơn vị k.
-import { STOCK, STOCK_IDS, START_CAPACITY, useOf } from "../data/ingredients.js?v=m34";
-import { RECIPE } from "../data/recipes.js?v=m34";
+import { STOCK, STOCK_IDS, START_CAPACITY, useOf } from "../data/ingredients.js?v=m35";
+import { RECIPE } from "../data/recipes.js?v=m35";
 
 export const EXPRESS_MARKUP = 0.15; // nhập gấp giữa ca
 
@@ -68,6 +68,7 @@ export function restock(s, id, events, supplier = "di-ba") {
   s.stock[id] = (s.stock[id] || 0) + n;
   if (s.shift) s.shift.ledger.restock += price;
   s.stats.spentStock += price;
+  if (supplier === "si" && s.drama) s.drama.flags["si-mua"] = s.day + 3; // hàng vựa sỉ: drama U01–U06 (core/drama.js ENGINE_FLAG)
   events.push({ type: "restocked", id, n, price, express, supplier });
   return { ok: true };
 }

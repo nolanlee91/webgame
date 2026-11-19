@@ -3,18 +3,18 @@
 // ngược lại bỏ riêng ca (giữ tiền / cấp / kho). MIGRATIONS[v] nâng v → v+1. save.js giữ bản sao bản cũ trước khi nâng.
 // v2 (Milestone 3–4): chỗ pha song song (shift.stations), đơn nhiều ly (customer.items / filled), drama, sổ review, người theo dõi,
 // nhiệm vụ ngày, vị trí trang trí, quảng bá, gói ký gửi.
-import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m34";
-import { RECIPE } from "../data/recipes.js?v=m34";
-import { ARCHETYPES } from "../data/customers.js?v=m34";
-import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m34";
-import { levelForXp } from "./progression.js?v=m34";
-import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m34";
-import { capacityFor, stationCount } from "./equipment.js?v=m34";
-import { EVENT } from "../data/events.js?v=m34";
-import { MISSION } from "../data/missions.js?v=m34";
-import { PROMOS } from "./business.js?v=m34";
-import { placeError } from "./decor.js?v=m34";
-import { freshDrama } from "./drama.js?v=m34";
+import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m35";
+import { RECIPE } from "../data/recipes.js?v=m35";
+import { ARCHETYPES } from "../data/customers.js?v=m35";
+import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m35";
+import { levelForXp } from "./progression.js?v=m35";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m35";
+import { capacityFor, stationCount } from "./equipment.js?v=m35";
+import { EVENT } from "../data/events.js?v=m35";
+import { MISSION } from "../data/missions.js?v=m35";
+import { PROMOS } from "./business.js?v=m35";
+import { placeError } from "./decor.js?v=m35";
+import { freshDrama } from "./drama.js?v=m35";
 
 export const SAVE_VERSION = 2;
 
@@ -73,7 +73,9 @@ function loadCup(c) {
   }
   if (!steps.length) return null;
   const sealed = steps[steps.length - 1].step === "lid";
-  return { steps, sealed, forCid: Number.isInteger(c.forCid) ? c.forCid : null };
+  const out = { steps, sealed, forCid: Number.isInteger(c.forCid) ? c.forCid : null };
+  if (typeof c.at === "number" && Number.isFinite(c.at) && c.at >= 0) out.at = Math.min(c.at, 3_600_000); // M3 nội dung: lúc ghép vào đơn
+  return out;
 }
 
 function loadOrder(o) {
@@ -199,7 +201,7 @@ function loadShift(sh, s) {
     moments: arr(sh.moments).filter(obj).slice(0, 30).map(loadMoment),
     mods: { sealMs: int(M.sealMs, -10000, 30000, 0), spawnPauseUntil: num(M.spawnPauseUntil, 0, 3_600_000, 0) },
     lastServe: L && ids.has(L.cid) ? { t: num(L.t, 0, t, t), cid: L.cid, arch: ARCHETYPES[L.arch] ? L.arch : "hoc-sinh", name: str(L.name, 40, ""), recipe: RECIPE[L.recipe] ? L.recipe : "tra-dao",
-      stars: int(L.stars, 1, 5, 3), cups: int(L.cups, 1, 3, 1), sugar: choice("sugar", L.sugar) ? L.sugar : 50, ice: str(L.ice, 10, "vua"), sugarOk: !!L.sugarOk, iceOk: !!L.iceOk, topping: str(L.topping, 20, "none"), mistake: typeof L.mistake === "string" ? L.mistake.slice(0, 20) : null } : null,
+      stars: int(L.stars, 1, 5, 3), cups: int(L.cups, 1, 3, 1), sugar: choice("sugar", L.sugar) ? L.sugar : 50, ice: str(L.ice, 10, "vua"), sugarOk: !!L.sugarOk, iceOk: !!L.iceOk, topping: str(L.topping, 20, "none"), mistake: typeof L.mistake === "string" ? L.mistake.slice(0, 20) : null, outcome: typeof L.outcome === "string" ? L.outcome.slice(0, 20) : null } : null,
     missions: arr(sh.missions).filter((m) => obj(m) && MISSION[m.id]).slice(0, 5).map((m) => ({ id: m.id, text: str(m.text, 120, MISSION[m.id].text), n: MISSION[m.id].n,
       prog: int(m.prog, 0, MISSION[m.id].n, 0), done: !!m.done, reward: { xp: MISSION[m.id].reward.xp, money: MISSION[m.id].reward.money } })),
     drama: { count: int(D.count, 0, 9, 0), max: int(D.max, 0, 9, 0), nextAt: num(D.nextAt, 0, 3_600_000, 60000), log: arr(D.log).filter(obj).slice(0, 10).map(loadHist) },

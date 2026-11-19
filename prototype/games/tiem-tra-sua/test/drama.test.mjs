@@ -129,7 +129,8 @@ function tune(s, ev) {
     if (L.cups) { c.items = Array.from({ length: L.cups }, () => ({ ...c.items[0] })); c.filled = c.items.map(() => null); }
     const sugar = L.sugar ?? 50;
     sh.lastServe = { t: sh.t, cid: c.id, arch: c.arch, name: c.name, recipe: c.recipe, stars: L.minStars ?? (L.maxStars ?? 4), cups: L.cups || 1,
-      sugar, ice: "vua", sugarOk: L.sugarOk ?? true, iceOk: L.iceOk ?? true, topping: L.topping || c.order.topping, mistake: L.mistake === undefined ? null : L.mistake === "any" ? "sugar" : [].concat(L.mistake)[0] };
+      sugar, ice: "vua", sugarOk: L.sugarOk ?? true, iceOk: L.iceOk ?? true, topping: L.topping || c.order.topping, mistake: L.mistake === undefined ? null : L.mistake === "any" ? "sugar" : [].concat(L.mistake)[0],
+      outcome: L.outcome === undefined ? null : [].concat(L.outcome)[0] };
     if (L.notArch === c.arch) { c.arch = "hoc-sinh"; sh.lastServe.arch = "hoc-sinh"; }
   }
   if (q.pearlsOut) sh.kitchen.ready = 0;

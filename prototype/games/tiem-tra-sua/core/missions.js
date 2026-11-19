@@ -1,9 +1,14 @@
 // Nhiệm vụ ngày: chọn 3 mục ở đầu ca (RNG của ván ⇒ tải lại không đổi), đếm khi giao / xử lý sự kiện / chốt ca, thưởng một lần.
-import { MISSIONS, MISSION, MISSIONS_PER_DAY } from "../data/missions.js?v=m34";
-import { int } from "./rng.js?v=m34";
-import { gainXp } from "./progression.js?v=m34";
-import { fill } from "./text.js?v=m34";
-import { costOfUse } from "./economy.js?v=m34";
+import { MISSIONS, MISSION, MISSIONS_PER_DAY } from "../data/missions.js?v=m35";
+import { int } from "./rng.js?v=m35";
+import { gainXp } from "./progression.js?v=m35";
+import { fill } from "./text.js?v=m35";
+import { costOfUse } from "./economy.js?v=m35";
+import { MISSION_DONE, MISSION_MISS, MISSION_ALL } from "../data/lines-m3.js?v=m35";
+import { freshLine } from "./shift.js?v=m35";
+
+/** Câu vui khi xong / hụt nhiệm vụ: câu riêng theo kind + câu chung, không lặp trong ca. */
+export const missionLines = (table, kind) => [...(table[kind] || []), ...table.default];
 
 export const missionsUnlocked = (s) => s.level >= 2 && s.tutorialDone;
 
@@ -29,8 +34,15 @@ function complete(s, m, events) {
   s.money += m.reward.money;
   s.shift.xp += xp;
   s.stats.missions = (s.stats.missions || 0) + 1;
-  s.shift.moments.push({ kind: "mission", name: "", line: "Xong nhiệm vụ: " + m.text });
-  events.push({ type: "missionDone", id: m.id, text: m.text, xp, money: m.reward.money });
+  const line = freshLine(s, missionLines(MISSION_DONE, MISSION[m.id]?.kind), {});
+  s.shift.moments.push({ kind: "mission", name: "", line: `Xong nhiệm vụ “${m.text}”. ${line}` });
+  events.push({ type: "missionDone", id: m.id, text: m.text, xp, money: m.reward.money, line });
+  const ms = s.shift.missions;
+  if (ms.length >= 3 && ms.every((x) => x.done)) {
+    const all = freshLine(s, MISSION_ALL, {});
+    s.shift.moments.push({ kind: "mission-all", name: "", line: all });
+    events.push({ type: "missionsAll", line: all });
+  }
 }
 
 function cupSpec(cup) { const o = {}; for (const st of cup?.steps || []) o[st.step] = st.id; return o; }
@@ -63,6 +75,10 @@ export function missionsOnEnd(s, events) {
     const kind = MISSION[m.id]?.kind;
     if (kind === "lowWaste") { m.prog = Math.min(m.n, Lg.cups); if (Lg.cups >= m.n && Lg.waste <= 4) complete(s, m, events); }
     else if (kind === "noLost") { m.prog = Math.min(m.n, Lg.served); if (Lg.served >= m.n && Lg.lost === 0) complete(s, m, events); }
+  }
+  // nhiệm vụ hụt: tối đa hai câu an ủi cho Nhật Ký
+  for (const m of sh.missions.filter((x) => !x.done).slice(0, 2)) {
+    sh.moments.push({ kind: "mission-miss", name: "", line: `Hụt nhiệm vụ “${m.text}”. ${freshLine(s, missionLines(MISSION_MISS, MISSION[m.id]?.kind), {})}` });
   }
 }
 export { costOfUse };
