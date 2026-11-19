@@ -1,116 +1,139 @@
-// Chạy: node --test test/logic.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as L from "../logic.js";
+import { farmSave } from "../save.js";
 
-const T0 = 1_000_000;
-const CENTER = 12; // ô (2,2)
+const start = 1_000_000;
+const center = 12;
 
-test("ruộng mới: 5×5, mở sẵn 3×3 giữa, 20 xu, cấp 1", () => {
-  const s = L.newFarm(T0);
-  assert.equal(s.plots.length, 25);
-  assert.equal(s.plots.filter((p) => p.open).length, 9);
-  assert.ok(s.plots[CENTER].open && !s.plots[0].open);
-  assert.equal(s.coins, L.START_COINS);
-  assert.equal(s.level, 1);
+test("ruộng mới có chín ô, xu và ba hạt cà rốt miễn phí", () => {
+  const farm = L.newFarm(start);
+  assert.equal(farm.plots.length, 25);
+  assert.equal(farm.plots.filter((plot) => plot.open).length, 9);
+  assert.equal(farm.coins, L.START_COINS);
+  assert.equal(farm.freeSeeds, 3);
 });
 
-test("trồng: trừ tiền hạt, chặn ô khoá / ô đang trồng / thiếu tiền / chưa đủ cấp", () => {
-  const s = L.newFarm(T0);
-  assert.deepEqual(L.plant(s, CENTER, "rau-muong", T0), { ok: true, cost: 2 });
-  assert.equal(s.coins, 18);
-  assert.equal(L.plant(s, CENTER, "ca-rot", T0).err, "busy");
-  assert.equal(L.plant(s, 0, "rau-muong", T0).err, "locked");
-  assert.equal(L.plant(s, 6, "bap", T0).err, "level");
-  assert.equal(L.plant(s, 6, "khong-co", T0).err, "bad");
-  s.coins = 1;
-  assert.equal(L.plant(s, 6, "rau-muong", T0).err, "coins");
-  assert.equal(s.coins, 1, "lỗi thì không trừ tiền");
+test("gieo đúng giống, ưu tiên hạt tặng và trừ xu khi hết hạt", () => {
+  const farm = L.newFarm(start);
+  for (const plot of [6, 7, center]) {
+    assert.deepEqual(L.plant(farm, plot, "ca-rot", start), { ok: true, cost: 0 });
+    assert.equal(farm.plots[plot].crop, "ca-rot");
+  }
+  assert.equal(farm.coins, L.START_COINS);
+  assert.equal(farm.freeSeeds, 0);
+  assert.deepEqual(L.plant(farm, 8, "ca-chua", start), { ok: true, cost: 5 });
+  assert.equal(farm.coins, L.START_COINS - 5);
 });
 
-test("lớn theo thời gian: hạt → mầm → lớn → chín; chưa chín thì không thu được", () => {
-  const s = L.newFarm(T0), p = s.plots[CENTER];
-  L.plant(s, CENTER, "ca-rot", T0); // 60 s
-  assert.equal(L.stage(p, T0), "seed");
-  assert.equal(L.stage(p, T0 + 30_000), "sprout");
-  assert.equal(L.stage(p, T0 + 50_000), "grow");
-  assert.equal(L.harvest(s, CENTER, T0 + 59_999).err, "growing");
-  assert.equal(L.stage(p, T0 + 60_000), "ready");
-  const r = L.harvest(s, CENTER, T0 + 60_000);
-  assert.equal(r.coins, 14); assert.equal(r.xp, 3);
-  assert.equal(s.coins, 20 - 5 + 14);
-  assert.equal(p.crop, null);
-  assert.equal(s.stats.harvested, 1);
+test("gieo bị chặn khi thiếu xu, ô đã trồng, ô khóa hoặc giống chưa mở", () => {
+  const farm = L.newFarm(start);
+  L.plant(farm, center, "ca-rot", start);
+  farm.coins = 0;
+  assert.equal(L.plant(farm, 6, "ca-chua", start).err, "coins");
+  assert.equal(L.plant(farm, center, "ca-chua", start).err, "busy");
+  assert.equal(L.plant(farm, 0, "ca-rot", start).err, "locked");
+  assert.equal(L.plant(farm, 7, "bi-ngo", start).err, "level");
+  assert.equal(L.plant(farm, 7, "__proto__", start).err, "bad");
+  assert.equal(farm.coins, 0);
 });
 
-test("tưới: thời gian CÒN LẠI giảm 30%, chỉ 1 lần, không tưới ô trống / ô đã chín; tiến độ không tụt", () => {
-  const s = L.newFarm(T0), p = s.plots[CENTER];
-  assert.equal(L.water(s, CENTER, T0).err, "empty");
-  L.plant(s, CENTER, "ca-rot", T0);
-  const before = L.progress(p, T0 + 20_000);
-  const r = L.water(s, CENTER, T0 + 20_000); // còn 40 s ⇒ bớt 12 s
-  assert.equal(r.saved, 12_000);
-  assert.equal(p.readyAt, T0 + 48_000);
-  assert.ok(L.progress(p, T0 + 20_000) >= before);
-  assert.equal(L.water(s, CENTER, T0 + 21_000).err, "watered");
-  const q = 6; L.plant(s, q, "rau-muong", T0);
-  assert.equal(L.water(s, q, T0 + 20_000).err, "ready");
+test("mỗi giống phát triển qua năm giai đoạn và chín đúng thời điểm", () => {
+  for (const crop of L.CROPS) {
+    const farm = L.newFarm(start);
+    farm.level = crop.level;
+    L.plant(farm, center, crop.id, start);
+    const plot = farm.plots[center];
+    const sample = (ratio) => L.stage(plot, start + crop.growMs * ratio);
+    assert.deepEqual([0, .3, .6, .85, 1].map(sample), ["seed", "sprout", "grow", "mature", "ready"]);
+    assert.equal(L.harvest(farm, center, start + crop.growMs - 1).err, "growing");
+  }
 });
 
-test("lên cấp: đủ XP thì lên, dư XP giữ lại; mở khoá Bắp ở cấp 2", () => {
-  const s = L.newFarm(T0);
-  assert.equal(L.xpNeed(1), 10);
-  s.xp = 9; s.plots[CENTER] = { ...s.plots[CENTER], crop: "ca-rot", plantAt: T0, readyAt: T0 };
-  const r = L.harvest(s, CENTER, T0);
-  assert.equal(r.levelUp, 2); assert.equal(s.level, 2); assert.equal(s.xp, 2);
-  assert.deepEqual(r.unlocked, ["bap"]);
-  assert.ok(L.unlocked(s, "bap") && !L.unlocked(s, "bi-do"));
+test("tưới một lần rút ngắn 30% thời gian còn lại, tiến độ không tụt", () => {
+  const farm = L.newFarm(start);
+  L.plant(farm, center, "ca-rot", start);
+  const now = start + 10_000;
+  const before = L.progress(farm.plots[center], now);
+  assert.deepEqual(L.water(farm, center, now), { ok: true, saved: 6000 });
+  assert.ok(L.progress(farm.plots[center], now) >= before);
+  assert.equal(L.water(farm, center, now).err, "watered");
+  assert.equal(L.water(farm, center, start + 24_000).err, "ready");
 });
 
-test("thu hoạch hết: chỉ lấy ô đã chín, cộng dồn đúng", () => {
-  const s = L.newFarm(T0); s.coins = 100;
-  L.plant(s, 6, "rau-muong", T0); L.plant(s, 7, "rau-muong", T0); L.plant(s, 8, "ca-rot", T0);
-  const r = L.harvestAll(s, T0 + 20_000);
-  assert.equal(r.count, 2); assert.equal(r.coins, 10); assert.deepEqual(r.plots, [6, 7]);
-  assert.equal(s.plots[8].crop, "ca-rot");
+test("thu hoạch đưa nông sản vào kho, cộng XP đúng một lần, chưa cộng xu", () => {
+  const farm = L.newFarm(start);
+  L.plant(farm, center, "ca-rot", start);
+  assert.equal(L.harvest(farm, center, start + 30_000).xp, 2);
+  assert.equal(L.harvest(farm, center, start + 30_000).err, "empty");
+  assert.equal(farm.stock["ca-rot"], 1);
+  assert.equal(farm.coins, L.START_COINS);
+  assert.equal(farm.xp, 2);
 });
 
-test("mở ô: chỉ ô kề ô đã mở, giá tăng dần, thiếu tiền thì chặn", () => {
-  const s = L.newFarm(T0); s.coins = 1000;
-  assert.equal(L.canBuy(s, 0), false, "góc (0,0) chỉ kề chéo");
-  assert.equal(L.buyPlot(s, 0).err, "far");
-  assert.equal(L.canBuy(s, 1), true, "(1,0) kề (1,1)");
-  assert.equal(L.plotCost(s), 30);
-  assert.deepEqual(L.buyPlot(s, 1), { ok: true, cost: 30 });
-  assert.equal(L.plotCost(s), 40);
-  assert.equal(L.canBuy(s, 0), true, "giờ (0,0) kề (1,0)");
-  assert.equal(L.buyPlot(s, CENTER).err, "open");
-  s.coins = 5; assert.equal(L.buyPlot(s, 0).err, "coins");
+test("thu hết chỉ lấy ô đã chín và có thể mở khóa giống khi lên cấp", () => {
+  const farm = L.newFarm(start);
+  farm.xp = 8;
+  L.plant(farm, center, "ca-rot", start);
+  L.plant(farm, 6, "ca-chua", start);
+  const result = L.harvestAll(farm, start + 30_000);
+  assert.deepEqual(result.plots, [center]);
+  assert.deepEqual(result.unlocked, ["dau-tay"]);
+  assert.equal(farm.level, 2);
+  assert.equal(farm.plots[6].crop, "ca-chua");
 });
 
-test("vắng mặt: cây vẫn lớn theo đồng hồ thật, đếm ô chín trong lúc vắng", () => {
-  const s = L.newFarm(T0);
-  L.plant(s, 6, "rau-muong", T0); L.plant(s, 7, "ca-rot", T0);
-  const back = L.load(L.dump(s, T0 + 1_000), T0 + 3_600_000);
-  assert.equal(L.readyWhileAway(back, T0 + 3_600_000), 2);
-  assert.equal(L.harvestAll(back, T0 + 3_600_000).count, 2);
+test("bán hết trả đúng giá, trừ kho và không thể bán lại sau khi tải", () => {
+  const farm = L.newFarm(start);
+  farm.stock["ca-rot"] = 2;
+  farm.stock["ca-chua"] = 1;
+  assert.deepEqual(L.sell(farm), { ok: true, count: 3, coins: 24 });
+  assert.equal(farm.coins, L.START_COINS + 24);
+  assert.equal(farm.stats.earned, 24);
+  const reopened = L.load(L.dump(farm, start), start);
+  assert.equal(L.sell(reopened).err, "empty-stock");
+  assert.equal(reopened.coins, farm.coins);
 });
 
-test("đọc bản lưu: lưu rồi đọc ra giống hệt; bản hỏng / phiên bản lạ ⇒ ruộng mới", () => {
-  const s = L.newFarm(T0); s.coins = 77; L.plant(s, CENTER, "ca-rot", T0); L.water(s, CENTER, T0 + 1000);
-  const back = L.load(L.dump(s, T0 + 2000), T0 + 2000);
-  assert.equal(back.coins, 72); assert.deepEqual(back.plots[CENTER], s.plots[CENTER]);
-  for (const bad of ["{", "null", '{"v":99}', JSON.stringify({ v: 1, plots: [] }), 42]) assert.equal(L.load(bad, T0).coins, L.START_COINS, String(bad));
+test("mở rộng chỉ mở ô kề và nâng cấp trang trí yêu cầu đủ cấp, đủ xu", () => {
+  const farm = L.newFarm(start);
+  assert.equal(L.buyPlot(farm, 0).err, "far");
+  assert.equal(L.buyPlot(farm, 2).err, "coins");
+  assert.equal(L.upgradeFarm(farm).err, "upgrade-level");
+  farm.level = 2;
+  assert.equal(L.upgradeFarm(farm).err, "coins");
+  farm.coins = 100;
+  assert.deepEqual(L.buyPlot(farm, 2), { ok: true, cost: 30 });
+  assert.ok(farm.plots[2].open);
+  assert.equal(L.upgradeFarm(farm).name, L.UPGRADES[0].name);
+  assert.equal(farm.coins, 42);
+  assert.equal(farm.upgrade, 1);
 });
 
-test("đọc bản lưu bị sửa: kẹp số âm / quá lớn, cây lạ bị bỏ, cây không kẹt quá một chu kỳ", () => {
-  const s = L.newFarm(T0), d = JSON.parse(L.dump(s, T0));
-  d.coins = -50; d.level = 0; d.xp = 1e9;
-  d.plots[CENTER] = { open: true, crop: "ca-rot", plantAt: T0, readyAt: T0 + 1e12, watered: false };
-  d.plots[6] = { open: true, crop: "hack", plantAt: 0, readyAt: 0 };
-  const b = L.load(JSON.stringify(d), T0);
-  assert.equal(b.coins, 0); assert.equal(b.level, 1); assert.ok(b.xp < L.xpNeed(1));
-  assert.ok(b.plots[CENTER].readyAt <= T0 + L.CROP["ca-rot"].growMs);
-  assert.equal(b.plots[6].crop, null);
-  assert.equal(b.plots.filter((p) => p.open).length, 9, "ô giữa luôn mở");
+test("sau khi offline vẫn giữ kho, xu, tiến độ và chín theo timestamp", () => {
+  const data = new Map();
+  const save = farmSave({ getItem: (key) => data.get(key), setItem: (key, value) => data.set(key, value) });
+  save.initialize(start);
+  const { state: farm } = save.read(start);
+  L.plant(farm, 6, "ca-chua", start);
+  farm.stock["ca-rot"] = 1;
+  assert.ok(save.write(farm, start + 5000));
+  const { state: reopened } = save.read(start + 70_000);
+  assert.equal(L.readyWhileAway(reopened, start + 70_000), 1);
+  assert.equal(L.stage(reopened.plots[6], start + 70_000), "ready");
+  assert.equal(reopened.coins, farm.coins);
+  assert.equal(reopened.stock["ca-rot"], 1);
+});
+
+test("bỏ qua bản thử cũ và kẹp giá trị bản lưu mới bị hỏng", () => {
+  const farm = L.newFarm(start);
+  assert.equal(L.load({ ...farm, v: 1, coins: 999 }, start).coins, L.START_COINS);
+  assert.equal(L.load("{", start).freeSeeds, 3);
+  farm.stock["ca-rot"] = -9;
+  farm.freeSeeds = 999;
+  farm.plots[center].crop = "constructor";
+  const loaded = L.load(farm, start);
+  assert.equal(loaded.stock["ca-rot"], 0);
+  assert.equal(loaded.freeSeeds, 3);
+  assert.equal(loaded.plots[center].crop, null);
 });

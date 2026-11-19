@@ -1,21 +1,25 @@
 // Nông Trại — luật thuần (không DOM). Mọi hàm nhận `now` (ms) từ ngoài để test được và để cây vẫn lớn khi tắt trang:
 // mỗi ô lưu mốc thời gian tuyệt đối (plantAt / readyAt), mở lại trang chỉ cần so với Date.now().
-// Ruộng 5×5, mở sẵn 3×3 ở giữa; mua thêm ô kề ô đã mở. Trồng → (tưới 1 lần, nhanh 30%) → chín → thu hoạch lấy xu + XP.
+// Ruộng 5×5, mở sẵn 3×3 ở giữa. Thu hoạch vào kho, bán tại quầy nông sản.
 
 export const W = 5, H = 5;
-export const SAVE_VERSION = 1;
-export const START_COINS = 20;
+export const SAVE_VERSION = 2;
+export const START_COINS = 24;
 export const WATER_FACTOR = 0.7; // tưới: thời gian CÒN LẠI × 0.7
 
 // Cây ngắn ngày lời hơn mỗi phút (thưởng người chơi chăm), cây dài ngày hợp để trồng rồi đi làm việc khác.
 export const CROPS = [
-  { id: "rau-muong", name: "Rau Muống", growMs: 20_000, seed: 2, sell: 5, xp: 1, level: 1 },
-  { id: "ca-rot", name: "Cà Rốt", growMs: 60_000, seed: 5, sell: 14, xp: 3, level: 1 },
-  { id: "bap", name: "Bắp", growMs: 180_000, seed: 12, sell: 36, xp: 8, level: 2 },
-  { id: "bi-do", name: "Bí Đỏ", growMs: 480_000, seed: 25, sell: 80, xp: 18, level: 3 },
-  { id: "dua-hau", name: "Dưa Hấu", growMs: 1_200_000, seed: 50, sell: 180, xp: 40, level: 5 },
+  { id: "ca-rot", name: "Cà rốt", growMs: 30_000, seed: 2, sell: 6, xp: 2, level: 1 },
+  { id: "ca-chua", name: "Cà chua", growMs: 60_000, seed: 5, sell: 12, xp: 4, level: 1 },
+  { id: "dau-tay", name: "Dâu tây", growMs: 90_000, seed: 8, sell: 18, xp: 6, level: 2 },
+  { id: "ngo", name: "Ngô", growMs: 180_000, seed: 12, sell: 29, xp: 10, level: 3 },
+  { id: "bi-ngo", name: "Bí ngô", growMs: 300_000, seed: 20, sell: 47, xp: 16, level: 4 },
 ];
-export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c]));
+export const CROP = Object.assign(Object.create(null), Object.fromEntries(CROPS.map((c) => [c.id, c])));
+export const UPGRADES = [
+  { name: "Bồn hoa trước hiên", cost: 28, level: 2 },
+  { name: "Vườn hoa quanh ao", cost: 62, level: 3 },
+];
 
 /** XP cần để đi từ cấp `lv` lên `lv + 1`. */
 export const xpNeed = (lv) => Math.round(10 * lv ** 1.5);
@@ -29,6 +33,7 @@ const emptyPlot = (open) => ({ open, crop: null, plantAt: 0, readyAt: 0, watered
 export function newFarm(now = 0) {
   return {
     v: SAVE_VERSION, coins: START_COINS, xp: 0, level: 1, bought: 0, lastSeen: now,
+    freeSeeds: 3, upgrade: 0, stock: Object.fromEntries(CROPS.map(({ id }) => [id, 0])),
     plots: Array.from({ length: W * H }, (_, i) => emptyPlot(START_OPEN.has(i))),
     stats: { harvested: 0, earned: 0 },
   };
@@ -41,12 +46,14 @@ export function progress(p, now) {
   const span = p.readyAt - p.plantAt;
   return span <= 0 ? 1 : Math.max(0, Math.min(1, (now - p.plantAt) / span));
 }
-/** Giai đoạn hiển thị: "empty" | "seed" | "sprout" | "grow" | "ready". */
+/** Giai đoạn hiển thị: "empty" | "seed" | "sprout" | "grow" | "mature" | "ready". */
 export function stage(p, now) {
   if (!p.crop) return "empty";
   if (isReady(p, now)) return "ready";
   const k = progress(p, now);
-  return k < 0.34 ? "seed" : k < 0.72 ? "sprout" : "grow";
+  if (k < 0.2) return "seed";
+  if (k < 0.45) return "sprout";
+  return k < 0.78 ? "grow" : "mature";
 }
 export const unlocked = (s, id) => !!CROP[id] && s.level >= CROP[id].level;
 
@@ -56,10 +63,13 @@ export function plant(s, i, id, now) {
   if (!p.open) return { err: "locked" };
   if (p.crop) return { err: "busy" };
   if (s.level < c.level) return { err: "level" };
-  if (s.coins < c.seed) return { err: "coins" };
-  s.coins -= c.seed;
+  const free = id === "ca-rot" && s.freeSeeds > 0;
+  const cost = free ? 0 : c.seed;
+  if (s.coins < cost) return { err: "coins" };
+  if (free) s.freeSeeds--;
+  s.coins -= cost;
   Object.assign(p, { crop: id, plantAt: now, readyAt: now + c.growMs, watered: false });
-  return { ok: true, cost: c.seed };
+  return { ok: true, cost };
 }
 
 export function water(s, i, now) {
@@ -86,24 +96,50 @@ export function harvest(s, i, now) {
   if (!p || !p.crop) return { err: "empty" };
   if (!isReady(p, now)) return { err: "growing" };
   const c = CROP[p.crop];
-  s.coins += c.sell; s.stats.harvested++; s.stats.earned += c.sell;
+  s.stock[c.id]++;
+  s.stats.harvested++;
   const before = s.level, ups = addXp(s, c.xp);
   Object.assign(p, emptyPlot(true));
   const unlockedNow = ups ? CROPS.filter((k) => k.level > before && k.level <= s.level).map((k) => k.id) : [];
-  return { ok: true, crop: c.id, coins: c.sell, xp: c.xp, levelUp: ups ? s.level : 0, unlocked: unlockedNow };
+  return { ok: true, crop: c.id, xp: c.xp, levelUp: ups ? s.level : 0, unlocked: unlockedNow };
 }
 
 /** Thu hoạch mọi ô đã chín. */
 export function harvestAll(s, now) {
-  const out = { count: 0, coins: 0, xp: 0, levelUp: 0, unlocked: [], plots: [] };
+  const out = { count: 0, xp: 0, levelUp: 0, unlocked: [], plots: [] };
   s.plots.forEach((p, i) => {
     if (!isReady(p, now)) return;
     const r = harvest(s, i, now);
-    out.count++; out.coins += r.coins; out.xp += r.xp; out.plots.push(i);
+    out.count++; out.xp += r.xp; out.plots.push(i);
     if (r.levelUp) out.levelUp = r.levelUp;
     out.unlocked.push(...r.unlocked);
   });
   return out;
+}
+
+export function sell(s, id) {
+  if (id !== undefined && !CROP[id]) return { err: "bad" };
+  let count = 0, coins = 0;
+  for (const crop of id === undefined ? CROPS : [CROP[id]]) {
+    const quantity = s.stock[crop.id];
+    count += quantity;
+    coins += quantity * crop.sell;
+    s.stock[crop.id] = 0;
+  }
+  if (!count) return { err: "empty-stock" };
+  s.coins += coins;
+  s.stats.earned += coins;
+  return { ok: true, count, coins };
+}
+
+export function upgradeFarm(s) {
+  const upgrade = UPGRADES[s.upgrade];
+  if (!upgrade) return { err: "upgraded" };
+  if (s.level < upgrade.level) return { err: "upgrade-level" };
+  if (s.coins < upgrade.cost) return { err: "coins" };
+  s.coins -= upgrade.cost;
+  s.upgrade++;
+  return { ok: true, name: upgrade.name };
 }
 
 /** Ô khoá có kề (trên/dưới/trái/phải) một ô đã mở không. */
@@ -145,6 +181,9 @@ export function load(raw, now) {
   s.xp = Math.floor(num(d.xp, 0, xpNeed(s.level) - 1, 0));
   s.bought = Math.floor(num(d.bought, 0, W * H, 0));
   s.lastSeen = num(d.lastSeen, 0, now, now);
+  s.freeSeeds = Math.floor(num(d.freeSeeds, 0, 3, 0));
+  s.upgrade = Math.floor(num(d.upgrade, 0, UPGRADES.length, 0));
+  for (const { id } of CROPS) s.stock[id] = Math.floor(num(d.stock?.[id], 0, 1e9, 0));
   s.stats.harvested = Math.floor(num(d.stats?.harvested, 0, 1e12, 0));
   s.stats.earned = Math.floor(num(d.stats?.earned, 0, 1e15, 0));
   s.plots = d.plots.map((q, i) => {

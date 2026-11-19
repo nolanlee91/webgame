@@ -1,0 +1,40 @@
+{
+  "generator": "OpenAI ImageGen (built-in)",
+  "reference": "Approved Nông Trại concept, used for the scenery objects",
+  "terrain": {
+    "grass": "grass.webp",
+    "stonePath": "path.webp",
+    "tilledSoil": "soil.webp",
+    "wateredSoil": "wet.webp",
+    "water": "water.webp"
+  },
+  "scenery": ["house.webp", "market.webp", "tree.webp", "pond.webp", "flowers.webp", "fence.webp"],
+  "atlas": {
+    "file": "crops.webp",
+    "frameWidth": 80,
+    "frameHeight": 80,
+    "anchor": [
+      40,
+      74
+    ],
+    "rows": [
+      "ca-rot",
+      "ca-chua",
+      "dau-tay",
+      "ngo",
+      "bi-ngo"
+    ],
+    "columns": [
+      "seed",
+      "sprout",
+      "grow",
+      "mature",
+      "ready"
+    ]
+  },
+  "prompts": {
+    "objects": "Generate original production GAME SPRITE ATLAS matching the attached approved cozy Vietnamese farming pixel-art concept. STRICT uniformly spaced 3 columns by 2 rows of equal square cells, landscape aspect ratio 3:2; no visible grid, no text. Use flat pure magenta #FF00FF background, completely uniform, with generous 12% blank padding inside every cell. Each sprite is wholly inside its own cell, centered, does not touch any neighbors. Top row left-to-right: entire farmhouse red terracotta roof timber porch warm plaster wall; whole open-sided produce market stall with baskets and crates; full leafy tropical shade tree with trunk. Bottom row left-to-right: entire small kidney-shaped turquoise pond with step-pixel stones and reeds; low clump of wildflowers and bush; single wide straight horizontal wooden fence segment with posts. No ground beyond each object, no surrounding scene. Top down 3/4 orthographic, warm upper-left light, crisp deliberate square pixels, coherent with reference, no painterly smoothing. This is six separated game objects, not a landscape.",
+    "crops": "Production pixel art spritesheet, strict uniform 5x5 grid over 1024x1024 square pure magenta #ff00ff matte. Exactly one compact self-contained crop sprite per cell, centered with very generous empty margins, no grid or labels. Read by rows: carrot (orange taproots and feathery greens), staked tomato (round red fruits), strawberry (red berries white blossoms), corn (golden cobs and tassels), pumpkin (ribbed orange and broad leaves). Across each row five different silhouettes: three seeds on a tiny dark dirt speck; small two-leaf sprout; distinctive leafy juvenile plant; mature plant with clearly visible unripe produce; plant overflowing with ripe harvestable fruit or vegetables. Each sprite is isolated, no cast shadow extending beyond the sprite, no background scene. Cozy original Vietnamese countryside farming browser game, top-down three-quarter view, crisp deliberate square pixel clusters, structure of a real 32x32 or 48x48 16-bit sprite, saturated natural distinctive colors, amber upper left lighting, legible dark outlines, cohesive palette. Do not include any symbols or text.",
+    "tiles": "A strict 2 by 2 equal quadrant tileset sheet of FOUR edge-to-edge flat top-down square pixel art material samples, entire image square, no gutters, no borders, no labels, no objects, no shadows from outside the tile. Upper-left full sunny meadow grass texture in spring celery-green, medium green, tiny olive grass tuft pixels and rare flecks of pale yellow; subtle coherent repeatable meadow. Upper-right full worn honey sandstone pavers with irregular small rounded polygon pixel clusters and narrow brown mortar, no border. Lower-left full rich dry tilled soil, warm umber and dark brown with four horizontal shallow furrows and small ochre clods, arranged as an actual garden bed ground texture. Lower-right full water-darkened wet tilled soil matching the lower-left material with four horizontal shallow furrows, walnut and deep mahogany brown. Crisp square pixels, authentic detailed 16-bit game tiles, no soft gradients or blur. Each of the four quadrants is a seamless material all the way to each quadrant edge, suitable for pixel-game sample extraction. Original cozy Vietnamese countryside farming palette. Exactly two columns and two rows, strict center division."
+  }
+}
