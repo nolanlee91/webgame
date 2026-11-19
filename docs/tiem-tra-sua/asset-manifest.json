@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "phase": 1,
+  "phase": 2,
   "productionFilesRoot": "prototype/games/tiem-tra-sua/",
   "conceptFilesRoot": "docs/tiem-tra-sua/",
   "dimensionsConvention": "width, height",
@@ -49,46 +49,62 @@
       "productionStatus": "review-phase-1"
     },
     {
-      "filename": "assets/shop-tiles.webp",
+      "filename": "assets/shop-scene.webp",
       "category": "environment",
       "dimensions": [
-        512,
-        256
+        1280,
+        720
       ],
       "pixelScale": 2,
       "animationFrames": 1,
-      "transparency": "hard alpha",
-      "intendedUse": "32 ô 64 × 64 cho tường, sàn, cửa, cửa sổ và gạch men.",
+      "transparency": "opaque",
+      "intendedUse": "Nền toàn cảnh và vị trí các khu.",
       "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
+      "productionStatus": "produced-phase-2",
+      "frames": {}
     },
     {
-      "filename": "assets/shop-layers.webp",
+      "filename": "assets/shop-counter-foreground.webp",
       "category": "environment",
       "dimensions": [
-        1536,
-        768
+        1280,
+        720
       ],
       "pixelScale": 2,
       "animationFrames": 1,
       "transparency": "hard alpha",
-      "intendedUse": "Lớp phố xa, hiên, tường nền, chi tiết tiền cảnh và bóng ô cửa.",
+      "intendedUse": "Lớp che nhân vật sau quầy, trùng tọa độ với nền quán.",
       "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "counter-overlay": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
     },
     {
-      "filename": "assets/shop-fixtures.webp",
+      "filename": "assets/street-background.webp",
       "category": "environment",
       "dimensions": [
-        768,
-        512
+        1280,
+        720
       ],
       "pixelScale": 2,
       "animationFrames": 1,
-      "transparency": "hard alpha",
-      "intendedUse": "Quầy hai đầu và đoạn giữa, bếp, kệ kho, ghế chờ, khung giao ly; tọa độ riêng theo vùng.",
+      "transparency": "opaque",
+      "intendedUse": "Nền đường phố phía ngoài cửa.",
       "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
+      "productionStatus": "produced-phase-2",
+      "frames": {}
     },
     {
       "filename": "assets/equipment.webp",
@@ -100,172 +116,3149 @@
       "pixelScale": 2,
       "animationFrames": 1,
       "transparency": "hard alpha",
-      "intendedUse": "Máy pha, nồi topping, tủ lạnh, máy đóng nắp, hũ, khay đá, thiết bị nâng cấp; 12 ô 192 × 192.",
+      "intendedUse": "Thiết bị, hũ và nội thất cơ bản.",
       "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/ingredients.webp",
-      "category": "ingredients",
-      "dimensions": [
-        512,
-        256
-      ],
-      "pixelScale": 2,
-      "animationFrames": 1,
-      "transparency": "hard alpha",
-      "intendedUse": "32 ô 64 × 64. Trà nền, sữa, kem, đường, đá, trân châu, thạch, pudding, 3 loại quả, sốt đường đen và bao bì.",
-      "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/cup-layers.webp",
-      "category": "drinks",
-      "dimensions": [
-        1280,
-        768
-      ],
-      "pixelScale": 2,
-      "animationFrames": 1,
-      "transparency": "hard alpha",
-      "intendedUse": "32 ô 160 × 192, lớp chung cho ly/nắp, mực nước, sắc trà, topping, đá, phản sáng và ly mẫu.",
-      "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/cup-actions.webp",
-      "category": "drinks",
-      "dimensions": [
-        960,
-        768
-      ],
-      "pixelScale": 2,
-      "animationFrames": {
-        "pour": 6,
-        "topping": 5,
-        "ice": 4,
-        "seal": 5,
-        "handoff": 4
-      },
-      "transparency": "hard alpha",
-      "intendedUse": "24 ô 160 × 192, hiệu ứng chồng lên ly theo cùng điểm neo.",
-      "type": "animation spritesheet",
-      "productionStatus": "planned-phase-2"
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "tea-brewer": {
+          "rect": [
+            0,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "topping-stove": {
+          "rect": [
+            192,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "fridge": {
+          "rect": [
+            384,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "cup-sealer": {
+          "rect": [
+            576,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "pearls-jar": {
+          "rect": [
+            0,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "jelly-jar": {
+          "rect": [
+            192,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "ice-jar": {
+          "rect": [
+            384,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "milk-pitcher": {
+          "rect": [
+            576,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "stool": {
+          "rect": [
+            0,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "table": {
+          "rect": [
+            192,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "plant": {
+          "rect": [
+            384,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "lantern": {
+          "rect": [
+            576,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      }
     },
     {
       "filename": "assets/characters.webp",
       "category": "characters",
       "dimensions": [
-        768,
-        768
+        576,
+        128
       ],
       "pixelScale": 2,
       "animationFrames": 1,
       "transparency": "hard alpha",
-      "intendedUse": "6 hàng 96 × 128. Nhân viên, khách thường, VIP, reviewer, shipper, nhân vật sự kiện; biến thể màu và dáng.",
+      "intendedUse": "Sprite toàn thân đứng tĩnh của sáu vai.",
       "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/customer-actions.webp",
-      "category": "characters",
-      "dimensions": [
-        1728,
-        768
-      ],
-      "pixelScale": 2,
-      "animationFrames": {
-        "idle": 2,
-        "walk": 4,
-        "order": 2,
-        "wait": 2,
-        "happy": 3,
-        "annoyed": 3,
-        "surprised": 2
-      },
-      "transparency": "hard alpha",
-      "intendedUse": "18 cột, 6 hàng × 96 × 128; đi hướng phải, đối xứng khi phù hợp.",
-      "type": "animation spritesheet",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/barista-actions.webp",
-      "category": "characters",
-      "dimensions": [
-        2016,
-        128
-      ],
-      "pixelScale": 2,
-      "animationFrames": {
-        "pour": 6,
-        "topping": 5,
-        "seal": 5,
-        "handoff": 5
-      },
-      "transparency": "hard alpha",
-      "intendedUse": "21 frame 96 × 128 của nhân viên sau quầy.",
-      "type": "animation spritesheet",
-      "productionStatus": "planned-phase-2"
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "barista": {
+          "rect": [
+            0,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "regular": {
+          "rect": [
+            96,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip": {
+          "rect": [
+            192,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer": {
+          "rect": [
+            288,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier": {
+          "rect": [
+            384,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor": {
+          "rect": [
+            480,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        }
+      }
     },
     {
       "filename": "assets/portraits.webp",
       "category": "characters",
       "dimensions": [
-        768,
-        1024
+        1152,
+        160
       ],
       "pixelScale": 2,
       "animationFrames": 1,
       "transparency": "hard alpha",
-      "intendedUse": "6 hàng nhân vật và 4 biểu cảm, ô 192 × 160, kèm lề dưới 64 px.",
+      "intendedUse": "Chân dung mặc định cho hội thoại.",
       "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "barista": {
+          "rect": [
+            0,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "regular": {
+          "rect": [
+            192,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "vip": {
+          "rect": [
+            384,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "reviewer": {
+          "rect": [
+            576,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "courier": {
+          "rect": [
+            768,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "neighbor": {
+          "rect": [
+            960,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/cup-states-and-ingredients.webp",
+      "category": "drinks",
+      "dimensions": [
+        960,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Ảnh đồ uống và nguyên liệu cho UI gọi món.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "empty-cup": {
+          "rect": [
+            0,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "tea-low": {
+          "rect": [
+            160,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "tea-mid": {
+          "rect": [
+            320,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "milk-high": {
+          "rect": [
+            480,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "served-milk-tea": {
+          "rect": [
+            640,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "dome-lid": {
+          "rect": [
+            800,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "black-tea": {
+          "rect": [
+            0,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "milk": {
+          "rect": [
+            160,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "sugar": {
+          "rect": [
+            320,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice": {
+          "rect": [
+            480,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pearls": {
+          "rect": [
+            640,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fruit": {
+          "rect": [
+            800,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/cup-fx.webp",
+      "category": "effects",
+      "dimensions": [
+        960,
+        576
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "pour": 6,
+        "topping": 6,
+        "steam": 6
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Lớp rót, trân châu và hơi nước.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "pour-1": {
+          "rect": [
+            0,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pour-2": {
+          "rect": [
+            160,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pour-3": {
+          "rect": [
+            320,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pour-4": {
+          "rect": [
+            480,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pour-5": {
+          "rect": [
+            640,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pour-6": {
+          "rect": [
+            800,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "topping-1": {
+          "rect": [
+            0,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "topping-2": {
+          "rect": [
+            160,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "topping-3": {
+          "rect": [
+            320,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "topping-4": {
+          "rect": [
+            480,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "topping-5": {
+          "rect": [
+            640,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "topping-6": {
+          "rect": [
+            800,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "steam-1": {
+          "rect": [
+            0,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "steam-2": {
+          "rect": [
+            160,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "steam-3": {
+          "rect": [
+            320,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "steam-4": {
+          "rect": [
+            480,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "steam-5": {
+          "rect": [
+            640,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "steam-6": {
+          "rect": [
+            800,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        }
+      },
+      "animations": {
+        "pour": {
+          "frames": [
+            "pour-1",
+            "pour-2",
+            "pour-3",
+            "pour-4",
+            "pour-5",
+            "pour-6"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "topping": {
+          "frames": [
+            "topping-1",
+            "topping-2",
+            "topping-3",
+            "topping-4",
+            "topping-5",
+            "topping-6"
+          ],
+          "fps": 10,
+          "loop": false
+        },
+        "steam": {
+          "frames": [
+            "steam-1",
+            "steam-2",
+            "steam-3",
+            "steam-4",
+            "steam-5",
+            "steam-6"
+          ],
+          "fps": 8,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/decor-and-pantry.webp",
+      "category": "decoration",
+      "dimensions": [
+        512,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Trang trí và nguyên liệu bổ sung.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "wicker-chair": {
+          "rect": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "picture": {
+          "rect": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "signboard": {
+          "rect": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "lamp": {
+          "rect": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "green-tea": {
+          "rect": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "matcha": {
+          "rect": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "lychee": {
+          "rect": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "passionfruit": {
+          "rect": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "pudding": {
+          "rect": [
+            0,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "clear-jelly": {
+          "rect": [
+            128,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "syrup-pump": {
+          "rect": [
+            256,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        },
+        "peach": {
+          "rect": [
+            384,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            118
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/character-motion-sample.webp",
+      "category": "characters",
+      "dimensions": [
+        384,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "walk": 4
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Khách thường đi, dáng gọi món và dáng thao tác mẫu.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "walk-1": {
+          "rect": [
+            0,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "walk-2": {
+          "rect": [
+            96,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "walk-3": {
+          "rect": [
+            192,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "walk-4": {
+          "rect": [
+            288,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "idle": {
+          "rect": [
+            0,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "order": {
+          "rect": [
+            96,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "happy": {
+          "rect": [
+            192,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "annoyed": {
+          "rect": [
+            288,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "hold": {
+          "rect": [
+            0,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "pour": {
+          "rect": [
+            96,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "add-topping": {
+          "rect": [
+            192,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "handoff": {
+          "rect": [
+            288,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        }
+      },
+      "animations": {
+        "walk": {
+          "frames": [
+            "walk-1",
+            "walk-2",
+            "walk-3",
+            "walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/cup-layers.webp",
+      "category": "drinks",
+      "dimensions": [
+        640,
+        576
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Lớp dùng chung neo để ráp ly theo công thức.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "empty-cup": {
+          "rect": [
+            0,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "amber-25": {
+          "rect": [
+            160,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "amber-50": {
+          "rect": [
+            320,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "amber-75": {
+          "rect": [
+            480,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "milk-25": {
+          "rect": [
+            0,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "milk-50": {
+          "rect": [
+            160,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "milk-75": {
+          "rect": [
+            320,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "matcha-75": {
+          "rect": [
+            480,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pearls-bottom": {
+          "rect": [
+            0,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "jelly-bottom": {
+          "rect": [
+            160,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-top": {
+          "rect": [
+            320,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "dome-lid": {
+          "rect": [
+            480,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/lid-and-ice-fx.webp",
+      "category": "effects",
+      "dimensions": [
+        960,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "seal": 6,
+        "ice": 6
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Hoạt ảnh hạ nắp và đá rơi.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "seal-1": {
+          "rect": [
+            0,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "seal-2": {
+          "rect": [
+            160,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "seal-3": {
+          "rect": [
+            320,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "seal-4": {
+          "rect": [
+            480,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "seal-5": {
+          "rect": [
+            640,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "seal-6": {
+          "rect": [
+            800,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-1": {
+          "rect": [
+            0,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-2": {
+          "rect": [
+            160,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-3": {
+          "rect": [
+            320,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-4": {
+          "rect": [
+            480,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-5": {
+          "rect": [
+            640,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ice-6": {
+          "rect": [
+            800,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        }
+      },
+      "animations": {
+        "seal": {
+          "frames": [
+            "seal-1",
+            "seal-2",
+            "seal-3",
+            "seal-4",
+            "seal-5",
+            "seal-6"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "ice": {
+          "frames": [
+            "ice-1",
+            "ice-2",
+            "ice-3",
+            "ice-4",
+            "ice-5",
+            "ice-6"
+          ],
+          "fps": 10,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/shop-fixtures.webp",
+      "category": "environment",
+      "dimensions": [
+        768,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Đồ nội thất rời để đặt trên bản đồ.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "counter-end": {
+          "rect": [
+            0,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "counter-middle": {
+          "rect": [
+            192,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "storage-shelf": {
+          "rect": [
+            384,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "serving-counter": {
+          "rect": [
+            576,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "kitchen-workbench": {
+          "rect": [
+            0,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "waiting-bench": {
+          "rect": [
+            192,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "room-screen": {
+          "rect": [
+            384,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "cold-cabinet": {
+          "rect": [
+            576,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/ui-icons.webp",
+      "category": "ui",
+      "dimensions": [
+        192,
+        96
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Icon điều hướng và trạng thái.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "storage": {
+          "rect": [
+            0,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "customer": {
+          "rect": [
+            48,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "clock": {
+          "rect": [
+            96,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "review-star": {
+          "rect": [
+            144,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "coin": {
+          "rect": [
+            0,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "ticket": {
+          "rect": [
+            48,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "journal": {
+          "rect": [
+            96,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "upgrade": {
+          "rect": [
+            144,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/portrait-expressions.webp",
+      "category": "characters",
+      "dimensions": [
+        768,
+        320
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Hai vai của C02, bốn biểu cảm mỗi người.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "barista-neutral": {
+          "rect": [
+            0,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "barista-happy": {
+          "rect": [
+            192,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "barista-concerned": {
+          "rect": [
+            384,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "barista-surprised": {
+          "rect": [
+            576,
+            0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "regular-waiting": {
+          "rect": [
+            0,
+            160,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "regular-happy": {
+          "rect": [
+            192,
+            160,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "regular-sheepish": {
+          "rect": [
+            384,
+            160,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "regular-annoyed": {
+          "rect": [
+            576,
+            160,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/barista-actions.webp",
+      "category": "characters",
+      "dimensions": [
+        768,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "pour": 6,
+        "topping": 6,
+        "handoff": 6
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Thân trên khi rót, xúc topping và giao đồ.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "pour-1": {
+          "rect": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "pour-2": {
+          "rect": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "pour-3": {
+          "rect": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "pour-4": {
+          "rect": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "pour-5": {
+          "rect": [
+            512,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "pour-6": {
+          "rect": [
+            640,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "topping-1": {
+          "rect": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "topping-2": {
+          "rect": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "topping-3": {
+          "rect": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "topping-4": {
+          "rect": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "topping-5": {
+          "rect": [
+            512,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "topping-6": {
+          "rect": [
+            640,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "handoff-1": {
+          "rect": [
+            0,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "handoff-2": {
+          "rect": [
+            128,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "handoff-3": {
+          "rect": [
+            256,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "handoff-4": {
+          "rect": [
+            384,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "handoff-5": {
+          "rect": [
+            512,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        },
+        "handoff-6": {
+          "rect": [
+            640,
+            256,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            122
+          ]
+        }
+      },
+      "animations": {
+        "pour": {
+          "frames": [
+            "pour-1",
+            "pour-2",
+            "pour-3",
+            "pour-4",
+            "pour-5",
+            "pour-6"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "topping": {
+          "frames": [
+            "topping-1",
+            "topping-2",
+            "topping-3",
+            "topping-4",
+            "topping-5",
+            "topping-6"
+          ],
+          "fps": 10,
+          "loop": false
+        },
+        "handoff": {
+          "frames": [
+            "handoff-1",
+            "handoff-2",
+            "handoff-3",
+            "handoff-4",
+            "handoff-5",
+            "handoff-6"
+          ],
+          "fps": 10,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/customer-walk-cycles.webp",
+      "category": "characters",
+      "dimensions": [
+        384,
+        512
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "vip-walk": 4,
+        "reviewer-walk": 4,
+        "courier-walk": 4,
+        "neighbor-walk": 4
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Bốn vai khách đi theo từng clip.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "vip-walk-1": {
+          "rect": [
+            0,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-walk-2": {
+          "rect": [
+            96,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-walk-3": {
+          "rect": [
+            192,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-walk-4": {
+          "rect": [
+            288,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-walk-1": {
+          "rect": [
+            0,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-walk-2": {
+          "rect": [
+            96,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-walk-3": {
+          "rect": [
+            192,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-walk-4": {
+          "rect": [
+            288,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-walk-1": {
+          "rect": [
+            0,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-walk-2": {
+          "rect": [
+            96,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-walk-3": {
+          "rect": [
+            192,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-walk-4": {
+          "rect": [
+            288,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-walk-1": {
+          "rect": [
+            0,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-walk-2": {
+          "rect": [
+            96,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-walk-3": {
+          "rect": [
+            192,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-walk-4": {
+          "rect": [
+            288,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        }
+      },
+      "animations": {
+        "vip-walk": {
+          "frames": [
+            "vip-walk-1",
+            "vip-walk-2",
+            "vip-walk-3",
+            "vip-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "reviewer-walk": {
+          "frames": [
+            "reviewer-walk-1",
+            "reviewer-walk-2",
+            "reviewer-walk-3",
+            "reviewer-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "courier-walk": {
+          "frames": [
+            "courier-walk-1",
+            "courier-walk-2",
+            "courier-walk-3",
+            "courier-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "neighbor-walk": {
+          "frames": [
+            "neighbor-walk-1",
+            "neighbor-walk-2",
+            "neighbor-walk-3",
+            "neighbor-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/customer-reactions.webp",
+      "category": "characters",
+      "dimensions": [
+        576,
+        384
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Dáng tĩnh chờ, vui và sốt ruột của sáu vai khách.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "regular-waiting": {
+          "rect": [
+            0,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-waiting": {
+          "rect": [
+            96,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-waiting": {
+          "rect": [
+            192,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-waiting": {
+          "rect": [
+            288,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-waiting": {
+          "rect": [
+            384,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-waiting": {
+          "rect": [
+            480,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "regular-happy": {
+          "rect": [
+            0,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-happy": {
+          "rect": [
+            96,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-happy": {
+          "rect": [
+            192,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-happy": {
+          "rect": [
+            288,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-happy": {
+          "rect": [
+            384,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-happy": {
+          "rect": [
+            480,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "regular-impatient": {
+          "rect": [
+            0,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-impatient": {
+          "rect": [
+            96,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-impatient": {
+          "rect": [
+            192,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-impatient": {
+          "rect": [
+            288,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-impatient": {
+          "rect": [
+            384,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-impatient": {
+          "rect": [
+            480,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/customer-actions.webp",
+      "category": "characters",
+      "dimensions": [
+        576,
+        512
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "regular-order": 2,
+        "regular-surprised": 2,
+        "vip-order": 2,
+        "vip-surprised": 2,
+        "reviewer-order": 2,
+        "reviewer-surprised": 2,
+        "courier-order": 2,
+        "courier-surprised": 2,
+        "neighbor-order": 2,
+        "neighbor-surprised": 2,
+        "office-worker-order": 2,
+        "office-worker-surprised": 2
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Hai khung gọi món và hai khung ngạc nhiên cho mỗi vai khách.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "regular-order-1": {
+          "rect": [
+            0,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-order-1": {
+          "rect": [
+            96,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-order-1": {
+          "rect": [
+            192,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-order-1": {
+          "rect": [
+            288,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-order-1": {
+          "rect": [
+            384,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-order-1": {
+          "rect": [
+            480,
+            0,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "regular-order-2": {
+          "rect": [
+            0,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-order-2": {
+          "rect": [
+            96,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-order-2": {
+          "rect": [
+            192,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-order-2": {
+          "rect": [
+            288,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-order-2": {
+          "rect": [
+            384,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-order-2": {
+          "rect": [
+            480,
+            128,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "regular-surprised-1": {
+          "rect": [
+            0,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-surprised-1": {
+          "rect": [
+            96,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-surprised-1": {
+          "rect": [
+            192,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-surprised-1": {
+          "rect": [
+            288,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-surprised-1": {
+          "rect": [
+            384,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-surprised-1": {
+          "rect": [
+            480,
+            256,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "regular-surprised-2": {
+          "rect": [
+            0,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "vip-surprised-2": {
+          "rect": [
+            96,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "reviewer-surprised-2": {
+          "rect": [
+            192,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "courier-surprised-2": {
+          "rect": [
+            288,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "neighbor-surprised-2": {
+          "rect": [
+            384,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        },
+        "office-worker-surprised-2": {
+          "rect": [
+            480,
+            384,
+            96,
+            128
+          ],
+          "anchor": [
+            48,
+            116
+          ]
+        }
+      },
+      "animations": {
+        "regular-order": {
+          "frames": [
+            "regular-order-1",
+            "regular-order-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "regular-surprised": {
+          "frames": [
+            "regular-surprised-1",
+            "regular-surprised-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "vip-order": {
+          "frames": [
+            "vip-order-1",
+            "vip-order-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "vip-surprised": {
+          "frames": [
+            "vip-surprised-1",
+            "vip-surprised-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "reviewer-order": {
+          "frames": [
+            "reviewer-order-1",
+            "reviewer-order-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "reviewer-surprised": {
+          "frames": [
+            "reviewer-surprised-1",
+            "reviewer-surprised-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "courier-order": {
+          "frames": [
+            "courier-order-1",
+            "courier-order-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "courier-surprised": {
+          "frames": [
+            "courier-surprised-1",
+            "courier-surprised-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "neighbor-order": {
+          "frames": [
+            "neighbor-order-1",
+            "neighbor-order-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "neighbor-surprised": {
+          "frames": [
+            "neighbor-surprised-1",
+            "neighbor-surprised-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "office-worker-order": {
+          "frames": [
+            "office-worker-order-1",
+            "office-worker-order-2"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "office-worker-surprised": {
+          "frames": [
+            "office-worker-surprised-1",
+            "office-worker-surprised-2"
+          ],
+          "fps": 6,
+          "loop": false
+        }
+      }
     },
     {
       "filename": "assets/barista-fx.webp",
       "category": "effects",
       "dimensions": [
         384,
-        192
-      ],
-      "pixelScale": 2,
-      "animationFrames": {
-        "steam": 6,
-        "spark": 6,
-        "coins": 6
-      },
-      "transparency": "hard alpha",
-      "intendedUse": "3 hàng 64 × 64, hơi nước, đồ uống hoàn chỉnh và phản hồi bán.",
-      "type": "animation spritesheet",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/decor.webp",
-      "category": "decoration",
-      "dimensions": [
-        1024,
-        768
-      ],
-      "pixelScale": 2,
-      "animationFrames": 1,
-      "transparency": "hard alpha",
-      "intendedUse": "48 ô 128 × 128 cho bàn ghế, cây, đèn, tranh, biển trống, biến thể cấp nâng.",
-      "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
-    },
-    {
-      "filename": "assets/ui-icons.webp",
-      "category": "ui",
-      "dimensions": [
-        256,
         128
       ],
       "pixelScale": 2,
-      "animationFrames": 1,
+      "animationFrames": {
+        "success": 6,
+        "coin": 6
+      },
       "transparency": "hard alpha",
-      "intendedUse": "32 ô 32 × 32 cho kho, khách, ca, đánh giá, tiền, công thức và trạng thái.",
-      "type": "game-ready sprite",
-      "productionStatus": "planned-phase-2"
+      "intendedUse": "Phản hồi hoàn thành và xu.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "success-1": {
+          "rect": [
+            0,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "success-2": {
+          "rect": [
+            64,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "success-3": {
+          "rect": [
+            128,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "success-4": {
+          "rect": [
+            192,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "success-5": {
+          "rect": [
+            256,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "success-6": {
+          "rect": [
+            320,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "coin-1": {
+          "rect": [
+            0,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "coin-2": {
+          "rect": [
+            64,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "coin-3": {
+          "rect": [
+            128,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "coin-4": {
+          "rect": [
+            192,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "coin-5": {
+          "rect": [
+            256,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        },
+        "coin-6": {
+          "rect": [
+            320,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            58
+          ]
+        }
+      },
+      "animations": {
+        "success": {
+          "frames": [
+            "success-1",
+            "success-2",
+            "success-3",
+            "success-4",
+            "success-5",
+            "success-6"
+          ],
+          "fps": 10,
+          "loop": false
+        },
+        "coin": {
+          "frames": [
+            "coin-1",
+            "coin-2",
+            "coin-3",
+            "coin-4",
+            "coin-5",
+            "coin-6"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      }
     },
     {
       "filename": "assets/journal-card.png",
@@ -277,9 +3270,407 @@
       "pixelScale": null,
       "animationFrames": 1,
       "transparency": "opaque",
-      "intendedUse": "Mẫu nền PNG hoặc ảnh composited cho Nhật Ký Làm Chủ; chữ được render động.",
-      "type": "UI mockup",
-      "productionStatus": "planned-phase-2"
+      "intendedUse": "Nền thẻ có vùng chữ trống, UI vẽ thương hiệu, tên và nhật ký lên trên.",
+      "type": "share template",
+      "productionStatus": "produced-phase-2"
+    },
+    {
+      "filename": "assets/upgrades.webp",
+      "category": "equipment",
+      "dimensions": [
+        768,
+        576
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Máy và bộ nội thất nâng cấp.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "dual-spout-brewer": {
+          "rect": [
+            0,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "dual-pot-cooker": {
+          "rect": [
+            192,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "upright-fridge": {
+          "rect": [
+            384,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "powered-sealer": {
+          "rect": [
+            576,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "double-station": {
+          "rect": [
+            0,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "triple-station": {
+          "rect": [
+            192,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "portion-dispenser": {
+          "rect": [
+            384,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "crate-rack": {
+          "rect": [
+            576,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "tea-table-set": {
+          "rect": [
+            0,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "premium-lantern": {
+          "rect": [
+            192,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "flowering-pot": {
+          "rect": [
+            384,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "lit-signboard": {
+          "rect": [
+            576,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/pantry-supply.webp",
+      "category": "ingredients",
+      "dimensions": [
+        384,
+        192
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Các vật phẩm kho và vật tư đóng ly.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "oolong": {
+          "rect": [
+            0,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "jasmine": {
+          "rect": [
+            96,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "cream": {
+          "rect": [
+            192,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "dark-sugar-syrup": {
+          "rect": [
+            288,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "cup-stack": {
+          "rect": [
+            0,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "lid-stack": {
+          "rect": [
+            96,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "milk-carton": {
+          "rect": [
+            192,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        },
+        "raw-pearls": {
+          "rect": [
+            288,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            86
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/shop-tiles.webp",
+      "category": "environment",
+      "dimensions": [
+        256,
+        128
+      ],
+      "pixelScale": 2,
+      "animationFrames": 1,
+      "transparency": "opaque",
+      "intendedUse": "Vật liệu 64 px và miếng cửa/mặt quầy.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-2",
+      "frames": {
+        "tile-wall": {
+          "rect": [
+            0,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "teal-wall": {
+          "rect": [
+            64,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "terracotta-floor": {
+          "rect": [
+            128,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "teak-floor": {
+          "rect": [
+            192,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "window": {
+          "rect": [
+            0,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "door": {
+          "rect": [
+            64,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "terrazzo-floor": {
+          "rect": [
+            128,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "counter-front": {
+          "rect": [
+            192,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
     }
-  ]
+  ],
+  "rectConvention": "[x, y, width, height] in atlas pixels from upper left",
+  "anchorConvention": "[x, y] local to frame in atlas pixels from upper left",
+  "styleReferences": [
+    "prototype/homepage/assets/thumbs/tiem-tra-sua.webp",
+    "docs/tiem-tra-sua/concepts/main-shop.webp",
+    "docs/tiem-tra-sua/concepts/brewing-station.webp",
+    "docs/tiem-tra-sua/concepts/drama-event.webp"
+  ],
+  "planReplacements": {
+    "assets/cup-actions.webp": "assets/cup-fx.webp + assets/lid-and-ice-fx.webp",
+    "assets/decor.webp": "assets/equipment.webp + assets/decor-and-pantry.webp + assets/upgrades.webp",
+    "assets/ingredients.webp": "assets/cup-states-and-ingredients.webp + assets/decor-and-pantry.webp + assets/pantry-supply.webp",
+    "assets/shop-layers.webp": "assets/shop-scene.webp + assets/street-background.webp + assets/shop-counter-foreground.webp + assets/shop-fixtures.webp"
+  }
 }

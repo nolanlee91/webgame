@@ -33,8 +33,6 @@ Mỗi ảnh 1672 × 941, WebP lossless. Hình là mockup bố cục desktop. Mob
 
 Nhịp hình dùng để trình diễn. Thời điểm tính kho, giao ly, trả thưởng và lưu tiến trình cần gắn với xác nhận hợp lệ của người chơi để không lặp khi bấm lại, giảm chuyển động hoặc tải lại. Material, anchor và kích thước đề xuất nằm trong Art Bible và manifest.
 
-## Còn thiếu sau Phase 1
+## Hồ sơ sau Phase 1
 
-Toàn bộ tile, cảnh tách lớp, thiết bị, nguyên liệu, layer ly, NPC, portrait, trang trí, icon và sheet hoạt ảnh trong manifest đang chờ sản xuất Phase 2. Cần dựng một cảnh mẫu cùng NPC, máy và ly ở kích thước thật, duyệt với chủ dự án, rồi mới làm phần còn lại. Màn review, đơn khách, nâng cấp, tổng ca và thẻ chia sẻ hiện có đặc tả chữ, chưa có hình duyệt riêng. Workflow hiện có phục vụ file tĩnh qua `server.js` và hỗ trợ PNG/WebP. Claude quyết định kiến trúc khi đến lượt triển khai.
-
-Phase 1 dừng tại duyệt thiết kế và ba concept. Không có gameplay, thay đổi homepage, tích hợp backend hay triển khai.
+Bộ sản xuất và thông số tích hợp xem trong [bàn giao asset Phase 2](ASSET-HANDOFF.md). Màn review, đơn khách, nâng cấp và tổng ca hiện có đặc tả chữ. Claude quyết định kiến trúc khi đến lượt triển khai.
