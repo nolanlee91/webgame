@@ -1,5 +1,7 @@
 # Tiệm Bánh Mì
 
+> **Chủ dự án đã duyệt M0 (19/11/2026):** giữ xe đẩy → tiệm; chủ tiệm nam; ngày 1–3 có nút "Thối đúng" tự động, từ ngày 4 thối tay; giữ bánh mì que và ổ mang tên tiệm; asset giao 2 đợt. Chi tiết: DEV-NOTES.md.
+
 Lụm Kèo · Tập Làm Chủ · Milestone 0 · Game id `tiem-banh-mi` · Web một người chơi, tiền ảo.
 
 Đọc cùng: [ECONOMY.md](ECONOMY.md) (số liệu), [DRAMA.md](DRAMA.md) (kịch bản, lỗi, review), [SCREENS.md](SCREENS.md) (màn hình), [ART-DIRECTION.md](ART-DIRECTION.md) (art), [asset-spec.json](asset-spec.json) (hợp đồng asset). Chuẩn chung: `docs/tap-lam-chu/PLAYBOOK.md`.

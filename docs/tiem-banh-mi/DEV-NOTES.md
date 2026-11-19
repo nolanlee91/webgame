@@ -6,8 +6,8 @@ Game sẽ ở `prototype/games/tiem-banh-mi/` (chưa có code). Lưu ở `localS
 
 | Mốc | Trạng thái | Nội dung |
 |---|---|---|
-| M0 · Thiết kế + hợp đồng asset | **Xong, chờ chủ dự án duyệt** | GAME-DESIGN, ECONOMY, DRAMA (59 sự kiện, 11 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json` (26 sheet, 512 frame, 36 toạ độ đặt + 6 đường đi), `asset-manifest.json` rỗng. `check_assets` chạy được: hiện báo thiếu file (đúng, chưa có art). |
-| M1 · Kiến trúc + cảnh | Chờ asset Codex | |
+| M0 · Thiết kế + hợp đồng asset | **Xong, chủ dự án đã duyệt 19/11/2026** | GAME-DESIGN, ECONOMY, DRAMA (59 sự kiện, 11 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json` (26 sheet, 512 frame, 36 toạ độ đặt + 6 đường đi), `asset-manifest.json` rỗng. `check_assets` chạy được: hiện báo thiếu file (đúng, chưa có art). |
+| M1 · Kiến trúc + cảnh | Chờ asset Codex đợt 1 | |
 | M2 · Một ca trọn | | |
 | M3 · Kinh tế + nội dung cơ chế | | |
 | M4 · Drama + review + Nhật Ký | | |
@@ -52,30 +52,49 @@ Mọi sheet ở `asset-spec.json`, mô tả ở `ART-DIRECTION.md` mục 7. Ghi 
 | 23 | `assets/weather-fx.webp` | 640×360 · [0,0] · 2× (alpha mềm được) |
 | 24 | `assets/journal-card.webp` | 1080×1350 · 2× |
 
+## Quyết định của chủ dự án (19/11/2026, duyệt M0)
+
+- Giữ hai cảnh: **xe đẩy** (cấp 1–6) → **thuê tiệm** (cấp 7+).
+- Chủ tiệm **chỉ nam**, như thumbnail (có thể thêm chủ nữ sau).
+- **Thối tiền tay** là nét riêng; **ngày 1–3 có nút "Thối đúng"** tự động cho người mới, từ ngày 4 tự thối.
+- Giữ bánh mì que (cấp 12) và ổ mang tên tiệm (cấp 19).
+- Codex giao ảnh **2 đợt** (`wave` trong asset-spec.json): đợt 1 đủ để code M1–M2, đợt 2 cho M3–M5.
+
 ## Câu nhắn gửi Codex
 
-Gửi sau khi chủ dự án duyệt M0 (PLAYBOOK §8):
+### Đợt 1 (gửi ngay)
 
 ```
-Game mới: Tiệm Bánh Mì (tiem-banh-mi). Việc của bạn: vẽ toàn bộ asset Phase 1.
+Game mới: Tiệm Bánh Mì (tiem-banh-mi). Pull master. Vẽ ĐỢT 1 asset.
 
 1. Đọc AGENTS.md, rồi docs/tap-lam-chu/PLAYBOOK.md §1 và §2.
-2. Hợp đồng: docs/tiem-banh-mi/asset-spec.json (sheet, cỡ ô, lưới, anchor, tên frame, clip, placements, đường đi).
+2. Hợp đồng: docs/tiem-banh-mi/asset-spec.json — chỉ các sheet "wave": 1 (sheet wave 2 đang optional, chưa vẽ).
    Mô tả từng sheet, bảng màu, ánh sáng, nhân vật, thứ tự lớp ổ bánh, toạ độ đề xuất: docs/tiem-banh-mi/ART-DIRECTION.md.
-3. Mẫu art đã duyệt: prototype/homepage/assets/thumbs/tiem-banh-mi.webp (thợ bánh khăn kem rạch ổ, tủ kính bánh, đồ chua, tương ớt, rau, đèn mây, hũ sứ xanh trắng, tiệm gỗ ban đêm).
+3. Mẫu art đã duyệt: prototype/homepage/assets/thumbs/tiem-banh-mi.webp. Chủ tiệm là NAM như thumbnail.
 4. Vẽ vào prototype/games/tiem-banh-mi/assets/. Ghi manifest vào docs/tiem-banh-mi/asset-manifest.json (items + placements).
-5. Sheet cần giao (24 mục, 26 file):
+5. Sheet đợt 1:
    shop-scene, shop-counter-foreground, cart-scene, cart-foreground, title-art (1280×720);
-   characters, customer-walk-cycles, customer-reactions, customer-actions, baker-scene (144×192, anchor [72,174], 9 vai: baker, student, worker, shipper, office, regular, reviewer, tourist, parent);
-   baker-actions-hd (320×320, lưới 1×); loaf-layers-hd (320×384, lưới 1×) + loaf-layers (160×192), mỗi nguyên liệu một lớp để ổ bánh dày dần từng bước;
-   portraits-hd, portrait-expressions-hd, drama-portraits-hd (384×320, lưới 1×, 12 NPC);
-   ovens (256×256: lò mini / gas / điện × nguội, đang nướng 4 khung, chín, cháy, khói), equipment (192×192), fixtures (384×256), decor (128×128), ingredients (64×64), bills (96×48), fx (96×96), ui-icons (48×48), weather-fx (640×360), journal-card (1080×1350).
-6. Luật cứng: lưới 2× (HD lưới 1×), alpha cứng, WebP lossless, cùng mật độ điểm vẽ cho cả bộ; nhân vật cao 150–180 px, mọi frame một vai cao bằng nhau ±8%; mỗi vai là cùng một người trên mọi sheet; không chữ, logo, thương hiệu, người thật trên đồ vật.
-7. Ghi placements.<khoá>.at (điểm chạm mặt bàn) cho đủ 36 khoá trong asset-spec, và door, queueSpots, exitPath, cartEntry, cartQueueSpots, cartExitPath.
-8. Trước khi giao, chạy:
-   python -I tools/asset-check/check_assets.py docs/tiem-banh-mi/asset-spec.json --preview <thư mục tạm>
-   Phải ra "0 lỗi — ĐẠT". Mở nhan-vat-xep-hang-x2.png tự soi tỉ lệ so với cảnh và mỗi vai giữ cùng một người.
-9. Dán kết quả + commit hash vào docs/tiem-banh-mi/ASSET-HANDOFF.md. Không push lên master khi chưa được chủ dự án đồng ý.
+   characters, customer-walk-cycles, customer-reactions, customer-actions, baker-scene
+   (144×192, anchor [72,174], 9 vai: baker, student, worker, shipper, office, regular, reviewer, tourist, parent);
+   loaf-layers (160×192, mỗi nguyên liệu một lớp để ổ bánh dày dần từng bước);
+   ovens (256×256: lò mini / gas / điện × nguội, đang nướng, chín, cháy, khói), equipment (192×192),
+   ingredients (64×64), bills (96×48), fx (96×96), ui-icons (48×48).
+6. Luật cứng: lưới 2×, alpha cứng, WebP lossless, cùng mật độ điểm vẽ cả bộ; nhân vật cao 150–180 px, mọi frame
+   một vai cao bằng nhau ±8%; mỗi vai là cùng một người trên mọi sheet; không chữ, logo, thương hiệu, người thật.
+7. Ghi placements.<khoá>.at (điểm chạm mặt bàn) đủ 36 khoá và door, queueSpots, exitPath, cartEntry, cartQueueSpots, cartExitPath.
+8. Chạy: python -I tools/asset-check/check_assets.py docs/tiem-banh-mi/asset-spec.json --preview <thư mục tạm>
+   đến "0 lỗi — ĐẠT" (cảnh báo chỉ được là các sheet wave 2). Mở nhan-vat-xep-hang-x2.png tự soi.
+9. Dán kết quả + commit hash vào docs/tiem-banh-mi/ASSET-HANDOFF.md, commit lên branch riêng rồi báo.
+```
+
+### Đợt 2 (gửi khi code tới M3)
+
+```
+Tiệm Bánh Mì ĐỢT 2. Pull master. Trong docs/tiem-banh-mi/asset-spec.json, bỏ "optional" ở các sheet "wave": 2 rồi vẽ:
+baker-actions-hd (320×320, lưới 1×), loaf-layers-hd (320×384, lưới 1×, cùng tên lớp với loaf-layers),
+portraits-hd, portrait-expressions-hd, drama-portraits-hd (384×320, lưới 1×, 12 NPC trong DRAMA.md),
+weather-fx (640×360), fixtures (384×256), decor (128×128), journal-card (1080×1350).
+Cùng luật như đợt 1; chạy check_assets đến 0 lỗi, dán kết quả vào ASSET-HANDOFF.md rồi báo.
 ```
 
 ## Kiểm hợp đồng (M0)
