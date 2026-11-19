@@ -10,7 +10,7 @@ import { Farm, totalXp, xpNeed } from "./harness.mjs";
 import { tick } from "./policy.mjs";
 import { PROFILES, PROFILE_IDS, ALIASES, sessionTimeline } from "./profiles.mjs";
 import { analyse, fitXpCurve, CROP_XP_TWEAK } from "./analysis.mjs";
-import { CROP } from "./harness.mjs";
+import { CROP, RECIPE } from "./harness.mjs";
 import { renderReport } from "./report.mjs";
 
 export const T0 = Date.UTC(2026, 10, 2, 0, 0, 0); // mốc 0:00 ngày 1 (chỉ để hàm giá chợ có thời gian tất định)
@@ -80,7 +80,10 @@ export function runSim(profileId, { days = 7, seed = 12345, xpNeed = null, stopA
       buildings: Object.fromEntries(Object.entries(f.s.buildings).map(([id, b]) => [id, b.level])),
       warehouseCap: f.cap(), questIndex: f.s.quests.tut, villageProg: f.s.village.prog.i,
       chains: Object.fromEntries(Object.entries(f.s.village.chains).map(([id, c]) => [id, c.step])),
-      inv: { ...f.s.inv }, savingFor: f.savingFor },
+      inv: { ...f.s.inv }, savingFor: f.savingFor,
+      // Milestone 6: sổ sưu tập (món đã có / mốc đã nhận), tiền thêm nhờ Phiên chợ, số lần giao đơn đặc biệt
+      book: Object.keys(f.s.collection.counts).length, bookClaimed: f.s.collection.claimed, bookAt: f.bookAt || {}, fairBonus: Math.round(f.fairBonus || 0),
+      specialDelivered: f.counts["deliver:dac-biet"] || 0 },
     activeMin: active / 60_000,
     levels, samples, perDay,
     income: { ...f.income }, spend: { ...f.spend }, counts: { ...f.counts }, xpBy: { ...f.xpBy },
@@ -123,6 +126,12 @@ export function withCropXp(tweak, fn) {
   for (const [id, x] of Object.entries(tweak)) { old[id] = CROP[id].xp; CROP[id].xp = x; }
   try { return fn(); } finally { for (const [id, x] of Object.entries(old)) CROP[id].xp = x; }
 }
+/** Đổi tạm sản lượng công thức thức ăn gia súc (2 ngô → qty bao). */
+export function withFeedQty(qty, fn) {
+  const old = RECIPE["thuc-an-gia-suc"].qty;
+  RECIPE["thuc-an-gia-suc"].qty = qty;
+  try { return fn(); } finally { RECIPE["thuc-an-gia-suc"].qty = old; }
+}
 const levelSummary = (r) => Object.fromEntries([4, 7, 10, 20].map((L) => [L, r.levels[L] ? { activeMin: +(r.levels[L].active / 60_000).toFixed(1), realH: +(r.levels[L].real / 3600_000).toFixed(2) } : null]));
 
 async function main() {
@@ -144,8 +153,14 @@ async function main() {
         firsts: Object.fromEntries(["built:xuong@1", "built:chuong-ga@1", "built:nha-kinh@1", "built:dat-phia-dong@1"].map((k) => [k, r.firsts[k] ? +(r.firsts[k].active / 60_000).toFixed(1) : null])) };
     });
   }
+  // Milestone 6: hai gợi ý còn treo của M5 — chạy thử (đổi tạm trong bộ nhớ) để quyết định có áp dụng không (report §11)
+  const short = (r) => ({ levels: levelSummary(r), final: { level: r.final.level, coins: r.final.coins, earned: r.final.earned }, animals: r.income.animals, idleMin: +r.idleMin.toFixed(1) });
+  extra.m6 = { whatIf: ids.map((id) => ({ profile: id,
+    cropXp: short(withCropXp(CROP_XP_TWEAK, () => runSim(id, { days: args.days, seed: args.seed }))),
+    feed4: short(withFeedQty(4, () => runSim(id, { days: args.days, seed: args.seed }))) })) };
   const elapsed = (Date.now() - t) / 1000;
   const analysis = analyse(results, extra);
+  analysis.m6 = extra.m6;
   for (const r of results) {
     const L = (n) => r.levels[n];
     console.log(`${r.profile.name.padEnd(14)} cấp ${String(r.final.level).padStart(3)} sau ${r.days} ngày · chơi ${fmtMin(r.activeMin)} · ` +

@@ -2,7 +2,7 @@
 // Tự nạp manifest + atlas cần (KHÔNG dùng ui/sprites.js: loadSprites() ở đó nhớ một danh sách atlas cố định, gọi trước
 // bởi game.js thì các atlas animals / village / npc không được nạp). Không phụ thuộc markup trong index.html:
 // tự chèn <style> có tiền tố `m4-` (hiệu ứng, chữ nổi, icon) và đặt biến CSS --m4-* trên <html>.
-import { iconCell } from "../data/catalog.js?v=m5";
+import { iconCell } from "../data/catalog.js?v=m6";
 
 const BASE = new URL("../assets/v3/", import.meta.url).href;
 const GARDEN = new URL("../assets/garden/", import.meta.url).href;

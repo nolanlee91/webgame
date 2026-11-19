@@ -1,16 +1,19 @@
 // Bán hàng, nâng trang trí, lưới an toàn. Chỉ gọi qua apply(). (Nâng kho: Nhà kho là công trình — startUpgrade nha-kho, core/construct.js.)
 // Giá bán: MỘT nguồn — core/market.js priceOf(id, now) (±15 % theo chu kỳ 3 giờ). Đơn hàng giữ thưởng cố định riêng.
-import { ITEM } from "../data/catalog.js?v=m5";
-import { UPGRADES } from "../data/decor.js?v=m5";
-import { CROPS } from "../data/crops.js?v=m5";
-import { have, take } from "./inventory.js?v=m5";
-import { MARKET } from "./market.js?v=m5";
-import { cropUnlocked } from "./progression.js?v=m5";
+import { ITEM } from "../data/catalog.js?v=m6";
+import { UPGRADES } from "../data/decor.js?v=m6";
+import { CROPS } from "../data/crops.js?v=m6";
+import { have, take } from "./inventory.js?v=m6";
+import { MARKET } from "./market.js?v=m6";
+import { cropUnlocked } from "./progression.js?v=m6";
+import * as fair from "./fair.js?v=m6";
 
 export const SAFETY_GIFT = 3, SAFETY_COOLDOWN_MS = 10 * 60_000;
 export const sellable = (id) => !!ITEM[id] && ITEM[id].sell > 0;
-/** Giá bán lúc now (giá chợ). */
+/** Giá bán lúc now (giá chợ, chưa tính Phiên chợ — xem salePrice). */
 export const priceOf = (id, now) => MARKET.priceOf(id, now);
+/** Giá bán món kế tiếp cho người chơi s lúc now: giá chợ, hoặc giá Phiên chợ khi đang có phiên (Milestone 6, core/fair.js). */
+export const salePrice = (s, id, now) => fair.unitPrice(s, id, now);
 /** Có món thành phẩm đang ↑ trong danh sách bán ⇒ cho nhiệm vụ "bán khi giá lên". */
 const productUp = (ids, now) => ids.some((id) => ITEM[id]?.cat === "thanh-pham" && MARKET.trend(id, now) === "↑");
 
@@ -24,9 +27,10 @@ export function sell(s, id, n, now, events) {
   if (!Number.isInteger(q) || q <= 0) return { err: "bad" };
   if (owned < q) return { err: "empty-stock" };
   take(s, id, q);
-  const price = priceOf(id, now), coins = q * price;
+  const quote = fair.quote(s, id, q, now), coins = quote.coins, price = quote.price;
+  fair.commitSale(s, id, quote);
   pay(s, coins);
-  events.push({ type: "sold", count: q, coins, items: { [id]: q }, price, productUp: productUp([id], now) });
+  events.push({ type: "sold", count: q, coins, items: { [id]: q }, price, productUp: productUp([id], now), fair: quote.fair, hot: quote.hotUnits });
   return { ok: true, count: q, coins };
 }
 
@@ -34,10 +38,15 @@ function sellBags(s, bags, now, events) {
   const items = {};
   for (const bag of bags) for (const [id, q] of Object.entries(bag)) if (sellable(id) && q > 0) items[id] = (items[id] || 0) + q;
   let count = 0, coins = 0;
-  for (const [id, q] of Object.entries(items)) { take(s, id, q); count += q; coins += q * priceOf(id, now); }
+  let fairSale = false;
+  for (const [id, q] of Object.entries(items)) {
+    take(s, id, q); count += q;
+    const quote = fair.quote(s, id, q, now);
+    coins += quote.coins; fair.commitSale(s, id, quote); fairSale ||= quote.fair;
+  }
   if (!count) return { err: "empty-stock" };
   pay(s, coins);
-  events.push({ type: "sold", count, coins, items, productUp: productUp(Object.keys(items), now) });
+  events.push({ type: "sold", count, coins, items, productUp: productUp(Object.keys(items), now), fair: fairSale });
   return { ok: true, count, coins };
 }
 const raw = (bag) => Object.fromEntries(Object.entries(bag).filter(([id]) => ITEM[id]?.cat === "nong-san"));

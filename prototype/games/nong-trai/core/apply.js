@@ -7,17 +7,20 @@
 // Milestone 3: xây dựng (startBuild, startUpgrade — thay cho upgradeWarehouse cũ; buildWorkshop / upgradeWorkshop giữ làm tên
 // gọi tắt cho Xưởng), trang trí (placeDecor, removeDecor). Sức chứa kho, ô Nhà kính / phía Đông suy ra từ công trình (core/construct.js).
 // Milestone 4: chăn nuôi + làng (core/m4-handlers.js — handler, sync bảng nhiệm vụ làng, track sau quests.track, bất biến đàn).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m5";
-import * as plots from "./plots.js?v=m5";
-import * as orders from "./orders.js?v=m5";
-import * as eco from "./economy.js?v=m5";
-import * as quests from "./quests.js?v=m5";
-import * as ws from "./workshop.js?v=m5";
-import * as build from "./construct.js?v=m5";
-import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m5";
-import { addXp } from "./progression.js?v=m5";
-import { effects, isBuilt } from "./build.js?v=m5";
-import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m5";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m6";
+import * as plots from "./plots.js?v=m6";
+import * as orders from "./orders.js?v=m6";
+import * as eco from "./economy.js?v=m6";
+import * as quests from "./quests.js?v=m6";
+import * as ws from "./workshop.js?v=m6";
+import * as build from "./construct.js?v=m6";
+import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m6";
+import { addXp } from "./progression.js?v=m6";
+import { effects, isBuilt } from "./build.js?v=m6";
+import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m6";
+import * as book from "./collection.js?v=m6";
+// Milestone 6: Sổ sưu tập (core/collection.js — ghi sổ bằng so kho trước / sau mỗi action, nhận mốc claimBook), Phiên chợ (giá bán
+// trong core/fair.js, dùng ở economy.sell / workshop.marketSell), đơn đặc biệt thứ hai (core/orders.js special2).
 
 /** Milestone 4 (chăn nuôi + làng, core/m4-handlers.js): kho / ví / XP tiêm vào; sức chứa chuồng từ công trình (core/build.js effects),
  *  chuồng đang xây lần đầu ⇒ 0 (chưa mua được). Nhiệm vụ tiến trình M4 chỉ mở khi hướng dẫn M1 xong (ctx.tutorialDone). */
@@ -67,6 +70,8 @@ const HANDLERS = {
   removeDecor: (s, a, now, ev) => build.removeDecor(s, a, now, ev),
   // Milestone 4: buyAnimal feedAnimal feedAll collectAnimal collectAllAnimals talkNpc claimProgressQuest claimChainStep claimBoardQuest
   ...bindM4(M4DEPS),
+  // Milestone 6: nhận thưởng mốc Sổ sưu tập (10 / 20 / 30 món)
+  claimBook: (s, a, now, ev) => book.claim(s, a.tier, ev),
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
@@ -85,6 +90,7 @@ export function invariantError(s, before) {
   if (b) return b;
   const m = m4InvariantError(s);
   if (m) return m;
+  for (const q of Object.values(s.collection?.counts || {})) if (!Number.isInteger(q) || q < 1) return "book";
   return null;
 }
 
@@ -100,6 +106,7 @@ export function apply(state, action, now) {
   if (type !== "tick") sync(draft, now, events); // giao đơn / lên cấp có thể mở ô đơn, bán có thể dọn giỏ tràn
   quests.track(draft, events);
   m4Track(draft, events, now, M4DEPS); // MỘT lần mỗi action (cả tick): nhiệm vụ làng + mốc xe giao hàng (lastDeliveryAt)
+  book.track(draft, state, type, events); // Sổ sưu tập: món vừa làm ra / nhận (không tính mua ở chợ)
   const bad = invariantError(draft, state);
   if (bad) return { err: "invariant-" + bad, events: [] };
   for (const k of Object.keys(state)) delete state[k];

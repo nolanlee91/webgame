@@ -1,10 +1,19 @@
 // Bản đồ nông trại (Milestone 3): vẽ công trình / bản vẽ / giàn giáo / trang trí theo core/levels-map.js mapLayout().
 // Chỉ hiển thị — mọi thay đổi trạng thái đi qua apply() ở game.js (onTap / onSlot gọi ra ngoài).
 // Toạ độ chuẩn hoá theo bản đồ 960 × 600 (data/buildings.js); bản đồ rộng EAST_W lần khi tới cấp 17 / mở Khu đất phía Đông.
-import { frame, sheet as sheetOf } from "./sprites.js?v=m5";
+import { frame, sheet as sheetOf } from "./sprites.js?v=m6";
 
 let MW = 960, MH = 640; // = data/buildings.js MAP_W / MAP_H (đọc lại từ L khi dựng)
-const GARDEN = { house: [269, 184], market: [205, 190] }; // kích thước gốc ảnh assets/garden (neo đáy-giữa)
+const GARDEN = { house: [269, 184], market: [205, 190], fence: [229, 77] }; // kích thước gốc ảnh assets/garden (neo đáy-giữa)
+/**
+ * Milestone 6 — sprite chờ Codex: { sheet, id, fallback, tier?, prefix? }. Manifest có frame ⇒ dùng; nhà theo bậc thiếu frame bậc này
+ * ⇒ frame bậc thấp gần nhất đã vẽ; không có gì ⇒ `fallback` (ảnh M5, hàng rào đá = hàng rào gỗ lọc màu đá).
+ */
+export function resolveSprite(sp) {
+  if (!sp?.fallback || frame(sp.sheet, sp.id)) return sp;
+  if (sp.prefix && sp.tier) for (let k = sp.tier - 1; k >= 1; k--) if (frame(sp.sheet, sp.prefix + k)) return { sheet: sp.sheet, id: sp.prefix + k };
+  return sp.fallback;
+}
 const BLUEPRINT_ID = "lo-ban-ve";
 export const STATUS_TEXT = { locked: "Khoá", available: "Có thể xây", building: "Đang xây", done: "Hoàn thành", upgradeable: "Nâng cấp được" };
 const SPECIAL_ID = { xuong: "workshopLot", "sap-cho": "market", "bang-don-hang": "boardBtn" };
@@ -123,7 +132,8 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     const x = def.x * MW, y = def.y * MH, w = def.w * MW;
     if (sprite?.sheet === "garden") {
       const [nw, nh] = GARDEN[sprite.id] || [1, 1];
-      Object.assign(el.style, { left: X(x - w / 2), top: Y(y - (w * nh) / nw), width: X(w), height: Y((w * nh) / nw) });
+      const h = Math.max((w * nh) / nw, def.hitH || 0); // hitH: vùng chạm tối thiểu (hàng rào thấp ⇒ ≥ 44 px trên điện thoại), ảnh giữ tỉ lệ, đáy chạm neo
+      Object.assign(el.style, { left: X(x - w / 2), top: Y(y - h), width: X(w), height: Y(h) });
       return;
     }
     const f = sprite && frame(sprite.sheet, sprite.id);
@@ -133,8 +143,12 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
     const h = (w * fh) / fw;
     Object.assign(el.style, { left: X(x - (w * ax) / fw), top: Y(y - (h * ay) / fh), width: X(w), height: Y(h) });
   }
+  /** Cờ hội Phiên chợ: phien-cho.webp (co-hoi-1/2, Codex) khi có, không thì 2 đèn lồng của decor.webp. */
+  const fairFlagHtml = () => frame("phien-cho", "co-hoi-1")
+    ? `<span class="fair-flag fair-flag--art" style="${spriteCss("phien-cho", "co-hoi-1")}"></span>`
+    : `<span class="fair-flag"><i style="${spriteCss("decor", "den-long") || ""}"></i><i style="${spriteCss("decor", "den-long") || ""}"></i></span>`;
   const picHtml = (sprite, cls = "spr") => !sprite ? "" : sprite.sheet === "garden"
-    ? `<img class="${cls}" src="assets/garden/${sprite.id}.webp" alt="">`
+    ? `<img class="${cls}${sprite.filter ? " spr--" + sprite.filter : ""}" src="assets/garden/${sprite.id}.webp" alt="">`
     : `<span class="${cls}" style="${spriteCss(sprite.sheet, sprite.id) || ""}"></span>`;
 
   /** Công trình kế tiếp sẽ mở (bản vẽ mờ + "cấp N" hiện cả ngoài chế độ Xây để người chơi biết sắp có gì). */
@@ -150,7 +164,9 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
   /**
    * Vẽ lại bản đồ. ctx = { s, t, buildMode, canAfford(id) }. Trả layout (mapLayout) để game.js dùng (thẻ xây, highlight).
    */
-  function render({ s, t, buildMode, canAfford, busyMill }) {
+  let fairOn = false;
+  function render({ s, t, buildMode, canAfford, busyMill, fair }) {
+    fairOn = !!fair;
     const layout = L.mapLayout({ build: s, level: s.level, now: t, production: s.production });
     setBw(layout.eastOpen || s.level >= L.BUILDING["dat-phia-dong"].levels[0].unlock ? L.EAST_W : 1);
     farm.classList.toggle("building", !!buildMode);
@@ -172,12 +188,13 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
       e.b.hidden = !visible;
       if (!visible) continue;
       shown.add(it.id);
-      const sprite = view === "locked" || view === "blueprint" ? { sheet: "buildings", id: "lo-ban-ve" } : view === "scaffold" ? { sheet: "buildings", id: "gian-giao" } : it.sprite;
-      const key = [bw, view, sprite?.sheet, sprite?.id, it.rotor?.id, !!it.upgrading].join("|");
+      const sprite = view === "locked" || view === "blueprint" ? { sheet: "buildings", id: "lo-ban-ve" } : view === "scaffold" ? { sheet: "buildings", id: "gian-giao" } : resolveSprite(it.sprite);
+      const flag = it.id === "sap-cho" && !!fairOn; // Milestone 6: cờ hội trên chợ khi đang có Phiên chợ
+      const key = [bw, view, sprite?.sheet, sprite?.id, sprite?.filter, it.rotor?.id, !!it.upgrading, flag].join("|");
       if (e.key !== key) {
         e.key = key;
         e.pic.innerHTML = picHtml(sprite) + (it.rotor && view === "built" ? picHtml(it.rotor, "rotor") : "") +
-          (it.upgrading ? picHtml({ sheet: "buildings", id: "gian-giao" }, "mini-scaffold") : "");
+          (it.upgrading ? picHtml({ sheet: "buildings", id: "gian-giao" }, "mini-scaffold") : "") + (flag ? fairFlagHtml() : "");
         place(e.b, it, sprite);
       }
       if (it.rotor) e.pic.querySelector(".rotor")?.classList.toggle("fast", !!busyMill);
@@ -191,7 +208,7 @@ export function createFarmMap({ L, farm, map, esc, fmtClock, onTap, onSlot }) {
         tag = status === "locked" ? (inMs ? `Khoá · Cấp ${it.unlockLevel}` : s.level >= it.unlockLevel ? "Khoá · sắp có" : `Khoá · Cấp ${it.unlockLevel}`) : STATUS_TEXT[status];
       } else if (status === "available") tag = "Có thể xây";
       else if (status === "locked") tag = `${it.name.replace(" chế biến", "")} · cấp ${it.unlockLevel}`;
-      else tag = it.id === "nha" ? (it.level >= 2 ? `Nhà ★${it.level - 1}` : "") : NORMAL_TAG[it.id] || "";
+      else tag = it.id === "nha" ? (it.level >= 2 ? `Nhà ★${it.level - 1}` : "") : it.id === "sap-cho" && fairOn ? "Phiên chợ!" : NORMAL_TAG[it.id] || "";
       if (e.tag.textContent !== tag) e.tag.textContent = tag;
       // thanh tiến độ (giàn giáo / đang nâng)
       const prog = it.upgrading ? it.upgrading.progress : it.progress;

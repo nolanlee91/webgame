@@ -3,8 +3,10 @@
 //   → bán dư → xây / nâng / mua theo danh sách ưu tiên → gieo (cây hợp với thời gian tới lần nhìn tiếp) → tưới.
 // Chỉ dùng hàm của harness (⇒ luật thật). Không đọc giờ thật.
 import { CROP, CROPS, ITEM, RECIPE, MACHINE, ANIMAL, BUILDING, QUESTS, MARKET, plots, orders, P, A, V, B } from "./harness.mjs";
-import { RECIPES } from "../../data/recipes.js?v=m5";
-import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m5";
+import * as fair from "../../core/fair.js?v=m6";
+import * as book from "../../core/collection.js?v=m6";
+import { RECIPES } from "../../data/recipes.js?v=m6";
+import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m6";
 
 export const XP_WORTH = 2;          // 1 XP ≈ 2 xu khi chọn cây (người chơi muốn lên cấp)
 export const STALE_ORDER_MS = 30 * 60_000; // đơn không giao được sau 30 phút CHƠI ⇒ bỏ
@@ -77,6 +79,7 @@ function claimAll(f) {
   const ctx = f.villageCtx();
   for (let k = 0; k < 3; k++) { const q = V.currentProgression(s.village); if (!q || f.villageClaim("prog", q.id).err) break; }
   if (s.level >= 14) for (const v of VILLAGERS) f.villageClaim("chain", v.id, s.village.chains[v.id].step);
+  for (let k = book.claimableTier(s); k >= 0; k = book.claimableTier(s)) if (f.claimBook(k).err) break; // Milestone 6: mốc Sổ sưu tập
   for (const slot of [...s.village.board.slots]) {
     const q = REPEATABLE_BY_ID[slot.tpl];
     if (q && slot.progress >= q.count) f.villageClaim("board", slot.uid);
@@ -88,14 +91,14 @@ function claimAll(f) {
 function deliverOrders(f, activeClock) {
   const s = f.s;
   f.orderSeen ||= {};
-  const slots = [...s.orders.slots.map((x, i) => [i, x]), ...(s.orders.special ? [["special", s.orders.special]] : [])];
+  const slots = [...s.orders.slots.map((x, i) => [i, x]), ...orders.SPECIAL_SLOTS.filter((k) => s.orders[k]).map((k) => [k, s.orders[k]])];
   for (const [slot, x] of slots) {
     const o = x.order;
     if (!o) continue;
     if (f.orderSeen[o.id] === undefined) f.orderSeen[o.id] = activeClock;
     const ok = Object.entries(o.items).every(([id, q]) => f.have(id) >= q);
     if (ok) { f.deliver(slot, o, x.rev); continue; }
-    if (slot !== "special" && activeClock - f.orderSeen[o.id] > STALE_ORDER_MS) f.cancel(slot, o, x.rev);
+    if (!orders.isSpecialSlot(slot) && activeClock - f.orderSeen[o.id] > STALE_ORDER_MS) f.cancel(slot, o, x.rev);
   }
 }
 
@@ -150,7 +153,7 @@ function sellSurplus(f, force = false, need = demandOf(f)) {
     if (!(base(id) > 0)) continue;
     const excess = f.have(id) - (keep[id] || 0);
     if (excess <= 0) continue;
-    const price = MARKET.priceOf(id, f.now);
+    const price = fair.unitPrice(s, id, f.now); // Milestone 6: giá Phiên chợ khi đang có phiên (hàng săn / thành phẩm ⇒ bán ngay)
     const good = price >= base(id) * 0.97;
     if (good || pressure || broke || ITEM[id].cat === "nong-san" && price >= base(id) * 0.9) f.sell(id, Math.min(excess, 999));
   }
@@ -234,6 +237,7 @@ function plan(f) {
   building("chuong-ga", false);
   building("chuong-bo", false);
   building("nha-kinh", false);
+  building("hang-rao", false);       // Milestone 6: hàng rào đá (cấp 15) — trang trí, chỗ tiêu xu nhỏ
   building("nha", false);            // Milestone 5: bậc Nhà ("Nông trại danh tiếng") — chỗ tiêu xu dài hạn, mua khi không để dành mục lớn
   return out;
 }

@@ -6,26 +6,28 @@
 // Khác biệt có chủ ý so với bản đang chạy trong trình duyệt (ghi trong README):
 //  - Mọi máy / công trình M2–M4 đều dùng được (không lọc CURRENT_MILESTONE), công trình theo core/build.js (M3).
 //  - Nhà kính: 6 ô thêm vào cuối s.plots (chỉ trồng Mía / cây thường), coi như luôn được tưới. Khu đất Đông: +9 ô.
-import { CROP, CROPS } from "../../data/crops.js?v=m5";
-import { ITEM } from "../../data/catalog.js?v=m5";
-import { FIRST_ORDERS, ORDER_TYPES } from "../../data/orders.js?v=m5";
-import { WAREHOUSE, OVERFLOW_MAX } from "../../data/warehouse.js?v=m5";
-import { QUESTS } from "../../data/quests.js?v=m5";
-import { RECIPE } from "../../data/recipes.js?v=m5";
-import { MACHINE } from "../../data/machines.js?v=m5";
-import { ANIMAL } from "../../data/animals.js?v=m5";
-import { BUILDING } from "../../data/buildings.js?v=m5";
-import * as plots from "../../core/plots.js?v=m5";
-import * as orders from "../../core/orders.js?v=m5";
-import * as eco from "../../core/economy.js?v=m5";
-import * as quests from "../../core/quests.js?v=m5";
-import * as P from "../../core/production.js?v=m5";
-import * as A from "../../core/animals.js?v=m5";
-import * as V from "../../core/village.js?v=m5";
-import * as B from "../../core/build.js?v=m5";
-import { MARKET } from "../../core/market.js?v=m5";
-import { addXp, xpNeed } from "../../core/progression.js?v=m5";
-import { bag, have, settleOverflow, used, capacity, overflowCount } from "../../core/inventory.js?v=m5";
+import { CROP, CROPS } from "../../data/crops.js?v=m6";
+import { ITEM } from "../../data/catalog.js?v=m6";
+import { FIRST_ORDERS, ORDER_TYPES } from "../../data/orders.js?v=m6";
+import { WAREHOUSE, OVERFLOW_MAX } from "../../data/warehouse.js?v=m6";
+import { QUESTS } from "../../data/quests.js?v=m6";
+import { RECIPE } from "../../data/recipes.js?v=m6";
+import { MACHINE } from "../../data/machines.js?v=m6";
+import { ANIMAL } from "../../data/animals.js?v=m6";
+import { BUILDING } from "../../data/buildings.js?v=m6";
+import * as plots from "../../core/plots.js?v=m6";
+import * as orders from "../../core/orders.js?v=m6";
+import * as eco from "../../core/economy.js?v=m6";
+import * as quests from "../../core/quests.js?v=m6";
+import * as P from "../../core/production.js?v=m6";
+import * as A from "../../core/animals.js?v=m6";
+import * as V from "../../core/village.js?v=m6";
+import * as B from "../../core/build.js?v=m6";
+import { MARKET } from "../../core/market.js?v=m6";
+import { addXp, xpNeed } from "../../core/progression.js?v=m6";
+import { bag, have, settleOverflow, used, capacity, overflowCount } from "../../core/inventory.js?v=m6";
+import * as fair from "../../core/fair.js?v=m6";
+import * as book from "../../core/collection.js?v=m6";
 
 export const START_COINS = 24; // = core/state.js START_COINS (không import state.js)
 export const GREENHOUSE_BASE = plots.W * plots.H; // ô nhà kính bắt đầu từ chỉ số 25
@@ -54,10 +56,11 @@ export function createFarm(now, seed) {
     production: P.createProduction(),
     animals: A.createAnimals(),
     village: V.createVillage(),
-    orders: { nextId: 1, slots: [], special: null },
+    orders: { nextId: 1, slots: [], special: null, special2: null },
     quests: { tut: 0, progress: 0 },
     plots: Array.from({ length: plots.W * plots.H }, (_, i) => plots.emptyPlot(plots.START_OPEN.has(i))),
     stats: { harvested: 0, earned: 0, delivered: 0 },
+    collection: book.createCollection(), fair: fair.createFair(), // Milestone 6
   };
   s.orders.slots = FIRST_ORDERS.map((o) => ({ rev: 0, order: makeOrder(s, o, now), refillAt: now }));
   return s;
@@ -122,9 +125,11 @@ export class Farm {
   run(name, fn, { useful = true } = {}) {
     if (this.taps <= 0) return { err: "taps" };
     const before = { coins: this.s.coins, xp: totalXp(this.s) };
+    const snap = { inv: { ...this.s.inv }, overflow: { ...this.s.overflow }, decor: { ...this.s.decor } }; // Sổ sưu tập: so kho trước / sau
     const events = [];
     const r = fn(events);
     if (!r || r.err) return r || { err: "bad" };
+    book.track(this.s, snap, name === "buy" ? "marketBuy" : name, events);
     if (this.xpCurve) this.relevel(totalXp(this.s) - before.xp);
     this.post(events);
     this.counts[name] = (this.counts[name] || 0) + 1;
@@ -145,6 +150,7 @@ export class Farm {
       if (e.type === "orderNew" && e.orderType) this.first("order:" + e.orderType);
       if (e.type === "levelUp") this.levelAt[e.level] = this.now;
       if (e.type === "gift") this.eventLog.push({ t: this.now, type: "gift" });
+      if (e.type === "bookTierReady") { this.bookAt ||= {}; this.bookAt[e.at] = +(this.clock / 3600_000).toFixed(1); } // giờ chơi tới mốc sổ
     }
   }
   xpTotal() { return this.xpCurve ? this.trueXp : totalXp(this.s); }
@@ -217,10 +223,16 @@ export class Farm {
   sell(id, n) {
     const src = sourceOf(id);
     return this.run("sell", (ev) => {
-      const r = MARKET.sell(this.inv(), this.wallet(src), id, n, this.now);
-      if (r.ok) ev.push({ type: "sold", count: r.count, coins: r.coins, items: { [id]: r.count }, price: r.price, market: true,
-        productUp: MARKET.trend(id, this.now) === "↑" && ITEM[id]?.cat === "thanh-pham" });
-      return r;
+      // Milestone 6: tiền theo core/fair.js (giá chợ, hoặc giá Phiên chợ khi đang có phiên) — như workshop.marketSell
+      if (!MARKET.sellable(id) || !Number.isInteger(n) || n <= 0 || n > 999 || this.have(id) < n) return { err: "empty-stock" };
+      const q = fair.quote(this.s, id, n, this.now);
+      if (!this.inv().take(id, n)) return { err: "empty-stock" };
+      fair.commitSale(this.s, id, q);
+      this.wallet(src).earn(q.coins);
+      if (q.fair) this.fairBonus = (this.fairBonus || 0) + q.coins - MARKET.priceOf(id, this.now) * n;
+      ev.push({ type: "sold", count: n, coins: q.coins, items: { [id]: n }, price: q.price, market: true,
+        productUp: !q.fair && MARKET.trend(id, this.now) === "↑" && ITEM[id]?.cat === "thanh-pham" });
+      return { ok: true, count: n, coins: q.coins, price: q.price };
     });
   }
   buy(id, n) {
@@ -239,6 +251,7 @@ export class Farm {
         this.income.orders += s.coins - before;
         // core/orders.js deliver() chưa phát `items` (README-M4 câu hỏi mở 1) ⇒ harness KHÔNG tự thêm, để thấy hệ quả thật.
         this.first("deliver:" + order.type);
+        this.counts["deliver:" + order.type] = (this.counts["deliver:" + order.type] || 0) + 1;
       }
       return r;
     });
@@ -337,6 +350,16 @@ export class Farm {
     return this.run("collectAnimals", (ev) => {
       const r = A.collectAll(s.animals, this.inv(), this.now);
       if (r.ok) { ev.push(...r.events); addXp(s, r.xp, ev); }
+      return r;
+    });
+  }
+  /** Milestone 6: nhận thưởng mốc Sổ sưu tập. */
+  claimBook(tier) {
+    const s = this.s;
+    return this.run("claimBook", (ev) => {
+      const before = s.coins;
+      const r = book.claim(s, tier, ev);
+      if (r.ok) this.income.quests += s.coins - before;
       return r;
     });
   }

@@ -3,9 +3,9 @@
 // Dùng: const truck = createTruck(hostEl, { now, lastDeliveryAt: () => s.lastDeliveryAt, level: () => s.level });
 //       sau mỗi sự kiện "delivered": truck.kick(). Bản đồ nông trại đặt hostEl ở cổng (position: relative / absolute).
 // Trả { el, kick(), update(), destroy(), get phase() }. Vẽ trên <canvas> riêng (W × H logic, CSS co giãn, pixel vuông).
-import { truckVisit } from "../core/village.js?v=m5";
-import { TRUCK } from "../data/village.js?v=m5";
-import { loadArt, artReady, draw, injectStyle } from "./m4-art.js?v=m5";
+import { truckVisit } from "../core/village.js?v=m6";
+import { TRUCK } from "../data/village.js?v=m6";
+import { loadArt, artReady, draw, injectStyle } from "./m4-art.js?v=m6";
 
 injectStyle("m4-truck", `
 .m4-truck { position: relative; display: block; width: 100%; pointer-events: none; image-rendering: pixelated; }

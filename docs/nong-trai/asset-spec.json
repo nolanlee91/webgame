@@ -1,0 +1,29 @@
+{
+  "_doc": "Hợp đồng asset Nông Trại 2.0 (Milestone 6). Kiểm: python -I tools/asset-check/check_assets.py docs/nong-trai/asset-spec.json --preview <thư mục>. Luật chung: docs/tap-lam-chu/PLAYBOOK.md §1–§2. Sheet 'optional' là art Codex CẦN VẼ (chưa có ⇒ game dùng hình dự phòng). Thêm mỗi sheet mới vào assets/v3/manifest.json dưới key 'sheets' với alias = tên file không đuôi (house-tiers, hang-rao, items-2, phien-cho), frames [{id,x,y,width,height,anchor}] — code tự nhận frame theo tên. Brief chi tiết: prototype/games/nong-trai/DESIGN-2.0.md mục 'Cần Codex'.",
+  "game": "nong-trai",
+  "root": "prototype/games/nong-trai",
+  "manifest": "assets/v3/manifest.json",
+  "sheetDir": "assets/v3/",
+  "scene": [960, 640],
+  "defaults": { "grid": 2, "hardAlpha": true },
+  "sheets": [
+    { "file": "assets/v3/buildings.webp", "cell": [256, 256],
+      "frames": ["nha-kho", "xuong-che-bien", "than-coi-xay", "chuong-ga", "chuong-bo", "nha-kinh", "bang-don-hang", "gian-giao", "lo-ban-ve", "bien-lang", "xe-giao-hang"] },
+    { "file": "assets/v3/buildings-2.webp", "cell": [256, 256], "anchor": [128, 226],
+      "frames": ["nha-kho-2", "xuong-che-bien-2", "chuong-ga-2", "nha-kinh-2"] },
+    { "file": "assets/v3/decor.webp", "cell": [128, 128], "anchor": [64, 112],
+      "frames": ["den-long", "chau-hoa", "bu-nhin", "ghe-tre", "gieng-da", "cong-tre", "dong-bi-ngo", "co-lau"] },
+    { "file": "assets/v3/items.webp", "cell": [64, 64], "anchor": [32, 32],
+      "frames": ["{ca-rot,ca-chua,dau-tay,ngo,bi-ngo,lua,mia}", "{mut-dau,sot-ca-chua,nuoc-ep-ca-rot,thuc-an-gia-suc,bot-gao,bap-rang,banh-trung,banh-bi-ngo}",
+        "{trung-ga,sua,bo,pho-mai,duong,banh-flan}", "{van-go,hop-dinh,thung-son,dong-xu,sao-xp,bang-don,chuong-thong-bao}"] },
+
+    { "file": "assets/v3/house-tiers.webp", "cell": [288, 224], "anchor": [144, 216], "optional": true,
+      "frames": ["nha-bac-{1..10}"] },
+    { "file": "assets/v3/hang-rao.webp", "cell": [256, 128], "anchor": [128, 120], "optional": true,
+      "frames": ["hang-rao-da"] },
+    { "file": "assets/v3/items-2.webp", "cell": [64, 64], "anchor": [32, 32], "optional": true,
+      "frames": ["banh-ngo", "sinh-to-dau", "bap-rang-bo", "che-bi-ngo", "sua-chua", "banh-gao", "so-suu-tap", "co-phien-cho"] },
+    { "file": "assets/v3/phien-cho.webp", "cell": [192, 192], "anchor": [96, 168], "optional": true,
+      "frames": ["co-hoi-{1..2}"], "animations": ["co-hoi"] }
+  ]
+}

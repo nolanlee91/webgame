@@ -1,14 +1,14 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m5";
-import { browserStorage, farmSave } from "./save.js?v=m5";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m5";
-import { createMarketScene } from "./ui/scene-market.js?v=m5";
-import { loadSprites, playFx } from "./ui/sprites.js?v=m5";
-import { createFarmMap, spriteCss, STATUS_TEXT } from "./ui/farm-map.js?v=m5";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m5";
-import { createVillageScene } from "./ui/scene-village.js?v=m5";
-import { createTruck } from "./ui/truck.js?v=m5";
+import * as L from "./logic.js?v=m6";
+import { browserStorage, farmSave } from "./save.js?v=m6";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m6";
+import { createMarketScene } from "./ui/scene-market.js?v=m6";
+import { loadSprites, playFx, frame as spriteFrame } from "./ui/sprites.js?v=m6";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite } from "./ui/farm-map.js?v=m6";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m6";
+import { createVillageScene } from "./ui/scene-village.js?v=m6";
+import { createTruck } from "./ui/truck.js?v=m6";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
@@ -97,6 +97,7 @@ const ERR = {
   "order-stock": "Kho chưa đủ hàng để giao đơn này.", "order-changed": "Đơn này đã đổi. Hãy xem đơn mới.", "order-expired": "Đơn này đã hết hạn.",
   "quest-incomplete": "Nhiệm vụ chưa xong.", "quest-claimed": "Đã nhận thưởng nhiệm vụ này.",
   "greenhouse-only": "Mía chỉ trồng được trong Nhà kính.", greenhouse: "Cây trong Nhà kính không cần tưới.",
+  "book-incomplete": "Sổ sưu tập chưa đủ món cho mốc này.", "book-claimed": "Đã nhận thưởng mốc này rồi.",
 };
 /** Lỗi xây dựng / trang trí (Milestone 3). */
 const ERR_M3 = {
@@ -130,7 +131,10 @@ const npcOf = (id) => L.NPC[id] || L.NPCS[0];
 /** Icon vật phẩm từ assets/v3/items.webp (CSS background-position, nearest-neighbour). */
 function iconHtml(id, cls = "") {
   const c = L.iconCell(id);
-  return c ? `<i class="it${c.sheet === "decor" ? " it--decor" : ""} ${cls}" style="--c:${c.col};--r:${c.row}" aria-hidden="true"></i>` : "";
+  if (!c) return "";
+  // Milestone 6: icon items-2.webp khi manifest đã có frame cùng tên (Codex), chưa có ⇒ ô dự phòng items.webp + bộ lọc màu
+  if (c.hd && spriteFrame("items-2", id)) return `<i class="it it--items2 ${cls}" style="--c:${c.hd.col};--r:${c.hd.row}" aria-hidden="true"></i>`;
+  return `<i class="it${c.sheet === "decor" ? " it--decor" : ""} ${cls}" style="--c:${c.col};--r:${c.row}${c.filter ? `;filter:${c.filter}` : ""}" aria-hidden="true"></i>`;
 }
 function faceHtml(npcId, cls = "") {
   const n = npcOf(npcId);
@@ -161,6 +165,7 @@ export function mount(root, ctx = {}) {
     ovDecor: $("ovDecor"), decorBody: $("decorBody"), ovGh: $("ovGreenhouse"), ghSeeds: $("ghSeeds"), ghGrid: $("ghGrid"), ghNote: $("ghNote"), ghClose: $("ghClose"),
     animalsTool: $("animalsTool"), villageTool: $("villageTool"), truckLane: $("truckLane"), farmMap: $("farmMap"),
     coopBadge: $("coopBadge"), barnBadge: $("barnBadge"), villageBadge: $("villageBadge"),
+    bookBtn: $("bookBtn"), ovBook: $("ovBook"), bookBody: $("bookBody"),
     quest: $("quest"), qFace: $("qFace"), qStep: $("qStep"), qTitle: $("qTitle"), qHint: $("qHint"), qBar: $("qBar"), qProg: $("qProg"), qReward: $("qReward"), qClaim: $("qClaim"),
   };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-kim-cuong", "qua-man", "trung-da", "thang"], sdk);
@@ -307,7 +312,7 @@ export function mount(root, ctx = {}) {
         case "plotBought": plotEffect(e.i, "till"); float(e.i, `−${e.cost} xu`, "#ffe9a8"); sound = ["thang", 0.6]; msgs.push("Đã mở thêm một ô ruộng!"); break;
         case "sold":
           sound = ["trung-kim-cuong", 0.8];
-          if (e.market) { fxOn(origin.el, ["xu-bay"], `+${fmtNum(e.coins)} xu`, "#ffe9a8"); msgs.push(`Bán ${e.count} ${L.ITEM[Object.keys(e.items)[0]].name} giá ${fmtNum(e.price)} ${e.trend}: +${fmtNum(e.coins)} xu.`); }
+          if (e.market) { fxOn(origin.el, ["xu-bay"], `+${fmtNum(e.coins)} xu`, "#ffe9a8"); msgs.push(`Bán ${e.count} ${L.ITEM[Object.keys(e.items)[0]].name} ${e.fair ? (e.hot ? `(${e.hot} món hàng săn, giá ${fmtNum(e.price)})` : `giá phiên chợ ${fmtNum(e.price)}`) : `giá ${fmtNum(e.price)} ${e.trend}`}: +${fmtNum(e.coins)} xu.`); }
           else { saleBurst(e.coins); msgs.push(`Đã bán ${e.count} món theo giá chợ hôm nay, nhận ${fmtNum(e.coins)} xu.`); }
           sdk.reportScore?.(s.stats.earned); break;
         case "delivered":
@@ -317,7 +322,12 @@ export function mount(root, ctx = {}) {
           sdk.reportScore?.(s.stats.earned);
           truck?.kick(); markTruck(); // xe Anh Út ghé cổng (từ cấp 11)
           break;
-        case "orderCancelled": msgs.push(e.slot === "special" ? "Đã bỏ đơn đặc biệt." : "Đã bỏ đơn. Đơn mới sau 2 phút."); sound ??= ["buoc-nhay", 0.4, 0.8]; break;
+        case "orderCancelled": msgs.push(L.isSpecialSlot(e.slot) ? "Đã bỏ đơn đặc biệt." : "Đã bỏ đơn. Đơn mới sau 2 phút."); sound ??= ["buoc-nhay", 0.4, 0.8]; break;
+        // Milestone 6: Sổ sưu tập
+        case "bookNew": pulse(ui.bookBtn); msgs.push(`Sổ sưu tập: thêm ${e.name} (${e.total}/${L.BOOK.length})!`); sound ??= ["trung-kim-cuong", 0.5, 1.35]; break;
+        case "bookTierReady": pulse(ui.bookBtn); msgs.push(`Sổ sưu tập đủ ${e.at} món — mở Sổ để nhận thưởng!`); sound = ["qua-man", 0.6]; break;
+        case "bookClaimed": sound = ["qua-man", 0.8]; fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${fmtNum(e.reward.coins)} xu`, "#ffe9a8");
+          msgs.push(`Danh hiệu mới: “${e.title}” — +${fmtNum(e.reward.coins)} xu` + [...Object.entries(e.reward.items), ...Object.entries(e.reward.decor)].map(([id, q]) => `, ${q} ${L.ITEM[id].name}`).join("") + "."); break;
         case "orderNew": if (origin.tick) { pulse(ui.board); pulse(ui.orderTool); } break;
         case "orderExpired": msgs.push("Đơn đặc biệt của Anh Út đã hết hạn."); break;
         case "warehouseUpgraded": sound = ["thang", 0.7]; pulse(ui.storeStat); msgs.push(`Nhà kho đã nâng lên ${e.cap} chỗ!`); break;
@@ -342,7 +352,7 @@ export function mount(root, ctx = {}) {
             "nha-kinh": "Nhà kính xong! Chạm vào để trồng mía — 6 ô, không cần tưới.",
             "dat-phia-dong": "Khu đất phía Đông đã mở: +9 ô ruộng! Kéo bản đồ sang phải để gieo.",
           };
-          msgs.push(e.upgraded ? (e.id === "nha-kho" ? null : e.id === "nha" ? `Nhà lên bậc ★${e.level - 1}: “${L.FAME_TITLES[e.level - 1]}” — đơn hàng +${Math.round(L.BUILDING.nha.levels[e.level - 1].effect.orderBonus * 100)} % xu!`
+          msgs.push(e.upgraded ? (e.id === "nha-kho" ? null : e.id === "hang-rao" ? "Hàng rào đá đã xây xong — quanh ruộng gọn gàng hẳn!" : e.id === "nha" ? `Nhà lên bậc ★${e.level - 1}: “${L.FAME_TITLES[e.level - 1]}” — đơn hàng +${Math.round(L.BUILDING.nha.levels[e.level - 1].effect.orderBonus * 100)} % xu!`
             : `${e.name} lên cấp ${e.level}!` + (e.id === "xuong" ? " Mọi máy thêm 1 ô hàng chờ." : e.id === "nha-kinh" ? " Nhà kính có 9 ô." : ""))
             : DONE[e.id] || `${e.name} đã xây xong!`);
           if (e.id === "dat-phia-dong") setTimeout(() => fmap.scrollToX(L.EAST_FIELD.x + L.EAST_FIELD.w / 2, true), 120);
@@ -415,7 +425,7 @@ export function mount(root, ctx = {}) {
     });
     const total = used + over;
     ui.depot.textContent = total ? `Kho (${total})` : "Kho";
-    const bv = L.boardView(s), ready = bv.slots.filter((x) => x.ready).length + (bv.special?.ready ? 1 : 0);
+    const bv = L.boardView(s), ready = bv.slots.filter((x) => x.ready).length + (bv.special?.ready ? 1 : 0) + (bv.special2?.ready ? 1 : 0);
     ui.boardBadge.textContent = ready || "";
     ui.boardBadge.hidden = !ready;
     ui.orderTool.textContent = ready ? `Đơn (${ready})` : "Đơn hàng";
@@ -442,16 +452,16 @@ export function mount(root, ctx = {}) {
     const row = (id, q, where) => {
       const it = L.ITEM[id], sellable = L.sellable(id), want = need[id] || 0;
       return `<li class="wh-item">${iconHtml(id)}<div class="wh-info"><b>${esc(it.name)} <span class="qty">×${fmtNum(q)}</span></b>` +
-        (sellable ? `<small>Giá chợ hôm nay: ${fmtNum(L.priceOf(id, now()))} xu ${L.MARKET.trend(id, now())}</small>` : "") +
+        (sellable ? `<small>Giá chợ hôm nay: ${fmtNum(L.salePrice(s, id, now()))} xu ${L.MARKET.trend(id, now())}</small>` : "") +
         `<small>Nguồn: ${esc(it.source)} · Dùng cho: ${esc(it.uses)}</small>` +
         (want ? `<small class="want">Đơn đang cần: ${want}</small>` : "") + `</div>` +
         (sellable ? `<div class="wh-btns"><button class="btn btn--sm" type="button" data-act="sell1" data-id="${id}" data-key="s1-${where}-${id}" aria-label="Bán 1 ${esc(it.name)}">Bán 1</button>` +
-          `<button class="btn btn--sm" type="button" data-act="sellN" data-id="${id}" data-key="sn-${where}-${id}" aria-label="Bán hết ${esc(it.name)}">Hết · ${fmtNum(q * L.priceOf(id, now()))} xu</button></div>` : "") + `</li>`;
+          `<button class="btn btn--sm" type="button" data-act="sellN" data-id="${id}" data-key="sn-${where}-${id}" aria-label="Bán hết ${esc(it.name)}">Hết · ${fmtNum(q * L.salePrice(s, id, now()))} xu</button></div>` : "") + `</li>`;
     };
     let html = `<div class="wh-head"><b>Nhà kho</b><span class="wh-cap${used >= cap ? " full" : ""}">${used}/${cap} chỗ</span>` +
       `<div class="px-bar wh-bar" aria-hidden="true"><i style="width:${Math.min(100, Math.round((100 * used) / cap))}%"></i></div></div>`;
     if (over) {
-      const value = Object.entries(s.overflow).reduce((n, [id, q]) => n + q * (L.priceOf(id, now()) || 0), 0);
+      const value = Object.entries(s.overflow).reduce((n, [id, q]) => n + q * (L.salePrice(s, id, now()) || 0), 0);
       html += `<div class="basket" id="basket"><p><b>Giỏ tràn ${over}/${L.OVERFLOW_MAX}</b> — kho đầy nên hàng mới nằm tạm ở đây. Bán bớt hoặc nâng kho; có chỗ trống hàng sẽ tự vào kho.</p>` +
         `<div class="basket-items">${Object.entries(s.overflow).map(([id, q]) => `<span>${iconHtml(id, "it--sm")}×${q}</span>`).join("")}</div>` +
         `<button class="btn btn--primary" type="button" id="sellBasket" data-act="sellBasket" data-key="basket">Bán nhanh giỏ tràn · ${fmtNum(value)} xu</button></div>`;
@@ -484,7 +494,7 @@ export function mount(root, ctx = {}) {
   function slipHtml(v, slotKey) {
     const key = `slot-${slotKey}`;
     if (!v.order) {
-      return `<li class="slip slip--empty" data-slot="${slotKey}"><p>${slotKey === "special" ? "Anh Út sẽ ghé với đơn đặc biệt mới" : "Đơn mới"} sau ${until(v.refillAt)}</p></li>`;
+      return `<li class="slip slip--empty" data-slot="${slotKey}"><p>${L.isSpecialSlot(slotKey) ? "Anh Út sẽ ghé với đơn đặc biệt mới" : "Đơn mới"} sau ${until(v.refillAt)}</p></li>`;
     }
     const o = v.order, npc = npcOf(o.npc), T = L.ORDER_TYPES[o.type];
     const items = v.items.map((it) => `<li class="${it.owned >= it.need ? "ok" : ""}">${iconHtml(it.id)}<span>${esc(L.ITEM[it.id].name)}</span><b>${Math.min(it.owned, it.need)}/${it.need}</b></li>`).join("");
@@ -503,6 +513,8 @@ export function mount(root, ctx = {}) {
     const b = L.boardView(s);
     let html = b.slots.map((v, k) => slipHtml(v, k)).join("");
     if (b.special) html += slipHtml(b.special, "special");
+    if (b.special2) html += slipHtml(b.special2, "special2"); // Milestone 6: đơn đặc biệt thứ hai (cấp 18)
+    else if (s.level >= L.SPECIAL_LEVEL && s.level < L.SPECIAL2_LEVEL) html += `<li class="slip slip--locked"><p>Đơn đặc biệt thứ hai mở ở cấp ${L.SPECIAL2_LEVEL}</p></li>`;
     const slots = L.orderSlotCount(s.level);
     const nextSlot = [3, 6, 11].find((lv) => lv > s.level);
     if (slots < 6 && nextSlot) html += `<li class="slip slip--locked"><p>Ô đơn thứ ${slots + 1} mở ở cấp ${nextSlot}</p></li>`;
@@ -634,7 +646,8 @@ export function mount(root, ctx = {}) {
   const canAffordId = (id) => { const st = L.nextStep(s, id, now()); return !!st && s.level >= st.unlock && !affordErr(st); };
   const millBusy = (t) => (s.production.machines["coi-xay"]?.queue || []).some((j) => j.startAt <= t && t < j.endAt);
   function renderMap(t) {
-    const layout = fmap.render({ s, t, buildMode, canAfford: canAffordId, busyMill: millBusy(t) });
+    const layout = fmap.render({ s, t, buildMode, canAfford: canAffordId, busyMill: millBusy(t), fair: !!L.activeFair(s, t) });
+    renderFairNav(t);
     // Xưởng: số mẻ xong chờ nhận (huy hiệu trên công trình + nút điều hướng)
     const fin = L.workshopState(s, t) === "done" ? L.finishedJobs(s, t) : 0;
     ui.wsBadge.hidden = !fin; ui.wsBadge.textContent = fin || "";
@@ -744,6 +757,7 @@ export function mount(root, ctx = {}) {
         return to <= 1 ? `Danh hiệu <b>“${L.FAME_TITLES[0]}”</b>. Nâng Nhà từ cấp ${L.BUILDING.nha.levels[1].unlock} để có danh hiệu mới và đơn hàng trả thêm xu`
           : `Danh hiệu <b>“${L.FAME_TITLES[to - 1]}”</b> · mọi đơn hàng <b>+${Math.round(ef.orderBonus * 100)} % xu</b> (bậc ★${to - 1}/${L.FAME_TITLES.length - 1})`;
       }
+      case "hang-rao": return to <= 1 ? `Hàng rào gỗ quanh ruộng. Từ cấp ${L.BUILDING["hang-rao"].levels[1].unlock} nâng lên <b>hàng rào đá</b>` : "Hàng rào gỗ thành <b>hàng rào đá</b> chắc chắn (trang trí, xong ngay)";
       case "coi-xay-gio": return "Lắp Cối xay trong Xưởng (thức ăn gia súc, bột gạo) — cối xay gió quay cánh trên bản đồ";
       case "chuong-ga": return to === 1 ? "Nuôi tối đa <b>6 gà</b> (60 xu / con): cho ăn 1 bao thức ăn gia súc ⇒ 1 trứng sau 4 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng gà chứa <b>${L.BUILDING[id].levels[to - 1].effect.chickenCap} gà</b>`;
       case "chuong-bo": return to === 1 ? "Nuôi tối đa <b>4 bò sữa</b> (180 xu / con): cho ăn 2 bao thức ăn ⇒ 1 sữa sau 8 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng bò chứa <b>${L.BUILDING[id].levels[to - 1].effect.cowCap} bò</b>`;
@@ -766,9 +780,9 @@ export function mount(root, ctx = {}) {
     const step = !machine && inMs ? L.nextStep(s, id, t) : null; // mốc kế tiếp (xây nếu level 0)
     const isUp = it.level >= 1, toLv = it.level + 1;
     const title = machine ? def.name : status === "building" ? `${def.name} — đang ${it.upgrading ? "nâng cấp" : "xây"}` : step && status !== "done" ? `${isUp ? "Nâng cấp" : "Xây"} ${def.name}` : def.name;
-    const pic = status === "building" && !it.upgrading ? { sheet: "buildings", id: "gian-giao" } : (step?.sprite || it.sprite || def.levels[0].sprite);
+    const pic = status === "building" && !it.upgrading ? { sheet: "buildings", id: "gian-giao" } : resolveSprite(step?.sprite || it.sprite || def.levels[0].sprite);
     const picCss = pic && pic.sheet !== "garden" ? spriteCss(pic.sheet, pic.id) : null;
-    const picHtml = picCss ? `<span class="bc-pic" style="${picCss}" aria-hidden="true"></span>` : pic?.sheet === "garden" ? `<img class="bc-pic" src="assets/garden/${pic.id}.webp" alt="">` : "";
+    const picHtml = picCss ? `<span class="bc-pic" style="${picCss}" aria-hidden="true"></span>` : pic?.sheet === "garden" ? `<img class="bc-pic${pic.filter ? " spr--" + pic.filter : ""}" src="assets/garden/${pic.id}.webp" alt="">` : "";
     let rows = "";
     const lvTxt = def.levels.length > 1 && it.level >= 1 ? ` · cấp ${it.level}/${def.levels.length}` : "";
     if (!inMs) rows += `<li>${effectText(id, 1)}. Cần cấp ${def.levels[0].unlock}.</li>`;
@@ -884,6 +898,48 @@ export function mount(root, ctx = {}) {
   });
   ui.ghClose.onclick = () => { ui.ovGh.hidden = true; fmap.el("nha-kinh")?.focus({ preventScroll: true }); };
 
+  // ---------- Milestone 6: Sổ sưu tập + Phiên chợ (nút Chợ) ----------
+  function renderFairNav(t) {
+    const f = L.activeFair(s, t);
+    setHtml(ui.mkTool, "Chợ" + (f ? `<span class="nav-badge nav-badge--fair">Hội</span>` : ""));
+    ui.mkTool.setAttribute("aria-label", f ? "Chợ — đang có Phiên chợ" : "Chợ");
+    ui.mkTool.classList.toggle("is-fair", !!f);
+  }
+  function renderBook() {
+    const v = L.bookView(s);
+    setHtml(ui.bookBtn, `${iconHtml("so-suu-tap", "it--sm")}<span><span class="bk-name">Sổ </span>${v.unlocked}/${v.total}</span>` + (v.claimable >= 0 ? `<span class="nav-badge">!</span>` : ""));
+    ui.bookBtn.setAttribute("aria-label", `Sổ sưu tập: ${v.unlocked}/${v.total} món` + (v.claimable >= 0 ? " — có thưởng chờ nhận" : ""));
+    if (ui.ovBook.hidden) return;
+    let html = `<div class="rc-head"><div><b id="bookTitle">Sổ sưu tập</b><br><small>${v.title ? `Danh hiệu: “${esc(v.title)}” · ` : ""}${v.unlocked}/${v.total} món — mỗi món tự ghi khi bạn thu / làm ra lần đầu</small></div>` +
+      `<button class="btn btn--sm rc-close" type="button" data-act="close" aria-label="Đóng Sổ sưu tập">✕</button></div>`;
+    html += `<div class="px-bar book-bar" aria-hidden="true"><i style="width:${Math.round((100 * v.unlocked) / v.total)}%"></i></div>`;
+    html += `<ul class="book-tiers">${v.tiers.map((x) => {
+      const r = x.reward, gift = [`${iconHtml("dong-xu", "it--xs")}${fmtNum(r.coins)}`, ...Object.entries(r.items).map(([id, q]) => `${iconHtml(id, "it--xs")}${q}`), ...Object.entries(r.decor).map(([id, q]) => `${iconHtml(id, "it--xs")}${q}`)].join(" ");
+      const btn = x.claimed ? `<span class="book-done">Đã nhận</span>` : v.claimable === x.k ? `<button class="btn btn--primary btn--sm" type="button" data-act="claim" data-tier="${x.k}" data-key="book-claim-${x.k}">Nhận</button>` : `<span class="book-need">${Math.min(v.unlocked, x.at)}/${x.at}</span>`;
+      return `<li class="${x.claimed ? "done" : x.reached ? "ready" : ""}"><b>${x.at} món</b><small>“${esc(x.title)}”</small><span class="book-gift">${gift}</span>${btn}</li>`;
+    }).join("")}</ul>`;
+    for (const g of L.BOOK_GROUPS) {
+      const es = v.entries.filter((e) => e.cat === g.id);
+      html += `<h3>${esc(g.name)} <small>${es.filter((e) => e.unlocked).length}/${es.length}</small></h3><ul class="book-grid">` + es.map((e) =>
+        `<li class="book-entry${e.unlocked ? "" : " locked"}" data-id="${e.id}" title="${esc(e.unlocked ? `${e.name}: đã có ${e.count}` : `${e.name} — ${e.source}`)}">${iconHtml(e.id)}<b>${e.unlocked ? esc(e.name) : "???"}</b><small>${e.unlocked ? "×" + fmtNum(e.count) : esc(e.source.split(" · ")[0])}</small></li>`).join("") + `</ul>`;
+    }
+    if (v.claimed >= v.tiers.length) html += `<p class="rc-note">Đã nhận mọi mốc — nông trại của bạn đã là “${esc(v.title)}”.</p>`;
+    setHtml(ui.bookBody, html);
+  }
+  function showBook(on) {
+    ui.ovBook.hidden = !on;
+    if (on) { renderBook(); ui.ovBook.querySelector(".book-card").scrollTop = 0; (ui.bookBody.querySelector('[data-act="claim"]') || ui.bookBody.querySelector('[data-act="close"]'))?.focus(); sfx.play("buoc-nhay", 0.35, 1.15); }
+    else ui.bookBtn.focus({ preventScroll: true });
+  }
+  ui.bookBtn.onclick = () => showBook(true);
+  ui.ovBook.addEventListener("click", (e) => { if (e.target === ui.ovBook) showBook(false); });
+  ui.bookBody.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]");
+    if (!b || b.disabled) return;
+    if (b.dataset.act === "close") return showBook(false);
+    if (b.dataset.act === "claim") exec({ type: "claimBook", tier: Number(b.dataset.tier) }, { el: b });
+  });
+
   // ---------- cảnh ----------
   const HASH = { workshop: "#xuong", market: "#cho", animals: "#chan-nuoi", village: "#lang" };
   function goScene(next, quiet) {
@@ -939,6 +995,7 @@ export function mount(root, ctx = {}) {
     animals?.render(); village?.render(); // cảnh ẩn tự bỏ qua
     renderWarehouse();
     renderOrders();
+    renderBook();
     renderQuest();
     renderField(now());
   }
@@ -1044,7 +1101,7 @@ export function mount(root, ctx = {}) {
   ui.slips.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-act]");
     if (!b || b.disabled) return;
-    const slot = b.dataset.slot === "special" ? "special" : Number(b.dataset.slot), id = Number(b.dataset.id), rev = Number(b.dataset.rev);
+    const slot = L.isSpecialSlot(b.dataset.slot) ? b.dataset.slot : Number(b.dataset.slot), id = Number(b.dataset.id), rev = Number(b.dataset.rev);
     if (b.dataset.act === "deliver") { cancelArm = null; exec({ type: "deliver", slot, id, rev }, { el: b }); return; }
     const arm = `${b.dataset.slot}:${id}`;
     if (cancelArm !== arm) { // bỏ đơn cũng bấm 2 lần cho chắc
@@ -1075,6 +1132,7 @@ export function mount(root, ctx = {}) {
     if (!ui.ovBuild.hidden) { if (e.key === "Escape") { e.preventDefault(); closeBuild(); } return; }
     if (!ui.ovDecor.hidden) { if (e.key === "Escape") { e.preventDefault(); closeDecor(); } return; }
     if (!ui.ovGh.hidden) { if (e.key === "Escape") { e.preventDefault(); ui.ghClose.click(); } return; }
+    if (!ui.ovBook.hidden) { if (e.key === "Escape") { e.preventDefault(); showBook(false); } return; }
     if (workshop.onKey(e)) return;
     if (scene !== "farm") {
       if (e.key === "Escape") { e.preventDefault(); goScene("farm"); }
@@ -1132,6 +1190,7 @@ export function mount(root, ctx = {}) {
     const hashScene = Object.keys(HASH).find((k) => HASH[k] === location.hash);
     if (hashScene) goScene(hashScene, true);
     if (fresh) showHelp(true);
+    else if (migrated && first.from === "v6") toast("Nông trại đã cập nhật: Sổ sưu tập 30 món (nút Sổ), 6 công thức mới, hàng rào đá (cấp 15), Phiên chợ và đơn đặc biệt hai lúc (cấp 18). Tiến trình vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v5") toast("Nông trại đã cập nhật: Chăn nuôi (chuồng gà cấp 7, chuồng bò cấp 9) và Làng với 4 người bạn (cấp 6). Tiến trình vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v4") toast("Nông trại đã cập nhật: chế độ Xây (nút búa) — Nhà kho, Nhà kính, Khu đất phía Đông và trang trí trên bản đồ. Tiến trình và kho đã nâng vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v3") toast("Nông trại đã cập nhật: có Xưởng chế biến (từ cấp 4) và Khu chợ với giá đổi theo giờ. Tiến trình cũ vẫn giữ nguyên!", 5200);
