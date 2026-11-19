@@ -84,6 +84,11 @@ await advance(31_000);
 check("tua đồng hồ 31 giây → cây chín, có viền chỉ vào ô chín", await ev("document.querySelectorAll('#field .plot.ready').length===3") && await ev("!!document.querySelector('#field .plot.ready.qhl')"));
 await pressSel("#allBtn");
 check("Thu hết → 3 cà rốt vào kho, kho 3/60, NV3 xong", (await S("s.inv['ca-rot']")) === 3 && (await text("#hStore")) === "3/60" && await visible("#qClaim"));
+// Đường XP 60·cấp²: 3 cà rốt + thưởng NV1–3 chưa đủ cấp 2 ⇒ đặt XP thiếu đúng phần thưởng NV3 (như đã cày thêm vài vụ), nhận thưởng ⇒ lên cấp 2.
+check("3 vụ đầu chưa đủ lên cấp 2 (đường XP mới)", (await S("s.level")) === 1);
+const need1 = await ev("import('./core/progression.js?v=m2').then(m=>m.xpNeed(1))");
+const nv3Xp = await ev("import('./data/quests.js?v=m2').then(m=>m.TUTORIAL[2].reward.xp)");
+await ev(`(()=>{const s=__game.state;s.xp=${need1 - nv3Xp};__game.state=s})()`);
 await claim();
 check("lên cấp 2 (toast báo mở khoá Dâu tây)", (await S("s.level")) === 2);
 await pressSel("#sellTool");

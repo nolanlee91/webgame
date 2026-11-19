@@ -2,18 +2,19 @@
 // một nguồn giá cho Nhà kho, di chuyển save v3 → v4, offline, đơn có thành phẩm, chuỗi A & C, nhiệm vụ tiến trình.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m2";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m2";
-import { MARKET, CYCLE_MS } from "../core/market.js?v=m2";
-import { workshopState, finishedJobs, finishedWhileAway } from "../core/workshop.js?v=m2";
-import * as O from "../core/orders.js?v=m2";
-import { used, capacity } from "../core/inventory.js?v=m2";
-import { currentQuest } from "../core/quests.js?v=m2";
-import { TUTORIAL } from "../data/quests.js?v=m2";
-import { WORKSHOP } from "../data/workshop.js?v=m2";
-import { RECIPE } from "../data/recipes.js?v=m2";
-import { ITEM } from "../data/catalog.js?v=m2";
-import { farmSave, KEY, V3_KEY, V3_BACKUP_KEY } from "../save.js?v=m2";
+import { apply } from "../core/apply.js?v=m2b";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m2b";
+import { MARKET, CYCLE_MS } from "../core/market.js?v=m2b";
+import { workshopState, finishedJobs, finishedWhileAway } from "../core/workshop.js?v=m2b";
+import * as O from "../core/orders.js?v=m2b";
+import { used, capacity } from "../core/inventory.js?v=m2b";
+import { currentQuest } from "../core/quests.js?v=m2b";
+import { xpNeed } from "../core/progression.js?v=m2b";
+import { TUTORIAL } from "../data/quests.js?v=m2b";
+import { WORKSHOP } from "../data/workshop.js?v=m2b";
+import { RECIPE } from "../data/recipes.js?v=m2b";
+import { ITEM } from "../data/catalog.js?v=m2b";
+import { farmSave, KEY, V3_KEY, V3_BACKUP_KEY } from "../save.js?v=m2b";
 import { act, err, START } from "./helpers.mjs";
 
 const MIN = 60_000, HOUR = 3600_000;
@@ -73,7 +74,7 @@ test("enqueue / collect qua apply: trừ nguyên liệu lúc Bắt đầu, nhậ
   assert.deepEqual(s.inv, { "dau-tay": 3 });
   assert.equal(job.endAt, START + RECIPE["mut-dau"].ms);
   assert.equal(err(s, { type: "collect", machine: "bep-sen", uid: job.uid }, job.endAt - 1), "not-ready");
-  s.xp = 79; // cấp 4 cần 80 XP ⇒ +8 XP lên cấp 5
+  s.xp = xpNeed(4) - 1; // thiếu 1 XP lên cấp 5 ⇒ +8 XP lên cấp 5 (chưa tới cấp 6)
   const c = act(s, { type: "collect", machine: "bep-sen", uid: job.uid }, job.endAt);
   assert.ok(c.events.some((e) => e.type === "jobCollected" && e.item === "mut-dau" && e.xp === 8));
   assert.ok(c.events.some((e) => e.type === "levelUp" && e.level === 5 && e.unlocks.includes("Cối xay (trong Xưởng)")));

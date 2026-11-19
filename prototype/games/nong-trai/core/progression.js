@@ -1,9 +1,10 @@
 // XP / cấp / mở khoá — đọc bảng cấp từ data/levels.js.
-import { CROP } from "../data/crops.js?v=m2";
-import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel } from "../data/levels.js?v=m2";
+import { CROP } from "../data/crops.js?v=m2b";
+import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel, MAX_LEVEL } from "../data/levels.js?v=m2b";
 
 /** XP cần để đi từ cấp `lv` lên `lv + 1`. */
-export const xpNeed = (lv) => Math.round(10 * lv ** 1.5);
+// 60·cấp² — mô phỏng (tools/sim): cấp 4 ≈ 9 ph, cấp 7 ≈ 47 ph, cấp 10 ≈ 2 giờ, cấp 20 ≈ 14 giờ chơi (DESIGN §3). Bản cũ 10·cấp^1,5 nhanh gấp 6–8 lần.
+export const xpNeed = (lv) => 60 * lv * lv;
 
 /** Cây đã mở: đủ cấp và (nếu cần) đã có công trình. */
 export function cropUnlocked(s, id) {
@@ -28,9 +29,11 @@ export function nextUnlock(level) {
 /** Cộng XP, lên cấp nếu đủ. Trả danh sách sự kiện levelUp (mỗi cấp một sự kiện). */
 export function addXp(s, n, events) {
   s.xp += Math.max(0, Math.floor(n));
-  while (s.xp >= xpNeed(s.level)) {
+  if (s.level >= MAX_LEVEL) { s.level = MAX_LEVEL; s.xp = Math.min(s.xp, xpNeed(MAX_LEVEL)); return; } // trần cấp 20
+  while (s.xp >= xpNeed(s.level) && s.level < MAX_LEVEL) {
     s.xp -= xpNeed(s.level);
     s.level++;
+    if (s.level >= MAX_LEVEL) s.xp = Math.min(s.xp, xpNeed(MAX_LEVEL));
     events.push({ type: "levelUp", level: s.level, unlocks: unlocksAt(s.level).map((u) => u.name) });
   }
 }

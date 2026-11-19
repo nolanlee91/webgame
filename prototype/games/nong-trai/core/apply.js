@@ -4,13 +4,13 @@
 // Mỗi action đều đồng bộ trước theo `now` (Xưởng xây xong, lấp ô đơn, hết hạn đơn đặc biệt, giỏ tràn về kho, lưới an toàn).
 // Milestone 2: Xưởng (buildWorkshop, upgradeWorkshop, buildMachine, upgradeMachine, enqueue, collect, collectAll) và Khu chợ
 // (marketSell, marketBuy). Bán ở Nhà kho / giỏ tràn dùng cùng giá chợ (core/market.js priceOf).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2";
-import * as plots from "./plots.js?v=m2";
-import * as orders from "./orders.js?v=m2";
-import * as eco from "./economy.js?v=m2";
-import * as quests from "./quests.js?v=m2";
-import * as ws from "./workshop.js?v=m2";
-import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m2";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2b";
+import * as plots from "./plots.js?v=m2b";
+import * as orders from "./orders.js?v=m2b";
+import * as eco from "./economy.js?v=m2b";
+import * as quests from "./quests.js?v=m2b";
+import * as ws from "./workshop.js?v=m2b";
+import { settleOverflow, used, capacity, overflowCount } from "./inventory.js?v=m2b";
 
 function sync(s, now, events) {
   ws.sync(s, now, events);

@@ -1,20 +1,20 @@
 // Trạng thái nông trại: tạo mới, đọc + kẹp bản lưu v4 (và v3 của Milestone 1 ⇒ di chuyển lên v4), di chuyển bản lưu v2. Thuần, nhận `now`.
 // v4 (Milestone 2) thêm: production (Xưởng), buildings.xuong (công trình Xưởng), decor (túi trang trí). Giá chợ suy ra từ thời gian, không lưu.
-import { CROP, CROPS } from "../data/crops.js?v=m2";
-import { ITEM, isDecor } from "../data/catalog.js?v=m2";
-import { WORKSHOP } from "../data/workshop.js?v=m2";
-import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m2";
-import { MACHINES_NOW } from "./workshop.js?v=m2";
+import { CROP, CROPS } from "../data/crops.js?v=m2b";
+import { ITEM, isDecor } from "../data/catalog.js?v=m2b";
+import { WORKSHOP } from "../data/workshop.js?v=m2b";
+import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m2b";
+import { MACHINES_NOW } from "./workshop.js?v=m2b";
 import { sanitize as sanitizeBuild } from "./build.js?v=m3";
-import { NPC } from "../data/npcs.js?v=m2";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m2";
-import { UPGRADES } from "../data/decor.js?v=m2";
-import { QUESTS, TUTORIAL } from "../data/quests.js?v=m2";
+import { NPC } from "../data/npcs.js?v=m2b";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m2b";
+import { UPGRADES } from "../data/decor.js?v=m2b";
+import { QUESTS, TUTORIAL } from "../data/quests.js?v=m2b";
 const TUTORIAL_LENGTH = TUTORIAL.length;
-import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2";
-import { W, H, START_OPEN, emptyPlot } from "./plots.js?v=m2";
-import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m2";
-import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m2";
+import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2b";
+import { W, H, START_OPEN, emptyPlot } from "./plots.js?v=m2b";
+import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m2b";
+import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m2b";
 
 export const SAVE_VERSION = 4;
 /** Phiên bản đọc được (v3 = Milestone 1, chưa có Xưởng). */
@@ -124,7 +124,7 @@ export function loadSave(raw, now) {
   if (!d || typeof d !== "object" || !READABLE_VERSIONS.includes(d.v) || !Array.isArray(d.plots) || d.plots.length !== W * H) return null;
   const s = createState(now);
   s.coins = int(d.coins, 0, 1e12, START_COINS);
-  s.level = int(d.level, 1, 999, 1);
+  s.level = int(d.level, 1, 20, 1); // trần cấp (MAX_LEVEL)
   s.xp = int(d.xp, 0, xpNeed(s.level) - 1, 0);
   s.bought = int(d.bought, 0, W * H, 0);
   s.lastSeen = num(d.lastSeen, 0, now, now);
@@ -174,7 +174,7 @@ export function migrateV2(raw, now) {
   if (!d || typeof d !== "object" || d.v !== 2 || !Array.isArray(d.plots) || d.plots.length !== W * H) return null;
   const s = createState(now);
   s.coins = int(d.coins, 0, 1e12, START_COINS);
-  s.level = int(d.level, 1, 999, 1);
+  s.level = int(d.level, 1, 20, 1); // trần cấp (MAX_LEVEL)
   s.xp = int(d.xp, 0, xpNeed(s.level) - 1, 0);
   s.bought = int(d.bought, 0, W * H, 0);
   s.lastSeen = num(d.lastSeen, 0, now, now);

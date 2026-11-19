@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createState, loadV3, migrateV2, dump, START_COINS } from "../core/state.js?v=m2";
-import { apply } from "../core/apply.js?v=m2";
-import { readyWhileAway, stage } from "../core/plots.js?v=m2";
-import { used, capacity } from "../core/inventory.js?v=m2";
+import { createState, loadV3, migrateV2, dump, START_COINS } from "../core/state.js?v=m2b";
+import { apply } from "../core/apply.js?v=m2b";
+import { readyWhileAway, stage } from "../core/plots.js?v=m2b";
+import { used, capacity } from "../core/inventory.js?v=m2b";
 import { farmSave, KEY, V2_KEY, BACKUP_KEY } from "../save.js";
 import { START } from "./helpers.mjs";
+import { xpNeed } from "../core/progression.js?v=m2b";
 
 /** Bản lưu v2 thật (định dạng của logic.js cũ + đơn hàng chưa commit). */
 function v2Save(t) {
@@ -125,7 +126,7 @@ test("load kẹp dữ liệu rác: số âm / NaN / quá lớn, món lạ, cây 
   const l = loadV3(d, START);
   assert.equal(l.coins, 0);
   assert.equal(l.level, 1);
-  assert.equal(l.xp, 9);
+  assert.equal(l.xp, xpNeed(1) - 1, "XP kẹp dưới mức lên cấp");
   assert.equal(l.freeSeeds, 3);
   assert.equal(l.warehouse, 4);
   assert.equal(l.upgrade, 0);

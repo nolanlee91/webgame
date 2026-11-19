@@ -1,10 +1,10 @@
 // Ruộng: gieo / tưới / thu hoạch / mở ô. Thời gian tuyệt đối (plantAt / readyAt) ⇒ cây lớn cả khi tắt trang.
 // Ruộng 5×5, mở sẵn 3×3 ở giữa. Các hàm đổi trạng thái chỉ gọi qua apply() và trả { err } hoặc kết quả.
-import { CROP } from "../data/crops.js?v=m2";
-import { MATERIALS } from "../data/catalog.js?v=m2";
-import { cropUnlocked, hasFeature, addXp } from "./progression.js?v=m2";
-import { add, canAdd } from "./inventory.js?v=m2";
-import { rand, pick } from "./rng.js?v=m2";
+import { CROP } from "../data/crops.js?v=m2b";
+import { MATERIALS } from "../data/catalog.js?v=m2b";
+import { cropUnlocked, hasFeature, addXp } from "./progression.js?v=m2b";
+import { add, canAdd } from "./inventory.js?v=m2b";
+import { rand, pick } from "./rng.js?v=m2b";
 
 export const W = 5, H = 5;
 export const WATER_FACTOR = 0.7; // tưới: thời gian CÒN LẠI × 0.7

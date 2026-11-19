@@ -3,18 +3,18 @@
 //
 // s.orders = { nextId, slots: [{ rev, order | null, refillAt }], special: { rev, order | null, refillAt } | null }
 // order = { id, type, npc, items: { id: qty }, mult, coins, xp, materials: { id: qty }, createdAt, expiresAt | null }
-import { CROP, CROPS } from "../data/crops.js?v=m2";
-import { ITEM, MATERIALS } from "../data/catalog.js?v=m2";
-import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m2";
-import { featureLevel } from "../data/levels.js?v=m2";
-import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m2";
-import { have, take, add } from "./inventory.js?v=m2";
-import { rand, randInt, pick, sample } from "./rng.js?v=m2";
-import { RECIPES } from "../data/recipes.js?v=m2";
-import { MACHINE } from "../data/machines.js?v=m2";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m2";
-import { capacity as queueCap } from "./production.js?v=m2";
-import { extraSlots } from "./workshop.js?v=m2";
+import { CROP, CROPS } from "../data/crops.js?v=m2b";
+import { ITEM, MATERIALS } from "../data/catalog.js?v=m2b";
+import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m2b";
+import { featureLevel } from "../data/levels.js?v=m2b";
+import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m2b";
+import { have, take, add } from "./inventory.js?v=m2b";
+import { rand, randInt, pick, sample } from "./rng.js?v=m2b";
+import { RECIPES } from "../data/recipes.js?v=m2b";
+import { MACHINE } from "../data/machines.js?v=m2b";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m2b";
+import { capacity as queueCap } from "./production.js?v=m2b";
+import { extraSlots } from "./workshop.js?v=m2b";
 
 export const COMBO_LEVEL = featureLevel("orders-combo"), SPECIAL_LEVEL = featureLevel("orders-special");
 

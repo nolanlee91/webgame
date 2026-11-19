@@ -14,9 +14,9 @@
 //   wallet = { coins() -> number, spend(n) -> bool, earn(n) }
 //   ctx    = { level }
 
-import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m2";
-import { CROPS } from "../data/crops.js?v=m2";
-import { RECIPES } from "../data/recipes.js?v=m2";
+import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m2b";
+import { CROPS } from "../data/crops.js?v=m2b";
+import { RECIPES } from "../data/recipes.js?v=m2b";
 
 export const CYCLE_MS = 3 * 3600_000;
 export const SWING = 0.15;

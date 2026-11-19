@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m2";
-import * as P from "../core/plots.js?v=m2";
-import { CROPS } from "../data/crops.js?v=m2";
-import { START_COINS } from "../core/state.js?v=m2";
+import { apply } from "../core/apply.js?v=m2b";
+import * as P from "../core/plots.js?v=m2b";
+import { CROPS } from "../data/crops.js?v=m2b";
+import { START_COINS } from "../core/state.js?v=m2b";
+import { xpNeed } from "../core/progression.js?v=m2b";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("ruộng mới: 25 ô, mở 9, xu khởi đầu, 3 hạt cà rốt tặng", () => {
@@ -83,7 +84,7 @@ test("thu hoạch vào kho, XP đúng một lần, không cộng xu", () => {
 
 test("thu hết chỉ lấy ô chín, lên cấp mở dâu tây", () => {
   const s = farm();
-  s.xp = 8;
+  s.xp = xpNeed(1) - 2; // cà rốt +2 XP ⇒ vừa đủ lên cấp 2
   act(s, { type: "plant", i: CENTER, crop: "ca-rot" });
   act(s, { type: "plant", i: 6, crop: "ca-chua" });
   const r = act(s, { type: "harvestAll" }, START + 30_000);

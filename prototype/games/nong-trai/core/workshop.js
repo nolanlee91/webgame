@@ -4,15 +4,15 @@
 // Công trình dùng MỘT mô hình với Milestone 3 — core/build.js (data/buildings.js id "xuong", số liệu khớp data/workshop.js):
 //   s.buildings.xuong = { level (level ĐÃ XONG; 0 khi đang xây lần đầu), done, startAt, readyAt }
 // s.production = { machines: { [id]: { level, slots, readyAt, queue: [{ uid, recipe, startAt, endAt }], nextUid } } }
-import { WORKSHOP } from "../data/workshop.js?v=m2";
-import { MACHINE, MACHINES } from "../data/machines.js?v=m2";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m2";
-import { ITEM } from "../data/catalog.js?v=m2";
-import * as P from "./production.js?v=m2";
+import { WORKSHOP } from "../data/workshop.js?v=m2b";
+import { MACHINE, MACHINES } from "../data/machines.js?v=m2b";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m2b";
+import { ITEM } from "../data/catalog.js?v=m2b";
+import * as P from "./production.js?v=m2b";
 import * as B from "./build.js?v=m3";
-import { MARKET } from "./market.js?v=m2";
-import { bag, wallet } from "./inventory.js?v=m2";
-import { addXp } from "./progression.js?v=m2";
+import { MARKET } from "./market.js?v=m2b";
+import { bag, wallet } from "./inventory.js?v=m2b";
+import { addXp } from "./progression.js?v=m2b";
 
 const ID = WORKSHOP.id; // "xuong"
 export const workshopOf = (s) => s.buildings?.[ID] || null;

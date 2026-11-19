@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as O from "../core/orders.js?v=m2";
-import { orderSlotCount, cropUnlocked } from "../core/progression.js?v=m2";
-import { loadV3, dump } from "../core/state.js?v=m2";
-import { apply } from "../core/apply.js?v=m2";
-import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2";
-import { NPC } from "../data/npcs.js?v=m2";
+import * as O from "../core/orders.js?v=m2b";
+import { orderSlotCount, cropUnlocked, xpNeed } from "../core/progression.js?v=m2b";
+import { loadV3, dump } from "../core/state.js?v=m2b";
+import { apply } from "../core/apply.js?v=m2b";
+import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m2b";
+import { NPC } from "../data/npcs.js?v=m2b";
 import { farm, act, err, START } from "./helpers.mjs";
 
 const board = (s) => O.boardView(s).slots;
@@ -31,7 +31,7 @@ test("người mới: 3 đơn dễ, chỉ món đã mở, đơn đầu của Bá
 test("số ô đơn theo cấp: 3, +1 ở cấp 3, 6, 11, tối đa 6; lên cấp ⇒ ô mới có đơn ngay", () => {
   assert.deepEqual([1, 2, 3, 5, 6, 10, 11, 20].map(orderSlotCount), [3, 3, 4, 4, 5, 5, 6, 6]);
   const s = farm();
-  s.level = 2; s.xp = 27; s.inv["ca-rot"] = 2;
+  s.level = 2; s.xp = xpNeed(2) - 1; s.inv["ca-rot"] = 2;
   const r = act(s, { type: "deliver", slot: 0, id: s.orders.slots[0].order.id, rev: s.orders.slots[0].rev });
   assert.ok(r.events.some((e) => e.type === "levelUp" && e.level === 3));
   assert.equal(s.orders.slots.length, 4);

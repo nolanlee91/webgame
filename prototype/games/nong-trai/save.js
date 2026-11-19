@@ -1,7 +1,7 @@
 // Adapter lưu (localStorage + khoá navigator.locks chống 2 tab ghi đè). Luật đọc / kẹp / di chuyển nằm ở core/state.js.
 // Save v4 (Milestone 2) ở KEY. Chưa có v4 ⇒ di chuyển tự động từ v3 (Milestone 1), không có thì từ v2.
 // Chính sách giữ dữ liệu cũ: bản gốc v3 / v2 được chép sang khoá *.backup trước lần ghi v4 đầu tiên và KHÔNG bao giờ bị xoá.
-import { createState, loadSave, migrateV2, dump } from "./core/state.js?v=m2";
+import { createState, loadSave, migrateV2, dump } from "./core/state.js?v=m2b";
 
 export const KEY = "wgp.nongtrai.v4";
 export const V3_KEY = "wgp.nongtrai.v3";

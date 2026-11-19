@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SHOP, RESALE_MIN_RATIO } from "../data/shop.js?v=m2";
-import { ITEM, ITEMS } from "../data/catalog.js?v=m2";
-import { CROP } from "../data/crops.js?v=m2";
-import { SAFETY_COOLDOWN_MS } from "../core/economy.js?v=m2";
-import { apply } from "../core/apply.js?v=m2";
+import { SHOP, RESALE_MIN_RATIO } from "../data/shop.js?v=m2b";
+import { ITEM, ITEMS } from "../data/catalog.js?v=m2b";
+import { CROP } from "../data/crops.js?v=m2b";
+import { SAFETY_COOLDOWN_MS } from "../core/economy.js?v=m2b";
+import { apply } from "../core/apply.js?v=m2b";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("không vòng mua → bán có lời: mọi món chợ bán ra hoặc không bán lại được, hoặc giá mua ≥ 1,6 × giá bán lại", () => {

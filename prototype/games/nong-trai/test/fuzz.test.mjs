@@ -1,18 +1,18 @@
 // Fuzz: vài nghìn action ngẫu nhiên (hợp lệ lẫn rác) qua apply(), sau mỗi bước kiểm bất biến.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply, invariantError } from "../core/apply.js?v=m2";
-import { createState, loadV3, dump } from "../core/state.js?v=m2";
-import { used, capacity, overflowCount } from "../core/inventory.js?v=m2";
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2";
-import { TUTORIAL } from "../data/quests.js?v=m2";
-import { CROPS } from "../data/crops.js?v=m2";
-import { ITEMS } from "../data/catalog.js?v=m2";
-import { MACHINES } from "../data/machines.js?v=m2";
-import { RECIPES } from "../data/recipes.js?v=m2";
-import { QUESTS } from "../data/quests.js?v=m2";
-import { capacity as queueCap } from "../core/production.js?v=m2";
-import { extraSlots } from "../core/workshop.js?v=m2";
+import { apply, invariantError } from "../core/apply.js?v=m2b";
+import { createState, loadV3, dump } from "../core/state.js?v=m2b";
+import { used, capacity, overflowCount } from "../core/inventory.js?v=m2b";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m2b";
+import { TUTORIAL } from "../data/quests.js?v=m2b";
+import { CROPS } from "../data/crops.js?v=m2b";
+import { ITEMS } from "../data/catalog.js?v=m2b";
+import { MACHINES } from "../data/machines.js?v=m2b";
+import { RECIPES } from "../data/recipes.js?v=m2b";
+import { QUESTS } from "../data/quests.js?v=m2b";
+import { capacity as queueCap } from "../core/production.js?v=m2b";
+import { extraSlots } from "../core/workshop.js?v=m2b";
 
 function prng(seed) { return () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296); }
 
