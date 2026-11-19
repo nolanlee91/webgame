@@ -3,7 +3,7 @@
 //   • cho tạo phòng / nhập mã phòng / chọn "Chơi với máy" (đấu với 1–3 máy, không cần mạng),
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi).
-import { mount } from "./game.js?v=bots1";
+import { mount } from "./game.js?v=leave1";
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
 const SEAT_KEY = "wgp.co-ca-ngua.seat";
@@ -30,10 +30,10 @@ const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ 
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=leave1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
   }
   if (!document.querySelector("link[data-cn-online]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=leave1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
   }
 }
 const icon = (n) => `<img class="px-ic" src="${new URL("assets/icon-" + n + ".png", import.meta.url).href}" alt="" draggable="false">`;
@@ -43,7 +43,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   addCss();
   const url = wsUrl || (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/co-ca-ngua";
   let ws = null, inst = null, seat = load(SEAT_KEY, sessionStorage), joinedOnce = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
-  let toastEl = null, toastTimer = 0;
+  let toastEl = null, toastTimer = 0, exiting = null; // exiting: đang rời phòng để sang trang khác (bấm "← Trang chủ")
 
   function toast(text, ms = 2600) {
     if (!toastEl) { toastEl = document.createElement("div"); toastEl.className = "cn-toast"; toastEl.setAttribute("role", "status"); document.body.appendChild(toastEl); }
@@ -226,12 +226,19 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       retry = 0; joinedOnce = true; pending = null;
       saveSeat({ code: m.code, token: m.token });
       setRoomParam(m.code); hideToast();
-      if (!inst) { stage.innerHTML = ""; inst = mount(stage, { ...baseCtx, lobby: true, online: { send, leave } }); window.__game = inst; }
+      if (!inst) { stage.innerHTML = ""; inst = mount(stage, { ...baseCtx, lobby: true, online: { send, leave, disband } }); window.__game = inst; }
       return;
     }
     if (m.t === "state") { if (inst) { m.v.skew = m.now - Date.now(); inst.netState(m.v); renderChat(m.v); } return; }
     if (m.t === "pong") return;
-    if (m.t === "left") { saveSeat(null); setRoomParam(""); showEntry(); return; }
+    if (m.t === "left" || m.t === "closed") {
+      if (exiting) return exiting(); // đang sang trang khác: không vẽ lại màn vào phòng
+      const wasHost = !!(inst && inst.room && inst.room.you === inst.room.host);
+      saveSeat(null); setRoomParam("");
+      if (m.t === "left") return showEntry();
+      leaveSfx(); showEntry(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng.");
+      return;
+    }
     if (m.t === "replaced") { saveSeat(null); showEntry("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
     if (m.t === "kicked") { saveSeat(null); setRoomParam(""); showEntry("Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
     if (m.t === "err") {
@@ -247,6 +254,41 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     }
   }
 
+  // Tiếng "rời phòng" (cùng tiếng ngựa bị đá về chuồng mà bàn cờ dùng khi có người rời) — phát bằng <audio> vì bàn cờ (Web Audio) bị gỡ ngay
+  function leaveSfx() {
+    if (baseCtx.sdk && baseCtx.sdk.sound && baseCtx.sdk.sound.muted) return;
+    try { const a = new Audio(new URL("assets/sfx/da-quan.ogg", import.meta.url).href); a.volume = 0.5; a.play().catch(() => {}); } catch {}
+  }
+  const humansIn = (r) => (r && r.players ? r.players.filter((p) => !p.bot && !p.left).length : 0);
+  // Chủ phòng hủy phòng (phòng chờ / ván đã xong): còn người khác thì hỏi lại trước; máy chủ báo "closed" cho cả phòng.
+  function disband() {
+    const r = inst && inst.room;
+    if (humansIn(r) > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+    send({ t: "disband" });
+  }
+  // Bấm link sang trang khác (← Trang chủ…) khi đang ở trong phòng: rời phòng hẳn (chủ phòng chỉ còn một mình ⇒ hủy phòng)
+  // rồi mới đi, để người khác thấy mình rời ngay; chờ máy chủ trả lời tối đa 400 ms.
+  function exitTo(href) {
+    const r = inst && inst.room, phase = r && r.phase;
+    if (phase === "play" && !confirm("Rời ván đang chơi?")) return;
+    const go = () => { if (!exiting) return; exiting = null; clearTimeout(t); location.href = href; };
+    const alone = r && r.you === r.host && humansIn(r) <= 1 && phase !== "play";
+    clearTimeout(retryTimer); retryTimer = 0;
+    const live = ws && ws.readyState === 1;
+    saveSeat(null);
+    exiting = go;
+    const t = setTimeout(go, live ? 400 : 0);
+    if (live) ws.send(JSON.stringify({ t: alone ? "disband" : "leave" }));
+  }
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest("a[href]");
+    if (!a || !inst || !seat || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
+    const u = new URL(a.href, location.href);
+    if (u.origin === location.origin && u.pathname === location.pathname) return; // link trong trang
+    e.preventDefault();
+    exitTo(u.href);
+  }, true);
+
   function leave() {
     if (ws && ws.readyState === 1) ws.send('{"t":"leave"}');
     else { saveSeat(null); setRoomParam(""); showEntry(); }
@@ -254,7 +296,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
 
   window.__net = {
     get ws() { return ws; }, get seat() { return seat; }, get joined() { return joinedOnce; },
-    send, leave, drop() { if (ws) ws.close(); }, // drop: test giả lập rớt mạng
+    send, leave, disband, drop() { if (ws) ws.close(); }, // drop: test giả lập rớt mạng
     openChat: setChatOpen,
   };
 

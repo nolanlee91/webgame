@@ -28,6 +28,8 @@
 .px-btn:active, .px-btn.is-down { transform: translate(4px, 4px); box-shadow: var(--px-bevel), var(--px-border); }
 .px-btn.primary { color: #2c1b05; background: linear-gradient(var(--px-gold-l) 0 3px, var(--px-gold) 3px); --b: #5a3a08; text-shadow: none; }
 .px-btn.primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
+.px-btn.danger { min-height: 44px; color: #fff3ee; background: linear-gradient(#f07a6f 0 3px, #c8382e 3px); --b: #5a1510; }
+.px-btn.danger:hover { background: linear-gradient(#ff958a 0 3px, #dc4a3f 3px); }
 .px-btn.primary.big { min-height: 52px; font-size: 18px; padding: 12px 22px; width: 100%; }
 .px-btn.icon { width: 40px; min-height: 40px; padding: 0; }
 .px-btn.icon img { width: 24px; height: 24px; image-rendering: pixelated; }
@@ -181,3 +183,12 @@
 
 /* phòng chờ online: nút thêm / bớt bot ở hàng ghế (chủ phòng) */
 .cn-row .st .px-btn.mini { min-height: 32px; min-width: 40px; padding: 4px 10px; font-size: 13px; }
+
+/* Màn hẹp: khay xúc xắc có bề rộng CỐ ĐỊNH — nhãn trạng thái ("Máy sắp gieo…", "Gieo thêm"…) tự xuống dòng thay vì làm khay
+   phình ra ép thẻ tên co lại ⇒ 4 thẻ tên luôn cùng cỡ, không giật khi đổi lượt / xuất ngựa. */
+@media (max-width: 980px) {
+  .cn-tray { flex: 0 0 78px; width: 78px; }
+  .cn-tray .lbl { width: 100%; }
+  .cn-tray .tag { white-space: normal; text-align: center; justify-content: center; line-height: 1.15; max-width: 100%; }
+  .cn-tray .lbl .px-btn { max-width: 100%; white-space: normal; line-height: 1.1; }
+}

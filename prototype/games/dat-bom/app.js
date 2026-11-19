@@ -114,7 +114,12 @@ function onMsg(m) {
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); send({ t: "list" }); break; }
       if (m.code === "no-bomb" || m.code === "slow") break;
       toast(ERR[m.code] || "Có lỗi xảy ra."); break;
-    case "kicked": case "left": save(null); v = null; f = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); send({ t: "list" }); break;
+    case "closed": { // chủ phòng đã hủy phòng (máy chủ giữ kết nối mở: tạo / vào phòng khác ngay được)
+      if (exiting) return exiting();
+      const wasHost = isHost();
+      save(null); v = null; f = null; showHome(); homeMsg(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."); sfx.play("leave", 0.8); send({ t: "list" }); break;
+    }
+    case "kicked": case "left": if (exiting && m.t === "left") return exiting(); save(null); v = null; f = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); send({ t: "list" }); break;
     case "replaced": save(null); v = null; f = null; showHome(); homeMsg("Phòng này đang mở ở tab khác."); break;
   }
 }
@@ -153,7 +158,8 @@ let countSaid = -1, lastPhase = null, warnSec = -1;
 
 const you = () => (v ? v.you : -1);
 const myP = () => (f && v ? f.p[v.you] : null);
-const isHost = () => v && v.you === v.host;
+const isHost = () => !!v && v.you === v.host;
+const humansIn = () => (v ? v.players.filter((p) => !p.left && !p.bot).length : 0);
 
 // Tiếng vào/rời phòng: so danh sách người chơi lần trước với lần này (không kêu cho chính mình).
 function presenceSfx(prev, v) {
@@ -200,6 +206,8 @@ function render(prev) {
     log.scrollTop = log.scrollHeight;
     if (newMsg) sfx.play("msg", 0.6);
   }
+  // chủ phòng rời ⇒ nhường quyền chủ phòng cho người kế tiếp: ghi rõ trên nút
+  $("leaveBtn").textContent = isHost() && humansIn() > 1 ? "Rời phòng · nhường chủ" : "Rời phòng";
   // phòng chờ
   $("ovLobby").hidden = v.phase !== "lobby";
   if (v.phase === "lobby") {
@@ -208,6 +216,7 @@ function render(prev) {
     const n = pl.length;
     $("startBtn").hidden = !isHost();
     $("startBtn").setAttribute("aria-disabled", String(n < 2));
+    $("disbandBtn").hidden = !isHost();
     $("lobNote").textContent = isHost() ? (n < 2 ? "Chờ thêm ít nhất 1 người nữa…" : `${n} người đã sẵn sàng — bấm Bắt đầu!`) : `Chờ chủ phòng bắt đầu (${n}/4 người).`;
   }
   // kết thúc
@@ -228,6 +237,7 @@ function renderEnd() {
   const seated = pl.filter((p) => !p.left).length;
   $("againBtn").setAttribute("aria-disabled", String(seated < 2));
   $("toLobbyBtn").hidden = !isHost();
+  $("endDisbandBtn").hidden = !isHost();
   $("endNote").textContent = seated < 2 ? "Chỉ còn mình bạn — về phòng chờ để mời thêm người." : "Ai bấm “Ván mới” cũng được. Chủ phòng có thể về phòng chờ để mời thêm người.";
 }
 
@@ -303,6 +313,31 @@ $("pubToggle").onchange = (e) => send({ t: "public", on: e.target.checked });
 $("againBtn").onclick = () => send({ t: "again" });
 $("toLobbyBtn").onclick = () => send({ t: "lobby" });
 $("leaveBtn").onclick = () => send({ t: "leave" });
+// Chủ phòng hủy phòng (phòng chờ / hết ván): còn người khác thì hỏi lại; máy chủ báo "closed" cho cả phòng.
+function disbandRoom() {
+  if (!isHost()) return;
+  if (humansIn() > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+  send({ t: "disband" });
+}
+$("disbandBtn").onclick = disbandRoom;
+$("endDisbandBtn").onclick = disbandRoom;
+// Link sang trang khác (← Lụm Kèo…) khi đang ở trong phòng: rời phòng hẳn trước (chủ phòng còn một mình ⇒ hủy phòng)
+// để người khác thấy mình rời ngay; chờ máy chủ trả lời tối đa 400 ms. Đang chơi dở thì hỏi lại trước.
+let exiting = null;
+document.addEventListener("click", (e) => {
+  const a = e.target.closest && e.target.closest("a[href]");
+  if (!a || !sess || !v || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
+  const u = new URL(a.href, location.href);
+  if (u.origin === location.origin && u.pathname === location.pathname) return;
+  e.preventDefault();
+  if (v.phase === "play" && !confirm("Rời ván đang chơi?")) return;
+  const alone = isHost() && humansIn() <= 1 && v.phase !== "play", live = ws && ws.readyState === 1;
+  save(null);
+  const go = () => { if (!exiting) return; exiting = null; clearTimeout(t); location.href = u.href; };
+  exiting = go;
+  const t = setTimeout(go, live ? 400 : 0);
+  if (live) ws.send(JSON.stringify({ t: alone ? "disband" : "leave" }));
+}, true);
 $("copyBtn").onclick = async () => {
   const link = `${location.origin}${location.pathname}?p=${v.code}`;
   try { await navigator.clipboard.writeText(link); banner("Đã chép đường mời"); } catch { banner(link); }

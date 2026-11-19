@@ -38,10 +38,12 @@ export function toast(text, ms = 2600) {
 }
 export const hideToast = () => { if (toastEl) toastEl.hidden = true; clearTimeout(toastTimer); };
 
-/** h: { onJoined(code), onState(view), onExit(message, code) } — onExit: rời phòng / mất phòng, hiện lại màn vào phòng. */
+/** h: { onJoined(code), onState(view), onExit(message, code), onClosed() } — onExit: rời phòng / mất phòng, hiện lại màn vào phòng;
+ *  onClosed: chủ phòng vừa hủy phòng — trả về câu thông báo (gọi trước onExit, lúc còn trạng thái phòng). */
 export function createNet(h, { wsUrl } = {}) {
   const url = wsUrl || (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/co-ty-phu";
   let ws = null, seat = load(SEAT_KEY), inRoom = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
+  let exiting = null; // đang rời phòng để sang trang khác (bấm "← Trang chủ"): chờ máy chủ trả lời rồi mới đi
   const setRoomParam = (code) => { const u = new URL(location.href); if (code) u.searchParams.set("room", code); else u.searchParams.delete("room"); history.replaceState(null, "", u.href); };
   const saveSeat = (s) => { seat = s; if (s) sessionStorage.setItem(SEAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SEAT_KEY); };
 
@@ -83,7 +85,9 @@ export function createNet(h, { wsUrl } = {}) {
     }
     if (m.t === "state") { m.v.skew = m.now - Date.now(); h.onState(m.v); return; }
     if (m.t === "pong") return;
+    if (exiting && (m.t === "left" || m.t === "closed")) return exiting();
     if (m.t === "left") { saveSeat(null); setRoomParam(""); return exit(); }
+    if (m.t === "closed") { const msg = (h.onClosed && h.onClosed()) || "Chủ phòng đã hủy phòng."; saveSeat(null); setRoomParam(""); return exit(msg); }
     if (m.t === "replaced") { saveSeat(null); return exit("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); }
     if (m.t === "kicked") { saveSeat(null); setRoomParam(""); return exit("Bạn không còn trong phòng (quá lâu không quay lại phòng chờ)."); }
     if (m.t === "err") {
@@ -105,6 +109,17 @@ export function createNet(h, { wsUrl } = {}) {
     resume() { pending = null; connect(); },
     send,
     leave() { if (ws && ws.readyState === 1) ws.send('{"t":"leave"}'); else { saveSeat(null); setRoomParam(""); exit(); } },
+    disband() { send({ t: "disband" }); },
+    // rời phòng hẳn rồi sang trang href (disband: chủ phòng chỉ còn một mình ⇒ hủy luôn); chờ "left"/"closed" tối đa 400 ms
+    exitTo(href, disband = false) {
+      clearTimeout(retryTimer); retryTimer = 0;
+      const live = ws && ws.readyState === 1;
+      saveSeat(null); inRoom = false;
+      const go = () => { if (!exiting) return; exiting = null; clearTimeout(t); location.href = href; };
+      exiting = go;
+      const t = setTimeout(go, live ? 400 : 0);
+      if (live) ws.send(JSON.stringify({ t: disband ? "disband" : "leave" }));
+    },
     forget() { saveSeat(null); setRoomParam(""); },
     drop() { if (ws) ws.close(); }, // test: giả lập rớt mạng
   };

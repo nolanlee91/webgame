@@ -1,7 +1,7 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
-import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=private1";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=leave1";
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;
@@ -314,7 +314,7 @@ function showEnd() {
   stopTimer();
   const me = g.players[myIdx()], win = g.players[g.winner], iWon = win === me;
   $("#endTitle").textContent = iWon ? "Đại Phú Lụm Kèo!" : `${win.name} là Đại Phú`;
-  $("#again").textContent = mode === "online" ? "Về phòng chờ" : "Chơi lại"; $("#endLeave").hidden = mode !== "online";
+  $("#again").textContent = mode === "online" ? "Về phòng chờ" : "Chơi lại"; $("#endLeave").hidden = mode !== "online"; hostBtns();
   $("#endSub").textContent = (g.endReason === "rounds" ? `Hết ${g.rules.maxRounds} vòng — xếp hạng theo tổng tài sản (tiền + đất + nhà).` : "Chỉ còn một người trụ lại, thắng tuyệt đối!")
     + (me.bankrupt && !iWon ? " Bạn đã phá sản." : "");
   $("#rank").innerHTML = g.ranking.map((r, i) => { const p = g.players[r.pid];
@@ -361,6 +361,21 @@ function clearBoard() {
 }
 
 // ---------- Màn vào phòng / phòng chờ ----------
+// Chủ phòng online: nút "Hủy phòng" ở phòng chờ và bảng tổng kết; "Rời phòng" của chủ ghi rõ là nhường quyền chủ phòng.
+const humansIn = (v) => (v && v.players ? v.players.filter((p) => !p.bot && !p.left).length : 0);
+const amHost = () => mode === "online" && !!room && room.you === room.host;
+function hostBtns() {
+  const host = amHost(), leaveTxt = host && humansIn(room) > 1 ? "Rời phòng · nhường chủ" : "Rời phòng";
+  $("#disbandBtn").hidden = !(host && !$("#vRoom").hidden);
+  $("#endDisband").hidden = !host;
+  if (mode === "online") { $("#endLeave").textContent = leaveTxt; if (!$("#vRoom").hidden) $("#backBtn").textContent = leaveTxt; }
+}
+function disbandRoom() {
+  if (!amHost()) return;
+  if (humansIn(room) > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+  net.disband();
+}
+
 function lobbyView(which) { // "entry" | "solo" | "room"
   $("#lobby").hidden = false;
   $("#vEntry").hidden = which !== "entry"; $("#vSolo").hidden = which !== "solo"; $("#vRoom").hidden = which !== "room";
@@ -368,6 +383,7 @@ function lobbyView(which) { // "entry" | "solo" | "room"
   $("#backBtn").textContent = which === "room" ? "Rời phòng" : "Quay lại";
   // nút Bắt đầu dùng chung với phòng online (ở đó bị khoá khi chưa đủ người / không phải chủ) ⇒ chơi với máy luôn mở lại
   if (which === "solo") { $("#start").disabled = false; $("#start").textContent = "Bắt đầu"; }
+  hostBtns();
 }
 function setConnecting(on) {
   ["#mkRoom", "#joinRoom", "#goSolo"].forEach((s) => ($(s).disabled = on));
@@ -420,6 +436,7 @@ function netState(v) {
   if (prev && prev.phase === "lobby" && v.phase !== "lobby") SFX.start(); // ván bắt đầu
   $("#tagline").textContent = "Phòng " + v.code + " · online";
   if (v.phase === "lobby") { if (g) clearBoard(); showRoom(); return; }
+  hostBtns(); // chủ phòng có thể đổi giữa chừng (chủ cũ rời) ⇒ cập nhật nút ở bảng tổng kết
   queue.push(v); pump();
 }
 async function pump() {
@@ -459,6 +476,20 @@ $("#again").onclick = () => {
   $("#endOv").hidden = true; lobbyView("solo"); renderLobby();
 };
 $("#endLeave").onclick = () => net.leave();
+$("#disbandBtn").onclick = disbandRoom;
+$("#endDisband").onclick = disbandRoom;
+// Link sang trang khác (← Trang chủ…) khi đang ở trong phòng online: rời phòng hẳn trước (chủ phòng còn một mình ⇒ hủy phòng)
+// để người khác thấy mình rời ngay. Đang chơi dở thì hỏi lại trước.
+document.addEventListener("click", (e) => {
+  const a = e.target.closest && e.target.closest("a[href]");
+  if (!a || mode !== "online" || !net || !net.seat || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
+  const u = new URL(a.href, location.href);
+  if (u.origin === location.origin && u.pathname === location.pathname) return;
+  e.preventDefault();
+  const phase = room && room.phase;
+  if (phase === "play" && !confirm("Rời ván đang chơi?")) return;
+  net.exitTo(u.href, amHost() && humansIn(room) <= 1 && phase !== "play");
+}, true);
 $("#quitBtn").onclick = () => {
   if (room?.phase === "play" && !confirm("Rời ván đang chơi? Máy sẽ đi thay phần của bạn.")) return;
   net.leave();
@@ -489,6 +520,7 @@ $("#copyLink").onclick = async () => {
     onJoined: () => { mode = "online"; chat.show(true); $("#quitBtn").hidden = false; setConnecting(false); $("#entryErr").textContent = ""; },
     onState: netState,
     onExit: (msg, code) => showEntry(msg, code),
+    onClosed: () => { SFX.leave(); return amHost() ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."; },
   });
   showEntry();
   const param = (new URLSearchParams(location.search).get("room") || "").toUpperCase();

@@ -97,6 +97,7 @@ kbd { font: 700 11px/1 ui-monospace, monospace; padding: 2px 5px; background: #0
 .wait__code { color: var(--gold); letter-spacing: .16em; }
 .wait__btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
 .wait__start { min-height: 52px; font-size: 16px; }
+.wait__disband { justify-self: center; align-self: center; }
 .end__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; text-align: left; font-size: 14px; }
 .end__list li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 6px 10px; background: rgba(0,0,0,.3); box-shadow: var(--border); margin: 3px; font-variant-numeric: tabular-nums; }
 .end__list li.win { background: rgba(245,215,127,.18); }

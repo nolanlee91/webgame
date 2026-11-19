@@ -14,7 +14,7 @@ let cssAdded = false;
 function addCss() {
   if (cssAdded || document.querySelector("link[data-cn-hud]")) return;
   const l = document.createElement("link");
-  l.rel = "stylesheet"; l.href = new URL("hud.css", import.meta.url).href; l.dataset.cnHud = "";
+  l.rel = "stylesheet"; l.href = new URL("hud.css?v=leave1", import.meta.url).href; l.dataset.cnHud = "";
   document.head.appendChild(l); cssAdded = true;
 }
 
@@ -55,7 +55,8 @@ export function createHud(root, cb) {
         <div class="act">
           <button class="px-btn primary big" id="playBtn" data-act="play" type="button">Chơi</button>
           <div class="note"></div>
-          <button class="px-btn net-only" data-act="leave-room" type="button">${ic("roi-phong")} Rời phòng</button>
+          <button class="px-btn net-only" data-act="leave-room" type="button">${ic("roi-phong")} <span class="t">Rời phòng</span></button>
+          <button class="px-btn danger net-only" data-act="disband" type="button" hidden>Hủy phòng</button>
           <a class="px-link local-only" data-act="home" href="${cb.homeHref}">Rời phòng</a>
         </div>
       </aside>
@@ -68,6 +69,7 @@ export function createHud(root, cb) {
         <div class="btns">
           <button class="px-btn primary" data-act="again" type="button">Ván mới</button>
           <button class="px-btn" data-act="room" type="button">Về phòng</button>
+          <button class="px-btn danger" data-act="disband" type="button" hidden>Hủy phòng</button>
           <a class="px-link" href="${cb.homeHref}">Trang chủ</a>
         </div>
       </div>
@@ -92,6 +94,7 @@ export function createHud(root, cb) {
       if (online && a === "leave" && !online.over && !confirm("Rời ván đang chơi? Máy chủ sẽ đi thay phần của bạn.")) return;
       cb.onLobby();
     }
+    if (a === "disband") cb.onDisband && cb.onDisband();
     if (a === "play") cb.onPlay();
     if (a === "again") cb.onAgain();
     if (a === "copy") {
@@ -150,6 +153,10 @@ export function createHud(root, cb) {
     root.classList.toggle("is-lobby", v.lobby);
     root.classList.toggle("is-online", !!v.online);
     lobbyOnline(v);
+    // chủ phòng online: nút "Hủy phòng" (phòng chờ + bảng kết quả); "Rời phòng" của chủ ghi rõ là nhường quyền chủ phòng
+    const others = v.online ? v.online.list.filter((x) => !x.bot && !x.me && x.away !== "left").length : 0;
+    root.querySelectorAll('[data-act="disband"]').forEach((b) => (b.hidden = !(v.online && v.online.host)));
+    $('[data-act="leave-room"] .t').textContent = v.online && v.online.host && others ? "Rời phòng · nhường chủ" : "Rời phòng";
     status.textContent = v.msg;
     muteImg.src = ICON(v.muted ? "am-thanh-tat" : "am-thanh-bat");
     $('[data-act="mute"]').setAttribute("aria-pressed", String(v.muted));
@@ -193,7 +200,7 @@ export function createHud(root, cb) {
       result.querySelector(".head").setAttribute("style", seatVars(w));
       const pw = who(v, w);
       result.querySelector(".head .px-h").textContent = pw ? (pw.me ? "Bạn thắng!" : pw.name + " thắng!") : v.vsBot ? (w === v.me ? "Bạn thắng!" : "Máy (phường " + NAMES[w] + ") thắng!") : "Phường " + NAMES[w] + " thắng!";
-      result.querySelector('[data-act="room"]').textContent = v.online ? "Rời phòng" : "Về phòng";
+      result.querySelector('[data-act="room"]').textContent = v.online ? (v.online.host && others ? "Rời phòng · nhường chủ" : "Rời phòng") : "Về phòng";
       result.querySelector("tbody").innerHTML = v.over.order.map((r, i) => `<tr style="${seatVars(r.seat)}"><td class="rk">#${i + 1}</td><td class="n"><i></i>${who(v, r.seat) ? esc(who(v, r.seat).name) : v.vsBot ? (r.seat === v.me ? "Bạn · " : "Máy · ") + NAMES[r.seat] : NAMES[r.seat]}</td><td>${r.home}/4</td><td>${r.sixes}</td><td>${r.kicks}</td></tr>`).join("");
     }
   }

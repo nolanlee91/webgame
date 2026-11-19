@@ -4,9 +4,9 @@
 // Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
-import { createHud } from "./hud.js?v=bots1";
+import { createHud } from "./hud.js?v=leave1";
 import { botMove, makeRng } from "./ai.js";
-import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=bots1";
+import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=leave1";
 
 export const W = 832, H = 832;
 const N = 13, C = 64, BX = 0, BY = 0;   // canvas = đúng ảnh board-v5 (13×13 ô 64px); HUD nằm ngoài (hud.js)
@@ -133,7 +133,7 @@ export function mount(el, ctx = {}) {
   let ruleKey = ctx.rules && ctx.rules.launchOn && ctx.rules.launchOn.includes(1) ? "16" : "6";
   const rulesOf = () => ({ ...(ctx.rules || {}), launchOn: ruleKey === "16" ? [1, 6] : [6] });
   let lobby = !!ctx.lobby;      // phòng chờ: chọn số người/luật trên chính bàn cờ, chưa nhận thao tác chơi
-  // ---- Online (ctx.online = { send, leave }): máy chủ giữ ván; client chỉ gửi ý định và PHÁT LẠI hành động máy chủ gửi về
+  // ---- Online (ctx.online = { send, leave, disband }): máy chủ giữ ván; client chỉ gửi ý định và PHÁT LẠI hành động máy chủ gửi về
   // bằng chính logic.js (roll với mặt xúc xắc máy chủ gieo, move) để có hoạt ảnh; lệch / thiếu gói thì nhận nguyên trạng thái.
   const net = ctx.online || null;
   let room = null, netGid = -1, netSeq = -1, desyncs = 0;
@@ -202,6 +202,7 @@ export function mount(el, ctx = {}) {
     onBot(b) { if (net) net.send(b === "add" ? { t: "add-bot" } : { t: "kick-bot", seat: Number(b) }); refocus(); }, // chủ phòng online: lấp / bớt ghế bot
     onRule(k) { if (net) { net.send({ t: "rule", rule: k }); return; } if (lobby) { ruleKey = k; newGame(); } refocus(); },
     onPlay() { sfx.unlock(); if (net) { net.send({ t: "start" }); return; } lobby = false; newGame(); refocus(); },
+    onDisband() { if (net && net.disband) net.disband(); }, // chủ phòng online: hủy phòng (online.js hỏi xác nhận nếu còn người khác)
     onLobby() { if (net) { net.leave(); return; } lobby = true; paused = false; newGame(); },
     onAgain() { sfx.unlock(); if (net) { net.send({ t: "again" }); return; } advanceOver(); refocus(); },
     onMute() { sdk.sound.muted = !sdk.sound.muted; ctx.onMuteChange && ctx.onMuteChange(sdk.sound.muted); sfx.unlock(); refocus(); },

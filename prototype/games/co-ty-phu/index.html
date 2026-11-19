@@ -123,6 +123,8 @@
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
     .btn--teal { color: #f4ffe9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
+    .btn--danger { color: #fff3ee; background: linear-gradient(#f07a6f 0 3px, #c8382e 3px); --b: #5a1510; }
+    .btn--danger:hover { background: linear-gradient(#ff958a 0 3px, #dc4a3f 3px); }
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     @container (max-width: 560px) { .btn { min-height: 40px; padding: 6px 10px; font-size: 12px; } .btn--big { min-height: 44px; font-size: 14px; } .news { font-size: 3cqw; } .who { font-size: 3.2cqw; } }
 
@@ -297,7 +299,7 @@
         <span>⏱ Mỗi lượt 15 giây (chơi với máy) / 25 giây (online) — hết giờ tự gieo, tự quyết. Hết tiền là phá sản.</span>
         <span>👥 <b>Online 2–4 người</b>: tạo phòng, gửi mã hoặc link mời cho bạn bè, chủ phòng bấm Bắt đầu. Có khung chat cho cả phòng.</span>
       </div>
-      <div class="row" id="lobbyBtns" hidden><button class="btn btn--primary btn--big" id="start">Bắt đầu</button><button class="btn btn--big" id="backBtn" type="button">Quay lại</button></div>
+      <div class="row" id="lobbyBtns" hidden><button class="btn btn--primary btn--big" id="start">Bắt đầu</button><button class="btn btn--big" id="backBtn" type="button">Quay lại</button><button class="btn btn--danger btn--big" id="disbandBtn" type="button" hidden>Hủy phòng</button></div>
     </div>
   </div>
 
@@ -317,12 +319,12 @@
       <h2 id="endTitle">Đại Phú Lụm Kèo</h2>
       <p class="sub" id="endSub"></p>
       <div class="rank" id="rank"></div>
-      <div class="row"><button class="btn btn--primary btn--big" id="again">Chơi lại</button><button class="btn btn--big" id="endLeave" type="button" hidden>Rời phòng</button><a class="btn btn--big" href="../../homepage/">Trang chủ</a></div>
+      <div class="row"><button class="btn btn--primary btn--big" id="again">Chơi lại</button><button class="btn btn--big" id="endLeave" type="button" hidden>Rời phòng</button><button class="btn btn--danger btn--big" id="endDisband" type="button" hidden>Hủy phòng</button><a class="btn btn--big" href="../../homepage/">Trang chủ</a></div>
     </div>
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=bots1"></script>
+  <script type="module" src="game.js?v=leave1"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>
