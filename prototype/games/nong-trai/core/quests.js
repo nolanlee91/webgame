@@ -1,0 +1,32 @@
+// Nhiệm vụ hướng dẫn: tuần tự, tiến độ chỉ đếm sự kiện xảy ra khi nhiệm vụ đang mở (dạy đúng cơ chế, không bấm-để-nhận).
+// s.quests = { tut: chỉ số nhiệm vụ hiện tại (= TUTORIAL.length ⇒ xong), progress, done: bool }
+// Nhận thưởng: chỉ khi đúng id nhiệm vụ hiện tại và đã đủ tiến độ ⇒ chỉ số tăng ⇒ không nhận 2 lần.
+import { TUTORIAL } from "../data/quests.js?v=m1";
+import { addXp } from "./progression.js?v=m1";
+import { add } from "./inventory.js?v=m1";
+
+export const currentQuest = (s) => TUTORIAL[s.quests.tut] || null;
+export const questComplete = (s) => { const q = currentQuest(s); return !!q && s.quests.progress >= q.count; };
+
+/** Cập nhật tiến độ theo sự kiện vừa xảy ra. Đủ ⇒ thêm sự kiện questDone (một lần). */
+export function track(s, events) {
+  const q = currentQuest(s);
+  if (!q || s.quests.progress >= q.count) return;
+  if (q.level) s.quests.progress = s.level >= q.level ? q.count : 0;
+  else for (const e of events) if (e.type === q.event) s.quests.progress = Math.min(q.count, s.quests.progress + 1);
+  if (s.quests.progress >= q.count) events.push({ type: "questDone", id: q.id, title: q.title });
+}
+
+export function claim(s, id, events) {
+  const q = currentQuest(s);
+  if (!q || q.id !== id) return { err: "quest-claimed" };
+  if (s.quests.progress < q.count) return { err: "quest-incomplete" };
+  s.quests.tut++;
+  s.quests.progress = 0;
+  const r = q.reward;
+  if (r.coins) { s.coins += r.coins; s.stats.earned += r.coins; }
+  for (const [m, n] of Object.entries(r.items || {})) add(s, m, n);
+  events.push({ type: "questClaimed", id: q.id, title: q.title, reward: r });
+  if (r.xp) addXp(s, r.xp, events);
+  return { ok: true };
+}

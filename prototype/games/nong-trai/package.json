@@ -2,5 +2,5 @@
   "name": "nong-trai-prototype",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test test/logic.test.mjs" }
+  "scripts": { "test": "node --test \"test/*.test.mjs\"" }
 }

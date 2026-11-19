@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Nông Trại — Lụm Kèo</title>
-  <meta name="description" content="Nông Trại: trồng cà rốt, cà chua, dâu tây, ngô và bí ngô; tưới nước, thu hoạch, bán lấy xu và mở rộng ruộng. Cây vẫn lớn khi bạn tắt máy." />
+  <meta name="description" content="Nông Trại: trồng cà rốt, cà chua, dâu tây, ngô, bí ngô và lúa; tưới nước, thu hoạch, giao đơn hàng cho bà con, nâng Nhà kho và mở rộng ruộng. Cây vẫn lớn khi bạn tắt máy." />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%235a3a22%22/%3E%3Crect x=%227%22 y=%226%22 width=%222%22 height=%227%22 fill=%22%233fae4a%22/%3E%3Crect x=%223%22 y=%224%22 width=%224%22 height=%223%22 fill=%22%238be08f%22/%3E%3Crect x=%229%22 y=%223%22 width=%224%22 height=%223%22 fill=%22%233fae4a%22/%3E%3C/svg%3E" />
   <style>
@@ -29,7 +29,7 @@
     .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
 
     .wrap { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 14px 16px 18px;
-      display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "world"; gap: 12px; align-content: start; }
+      display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "quest" "world"; gap: 12px; align-content: start; }
 
     /* bảng chỉ số */
     .hud { grid-area: hud; display: flex; justify-content: space-between; gap: 14px; min-width: 0; }
@@ -53,7 +53,7 @@
     .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
     .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
-    .btn--icon { padding: 8px 12px; }
+    .btn--icon { padding: 8px 12px; min-width: 44px; }
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c8 0 3px, #ffd36a 3px); }
@@ -142,17 +142,12 @@
 
     /* khay hạt giống */
     .farm-controls { width: min(100%, 1000px); background: #201c12; padding: 5px; }
-    .farm-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 9px; }
+    .farm-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 9px; }
     .farm-nav button { min-width: 0; padding-inline: 3px; font-size: clamp(10px, 2.7vw, 14px); white-space: nowrap; }
     .farm-nav button[aria-pressed="true"] { background: #485832; --b: #9aa761; }
     .farm-panel { margin: 5px; padding: 6px; }
     .farm-panel p { margin: 0 0 10px; color: var(--soft); }
-    .stock-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 135px), 1fr)); gap: 7px; margin: 0 0 12px; padding: 0; list-style: none; }
-    .stock-item { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 5px; padding: 5px; background: #35271a; box-shadow: inset 0 2px #6b4b30, inset 0 -2px #24170f; }
-    .stock-art { width: 44px; height: 44px; background: url(assets/garden/crops.webp) 100% var(--stock-row) / 500% 500% no-repeat; image-rendering: pixelated; }
-    .stock-item b, .stock-item small { display: block; line-height: 1.3; }
-    .stock-item small { color: var(--soft); }
-    .seeds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
+    .seeds { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px;
       padding: 7px; background: #503823; --b: #251a13; box-shadow: inset 0 2px #886043, inset 0 -3px #3c291d, var(--border); }
     .seed { all: unset; box-sizing: border-box; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 9px; text-align: center; background: var(--panel); --b: #4a3f33; box-shadow: var(--bevel), var(--border); touch-action: manipulation; min-width: 0; }
     .seed canvas { width: 36px; height: 36px; image-rendering: pixelated; }
@@ -164,6 +159,102 @@
     .seed.locked canvas { filter: grayscale(1) brightness(.6); }
     .seed .need { color: var(--gold); font-weight: 800; }
 
+    /* icon vật phẩm: assets/v3/items.webp 8 × 4 ô 64 px, hiển thị 22–48 px nearest-neighbour */
+    .it { display: inline-block; flex: none; width: var(--sz, 40px); height: var(--sz, 40px); vertical-align: middle; image-rendering: pixelated;
+      background: url(assets/v3/items.webp) calc(var(--c) * 100% / 7) calc(var(--r) * 100% / 3) / 800% 400% no-repeat; }
+    .it--sm { --sz: 22px; margin-right: 2px; }
+    /* chân dung NPC: assets/v3/npc.webp 4 × 2 ô 128 px; chưa có ảnh ⇒ huy hiệu chữ cái */
+    .face { display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; image-rendering: pixelated; background: #3a2a1a url(assets/v3/npc.webp) calc(var(--c) * 100% / 3) calc(var(--r) * 100%) / 400% 200% no-repeat; box-shadow: 0 0 0 2px #2a1c10; }
+    .face--badge { background: var(--npc); color: #fff6dc; font: 800 20px/1 "Be Vietnam Pro", system-ui; text-shadow: 2px 2px 0 #0007; box-shadow: inset 0 2px #fff3, inset 0 -3px #0004, 0 0 0 2px #2a1c10; }
+    .btn--sm { min-height: 44px; padding: 6px 10px; font-size: 12px; letter-spacing: .02em; }
+    .stat .mini { height: 8px; margin-top: 4px; }
+    .stat.full b { color: #ff9a7a; }
+    .stat .over { margin-top: 3px; font-size: 11px; font-weight: 800; color: #ffb08a; white-space: nowrap; }
+    .stat.full .mini i { background: var(--red); box-shadow: none; }
+
+    /* nhiệm vụ của Chị Ba */
+    .quest { grid-area: quest; display: flex; align-items: center; gap: 12px; min-width: 0; margin: 0 3px; padding: 8px 12px; background: #2b2418; --b: #5b4a2d; box-shadow: var(--bevel), var(--border); }
+    .quest-face { width: 48px; height: 48px; }
+    .quest-txt { flex: 1; min-width: 0; display: grid; gap: 1px; line-height: 1.25; }
+    .quest-txt small { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+    .quest-txt b { font-size: 15px; }
+    .quest-txt span { font-size: 13px; color: var(--soft); }
+    .quest-side { flex: none; display: grid; justify-items: end; gap: 4px; font-size: 13px; font-weight: 800; }
+    .quest-side .px-bar { width: 96px; height: 8px; margin: 0; }
+    .quest.done { --b: var(--gold); }
+    .pulse { animation: pop .5s steps(3); }
+    @keyframes pop { 50% { transform: scale(1.03); } }
+    /* chỉ dẫn nhiệm vụ: viền vàng nhấp nháy + mũi tên */
+    .qhl { outline: 3px solid var(--gold) !important; outline-offset: 3px; animation: qblink 1s steps(2) infinite; z-index: 2; }
+    .qarrow::before { content: ""; position: absolute; left: 50%; top: -24px; width: 0; height: 0; margin-left: -9px; z-index: 4; pointer-events: none;
+      border: 9px solid transparent; border-top: 12px solid var(--gold); filter: drop-shadow(2px 2px 0 #000); animation: bob .6s steps(2) infinite alternate; }
+    @keyframes qblink { 50% { outline-color: #fff3c0; } }
+    @keyframes bob { to { transform: translateY(5px); } }
+
+    /* bảng đơn trên bản đồ (assets/v3/buildings.webp — bang-don-hang) */
+    .farm-board { position: absolute; z-index: 1; width: 15%; left: 3%; bottom: 33%; padding: 0; border: 0; background: transparent; cursor: pointer; aspect-ratio: 1; }
+    .farm-board .spr { display: block; width: 100%; height: 100%; image-rendering: pixelated; filter: drop-shadow(3px 4px 0 #2d462759);
+      background: url(assets/v3/buildings.webp) 100% 50% / 400% 300% no-repeat; }
+    .farm-board:hover .spr { filter: brightness(1.08) drop-shadow(3px 4px 0 #2d462759); }
+    .farm-board:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .farm-board .market-tag { bottom: 2px; }
+    .farm-board .badge { position: absolute; top: 24%; right: 8%; min-width: 22px; height: 22px; padding: 0 5px; display: grid; place-items: center; background: var(--red); color: #fff; font: 800 12px/1 "Be Vietnam Pro"; box-shadow: 0 0 0 2px #3a1410; }
+
+    /* nhà kho */
+    .wh-head { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 12px; margin-bottom: 10px; }
+    .wh-head b { font-size: 16px; }
+    .wh-cap { justify-self: end; font-weight: 800; }
+    .wh-cap.full { color: #ff9a7a; }
+    .wh-bar { grid-column: 1 / -1; }
+    .farm-panel h3 { margin: 12px 0 6px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-l); }
+    .wh-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .wh-item { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; background: #35271a; box-shadow: inset 0 2px #6b4b30, inset 0 -2px #24170f; }
+    .wh-item .it { --sz: 44px; }
+    .wh-info { min-width: 0; display: grid; line-height: 1.3; }
+    .wh-info small { color: var(--soft); font-size: 12px; }
+    .wh-info .want { color: var(--gold); font-weight: 700; }
+    .qty { color: var(--gold-l); }
+    .wh-btns { display: grid; gap: 5px; }
+    .wh-empty { margin: 6px 0 10px; }
+    .basket { margin: 0 0 12px; padding: 10px; background: #4a2318; --b: #a04a2a; box-shadow: var(--border); }
+    .basket p { margin: 0 0 6px; color: #ffd9c4; }
+    .basket-items { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; font-weight: 800; }
+    .wh-up { margin: 14px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+    .wh-up p { margin: 0; color: var(--ink); }
+    .need { color: #ff9a7a; font-weight: 800; }
+    .wh-actions { margin-top: 10px; }
+
+    /* bảng đơn: tấm gỗ ghim phiếu giấy */
+    .board { margin: 2px; padding: 14px 12px 16px; --b: #2a1a0e; box-shadow: var(--border), inset 0 3px #a8774a, inset 0 -4px #3e2614;
+      background: repeating-linear-gradient(0deg, #7a4f2c 0 22px, #6b4426 22px 24px, #845833 24px 46px, #5e3b21 46px 48px); }
+    .board h2 { margin: 0 0 10px; font-size: 16px; color: #fff3c5; text-shadow: 2px 2px 0 #2a1a0e; }
+    .slips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 14px 12px; margin: 0; padding: 0; list-style: none; }
+    .slip { position: relative; display: grid; align-content: start; gap: 6px; padding: 14px 10px 10px; color: #3b2a17; background: #f3e3bf;
+      box-shadow: inset 0 -3px #d8c193, 3px 4px 0 #2a1a0e80; font-size: 13px; }
+    .slip:nth-child(odd) { transform: rotate(-.6deg); } .slip:nth-child(even) { transform: rotate(.5deg); }
+    .slip::after { content: ""; position: absolute; top: 4px; left: 50%; width: 8px; height: 8px; margin-left: -4px; background: #c0392b; box-shadow: inset -2px -2px #7a1f15; }
+    .slip.ready { background: #eaf3c7; box-shadow: inset 0 -3px #bccf83, 3px 4px 0 #2a1a0e80, 0 0 0 2px #6aa033; }
+    .slip--ket-hop { background: #f6dcc4; }
+    .slip--dac-biet { background: #dbe9f5; box-shadow: inset 0 -3px #a9c3da, 3px 4px 0 #2a1a0e80, 0 0 0 2px #2f6fa8; }
+    .slip--empty, .slip--locked { place-items: center; min-height: 90px; text-align: center; background: #e4d3ad; color: #6e5a3c; }
+    .slip--locked { font-weight: 700; background: repeating-linear-gradient(45deg, #e4d3ad 0 8px, #dccaa2 8px 16px); }
+    .farm-panel .slip p { margin: 0; color: inherit; }
+    .slip .btn[disabled] { background: #d9c79f; color: #8a7556; --b: #b49c70; }
+    .slip-head { display: flex; align-items: center; gap: 8px; }
+    .slip-head div { display: grid; line-height: 1.2; min-width: 0; }
+    .slip-head small { color: #7a6243; font-weight: 700; }
+    .slip-items { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; }
+    .slip-items li { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 6px; }
+    .slip-items .it { --sz: 32px; }
+    .slip-items b { color: #a3341f; } .slip-items .ok b { color: #2f7a1f; }
+    .slip-reward { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-weight: 800; }
+    .slip-status { font-size: 12px; font-weight: 800; color: #8a6a40; }
+    .slip.ready .slip-status { color: #2f7a1f; }
+    .slip-btns { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 2px; }
+    .slip .btn { color: var(--ink); }
+    .slip .btn--teal { color: #f4ffe9; }
+    .slip .btn.armed { background: #7a2a1e; --b: #e0483d; }
+    @media (prefers-reduced-motion: reduce) { .qhl, .qarrow::before, .pulse { animation: none; } }
     .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 9; max-width: min(92vw, 520px); padding: 10px 16px; background: var(--panel2); --b: var(--gold-d); box-shadow: var(--border), var(--drop); font-weight: 700; text-align: center; }
 
     .ov { position: fixed; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(10, 8, 7, .72); z-index: 8; overflow: auto; }
@@ -178,7 +269,7 @@
 
     /* Điện thoại / khung hẹp: HUD thành 1 hàng trên cùng, ruộng giữa, khay hạt dưới (gần ngón cái) */
     @media (max-width: 760px) {
-      .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "world"; padding: 10px 12px 16px; gap: 12px; }
+      .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "quest" "world"; padding: 10px 12px 16px; gap: 10px; }
       .hud { flex-direction: row; align-items: stretch; gap: 10px; }
       .xpTxt, .stat.plots { display: none; }
       .stats { flex: 1; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: 6px 12px; padding: 8px 10px; }
@@ -202,7 +293,25 @@
       .seed { padding: 6px 2px 7px; } .seed canvas { width: 30px; height: 30px; } .seed b { font-size: 12px; } .seed small { font-size: 10px; }
       .plot .lbl { font-size: 10px; }
       .tools { flex-wrap: wrap; justify-content: end; }
+      .farm-board { width: 18%; left: 1%; bottom: 0; }
+      .stats { grid-template-columns: auto 30px auto; column-gap: 8px; }
+      #hStore { font-size: 15px; }
+      .slips { grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr)); gap: 12px 8px; }
+      .board { padding-inline: 8px; }
+      .slip { padding: 14px 7px 8px; font-size: 12px; }
+      .slip-items li { grid-template-columns: 28px 1fr auto; gap: 4px; }
+      .slip-items .it { --sz: 28px; }
+      .slip-head .face { width: 36px; height: 36px; font-size: 16px; }
+      .slip-btns { grid-template-columns: 1fr; gap: 6px; }
+      .quest { gap: 8px; padding: 6px 8px; }
+      .quest-face { width: 40px; height: 40px; }
+      .quest-txt b { font-size: 14px; } .quest-txt span { font-size: 12px; }
+      .quest-side .px-bar { width: 64px; }
+      .wh-item { grid-template-columns: 40px minmax(0, 1fr); }
+      .wh-item .it { --sz: 40px; }
+      .wh-btns { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
     }
+    @media (max-width: 520px) { .farm-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tools .btn { padding-inline: 8px; } }
     @media (max-width: 520px) { .tag { display: none; } .bar { white-space: nowrap; } }
     @media (max-width: 360px) {
       .farm { aspect-ratio: 1 / 1.40; }
@@ -231,7 +340,7 @@
       <div class="stats">
         <div class="stat main"><small>Xu</small><b><i class="ico ico--coin" aria-hidden="true"></i><span id="hCoins">0</span></b></div>
         <div class="stat"><small>Cấp</small><b class="lv" id="hLevel">1</b><div class="px-bar" aria-hidden="true"><i id="hXp" style="width:0%"></i></div><span class="xpTxt" id="hXpTxt"></span></div>
-        <div class="stat"><small>Đã thu</small><b id="hHarvested">0</b></div>
+        <div class="stat" id="hStoreStat"><small>Kho</small><b id="hStore">0/60</b><div class="px-bar mini" aria-hidden="true"><i id="hStoreBar" style="width:0%"></i></div><span class="over" id="hOver" hidden></span></div>
         <div class="stat plots"><small>Ô ruộng</small><b id="hPlots">9/25</b></div>
       </div>
       <div class="tools">
@@ -240,6 +349,17 @@
         <button class="btn btn--icon" id="helpBtn" type="button" aria-label="Cách chơi" title="Cách chơi">?</button>
       </div>
     </aside>
+
+    <section class="quest" id="quest" aria-label="Nhiệm vụ của Chị Ba" aria-live="polite" hidden>
+      <span id="qFace"></span>
+      <div class="quest-txt"><small id="qStep"></small><b id="qTitle"></b><span id="qHint"></span></div>
+      <div class="quest-side">
+        <span id="qReward"></span>
+        <div class="px-bar" aria-hidden="true"><i id="qBar" style="width:0%"></i></div>
+        <span id="qProg"></span>
+        <button class="btn btn--primary btn--sm" id="qClaim" type="button" hidden>Nhận</button>
+      </div>
+    </section>
 
     <div class="farm-world">
       <section class="farm" id="farm" data-upgrade="0" aria-label="Bản đồ nông trại">
@@ -259,6 +379,9 @@
         <button class="farm-market" id="market" type="button" aria-label="Mở kho và quầy bán nông sản">
           <img src="assets/garden/market.webp" alt=""><span class="market-tag">Quầy nông sản</span>
         </button>
+        <button class="farm-board" id="boardBtn" type="button" aria-label="Mở Bảng đơn hàng">
+          <span class="spr" aria-hidden="true"></span><span class="market-tag">Bảng đơn</span><span class="badge" id="boardBadge" hidden></span>
+        </button>
         <span id="saleReward" class="sale-reward" aria-hidden="true" hidden></span>
         <div class="field" id="field" role="group" aria-label="Ruộng 5 × 5"></div>
       </section>
@@ -267,15 +390,21 @@
           <button class="btn" id="seedTool" aria-pressed="true" type="button">Hạt giống</button>
           <button class="btn" id="waterTool" aria-pressed="false" type="button">Tưới nước</button>
           <button class="btn" id="stockTool" aria-pressed="false" type="button">Kho</button>
+          <button class="btn" id="ordersTool" aria-pressed="false" type="button">Đơn hàng</button>
           <button class="btn" id="sellTool" type="button">Bán</button>
           <button class="btn" id="upgradeTool" aria-pressed="false" type="button">Nâng cấp</button>
         </nav>
         <div class="seeds" id="seeds" role="radiogroup" aria-label="Hạt giống"></div>
         <p class="farm-panel" id="waterHint" hidden>Chạm vào cây đang lớn để tưới. Mỗi cây tưới được một lần.</p>
-        <section class="farm-panel" id="warehouse" aria-label="Kho và quầy nông sản" hidden>
-          <p id="stockEmpty">Kho trống. Thu hoạch cây chín để đưa nông sản vào kho.</p>
-          <ul class="stock-list" id="stockList" hidden></ul>
-          <button class="btn btn--primary" id="sellAll" type="button">Bán hết nông sản</button>
+        <section class="farm-panel" id="warehouse" aria-label="Nhà kho và quầy nông sản" hidden>
+          <div id="whBody"></div>
+          <div class="wh-actions"><button class="btn btn--primary" id="sellAll" type="button">Bán hết nông sản</button></div>
+        </section>
+        <section class="farm-panel" id="ordersPanel" aria-labelledby="ordersTitle" hidden>
+          <div class="board">
+            <h2 id="ordersTitle">Bảng đơn hàng</h2>
+            <ul class="slips" id="slips"></ul>
+          </div>
         </section>
         <section class="farm-panel" id="upgrades" aria-label="Nâng cấp nông trại" hidden>
           <p id="upgradeInfo"></p>
@@ -290,13 +419,14 @@
   <div class="ov" id="ovHelp" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
       <h2 id="helpTitle">Nông Trại</h2>
-      <p class="sub">Trồng cây, tưới nước, thu hoạch rồi bán lấy xu để mở rộng ruộng.</p>
+      <p class="sub">Trồng cây, tưới nước, thu hoạch, giao đơn cho bà con và mở rộng nông trại.</p>
       <div class="how">
         <ul>
           <li>Chọn <b>hạt giống</b> ở khay dưới, rồi bấm vào <b>ô đất trống</b> để gieo. Bạn có 3 hạt cà rốt miễn phí.</li>
           <li>Bấm vào cây đang lớn để <b>tưới nước</b> (mỗi cây 1 lần) — cây lớn nhanh hơn 30%.</li>
-          <li>Bấm vào cây <b>chín</b> để thu hoạch vào kho và nhận kinh nghiệm. Mở <b>Kho</b> để bán nông sản lấy xu.</li>
-          <li>Bấm vào ô cỏ cạnh ruộng để <b>mở thêm ô</b> (bấm 2 lần để xác nhận).</li>
+          <li>Bấm vào cây <b>chín</b> để thu hoạch vào <b>Nhà kho</b> (60 chỗ, nâng được). Kho đầy thì hàng vào <b>giỏ tràn</b> — bán nhanh hoặc nâng kho.</li>
+          <li>Mở <b>Bảng đơn</b>: gom đủ món rồi bấm <b>Giao</b> — đơn trả cao hơn bán ở chợ. Đơn khó thì <b>Bỏ đơn</b>, 2 phút sau có đơn mới.</li>
+          <li>Từ cấp 2, bấm vào ô cỏ cạnh ruộng để <b>mở thêm ô</b> (bấm 2 lần để xác nhận). Làm theo <b>nhiệm vụ của Chị Ba</b> để nhận thưởng.</li>
           <li>Cây <b>vẫn lớn khi bạn tắt máy</b> — tiến trình lưu ngay trên trình duyệt này.</li>
         </ul>
       </div>
@@ -305,8 +435,10 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=garden3";
-    window.__game = mount(document.body);
+    import { mount } from "./game.js?v=m1";
+    // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
+    const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};
+    window.__game = mount(document.body, clock);
   </script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
