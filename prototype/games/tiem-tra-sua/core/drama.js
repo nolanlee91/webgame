@@ -2,28 +2,29 @@
 // và hẹn quay lại ngày sau (later → s.drama.queue). Trong ca: tối đa 1–2 sự kiện, đồng hồ dừng khi hội thoại mở (sh.dialog kind "event").
 // Giữa hai ca: tối đa 1 sự kiện (s.drama.pending), hiện sau bảng chốt ca. Mỗi lựa chọn lưu một khoảnh khắc cho Nhật Ký Làm Chủ.
 // Thuần, RNG của ván ⇒ cùng hạt + cùng thao tác ⇒ cùng sự kiện.
-import { EVENTS, EVENT } from "../data/events.js?v=m35hd";
-import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m35hd";
-import { ARCHETYPES } from "../data/customers.js?v=m35hd";
-import { RECIPE } from "../data/recipes.js?v=m35hd";
-import { STOCK } from "../data/ingredients.js?v=m35hd";
-import { EQUIPMENT } from "../data/equipment.js?v=m35hd";
-import { next, int, pick, weighted } from "./rng.js?v=m35hd";
-import { fill } from "./text.js?v=m35hd";
-import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m35hd";
-import { stockUsed, capacity } from "./economy.js?v=m35hd";
-import { owns } from "./equipment.js?v=m35hd";
-import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say } from "./shift.js?v=m35hd";
-import { missionsOnDrama } from "./missions.js?v=m35hd";
-import { ratingOf } from "./reviews.js?v=m35hd";
+import { EVENTS, EVENT } from "../data/events.js?v=m36";
+import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m36";
+import { ARCHETYPES } from "../data/customers.js?v=m36";
+import { RECIPE } from "../data/recipes.js?v=m36";
+import { STOCK } from "../data/ingredients.js?v=m36";
+import { EQUIPMENT } from "../data/equipment.js?v=m36";
+import { next, int, pick, weighted } from "./rng.js?v=m36";
+import { fill } from "./text.js?v=m36";
+import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m36";
+import { stockUsed, capacity } from "./economy.js?v=m36";
+import { owns } from "./equipment.js?v=m36";
+import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say, freshLine } from "./shift.js?v=m36";
+import { PERSONA_ASIDE } from "../data/lines-reply.js?v=m36";
+import { missionsOnDrama } from "./missions.js?v=m36";
+import { ratingOf } from "./reviews.js?v=m36";
 
 export const FX_KEYS = new Set(["money", "rep", "followers", "buzz", "xp", "stock", "patience", "whoPatience", "delaySpawn", "sealMs", "guests", "group",
   "nextGuests", "demand", "flag", "unflag", "review", "kitchen", "swapTopping", "priceWho", "leaveWho", "moment"]);
 export const IF_KEYS = new Set(["minDay", "minLevel", "minRep", "maxRep", "minFollowers", "flags", "noFlags", "owns", "notOwns", "waitingMin", "queueFree",
   "rush", "lastServe", "pearlsOut", "archWaiting", "lostMin", "cupsMin", "minMoney", "maxMoney", "tMin", "tMax", "reviewLow", "sum", "chain"]);
 /** Cờ do chính game đặt (không cần sự kiện nào đặt): C01 làm lại ly ⇒ fix-<nhóm khách>; nhập vựa sỉ ⇒ si-mua;
- *  quảng bá ⇒ promo-<loại> (chỉ trong ngày); nhận gói ký gửi ⇒ ky-gui; trả đủ ⇒ ky-gui-xong. */
-export const ENGINE_FLAG = /^(fix-|promo-|si-mua$|ky-gui)/;
+ *  quảng bá ⇒ promo-<loại> (chỉ trong ngày); nhận gói ký gửi ⇒ ky-gui; trả đủ ⇒ ky-gui-xong; câu trả lời review ⇒ rep-<kết quả> (core/reviews.js). */
+export const ENGINE_FLAG = /^(fix-|promo-|si-mua$|ky-gui|rep-)/;
 /** Đặt cờ của game (hết hạn sau `days` ngày, mặc định DRAMA.flagDays). */
 export function engineFlag(s, f, days = DRAMA.flagDays) { if (s.drama) s.drama.flags[f] = s.day + days; }
 export const ROLES = ["barista", "regular", "vip", "reviewer", "courier", "neighbor", "office-worker"];
@@ -153,6 +154,7 @@ function open(s, ev, x) {
   const sp = speakerFor(s, ev, x);
   const d = { kind: "event", id: ev.id, node: "start", cid: sp.cid ?? null, npc: sp.npc || null, steps: 0 };
   s.drama.seen[ev.id] = s.day;
+  s.drama.queue = s.drama.queue.filter((q) => !(q.id === ev.id && q.from === "reply")); // hẹn từ câu trả lời review: mở rồi thì thôi
   s.drama.recent.push(ev.tone === "good" ? "good" : "other");
   if (s.drama.recent.length > 6) s.drama.recent.shift();
   if (x.when === "shift") {
@@ -226,6 +228,8 @@ export function textCtx(s, d) {
   return { name: n.name || "Hàng xóm", self: n.self || "em", call: n.call || "chị chủ", drink: "trà sữa", ...base };
 }
 export const textOf = (s, d, tpl) => fill(tpl || "", textCtx(s, d));
+/** Câu theo tính cách chủ tiệm (sayBy / meBy trong data/events-reply.js), không có thì dùng câu chung. */
+export const byPersona = (s, map, base) => (s.owner?.persona && map?.[s.owner.persona]) || base;
 
 /** Lựa chọn có làm được không (đủ tiền / hàng / trân châu). Luôn có ít nhất một lựa chọn miễn phí (test kiểm). */
 export function affordable(s, ch) {
@@ -339,7 +343,8 @@ export function choose(s, choiceId, events) {
   const ch = node.choices.find((c) => c.id === choiceId);
   if (!ch) return { err: "bad-choice" };
   if (!affordable(s, ch)) return { err: "cannot-afford" };
-  let said = ch.say, fx = ch.fx || {}, rolled = null;
+  const persona = s.owner?.persona || null;
+  let said = (persona && ch.sayBy?.[persona]) || ch.say, fx = ch.fx || {}, rolled = null;
   if (ch.roll) {
     const win = next(s) < ch.roll.p;
     rolled = win ? "win" : "lose";
@@ -368,7 +373,9 @@ export function choose(s, choiceId, events) {
     const c = d.cid !== null && s.shift ? customer(s, d.cid) : null;
     if (c && c.phase === "wait") { c.mood = "waiting"; s.shift && (c.say = { text: sayText, at: s.shift.t }); }
   }
-  events.push({ type: "dramaResolved", id: ev.id, choice: ch.id, say: sayText, fx: summary, goto: ch.goto || null, later: ch.later || null, rolled });
+  // tính cách chủ tiệm: một câu kèm theo ở bảng hậu quả (data/lines-reply.js PERSONA_ASIDE)
+  const aside = persona && PERSONA_ASIDE[persona] ? freshLine(s, PERSONA_ASIDE[persona], {}) : null;
+  events.push({ type: "dramaResolved", id: ev.id, choice: ch.id, say: sayText, fx: summary, goto: ch.goto || null, later: ch.later || null, rolled, aside });
   return { ok: true };
 }
 export { EQUIPMENT, WALK_MS, int };

@@ -61,7 +61,11 @@ await b.shot(OUT + "/01-desktop-chao-mung.png");
 await b.ev(`(()=>{const i=document.querySelector('#shopName');i.value='';})()`);
 await pressSel("#shopName");
 await b.send("Input.insertText", { text: "Trà Sữa Hẻm Nhà Mình" });
+check("tính cách chủ tiệm ở màn chào: 4 thẻ, mặc định Hiền lành", await b.ev("document.querySelectorAll('.intro .pcard').length===4&&document.querySelector('.intro .pcard.on').dataset.persona==='hien'"));
+await pressSel('.intro .pcard[data-persona="lay"]');
+check("chọn Lầy lội: thẻ sáng lên", await b.ev("document.querySelector('.intro .pcard.on').dataset.persona==='lay'"));
 await pressSel("#introGo");
+check("nhận tiệm ⇒ tính cách chủ tiệm là Lầy lội", (await S("s.owner.persona")) === "lay");
 check("đặt tên tiệm (có dấu) → hiện trên thanh trên", (await text("#shopLabel")) === "Trà Sữa Hẻm Nhà Mình");
 check("bảng Chuẩn bị ca ngày 1: menu 8 món (2 đã mở), kho, nút Mở quán", await visible("#openShop") && /Ngày 1/.test(await text(".sheet h2")) && await b.ev("document.querySelectorAll('.menu li').length===8&&document.querySelectorAll('.menu li.locked').length===6"));
 await b.shot(OUT + "/02-desktop-chuan-bi-ca.png");
@@ -153,6 +157,34 @@ await sleep(300);
 check("M4: Nhật Ký: ẩn tên tiệm vẽ lại thẻ", await b.ev("document.querySelector('#journalCanvas').dataset.drawn>='2'"));
 await pressSel("#jBack");
 check("M4: quay lại bảng chốt ca", await visible("#nextDay"));
+// ----- Trả lời review theo tính cách (lỗi cũ: trả lời bằng meme không hiện gì) -----
+await pressSel("#replyBtn");
+check("Sổ: review đầu tiên chưa trả lời mở sẵn bảng trả lời, có hàng đổi tính cách ngay trên lựa chọn", await waitFor("!!document.querySelector('.notebook .rv-reply .persona-switch')") &&
+  await b.ev("document.querySelector('.rv-reply .persona-switch .ps.on').dataset.persona==='lay'&&[...document.querySelectorAll('.rv-reply [data-reply]')].every(e=>e.dataset.reply.startsWith('lay-'))"));
+const lid = await b.ev("Number(document.querySelector('.rv-reply').closest('.rv').dataset.review)");
+await b.ev("document.querySelector('.rv-reply').scrollIntoView({block:'center'})");
+await b.shot(OUT + "/07d-desktop-tra-loi-review.png");
+await pressSel('.rv-reply [data-reply="lay-meme"]');
+const lt = await S(`(s.feed.find(r=>r.id===${lid}).reply||{}).text||''`);
+check("Lầy lội: trả lời bằng meme ⇒ câu trả lời hiện ngay dưới review trong sổ, có kết quả + hậu quả", lt.length > 15 && (await text(`.rv[data-review="${lid}"] .rv-thread .rp-text`)).includes(lt) &&
+  await b.ev(`document.querySelectorAll('.rv[data-review="${lid}"] .rp-res .chip').length>=1&&!!document.querySelector('.rv[data-review="${lid}"] .rp-res .oc')`), lt);
+check("sau khi trả lời: review vừa trả lời nằm trong tầm nhìn (không nhảy về đầu sổ)", await b.ev(`(()=>{const sh=document.querySelector('.sheet[data-kind=notebook]').getBoundingClientRect(),r=document.querySelector('.rv[data-review="${lid}"]').getBoundingClientRect();return r.bottom>sh.top&&r.top<sh.bottom})()`));
+await b.shot(OUT + "/07e-desktop-da-tra-loi.png");
+const rest = await S("s.feed.filter(r=>!r.reply).length");
+if (rest) {
+  const before = await b.ev("[...document.querySelectorAll('.rv-reply [data-reply]')].map(e=>e.dataset.reply).join()");
+  await pressSel('.rv-reply .persona-switch [data-persona="cucsuc"]');
+  const after = await b.ev("[...document.querySelectorAll('.rv-reply [data-reply]')].map(e=>e.dataset.reply).join()");
+  check("đổi tính cách ngay trong bảng trả lời ⇒ lựa chọn đổi sang Cục súc, thành mặc định", before !== after && after.split(",").every((x) => x.startsWith("cuc-")) && (await S("s.owner.persona")) === "cucsuc", before + " → " + after);
+  const cid2 = await b.ev("Number(document.querySelector('.rv-reply').closest('.rv').dataset.review)");
+  const opt = await b.ev("(document.querySelector('.rv-reply [data-reply=\"cuc-truth\"]')||document.querySelector('.rv-reply [data-reply=\"cuc-meme\"]')).dataset.reply");
+  await pressSel(`.rv-reply [data-reply="${opt}"]`);
+  const ct = await S(`(s.feed.find(r=>r.id===${cid2}).reply||{}).text||''`);
+  check(`Cục súc: trả lời ${opt} ⇒ câu trả lời hiện trong sổ`, ct.length > 10 && (await text(`.rv[data-review="${cid2}"] .rv-thread .rp-text`)).includes(ct), ct);
+} else check("(không còn review để thử đổi tính cách)", true);
+check("Sổ quản lý 1366: không tràn ngang", await noOverflowX());
+await pressSel("#nbClose");
+check("đóng sổ ⇒ về bảng chốt ca", await visible("#nextDay"));
 await pressSel("#nextDay");
 // ----- sự kiện giữa hai ca -----
 const dayEv = await waitFor("!!document.querySelector('.sheet[data-kind=event]')", 2500);
@@ -250,6 +282,23 @@ check("mobile: ghim phiếu bằng chạm, bắt đầu pha ly mới", !!n2 && (
 await b.shot(OUT + "/09-mobile-390-pha.png");
 await b.ev("document.querySelector('#rail').scrollIntoView()");
 await b.shot(OUT + "/10-mobile-390-full.png", true);
+// ----- mobile 390: bảng trả lời review giữa ca (Sổ) -----
+await b.ev("document.querySelector('#brew').scrollTop=0;window.scrollTo(0,0)");
+await pressSel("#bookBtn");
+const mrid = await waitFor("!!document.querySelector('.notebook .rv-reply')", 3000) ? await b.ev("Number(document.querySelector('.rv-reply').closest('.rv').dataset.review)") : 0;
+if (mrid) {
+  await pressSel('.rv-reply .persona-switch [data-persona="hien"]');
+  check("mobile: đổi sang Hiền lành trong bảng trả lời, nút ≥ 44px, không tràn ngang", (await S("s.owner.persona")) === "hien" && await noOverflowX() &&
+    await b.ev("[...document.querySelectorAll('.rv-reply .ps, .rv-reply .ropt')].every(e=>e.getBoundingClientRect().height>=44)"));
+  await b.ev("document.querySelector('.rv-reply').scrollIntoView({block:'center'})");
+  await b.shot(OUT + "/10b-mobile-390-tra-loi.png");
+  await pressSel('.rv-reply [data-reply="hien-meme"]');
+  const mt = await S(`(s.feed.find(r=>r.id===${mrid}).reply||{}).text||''`);
+  check("mobile: Hiền lành trả lời meme ⇒ câu hiện dưới review", mt.length > 10 && (await text(`.rv[data-review="${mrid}"] .rv-thread .rp-text`)).includes(mt), mt);
+  await b.shot(OUT + "/10c-mobile-390-da-tra-loi.png");
+} else check("mobile: (không còn review chưa trả lời)", true);
+await pressSel("#nbClose");
+if (await visible("#resumeBtn")) await pressSel("#resumeBtn");
 check("mobile: khung cảnh thấy cả nhân viên sau quầy và cửa ra vào", await b.ev(`(()=>{const r=document.querySelector('#scene').getBoundingClientRect();const a=__game.sceneToClient(472,300),d=__game.sceneToClient(1240,470);return a[0]>=r.left-1&&d[0]<=r.right+1})()`));
 
 // ===== 7. Drama trong ca (mobile 390) =====

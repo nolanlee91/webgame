@@ -49,16 +49,20 @@ test("điểm đánh giá + người theo dõi + độ hot đổi lượng khác
   assert.ok(b.shift.planned > a.shift.planned, `${b.shift.planned} > ${a.shift.planned}`);
 });
 
-test("trả lời review: đúng loại, mỗi review một lần; xin lỗi review có lỗi thật tạo lời hứa, giữ lời ca sau ⇒ +2 danh tiếng", () => {
+test("trả lời review: đúng lựa chọn của tính cách, mỗi review một lần; xin lỗi review có lỗi thật tạo lời hứa, giữ lời ca sau ⇒ +2 danh tiếng", () => {
   const s = shop(4);
   s.tutorialDone = true; s.day = 2;
+  act(s, { type: "setPersona", persona: "hien" });
   s.feed = [rv(2, "sugarHigh", 7), rv(5, "good", 8), rv(3, "ok", 9)];
-  assert.equal(canReply(s.feed[2], "sorry"), false, "không có lỗi thật thì không xin lỗi");
-  assert.equal(err(s, { type: "reply", id: 8, kind: "sorry" }), "not-eligible");
+  assert.equal(canReply(s.feed[2], "hien-sorry"), true, "xin lỗi được nhưng không tạo lời hứa");
+  assert.equal(err(s, { type: "reply", id: 8, kind: "hien-sorry" }), "not-eligible");
+  assert.equal(err(s, { type: "reply", id: 8, kind: "lay-meme" }), "not-eligible", "lựa chọn của tính cách khác");
+  assert.equal(err(s, { type: "reply", id: 8, kind: "meme" }), "bad-reply");
   const f = s.followers;
-  act(s, { type: "reply", id: 8, kind: "thanks" });
-  assert.equal(err(s, { type: "reply", id: 8, kind: "meme" }), "replied");
-  act(s, { type: "reply", id: 7, kind: "sorry" });
+  act(s, { type: "reply", id: 8, kind: "hien-thanks" });
+  assert.equal(err(s, { type: "reply", id: 8, kind: "hien-meme" }), "replied");
+  act(s, { type: "reply", id: 7, kind: "hien-sorry" });
+  act(s, { type: "reply", id: 9, kind: "hien-sorry" });
   assert.equal(s.promises.length, 1);
   assert.ok(s.followers > f);
   const rep = s.rep;
@@ -135,12 +139,12 @@ function v1Save() {
   };
 }
 
-test("nâng bản lưu v1 → v2: giữ tiền / cấp / kho / nhật ký, ca dở dang chuyển sang chỗ pha 0, khách một ly thành đơn 1 ly", () => {
-  assert.equal(SAVE_VERSION, 2);
-  assert.ok(MIGRATIONS[1]);
+test("nâng bản lưu v1 → v2 → v3: giữ tiền / cấp / kho / nhật ký, ca dở dang chuyển sang chỗ pha 0, khách một ly thành đơn 1 ly", () => {
+  assert.equal(SAVE_VERSION, 3);
+  assert.ok(MIGRATIONS[1] && MIGRATIONS[2]);
   const s = loadSave(JSON.stringify(v1Save()));
   assert.ok(s, "đọc được");
-  assert.equal(s.v, 2);
+  assert.equal(s.v, SAVE_VERSION);
   assert.equal(s.money, 231); assert.equal(s.level, 3); assert.equal(s.day, 4); assert.equal(s.shopName, "Tiệm Cũ");
   assert.equal(s.stock.ly, 7); assert.equal(s.owned["flowering-pot"], true); assert.equal(s.journal.length, 1);
   assert.deepEqual(s.shift.stations, [{ cup: { steps: [{ step: "cup", id: "ly" }, { step: "base", id: "hong-tra" }], sealed: false, forCid: 3 }, cid: 3, item: 0 }]);
@@ -166,7 +170,7 @@ test("nâng bản lưu v1 đang khiếu nại vẫn ở hội thoại", () => {
   act(s, { type: "resolve", choice: "refund" });
 });
 
-test("adapter: bản v1 được chép nguyên văn sang khoá sao lưu trước khi nâng, ghi lại thành v2, không ghi đè bản sao", () => {
+test("adapter: bản v1 được chép nguyên văn sang khoá sao lưu trước khi nâng, ghi lại thành bản mới nhất, không ghi đè bản sao", () => {
   const mem = new Mem();
   const raw = JSON.stringify(v1Save());
   mem.setItem(KEY, raw);
@@ -176,7 +180,7 @@ test("adapter: bản v1 được chép nguyên văn sang khoá sao lưu trước
   assert.equal(a.fresh, false);
   assert.equal(mem.getItem(backupKey(1)), raw);
   st.write(a.state);
-  assert.equal(JSON.parse(mem.getItem(KEY)).v, 2);
+  assert.equal(JSON.parse(mem.getItem(KEY)).v, SAVE_VERSION);
   assert.equal(mem.getItem(backupKey(1)), raw, "bản sao giữ nguyên");
   const b = st.read(1);
   assert.equal(b.migrated, null);

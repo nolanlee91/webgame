@@ -1,18 +1,18 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m35hd";
-import { createScene } from "./render/scene.js?v=m35hd";
-import { createBrew } from "./ui/brew.js?v=m35hd";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m35hd";
-import { createPanels } from "./ui/panels.js?v=m35hd";
-import { apply } from "./core/apply.js?v=m35hd";
-import { customer } from "./core/shift.js?v=m35hd";
-import { currentEvent, openEvent } from "./core/drama.js?v=m35hd";
-import { PLACE_REASON } from "./core/decor.js?v=m35hd";
-import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m35hd";
-import { EQUIPMENT } from "./data/equipment.js?v=m35hd";
-import { shopSave, browserStorage } from "./save.js?v=m35hd";
-import { play, isMuted, setMuted } from "./ui/sfx.js?v=m35hd";
+import { makeAtlas, SHEETS, HD_SHEETS, icon } from "./render/atlas.js?v=m36";
+import { createScene } from "./render/scene.js?v=m36";
+import { createBrew } from "./ui/brew.js?v=m36";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m36";
+import { createPanels } from "./ui/panels.js?v=m36";
+import { apply } from "./core/apply.js?v=m36";
+import { customer } from "./core/shift.js?v=m36";
+import { currentEvent, openEvent } from "./core/drama.js?v=m36";
+import { PLACE_REASON } from "./core/decor.js?v=m36";
+import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m36";
+import { EQUIPMENT } from "./data/equipment.js?v=m36";
+import { shopSave, browserStorage } from "./save.js?v=m36";
+import { play, isMuted, setMuted } from "./ui/sfx.js?v=m36";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -139,7 +139,8 @@ async function boot() {
         case "placed": play("plop"); break;
         case "consigned": play("coin"); say(`${e.line ? e.line + " " : "Dì Ba ký gửi một gói hàng. "}(${fmtK(e.owed)}, bán tới đâu trừ tới đó.)`, "good"); break;
         case "promoted": play("coin"); say(e.line, "good"); break;
-        case "replied": play("plop"); say(`Đã trả lời: “${e.line}”`, "good"); break;
+        case "replied": play(e.outcome === "phot" || e.outcome === "annoyed" ? "sad" : e.outcome === "viral" ? "level" : "plop"); say(`${e.label}: ${e.fx.slice(0, 2).join(" · ")}`, e.outcome === "phot" || e.outcome === "annoyed" ? "warn" : "good"); break;
+        case "persona": if (e.switches >= 3) say(`Đổi tính lần thứ ${e.switches} trong ngày. Cư dân mạng bắt đầu để ý…`, "warn"); break;
         case "shiftStarted": if (params.get("calm") === "1" && state.shift) state.shift.drama.max = 0; say(`Mở cửa ngày ${e.day}! ${e.guests} khách dự kiến.`, "good"); break;
         default: break;
       }

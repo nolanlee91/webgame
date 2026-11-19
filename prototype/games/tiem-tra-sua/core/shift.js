@@ -3,28 +3,28 @@
 // Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
 // Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
 // c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
-import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m35hd";
-import { RECIPE } from "../data/recipes.js?v=m35hd";
-import { ARCHETYPES } from "../data/customers.js?v=m35hd";
+import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m36";
+import { RECIPE } from "../data/recipes.js?v=m36";
+import { ARCHETYPES } from "../data/customers.js?v=m36";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
   TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
-} from "../data/shift.js?v=m35hd";
-import * as L from "../data/lines.js?v=m35hd";
-import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m35hd";
-import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m35hd";
-import { next, int, pick, weighted } from "./rng.js?v=m35hd";
-import { fill, pickLine } from "./text.js?v=m35hd";
-import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m35hd";
-import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m35hd";
-import { scoreServe, starsFor } from "./score.js?v=m35hd";
-import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m35hd";
-import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m35hd";
-import { trafficBonus, archiveShift } from "./reviews.js?v=m35hd";
-import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m35hd";
-import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m35hd";
-import { promoGuests, consignRepay } from "./business.js?v=m35hd";
-import { caption } from "./journal.js?v=m35hd";
+} from "../data/shift.js?v=m36";
+import * as L from "../data/lines.js?v=m36";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m36";
+import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m36";
+import { next, int, pick, weighted } from "./rng.js?v=m36";
+import { fill, pickLine } from "./text.js?v=m36";
+import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m36";
+import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m36";
+import { scoreServe, starsFor } from "./score.js?v=m36";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m36";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m36";
+import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m36";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m36";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m36";
+import { promoGuests, consignRepay } from "./business.js?v=m36";
+import { caption } from "./journal.js?v=m36";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");
@@ -111,6 +111,8 @@ export function startShift(s, events) {
   const cfg = tut ? TUTORIAL_DAY : NORMAL_DAY;
   const extra = tut ? 0 : promoGuests(s) + (s.drama?.nextGuests || 0);
   const guests = tut ? TUTORIAL_DAY.guests.map((g) => ({ at: g.at, arch: g.arch, name: g.name, items: [{ recipe: g.recipe, sugar: g.sugar, ice: g.ice }] })) : genGuests(s, NORMAL_DAY, extra);
+  if (!tut) for (const g of returningGuests(s, cfg.duration)) guests.push(g); // khách quay lại nhờ câu trả lời review (core/reviews.js)
+  guests.sort((a, b) => a.at - b.at);
   const fee = Math.min(SHIFT_FEE, s.money); // hụt vốn: chủ nhà cho khất phần thiếu (xem thêm gói ký gửi ở core/business.js)
   s.money -= fee;
   const stations = Array.from({ length: stationCount(s) }, () => ({ cup: null, cid: null, item: null }));
@@ -123,6 +125,7 @@ export function startShift(s, events) {
     mods: { sealMs: 0, spawnPauseUntil: 0 }, lastServe: null, missions: [], drama: null, followers0: s.followers || 0,
   };
   s.carryPearls = 0;
+  s.usedDay = [];
   if (s.drama) { s.drama.nextGuests = 0; s.drama.demand = null; }
   startMissions(s);
   startDrama(s);
@@ -374,13 +377,13 @@ export function discard(s, events) {
 
 /** Chọn câu, tránh lặp câu đã dùng trong ca nếu còn câu khác. */
 export function freshLine(s, list, ctx) {
-  const sh = s.shift;
-  if (!sh) return fill(pick(s, list), ctx); // giữa hai ca: không có "ca" để chống lặp
-  const used = new Set(sh.usedLines);
+  // trong ca nhớ ở sh.usedLines; giữa hai ca (trả lời review, sự kiện sau giờ đóng cửa) nhớ ở s.usedDay, xoá khi mở ca mới
+  const mem = s.shift ? s.shift.usedLines : (s.usedDay = Array.isArray(s.usedDay) ? s.usedDay : []);
+  const used = new Set(mem);
   const fresh = list.filter((t) => !used.has(t));
   const tpl = pick(s, fresh.length ? fresh : list);
-  sh.usedLines.push(tpl);
-  if (sh.usedLines.length > 40) sh.usedLines.shift();
+  mem.push(tpl);
+  if (mem.length > 40) mem.shift();
   return fill(tpl, ctx);
 }
 
@@ -432,7 +435,7 @@ function reviewLine(s, c, sc) {
     if (pool.length) return { line: freshLine(s, pool, ctx), reason, mistake: mk };
     if (err) return { line: freshLine(s, L.REVIEW_LINES[err], ctx), reason: err, mistake: mk };
   }
-  if (!mk && sc.stars >= 4) { const dp = decorPool(s); if (dp.length && next(s) < 0.3) return { line: freshLine(s, dp, ctx), reason: "good" }; }
+  if (!mk && sc.stars >= 4) { const dp = decorPool(s); if (dp.length && next(s) < 0.3) return { line: freshLine(s, dp, ctx), reason: "decor" }; } // trả lời review có câu riêng cho khen trang trí
   if (!mk && sc.stars >= 3) { const pp = promoPool(s); if (pp.length && next(s) < 0.35) return { line: freshLine(s, pp, ctx), reason: sc.stars >= 4 ? "good" : "ok" }; }
   const pool = poolFor(REVIEW_BY_STARS[sc.stars], c.arch);
   return { line: freshLine(s, pool.length ? pool : L.REVIEW_LINES[sc.stars], ctx), reason: sc.stars >= 4 ? "good" : "ok" };
@@ -658,7 +661,7 @@ export function endShift(s, events) {
   sum.rating = s.rating ?? null;
   sum.headline = caption(s, sum);
   s.lastSummary = sum;
-  s.journal.unshift({ day: sum.day, cups: sum.cups, profit: sum.profit, avgStars: sum.avgStars, headline: sum.headline, moment: sum.moments.find((m) => m.kind === "drama")?.line || sum.best?.line || "" });
+  s.journal.unshift({ day: sum.day, cups: sum.cups, profit: sum.profit, avgStars: sum.avgStars, headline: sum.headline, moment: sum.moments.find((m) => m.kind === "reply" && (m.outcome === "viral" || m.outcome === "phot"))?.line || sum.moments.find((m) => m.kind === "drama")?.line || sum.best?.line || "" });
   s.journal.length = Math.min(s.journal.length, 30);
   s.stats.shifts++;
   s.stats.bestProfit = Math.max(s.stats.bestProfit, sum.profit);
