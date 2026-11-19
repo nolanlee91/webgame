@@ -155,6 +155,7 @@ await A.cell(...X[4]);
 check('A xếp đủ 5 → cả 2 thấy A thắng, tỉ số 1–0', !!(await until(async () => { const a = await A.S(), b = await M.S(); return a.winner === 1 && b.winner === 1 && a.score[1] === 1 && b.score[1] === 1; })));
 await sleep(1500);
 check('màn kết thúc: A "Bạn thắng!", B "Bạn thua!", nút Rời phòng', (await A.text('#eTitle')).includes('Bạn thắng') && (await M.text('#eTitle')).includes('Bạn thua') && (await A.text('#menuBtnE')).includes('Rời phòng'));
+check('màn kết thúc online: chủ phòng có nút Hủy phòng, người kia không', await A.vis('#eDisband') && !(await M.vis('#eDisband')));
 await A.shot('online-thang-desktop.png');
 await M.shot('online-thua-mobile.png');
 
@@ -191,6 +192,32 @@ await A.press('#menuBtn'); await sleep(150); await A.press('#menuBtnP');
 await until(async () => (await A.S()).room === null);
 await until(async () => (await M.S()).room?.phase === 'lobby'); await M.press('#rLeave');
 await until(async () => (await M.S()).room === null);
+
+// ---------- Hủy phòng (chủ phòng) · "← Trang chủ" rời phòng ngay ----------
+const S2 = (pg) => pg.ev(`({room:!!window.__game.room,err:document.querySelector('#mErr').textContent,seat:sessionStorage.getItem('wgp.caro.seat'),q:location.search,menu:!document.querySelector('#ovMenu').hidden})`);
+await A.nav(URL0); await A.press('#createBtn'); await sleep(100); await A.press('#createRoomBtn');
+const code2 = await until(async () => (await A.S()).room?.code);
+check('phòng chờ: chủ phòng có nút Hủy phòng + Rời phòng', await A.vis('#rDisband') && await A.vis('#rLeave'));
+await M.nav(URL0 + '?room=' + code2); await M.press('#joinBtn');
+await until(async () => (await A.S()).room?.n === 2 && (await M.S()).room?.n === 2);
+check('người vào: chỉ có Rời phòng, không có Hủy phòng', !(await M.vis('#rDisband')) && await M.vis('#rLeave'));
+await A.press('#rDisband'); // confirm() tự đồng ý
+const dis = await until(async () => { const a = await S2(A), b = await S2(M); return !a.room && !b.room && a.menu && b.menu ? [a, b] : null; }, 4000);
+check('Hủy phòng → cả 2 về màn đầu: chủ "Đã hủy phòng.", khách "Chủ phòng đã hủy phòng."', !!dis && dis[0].err === 'Đã hủy phòng.' && dis[1].err === 'Chủ phòng đã hủy phòng.', JSON.stringify(dis));
+check('Hủy phòng → xoá ghế đã lưu + bỏ ?room= trên URL', !!dis && !dis[0].seat && !dis[1].seat && !dis[0].q.includes('room=') && !dis[1].q.includes('room='));
+await M.type('#codeIn', code2); await M.press('#joinBtn');
+check('mã phòng đã hủy không vào được nữa', !!(await until(async () => (await M.text('#mErr')).includes('Không tìm thấy phòng'))), await M.text('#mErr'));
+await A.press('#createBtn'); await sleep(100); await A.press('#createRoomBtn');
+const code3 = await until(async () => { const c = (await A.S()).room?.code; return c && c !== code2 ? c : null; });
+await M.nav(URL0 + '?room=' + code3); await M.press('#joinBtn');
+await until(async () => (await A.S()).room?.n === 2);
+const t0 = Date.now(); await M.press('header a');
+check('khách bấm "← Trang chủ" ở phòng chờ → chủ phòng thấy rời ngay (< 2 giây)', !!(await until(async () => (await A.S()).room?.n === 1, 2000)), (Date.now() - t0) + 'ms');
+check('…và khách sang trang chủ', !!(await until(() => M.ev('location.pathname.includes("homepage")'), 3000)));
+await A.press('header a');
+check('chủ phòng một mình bấm "← Trang chủ" → hủy phòng rồi sang trang chủ', !!(await until(() => A.ev('location.pathname.includes("homepage")'), 3000)));
+await M.nav(URL0); await M.type('#codeIn', code3); await M.type('#nameIn', 'Bình'); await M.press('#joinBtn');
+check('phòng đó đã bị xoá', !!(await until(async () => (await M.text('#mErr')).includes('Không tìm thấy phòng'))), await M.text('#mErr'));
 
 // ---------- Máy chủ chưa bật online ----------
 if (process.env.OFFPORT) {

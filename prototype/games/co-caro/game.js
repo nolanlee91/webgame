@@ -1,7 +1,7 @@
 // Cờ Caro — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu ván. Luật chơi ở logic.js, máy chơi ở ai.js.
 import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, other } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=private1";
+import { createNet, CODE_RE } from "./net.js?v=leave1";
 
 const SAVE_KEY = "wgp.caro.v1";
 const C = {
@@ -116,7 +116,7 @@ export function mount(root, ctx = {}) {
     vEntry: $("vEntry"), vSolo: $("vSolo"), vCreate: $("vCreate"), createBtn: $("createBtn"), soloBtn: $("soloBtn"), resumeGame: $("resumeGameBtn"), startBtn: $("startBtn"), createRoomBtn: $("createRoomBtn"),
     eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), pSub: $("pSub"),
     nameIn: $("nameIn"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
-    ovRoom: $("ovRoom"), rCode: $("rCode"), rOpts: $("rOpts"), rSeats: $("rSeats"), rNote: $("rNote"), rStart: $("rStart"), rCopy: $("rCopy"), rLeave: $("rLeave"),
+    ovRoom: $("ovRoom"), rCode: $("rCode"), rOpts: $("rOpts"), rSeats: $("rSeats"), rNote: $("rNote"), rStart: $("rStart"), rCopy: $("rCopy"), rLeave: $("rLeave"), rDisband: $("rDisband"), eDisband: $("eDisband"),
     toast: $("toast"), menuP: $("menuBtnP"), menuE: $("menuBtnE"), place: $("placeBtn"),
     chat: $("chat"), chatLog: $("chatLog"), chatF: $("chatF"), chatIn: $("chatIn"), chatBtn: $("chatBtn"), chatN: $("chatN"), chatX: $("chatX"),
   };
@@ -397,8 +397,14 @@ export function mount(root, ctx = {}) {
   const net = createNet({
     joined(code) { setRoomParam(code); hideToast(); ui.mErr.textContent = ""; },
     state(v, sk) { skew = sk; netState(v); },
-    left() { setRoomParam(""); s = null; showMenu(); },
+    left() { setRoomParam(""); if (exiting) return; s = null; showMenu(); },
     gone(text) { setRoomParam(""); s = null; showMenu(text); },
+    closed() { // chủ phòng đã hủy phòng → ai cũng về màn đầu (ghế đã lưu được net.js xoá)
+      if (exiting) return;
+      const mine = !!room && room.you === room.host;
+      setRoomParam(""); s = null; sfx.play("trung-da", 0.5);
+      showMenu(mine ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng.");
+    },
     error(code, inRoom) {
       const text = ERR[code] || "Có lỗi xảy ra (" + code + ").";
       if (!inRoom) { busyMenu(false); ui.mErr.textContent = text; return; }
@@ -441,6 +447,8 @@ export function mount(root, ctx = {}) {
     ui.rStart.textContent = host ? "▶ Bắt đầu" : "Chờ chủ phòng";
     ui.rStart.disabled = !host || n < 2;
     ui.rNote.textContent = n < 2 ? "Gửi mã " + v.code + " (hoặc bấm Chép link mời) cho bạn bè." : host ? "Đủ 2 người — bấm Bắt đầu." : "Chủ phòng sẽ bấm Bắt đầu.";
+    ui.rDisband.hidden = !host;
+    ui.rLeave.title = host && n > 1 ? "Rời phòng — người còn lại thành chủ phòng" : "";
     if (ui.ovRoom.hidden) { overlay("room"); (host ? ui.rCopy : ui.rLeave).focus({ preventScroll: true }); }
   }
   function fromServer(v) {
@@ -543,6 +551,28 @@ export function mount(root, ctx = {}) {
   }
   ui.rStart.onclick = () => net.send({ t: "start" });
   ui.rLeave.onclick = () => net.leave();
+  // Hủy phòng: chỉ chủ phòng, ở phòng chờ hoặc khi ván đã xong — máy chủ gửi "closed" cho cả phòng.
+  function disbandRoom() {
+    if (!room || room.you !== room.host) return;
+    if (room.players.length > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+    if (!net.disband()) toast("Đang nối lại máy chủ — chưa hủy được phòng.");
+  }
+  ui.rDisband.onclick = disbandRoom; ui.eDisband.onclick = disbandRoom;
+  // "← Trang chủ" khi đang ở trong phòng: báo máy chủ rời phòng (chủ phòng ngồi một mình ở phòng chờ thì hủy luôn) rồi mới
+  // chuyển trang — người kia thấy mình rời ngay, không phải chờ máy chủ hết hạn. Ngoài phòng thì link chạy bình thường.
+  let exiting = false;
+  function onHomeClick(e) {
+    if (!(room || net.inRoom) || e.defaultPrevented || e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (exiting) return;
+    if (online() && s && !s.winner && !confirm("Rời ván đang chơi?")) return;
+    const href = e.currentTarget.href;
+    const alone = !!room && room.phase === "lobby" && room.you === room.host && room.players.length < 2;
+    exiting = true;
+    net.exit(alone ? "disband" : "leave", 400).then(() => { location.href = href; });
+  }
+  const homeLinks = [...document.querySelectorAll('a[href*="homepage"]')];
+  homeLinks.forEach((a) => a.addEventListener("click", onHomeClick));
   ui.rCopy.onclick = async () => {
     const u = new URL(location.href); u.search = "?room=" + (room ? room.code : ""); u.hash = "";
     try { await navigator.clipboard.writeText(u.href); toast("Đã chép link mời: " + u.href); }
@@ -565,6 +595,7 @@ export function mount(root, ctx = {}) {
       nm[s.winner] + " xếp 5 quân theo " + DIR_NAME(s.line) + " sau " + s.moves.length + " nước. Ván sau " + nm[other(s.winner)] + " đi trước.";
     ui.eResult.innerHTML = `<div class="rx"><small>${nm[1]} · X</small><b>${s.score[1]}</b></div><div><small>Hòa</small><b>${s.score.draw}</b></div><div class="ro"><small>${nm[2]} · O</small><b>${s.score[2]}</b></div>`;
     ui.menuE.textContent = online() ? "Rời phòng" : "Trận mới";
+    ui.eDisband.hidden = !(room && room.you === room.host);
     overlay("end");
     $("nextBtn").focus({ preventScroll: true });
   }
@@ -735,6 +766,6 @@ export function mount(root, ctx = {}) {
       return { x: b.left + (L.ox + c * L.cs + L.cs / 2) / L.dpr, y: b.top + (L.oy + r * L.cs + L.cs / 2) / L.dpr };
     },
     place, undo: doUndo, next: doNext,
-    destroy() { destroyed = true; net.close(); clearTimers(); cancelAnimationFrame(raf); ro.disconnect(); sfx.close(); window.removeEventListener("keydown", onKey); },
+    destroy() { destroyed = true; net.close(); clearTimers(); cancelAnimationFrame(raf); ro.disconnect(); sfx.close(); window.removeEventListener("keydown", onKey); homeLinks.forEach((a) => a.removeEventListener("click", onHomeClick)); },
   };
 }

@@ -70,6 +70,9 @@
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
+    .btn--danger { color: #fff4ef; background: linear-gradient(#ff8f84 0 3px, #c8382e 3px); --b: #5a1410; }
+    .btn--danger:hover { background: linear-gradient(#ffb0a6 0 3px, #dc4a3f 3px); }
+    .btn[hidden] { display: none; }
     .kb { color: var(--soft); font-weight: 700; font-size: 11px; }
     .btn--primary .kb { color: #6b4a12; }
 
@@ -340,6 +343,7 @@
             <button class="btn btn--big btn--primary" id="rStart" type="button">▶ Bắt đầu</button>
             <button class="btn btn--big" id="rCopy" type="button">Chép link mời</button>
             <button class="btn btn--big" id="rLeave" type="button">Rời phòng</button>
+            <button class="btn btn--big btn--danger" id="rDisband" type="button" hidden>Hủy phòng</button>
           </div>
         </div>
       </div>
@@ -365,6 +369,7 @@
             <button class="btn btn--big btn--primary" id="nextBtn" type="button">Ván tiếp ▶</button>
             <button class="btn btn--big" id="viewBtn" type="button">Xem bàn cờ</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Trận mới</button>
+            <button class="btn btn--big btn--danger" id="eDisband" type="button" hidden>Hủy phòng</button>
           </div>
         </div>
       </div>
@@ -372,7 +377,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=entry1";
+    import { mount } from "./game.js?v=leave1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

@@ -569,6 +569,20 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   el.cancel.addEventListener("click", () => { leaveRoom(); showMenu("Đã hủy phòng.", true); });
   el.back.addEventListener("click", () => { hide(el.ovMenu); setInert(false); });
   el.leave.addEventListener("click", () => { leaveRoom(); showMenu("Đã rời phòng.", true); });
+  // "← Trang chủ" khi đang ở trong phòng online (phòng chờ hoặc đang đấu): báo máy chủ rời phòng rồi mới chuyển trang —
+  // chủ phòng ở phòng chờ rời ⇒ phòng bị xoá; giữa ván ⇒ hỏi lại trước. Ngoài phòng thì link chạy bình thường.
+  let exiting = false;
+  function onHomeClick(e) {
+    if (!online || e.defaultPrevented || e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (exiting) return;
+    if (session && mode === "online" && state?.round && !state.round.over && !confirm("Rời ván đang chơi?")) return;
+    const href = e.currentTarget.href;
+    exiting = true; leaveRoom();
+    setTimeout(() => { location.href = href; }, 150); // để lệnh "leave" kịp đi trước khi trang đóng kết nối
+  }
+  const homeLinks = [...document.querySelectorAll('a[href*="homepage"]')];
+  homeLinks.forEach((a) => a.addEventListener("click", onHomeClick));
   el.muteBtn.addEventListener("click", toggleMute);
   el.chatBtn.addEventListener("click", () => openChat(!el.wrap.classList.contains("chat-open")));
   el.chatClose.addEventListener("click", () => openChat(false));
@@ -606,6 +620,6 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     get state() { return state; },
     get dict() { return dict; },
     t, sfx, prefs,
-    destroy() { destroyed = true; closeSession(); if (online) { online.leave(); online = null; } sfx.close(); window.removeEventListener("keydown", onKey); ro?.disconnect(); document.removeEventListener("visibilitychange", onVis); },
+    destroy() { destroyed = true; closeSession(); if (online) { online.leave(); online = null; } sfx.close(); window.removeEventListener("keydown", onKey); ro?.disconnect(); document.removeEventListener("visibilitychange", onVis); homeLinks.forEach((a) => a.removeEventListener("click", onHomeClick)); },
   };
 }

@@ -350,7 +350,7 @@
             <div class="code" id="lCode" aria-live="polite">-----</div>
             <div class="actions">
               <button class="btn btn--primary" id="copyBtn" type="button">Sao chép link mời</button>
-              <button class="btn" id="cancelBtn" type="button">Hủy phòng</button>
+              <button class="btn btn--warn" id="cancelBtn" type="button">Hủy phòng</button>
             </div>
             <p class="note" id="lWait">Đang chờ bạn vào phòng…</p>
           </div>
@@ -398,7 +398,7 @@
     </aside>
   </div>
   <script type="module">
-    import { mount } from "./game.js?v=entry3";
+    import { mount } from "./game.js?v=leave1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

@@ -7,11 +7,12 @@ export const CODE_RE = /^[A-HJKMNP-Z2-9]{5}$/;
 const load = () => { try { return JSON.parse(sessionStorage.getItem(SEAT_KEY)); } catch { return null; } };
 
 /**
- * on: { joined(code), state(v, skew), left(), gone(text), error(code, inRoom), offline(text), reconnecting() }
+ * on: { joined(code), state(v, skew), left(), closed(), gone(text), error(code, inRoom, req), offline(text), reconnecting() }
+ * closed(): chủ phòng đã hủy phòng (máy chủ gửi "closed" cho mọi người trong phòng, kể cả chủ phòng).
  */
 export function createNet(on, { url } = {}) {
   url = url || (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/co-tuong";
-  let ws = null, seat = load(), inRoom = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
+  let ws = null, seat = load(), inRoom = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null, waiter = null;
 
   const saveSeat = (s) => { seat = s; try { if (s) sessionStorage.setItem(SEAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SEAT_KEY); } catch {} };
 
@@ -47,15 +48,28 @@ export function createNet(on, { url } = {}) {
     if (m.t === "state") { if (inRoom) on.state(m.v, m.now - Date.now()); return; }
     if (m.t === "pong") return;
     if (m.t === "left") { end(); on.left(); return; }
+    if (m.t === "closed") { end(); on.closed(); return; }
     if (m.t === "replaced") { end(); on.gone("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
     if (m.t === "kicked") { end(); on.gone("Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
     if (m.t === "err") {
       if (m.code === "no-seat" || (m.code === "no-room" && !pending)) { end(); on.gone("Chỗ ngồi cũ của bạn không còn trong phòng."); return; }
       if (!inRoom) { stop(); }
-      on.error(m.code, inRoom);
+      if (waiter && (m.req === "leave" || m.req === "disband")) settle();
+      on.error(m.code, inRoom, m.req);
     }
   }
-  function end() { inRoom = false; saveSeat(null); stop(); }
+  function end() { inRoom = false; saveSeat(null); stop(); settle(); }
+  function settle() { const w = waiter; waiter = null; if (w) w(); }
+  // Rời phòng trước khi chuyển trang: gửi "leave" (hoặc "disband"), chờ "left"/"closed" tối đa ms rồi vẫn xoá ghế đã lưu.
+  function exit(kind, ms = 400) {
+    return new Promise((res) => {
+      if (!(ws && ws.readyState === 1 && inRoom)) { end(); res(); return; }
+      settle();
+      const t = setTimeout(() => { waiter = null; end(); res(); }, ms);
+      waiter = () => { clearTimeout(t); res(); };
+      ws.send(JSON.stringify({ t: kind === "disband" ? "disband" : "leave" }));
+    });
+  }
 
   return {
     get seat() { return seat; }, get inRoom() { return inRoom; }, get ws() { return ws; },
@@ -63,6 +77,8 @@ export function createNet(on, { url } = {}) {
     join(code, name) { connect({ t: "join", code, name }); },
     resume() { if (seat && seat.code) { connect(null); return true; } return false; },
     send(o) { if (ws && ws.readyState === 1) { ws.send(JSON.stringify(o)); return true; } return false; },
+    disband() { if (ws && ws.readyState === 1 && inRoom) { ws.send('{"t":"disband"}'); return true; } return false; },
+    exit,
     leave() { if (ws && ws.readyState === 1 && inRoom) ws.send('{"t":"leave"}'); else { end(); on.left(); } },
     drop() { if (ws) ws.close(); }, // test: giả lập rớt mạng
     close() { inRoom = false; stop(); },
