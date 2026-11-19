@@ -2433,6 +2433,283 @@
           ]
         }
       ]
+    },
+    "house-tiers": {
+      "file": "house-tiers.webp",
+      "frameWidth": 288,
+      "frameHeight": 224,
+      "columns": 5,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "nha-bac-1",
+          "x": 0,
+          "y": 0,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-2",
+          "x": 288,
+          "y": 0,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-3",
+          "x": 576,
+          "y": 0,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-4",
+          "x": 864,
+          "y": 0,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-5",
+          "x": 1152,
+          "y": 0,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-6",
+          "x": 0,
+          "y": 224,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-7",
+          "x": 288,
+          "y": 224,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-8",
+          "x": 576,
+          "y": 224,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-9",
+          "x": 864,
+          "y": 224,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        },
+        {
+          "id": "nha-bac-10",
+          "x": 1152,
+          "y": 224,
+          "width": 288,
+          "height": 224,
+          "anchor": [
+            144,
+            216
+          ]
+        }
+      ]
+    },
+    "hang-rao": {
+      "file": "hang-rao.webp",
+      "frameWidth": 256,
+      "frameHeight": 128,
+      "columns": 1,
+      "rows": 1,
+      "frames": [
+        {
+          "id": "hang-rao-da",
+          "x": 0,
+          "y": 0,
+          "width": 256,
+          "height": 128,
+          "anchor": [
+            128,
+            120
+          ]
+        }
+      ]
+    },
+    "items-2": {
+      "file": "items-2.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "columns": 4,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "banh-ngo",
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "sinh-to-dau",
+          "x": 64,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bap-rang-bo",
+          "x": 128,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "che-bi-ngo",
+          "x": 192,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "sua-chua",
+          "x": 0,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "banh-gao",
+          "x": 64,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "so-suu-tap",
+          "x": 128,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "co-phien-cho",
+          "x": 192,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        }
+      ]
+    },
+    "phien-cho": {
+      "file": "phien-cho.webp",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "columns": 2,
+      "rows": 1,
+      "frames": [
+        {
+          "id": "co-hoi-1",
+          "x": 0,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "co-hoi-2",
+          "x": 192,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      ],
+      "animations": {
+        "co-hoi": {
+          "frames": [
+            "co-hoi-1",
+            "co-hoi-2"
+          ],
+          "fps": 3,
+          "loop": true
+        }
+      }
     }
   }
 }
