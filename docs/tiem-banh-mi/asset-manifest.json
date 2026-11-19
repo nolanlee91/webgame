@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "phase": 1,
+  "productionFilesRoot": "prototype/games/tiem-banh-mi/",
+  "conceptFilesRoot": "docs/tiem-banh-mi/",
+  "dimensionsConvention": "width, height",
+  "rectConvention": "[x, y, width, height] in atlas pixels from upper left",
+  "anchorConvention": "[x, y] local to frame in atlas pixels from upper left",
+  "styleReferences": ["prototype/homepage/assets/thumbs/tiem-banh-mi.webp"],
+  "items": [],
+  "placements": {}
+}
