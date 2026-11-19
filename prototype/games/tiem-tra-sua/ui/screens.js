@@ -1,21 +1,21 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon, dpr } from "../render/atlas.js?v=m36";
-import { ingIcon, headIcon } from "./brew.js?v=m36";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m36";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m36";
-import { ARCHETYPES } from "../data/customers.js?v=m36";
-import { COMPLAINT } from "../data/lines.js?v=m36";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m36";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m36";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m36";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m36";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m36";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m36";
-import { fill } from "../core/text.js?v=m36";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m36";
-import { appeal } from "../core/equipment.js?v=m36";
-import { portrait as portraitOf } from "./panels.js?v=m36";
-import { personaCards, PERSONAS } from "./persona.js?v=m36";
+import { icon, dpr } from "../render/atlas.js?v=m36snd";
+import { ingIcon, headIcon } from "./brew.js?v=m36snd";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m36snd";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m36snd";
+import { ARCHETYPES } from "../data/customers.js?v=m36snd";
+import { COMPLAINT } from "../data/lines.js?v=m36snd";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m36snd";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m36snd";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m36snd";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m36snd";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m36snd";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m36snd";
+import { fill } from "../core/text.js?v=m36snd";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m36snd";
+import { appeal } from "../core/equipment.js?v=m36snd";
+import { portrait as portraitOf } from "./panels.js?v=m36snd";
+import { personaCards, PERSONAS } from "./persona.js?v=m36snd";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -460,7 +460,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
         "Đơn nhiều ly: pha từng ly rồi bấm Ghép ly vào đơn; đủ ly thì giao chung một lượt. Có bàn pha đôi / ba thì ly cùng yêu cầu được rót cùng lúc.",
         "Drama: khách, mạng xã hội, mẹ gọi… Ca tạm dừng khi hội thoại mở. Mỗi lựa chọn có hậu quả, có chuyện quay lại ngày sau.",
         "Sổ: xem và trả lời review, nhật ký từng ngày, sự kiện, nhiệm vụ ngày. Hết vốn thì nhận gói ký gửi ở bảng Chuẩn bị ca.",
-        "Phím tắt: 1–7 chọn nguyên liệu, Enter giao, Backspace hoàn tác, P tạm dừng, M tắt tiếng.",
+        "Phím tắt: 1–7 chọn nguyên liệu, Enter giao, Backspace hoàn tác, P tạm dừng, M đổi tiếng (bật hết → chỉ hiệu ứng → tắt).",
       ]) ol.appendChild(h("li", "", s));
       c.appendChild(ol);
       const ok = h("button", "btn primary", "Đã hiểu"); ok.type = "button"; ok.id = "helpOk"; ok.dataset.autofocus = "";

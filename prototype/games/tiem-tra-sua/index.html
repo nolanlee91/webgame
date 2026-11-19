@@ -102,6 +102,8 @@
     .brew { scroll-padding-bottom: 76px; } /* phần tử được cuộn tới không nằm dưới thanh hành động dính đáy */
     .brew-top { display: flex; flex-direction: column; gap: 10px; }
     .tbtn .sm { display: none; }
+    #muteBtn { position: relative; }
+    #muteBtn[data-mode="sfx"]::after { content: "♪"; position: absolute; right: 3px; bottom: 1px; font-size: 12px; line-height: 1; opacity: .9; text-decoration: line-through; text-decoration-thickness: 2px; }
     .brew.closed .station, .brew.closed .steps { opacity: .55; }
     .ticket { position: relative; background: #fffaf0; border-radius: 12px; padding: 10px 12px 10px; box-shadow: 0 0 0 1.5px var(--cream3) inset; min-height: 70px; }
     .ticket::before { content: ""; position: absolute; top: -6px; left: 50%; width: 46px; height: 12px; margin-left: -23px; border-radius: 4px; background: var(--caramel); box-shadow: 0 2px 0 #5c3a26; }
@@ -452,7 +454,7 @@
   <div id="overlay" class="overlay" hidden></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <p id="bootError" hidden></p>
-  <script type="module" src="game.js?v=m36"></script>
+  <script type="module" src="game.js?v=m36snd"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>
