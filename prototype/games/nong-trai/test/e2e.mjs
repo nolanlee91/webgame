@@ -648,8 +648,8 @@ const coinsBook = await S("s.coins");
 await pressSel('#bookBody [data-act="claim"][data-tier="0"]');
 check("M6: nhận mốc 10 ⇒ +800 xu, 2 ván gỗ, mốc ghi 'Đã nhận', danh hiệu", (await S("s.coins")) === coinsBook + 800 && (await S("s.collection.claimed")) === 1 && /Đã nhận/.test(await text("#bookBody")) && /Nhà sưu tầm tập sự/.test(await text("#bookBody")));
 await pressSel('#bookBody [data-act="close"]');
-check("M6: icon món mới (items-2 chưa có) dùng ô dự phòng items.webp + bộ lọc màu",
-  await ev("(()=>{const e=[...document.querySelectorAll('#bookBody .book-entry')].find(x=>x.dataset.id==='banh-ngo');const i=e&&e.querySelector('.it');return !!i&&getComputedStyle(i).backgroundImage.includes('items.webp')&&/hue-rotate/.test(i.style.filter)})()"));
+check("M6: icon món mới dùng items-2.webp (asset Codex), không còn bộ lọc màu dự phòng",
+  await ev("(()=>{const e=[...document.querySelectorAll('#bookBody .book-entry')].find(x=>x.dataset.id==='banh-ngo');const i=e&&e.querySelector('.it');return !!i&&getComputedStyle(i).backgroundImage.includes('items-2.webp')&&!/hue-rotate/.test(i.style.filter)})()"));
 // đơn đặc biệt hai lúc
 await pressSel("#ordersTool");
 check("M6 cấp 18: bảng đơn có 2 phiếu đặc biệt (special + special2)", await visible('#slips .slip[data-slot="special"]') && await visible('#slips .slip[data-slot="special2"]'));
@@ -662,8 +662,8 @@ check("M6: giao đơn đặc biệt thứ hai ⇒ nhận xu, ô chờ đơn mớ
 await pressSel(bld("hang-rao"));
 check("M6: chạm hàng rào ⇒ thẻ nâng hàng rào đá 6 000 xu + vật liệu", await visible("#ovBuild") && /hàng rào đá/.test(await text("#buildBody")) && /6\.000 xu/.test(await text("#buildOk")), await text("#buildBody"));
 await pressSel("#buildOk"); await sleep(300);
-check("M6: hàng rào lên đá (xong ngay), bản đồ vẽ dự phòng spr--stone", (await S("s.buildings['hang-rao'].level")) === 2 && await ev(`!!document.querySelector('${bld("hang-rao")} img.spr--stone')`));
-check("M6: nhà bậc ★1 chưa có frame nha-bac-1 ⇒ vẫn ảnh garden/house + nhãn Nhà ★1", await ev(`!!document.querySelector('${bld("nha")} img[src*="garden/house"]')`) && /Nhà ★1/.test(await text(`${bld("nha")} .market-tag`)));
+check("M6: hàng rào lên đá (xong ngay), bản đồ vẽ hang-rao.webp (asset Codex)", (await S("s.buildings['hang-rao'].level")) === 2 && await ev(`!!document.querySelector('${bld("hang-rao")} [style*="hang-rao.webp"]')`));
+check("M6: nhà bậc ★1 vẽ nha-bac-1 từ house-tiers.webp (asset Codex) + nhãn Nhà ★1", await ev(`!!document.querySelector('${bld("nha")} [style*="house-tiers.webp"]')`) && /Nhà ★1/.test(await text(`${bld("nha")} .market-tag`)));
 await ev(`document.querySelector('${bld("hang-rao")}').scrollIntoView({block:'center'})`); await sleep(200);
 await shot("m6-02-ban-do-hang-rao-da.png");
 // Phiên chợ: tua tới giờ phiên kế tiếp
