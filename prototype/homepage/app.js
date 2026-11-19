@@ -155,8 +155,18 @@
   }
 
   // ---------- TẦNG 2: kho game ----------
-  // Mọi kệ dùng cùng một kiểu ô.
+  var cozyCategory = "tap-lam-chu";
+  function cozyTileHTML(g) {
+    var playable = Boolean(g.url);
+    var tag = playable ? "a" : "article";
+    var link = playable ? ' href="' + esc(g.url) + '"' : "";
+    return "<" + tag + ' class="card cozy-card' + (playable ? " cozy-card--play" : "") + '" data-id="' + g.id + '"' + link + ">" +
+      '<span class="cozy-card__art">' + imgHTML(g) + "</span>" +
+      '<span class="cozy-card__body"><h3 class="cozy-card__name">' + g.name + "</h3>" +
+      '<span class="cozy-card__status">' + (playable ? 'Chơi ngay <span aria-hidden="true">→</span>' : "Sắp ra mắt") + "</span></span></" + tag + ">";
+  }
   function tileHTML(g) {
+    if (group(g) === cozyCategory) return cozyTileHTML(g);
     return '<a class="card tile' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '">' +
       '<span class="tile__art">' + imgHTML(g) + badgeHTML(g) + "</span>" +
       '<span class="tile__body"><h3 class="card__name">' + g.name + soonSr(g) + "</h3>" + metaHTML(g) + "</span></a>";
@@ -171,7 +181,10 @@
   function group(g) { return duelIds.indexOf(g.id) !== -1 ? "duel" : g.cat; }
   function shelfHTML(cls, title, hint, list) {
     return '<div class="shelf shelf--' + cls + '" id="' + cls + '"><h3 class="shelf__title">' + title + ' <span class="count">' + list.length +
-      '</span><span class="shelf__hint">' + hint + '</span></h3><div class="tiles">' + playableFirst(list).map(tileHTML).join("") + "</div></div>";
+      '</span>' + (hint ? '<span class="shelf__hint">' + hint + '</span>' : "") + '</h3>' + tileGridHTML(list, cls === cozyCategory) + "</div>";
+  }
+  function tileGridHTML(list, cozy) {
+    return '<div class="' + (cozy ? "cozy-grid" : "tiles") + '">' + playableFirst(list).map(tileHTML).join("") + "</div>";
   }
 
   function matches(g) {
@@ -193,7 +206,7 @@
   function renderGrid() {
     var list = GAMES.filter(matches), html = "";
     if (state.cat === "all" && !state.q) {
-      // "Tất cả": các kệ theo đúng thứ tự SHELVES (Đối kháng đông người trước); mỗi game đúng 1 kệ.
+      // "Tất cả": các kệ theo đúng thứ tự SHELVES; mỗi game đúng 1 kệ.
       SHELVES.forEach(function (sh) {
         var items = sh.cat === "duel" ? duelIds.map(byId).filter(Boolean) : list.filter(function (g) { return group(g) === sh.cat; });
         if (items.length) html += shelfHTML(sh.cat, sh.title, sh.hint, items);
@@ -201,7 +214,8 @@
       var rest = list.filter(function (g) { return !SHELVES.some(function (sh) { return sh.cat === group(g); }); });
       if (rest.length) html += shelfHTML("other", "Game khác", "", rest);
     } else if (list.length) {
-      html = '<div class="shelf shelf--flat"><div class="tiles">' + playableFirst(list).map(tileHTML).join("") + "</div></div>";
+      var onlyCozy = list.every(function (g) { return group(g) === cozyCategory; });
+      html = '<div class="shelf shelf--flat' + (onlyCozy ? " shelf--tap-lam-chu" : "") + '">' + tileGridHTML(list, onlyCozy) + "</div>";
     }
     grid.innerHTML = html;
     count.textContent = list.length;

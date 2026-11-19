@@ -18,7 +18,10 @@ window.GAMES = [
   { id: "dat-bom",   name: "Đặt Bom",          cat: "hanh-dong", mode: "multi", players: "2–4 người", thumb: "assets/thumbs/dat-bom.webp", icon: "bomb", hue: 15, badge: "Mới", url: "../games/dat-bom/" },
   { id: "xep-gach",  name: "Xếp Gạch",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/xep-gach.webp", icon: "blocks", hue: 265, url: "../games/xep-gach/" },
   { id: "dua-xe",    name: "Đua Xe Vượt Đồi",  cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dua-xe.webp", icon: "car", hue: 55, url: "../games/dua-xe/" },
-  { id: "nong-trai", name: "Nông Trại",        cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/nong-trai.webp", icon: "sprout", hue: 110, badge: "Mới", url: "../games/nong-trai/" },
+  { id: "nong-trai", name: "Nông Trại", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/cozy-nong-trai.webp", url: "../games/nong-trai/" },
+  { id: "tiem-tra-sua", name: "Tiệm Trà Sữa", cat: "tap-lam-chu", thumb: "assets/thumbs/tiem-tra-sua.webp" },
+  { id: "tiem-banh-mi", name: "Tiệm Bánh Mì", cat: "tap-lam-chu", thumb: "assets/thumbs/tiem-banh-mi.webp" },
+  { id: "quan-com-tam", name: "Quán Cơm Tấm", cat: "tap-lam-chu", thumb: "assets/thumbs/quan-com-tam.webp" },
   { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320, url: "../games/ghep-keo/" },
   { id: "sudoku",    name: "Sudoku",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/sudoku.webp", icon: "sudoku", hue: 225, url: "../games/sudoku/" },
   { id: "co-ty-phu", name: "Cờ Tỷ Phú",        cat: "tri-tue",  mode: "both",  players: "2–4 người", thumb: "assets/thumbs/co-ty-phu.webp", icon: "dice", hue: 45, badge: "Mới", url: "../games/co-ty-phu/" },
@@ -39,11 +42,12 @@ window.HERO_SLIDES = [
 // Các game có phòng multiplayer.
 window.DUEL_IDS = ["co-ca-ngua", "co-caro", "dat-bom", "noi-tu", "ma-soi", "ai-la-noi-gian", "co-ty-phu", "co-vua", "co-tuong"];
 
-// Kệ theo danh mục (sau kệ Đối kháng) khi xem "Tất cả": cùng 1 kiểu lưới 6 ô/dòng.
+// Kệ theo thứ tự hiển thị khi xem "Tất cả".
 // Tab lọc phía trên lưới dùng CHÍNH danh sách kệ này ⇒ tên + số đếm luôn khớp kệ bên dưới.
 // Mỗi game nằm đúng 1 kệ: game trong DUEL_IDS thuộc kệ "duel", còn lại theo cat.
 window.SHELVES = [
-  { cat: "duel",      title: "Đối kháng đông người", hint: "Rủ bạn vào phòng, chơi ngay trên trình duyệt" },
+  { cat: "tap-lam-chu", title: "Tập Làm Chủ", hint: "" },
+  { cat: "duel",      title: "Đối Kháng", hint: "Rủ bạn vào phòng, chơi ngay trên trình duyệt" },
   { cat: "giai-do",   title: "Giải đố",   hint: "Thư giãn đầu óc, chơi một mình" },
   { cat: "hanh-dong", title: "Hành động", hint: "Nhanh tay, bấm là chơi" },
   { cat: "tri-tue",   title: "Trí tuệ",   hint: "Suy nghĩ từng nước" },
