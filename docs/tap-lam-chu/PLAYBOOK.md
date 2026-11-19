@@ -42,6 +42,15 @@ Tài liệu tham khảo gốc:
 | Icon UI | 48×48 | [24,42] | Có sẵn sound-on/off, pause, help, coin, star, follower. |
 | Thẻ Nhật Ký (chia sẻ) | 1080×1350 | — | Chừa vùng chữ đầu thẻ và vùng chữ dưới. |
 
+### 1.2b Cảnh và nhân vật cùng một thước (bài học Tiệm Bánh Mì)
+
+- Cỡ ô nhân vật **không cố định giữa các game**. Nó tuỳ cảnh vẽ gần hay xa.
+  - Trà Sữa vẽ xa nên người cao khoảng 168 px.
+  - Bánh Mì vẽ cận: cửa khoảng 330 px, quầy khoảng 150 px, nên người phải khoảng 260 px.
+- **Chốt thước khi duyệt concept cảnh, trước khi vẽ nhân vật.** Lấy cửa (2,1 m) hoặc mặt quầy (khoảng 1 m) để quy ra số px của người 1,65 m đứng ở hàng chờ.
+- Ghi số đó vào `manifest.sceneScale["<file cảnh>"].humanHeight`. Asset-spec bật `"checkSceneScale": true` với danh sách `"scenes"`. Script kiểm báo lỗi nếu chiều cao nhân vật lệch quá 10%.
+- Không phóng to nhân vật cũ cho khớp. Phải vẽ lại ở ô mới, cùng độ mịn lưới 2×.
+
 ### 1.3 Nhất quán nhân vật
 
 - Mỗi vai (VIP, reviewer, shipper, hàng xóm, dân văn phòng, học sinh, khách quen…) là **cùng một người** trên mọi sheet: đi, chờ, phản ứng, gọi món, chân dung, biểu cảm.
@@ -199,6 +208,7 @@ Gợi ý theo game:
 
 | Lỗi | Nguyên nhân | Cách đúng |
 |---|---|---|
+| Nhân vật bé so với cảnh (Bánh Mì: 155 px trong cảnh cần 260 px) | Hợp đồng chép cỡ ô của game trước, script chỉ so nhân vật với nhau | `sceneScale.humanHeight` + `checkSceneScale` (§1.2b). |
 | Nhân vật mờ, không đồng bộ nét với cảnh | Ô 96×128 nhỏ hơn tỉ lệ cảnh, phải phóng ×1,5; sprite đặt lệch lưới 2 px | Vẽ ô 144×192 (§1.2); snap lưới (§2). |
 | Chủ tiệm ở quầy pha mờ | Sheet lưới 2× bị phóng ~3 lần, hệ số lẻ 1,425 | Vẽ cận cảnh lưới 1×; hệ số qua `crisp`. |
 | Màn chào mờ | `object-fit: cover` co tranh 1280×720 còn 0,6 | Tự tính cỡ phủ khung theo bội 0,5. |

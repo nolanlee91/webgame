@@ -113,6 +113,17 @@ def main():
         for an in sh.get("animations", []):
             if an not in it.get("animations", {}): err(f"{tag} thiếu clip '{an}'")
 
+    # Tỉ lệ người ↔ cảnh: manifest.sceneScale = {"<file cảnh>": {"humanHeight": px người 1,65 m đứng ở hàng chờ}}
+    # (người vẽ đo từ cửa / quầy trong chính cảnh). Chiều cao nhân vật (trung vị) phải khớp ±scaleTolerance.
+    if spec.get("checkSceneScale"):
+        ss = manifest.get("sceneScale", {})
+        allh = sorted(h for lst in heights.values() for _, _, h in lst)
+        med_all = statistics.median(allh) if allh else 0
+        for scene in spec.get("scenes", []):
+            hh = (ss.get(scene) or {}).get("humanHeight")
+            if not hh: err(f"[sceneScale] thiếu manifest.sceneScale['{scene}'].humanHeight (px của người cao 1,65 m đứng ở hàng chờ, đo theo cửa / quầy trong cảnh)"); continue
+            if med_all and abs(med_all - hh) > hh * spec.get("scaleTolerance", 0.10):
+                err(f"[sceneScale] nhân vật cao {med_all:.0f} px nhưng cảnh '{scene}' cần người ~{hh} px ({100 * (med_all - hh) / hh:+.0f}%) — vẽ lại nhân vật (hoặc cảnh) cho cùng thước")
     tol = spec.get("figureHeightTolerance", 0.08)
     for role, lst in heights.items():
         if len(lst) < 2: continue

@@ -38,16 +38,16 @@
       "file": "assets/characters.webp",
       "role": "character",
       "cell": [
-        144,
-        192
+        216,
+        288
       ],
       "anchor": [
-        72,
-        174
+        108,
+        262
       ],
       "figureHeight": [
-        150,
-        180
+        235,
+        275
       ],
       "frames": [
         "{baker,student,worker,shipper,office,regular,reviewer,tourist,parent}"
@@ -58,16 +58,16 @@
       "file": "assets/customer-walk-cycles.webp",
       "role": "character",
       "cell": [
-        144,
-        192
+        216,
+        288
       ],
       "anchor": [
-        72,
-        174
+        108,
+        262
       ],
       "figureHeight": [
-        150,
-        180
+        235,
+        275
       ],
       "frames": [
         "{student,worker,shipper,office,regular,reviewer,tourist,parent}-walk-{1..4}"
@@ -88,16 +88,16 @@
       "file": "assets/customer-reactions.webp",
       "role": "character",
       "cell": [
-        144,
-        192
+        216,
+        288
       ],
       "anchor": [
-        72,
-        174
+        108,
+        262
       ],
       "figureHeight": [
-        150,
-        180
+        235,
+        275
       ],
       "frames": [
         "{student,worker,shipper,office,regular,reviewer,tourist,parent}-{waiting,happy,impatient}"
@@ -108,16 +108,16 @@
       "file": "assets/customer-actions.webp",
       "role": "character",
       "cell": [
-        144,
-        192
+        216,
+        288
       ],
       "anchor": [
-        72,
-        174
+        108,
+        262
       ],
       "figureHeight": [
-        150,
-        180
+        235,
+        275
       ],
       "frames": [
         "{student,worker,shipper,office,regular,reviewer,tourist,parent}-{order,surprised}-{1..2}"
@@ -128,16 +128,16 @@
       "file": "assets/baker-scene.webp",
       "role": "character",
       "cell": [
-        144,
-        192
+        216,
+        288
       ],
       "anchor": [
-        72,
-        174
+        108,
+        262
       ],
       "figureHeight": [
-        150,
-        180
+        235,
+        275
       ],
       "frames": [
         "baker-idle-{1..2}",
@@ -600,5 +600,12 @@
     "cartQueueSpots",
     "cartExitPath"
   ],
-  "_waves": "Đợt 1 (wave 1, bắt buộc để code M1–M2): cảnh xe đẩy + tiệm, title-art, nhân vật, chủ tiệm trong cảnh, lớp bánh, lò, thiết bị, nguyên liệu, tiền, fx, icon UI. Đợt 2 (wave 2, optional cho tới khi giao): cận cảnh HD, chân dung Drama, thời tiết, đồ cố định, trang trí, thẻ Nhật Ký. Khi giao đợt 2, bỏ optional ở các sheet wave 2."
+  "_waves": "Đợt 1 (wave 1, bắt buộc để code M1–M2): cảnh xe đẩy + tiệm, title-art, nhân vật, chủ tiệm trong cảnh, lớp bánh, lò, thiết bị, nguyên liệu, tiền, fx, icon UI. Đợt 2 (wave 2, optional cho tới khi giao): cận cảnh HD, chân dung Drama, thời tiết, đồ cố định, trang trí, thẻ Nhật Ký. Khi giao đợt 2, bỏ optional ở các sheet wave 2.",
+  "checkSceneScale": true,
+  "scaleTolerance": 0.1,
+  "scenes": [
+    "assets/cart-scene.webp",
+    "assets/shop-scene.webp"
+  ],
+  "_scale": "Cảnh Bánh Mì vẽ cận: cửa ~330 px, quầy ~150 px ⇒ người 1,65 m ≈ 260 px. Nhân vật ô 216×288, anchor [108,262], cao 235–275 px (vẽ lại chi tiết, KHÔNG phóng to bản 144×192). Codex ghi manifest.sceneScale[<cảnh>].humanHeight."
 }
