@@ -85,7 +85,6 @@ try {
 
   // ---- A tạo phòng ----
   await A.go(BASE);
-  await A.click('.seg[data-k="mode"] button[data-v="online"]');
   await A.ev(`document.getElementById('oName').value='Lan'`);
   await A.shot('01-menu-online.png');
   await A.click('#createBtn');

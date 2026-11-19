@@ -94,6 +94,9 @@ const noOverflow = () => ev('document.documentElement.scrollWidth<=document.docu
 const inView = (sel) => ev(`(()=>{const r=document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect();return r.top>=-1&&r.left>=-1&&r.bottom<=innerHeight+1&&r.right<=innerWidth+1})()`);
 const minBtn = (sel) => ev(`Math.min(...[...document.querySelectorAll(${JSON.stringify(sel)})].filter(b=>!b.closest('[hidden]')&&b.offsetParent).map(b=>Math.min(b.getBoundingClientRect().height,b.getBoundingClientRect().width)))`);
 const btnSizes = (sel) => ev(`[...document.querySelectorAll(${JSON.stringify(sel)})].filter(b=>!b.closest('[hidden]')&&b.offsetParent).map(b=>{const r=b.getBoundingClientRect();return (b.id||b.className)+':'+Math.round(r.width)+'x'+Math.round(r.height)}).join(' ')`);
+const ENTRY3 = ['#createBtn', '#enterBtn', '#soloBtn'];
+const entryFits = () => ev(`(()=>{const ov=document.getElementById('ovMenu');if(ov.scrollTop!==0)return false;return ${JSON.stringify(ENTRY3)}.every(s=>{const e=document.querySelector(s);if(!e||e.closest('[hidden]'))return false;const r=e.getBoundingClientRect(),o=ov.getBoundingClientRect();return r.height>0&&r.top>=Math.max(0,o.top)-1&&r.bottom<=Math.min(innerHeight,o.bottom)+1&&r.left>=-1&&r.right<=innerWidth+1})})()`);
+const noHorse = () => ev(`!/phường|ngựa/i.test(document.body.innerText) && ![...document.images].some(i=>/ngua|avatar/.test(i.src))`);
 const layout = () => ev(`(()=>{const d=document.documentElement,q=s=>{const r=document.querySelector(s).getBoundingClientRect();return s+':'+Math.round(r.top)+'-'+Math.round(r.bottom)+'/'+Math.round(r.left)+'-'+Math.round(r.right)};return [d.scrollWidth+'x'+d.scrollHeight,innerWidth+'x'+innerHeight,q('#dock'),q('#clock'),q('#stage')].join(' ')})()`);
 /** chờ tới lượt mình (bot có thể kết thúc ván bằng từ cụt/bí từ ⇒ chơi ván tiếp) */
 async function untilMyTurn(wantChain = false) {
@@ -112,16 +115,33 @@ try {
   // ================= 1. DESKTOP, chuột + bàn phím =================
   await view(1440, 900, false); await touch(false); press = click;
   await nav(BASE); await ev('localStorage.clear()'); await nav(BASE);
-  check('mở game → menu hiện, chưa có trận lưu, mặc định máy Dễ, khay nhập bị khoá', await visible('#ovMenu') && !(await visible('#resumeBtn'))
-    && await ev(`document.querySelector('.seg[data-k=level] button[aria-checked=true]').dataset.v`) === 'easy' && await ev('document.getElementById("dock").inert'));
-  check('từ điển nạp đúng bản ghim (hash khớp words.json)', await ev(`fetch('data/words.json').then(r=>r.json()).then(j=>j.contentHash===__game.dict.contentHash&&__game.dict.size===j.words.length)`));
+  check('mở game → màn đầu chuẩn: Tên, Tạo phòng online, Vào phòng, Chơi với máy; Cách chơi thu gọn; khay nhập bị khoá', await visible('#ovMenu') && await visible('#oName')
+    && await visible('#createBtn') && await visible('#privateRoom') && await visible('#oCode') && await visible('#enterBtn') && await visible('#soloBtn')
+    && await ev(`!document.getElementById('howBox').open`) && !(await visible('#resumeBtn')) && await ev('document.getElementById("dock").inert'));
+  check('màn đầu 1440×900: 3 nút chính trong màn, không cuộn; không còn chữ "Phường"/hình ngựa', await entryFits() && await noOverflow() && await noHorse());
+  check('từ điển nạp đúng bản ghim (hash khớp words.json)', await ev(`fetch('data/words.json').then(r=>r.json()).then(j=>j.contentHash===__game.dict.contentHash&&__game.dict.size===j.words.length+(j.rare?.length||0))`));
   await shot('noitu-desktop-menu.png');
+  await view(1366, 768, false); await sleep(150);
+  check('màn đầu 1366×768: 3 nút chính trong màn, không cuộn', await entryFits() && await noOverflow());
+  await pressSel('#howBox summary');
+  check('mở "Cách chơi" → hiện luật, nút Chơi với máy không bị đẩy khỏi màn', await ev(`document.getElementById('howBox').open`) && await visible('#howBox ul') && await inView('#soloBtn'));
+  await pressSel('#howBox summary');
+  await view(1440, 900, false); await sleep(100);
+  await pressSel('#soloBtn');
+  check('Chơi với máy → bước 2: độ khó (mặc định Dễ) + Bắt đầu + Quay lại', await visible('#vSolo') && !(await visible('#vEntry')) && await visible('#startBtn') && await visible('#soloBack')
+    && await ev(`document.querySelector('.seg[data-k=level] button[aria-checked=true]').dataset.v`) === 'easy' && await ev(`document.activeElement.id==='startBtn'`));
+  await key('Escape');
+  check('Esc ở bước 2 → quay lại màn đầu, focus nút Chơi với máy', await visible('#vEntry') && await waitFor(`document.activeElement.id==='soloBtn'`, 500));
+  await pressSel('#soloBtn'); await pressSel('#soloBack');
+  check('nút Quay lại → màn đầu', await visible('#vEntry') && !(await visible('#vSolo')));
+  await pressSel('#soloBtn');
   await pressSel('#startBtn');
   await waitFor('__game.session && __game.session.status==="live" && __game.state && __game.state.round');
   let s = await S();
   check('Bắt đầu → ván 1, bạn đi trước, chuỗi trống, thẻ Bạn sáng LƯỢT, ô nhập được focus', s.no === 1 && s.turn === 0 && s.chain.length === 0
     && await ev(`document.getElementById('pl0').classList.contains('on')&&!document.getElementById('pl1').classList.contains('on')`)
     && await ev(`document.activeElement.id==='inp'`), s);
+  check('HUD: huy hiệu chữ cái "B" (Bạn, đỏ) / "M" (Máy, xanh), không hình ngựa, không chữ "Phường"', await text('#av0') === 'B' && await text('#av1') === 'M' && await noHorse() && await visible('#pl0') && await visible('#dock'), [await text('#av0'), await text('#av1')]);
   const c0 = await ev(`[+document.getElementById('cNum').textContent, __game.session.remainingMs()]`);
   check('đồng hồ hiện số giây của trọng tài (≈15, khớp session.remainingMs)', c0[0] >= 14 && c0[0] <= 15 && Math.abs(c0[0] - Math.ceil(c0[1] / 1000)) <= 1, c0);
 
@@ -240,7 +260,9 @@ try {
   await waitFor('__game.state.round.over || __game.state.round.turn===0', 3000);
   s = await S();
   await nav(BASE);
-  check('tải lại trang giữa ván → menu có "Chơi tiếp" + mô tả trận lưu', await visible('#resumeBtn') && /ván [0-9]+, tỉ số/.test(await text('#mNote')), await text('#mNote'));
+  check('tải lại trang giữa ván → màn đầu báo có trận lưu', await visible('#soloBtn') && /trận với máy đang lưu/i.test(await text('#mNote')), await text('#mNote'));
+  await pressSel('#soloBtn');
+  check('→ Chơi với máy: có "Chơi tiếp" + mô tả trận lưu', await visible('#resumeBtn') && /ván [0-9]+, tỉ số/.test(await text('#mNote')), await text('#mNote'));
   await pressSel('#resumeBtn');
   await waitFor('__game.state && __game.state.round');
   check('Chơi tiếp sau tải lại → dựng lại đúng chuỗi từ (không chạy lại hiệu ứng cũ)', JSON.stringify((await S()).chain) === JSON.stringify(s.chain) && await ev(`document.querySelectorAll('.w.new').length===0`));
@@ -306,8 +328,11 @@ try {
   // ================= 2. MOBILE dọc 390×844, chạm =================
   await view(390, 844, true, 3); await touch(true); press = tap;
   await ev('localStorage.clear()'); await nav(BASE);
-  check('mobile: menu gọn trong màn, nút ≥ 44px', await noOverflow() && await minBtn('#ovMenu .btn, #ovMenu .seg button') >= 44, await minBtn('#ovMenu .btn, #ovMenu .seg button'));
+  check('mobile: màn đầu gọn, 3 nút chính trong màn không cuộn, nút + ô ≥ 44px', await noOverflow() && await entryFits()
+    && await minBtn('#ovMenu .btn, #ovMenu summary, #ovMenu .chk, #oName, #oCode') >= 44, await btnSizes('#ovMenu .btn, #ovMenu summary, #ovMenu .chk, #oName, #oCode'));
   await shot('noitu-mobile-menu.png');
+  await pressSel('#soloBtn');
+  check('mobile: bước Chơi với máy gọn, nút ≥ 44px', await noOverflow() && await minBtn('#ovMenu .btn, #ovMenu .seg button') >= 44, await minBtn('#ovMenu .btn, #ovMenu .seg button'));
   await pressSel('#startBtn');
   await waitFor('__game.state && __game.state.round');
   check('mobile: không tràn trang, khay nhập + đồng hồ + 2 thẻ người chơi đều trong màn', await noOverflow() && await inView('#dock') && await inView('#clock') && await inView('#pl0') && await inView('#pl1'));

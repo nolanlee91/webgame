@@ -1,8 +1,8 @@
 // Nối Từ — giao diện. Chỉ biết interface MatchSession (session/client.js): state / event / status, submit, resign,
 // rematch, remainingMs. KHÔNG import core/rules hay core/ai và KHÔNG tự tính giờ: thắng thua, hết giờ, bot đều do
 // trọng tài quyết. Hai chế độ chỉ khác nơi trọng tài chạy:
-//   · Đấu máy: createLocalSession — trọng tài chạy ngay trong trang (openSession()).
-//   · Online với bạn: openOnline — trọng tài chạy trên máy chủ (games-server/noi-tu), trang chỉ gửi ý định (openRoom()).
+//   · Chơi với máy: createLocalSession — trọng tài chạy ngay trong trang (openSession()).
+//   · Online (phòng 2 người): openOnline — trọng tài chạy trên máy chủ (games-server/noi-tu), trang chỉ gửi ý định (openRoom()).
 import { createDict } from "./core/dict.js";
 import { createLocalSession } from "./session/local.js";
 import { openOnline } from "./session/online.js";
@@ -12,7 +12,7 @@ const STORE_KEY = "noi-tu:local";
 const PREFS_KEY = "noi-tu:prefs";
 const MISSING_KEY = "noi-tu:missing";      // từ người chơi gõ mà từ điển chưa có ⇒ người duyệt bổ sung sau (không tự thêm)
 const ROOM_KEY = "noi-tu:room";            // phòng online đang chơi {code, token} — để tải lại trang vẫn vào lại đúng ghế
-const ME = 0;                               // offline: người chơi luôn ngồi ghế 0 (Đỏ), máy ghế 1 (Xanh dương)
+const ME = 0;                               // chơi với máy: người chơi luôn ngồi ghế 0 (màu Đỏ), máy ghế 1 (màu Xanh dương)
 const CHAT_KEEP = 50;
 const CHAT_ERR = { "chat-slow": "Bạn nhắn nhanh quá — chờ một giây rồi gửi tiếp.", "chat-empty": "Tin nhắn trống." };
 const ONLINE_ERR = {
@@ -80,17 +80,16 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     round: $("hRound"), status: $("hStatus"), first: $("hFirst"), clock: $("clock"), cLbl: $("cLbl"), cFill: $("cFill"), cNum: $("cNum"),
     chain: $("chain"), dock: $("dock"), form: $("form"), need: $("need"), inp: $("inp"), send: $("sendBtn"), msg: $("msg"), msgTxt: $("msgTxt"),
     resign: $("resignBtn"), overRow: $("overRow"), overTxt: $("overTxt"), next2: $("nextBtn2"),
-    ovMenu: $("ovMenu"), resume: $("resumeBtn"), start: $("startBtn"), mNote: $("mNote"),
+    ovMenu: $("ovMenu"), resume: $("resumeBtn"), start: $("startBtn"), mNote: $("mNote"), vEntry: $("vEntry"), vSolo: $("vSolo"), solo: $("soloBtn"), soloBack: $("soloBack"),
     ovEnd: $("ovEnd"), eAv: $("eAv"), eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), eNext: $("eNext"), next: $("nextBtn"), view: $("viewBtn"),
     menuBtn: $("menuBtn"), muteBtn: $("muteBtn"), muteIc: $("muteIc"),
-    mPick: $("mPick"), mLevel: $("mLevel"), mOnline: $("mOnline"), oName: $("oName"), oCode: $("oCode"), enter: $("enterBtn"), create: $("createBtn"),
+    oName: $("oName"), oCode: $("oCode"), enter: $("enterBtn"), create: $("createBtn"),
     mLobby: $("mLobby"), lCode: $("lCode"), lWait: $("lWait"), copy: $("copyBtn"), cancel: $("cancelBtn"), mRoom: $("mRoom"), mCard: $("mCard"), back: $("backBtn"), leave: $("leaveBtn"),
     wrap: root.querySelector(".wrap"), chat: $("chat"), chatLog: $("chatLog"), chatForm: $("chatForm"), chatInp: $("chatInp"), chatNote: $("chatNote"),
     chatWho: $("chatWho"), chatBtn: $("chatBtn"), chatBadge: $("chatBadge"), chatClose: $("chatClose") };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "thang", "thua", "qua-man", "het-gio", "do-xuc-xac", "tin-nhan"], sdk);
-  const prefs = { level: "easy", mode: "bot", name: "", ...loadJSON(PREFS_KEY, {}) };   // level: chọn cho trận mới · matchLevel: của trận đang lưu
+  const prefs = { level: "easy", name: "", ...loadJSON(PREFS_KEY, {}) };   // level: chọn cho trận mới · matchLevel: của trận đang lưu
   const invite = (new URLSearchParams(location.search).get("p") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
-  if (invite) prefs.mode = "online";
   const ss = { get: (k) => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
     set: (k, v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch { /* bỏ qua */ } }, remove: (k) => { try { sessionStorage.removeItem(k); } catch { /* bỏ qua */ } } };
 
@@ -112,7 +111,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
       if (saved?.code && saved?.token) openRoom({ t: "resume", code: saved.code, token: saved.token }); // tải lại trang giữa ván online
       else showMenu();
     })
-    .catch((e) => { el.mNote.innerHTML = `<span class="err">Không tải được từ điển (${e.message}). Tải lại trang thử nhé.</span>`; el.start.disabled = true; });
+    .catch((e) => { el.mNote.innerHTML = `<span class="err">Không tải được từ điển (${e.message}). Tải lại trang thử nhé.</span>`; el.start.disabled = true; el.solo.disabled = true; });
 
   function savedMatch() {
     const s = loadJSON(STORE_KEY, null);
@@ -135,7 +134,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     session = sess;
     state = null; endShownFor = null; viewing = false; fxWord = null; el.chain.textContent = ""; el.chain.dataset.round = "";
     offs = [session.on("state", onState), session.on("event", onEvent), session.on("status", onStatus)];
-    hide(el.ovMenu); setInert(false);
+    hide(el.ovMenu); setInert(false); el.wrap.classList.remove("is-entry");   // vào ván ⇒ hiện lại HUD + khay nhập
     loop();
   }
 
@@ -188,8 +187,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   }
 
   function showLobby(room) {
-    for (const x of [el.mPick, el.mRoom]) hide(x);
-    show(el.mLobby); show(el.ovMenu); setInert(true); hide(el.ovEnd); el.mCard.dataset.view = "lobby";
+    setView("lobby"); show(el.ovMenu); setInert(true); hide(el.ovEnd);
     el.lCode.textContent = room.code;
     el.lWait.textContent = `Bạn là ${room.names[room.seat]} — đang chờ bạn kia vào phòng… (giữ trang này mở)`;
     el.mNote.textContent = "";
@@ -282,8 +280,9 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     if (!s) return;
     const me = session.mySeat ?? ME, bot = 1 - me, O = s.seats[bot].name;
     el.n[me].textContent = mode === "online" ? `${s.seats[me].name} (bạn)` : s.seats[me].name;
-    el.n[bot].textContent = mode === "online" ? O : `${O} · ${(prefs.matchLevel || prefs.level) === "hard" ? "Khó" : "Dễ"}`;
-    for (const i of [0, 1]) el.s[i].textContent = s.score[i];
+    if (mode === "online") el.n[bot].textContent = O;
+    else { const lv = document.createElement("span"); lv.className = "lv"; lv.textContent = ` · ${(prefs.matchLevel || prefs.level) === "hard" ? "Khó" : "Dễ"}`; el.n[bot].replaceChildren(O, lv); } // điện thoại hẹp: ẩn mức (CSS .lv)
+    for (const i of [0, 1]) { el.s[i].textContent = s.score[i]; el.av[i].textContent = initial(s.seats[i].name); }
     sdk.reportScore?.(s.score[me]);
     if (!r) return;
     el.round.textContent = `Ván ${r.no}`;
@@ -292,8 +291,6 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     for (const i of [0, 1]) {
       el.pl[i].classList.toggle("on", !r.over && r.turn === i);
       el.pl[i].classList.toggle("win", r.over && r.winner === i);
-      const c = i === 0 ? "do" : "xanh-duong";
-      el.av[i].src = `assets/avatar/ngua-${c}-${r.over ? (r.winner === i ? "mung-thang-1" : "bi-da-1") : "dung-yen-1"}.png`;
     }
     el.status.textContent = r.over ? (r.winner === me ? "Bạn thắng ván" : `${O} thắng ván`) : myTurn ? "Lượt bạn" : `${O} đang nghĩ…`;
     renderChain(r, me);
@@ -322,7 +319,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   function tile(w, i, chain, me) {
     const [a, b] = syl(w.word);
     const d = document.createElement("span");
-    d.className = `w w--${w.seat === me ? 0 : 1}`;
+    d.className = `w w--${w.seat}`;   // màu theo ghế — khớp huy hiệu trên HUD và khung chat
     d.dataset.seat = w.seat;
     d.innerHTML = `<span class="sy${i > 0 ? " lk" : ""}"></span><span class="sy${i < chain.length - 1 ? " lk" : ""}"></span>`;
     d.children[0].textContent = a; d.children[1].textContent = b;
@@ -389,7 +386,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     endShownFor = r.id;
     const { title, sub } = endLine(r, me), won = r.winner === me;
     el.eTitle.textContent = title; el.eSub.textContent = sub + (r.chain.length ? ` Chuỗi dài ${r.chain.length} từ.` : "");
-    el.eAv.src = won ? "assets/avatar/ngua-do-mung-thang-1.png" : "assets/avatar/ngua-xanh-duong-mung-thang-1.png";
+    el.eAv.className = `av av--${r.winner}`; el.eAv.textContent = initial(state.seats[r.winner]?.name);
     el.eResult.innerHTML = '<div class="r0"><small></small><b></b></div><div class="r1"><small></small><b></b></div>';
     const [c0, c1] = el.eResult.children;
     c0.children[0].textContent = "Bạn"; c0.children[1].textContent = String(state.score[me]);
@@ -478,36 +475,52 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   function rematch() { hide(el.ovEnd); viewing = false; session?.rematch().then(() => state && render()); }
 
   // ---------- menu / tạm dừng ----------
+  // Các bước của thẻ menu: "entry" (màn đầu chuẩn của cổng) · "solo" (bước 2 của Chơi với máy: độ khó + Bắt đầu)
+  // · "lobby" (phòng chờ online) · "room" (menu giữa ván online). Màn đầu/solo: ẩn HUD + khay để thẻ chiếm trọn khung.
+  function setView(v) {
+    el.vEntry.hidden = v !== "entry"; el.vSolo.hidden = v !== "solo"; el.mLobby.hidden = v !== "lobby"; el.mRoom.hidden = v !== "room";
+    el.mCard.dataset.view = v;
+    el.wrap.classList.toggle("is-entry", v === "entry" || v === "solo");
+  }
+
   function showMenu(note = "", keepMode = false) {
     if (session && mode === "online") {  // online: KHÔNG dừng ván (đối thủ vẫn chơi) — chỉ mở menu phòng
-      for (const x of [el.mPick, el.mLobby]) hide(x);
-      show(el.mRoom); el.mNote.textContent = note; show(el.ovMenu); setInert(true); el.mCard.dataset.view = "room";
+      setView("room"); el.mNote.textContent = note; show(el.ovMenu); setInert(true);
       setTimeout(() => el.back.focus({ preventScroll: true }), 30);
       return;
     }
-    if (!keepMode && !online) mode = prefs.mode;
-    hide(el.mLobby); hide(el.mRoom); show(el.mPick);
+    // đang chơi với máy (hoặc đang đứng ở bước đó) ⇒ mở thẳng bước "Chơi với máy" (có Chơi tiếp)
+    const paused = session ? mode === "bot" : (!online && !el.ovMenu.hidden && el.mCard.dataset.view === "solo");
+    if (!keepMode && !online) mode = "bot";
     const live = session && state?.round && !state.round.over;
     if (session) closeSession();       // tạm dừng THẬT: trọng tài dừng, log đã lưu; chơi tiếp ⇒ tính giờ lại lượt đang dở
+    hide(el.ovEnd); show(el.ovMenu); setInert(true);
+    el.clock.className = "clock idle";
+    if (paused) showSolo(live ? "Đã tạm dừng — đồng hồ đứng yên. " : "");
+    else showEntry(note);
+  }
+
+  function showEntry(note = "") {
+    setView("entry");
+    const sv = savedMatch();
+    el.mNote.textContent = note || (invite ? `Bạn được mời vào phòng ${invite} — nhập tên rồi bấm “Vào phòng”.`
+      : sv ? `Có trận với máy đang lưu (ván ${sv.roundNo}) — vào “Chơi với máy” để chơi tiếp.` : "");
+    setTimeout(() => (invite ? (el.oName.value ? el.enter : el.oName) : el.oName.value ? el.create : el.oName).focus({ preventScroll: true }), 30);
+  }
+
+  function showSolo(prefix = "") {
+    setView("solo");
     const sv = savedMatch();
     el.resume.hidden = !sv;
     el.start.classList.toggle("btn--primary", !sv);
     el.start.textContent = sv ? "Trận mới" : "▶ Bắt đầu";
-    el.mNote.textContent = note || (sv && prefs.mode === "bot" ? `Trận đang lưu: ván ${sv.roundNo}, tỉ số Bạn ${sv.score[0]} – ${sv.score[1]} Máy${sv.over ? "" : " (ván đang dở — chơi tiếp được tính lại 15 giây)"}.` : "");
-    if (live) el.mNote.textContent = "Đã tạm dừng — đồng hồ đứng yên. " + el.mNote.textContent;
+    el.mNote.textContent = prefix + (sv ? `Trận đang lưu: ván ${sv.roundNo}, tỉ số Bạn ${sv.score[0]} – ${sv.score[1]} Máy${sv.over ? "" : " (ván đang dở — chơi tiếp được tính lại 15 giây)"}.` : "");
     syncSeg();
-    hide(el.ovEnd); show(el.ovMenu); setInert(true);
-    el.clock.className = "clock idle";
-    setTimeout(() => (prefs.mode === "online" ? (el.oName.value ? el.create : el.oName) : sv ? el.resume : el.start).focus({ preventScroll: true }), 30);
+    setTimeout(() => (sv ? el.resume : el.start).focus({ preventScroll: true }), 30);
   }
 
   function syncSeg() {
     for (const b of root.querySelectorAll('.seg[data-k="level"] button')) b.setAttribute("aria-checked", String(b.dataset.v === prefs.level));
-    for (const b of root.querySelectorAll('.seg[data-k="mode"] button')) b.setAttribute("aria-checked", String(b.dataset.v === prefs.mode));
-    const on = prefs.mode === "online", sv = !on && savedMatch();
-    el.mLevel.hidden = on; el.mOnline.hidden = !on; el.create.hidden = !on;
-    el.start.hidden = on; el.resume.hidden = on || !sv;
-    el.mCard.dataset.view = on ? "online" : "bot";
   }
   function savePrefs() { store.set(PREFS_KEY, JSON.stringify(prefs)); }
 
@@ -517,6 +530,8 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   function setMsg(text, kind = "") { el.msgTxt.textContent = text; el.msg.classList.toggle("bad", kind === "bad"); el.msg.classList.toggle("ok", kind === "ok"); }
   function shake() { const f = el.inp.parentElement; f.classList.remove("shake"); void f.offsetWidth; f.classList.add("shake"); }
   function show(x) { x.hidden = false; } function hide(x) { x.hidden = true; }
+  // chữ cái đầu của tên cho huy hiệu người chơi ("Bạn" → B, "Máy" → M, "Lan" → L)
+  function initial(name) { const c = [...String(name || "").trim()][0]; return c ? c.toLocaleUpperCase("vi") : "?"; }
   function setInert(on) { el.dock.inert = on; el.chain.inert = on; }
   function showMute() {
     const m = !!sdk.sound.muted;
@@ -532,9 +547,9 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   el.next2.addEventListener("click", rematch);
   el.view.addEventListener("click", () => { viewing = true; hide(el.ovEnd); el.next2.focus({ preventScroll: true }); });
   el.menuBtn.addEventListener("click", () => (el.ovMenu.hidden ? showMenu() : (session ? (hide(el.ovMenu), setInert(false)) : null)));
-  for (const b of root.querySelectorAll('.seg[data-k="mode"] button')) b.addEventListener("click", () => { prefs.mode = b.dataset.v; mode = prefs.mode; savePrefs(); el.mNote.textContent = ""; syncSeg(); });
   el.oName.value = prefs.name || ""; el.oCode.value = invite;
-  if (invite) el.mNote.textContent = `Bạn được mời vào phòng ${invite} — nhập tên rồi bấm “Vào phòng”.`;
+  el.solo.addEventListener("click", () => { if (!el.solo.disabled) showSolo(); });
+  el.soloBack.addEventListener("click", () => { showEntry(); setTimeout(() => el.solo.focus({ preventScroll: true }), 40); });
   const needName = () => { const n = myName(); if (!n) { el.mNote.textContent = ONLINE_ERR.name; el.oName.focus(); } return n; };
   el.create.addEventListener("click", () => { if (el.create.getAttribute("aria-disabled") === "true") return; const n = needName(); if (n) openRoom({ t: "create", name: n, public: !$("privateRoom").checked }); });
   const doEnter = () => {
@@ -567,7 +582,12 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   for (const b of root.querySelectorAll('.seg[data-k="level"] button')) b.addEventListener("click", () => { prefs.level = b.dataset.v; savePrefs(); syncSeg(); });
   const onKey = (e) => {
     if (e.key === "Escape" && el.wrap.classList.contains("chat-open")) { e.preventDefault(); openChat(false); return; }
-    if (e.key === "Escape") { e.preventDefault(); if (el.ovMenu.hidden) showMenu(); else if (session) { hide(el.ovMenu); setInert(false); } }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      if (el.ovMenu.hidden) showMenu();
+      else if (session) { hide(el.ovMenu); setInert(false); }
+      else if (!el.vSolo.hidden) el.soloBack.click();   // bước "Chơi với máy" ⇒ Esc = Quay lại
+    }
   };
   window.addEventListener("keydown", onKey);
   // chuyển tab / tắt màn hình điện thoại giữa ván ⇒ tự tạm dừng (không bị xử thua vì hết giờ khi không nhìn)
