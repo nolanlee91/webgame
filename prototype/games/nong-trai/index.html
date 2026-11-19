@@ -147,6 +147,11 @@
     .farm-nav button[aria-pressed="true"] { background: #485832; --b: #9aa761; }
     .farm-panel { margin: 5px; padding: 6px; }
     .farm-panel p { margin: 0 0 10px; color: var(--soft); }
+    .stock-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 135px), 1fr)); gap: 7px; margin: 0 0 12px; padding: 0; list-style: none; }
+    .stock-item { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 5px; padding: 5px; background: #35271a; box-shadow: inset 0 2px #6b4b30, inset 0 -2px #24170f; }
+    .stock-art { width: 44px; height: 44px; background: url(assets/garden/crops.webp) 100% var(--stock-row) / 500% 500% no-repeat; image-rendering: pixelated; }
+    .stock-item b, .stock-item small { display: block; line-height: 1.3; }
+    .stock-item small { color: var(--soft); }
     .seeds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
       padding: 7px; background: #503823; --b: #251a13; box-shadow: inset 0 2px #886043, inset 0 -3px #3c291d, var(--border); }
     .seed { all: unset; box-sizing: border-box; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 8px 4px 9px; text-align: center; background: var(--panel); --b: #4a3f33; box-shadow: var(--bevel), var(--border); touch-action: manipulation; min-width: 0; }
@@ -268,7 +273,8 @@
         <div class="seeds" id="seeds" role="radiogroup" aria-label="Hạt giống"></div>
         <p class="farm-panel" id="waterHint" hidden>Chạm vào cây đang lớn để tưới. Mỗi cây tưới được một lần.</p>
         <section class="farm-panel" id="warehouse" aria-label="Kho và quầy nông sản" hidden>
-          <p id="stockList"></p>
+          <p id="stockEmpty">Kho trống. Thu hoạch cây chín để đưa nông sản vào kho.</p>
+          <ul class="stock-list" id="stockList" hidden></ul>
           <button class="btn btn--primary" id="sellAll" type="button">Bán hết nông sản</button>
         </section>
         <section class="farm-panel" id="upgrades" aria-label="Nâng cấp nông trại" hidden>
@@ -299,7 +305,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=garden2";
+    import { mount } from "./game.js?v=garden3";
     window.__game = mount(document.body);
   </script>
   <script type="module" src="../_shared/feedback.js"></script>

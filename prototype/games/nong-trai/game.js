@@ -80,7 +80,7 @@ export function mount(root, ctx = {}) {
     field: $("field"), seeds: $("seeds"), coins: $("hCoins"), level: $("hLevel"), xp: $("hXp"), xpTxt: $("hXpTxt"),
     harvested: $("hHarvested"), plots: $("hPlots"), all: $("allBtn"), mute: $("muteBtn"), muteIc: $("muteIc"),
     help: $("helpBtn"), ovHelp: $("ovHelp"), helpOk: $("helpOk"), toast: $("toast"),
-    farm: $("farm"), warehouse: $("warehouse"), stock: $("stockList"), upgrades: $("upgrades"),
+    farm: $("farm"), warehouse: $("warehouse"), stock: $("stockList"), stockEmpty: $("stockEmpty"), upgrades: $("upgrades"),
     upgrade: $("upgradeBuy"), upgradeInfo: $("upgradeInfo"), sell: $("sellAll"),
     water: $("waterTool"), grow: $("seedTool"), depot: $("stockTool"), improve: $("upgradeTool"), market: $("market"),
   };
@@ -113,6 +113,23 @@ export function mount(root, ctx = {}) {
     b.addEventListener("click", () => choose(c.id));
     ui.seeds.append(b);
     return b;
+  });
+
+  const stockItems = L.CROPS.map((crop, row) => {
+    const item = document.createElement("li");
+    item.className = "stock-item";
+    const art = document.createElement("span");
+    art.className = "stock-art";
+    art.style.setProperty("--stock-row", `${row / (L.CROPS.length - 1) * 100}%`);
+    art.setAttribute("aria-hidden", "true");
+    const details = document.createElement("div");
+    const name = document.createElement("b");
+    name.textContent = crop.name;
+    const amount = document.createElement("small");
+    details.append(name, amount);
+    item.append(art, details);
+    ui.stock.append(item);
+    return { crop, item, amount };
   });
 
   ART.onReady = () => { for (const c of cells) c.key = undefined; L.CROPS.forEach((k, n) => ART.draw(seedBtns[n].querySelector("canvas"), k.id + ":ready")); render(); };
@@ -177,11 +194,17 @@ export function mount(root, ctx = {}) {
       b.querySelector(".info").textContent = !ok ? `Cấp ${c.level}` : c.id === "ca-rot" && s.freeSeeds
         ? `${s.freeSeeds} hạt tặng` : `${c.seed} xu · ${fmtGrow(c.growMs)}`;
     });
-    const stock = L.CROPS.filter((c) => s.stock[c.id]);
-    const total = stock.reduce((sum, c) => sum + s.stock[c.id], 0);
+    let total = 0;
+    for (const { crop, item, amount } of stockItems) {
+      const quantity = s.stock[crop.id];
+      item.hidden = !quantity;
+      amount.textContent = quantity ? `×${fmtNum(quantity)} · ${fmtNum(quantity * crop.sell)} xu` : "";
+      total += quantity;
+    }
     ui.depot.textContent = total ? `Kho (${total})` : "Kho";
     ui.sell.disabled = total === 0;
-    ui.stock.textContent = total ? stock.map((c) => `${c.name} ×${s.stock[c.id]} · ${fmtNum(s.stock[c.id] * c.sell)} xu`).join("  /  ") : "Kho trống. Thu hoạch cây chín để đưa nông sản vào kho.";
+    ui.stock.hidden = !total;
+    ui.stockEmpty.hidden = !!total;
     const next = L.UPGRADES[s.upgrade];
     ui.upgradeInfo.textContent = next ? `${next.name} · Cấp ${next.level} · ${next.cost} xu` : "Đã mở mọi trang trí.";
     ui.upgrade.disabled = !next;
