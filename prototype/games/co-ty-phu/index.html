@@ -147,6 +147,8 @@
     .kcard { width: min(320px, 80vw); aspect-ratio: 3/4; position: relative; perspective: 800px; margin: 0 auto 16px; }
     .kcard .face { position: absolute; inset: 0; backface-visibility: hidden; transition: transform .45s steps(6); box-shadow: 0 0 0 3px var(--line), var(--drop); }
     .kcard .back { background: url(assets/cards-keo.webp) 0 0 / 200% 100% no-repeat; image-rendering: pixelated; }
+    .botrow { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0 0; }
+    .botrow .btn { min-height: 44px; padding: 8px 14px; font-size: 14px; }
     /* Ảnh lớn bị THU NHỎ khi hiện (bàn 1024px, poster 960px, quân 256px/ô, lá Kèo 384px) ⇒ vẽ mượt; "pixelated" khi thu nhỏ
        làm rụng pixel lởm chởm trông như nhoè. Icon xúc xắc / nhà (ảnh nhỏ, phóng to) vẫn giữ pixelated. */
     .board, .poster, .tk, .kcard .back { image-rendering: auto; }
@@ -285,6 +287,7 @@
       <section id="vRoom" hidden>
         <div class="roomhd">Mã phòng <b id="rCode"></b><button class="btn" id="copyLink" type="button">Sao chép link mời</button></div>
         <div class="pick" id="rPick" role="group" aria-label="Chỗ ngồi và linh vật"></div>
+        <div class="botrow" id="botRow" hidden></div>
         <p class="sub" id="rNote"></p>
       </section>
       <div class="how">
@@ -319,6 +322,6 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=start2"></script>
+  <script type="module" src="game.js?v=bots1"></script>
 </body>
 </html>

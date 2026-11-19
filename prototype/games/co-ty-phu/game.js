@@ -386,12 +386,17 @@ function showRoom() {
   $("#rCode").textContent = v.code;
   $("#rPick").innerHTML = TOKENS.map((t, i) => {
     const k = v.players.findIndex((p) => p.tok === i), p = v.players[k], mine = k === v.you;
-    const who = p ? (k === v.host ? "👑 " : "") + esc(p.name) + (mine ? " (Bạn)" : "") : "Trống";
+    const who = p ? (k === v.host ? "👑 " : p.bot ? "🤖 " : "") + esc(p.name) + (mine ? " (Bạn)" : "") : "Trống";
     return `<button type="button" style="--pc:${t.color}" aria-pressed="${mine}" data-t="${i}"${p && !mine ? " disabled" : ""} aria-label="${t.name}: ${p ? esc(p.name) : "chỗ trống, bấm để chọn"}">`
       + `<i class="spr tk tk${i}"></i>${t.name}<span class="who2${p ? "" : " free"}">${who}</span>${p && !p.connected ? '<span class="off">mất kết nối</span>' : ""}</button>`;
   }).join("");
   $("#rPick").querySelectorAll("button").forEach((b) => (b.onclick = () => { if (!b.disabled && b.getAttribute("aria-pressed") !== "true") net.send({ t: "token", tok: +b.dataset.t }); }));
-  $("#rNote").textContent = `${n}/4 người trong phòng. ` + (host ? (n < 2 ? "Gửi mã hoặc link mời cho bạn bè — cần ít nhất 2 người." : "Đủ người rồi, bấm Bắt đầu!") : "Đang chờ chủ phòng bấm Bắt đầu…") + " Bấm linh vật trống để đổi quân.";
+  const bots = v.players.map((p, k) => [p, k]).filter(([p]) => p.bot);
+  $("#botRow").hidden = !host;
+  $("#botRow").innerHTML = (n < 4 ? `<button class="btn" type="button" data-bot="add">+ Thêm bot</button>` : "")
+    + bots.map(([p, k]) => `<button class="btn" type="button" data-bot="${k}" aria-label="Bớt ${esc(p.name)}">✕ ${esc(p.name)}</button>`).join("");
+  $("#botRow").querySelectorAll("button").forEach((b) => (b.onclick = () => net.send(b.dataset.bot === "add" ? { t: "add-bot" } : { t: "kick-bot", seat: +b.dataset.bot })));
+  $("#rNote").textContent = `${n}/4 người trong phòng. ` + (host ? (n < 2 ? "Gửi mã hoặc link mời cho bạn bè, hoặc bấm “Thêm bot” — cần ít nhất 2 người." : "Đủ người rồi, bấm Bắt đầu!") : "Đang chờ chủ phòng bấm Bắt đầu…") + " Bấm linh vật trống để đổi quân.";
   $("#start").disabled = !host || n < 2;
   $("#start").textContent = host ? "Bắt đầu" : "Chờ chủ phòng";
 }

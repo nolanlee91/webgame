@@ -7,10 +7,12 @@
 const { Chat } = require("./chat");
 
 const MAX_PLAYERS = 4;
+const BOT_NAMES = ["Bot Tèo", "Bot Mận", "Bot Tí", "Bot Sửu"];
 const DEFAULT_TIMINGS = {
   turn: 25000,   // người đang có lượt không thao tác → máy chủ làm thay (gieo / tự quyết mua như máy)
   away: 8000,    // người có lượt đang mất kết nối → làm thay sớm hơn
   left: 1200,    // người đã rời ván → máy chủ chơi thay gần như ngay
+  bot: 900,      // ghế bot (chủ phòng thêm ở phòng chờ) đi sau khi hoạt ảnh xong ~0,9 s
   anim: 1,       // hệ số thời gian chờ client phát xong hoạt ảnh của nước vừa đi (test đặt 0)
 };
 
@@ -64,7 +66,8 @@ class Room {
     this.chat = new Chat(clock);
   }
 
-  get hostSeat() { return this.players.findIndex((p) => !p.left); }
+  get hostSeat() { return this.players.findIndex((p) => !p.left && !p.bot); }
+  humans() { return this.players.filter((p) => !p.left && !p.bot); }
 
   freeToken() { for (let k = 0; k < 4; k++) if (!this.players.some((p) => p.tok === k)) return k; return -1; }
 
@@ -82,13 +85,13 @@ class Room {
     this.chat.forget(p.token);
     if (this.phase === "lobby") this.players.splice(i, 1);
     else { p.left = true; p.connected = false; p.token = null; }
-    if (!this.players.some((x) => !x.left)) return this.close();
+    if (!this.humans().length) return this.close(); // chỉ còn bot ⇒ đóng phòng
     if (this.phase === "play" && this.g.turn === i) this.schedule(false);
     this.changed();
   }
 
   setConnected(i, on) {
-    const p = this.players[i]; if (!p || p.left || p.connected === on) return;
+    const p = this.players[i]; if (!p || p.left || p.bot || p.connected === on) return;
     p.connected = on;
     // chỉ người đang có lượt mới làm đổi hạn chờ, và hạn chỉ có thể NGẮN lại (vào lại không nới hạn đã rút)
     if (this.phase === "play" && this.g.turn === i) this.schedule(false);
@@ -97,8 +100,22 @@ class Room {
 
   handle(i, m) {
     if (this.closed) return { err: "no-room" };
-    const p = this.players[i]; if (!p || p.left) return { err: "no-seat" };
+    const p = this.players[i]; if (!p || p.left || p.bot) return { err: "no-seat" };
     switch (m.t) {
+      case "add-bot": { // chủ phòng lấp ghế trống bằng bot (máy chủ chơi thay ghế đó)
+        if (this.phase !== "lobby") return { err: "phase" };
+        if (i !== this.hostSeat) return { err: "not-host" };
+        if (this.players.length >= MAX_PLAYERS) return { err: "full" };
+        const name = BOT_NAMES.find((n) => !this.players.some((x) => x.name === n)) || "Bot";
+        this.players.push({ token: null, ip: "", name, tok: this.freeToken(), connected: true, left: false, bot: true });
+        this.changed(); return { ok: true };
+      }
+      case "kick-bot": {
+        if (this.phase !== "lobby") return { err: "phase" };
+        if (i !== this.hostSeat) return { err: "not-host" };
+        if (!this.players[m.seat]?.bot) return { err: "target" };
+        this.players.splice(m.seat, 1); this.changed(); return { ok: true };
+      }
       case "token": { // đổi linh vật trong phòng chờ (không trùng người khác)
         if (this.phase !== "lobby") return { err: "phase" };
         if (!Number.isInteger(m.tok) || m.tok < 0 || m.tok > 3) return { err: "bad" };
@@ -108,7 +125,7 @@ class Room {
       case "start":
         if (this.phase !== "lobby") return { err: "phase" };
         if (i !== this.hostSeat) return { err: "not-host" };
-        if (this.players.length < 2) return { err: "need-2" };
+        if (this.players.length < 2) return { err: "need-2" }; // người + bot đều tính
         this.newGame(); return { ok: true };
       case "lobby": // ván đã xong → cả phòng về phòng chờ (người đã rời bị bỏ khỏi danh sách)
         if (this.phase !== "over") return { err: "phase" };
@@ -175,6 +192,7 @@ class Room {
     if (fresh || this.actAt == null) this.actAt = now + wait;
     let end = this.actAt + this.t.turn;
     if (who.left) end = Math.min(end, Math.max(now, this.actAt) + this.t.left);
+    else if (who.bot) end = Math.min(end, Math.max(now, this.actAt) + this.t.bot);
     else if (!who.connected) end = Math.min(end, Math.max(now, this.actAt) + this.t.away);
     if (!fresh && old) end = Math.min(end, old);
     this.deadline = end;
@@ -187,7 +205,7 @@ class Room {
     if (this.phase !== "play" || this.closed) return;
     const g = this.g, L = this.L, who = this.players[g.turn];
     if (g.phase === "roll") {
-      if (who.left && g.players[g.turn].jailed && g.players[g.turn].cash > 400) L.payJail(g); // người đã rời: chơi thay như máy
+      if ((who.left || who.bot) && g.players[g.turn].jailed && g.players[g.turn].cash > 400) L.payJail(g); // người đã rời / bot: chơi như máy
       this.doRoll();
     } else if (g.phase === "decide") { L.decide(g, L.botWants(g)); this.after(); }
   }
@@ -202,7 +220,7 @@ class Room {
     return {
       code: this.code, phase: this.phase, you: i, host: this.hostSeat,
       gid: this.gid, seq: this.seq, events: this.events, deadline: this.deadline,
-      players: this.players.map((p) => ({ name: p.name, tok: p.tok, connected: p.connected, left: p.left })),
+      players: this.players.map((p) => ({ name: p.name, tok: p.tok, connected: p.connected, left: p.left, bot: !!p.bot })),
       chat: this.chat.view(this.players[i]?.token),
       game: g && {
         rules: g.rules, turn: g.turn, round: g.round, phase: g.phase, dice: g.dice, pending: g.pending,
