@@ -1,7 +1,7 @@
 // Danh sách 18 game theo docs/game-catalog-v2.md (thứ tự theo điểm ưu tiên).
 // thumb: 6 game đầu cắt từ concept V4; 12 game còn lại là ảnh thumbnail 4:3 riêng (đã được chủ dự án duyệt). icon/hue giữ làm dự phòng.
 // mode: "solo" | "multi" | "both" — dùng cho nhãn số người chơi trên thẻ.
-// url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Ai Là Nội Gián, Xếp Gạch, 2048, Sudoku, Đố Vui, Rắn Săn Mồi, Cờ Tỷ Phú, Đặt Bom, Nông Trại).
+// url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Ai Là Nội Gián, Xếp Gạch, 2048, Sudoku, Đố Vui, Rắn Săn Mồi, Cờ Tỷ Phú, Đặt Bom, Nông Trại, Tiệm Trà Sữa).
 // Game CHƯA có url: thẻ hiện nhãn "Đang cập nhật" + ảnh mờ, bấm vào vẫn mở trang chờ play.html.
 window.GAMES = [
   { id: "co-ca-ngua", name: "Cờ Cá Ngựa",      cat: "tri-tue",  mode: "both", players: "2–4 người", thumb: "assets/thumbs/co-ca-ngua.webp", icon: "dice", hue: 0, badge: "Hot", url: "../games/co-ca-ngua/" },
@@ -19,7 +19,7 @@ window.GAMES = [
   { id: "xep-gach",  name: "Xếp Gạch",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/xep-gach.webp", icon: "blocks", hue: 265, url: "../games/xep-gach/" },
   { id: "dua-xe",    name: "Đua Xe Vượt Đồi",  cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dua-xe.webp", icon: "car", hue: 55, url: "../games/dua-xe/" },
   { id: "nong-trai", name: "Nông Trại", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/cozy-nong-trai.webp?v=pixel2", url: "../games/nong-trai/" },
-  { id: "tiem-tra-sua", name: "Tiệm Trà Sữa", cat: "tap-lam-chu", thumb: "assets/thumbs/tiem-tra-sua.webp?v=pixel2" },
+  { id: "tiem-tra-sua", name: "Tiệm Trà Sữa", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/tiem-tra-sua.webp?v=pixel2", badge: "Mới", url: "../games/tiem-tra-sua/" },
   { id: "tiem-banh-mi", name: "Tiệm Bánh Mì", cat: "tap-lam-chu", thumb: "assets/thumbs/tiem-banh-mi.webp?v=pixel2" },
   { id: "quan-com-tam", name: "Quán Cơm Tấm", cat: "tap-lam-chu", thumb: "assets/thumbs/quan-com-tam.webp?v=pixel2" },
   { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320, url: "../games/ghep-keo/" },
