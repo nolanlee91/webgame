@@ -16,7 +16,10 @@ const ease = (p) => p * p * (3 - 2 * p);
 function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; parent?.appendChild(e); return e; }
 
 /** Frame cho một khách tại thời điểm ca t. Trả [frame, flip, bob]. */
-const BARISTA_SCALE = 1.5;
+// Nhân vật (khách + chủ tiệm) hiển thị cao ~192 px cảnh. Sheet hiện tại ô 128 ⇒ ×1,5 (ô tranh 3×3, còn thô so với cảnh).
+// Khi Codex gửi bản vẽ lớn (ô 192, cùng độ mịn lưới 2× như cảnh) ⇒ tự về ×1, nét như cảnh.
+const CHAR_H = 192;
+export const charScale = (f) => (f ? Math.max(1, Math.round((CHAR_H / f.h) * 2) / 2) : 1);
 
 export function customerFrame(atlas, c, t) {
   const role = c.sprite;
@@ -229,9 +232,10 @@ export function createScene(root, atlas, { onCustomer }) {
     // nhân viên: dáng đứng có ly (characters.webp); nhún nhẹ khi đang pha
     const busy = (sh?.stations || []).some((x) => x.cup && !x.cup.sealed);
     const [fb, bob] = baristaFrame(t, busy, performance.now() < serveUntil);
-    // chủ tiệm đứng sau quầy (xa hơn khách, bị quầy che nửa người) ⇒ vẽ ×1,5 cho rõ; 1,5 giữ ô tranh 2×2 thành 3×3 đều
-    paint(barista, fb, BARISTA_SCALE);
-    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, BARISTA_SCALE);
+    // chủ tiệm: cùng cỡ nhân vật với khách (charScale)
+    const bs = charScale(fb);
+    paint(barista, fb, bs);
+    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, bs);
     drawMiniCups(sh?.stations || [{ cup: null }]);
     stoveAnim(!!sh?.kitchen?.batches.length, opts.reduced);
     if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
@@ -241,8 +245,9 @@ export function createScene(root, atlas, { onCustomer }) {
       const n = node(c);
       const [f, flip, bob] = customerFrame(atlas, c, t);
       const [x, y, alpha] = customerPos(c, t);
-      paint(n.b, f, 1);
-      placeAt(n.b, f, x, y - bob, 1);
+      const cs = charScale(f);
+      paint(n.b, f, cs);
+      placeAt(n.b, f, x, y - bob * cs, cs);
       n.b.style.zIndex = Math.round(y);
       n.b.style.opacity = alpha;
       n.b.classList.toggle("flip", flip);
@@ -253,7 +258,7 @@ export function createScene(root, atlas, { onCustomer }) {
       n.b.setAttribute("aria-label", `${c.name}${c.phase === "wait" ? ", đang chờ — chạm để ghim phiếu" : ""}`);
       n.b.dataset.phase = c.phase; n.b.dataset.mood = c.mood;
       // UI trên đầu khách
-      const [sx, sy] = toScreen(x, y - 132);
+      const [sx, sy] = toScreen(x, y - (f ? f.ay * cs : 116) - 16);
       const showSay = c.say && t - c.say.at < BUBBLE_MS;
       n.bubble.hidden = !showSay;
       if (showSay) {

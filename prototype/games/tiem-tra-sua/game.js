@@ -109,7 +109,7 @@ async function boot() {
         case "served": {
           play("coin");
           const p = scene.posOf(state, e.cid);
-          if (p) scene.burst("bfx", "coin", p[0], p[1] - 132, 1, reduced());
+          if (p) scene.burst("bfx", "coin", p[0], p[1] - 190, 1, reduced());
           scene.burst("bfx", "success", 548, 412, 1, reduced());
           scene.served();
           brew.act("serve");
