@@ -43,6 +43,8 @@
     .spr { position: absolute; background-repeat: no-repeat; image-rendering: pixelated; }
     .stage > .spr { pointer-events: none; }
     .barista { z-index: 1; }
+    .owned, .owned .spr, .decor { pointer-events: none; }
+    .decor { position: absolute; }
     .minicup { position: absolute; width: 48px; height: 58px; pointer-events: none; }
     .minicup i { position: absolute; left: 0; top: 0; background-repeat: no-repeat; image-rendering: pixelated; }
     .crowd { position: absolute; inset: 0; }
@@ -96,6 +98,7 @@
 
     .brew { grid-area: brew; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; background: var(--cream); color: var(--ink); border-radius: 18px; padding: 12px; box-shadow: var(--shadow); }
     .brew > * { flex-shrink: 0; }
+    .brew { scroll-padding-bottom: 76px; } /* phần tử được cuộn tới không nằm dưới thanh hành động dính đáy */
     .brew-top { display: flex; flex-direction: column; gap: 10px; }
     .tbtn .sm { display: none; }
     .brew.closed .station, .brew.closed .steps { opacity: .55; }
@@ -131,6 +134,14 @@
     .bar-upper { position: relative !important; flex: none; z-index: 1; margin-right: -26px; margin-bottom: 18px; }
     .cup-empty { position: absolute; z-index: 3; left: 50%; top: 14px; transform: translateX(-50%); background: rgba(255, 242, 220, .94); color: var(--ink); border-radius: 10px; padding: 4px 10px; font-size: 13px; font-weight: 700; white-space: nowrap; }
 
+    .kitchen { display: flex; align-items: center; gap: 8px; background: #fffaf0; border-radius: 12px; padding: 6px 8px; box-shadow: 0 0 0 1.5px var(--cream3) inset; }
+    .k-info { flex: 1; display: grid; line-height: 1.2; min-width: 0; gap: 2px; }
+    .k-info b { font-size: 13px; }
+    .k-info small { font-size: 11px; color: var(--ink2); font-weight: 600; }
+    .k-bars { display: grid; gap: 3px; }
+    .pbar.cook i { background: var(--amber); transition: none; }
+    .k-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn.hint { box-shadow: 0 0 0 3px var(--teal), 0 3px 0 var(--cream3); animation: hint 1.2s ease-in-out infinite; }
     .steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
     .steps li { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; gap: 0; font-size: 11px; font-weight: 700; color: var(--ink2); padding: 3px 4px; border-radius: 10px; background: var(--cream2); min-width: 50px; }
     .steps li.done { background: var(--teal-l); color: #1d4a44; }
@@ -172,7 +183,7 @@
     .muted { color: var(--ink2); margin: 0; }
     .small { font-size: 13px; }
     .sheet-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
-    .sheet-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+    .sheet-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 14px -22px -20px; padding: 10px 22px 16px; position: sticky; bottom: -20px; background: var(--cream); border-top: 1px solid var(--cream3); z-index: 2; }
     .box { background: #fffaf0; border-radius: 14px; padding: 12px; box-shadow: 0 0 0 1.5px var(--cream3) inset; }
     .prep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
     .menu { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -185,6 +196,13 @@
     .srow div { flex: 1; display: grid; line-height: 1.2; }
     .srow small { font-size: 12px; color: var(--ink2); }
     .srow.low small { color: var(--red); font-weight: 800; }
+    .gear-box { margin-top: 4px; }
+    .gear { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px; }
+    .grow { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 12px; background: var(--cream); }
+    .grow div { flex: 1; display: grid; line-height: 1.2; min-width: 0; }
+    .grow small { font-size: 12px; color: var(--ink2); }
+    .grow.locked { opacity: .5; }
+    .grow.owned { background: var(--teal-l); }
     .intro { padding: 0; overflow: hidden; display: grid; }
     .intro-art { position: relative; height: 230px; overflow: hidden; }
     .intro-art img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
@@ -274,6 +292,11 @@
       .steps li { min-width: 44px; font-size: 10px; padding: 2px; }
       .steps li .ico { zoom: .77; }
       .opts-title { font-size: 14px; }
+      .toasts { top: 54px; width: min(86vw, 320px); }
+      .toast { font-size: 12px; padding: 5px 10px; }
+      .kitchen { padding: 4px 6px; gap: 6px; }
+      .kitchen .stove { zoom: .75; }
+      .k-info b { font-size: 12px; }
       .opts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
       .opt { min-height: 74px; padding: 4px 4px 5px; }
       .opt-name { font-size: 13px; }
@@ -281,8 +304,10 @@
       .acts { bottom: -8px; padding: 6px 0 2px; gap: 6px; }
       .btn { padding: 8px 10px; font-size: 13px; }
       .prep-grid { grid-template-columns: 1fr; }
+      .gear { grid-template-columns: 1fr; }
       .sum-top { grid-template-columns: 1fr 1fr; }
       .sheet { padding: 16px; border-radius: 18px; }
+      .sheet-foot { margin: 12px -16px -16px; padding: 10px 16px 14px; bottom: -16px; }
       .drama-stage { height: 160px; }
       .speaker .ico { zoom: .8; }
     }
@@ -313,6 +338,7 @@
         <div id="ticket" class="ticket" aria-live="polite"></div>
         <div class="station"><div id="cupView" class="cupview"></div></div>
       </div>
+      <div id="kitchen" class="kitchen" aria-label="Bếp topping" hidden></div>
       <ol id="steps" class="steps" aria-label="Các bước pha"></ol>
       <p id="optsTitle" class="opts-title"></p>
       <div id="opts" class="opts"></div>

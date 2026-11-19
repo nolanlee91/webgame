@@ -15,7 +15,7 @@ const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(
 async function pressSel(sel) {
   let p = null;
   for (let i = 0; i < 30 && !(p = await at(sel)); i++) await sleep(100); // phần tử có thể hiện ở khung hình kế tiếp
-  if (!p) throw new Error("không thấy " + sel);
+  if (!p) throw new Error("không thấy " + sel + " :: " + (await b.ev("JSON.stringify({cup:__game.state.shift?.cup,ov:__game.overlay,opts:[...document.querySelectorAll('#opts .opt')].map(e=>e.dataset.step+':'+e.dataset.id+(e.disabled?'(x)':'')).join(' '),toasts:document.querySelector('#toasts').textContent})")));
   await sleep(40); await press(...((await at(sel)) || p)); await sleep(160);
 }
 const S = (expr) => b.ev(`(()=>{const s=__game.state;return ${expr}})()`);
@@ -137,9 +137,22 @@ check("Chuẩn bị ngày 2", /Ngày 2/.test(await text(".sheet h2")));
 await b.nav(BASE);
 check("tải lại: tiền, XP, cấp, danh tiếng, ngày, kho, nhật ký, tên tiệm giữ nguyên", (await S("JSON.stringify({m:s.money,x:s.xp,l:s.level,r:s.rep,d:s.day,st:s.stock,j:s.journal.length,n:s.shopName})")) === snap);
 check("tải lại sau chốt ca mở thẳng bảng Chuẩn bị ngày 2", /Ngày 2/.test(await text(".sheet h2")) && await visible("#openShop"));
+// Milestone 3: mua trang trí, nấu trân châu
+const mBuy = await S("s.money");
+await pressSel('[data-buy="flowering-pot"]');
+check("M3: mua Chậu hoa tím (−40k) → xuất hiện trong cảnh, nút thành “Đã có”", (await S("s.money")) === mBuy - 40 && await S("s.owned['flowering-pot']===true") &&
+  await b.ev("!!document.querySelector('.stage .decor[data-item=\"flowering-pot\"]')") && (await text('[data-buy="flowering-pot"]')) === "Đã có");
+await b.shot(OUT + "/08a-desktop-nang-cap.png");
 // giữa ca
 await pressSel("#openShop");
 check("ngày 2 là ngày thường (6–10 khách)", await S("!s.shift.tutorial&&s.shift.planned>=6&&s.shift.planned<=10"));
+check("M3: ngày thường bắt đầu chưa có trân châu nấu sẵn, Bếp topping hiện trong Quầy pha", (await S("s.shift.kitchen.ready")) === 0 && await visible("#kitchen [data-cook='3']"));
+const raw0 = await S("s.stock['tran-chau-song']");
+await pressSel("#kitchen [data-cook='3']");
+check("M3: bấm Nấu 3 → trừ 3 trân châu sống, thanh nấu chạy, bếp bận", (await S("s.stock['tran-chau-song']")) === raw0 - 3 && (await S("s.shift.kitchen.batches.length")) === 1 && await b.ev("document.querySelector('#kitchen [data-cook=\"3\"]').disabled"));
+await b.ev("__game.advance(18400)");
+await sleep(200);
+check("M3: 18 giây ca sau mẻ chín → 3 phần sẵn", (await S("s.shift.kitchen.ready")) === 3 && /sẵn 3/.test(await text("#kitchen")));
 const firstId = await S("s.shift.schedule.length?1:0");
 await untilWaiting(firstId);
 await pressSel(`#rail .slip[data-cid="${firstId}"]`);
@@ -149,6 +162,7 @@ const midStage = await stage(), midT = await S("s.shift.t");
 await b.nav(BASE);
 check("tải lại giữa ca: bảng “Ca đang dở dang”, ca tạm dừng", await visible("#resumeBtn") && /dở dang/.test(await text(".sheet h2")) && await b.ev("__game.paused"));
 check("tải lại giữa ca: ly đang pha + phiếu ghim giữ nguyên", (await stage()) === midStage && (await S("s.shift.active")) === firstId && (await S("s.shift.t")) >= midT - 1);
+check("tải lại giữa ca: trân châu đã nấu giữ nguyên", (await S("s.shift.kitchen.ready")) >= 2);
 await b.shot(OUT + "/08-desktop-tai-lai-giua-ca.png");
 await pressSel("#resumeBtn");
 await pressSel(`#opts .opt[data-step="sugar"][data-id="${o6.sugar}"]`);

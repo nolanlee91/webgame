@@ -13,6 +13,8 @@ import { fill, pickLine } from "./text.js";
 import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js";
 import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js";
 import { scoreServe } from "./score.js";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js";
+import { appeal, owns, kitchenSlots, SEAL_BONUS_MS } from "./equipment.js";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");
@@ -41,7 +43,7 @@ function lineCtx(c) {
 function genGuests(s, cfg) {
   const menu = recipesAt(s.level).map((r) => r.id);
   const archs = archetypesFor(s);
-  const n = clamp(cfg.minGuests + Math.floor((s.rep - 35) / 15) + Math.floor(s.level / 4) + int(s, 2), cfg.minGuests, cfg.maxGuests);
+  const n = clamp(cfg.minGuests + Math.floor((s.rep - 35) / 15) + Math.floor(s.level / 4) + appeal(s) + int(s, 2), cfg.minGuests, cfg.maxGuests);
   const times = [];
   for (let i = 0; i < n; i++) {
     const inRush = next(s) < 0.45;
@@ -74,11 +76,13 @@ export function startShift(s, events) {
   const fee = Math.min(SHIFT_FEE, s.money); // hụt vốn: chủ nhà cho khất phần thiếu (gói ký gửi ở Milestone 3)
   s.money -= fee;
   s.shift = {
-    day: s.day, t: 0, duration: cfg.duration, patienceMult: cfg.patienceMult, hints: cfg.hints, tutorial: tut,
+    day: s.day, t: 0, duration: cfg.duration, patienceMult: cfg.patienceMult * (1 + 0.03 * appeal(s)), hints: cfg.hints, tutorial: tut,
     status: "open", schedule: guests, planned: guests.length, customers: [], nextCid: 1, active: null, cup: null, dialog: null,
-    ledger: { revenue: 0, cogs: 0, waste: 0, fee, restock: 0, cups: 0, served: 0, lost: 0, refunds: 0, remakes: 0 },
+    ledger: { revenue: 0, cogs: 0, waste: 0, fee, restock: 0, cups: 0, served: 0, lost: 0, refunds: 0, remakes: 0, pearlWaste: 0 },
     reviews: [], repDelta: 0, xp: 0, levelUps: [], moments: [], usedLines: [],
+    kitchen: { ready: (tut ? TUTORIAL_PRECOOKED : 0) + s.carryPearls, batches: [] },
   };
+  s.carryPearls = 0;
   events.push({ type: "shiftStarted", day: s.day, guests: guests.length, fee });
   return { ok: true };
 }
@@ -141,6 +145,10 @@ export function tick(s, dt, events) {
     if (live >= QUEUE_MAX || freeSpot(sh) < 0) { sh.schedule[0].at = t + SPAWN_RETRY_MS; sh.schedule.sort((a, b) => a.at - b.at); break; }
     spawn(s, sh.schedule.shift(), events);
   }
+  // bếp topping: mẻ chín
+  const k = sh.kitchen;
+  for (const b of k.batches.filter((x) => x.doneAt <= t)) { k.ready += b.size; events.push({ type: "batchDone", size: b.size }); }
+  k.batches = k.batches.filter((x) => x.doneAt > t);
   for (const c of sh.customers) {
     if (c.phase === "enter" && t >= c.t0 + WALK_MS) {
       c.phase = "wait"; c.arriveT = c.t0 + WALK_MS; c.mood = "order";
@@ -199,8 +207,13 @@ export function brew(s, step, id, events) {
   if (!c) return { err: "bad-choice" };
   if (!choiceUnlocked(step, c, s.level)) return { err: "locked" };
   const use = useOf(step, id);
-  if (!hasStock(s, use)) return { err: "out-of-stock", use };
-  takeStock(s, use);
+  if (c.kitchen) {
+    if (sh.kitchen.ready < 1) return { err: "not-cooked" };
+    sh.kitchen.ready--;
+  } else {
+    if (!hasStock(s, use)) return { err: "out-of-stock", use };
+    takeStock(s, use);
+  }
   if (step === "cup") sh.cup = { steps: [], sealed: false, forCid: sh.active };
   sh.cup.steps.push({ step, id });
   if (step === "lid") sh.cup.sealed = true;
@@ -280,7 +293,7 @@ export function serve(s, cid, events) {
   if (!c || c.phase !== "wait") return { err: "not-waiting" };
   const cup = sh.cup;
   if (!cup || !cup.sealed) return { err: "not-sealed" };
-  const frac = (sh.t - c.arriveT) / patienceOf(c);
+  const frac = Math.max(0, sh.t - c.arriveT - (owns(s, "powered-sealer") ? SEAL_BONUS_MS : 0)) / patienceOf(c);
   const sc = scoreServe(c.order, cup, frac, ARCHETYPES[c.arch].expect);
   if (c.remade) sc.stars = Math.min(sc.stars, 4);
   const cost = cupCost(cup);
@@ -330,6 +343,21 @@ export function resolve(s, pickId, events) {
   return { ok: true };
 }
 
+// ---------- bếp topping ----------
+export function cook(s, size, events) {
+  if (!isOpen(s)) return { err: "closed" };
+  const sh = s.shift, B = BATCHES[size];
+  if (sh.dialog) return { err: "dialog" };
+  if (!B) return { err: "bad-size" };
+  if (B.unlock > s.level) return { err: "locked" };
+  if (sh.kitchen.batches.length >= kitchenSlots(s)) return { err: "kitchen-busy" };
+  if ((s.stock[PEARL_RAW] || 0) < size) return { err: "out-of-stock", use: { [PEARL_RAW]: size } };
+  s.stock[PEARL_RAW] -= size;
+  sh.kitchen.batches.push({ size, doneAt: sh.t + B.ms, ms: B.ms });
+  events.push({ type: "cooking", size });
+  return { ok: true };
+}
+
 // ---------- chốt ca ----------
 function headline(sum) {
   const H = L.HEADLINES;
@@ -345,13 +373,20 @@ export function endShift(s, events) {
   const sh = s.shift;
   if (!sh) return { err: "no-shift" };
   if (sh.cup) sh.ledger.waste += cupCost(sh.cup); // ly dở cuối ca bỏ đi
+  // trân châu đã nấu: tủ mát giữ sang ca sau, không thì hao hụt một lần; mẻ đang nấu dở bỏ
+  const pearlCost = costOfUse({ [PEARL_RAW]: 1 });
+  const cooking = sh.kitchen.batches.reduce((a, b) => a + b.size, 0);
+  let left = sh.kitchen.ready;
+  if (owns(s, "upright-fridge")) { s.carryPearls = Math.min(12, left); left -= s.carryPearls; }
+  sh.ledger.pearlWaste = left + cooking;
+  sh.ledger.waste += (left + cooking) * pearlCost;
   const Lg = sh.ledger;
   const stars = sh.reviews.map((r) => r.stars);
   const avg = stars.length ? stars.reduce((a, b) => a + b, 0) / stars.length : 0;
   const best = [...sh.reviews].sort((a, b) => b.stars - a.stars || a.cid - b.cid)[0] || null;
   const sum = {
     day: sh.day, cups: Lg.cups, served: Lg.served, lost: Lg.lost, planned: sh.planned, revenue: Lg.revenue, cogs: Lg.cogs, waste: Lg.waste,
-    fee: Lg.fee, restock: Lg.restock, refunds: Lg.refunds, remakes: Lg.remakes, profit: operatingProfit(Lg),
+    fee: Lg.fee, restock: Lg.restock, refunds: Lg.refunds, remakes: Lg.remakes, pearlWaste: Lg.pearlWaste, carry: s.carryPearls, profit: operatingProfit(Lg),
     avgStars: Math.round(avg * 10) / 10, reviews: sh.reviews.map((r) => ({ name: r.name, stars: r.stars, line: r.line, reason: r.reason, recipe: r.recipe })),
     best: best ? { name: best.name, stars: best.stars, line: best.line } : null,
     repDelta: sh.repDelta, rep: s.rep, xp: sh.xp, levelUps: [...sh.levelUps], level: s.level, money: s.money, moments: sh.moments.slice(0, 8),

@@ -7,6 +7,7 @@ import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens
 import { apply } from "./core/apply.js";
 import { customer } from "./core/shift.js";
 import { STEP_VERB, STOCK } from "./data/ingredients.js";
+import { EQUIPMENT } from "./data/equipment.js";
 import { shopSave, browserStorage } from "./save.js";
 import { play, isMuted, setMuted } from "./ui/sfx.js";
 
@@ -53,6 +54,9 @@ async function boot() {
     "money": () => "Không đủ tiền nhập hàng.",
     "capacity": () => "Kho đầy rồi.",
     "sealed": () => "Ly đã đóng nắp. Giao hoặc đổ bỏ.",
+    "not-cooked": () => "Chưa có trân châu nấu sẵn. Bấm Nấu ở Bếp topping.",
+    "kitchen-busy": () => "Bếp đang nấu mẻ khác.",
+    "owned": () => "Tiệm đã có món này.",
   };
 
   function act(a, fromLoop = false) {
@@ -82,9 +86,12 @@ async function boot() {
         case "complaint": play("sad"); setTimeout(() => state.shift?.dialog && overlays.complaint(state), reduced() ? 0 : 450); break;
         case "timeout": play("sad"); toast(toasts, `${e.name} bỏ về vì chờ lâu. −1 review 1 sao.`, "warn"); break;
         case "impatient": break;
-        case "levelUp": play("level"); toast(toasts, `Lên cấp ${e.level}! ${e.unlocks.map((u) => u.name).join(" · ")}`, "good"); break;
+        case "levelUp": { play("level"); const real = e.unlocks.filter((u) => u.kind !== "note"); toast(toasts, `Lên cấp ${e.level}!${real.length ? " Mở: " + real.map((u) => u.name).join(", ") : ""}`, "good"); break; }
         case "restocked": toast(toasts, `Nhập ${e.n} phần ${STOCK[e.id].name} (−${fmtK(e.price)}${e.express ? ", giao gấp" : ""})`); break;
         case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
+        case "cooking": play("plop"); toast(toasts, "Bắt đầu nấu mẻ " + e.size + " phần trân châu."); break;
+        case "batchDone": play("bell"); toast(toasts, "Mẻ trân châu " + e.size + " phần đã chín!", "good"); break;
+        case "bought": play("level"); scene.setOwned(state); toast(toasts, "Đã mua " + EQUIPMENT[e.id].name + " (−" + fmtK(e.price) + ")", "good"); break;
         case "shiftStarted": toast(toasts, `Mở cửa ngày ${e.day}! ${e.guests} khách dự kiến.`, "good"); break;
         default: break;
       }
@@ -102,7 +109,7 @@ async function boot() {
     const dt = Math.min(250, now - last); last = now;
     if (running()) act({ type: "tick", dt }, true);
     if (dirty && performance.now() - lastSave > 2500) save(true);
-    scene.update(state);
+    scene.update(state, { reduced: reduced() });
     rail(state);
     hud(state);
     brew.frame(state);
@@ -146,6 +153,7 @@ async function boot() {
 
   // ---------- màn đầu ----------
   brew.render(state);
+  scene.setOwned(state);
   if (loaded.corrupt) toast(toasts, "Bản lưu cũ bị hỏng nên mở tiệm mới (bản cũ vẫn được giữ lại).", "warn");
   if (!state.introSeen) overlays.intro(state);
   else if (state.shift?.dialog) overlays.complaint(state);

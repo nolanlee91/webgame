@@ -12,7 +12,7 @@ export const STOCK = {
   "kem-sua":   { name: "Kem sữa",       cost: 7, pack: 4,  unlock: 6, icon: ["pantry", "cream"] },
   "duong":     { name: "Đường",         cost: 1, pack: 10, unlock: 1, icon: ["cupui", "sugar"] },
   "da":        { name: "Đá",            cost: 1, pack: 10, unlock: 1, icon: ["cupui", "ice"] },
-  "tran-chau": { name: "Trân châu",     cost: 2, pack: 6,  unlock: 1, icon: ["cupui", "pearls"] },
+  "tran-chau-song": { name: "Trân châu sống", cost: 2, pack: 6, unlock: 1, icon: ["pantry", "raw-pearls"] }, // nấu ở Bếp topping
   "thach":     { name: "Thạch",         cost: 3, pack: 5,  unlock: 2, icon: ["decor", "clear-jelly"] },
   "pudding":   { name: "Pudding",       cost: 4, pack: 4,  unlock: 8, icon: ["decor", "pudding"] },
   "dao":       { name: "Đào",           cost: 4, pack: 4,  unlock: 1, icon: ["decor", "peach"] },
@@ -24,7 +24,7 @@ export const STOCK_IDS = Object.keys(STOCK);
 
 /** Sức chứa kho lúc đầu (phần) và gói học đủ khoảng 8 ly cơ bản. */
 export const START_CAPACITY = 60;
-export const START_STOCK = { "ly": 10, "hong-tra": 10, "sua": 8, "duong": 8, "da": 10, "tran-chau": 8, "dao": 4 };
+export const START_STOCK = { "ly": 10, "hong-tra": 10, "sua": 8, "duong": 8, "da": 10, "tran-chau-song": 8, "dao": 4 };
 
 /** Bảy bước pha theo đúng thứ tự (GAME-DESIGN: ly → trà → sữa/thành phần khác → đường → đá → topping → nắp). */
 export const STEPS = ["cup", "base", "add", "sugar", "ice", "topping", "lid"];
@@ -65,7 +65,8 @@ export const CHOICES = {
   ],
   topping: [
     { id: "none",      name: "Không topping", use: {}, unlock: 1 },
-    { id: "tran-chau", name: "Trân châu", use: { "tran-chau": 1 }, unlock: 1, layer: "pearls-bottom", icon: ["cupui", "pearls"] },
+    // trân châu lấy từ mẻ đã nấu ở Bếp topping (kitchen), giá vốn tính theo phần trân châu sống
+    { id: "tran-chau", name: "Trân châu", use: { "tran-chau-song": 1 }, kitchen: true, unlock: 1, layer: "pearls-bottom", icon: ["cupui", "pearls"] },
     { id: "thach",     name: "Thạch",     use: { "thach": 1 },     unlock: 2, layer: "jelly-bottom", icon: ["decor", "clear-jelly"] },
     { id: "pudding",   name: "Pudding",   use: { "pudding": 1 },   unlock: 8, layer: "jelly-bottom", icon: ["decor", "pudding"] },
   ],

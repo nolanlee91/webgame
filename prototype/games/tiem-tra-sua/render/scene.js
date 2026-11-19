@@ -5,6 +5,7 @@ import { paint, placeAt } from "./atlas.js";
 import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js";
 import { patienceLeft } from "../core/shift.js";
 import { cupLayers } from "../core/cupview.js";
+import { EQUIPMENT } from "../data/equipment.js";
 
 const W = 1280, H = 720;
 const BUBBLE_MS = 4200;
@@ -52,7 +53,9 @@ export function createScene(root, atlas, { onCustomer }) {
 
   const put = (alias, name, x, y, scale, cls = "spr") => { const e = el("div", cls, stage); const f = atlas.frame(alias, name); paint(e, f, scale); placeAt(e, f, x, y, scale); return e; };
   put("equip", "tea-brewer", 356, 292, 0.5);
-  put("equip", "cup-sealer", 222, 340, 0.42);
+  const defaults = { "cup-sealer": put("equip", "cup-sealer", 222, 340, 0.42), "topping-stove": put("equip", "topping-stove", 470, 300, 0.42) };
+  const STOVE = [470, 262];
+  const backOwned = el("div", "owned", stage);
   const barista = el("div", "spr barista", stage);
   const fg = el("img", "layer", stage); fg.src = "assets/shop-counter-foreground.webp"; fg.alt = ""; fg.width = W; fg.height = H; fg.draggable = false;
   put("equip", "pearls-jar", 300, 428, 0.42);
@@ -66,6 +69,28 @@ export function createScene(root, atlas, { onCustomer }) {
   const ui = el("div", "scene-ui", root);
 
   const nodes = new Map();
+  let ownedKey = "", steamAt = 0;
+  /** Đặt thiết bị / trang trí đã mua vào cảnh (đồ trên sàn xếp theo y cùng khách). */
+  function setOwned(state) {
+    const ids = Object.keys(state.owned || {}).filter((id) => EQUIPMENT[id]).sort();
+    const key = ids.join(",");
+    if (key === ownedKey) return;
+    ownedKey = key;
+    backOwned.textContent = "";
+    crowd.querySelectorAll(".decor").forEach((e) => e.remove());
+    for (const d of Object.values(defaults)) d.hidden = false;
+    for (const id of ids) {
+      const it = EQUIPMENT[id];
+      const f = atlas.frame(it.sprite[0], it.sprite[1]);
+      if (!f) continue;
+      const floor = it.at[1] >= 430;
+      const e = el("div", "spr decor", floor ? crowd : backOwned);
+      e.dataset.item = id;
+      paint(e, f, it.scale); placeAt(e, f, it.at[0], it.at[1], it.scale);
+      if (floor) e.style.zIndex = it.at[1];
+      if (it.replaces && defaults[it.replaces]) defaults[it.replaces].hidden = true;
+    }
+  }
   let lastCupStage = "";
   let k = 1, ox = 0, oy = 0;
 
@@ -111,6 +136,7 @@ export function createScene(root, atlas, { onCustomer }) {
     const busy = sh?.cup && !sh.cup.sealed;
     placeAt(barista, fb, BARISTA[0], BARISTA[1] + (busy && Math.floor(t / 250) % 2 ? 1 : 0), 1);
     drawMiniCup(sh?.cup || null);
+    if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
     const live = new Set();
     for (const c of sh?.customers || []) {
       live.add(c.id);
@@ -169,5 +195,5 @@ export function createScene(root, atlas, { onCustomer }) {
   }
   const posOf = (state, cid) => { const c = state.shift?.customers.find((q) => q.id === cid); return c ? customerPos(c, state.shift.t) : null; };
 
-  return { update, layout, burst, posOf, toScreen, get scale() { return k; } };
+  return { update, layout, burst, posOf, toScreen, setOwned, get scale() { return k; } };
 }

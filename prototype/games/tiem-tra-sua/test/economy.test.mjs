@@ -20,7 +20,7 @@ test("tiệm mới: vốn 160k, kho 58/60 (gói học đủ 8 ly cơ bản), dan
   assert.equal(stockUsed(s), Object.values(START_STOCK).reduce((a, b) => a + b, 0));
   assert.ok(stockUsed(s) <= START_CAPACITY);
   assert.equal(s.rep, 35);
-  for (const id of ["ly", "hong-tra", "sua", "duong", "da", "tran-chau"]) assert.ok(s.stock[id] >= 8, id);
+  for (const id of ["ly", "hong-tra", "sua", "duong", "da", "tran-chau-song"]) assert.ok(s.stock[id] >= 8, id);
 });
 
 test("mở ca trừ phí 12k một lần; mở lần hai bị chặn", () => {
@@ -40,7 +40,9 @@ test("giao đúng: +giá bán vào tiền, giá vốn ghi sổ, kho trừ đúng
   assert.equal(s.money, 148 + 27);
   assert.equal(s.shift.ledger.revenue, 27);
   assert.equal(s.shift.ledger.cogs, 11);
-  for (const id of ["ly", "hong-tra", "sua", "duong", "da", "tran-chau"]) assert.equal(s.stock[id], before[id] - 1, id);
+  for (const id of ["ly", "hong-tra", "sua", "duong", "da"]) assert.equal(s.stock[id], before[id] - 1, id);
+  assert.equal(s.stock["tran-chau-song"], before["tran-chau-song"], "trân châu lấy từ mẻ đã nấu, không từ kho sống");
+  assert.equal(s.shift.kitchen.ready, 2, "ngày học có sẵn mẻ 3 phần, dùng 1");
 });
 
 test("hoàn tác và đổ bỏ ghi hao hụt theo phần đã đổ (không hoàn kho)", () => {
@@ -97,6 +99,7 @@ test("chốt ca: lợi nhuận = doanh thu − giá vốn − hao hụt − phí
   const S = s.lastSummary;
   assert.equal(S.revenue, 27);
   assert.equal(S.cogs, 11);
-  assert.equal(S.waste, 2);
-  assert.equal(S.profit, 27 - 11 - 2 - 12);
+  assert.equal(S.pearlWaste, 2, "mẻ học 3 phần, dùng 1, dư 2 phần bỏ cuối ca");
+  assert.equal(S.waste, 2 + 2 * 2);
+  assert.equal(S.profit, 27 - 11 - 6 - 12);
 });

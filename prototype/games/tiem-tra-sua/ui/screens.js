@@ -8,8 +8,10 @@ import { COMPLAINT } from "../data/lines.js";
 import { LEVELS, MAX_LEVEL } from "../data/levels.js";
 import { patienceLeft, customer } from "../core/shift.js";
 import { capacity, stockUsed, packPrice, recipeCost } from "../core/economy.js";
-import { xpProgress, recipesAt } from "../core/progression.js";
+import { xpProgress, unlocksAt } from "../core/progression.js";
 import { fill } from "../core/text.js";
+import { EQUIPMENT, EQUIPMENT_IDS, APPEAL_CAP } from "../data/equipment.js";
+import { appeal } from "../core/equipment.js";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
@@ -177,8 +179,32 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       st.appendChild(sg);
       grid.appendChild(st);
       c.appendChild(grid);
+      // nâng cấp + trang trí
+      const up = h("div", "box gear-box");
+      up.appendChild(h("h3", "", `Nâng cấp & trang trí · hấp dẫn ${appeal(state)}/${APPEAL_CAP}`));
+      const gl = h("div", "gear");
+      for (const id of EQUIPMENT_IDS) {
+        const it = EQUIPMENT[id];
+        const owned = !!state.owned[id], locked = it.unlock > state.level;
+        const row = h("div", "grow" + (owned ? " owned" : "") + (locked ? " locked" : ""));
+        row.dataset.item = id;
+        row.appendChild(icon(atlas, it.sprite, 54));
+        const tx = h("div");
+        tx.appendChild(h("b", "", it.name));
+        tx.appendChild(h("small", "", it.effect));
+        row.appendChild(tx);
+        const b = h("button", "btn small" + (owned ? "" : " primary"), owned ? "Đã có" : locked ? `Cấp ${it.unlock}` : `Mua ${k(it.price)}`);
+        b.type = "button"; b.dataset.buy = id;
+        b.disabled = owned || locked || state.money < it.price;
+        if (!owned && !locked && state.money < it.price) b.title = "Chưa đủ tiền";
+        b.addEventListener("click", () => { dispatch({ type: "buy", id }); prep(hooks.state()); });
+        row.appendChild(b);
+        gl.appendChild(row);
+      }
+      up.appendChild(gl);
+      c.appendChild(up);
       const nextL = LEVELS[state.level];
-      if (state.level < MAX_LEVEL && nextL) c.appendChild(h("p", "muted small", `Cấp ${nextL.level} (${nextL.xp} XP): ${nextL.note}.`));
+      if (state.level < MAX_LEVEL && nextL) { const u = unlocksAt(nextL.level).filter((x) => x.kind !== "note").map((x) => x.name); c.appendChild(h("p", "muted small", `Cấp ${nextL.level} (${nextL.xp} XP) mở: ${u.length ? u.join(", ") : nextL.note}.`)); }
       const foot = h("footer", "sheet-foot");
       foot.appendChild(h("span", "muted", `Tiền mặt ${k(state.money)} · Phí ca 12k ghi lúc mở cửa`));
       const go = h("button", "btn primary big", "Mở quán"); go.id = "openShop"; go.type = "button"; go.dataset.autofocus = "";
@@ -241,7 +267,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const row = (a, b, cls = "") => { tbl.appendChild(h("dt", cls, a)); tbl.appendChild(h("dd", cls, b)); };
       row("Doanh thu", k(S.revenue));
       row("Giá vốn ly bán", "−" + k(S.cogs));
-      row("Hao hụt (ly bỏ, sửa bước)", "−" + k(S.waste));
+      row(S.pearlWaste ? `Hao hụt (ly bỏ, sửa bước, ${S.pearlWaste} phần trân châu dư)` : "Hao hụt (ly bỏ, sửa bước)", "−" + k(S.waste));
       row("Phí ca", "−" + k(S.fee));
       row("Lợi nhuận vận hành", (S.profit >= 0 ? "" : "−") + k(Math.abs(S.profit)), "total");
       if (S.restock) row("Nhập hàng giữa ca (dòng tiền)", "−" + k(S.restock));
@@ -249,7 +275,7 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const meta = h("p", "sum-meta");
       meta.textContent = `Danh tiếng ${S.repDelta >= 0 ? "+" : ""}${S.repDelta} → ${S.rep} · +${S.xp} XP · Cấp ${S.level} · Tiền mặt ${k(S.money)}`;
       c.appendChild(meta);
-      if (S.levelUps.length) c.appendChild(h("p", "levelup", `Lên cấp ${S.levelUps.join(", ")}! ${S.levelUps.map((l) => LEVELS[l - 1].note).join(" · ")}`));
+      if (S.levelUps.length) c.appendChild(h("p", "levelup", `Lên cấp ${S.levelUps.join(", ")}! Mở: ${S.levelUps.flatMap((l) => unlocksAt(l).filter((u) => u.kind !== "note").map((u) => u.name)).join(", ") || "quyền lợi mới"}.`));
       const rv = h("div", "reviews");
       rv.appendChild(h("h3", "", "Review trong ca"));
       if (!S.reviews.length) rv.appendChild(h("p", "muted", "Chưa có review nào. Ca này yên tĩnh quá."));

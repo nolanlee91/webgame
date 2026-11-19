@@ -26,6 +26,7 @@ export const stepsFor = (o) => [["cup", "ly"], ["base", o.base], ["add", o.add],
 /** Pha đúng phiếu (có thể ghi đè một bước) rồi giao. */
 export function brewFor(s, c, override = {}) {
   const o = { ...c.order, ...override };
+  if (o.topping === "tran-chau" && s.shift.kitchen.ready < 1) { act(s, { type: "cook", size: 3 }); advance(s, 18200); } // nấu mẻ trân châu trước
   for (const [step, id] of stepsFor(o)) act(s, { type: "brew", step, id });
 }
 export function serveRight(s, c, override = {}) {

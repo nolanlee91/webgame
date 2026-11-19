@@ -5,6 +5,7 @@
 import * as shift from "./shift.js";
 import { restock, stockUsed, capacity } from "./economy.js";
 import { levelForXp } from "./progression.js";
+import { buy } from "./equipment.js";
 import { STOCK_IDS } from "../data/ingredients.js";
 
 const HANDLERS = {
@@ -17,6 +18,8 @@ const HANDLERS = {
   serve: (s, a, ev) => shift.serve(s, a.cid, ev),
   resolve: (s, a, ev) => shift.resolve(s, a.choice, ev),
   restock: (s, a, ev) => restock(s, a.id, ev),
+  cook: (s, a, ev) => shift.cook(s, a.size, ev),
+  buy: (s, a, ev) => buy(s, a.id, ev),
   setName: (s, a) => {
     const n = typeof a.name === "string" ? a.name.replace(/\s+/g, " ").trim().slice(0, 32) : "";
     if (!n) return { err: "empty-name" };
@@ -34,6 +37,7 @@ export function invariantError(s, before) {
   const u = stockUsed(s);
   if (u > capacity(s) && u > (before ? stockUsed(before) : 0)) return "capacity";
   if (!(s.rep >= 0 && s.rep <= 100)) return "rep";
+  if (s.shift && (!Number.isInteger(s.shift.kitchen.ready) || s.shift.kitchen.ready < 0)) return "kitchen";
   if (s.level !== levelForXp(s.xp)) return "level";
   return null;
 }

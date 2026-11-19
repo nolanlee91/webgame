@@ -6,6 +6,8 @@ import { RECIPE } from "../data/recipes.js";
 import { ARCHETYPES } from "../data/customers.js";
 import { START_MONEY, START_REP, SPOTS } from "../data/shift.js";
 import { levelForXp } from "./progression.js";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js";
+import { capacityFor } from "./equipment.js";
 
 export const SAVE_VERSION = 1;
 export const MIGRATIONS = {}; // { 1: (raw) => rawV2 } khi có v2
@@ -16,6 +18,7 @@ export function createState(seed = 20261119) {
     money: START_MONEY, xp: 0, level: 1, rep: START_REP, day: 1, capacity: START_CAPACITY,
     stock: Object.fromEntries(STOCK_IDS.map((id) => [id, START_STOCK[id] || 0])),
     stats: { cups: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, reviews: {} },
+    owned: {}, carryPearls: 0,
     shift: null, lastSummary: null, journal: [],
   };
 }
@@ -78,7 +81,13 @@ function loadShift(sh) {
   }
   const Lg = obj(sh.ledger) ? sh.ledger : {};
   const ledger = {};
-  for (const k of ["revenue", "cogs", "waste", "fee", "restock", "cups", "served", "lost", "refunds", "remakes"]) ledger[k] = int(Lg[k], 0, BIG, 0);
+  for (const k of ["revenue", "cogs", "waste", "fee", "restock", "cups", "served", "lost", "refunds", "remakes", "pearlWaste"]) ledger[k] = int(Lg[k], 0, BIG, 0);
+  const K = obj(sh.kitchen) ? sh.kitchen : {};
+  const kitchen = {
+    ready: int(K.ready, 0, 99, 0),
+    batches: (Array.isArray(K.batches) ? K.batches : []).filter((b) => obj(b) && BATCHES[b.size]).slice(0, 2)
+      .map((b) => ({ size: b.size, ms: BATCHES[b.size].ms, doneAt: num(b.doneAt, 0, t + BATCHES[b.size].ms, t + BATCHES[b.size].ms) })),
+  };
   const ids = new Set(customers.map((c) => c.id));
   let dialog = null;
   if (obj(sh.dialog) && sh.dialog.kind === "complaint" && ids.has(sh.dialog.cid)) {
@@ -89,7 +98,7 @@ function loadShift(sh) {
     day: int(sh.day, 1, 1e6, 1), t, duration: int(sh.duration, 30000, 600000, 180000), patienceMult: num(sh.patienceMult, 0.5, 3, 1),
     hints: !!sh.hints, tutorial: !!sh.tutorial, status: "open", schedule, planned: int(sh.planned, 0, 40, schedule.length + customers.length),
     customers, nextCid: Math.max(int(sh.nextCid, 1, 1e6, 1), ...customers.map((c) => c.id + 1)), active: ids.has(sh.active) ? sh.active : null,
-    cup: loadCup(sh.cup), dialog, ledger,
+    cup: loadCup(sh.cup), dialog, ledger, kitchen,
     reviews: Array.isArray(sh.reviews) ? sh.reviews.filter(obj).slice(0, 40).map((r) => ({
       cid: int(r.cid, 0, 1e6, 0), name: str(r.name, 40, "Khách"), arch: ARCHETYPES[r.arch] ? r.arch : "hoc-sinh", recipe: RECIPE[r.recipe] ? r.recipe : "tra-dao",
       stars: int(r.stars, 1, 5, 3), line: str(r.line, 240, ""), reason: str(r.reason, 30, ""), rep: int(r.rep, -8, 8, 0) })) : [],
@@ -117,8 +126,13 @@ export function loadSave(raw) {
   s.level = levelForXp(s.xp);
   s.rep = int(d.rep, 0, 100, s.rep);
   s.day = int(d.day, 1, 1e6, 1);
-  s.capacity = int(d.capacity, START_CAPACITY, 400, START_CAPACITY);
-  if (obj(d.stock)) for (const id of STOCK_IDS) s.stock[id] = int(d.stock[id], 0, 999, 0);
+  if (obj(d.stock)) {
+    for (const id of STOCK_IDS) s.stock[id] = int(d.stock[id], 0, 999, 0);
+    if (d.stock["tran-chau"] !== undefined && d.stock[PEARL_RAW] === undefined) s.stock[PEARL_RAW] = int(d.stock["tran-chau"], 0, 999, 0); // bản thử trước Bếp topping
+  }
+  if (obj(d.owned)) for (const id of Object.keys(EQUIPMENT)) if (d.owned[id] === true) s.owned[id] = true;
+  s.capacity = capacityFor(s);
+  s.carryPearls = int(d.carryPearls, 0, 12, 0);
   if (obj(d.stats)) {
     for (const k of ["cups", "revenue", "shifts", "bestProfit", "spentStock"]) s.stats[k] = int(d.stats[k], k === "bestProfit" ? -BIG : 0, BIG, 0);
     if (obj(d.stats.reviews)) for (const k of [1, 2, 3, 4, 5]) if (d.stats.reviews[k]) s.stats.reviews[k] = int(d.stats.reviews[k], 0, BIG, 0);

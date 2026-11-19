@@ -3,6 +3,7 @@ import { LEVELS, MAX_LEVEL } from "../data/levels.js";
 import { RECIPES } from "../data/recipes.js";
 import { CHOICES, STOCK } from "../data/ingredients.js";
 import { ARCHETYPES } from "../data/customers.js";
+import { EQUIPMENT } from "../data/equipment.js";
 
 export function levelForXp(xp) {
   let lv = 1;
@@ -31,6 +32,8 @@ export function unlocksAt(level) {
   for (const r of RECIPES) if (r.unlock === level) out.push({ kind: "recipe", id: r.id, name: r.name });
   for (const [id, it] of Object.entries(STOCK)) if (it.unlock === level) out.push({ kind: "stock", id, name: it.name });
   for (const c of CHOICES.base) if (c.unlock === level && !STOCK[c.id]) out.push({ kind: "base", id: c.id, name: c.name });
+  for (const [id, it] of Object.entries(EQUIPMENT)) if (it.unlock === level) out.push({ kind: "equipment", id, name: it.name });
+  for (const [id, a] of Object.entries(ARCHETYPES)) if (a.unlock === level && level > 1) out.push({ kind: "customer", id, name: "Khách " + a.label });
   const L = LEVELS[level - 1];
   if (L?.note) out.push({ kind: "note", name: L.note });
   return out;
