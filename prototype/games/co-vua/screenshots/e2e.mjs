@@ -40,7 +40,12 @@ const at = sel => ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)
 const pressSel = async sel => { const p = await at(sel); if (!p) throw new Error('không thấy ' + sel); await press(...p); await sleep(200); };
 const visible = sel => ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});return !!e&&!e.closest('[hidden]')&&e.getBoundingClientRect().width>0})()`);
 const text = sel => ev(`document.querySelector(${JSON.stringify(sel)}).textContent`);
-const choose = async (k, v) => { await pressSel(`.seg[data-k="${k}"] button[data-v="${v}"]`); };
+// Màn vào game: "Chơi với máy" mở bước tuỳ chọn (#vSolo: độ khó + Bắt đầu)
+const toSolo = async () => { if (await ev(`!document.getElementById('vEntry').hidden`)) await pressSel('#soloBtn'); };
+const choose = async (k, v) => { await toSolo(); await pressSel(`#vSolo .seg[data-k="${k}"] button[data-v="${v}"]`); };
+const startSolo = async () => { await toSolo(); await pressSel('#startBtn'); };
+const soloOpts = () => ev(`[...document.querySelectorAll('#vSolo .seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`);
+const entryFits = () => ev(`(()=>{const ov=document.getElementById('ovMenu'),o=ov.getBoundingClientRect();return ov.scrollTop===0&&['createBtn','joinBtn','soloBtn'].every(i=>{const r=document.getElementById(i).getBoundingClientRect();return r.height>=44&&r.top>=o.top&&r.bottom<=o.bottom})})()`);
 const SQ = n => (8 - +n[1]) * 8 + 'abcdefgh'.indexOf(n[0]);
 const sqPt = async n => ev(`(()=>{const p=__game.squarePoint(${SQ(n)});return [p.x,p.y]})()`);
 const mv = async (a, b) => { await press(...await sqPt(a)); await sleep(80); await press(...await sqPt(b)); await sleep(120); };
@@ -59,11 +64,19 @@ await nav(BASE); await ev('localStorage.clear();sessionStorage.clear()');
 // Bản lưu cũ còn chế độ "2 người chung máy" (pvp) → chuyển sang chơi với máy, bỏ ván dở chung máy
 await ev(`localStorage.setItem('wgp.covua.v1', JSON.stringify({opts:{mode:'pvp',aiLevel:'normal'},game:{mode:'pvp',aiLevel:'easy',score:[1,0],draws:0,round:2,white:1,moves:[[${SQ('e2')},${SQ('e4')}]]}}))`);
 await nav(BASE);
-check('bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy', await ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,normal' && await visible('#optAi') && !(await visible('#resumeGameBtn')));
+check('bản lưu cũ mode "pvp" → giữ độ khó (Vừa), bỏ ván dở chung máy', await soloOpts() === 'normal' && !(await visible('#resumeGameBtn')));
 await ev('localStorage.clear()'); await nav(BASE);
-check('menu hiện, mặc định Chơi với máy (Dễ), chỉ còn Chơi với máy + Online', await visible('#ovMenu') && await ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,easy' && await visible('#optAi') && await ev(`[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()`) === 'ai,online' && !/chung máy/.test(await text('#ovMenu')));
+check('mở game → màn vào game chuẩn: tên · Tạo phòng online · mã phòng + Vào phòng · Chơi với máy; không còn ô "Chế độ", luật gập trong "Cách chơi"', await visible('#ovMenu') && await visible('#vEntry') && await visible('#nameIn') && await visible('#codeIn') && !(await visible('#vSolo')) && await ev(`!document.querySelector('[data-k=mode]')&&!document.querySelector('details.how').open`) && await entryFits() && !/chung máy/.test(await text('#ovMenu')));
+check('mặc định độ khó máy: Dễ', await soloOpts() === 'easy');
+await view(1366, 768, false, 1); await sleep(300);
+check('desktop 1366×768: 3 nút màn vào game hiện đủ, không cuộn', await entryFits() && await noOverflow());
+await view(1440, 900, false, 1); await sleep(300);
+await pressSel('#soloBtn');
+check('bấm "Chơi với máy" → bước tuỳ chọn, focus vào Bắt đầu', await visible('#vSolo') && !(await visible('#vEntry')) && await ev('document.activeElement.id') === 'startBtn');
+await pressSel('#soloBack');
+check('nút "Quay lại" → màn đầu, focus về Chơi với máy', await visible('#vEntry') && await ev('document.activeElement.id') === 'soloBtn');
 await shot('covua-desktop-menu.png');
-await pressSel('#startBtn');
+await startSolo();
 let s = await S();
 check('Bắt đầu → thế xuất phát, bạn cầm Trắng đi trước, khung người 1 sáng LƯỢT', s && s.mode === 'ai' && s.white === 0 && s.n === 0 && s.turn === 'w' && await ev(`document.getElementById('plA').classList.contains('on')`));
 check('bàn cờ nằm gọn trong khung, không tràn trang', await boardIn() && await noOverflow());
@@ -107,8 +120,8 @@ check('chơi tiếp → khôi phục đúng 8 nước', s && s.n === 8);
 
 // ===== 2. Chơi với máy (dễ) =====
 await pressSel('#menuBtn'); await pressSel('#menuBtnP');
-await choose('mode', 'ai'); await choose('aiLevel', 'easy');
-await pressSel('#startBtn'); s = await S();
+await choose('aiLevel', 'easy');
+await startSolo(); s = await S();
 check('chơi với máy: bạn cầm Trắng ván 1', s.mode === 'ai' && s.white === 0 && s.turn === 'w');
 await mv('d2', 'd4');
 check('máy trả lời trong ~1 giây', await waitFor('__game.state.moves.length===2', 3000));
@@ -126,8 +139,8 @@ await shot('covua-desktop-voi-may-den.png');
 await view(390, 844, true, 3); await touch(true); press = tap;
 await nav(BASE); await ev('localStorage.clear()'); await nav(BASE);
 await shot('covua-mobile-menu.png');
-check('mobile: menu không tràn ngang', await noOverflow());
-await pressSel('#startBtn');
+check('mobile 390×844: màn vào game không tràn ngang, 3 nút hiện đủ không cuộn', await noOverflow() && await entryFits());
+await startSolo();
 check('mobile: bàn cờ vừa khung, không tràn', await boardIn() && await noOverflow());
 check('mobile: ô cờ đủ to để chạm (≥ 40px)', await ev('__game.layout.cs/__game.layout.dpr') >= 40, String(await ev('__game.layout.cs/__game.layout.dpr')));
 await mv('e2', 'e4'); s = await S();
@@ -144,9 +157,8 @@ check('mobile: hàng nút nằm gọn trong màn hình, cao ≥ 40px', toolsOk);
 // ===== 4. Online: trình duyệt tạo phòng, 1 người chơi giả vào qua WebSocket =====
 await view(1440, 900, false, 1); await touch(false); press = click;
 await nav(BASE); await ev('localStorage.clear();sessionStorage.clear()'); await nav(BASE);
-await choose('mode', 'online');
 await ev(`document.getElementById('nameIn').value='Tí'`);
-await pressSel('#createBtn');
+await pressSel('#createBtn'); // Cờ Vua: tạo phòng không có tuỳ chọn → tạo ngay
 check('tạo phòng → phòng chờ có mã 5 ký tự', await waitFor(`!document.getElementById('ovRoom').hidden`) && /^[A-Z0-9]{5}$/.test(await text('#rCode')));
 const code = await text('#rCode');
 const bot = new WebSocket('ws://' + HOST + '/ws/co-vua'); let bv = null; const berr = [];

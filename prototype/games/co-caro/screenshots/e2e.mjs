@@ -1,8 +1,8 @@
 // E2E Cờ Caro trên Chrome headless — bấm chuột / chạm thật qua CDP, chụp ảnh desktop + mobile.
-// Chạy: (ở gốc repo) PORT=8766 node server.js   rồi   node e2e.mjs <thư mục output>
+// Chạy: (ở gốc repo) PORT=8766 node server.js   rồi   node e2e.mjs <thư mục output>   [PORT=8766]
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', BASE = 'http://127.0.0.1:8766/games/co-caro/';
+const OUT = process.argv[2] || '.', BASE = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-caro/';
 mkdirSync(OUT, { recursive: true });
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9343', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
@@ -44,7 +44,13 @@ const pt = (r, c) => ev(`(()=>{const p=__game.cellPoint(${r},${c});return [p.x,p
 const cell = async (r, c) => { await press(...await pt(r, c)); await sleep(60); };
 const visible = sel => ev(`!document.querySelector(${JSON.stringify(sel)}).hidden`);
 const text = sel => ev(`document.querySelector(${JSON.stringify(sel)}).textContent`);
-const choose = async (k, v) => { await pressSel(`.seg[data-k="${k}"] button[data-v="${v}"]`); };
+// Màn vào game: "Chơi với máy" mở bước tuỳ chọn (#vSolo) có Máy / Bàn cờ / Luật + nút Bắt đầu
+const toSolo = async () => { if (await ev(`!document.getElementById('vEntry').hidden`)) await pressSel('#soloBtn'); };
+const choose = async (k, v) => { await toSolo(); await pressSel(`#vSolo .seg[data-k="${k}"] button[data-v="${v}"]`); };
+const startSolo = async () => { await toSolo(); await pressSel('#startBtn'); };
+const soloOpts = () => ev(`[...document.querySelectorAll('#vSolo .seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`);
+// 3 nút của màn vào game hiện đủ trong khung, không phải cuộn
+const entryFits = () => ev(`(()=>{const ov=document.getElementById('ovMenu'),o=ov.getBoundingClientRect();return ov.scrollTop===0&&['createBtn','joinBtn','soloBtn'].every(i=>{const r=document.getElementById(i).getBoundingClientRect();return r.height>=44&&r.top>=o.top&&r.bottom<=o.bottom})})()`);
 const csPx = () => ev('__game.layout.cs/__game.layout.dpr');
 const noOverflow = () => ev('document.documentElement.scrollWidth<=document.documentElement.clientWidth && document.documentElement.scrollHeight<=document.documentElement.clientHeight+1');
 const boardInStage = () => ev(`(()=>{const L=__game.layout,c=document.getElementById('cv').getBoundingClientRect();const n=__game.state?__game.state.size:15;const x0=c.left+(L.ox-L.fr)/L.dpr,x1=c.left+(L.ox+L.cs*n+L.fr)/L.dpr,y0=c.top+(L.oy-L.fr)/L.dpr,y1=c.top+(L.oy+L.cs*n+L.fr)/L.dpr;return x0>=c.left-1&&y0>=c.top-1&&x1<=c.right+1&&y1<=c.bottom+1&&y1<=innerHeight})()`);
@@ -66,11 +72,21 @@ await nav(BASE);
 // Bản lưu cũ còn chế độ "2 người chung máy" (pvp) → phải chuyển sang chơi với máy, bỏ ván dở chung máy
 await ev(`localStorage.setItem('${SAVE}', JSON.stringify({opts:{mode:'pvp',aiLevel:'easy',size:19,rule:'free'},game:{size:15,rule:'free',mode:'pvp',aiLevel:'hard',score:{1:2,2:1,draw:0},round:4,first:1,moves:[[7,7],[7,8]]}}))`);
 await nav(BASE);
-check('bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy', await ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,easy,19,free' && await visible('#optAi') && !(await ev(`!!document.getElementById('resumeGameBtn')`)), await text('#mResume'));
+check('bản lưu cũ mode "pvp" → giữ tuỳ chọn (Dễ · 19×19 · Tự do), bỏ ván dở chung máy', await soloOpts() === 'easy,19,free' && !(await visible('#resumeGameBtn')), await text('#mResume'));
 await ev('localStorage.clear()'); await nav(BASE);
-check('menu hiện khi mở game, mặc định Chơi với máy (khó) · 15×15 · Tự do, không còn "2 người chung máy"', await visible('#ovMenu') && await ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,hard,15,free' && await visible('#optAi') && await ev(`!document.querySelector('[data-v=pvp]')&&[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()==='ai,online'`) && !/chung máy/.test(await text('#ovMenu')));
+check('mở game → màn vào game chuẩn: tên · Tạo phòng online · mã phòng + Vào phòng · Chơi với máy; không còn ô "Chế độ", luật gập trong "Cách chơi"', await visible('#ovMenu') && await visible('#vEntry') && !(await visible('#vSolo')) && await ev(`!document.querySelector('[data-k=mode]')&&!document.querySelector('[data-v=pvp]')&&!document.querySelector('details.how').open`) && await entryFits() && !/chung máy/.test(await text('#ovMenu')));
+check('tuỳ chọn mặc định chơi với máy: Khó · 15×15 · Tự do', await soloOpts() === 'hard,15,free');
+await view(1366, 768, false, 1); await sleep(300);
+check('desktop 1366×768: 3 nút màn vào game hiện đủ, không cuộn', await entryFits() && await noOverflow());
+await view(1440, 900, false, 1); await sleep(300);
+await pressSel('#soloBtn');
+check('bấm "Chơi với máy" → bước tuỳ chọn, focus vào Bắt đầu', await visible('#vSolo') && !(await visible('#vEntry')) && await ev(`document.activeElement.id`) === 'startBtn');
+await key('Escape');
+check('Esc ở bước tuỳ chọn → quay lại màn đầu, focus về nút Chơi với máy', await visible('#vEntry') && await ev(`document.activeElement.id`) === 'soloBtn');
+await pressSel('#soloBtn'); await pressSel('#soloBack');
+check('nút "Quay lại" → màn đầu', await visible('#vEntry') && !(await visible('#vSolo')));
 await shot('caro-desktop-menu.png');
-await pressSel('#startBtn');
+await startSolo();
 let s = await S();
 check('Bắt đầu → bàn 15×15 trống, X (Bạn) đi trước, khung X sáng "LƯỢT"', s && s.size === 15 && s.mode === 'ai' && s.moves === 0 && s.turn === 1 && (await text('#nX')) === 'Bạn' && await ev(`document.getElementById('plX').classList.contains('on')&&!document.getElementById('plO').classList.contains('on')`), JSON.stringify(s));
 check('desktop chuột: không hiện nút Đặt (một lần nhấp là đặt)', await ev(`getComputedStyle(document.getElementById('placeBar')).display==='none'`));
@@ -157,8 +173,8 @@ await sleep(1500);
 // ===== 2. Chơi với máy đến hết ván =====
 await pressSel('#menuBtnE');
 await choose('rule', 'free');
-check('Chơi với máy → có lựa chọn Dễ/Khó', await visible('#optAi'));
-await pressSel('#startBtn');
+check('Chơi với máy → có lựa chọn Dễ/Khó', await visible('#vSolo') && await ev(`[...document.querySelectorAll('#vSolo .seg[data-k=aiLevel] button')].map(b=>b.dataset.v).join()`) === 'easy,hard');
+await startSolo();
 check('HUD: "Bạn" (X) vs "Máy (khó)" (O)', (await text('#nX')) === 'Bạn' && /Máy/.test(await text('#nO')));
 await cell(7, 7); s = await S();
 check('bạn đánh → máy "đang nghĩ", bàn khoá', s.thinking && s.turn === 2 && /Máy đang nghĩ/.test(await text('#hStatus')));
@@ -185,7 +201,7 @@ check('ván tiếp với máy: nếu máy thua thì máy đi trước (tự đá
 
 // ===== 3. Đổi kích thước giữa ván =====
 await pressSel('#menuBtn'); await pressSel('#menuBtnP');
-await pressSel('#startBtn'); s = await S();
+await startSolo(); s = await S();
 check('Trận mới từ menu → ván với máy, bàn trống', s.mode === 'ai' && s.moves === 0);
 await cell(7, 7); await waitAi();
 await view(390, 844, true, 3); await sleep(400);
@@ -207,8 +223,8 @@ await waitAi();
 await view(390, 844, true, 3); await touch(true); press = tap;
 await nav(BASE); await ev('localStorage.clear()'); await nav(BASE);
 await shot('caro-mobile-menu.png');
-check('mobile: menu không tràn, nút ≥ 44px', await noOverflow() && await ev(`[...document.querySelectorAll('#ovMenu .btn')].filter(b=>b.getClientRects().length).every(b=>b.offsetHeight>=44)`));
-await pressSel('#startBtn');
+check('mobile 390×844: màn vào game không tràn, 3 nút hiện đủ không cuộn, nút ≥ 44px', await noOverflow() && await entryFits() && await ev(`[...document.querySelectorAll('#ovMenu .btn')].filter(b=>b.getClientRects().length).every(b=>b.offsetHeight>=44)`));
+await startSolo();
 check('mobile: chạm "Bắt đầu" → vào ván', !!(await S()), await ev(`JSON.stringify([innerHeight, document.getElementById('startBtn')?.getBoundingClientRect().y, document.getElementById('ovMenu').hidden])`));
 await sleep(200);
 const cs15 = await csPx();
@@ -251,7 +267,7 @@ check('mobile: đánh với máy bằng chạm + Đặt đến hết ván → c�
 await sleep(1500);
 check('mobile: bảng kết quả gọn trong màn', await visible('#ovEnd') && /(Bạn|Máy) thắng|Hòa/.test(await text('#eTitle')) && await noOverflow());
 await shot('caro-mobile-thang.png');
-await pressSel('#menuBtnE'); await choose('size', '19'); await pressSel('#startBtn'); await sleep(200);
+await pressSel('#menuBtnE'); await choose('size', '19'); await startSolo(); await sleep(200);
 const cs19 = await csPx();
 check('mobile 19×19: bàn gọn, chạm + Đặt vẫn đặt đúng ô', await boardInStage() && (await put(18, 18), (await S()).moves >= 1 && await ev('__game.state.board[18*19+18]===1')), cs19.toFixed(1) + 'px/ô');
 await waitAi();

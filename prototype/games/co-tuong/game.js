@@ -110,9 +110,10 @@ export function mount(root, ctx = {}) {
     plR: $("plR"), plB: $("plB"), nR: $("nR"), nB: $("nB"), sR: $("sR"), sB: $("sB"), gR: $("gR"), gB: $("gB"), tR: $("tR"), tB: $("tB"),
     round: $("hRound"), status: $("hStatus"), draw: $("hDraw"),
     undo: $("undoBtn"), drawBtn: $("drawBtn"), resign: $("resignBtn"), next: $("newBtn"), menu: $("menuBtn"), mute: $("muteBtn"), muteIc: $("muteIc"), tip: $("tip"),
-    ovMenu: $("ovMenu"), ovPause: $("ovPause"), ovEnd: $("ovEnd"), mActions: $("mActions"), mResume: $("mResume"), optAi: $("optAi"),
+    ovMenu: $("ovMenu"), ovPause: $("ovPause"), ovEnd: $("ovEnd"), mResume: $("mResume"), mNote: $("mNote"),
+    vEntry: $("vEntry"), vSolo: $("vSolo"), createBtn: $("createBtn"), soloBtn: $("soloBtn"), resumeGame: $("resumeGameBtn"), startBtn: $("startBtn"),
     eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), pSub: $("pSub"),
-    optName: $("optName"), nameIn: $("nameIn"), mJoin: $("mJoin"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
+    nameIn: $("nameIn"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
     ovRoom: $("ovRoom"), rCode: $("rCode"), rSeats: $("rSeats"), rNote: $("rNote"), rStart: $("rStart"), rCopy: $("rCopy"), rLeave: $("rLeave"),
     toast: $("toast"), menuP: $("menuBtnP"), menuE: $("menuBtnE"),
     offer: $("offer"), offerT: $("offerT"), offerYes: $("offerYes"), offerNo: $("offerNo"),
@@ -125,6 +126,7 @@ export function mount(root, ctx = {}) {
 
   const saved = loadSave();
   let opts = saved.opts;
+  opts.mode = "ai"; // màn vào game không còn ô "Chế độ": chơi trên máy luôn là với máy, online đi qua phòng
   let s = null;                 // trạng thái ván (null = chưa vào trận)
   let pendingResume = saved.game && !saved.game.winner && saved.game.moves.length ? saved.game : null;
   let destroyed = false, raf = 0, aiTimer = 0, endTimer = 0, thinking = false;
@@ -365,7 +367,7 @@ export function mount(root, ctx = {}) {
     renderLog();
     ui.offer.hidden = !(online() && !s.winner && room.drawOffer === 1 - room.you);
     if (!s) {
-      ui.sR.textContent = "0"; ui.sB.textContent = "0"; ui.round.textContent = room ? "Phòng " + room.code : "Chưa bắt đầu"; ui.status.textContent = room ? "Phòng chờ" : "Chọn chế độ"; ui.draw.textContent = "Hòa 0";
+      ui.sR.textContent = "0"; ui.sB.textContent = "0"; ui.round.textContent = room ? "Phòng " + room.code : "Chưa bắt đầu"; ui.status.textContent = room ? "Phòng chờ" : "Sẵn sàng"; ui.draw.textContent = "Hòa 0";
       ui.status.classList.remove("chk");
       ui.plR.classList.remove("on", "win", "chk"); ui.plB.classList.remove("on", "win", "chk");
       for (const b of [ui.undo, ui.next, ui.drawBtn, ui.resign]) b.disabled = true;
@@ -429,15 +431,12 @@ export function mount(root, ctx = {}) {
         b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1;
       });
     });
-    ui.optAi.hidden = opts.mode !== "ai";
-    ui.optName.hidden = opts.mode !== "online";
-    $("privateRoomOption").hidden = ui.optName.hidden;
   }
   root.querySelectorAll(".seg").forEach((seg) => {
     seg.addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       opts[seg.dataset.k] = b.dataset.v;
-      syncOpts(); persist(); if (seg.dataset.k === "mode") menuActions();
+      syncOpts(); persist();
     });
     seg.addEventListener("keydown", (e) => {
       if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
@@ -446,39 +445,40 @@ export function mount(root, ctx = {}) {
       const nb = bs[(i + (e.key === "ArrowRight" ? 1 : bs.length - 1)) % bs.length]; nb.click(); nb.focus();
     });
   });
-  function btn(label, cls, fn, id) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "btn btn--big " + cls; b.textContent = label; if (id) b.id = id; b.onclick = fn; return b;
-  }
   function overlay(which) {
     ui.ovMenu.hidden = which !== "menu"; ui.ovPause.hidden = which !== "pause"; ui.ovEnd.hidden = which !== "end"; ui.ovRoom.hidden = which !== "room";
   }
-  function menuActions() {
-    ui.mActions.replaceChildren(); ui.mErr.textContent = "";
-    ui.mJoin.hidden = opts.mode !== "online";
-    if (opts.mode === "online") {
-      ui.mActions.append(btn("Tạo phòng online", "btn--primary", () => goOnline("create"), "createBtn"));
-      ui.mResume.textContent = "Vào phòng bạn bè: nhập mã 5 ký tự.";
-      return;
-    }
-    if (pendingResume) {
-      const g = pendingResume;
-      ui.mActions.append(btn("▶ Chơi tiếp ván dở", "btn--primary", () => start(g), "resumeGameBtn"), btn("Trận mới", "", () => start(null), "startBtn"));
-      ui.mResume.textContent = "Ván " + g.round + " đang dở · " + g.moves.length + " nước · tỉ số " + g.score[1] + " – " + g.score[2] + (g.mode === "ai" ? " (với máy)" : "");
-    } else {
-      ui.mActions.append(btn("▶ Bắt đầu", "btn--primary", () => start(null), "startBtn"));
-      ui.mResume.textContent = "";
-    }
+  // Màn vào game: "entry" (tên · Tạo phòng online · mã phòng · Chơi với máy) → "solo" (tuỳ chọn chơi với máy)
+  let view = "entry";
+  function entryFocus() { return pendingResume ? ui.resumeGame : !ui.nameIn.value.trim() ? ui.nameIn : ui.createBtn; }
+  function menuView(v, focusEl) {
+    view = v;
+    ui.vEntry.hidden = v !== "entry"; ui.vSolo.hidden = v !== "solo";
+    ui.mErr.textContent = ""; ui.ovMenu.scrollTop = 0;
+    (focusEl || (v === "solo" ? ui.startBtn : entryFocus())).focus({ preventScroll: true });
+  }
+  function menuResume() {
+    const g = pendingResume;
+    ui.resumeGame.hidden = !g;
+    ui.mResume.textContent = g ? "Ván " + g.round + " đang dở · " + g.moves.length + " nước · tỉ số " + g.score[1] + " – " + g.score[2] + " (với máy)" : "";
   }
   function showMenu(err = "") {
     clearTimers();
     room = null; sent = false; document.body.classList.remove("is-online");
-    renderChat(null);
-    syncOpts(); menuActions(); ui.mErr.textContent = err;
+    renderChat(null); busyMenu(false);
+    syncOpts(); menuResume(); ui.mNote.textContent = "";
     overlay("menu");
     s = null; resetSel(); cursor = null; fx = { move: null, bad: null, check: 0 };
     hud(); layout(); draw(performance.now());
-    (opts.mode === "online" && !ui.nameIn.value ? ui.nameIn : ui.mActions.firstChild).focus({ preventScroll: true });
+    menuView("entry"); ui.mErr.textContent = err;
   }
+  ui.soloBtn.onclick = () => menuView("solo");
+  ui.resumeGame.onclick = () => { if (pendingResume) start(pendingResume); };
+  ui.startBtn.onclick = () => start(null);
+  $("soloBack").onclick = () => menuView("entry", ui.soloBtn);
+  ui.createBtn.onclick = () => goOnline("create");
+  // Esc ở bước 2 → quay lại màn đầu
+  ui.ovMenu.addEventListener("keydown", (e) => { if (e.key === "Escape" && view !== "entry") { e.preventDefault(); e.stopPropagation(); menuView("entry", ui.soloBtn); } });
 
   // ---------- Online ----------
   const net = createNet({
@@ -499,7 +499,7 @@ export function mount(root, ctx = {}) {
   function busyMenu(on) { ui.ovMenu.querySelectorAll(".btn").forEach((b) => (b.disabled = on)); }
   function goOnline(kind) {
     const nm = ui.nameIn.value.trim();
-    if (!nm) { ui.mErr.textContent = "Nhập tên của bạn trước nhé."; ui.nameIn.focus(); return; }
+    if (!nm) { if (view !== "entry") menuView("entry"); ui.mErr.textContent = "Nhập tên của bạn trước nhé."; ui.nameIn.focus(); return; }
     try { localStorage.setItem(NAME_KEY, nm); } catch {}
     if (kind === "join") {
       const c = ui.codeIn.value.trim().toUpperCase();
@@ -512,6 +512,7 @@ export function mount(root, ctx = {}) {
   ui.codeIn.addEventListener("input", () => { ui.codeIn.value = ui.codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
   const onEnter = (e) => { if (e.key === "Enter") { e.preventDefault(); goOnline(e.target === ui.codeIn || ui.codeIn.value ? "join" : "create"); } };
   ui.nameIn.addEventListener("keydown", onEnter); ui.codeIn.addEventListener("keydown", onEnter);
+  ui.nameIn.addEventListener("input", () => { if (ui.mErr.textContent === "Nhập tên của bạn trước nhé.") ui.mErr.textContent = ""; });
   try { ui.nameIn.value = localStorage.getItem(NAME_KEY) || ""; } catch {}
 
   function showRoom(v) {
@@ -640,7 +641,7 @@ export function mount(root, ctx = {}) {
 
   function start(game) {
     if (game) { s = game; opts = { mode: s.mode, aiLevel: s.aiLevel }; }
-    else s = newMatch(opts);
+    else { opts.mode = "ai"; s = newMatch(opts); }
     pendingResume = null; drawAsked = -1;
     resetSel(); cursor = null; hover = -1; fx = { move: null, bad: null, check: 0 };
     overlay(null); layout(); persist(); hud(); cv.focus({ preventScroll: true });
@@ -852,8 +853,8 @@ export function mount(root, ctx = {}) {
     const seat = net.seat;
     if (seat && seat.code && (!code || code === seat.code)) { net.resume(); ui.mErr.textContent = "Đang vào lại phòng " + seat.code + "…"; }
     else if (CODE_RE.test(code)) {
-      opts.mode = "online"; syncOpts(); menuActions(); ui.codeIn.value = code;
-      ui.mResume.textContent = "Bạn được mời vào phòng " + code + " — nhập tên rồi bấm Vào phòng.";
+      ui.codeIn.value = code;
+      ui.mNote.textContent = "Bạn được mời vào phòng " + code + " — nhập tên rồi bấm Vào phòng.";
       (ui.nameIn.value ? ui.joinBtn : ui.nameIn).focus({ preventScroll: true });
     }
   }

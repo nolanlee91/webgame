@@ -76,6 +76,10 @@ async function until(fn, ms = 6000, step = 60) { const end = Date.now() + ms; wh
 
 // Dựng sẵn thế cờ: ghi ván dở (chơi với máy, bạn cầm Đỏ) vào localStorage rồi tải lại → "Chơi tiếp ván dở"
 const saveGame = (pg, moves) => pg.ev(`localStorage.setItem('wgp.tuong.v1', ${JSON.stringify(JSON.stringify({ opts: { mode: 'ai', aiLevel: 'easy' }, game: { mode: 'ai', aiLevel: 'easy', score: { 1: 0, 2: 0, draw: 0 }, round: 1, moves: moves.map(([a, b]) => [sq(a), sq(b)]) } }))})`);
+// Màn vào game: "Chơi với máy" mở bước tuỳ chọn (#vSolo: độ khó + Bắt đầu)
+const startSolo = async (pg) => { if (await pg.vis('#vEntry')) await pg.press('#soloBtn'); await pg.press('#startBtn'); };
+const soloOpts = (pg) => pg.ev(`[...document.querySelectorAll('#vSolo .seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`);
+const entryFits = (pg) => pg.ev(`(()=>{const ov=document.getElementById('ovMenu'),o=ov.getBoundingClientRect();return ov.scrollTop===0&&['createBtn','joinBtn','soloBtn'].every(i=>{const r=document.getElementById(i).getBoundingClientRect();return r.height>=44&&r.top>=o.top&&r.bottom<=o.bottom})})()`);
 const waitAi = async (pg, n) => until(async () => { const v = await pg.S(); return v.moves === n && !v.thinking ? v : null; }, 5000);
 
 // ===================== 1. Desktop, chuột — chơi với máy (mặc định) =====================
@@ -84,11 +88,19 @@ await D.nav(URL0); await D.ev('localStorage.clear()');
 // Bản lưu cũ còn chế độ "2 người chung máy" (pvp) → chuyển sang chơi với máy, bỏ ván dở chung máy
 await D.ev(`localStorage.setItem('wgp.tuong.v1', JSON.stringify({opts:{mode:'pvp',aiLevel:'normal'},game:{mode:'pvp',aiLevel:'easy',score:{1:1,2:0,draw:0},round:2,moves:[[${sq('h2')},${sq('e2')}]]}}))`);
 await D.nav(URL0);
-check('bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy', await D.ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,normal' && await D.vis('#optAi') && !(await D.vis('#resumeGameBtn')));
+check('bản lưu cũ mode "pvp" → giữ độ khó (Thường), bỏ ván dở chung máy', await soloOpts(D) === 'normal' && !(await D.vis('#resumeGameBtn')));
 await D.ev('localStorage.clear()'); await D.nav(URL0);
-check('mở game → hiện menu, mặc định Chơi với máy · Dễ, chỉ còn Chơi với máy + Online', await D.vis('#ovMenu') && await D.ev(`[...document.querySelectorAll('.seg button[aria-checked=true]')].map(b=>b.dataset.v).join()`) === 'ai,easy' && await D.ev(`[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()`) === 'ai,online' && !/chung máy/.test(await D.text('#ovMenu')));
+check('mở game → màn vào game chuẩn: tên · Tạo phòng online · mã phòng + Vào phòng · Chơi với máy; không còn ô "Chế độ", luật gập trong "Cách chơi"', await D.vis('#ovMenu') && await D.vis('#nameIn') && await D.vis('#createBtn') && await D.vis('#codeIn') && await D.vis('#soloBtn') && !(await D.vis('#vSolo')) && await D.ev(`!document.querySelector('[data-k=mode]')&&!document.querySelector('details.how').open`) && await entryFits(D) && !/chung máy/.test(await D.text('#ovMenu')));
+check('mặc định độ khó máy: Dễ', await soloOpts(D) === 'easy');
+await D.P.send('Emulation.setDeviceMetricsOverride', { width: 1366, height: 768, deviceScaleFactor: 1, mobile: false }); await sleep(300);
+check('desktop 1366×768: 3 nút màn vào game hiện đủ, không cuộn', await entryFits(D) && await D.fits());
+await D.P.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false }); await sleep(300);
 await D.shot('tuong-desktop-menu.png');
-await D.press('#startBtn');
+await D.press('#soloBtn');
+check('bấm "Chơi với máy" → bước tuỳ chọn, focus vào Bắt đầu', await D.vis('#vSolo') && !(await D.vis('#vEntry')) && await D.ev('document.activeElement.id') === 'startBtn');
+await D.key('Escape', 'Escape', 27);
+check('Esc ở bước tuỳ chọn → quay lại màn đầu, focus về Chơi với máy', await D.vis('#vEntry') && await D.ev('document.activeElement.id') === 'soloBtn');
+await startSolo(D);
 let s = await D.S();
 check('Bắt đầu → 32 quân đúng chỗ, Đỏ (bạn) đi trước, HUD Đỏ sáng', s.mode === 'ai' && s.moves === 0 && s.turn === 1 && await D.ev(`__game.state.board.filter(x=>x!=='.').length===32&&document.getElementById('plR').classList.contains('on')`));
 check('desktop: bàn cờ nằm gọn, không tràn trang, ô ≥ 40px', await D.boardIn() && await D.fits() && (await D.cs()) >= 40, String(await D.cs()));
@@ -128,8 +140,8 @@ await waitAi(D, 2);
 await D.press('#menuBtn'); await D.press('#menuBtnP'); await sleep(200);
 
 // ---- chơi với máy ----
-await D.press('.seg[data-k=mode] [data-v=ai]');
-check('chọn Chơi với máy → hiện mức độ', await D.vis('#optAi'));
+await D.press('#soloBtn');
+check('chọn Chơi với máy → hiện mức độ', await D.vis('#vSolo .seg[data-k=aiLevel]'));
 await D.press('#startBtn'); s = await D.S();
 check('Trận mới → bàn mới, chế độ máy', s.moves === 0 && s.mode === 'ai');
 await D.go('h2', 'e2');
@@ -150,7 +162,8 @@ check('desktop không có lỗi JS', D.errors.length === 0, D.errors.join(' | ')
 const T = await newPage('mobile', 390, 844, true);
 await T.nav(URL0); await T.ev('localStorage.clear()'); await T.nav(URL0);
 await T.shot('tuong-mobile-menu.png');
-await T.press('#startBtn');
+check('mobile 390×844: màn vào game không tràn, 3 nút hiện đủ không cuộn', await T.fits() && await entryFits(T));
+await startSolo(T);
 check('mobile dọc: bàn cờ nằm gọn, không tràn, ô ≥ 34px', await T.boardIn() && await T.fits() && (await T.cs()) >= 34, String(await T.cs()));
 await T.at('b0'); s = await T.S();
 check('chạm Mã b0 → chọn, hiện ô đi + gợi ý chạm', s.sel === sq('b0') && s.dests.length === 2 && await T.vis('#tip'));
@@ -174,14 +187,13 @@ check('mobile không có lỗi JS', T.errors.length === 0, T.errors.join(' | '))
 const A = await newPage('A', 1280, 820, false);
 const M = await newPage('M', 390, 844, true);
 await A.nav(URL0);
-await A.press('.seg[data-k=mode] [data-v=online]');
-check('chọn Online → ô tên, Tạo phòng, ô mã', await A.vis('#nameIn') && await A.vis('#createBtn') && await A.vis('#codeIn'));
+check('màn vào game → ô tên, Tạo phòng online, ô mã', await A.vis('#nameIn') && await A.vis('#createBtn') && await A.vis('#codeIn'));
 await A.type('#nameIn', 'An Tướng'); await A.press('#createBtn');
 const code = await until(async () => (await A.S()).room?.code);
 check('tạo phòng → mã 5 ký tự, có ?room=, hiện phòng chờ, Bắt đầu khoá', /^[A-Z0-9]{5}$/.test(code || '') && (await A.ev('location.search')).includes(code) && await A.vis('#ovRoom') && await A.ev(`document.querySelector('#rStart').disabled`), code);
 await A.shot('online-phong-cho-desktop.png');
 await M.nav(URL0 + '?room=' + code);
-check('link mời → chọn sẵn Online + điền mã', await M.ev(`document.querySelector('#codeIn').value`) === code);
+check('link mời → điền sẵn mã + lời mời', await M.ev(`document.querySelector('#codeIn').value`) === code && (await M.text('#mNote')).includes(code));
 await M.type('#nameIn', 'Bình'); await M.press('#joinBtn');
 check('điện thoại vào phòng → cả 2 thấy 2 người', !!(await until(async () => (await A.S()).room?.n === 2 && (await M.S()).room?.n === 2)));
 await A.type('#chatIn', 'Chào Bình!'); await A.press('#chatF button[type=submit]');

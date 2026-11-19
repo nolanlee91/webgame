@@ -69,16 +69,21 @@ async function until(fn, ms = 6000, step = 60) { const end = Date.now() + ms; wh
 const A = await newPage('A', 1280, 820, false);
 const M = await newPage('B', 390, 844, true);
 
-// ---------- Menu: chọn Online, tạo phòng ----------
+// ---------- Màn vào game: tên · Tạo phòng online · mã phòng · Chơi với máy ----------
 await A.nav(URL0);
-await A.press('.seg[data-k=mode] [data-v=online]'); await sleep(150);
-check('chọn Online → hiện ô tên, nút Tạo phòng online, ô mã + Vào phòng', await A.vis('#nameIn') && (await A.text('#mActions')).includes('Tạo phòng online') && await A.vis('#codeIn') && await A.vis('#joinBtn'));
+check('màn vào game: ô tên, nút Tạo phòng online, ô mã + Vào phòng, Chơi với máy — không còn ô "Chế độ"', await A.vis('#nameIn') && await A.vis('#createBtn') && await A.vis('#codeIn') && await A.vis('#joinBtn') && await A.vis('#soloBtn') && !(await A.ev(`!!document.querySelector('[data-k=mode]')`)));
 await A.ev(`document.querySelector('#nameIn').value=''`);
 await A.press('#createBtn'); await sleep(150);
-check('chưa nhập tên → báo lỗi, chưa kết nối', (await A.text('#mErr')).includes('Nhập tên') && !(await A.ev('!!window.__game.net.ws')));
-await A.press('.seg[data-k=size] [data-v="19"]').catch(() => {});
-await A.type('#nameIn', 'An Caro'); await A.press('#createBtn');
+check('chưa nhập tên → báo lỗi, chưa kết nối, vẫn ở màn đầu', (await A.text('#mErr')).includes('Nhập tên') && !(await A.ev('!!window.__game.net.ws')) && await A.vis('#vEntry'));
+await A.type('#nameIn', 'An Caro'); await A.enter(); await sleep(150);
+check('Enter ở ô tên → bước tuỳ chọn phòng (Bàn cờ + Luật), chưa kết nối', await A.vis('#vCreate') && await A.vis('#vCreate .seg[data-k=size]') && await A.vis('#vCreate .seg[data-k=rule]') && !(await A.ev('!!window.__game.net.ws')));
+await A.press('#createBack'); await sleep(100);
+check('Quay lại → màn đầu, focus nút Tạo phòng online', await A.vis('#vEntry') && await A.ev('document.activeElement.id') === 'createBtn');
+await A.press('#createBtn'); await sleep(100);
+await A.press('#vCreate .seg[data-k=size] [data-v="19"]');
+await A.press('#createRoomBtn');
 const code = await until(async () => (await A.S()).room?.code);
+check('phòng tạo theo bàn đã chọn (19×19)', (await A.text('#rOpts')).includes('19×19'), await A.text('#rOpts'));
 check('tạo phòng → mã 5 ký tự, URL có ?room=, hiện phòng chờ', /^[A-Z2-9]{5}$/.test(code || '') && (await A.ev('location.search')).includes('room=' + code) && await A.vis('#ovRoom'), code);
 check('phòng chờ: chủ phòng 1 người → nút Bắt đầu khoá', await A.ev(`document.querySelector('#rStart').disabled`));
 check('máy tính: ô chat hiện cạnh bàn cờ ngay trong phòng chờ', await A.vis('#chat') && await A.vis('#chatIn'));
@@ -86,7 +91,7 @@ await A.shot('online-phong-cho-desktop.png');
 
 // ---------- Điện thoại vào bằng link mời ----------
 await M.nav(URL0 + '?room=' + code);
-check('link mời ?room= → chọn sẵn Online + điền sẵn mã', await M.ev(`document.querySelector('#codeIn').value`) === code && await M.vis('#nameIn'));
+check('link mời ?room= → điền sẵn mã, có lời mời, ô tên ngay trên', await M.ev(`document.querySelector('#codeIn').value`) === code && await M.vis('#nameIn') && (await M.text('#mNote')).includes(code));
 await M.press('#joinBtn'); await sleep(150);
 check('điện thoại chưa nhập tên → báo lỗi', (await M.text('#mErr')).includes('Nhập tên'));
 await M.type('#nameIn', 'Bình'); await M.press('#joinBtn');
@@ -190,16 +195,17 @@ await until(async () => (await M.S()).room === null);
 // ---------- Máy chủ chưa bật online ----------
 if (process.env.OFFPORT) {
   await M.nav(`http://127.0.0.1:${process.env.OFFPORT}/games/co-caro/index.html`);
-  await M.press('.seg[data-k=mode] [data-v=online]'); await sleep(100);
-  await M.type('#nameIn', 'Bình'); await M.press('#createBtn');
+  await M.type('#nameIn', 'Bình'); await M.press('#createBtn'); await sleep(100); await M.press('#createRoomBtn');
   check('máy chủ chưa bật Caro online → báo rõ, vẫn chơi được với máy', (await until(async () => (await M.text('#mErr')).includes('Chưa kết nối được'))) && !(await M.ev(`[...document.querySelectorAll('#ovMenu .btn')].some(b=>b.disabled)`)), await M.text('#mErr'));
   await M.shot('online-may-chu-tat-mobile.png');
 }
 
 // ---------- Chơi với máy vẫn như cũ (không còn chế độ 2 người chung máy) ----------
 await A.nav(URL0);
-check('menu chỉ còn Chơi với máy + Online', await A.ev(`[...document.querySelectorAll('.seg[data-k=mode] button')].map(b=>b.dataset.v).join()`) === 'ai,online');
-await A.press('.seg[data-k=mode] [data-v=ai]'); await sleep(100); await A.press('#startBtn'); await sleep(300);
+check('màn đầu không còn ô "Chế độ"; Chơi với máy mở bước tuỳ chọn', !(await A.ev(`!!document.querySelector('[data-k=mode]')`)));
+await A.press('#soloBtn'); await sleep(100);
+check('bước Chơi với máy: Máy · Bàn cờ · Luật + Bắt đầu', await A.vis('#vSolo .seg[data-k=aiLevel]') && await A.vis('#vSolo .seg[data-k=size]') && await A.vis('#startBtn'));
+await A.press('#startBtn'); await sleep(300);
 await A.cell(mid, mid); await until(async () => (await A.S()).moves === 2, 3000);
 check('chơi với máy vẫn chơi được, không có ô chat', (await A.S()).moves === 2 && !(await A.vis('#chat')) && await A.vis('#undoBtn'));
 

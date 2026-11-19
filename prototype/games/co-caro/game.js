@@ -112,9 +112,10 @@ export function mount(root, ctx = {}) {
   const ui = {
     plX: $("plX"), plO: $("plO"), nX: $("nX"), nO: $("nO"), sX: $("sX"), sO: $("sO"), round: $("hRound"), status: $("hStatus"), draw: $("hDraw"),
     undo: $("undoBtn"), next: $("newBtn"), menu: $("menuBtn"), mute: $("muteBtn"), muteIc: $("muteIc"), tip: $("tip"),
-    ovMenu: $("ovMenu"), ovPause: $("ovPause"), ovEnd: $("ovEnd"), mActions: $("mActions"), mResume: $("mResume"), optAi: $("optAi"),
+    ovMenu: $("ovMenu"), ovPause: $("ovPause"), ovEnd: $("ovEnd"), mResume: $("mResume"), mNote: $("mNote"),
+    vEntry: $("vEntry"), vSolo: $("vSolo"), vCreate: $("vCreate"), createBtn: $("createBtn"), soloBtn: $("soloBtn"), resumeGame: $("resumeGameBtn"), startBtn: $("startBtn"), createRoomBtn: $("createRoomBtn"),
     eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), pSub: $("pSub"),
-    optName: $("optName"), nameIn: $("nameIn"), mJoin: $("mJoin"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
+    nameIn: $("nameIn"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
     ovRoom: $("ovRoom"), rCode: $("rCode"), rOpts: $("rOpts"), rSeats: $("rSeats"), rNote: $("rNote"), rStart: $("rStart"), rCopy: $("rCopy"), rLeave: $("rLeave"),
     toast: $("toast"), menuP: $("menuBtnP"), menuE: $("menuBtnE"), place: $("placeBtn"),
     chat: $("chat"), chatLog: $("chatLog"), chatF: $("chatF"), chatIn: $("chatIn"), chatBtn: $("chatBtn"), chatN: $("chatN"), chatX: $("chatX"),
@@ -125,6 +126,7 @@ export function mount(root, ctx = {}) {
 
   const saved = loadSave();
   let opts = saved.opts;
+  opts.mode = "ai"; // màn vào game không còn ô "Chế độ": chơi trên máy luôn là với máy, online đi qua phòng
   let s = null;                 // trạng thái ván (null = chưa vào trận)
   let pendingResume = saved.game && !saved.game.winner && saved.game.moves.length ? saved.game : null;
   let destroyed = false, raf = 0, aiTimer = 0, endTimer = 0, thinking = false;
@@ -290,7 +292,7 @@ export function mount(root, ctx = {}) {
       ui.plX.querySelector("small").textContent = tag(1); ui.plO.querySelector("small").textContent = tag(2);
     } else { ui.plX.querySelector("small").textContent = "Quân X"; ui.plO.querySelector("small").textContent = "Quân O"; }
     if (!s) {
-      ui.sX.textContent = "0"; ui.sO.textContent = "0"; ui.round.textContent = room ? "Phòng " + room.code : "Chưa bắt đầu"; ui.status.textContent = room ? "Phòng chờ" : "Chọn chế độ"; ui.draw.textContent = "Hòa 0";
+      ui.sX.textContent = "0"; ui.sO.textContent = "0"; ui.round.textContent = room ? "Phòng " + room.code : "Chưa bắt đầu"; ui.status.textContent = room ? "Phòng chờ" : "Sẵn sàng"; ui.draw.textContent = "Hòa 0";
       ui.plX.classList.remove("on", "win"); ui.plO.classList.remove("on", "win");
       ui.undo.disabled = true; ui.next.disabled = true; return;
     }
@@ -340,15 +342,12 @@ export function mount(root, ctx = {}) {
         b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1;
       });
     });
-    ui.optAi.hidden = opts.mode !== "ai";
-    ui.optName.hidden = opts.mode !== "online";
-    $("privateRoomOption").hidden = ui.optName.hidden;
   }
   root.querySelectorAll(".seg").forEach((seg) => {
     seg.addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       const k = seg.dataset.k; opts[k] = k === "size" ? Number(b.dataset.v) : b.dataset.v;
-      syncOpts(); persist(); if (k === "mode") menuActions(); if (!s) { layout(); draw(performance.now()); }
+      syncOpts(); persist(); if (!s) { layout(); draw(performance.now()); }
     });
     seg.addEventListener("keydown", (e) => {
       if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
@@ -357,39 +356,42 @@ export function mount(root, ctx = {}) {
       const nb = bs[(i + (e.key === "ArrowRight" ? 1 : bs.length - 1)) % bs.length]; nb.click(); nb.focus();
     });
   });
-  function btn(label, cls, fn, id) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "btn btn--big " + cls; b.textContent = label; if (id) b.id = id; b.onclick = fn; return b;
-  }
   function overlay(which) {
     ui.ovMenu.hidden = which !== "menu"; ui.ovPause.hidden = which !== "pause"; ui.ovEnd.hidden = which !== "end"; ui.ovRoom.hidden = which !== "room";
   }
-  function menuActions() {
-    ui.mActions.replaceChildren(); ui.mErr.textContent = "";
-    ui.mJoin.hidden = opts.mode !== "online";
-    if (opts.mode === "online") {
-      ui.mActions.append(btn("Tạo phòng online", "btn--primary", () => goOnline("create"), "createBtn"));
-      ui.mResume.textContent = "Bàn cờ và luật ở trên áp dụng cho phòng bạn tạo. Vào phòng bạn bè: nhập mã 5 ký tự.";
-      return;
-    }
-    if (pendingResume) {
-      const g = pendingResume;
-      ui.mActions.append(btn("▶ Chơi tiếp ván dở", "btn--primary", () => start(g), "resumeGameBtn"), btn("Trận mới", "", () => start(null), "startBtn"));
-      ui.mResume.textContent = "Ván " + g.round + " đang dở · " + g.moves.length + " nước · tỉ số " + g.score[1] + " – " + g.score[2] + (g.mode === "ai" ? " (với máy)" : "");
-    } else {
-      ui.mActions.append(btn("▶ Bắt đầu", "btn--primary", () => start(null), "startBtn"));
-      ui.mResume.textContent = "";
-    }
+  // Màn vào game: "entry" (tên · Tạo phòng online · mã phòng · Chơi với máy) → "solo" (tuỳ chọn chơi với máy) / "create" (tuỳ chọn phòng online)
+  let view = "entry";
+  function entryFocus() { return pendingResume ? ui.resumeGame : !ui.nameIn.value.trim() ? ui.nameIn : ui.createBtn; }
+  function menuView(v, focusEl) {
+    view = v;
+    ui.vEntry.hidden = v !== "entry"; ui.vSolo.hidden = v !== "solo"; ui.vCreate.hidden = v !== "create";
+    ui.mErr.textContent = ""; ui.ovMenu.scrollTop = 0;
+    (focusEl || (v === "solo" ? ui.startBtn : v === "create" ? ui.createRoomBtn : entryFocus())).focus({ preventScroll: true });
+  }
+  function menuResume() {
+    const g = pendingResume;
+    ui.resumeGame.hidden = !g;
+    ui.mResume.textContent = g ? "Ván " + g.round + " đang dở · " + g.moves.length + " nước · tỉ số " + g.score[1] + " – " + g.score[2] + " (với máy)" : "";
   }
   function showMenu(err = "") {
     clearTimers();
     room = null; sent = false; document.body.classList.remove("is-online");
-    renderChat(null);
-    syncOpts(); menuActions(); ui.mErr.textContent = err;
+    renderChat(null); busyMenu(false);
+    syncOpts(); menuResume(); ui.mNote.textContent = "";
     overlay("menu");
     s = null; pending = null; hover = null; cursor = null; fx = { drop: null, win: null, bad: null };
     hud(); layout(); draw(performance.now());
-    (opts.mode === "online" && !ui.nameIn.value ? ui.nameIn : ui.mActions.firstChild).focus({ preventScroll: true });
+    menuView("entry"); ui.mErr.textContent = err;
   }
+  ui.soloBtn.onclick = () => menuView("solo");
+  ui.resumeGame.onclick = () => { if (pendingResume) start(pendingResume); };
+  ui.startBtn.onclick = () => start(null);
+  $("soloBack").onclick = () => menuView("entry", ui.soloBtn);
+  $("createBack").onclick = () => menuView("entry", ui.createBtn);
+  ui.createBtn.onclick = () => goOnline("create");
+  ui.createRoomBtn.onclick = () => goOnline("room");
+  // Esc ở bước 2 → quay lại màn đầu
+  ui.ovMenu.addEventListener("keydown", (e) => { if (e.key === "Escape" && view !== "entry") { e.preventDefault(); e.stopPropagation(); menuView("entry", view === "solo" ? ui.soloBtn : ui.createBtn); } });
 
   // ---------- Online ----------
   const net = createNet({
@@ -407,10 +409,12 @@ export function mount(root, ctx = {}) {
     reconnecting() { toast("Mất kết nối — đang nối lại…", 0); },
   }, { url: ctx.wsUrl });
   function busyMenu(on) { ui.ovMenu.querySelectorAll(".btn").forEach((b) => (b.disabled = on)); }
+  // kind: "create" (màn đầu → bước chọn bàn/luật) · "room" (gửi lệnh tạo phòng) · "join" (vào bằng mã)
   function goOnline(kind) {
     const nm = ui.nameIn.value.trim();
-    if (!nm) { ui.mErr.textContent = "Nhập tên của bạn trước nhé."; ui.nameIn.focus(); return; }
+    if (!nm) { if (view !== "entry") menuView("entry"); ui.mErr.textContent = "Nhập tên của bạn trước nhé."; ui.nameIn.focus(); return; }
     try { localStorage.setItem(NAME_KEY, nm); } catch {}
+    if (kind === "create") { menuView("create"); return; }
     if (kind === "join") {
       const c = ui.codeIn.value.trim().toUpperCase();
       if (!CODE_RE.test(c)) { ui.mErr.textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7M2Q."; ui.codeIn.focus(); return; }
@@ -422,6 +426,7 @@ export function mount(root, ctx = {}) {
   ui.codeIn.addEventListener("input", () => { ui.codeIn.value = ui.codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
   const onEnter = (e) => { if (e.key === "Enter") { e.preventDefault(); goOnline(e.target === ui.codeIn || ui.codeIn.value ? "join" : "create"); } };
   ui.nameIn.addEventListener("keydown", onEnter); ui.codeIn.addEventListener("keydown", onEnter);
+  ui.nameIn.addEventListener("input", () => { if (ui.mErr.textContent === "Nhập tên của bạn trước nhé.") ui.mErr.textContent = ""; });
   try { ui.nameIn.value = localStorage.getItem(NAME_KEY) || ""; } catch {}
 
   function showRoom(v) {
@@ -545,7 +550,7 @@ export function mount(root, ctx = {}) {
   };
   function start(game) {
     if (game) { s = game; opts = { mode: s.mode, aiLevel: s.aiLevel, size: s.size, rule: s.rule }; }
-    else s = newMatch(opts);
+    else { opts.mode = "ai"; s = newMatch(opts); }
     pendingResume = null;
     pending = null; cursor = null; hover = null; fx = { drop: null, win: null, bad: null };
     overlay(null); layout(); persist(); hud(); cv.focus({ preventScroll: true });
@@ -711,8 +716,8 @@ export function mount(root, ctx = {}) {
     const seat = net.seat;
     if (seat && seat.code && (!code || code === seat.code)) { net.resume(); ui.mErr.textContent = "Đang vào lại phòng " + seat.code + "…"; }
     else if (CODE_RE.test(code)) {
-      opts.mode = "online"; syncOpts(); menuActions(); ui.codeIn.value = code;
-      ui.mResume.textContent = "Bạn được mời vào phòng " + code + " — nhập tên rồi bấm Vào phòng.";
+      ui.codeIn.value = code;
+      ui.mNote.textContent = "Bạn được mời vào phòng " + code + " — nhập tên rồi bấm Vào phòng.";
       (ui.nameIn.value ? ui.joinBtn : ui.nameIn).focus({ preventScroll: true });
     }
   }

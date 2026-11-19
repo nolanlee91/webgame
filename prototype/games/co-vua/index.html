@@ -104,6 +104,34 @@
     .result b { font: 800 24px/1 "Be Vietnam Pro"; font-variant-numeric: tabular-nums; }
     .result .ra b { color: var(--x-l); } .result .rb b { color: var(--o-l); }
     .resume { margin-top: 10px; font-size: 13px; color: var(--soft); }
+    .resume:empty { display: none; }
+
+    /* Màn vào game chuẩn (giống Cờ Tỷ Phú / Cờ Cá Ngựa): tên → Tạo phòng online → mã phòng → Chơi với máy; luật gập trong "Cách chơi" */
+    .entry { display: grid; gap: 12px; margin: 16px 0 0; text-align: left; }
+    .entry .lb { color: var(--soft); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin: 0 3px -6px; }
+    .entry > .btn, .entry .solo, .entry .join { margin-right: 7px; margin-left: 3px; }
+    .entry .resume { margin: -4px 3px 0; text-align: center; }
+    .entry .chk { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: -4px 3px -6px; font-size: 14px; font-weight: 700; color: var(--soft); cursor: pointer; }
+    .entry .chk input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--gold); cursor: pointer; }
+    .entry .chk:focus-within { color: var(--ink); }
+    .entry .or { display: flex; align-items: center; gap: 10px; margin: 0 3px; color: var(--dim); font-size: 12px; font-weight: 700; }
+    .entry .or::before, .entry .or::after { content: ""; flex: 1; height: 3px; background: #2e271f; }
+    .entry .join { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+    .entry .join .inp { margin: 3px 0; width: 100%; }
+    .entry .solo { display: flex; gap: 14px; }
+    .entry .solo .btn { flex: 1 1 0; min-width: 0; text-align: center; line-height: 1.15; }
+    .view { margin-top: 14px; }
+    .vh { margin: 0 0 4px; font: 800 17px/1.2 "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
+    .view .sub { font-size: 14px; }
+    .vact { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+    details.how { margin: 14px 0 0; padding: 0 14px; }
+    details.how[open] { padding-bottom: 12px; }
+    details.how summary { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none;
+      font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
+    details.how summary::-webkit-details-marker { display: none; }
+    details.how summary::after { content: "▾"; color: var(--soft); }
+    details.how[open] summary::after { content: "▴"; }
+    details.how summary:focus-visible { outline: 2px dashed var(--gold); outline-offset: -4px; }
 
     /* Online: ô nhập tên / mã phòng, phòng chờ, thông báo nổi */
     .inp { all: unset; box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; color: var(--ink); background: #120f0c;
@@ -111,8 +139,6 @@
     .inp::placeholder { color: var(--dim); }
     .inp:focus-visible { --b: var(--gold); }
     .inp.code { text-transform: uppercase; letter-spacing: .3em; font-weight: 800; text-align: center; }
-    .ojoin { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
-    .ojoin .btn { min-height: 44px; margin-right: 7px; }
     .err { min-height: 1.35em; margin-top: 10px; color: #ff8a7a; font-size: 13px; font-weight: 700; }
     .err:empty { display: none; }
     .room-code { display: inline-block; margin: 6px 0 2px; padding: 6px 16px; font: 800 30px/1 "Be Vietnam Pro"; letter-spacing: .3em; color: var(--gold);
@@ -169,7 +195,10 @@
       .opt { grid-template-columns: 62px 1fr; gap: 6px; } .opt > span { font-size: 11px; letter-spacing: .04em; }
       .actions { position: sticky; bottom: -12px; z-index: 1; margin: 14px -14px -22px; padding: 12px 14px 16px; gap: 10px; background: var(--panel); box-shadow: 0 -3px 0 var(--line); }
       .actions .btn { flex: 1 1 140px; }
-      .ojoin { grid-template-columns: 1fr; } .ojoin .btn { margin: 0 7px 4px 3px; }
+      .entry { gap: 10px; margin-top: 12px; }
+      .entry .join { gap: 10px; }
+      .vact { gap: 10px; } .vact .btn { flex: 1 1 130px; }
+      details.how { padding: 0 12px; margin-top: 12px; }
       .room-code { font-size: 26px; }
       .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
       body.has-chat .wrap { grid-template-columns: 1fr; grid-template-areas: "hud" "stage" "tools"; }
@@ -263,29 +292,43 @@
         <div class="card">
           <h2><span data-icon="wk"></span>Cờ Vua<span data-icon="bk"></span></h2>
           <p class="sub">Chiếu bí Vua đối phương là thắng!</p>
-          <div class="how">
+          <!-- Màn vào game chuẩn của Lụm Kèo: tên → Tạo phòng online → vào phòng bạn bè → Chơi với máy -->
+          <section class="entry" id="vEntry">
+            <label class="lb" for="nameIn">Tên của bạn</label>
+            <input class="inp" id="nameIn" maxlength="16" autocomplete="nickname" enterkeyhint="go" placeholder="Ví dụ: Tí Cờ Vua" />
+            <button class="btn btn--big btn--primary" id="createBtn" type="button">Tạo phòng online</button>
+            <label class="chk"><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
+            <div class="or"><span>hoặc vào phòng của bạn bè</span></div>
+            <div class="join"><input class="inp code" id="codeIn" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="MÃ PHÒNG" aria-label="Mã phòng" /><button class="btn" id="joinBtn" type="button">Vào phòng</button></div>
+            <div class="resume" id="mNote"></div>
+            <div class="or"><span>hoặc</span></div>
+            <div class="solo"><button class="btn" id="resumeGameBtn" type="button" hidden>▶ Chơi tiếp</button><button class="btn" id="soloBtn" type="button">Chơi với máy</button></div>
+            <div class="resume" id="mResume"></div>
+          </section>
+          <section class="view" id="vSolo" hidden aria-labelledby="vSoloH">
+            <h3 class="vh" id="vSoloH">Chơi với máy</h3>
+            <p class="sub">Ván đầu bạn cầm Trắng (đi trước), mỗi ván sau đổi màu.</p>
+            <div class="opts">
+              <div class="opt"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="aiLevel">
+                <button type="button" role="radio" data-v="easy">Dễ<small>mới tập chơi</small></button><button type="button" role="radio" data-v="normal">Vừa<small>biết tính trước</small></button></div></div>
+            </div>
+            <div class="vact"><button class="btn btn--big btn--primary" id="startBtn" type="button">▶ Bắt đầu</button><button class="btn btn--big" id="soloBack" type="button">Quay lại</button></div>
+          </section>
+          <div class="err" id="mErr" role="alert"></div>
+          <details class="how">
+            <summary>Cách chơi</summary>
             <ul>
               <li><b>Trắng đi trước.</b> Bấm vào quân của mình để thấy các ô đi được (chấm = ô trống, 4 góc = ăn quân), rồi bấm ô muốn đi.</li>
               <li>Đủ luật chuẩn: <b>nhập thành</b>, <b>bắt Tốt qua đường</b>, <b>phong cấp</b> (chọn Hậu/Xe/Tượng/Mã). Không được để Vua mình bị chiếu.</li>
               <li><b>Hòa</b> khi hết nước mà Vua không bị chiếu, không đủ quân chiếu bí, lặp thế cờ 3 lần, 50 nước không ăn quân/đi Tốt, hoặc hai bên đồng ý. Mỗi ván sau đổi màu quân.</li>
+              <li><b>Online:</b> tạo phòng rồi gửi mã (hoặc link mời) cho bạn bè, mỗi người chơi trên máy của mình. <b>Chơi với máy:</b> Dễ hoặc Vừa.</li>
             </ul>
-          </div>
-          <div class="opts">
-            <div class="opt"><span>Chế độ</span><div class="seg" role="radiogroup" aria-label="Chế độ" data-k="mode">
-              <button type="button" role="radio" data-v="ai">Chơi với máy<small>đổi màu mỗi ván</small></button><button type="button" role="radio" data-v="online">Online<small>mỗi người 1 máy</small></button></div></div>
-            <div class="opt" id="optName" hidden><span>Tên bạn</span><input class="inp" id="nameIn" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Cờ Vua" /></div>
-            <div id="privateRoomOption" hidden><label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label></div>
-            <div class="opt" id="optAi"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="aiLevel">
-              <button type="button" role="radio" data-v="easy">Dễ<small>mới tập chơi</small></button><button type="button" role="radio" data-v="normal">Vừa<small>biết tính trước</small></button></div></div>
-          </div>
-          <div class="actions" id="mActions"></div>
-          <div class="ojoin" id="mJoin" hidden><input class="inp code" id="codeIn" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MÃ PHÒNG" aria-label="Mã phòng" /><button class="btn" id="joinBtn" type="button">Vào phòng</button></div>
-          <div class="err" id="mErr" role="alert"></div>
-          <div class="resume" id="mResume"></div>
+          </details>
         </div>
       </div>
 
-      <div class="ov" id="ovRoom" hidden>
+      
+<div class="ov" id="ovRoom" hidden>
         <div class="card">
           <h2>Phòng chờ</h2>
           <p class="sub">Mã phòng — gửi cho bạn bè để vào cùng phòng</p>
@@ -329,7 +372,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=private1";
+    import { mount } from "./game.js?v=entry1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },
@@ -339,5 +382,6 @@
     };
     window.__game = mount(document.body, { sdk });
   </script>
+  <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

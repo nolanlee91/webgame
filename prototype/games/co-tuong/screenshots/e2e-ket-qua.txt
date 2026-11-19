@@ -1,5 +1,9 @@
-PASS bản lưu cũ mode "pvp" → menu chuyển sang Chơi với máy, bỏ ván dở chung máy
-PASS mở game → hiện menu, mặc định Chơi với máy · Dễ, chỉ còn Chơi với máy + Online
+PASS bản lưu cũ mode "pvp" → giữ độ khó (Thường), bỏ ván dở chung máy
+PASS mở game → màn vào game chuẩn: tên · Tạo phòng online · mã phòng + Vào phòng · Chơi với máy; không còn ô "Chế độ", luật gập trong "Cách chơi"
+PASS mặc định độ khó máy: Dễ
+PASS desktop 1366×768: 3 nút màn vào game hiện đủ, không cuộn
+PASS bấm "Chơi với máy" → bước tuỳ chọn, focus vào Bắt đầu
+PASS Esc ở bước tuỳ chọn → quay lại màn đầu, focus về Chơi với máy
 PASS Bắt đầu → 32 quân đúng chỗ, Đỏ (bạn) đi trước, HUD Đỏ sáng
 PASS desktop: bàn cờ nằm gọn, không tràn trang, ô ≥ 40px — 71
 PASS nhấp Pháo h2 → chọn quân, hiện ô đi được — [79,61,52,43,34,7,71,69,68,67,66,65]
@@ -10,7 +14,7 @@ PASS máy (Đen) tự đi lại, trả lượt cho bạn — {"room":null,"side"
 PASS Mã đi sai luật (h0 → h3) không được
 PASS chơi tiếp ván dở dựng sẵn → 2 nước, tới lượt Đỏ — {"room":null,"side":0,"flip":false,"sel":-1,"dests":[],"mode":"ai","turn":1,"moves":2,"winner":0,"reason":"","check":false,"score":{"1":0,"2":0,"draw":0},"round":1,"thinking":false}
 PASS Pháo e2 ăn Tốt e6 → CHIẾU (Pháo e7 làm ngòi), báo "Chiếu!" — Máy đang nghĩ… · Chiếu!
-PASS nhật ký nước đi ghi đúng tên nước (gồm nước chiếu Pháo 5↑4) — 1.Pháo 2-5Pháo 8-52.Pháo 5↑4Sĩ 6↑5
+PASS nhật ký nước đi ghi đúng tên nước (gồm nước chiếu Pháo 5↑4) — 1.Pháo 2-5Pháo 8-52.Pháo 5↑4Sĩ 4↑5
 PASS phím U → đi lại (bỏ nước của bạn, cả nước máy nếu máy đã đi), hết chiếu
 PASS Xin thua → Máy (Đen) thắng, hiện bảng kết quả — Máy thắng!
 PASS Ván tiếp → ván 2, bàn mới, tỉ số Máy 1
@@ -23,6 +27,7 @@ PASS F5 giữa ván với máy → menu có "Chơi tiếp ván dở"
 PASS Chơi tiếp → khôi phục đúng 2 nước, vẫn chế độ máy
 PASS Đi lại khi chơi máy → lùi 2 nước (cả nước của máy)
 PASS desktop không có lỗi JS
+PASS mobile 390×844: màn vào game không tràn, 3 nút hiện đủ không cuộn
 PASS mobile dọc: bàn cờ nằm gọn, không tràn, ô ≥ 34px — 38
 PASS chạm Mã b0 → chọn, hiện ô đi + gợi ý chạm
 PASS chạm ô sáng c2 → Mã đi
@@ -31,9 +36,9 @@ PASS chạm nước sai (Mã h0 → h3) → không đi
 PASS mobile: nút xin thua / cầu hòa / đi lại hiển thị trong màn hình
 PASS mobile ngang: bàn cờ vẫn nằm gọn
 PASS mobile không có lỗi JS
-PASS chọn Online → ô tên, Tạo phòng, ô mã
-PASS tạo phòng → mã 5 ký tự, có ?room=, hiện phòng chờ, Bắt đầu khoá — U5437
-PASS link mời → chọn sẵn Online + điền mã
+PASS màn vào game → ô tên, Tạo phòng online, ô mã
+PASS tạo phòng → mã 5 ký tự, có ?room=, hiện phòng chờ, Bắt đầu khoá — 2VP5E
+PASS link mời → điền sẵn mã + lời mời
 PASS điện thoại vào phòng → cả 2 thấy 2 người
 PASS chat máy tính → điện thoại nhận đúng tên
 PASS chống giả danh trong chat: máy chủ gắn tên thật
