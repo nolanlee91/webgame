@@ -41,6 +41,7 @@
     .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; image-rendering: pixelated; }
     .stage .layer { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; image-rendering: pixelated; pointer-events: none; user-select: none; }
     .spr { position: absolute; background-repeat: no-repeat; image-rendering: pixelated; }
+    .stage.smooth, .stage.smooth .layer, .stage.smooth .spr, .stage.smooth i { image-rendering: auto; }
     .stage > .spr { pointer-events: none; }
     .barista { z-index: 1; }
     .owned, .owned .spr, .decor { pointer-events: none; }
@@ -205,7 +206,7 @@
     .grow.owned { background: var(--teal-l); }
     .intro { padding: 0; overflow: hidden; display: grid; }
     .intro-art { position: relative; height: 230px; overflow: hidden; }
-    .intro-art img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+    .intro-art img { width: 100%; height: 100%; object-fit: cover; image-rendering: auto; display: block; }
     .intro-art .portrait { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); }
     .intro-tx { padding: 18px 22px 22px; display: grid; gap: 10px; }
     .intro-tx p { margin: 0; }

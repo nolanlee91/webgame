@@ -1,7 +1,7 @@
 // Cảnh tiệm 1280×720 (toạ độ logic của shop-scene.webp). DOM sprite theo atlas, render lại mỗi khung từ trạng thái (thuần hiển thị).
 // Lớp: nền quán → máy trên quầy sau → nhân viên → lớp che quầy (shop-counter-foreground) → đồ trên mặt quầy + ly đang pha → khách (theo y)
 // → bong bóng thoại / thanh kiên nhẫn (lớp UI không phóng to theo cảnh, chữ luôn đọc được).
-import { paint, placeAt } from "./atlas.js";
+import { paint, placeAt, setSnap } from "./atlas.js?v=snap1"; // tag: tránh trình duyệt ghép scene mới với atlas cũ trong bộ nhớ đệm
 import { SPOTS, DOOR, BARISTA, WALK_MS, ORDER_ANIM_MS } from "../data/shift.js";
 import { patienceLeft } from "../core/shift.js";
 import { cupLayers } from "../core/cupview.js";
@@ -98,9 +98,15 @@ export function createScene(root, atlas, { onCustomer }) {
   function layout(camX = 640, camY = 360, zoom = 1) {
     const w = root.clientWidth, h = root.clientHeight;
     if (!w || !h) return;
-    k = Math.max(w / W, h / H) * zoom;
-    ox = Math.min(0, Math.max(w - W * k, w / 2 - camX * k));
-    oy = Math.min(0, Math.max(h - H * k, h / 2 - camY * k));
+    // Pixel art thu nhỏ dưới 1 px thiết bị / 1 px tranh thì mất nét ⇒ phóng thêm tối đa 20% (cắt bớt mép cảnh) để đạt 1:1;
+    // nếu vẫn chưa đủ thì chuyển lọc mượt. Gốc và vị trí sprite bắt theo lưới px thiết bị để khách đi không nhấp nháy.
+    const dpr = globalThis.devicePixelRatio || 1;
+    const base = Math.max(w / W, h / H) * zoom;
+    k = Math.max(base, Math.min(1 / dpr, base * 1.2));
+    ox = Math.round(Math.min(0, Math.max(w - W * k, w / 2 - camX * k)) * dpr) / dpr;
+    oy = Math.round(Math.min(0, Math.max(h - H * k, h / 2 - camY * k)) * dpr) / dpr;
+    stage.classList.toggle("smooth", k * dpr < 0.999);
+    setSnap(k * dpr);
     stage.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
   }
   const toScreen = (x, y) => [ox + x * k, oy + y * k];

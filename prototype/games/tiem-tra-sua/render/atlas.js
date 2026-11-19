@@ -42,10 +42,15 @@ export function paint(el, f, scale = 1) {
   st.backgroundPosition = `${-f.x * scale}px ${-f.y * scale}px`;
 }
 /** Đặt sprite theo điểm neo (toạ độ logic trong cảnh). */
+// Lưới bắt điểm ảnh thiết bị: số px thiết bị trên 1 px cảnh (k·devicePixelRatio). 0 = không bắt.
+let SNAP = 0;
+export function setSnap(v) { SNAP = v > 0 ? v : 0; }
+const snap = (v) => (SNAP ? Math.round(v * SNAP) / SNAP : v);
+
 export function placeAt(el, f, x, y, scale = 1) {
   if (!f) return;
-  el.style.left = x - f.ax * scale + "px";
-  el.style.top = y - f.ay * scale + "px";
+  el.style.left = snap(x - f.ax * scale) + "px";
+  el.style.top = snap(y - f.ay * scale) + "px";
 }
 /** Phần tử icon nhỏ (UI) từ [alias, frame], cao `px` điểm ảnh. Có thể cắt vùng (crop: [x,y,w,h] trong frame). */
 export function icon(atlas, ref, px = 40, cls = "ico", crop = null) {
@@ -58,6 +63,8 @@ export function icon(atlas, ref, px = 40, cls = "ico", crop = null) {
   const scale = px / c[3];
   const st = el.style;
   st.width = c[2] * scale + "px"; st.height = px + "px";
+  // thu nhỏ dưới 1:1 điểm ảnh thiết bị ⇒ lọc mượt (pixel cứng bị rơi điểm, trông nhòe)
+  if (scale * (globalThis.devicePixelRatio || 1) < 0.999) st.imageRendering = "auto";
   st.backgroundImage = `url("${f.url}")`;
   st.backgroundSize = `${f.sw * scale}px ${f.sh * scale}px`;
   st.backgroundPosition = `${-(f.x + c[0]) * scale}px ${-(f.y + c[1]) * scale}px`;

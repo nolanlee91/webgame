@@ -5,12 +5,57 @@ export const ORDER_LINES = [
   "Một {drink}, {sugar} đường, {ice}. {Self} đọc thuộc từ hôm qua rồi.",
   "{Call} làm giùm {self} ly {drink}, {sugar} đường, {ice}. Không vội đâu… mà nhanh giùm nha.",
   "Cho {self} {drink}, {sugar} đường với {ice}. Hôm nay {self} quyết tâm sống lành mạnh một nửa.",
+  "{Call} ơi {drink}, {sugar} đường, {ice}. Ly này là phần thưởng vì {self} đã dậy được khỏi giường.",
+  "{Self} lấy {drink} nha, {sugar} đường, {ice}. Bác sĩ dặn bớt ngọt, {self} bớt… một chút.",
+  "{Drink}, {sugar} đường, {ice} nha {call}. {Self} đi bộ 3 cây số chỉ để uống ly này đó.",
+  "{Call} ơi, một {drink}, {sugar} đường, {ice}. Thời tiết này không uống là tan chảy luôn.",
+  "Cho {self} {drink} {sugar} đường, {ice}. Ví {self} đang khóc nhưng tim {self} cần.",
+  "{Call} ơi làm ly {drink}, {sugar} đường, {ice}. Nhớ lắc kỹ như cách cuộc đời lắc {self}.",
+  "Một {drink}, {sugar} đường, {ice}. {Self} hứa đây là ly cuối tuần… của ngày hôm nay.",
+  "{Call} ơi, {drink}, {sugar} đường, {ice}. {Self} thấy trên mạng khen nên ghé thử nè.",
+  "{Self} order {drink}, {sugar} đường, {ice} nha. Ngọt vừa đủ để quên deadline là được.",
+  "Cho {self} một {drink} nha {call}, {sugar} đường, {ice}. Hôm nay {self} được khen nên tự thưởng.",
+  "{Drink}, {sugar} đường, {ice}. {Call} pha ngon là {self} kể cả xóm nghe.",
+  "{Call} ơi, ly {drink} {sugar} đường {ice}. {Self} chờ được, nhưng cái bụng thì không.",
 ];
 export const ORDER_LINES_BY_ARCH = {
-  "van-phong": ["Em ơi một ly {drink}, {sugar} đường, {ice}. Anh còn 12 phút họp, ly này là đồng đội duy nhất."],
-  "khach-quen": ["Con ơi, như mọi khi: {drink}, {sugar} đường, {ice}. Cô dặn rồi đó nghen."],
-  "di-ngang": ["Em ơi cho anh ly {drink}, {sugar} đường, {ice}. Anh ghé nhanh, xe còn nổ máy ngoài kia."],
-  "hoc-sinh": ["Chị ơi cho em ly {drink}, {sugar} đường, {ice}. Em vừa được 8 điểm Toán nên tự thưởng."],
+  "van-phong": [
+    "Em ơi một ly {drink}, {sugar} đường, {ice}. Anh còn 12 phút họp, ly này là đồng đội duy nhất.",
+    "Cho anh {drink}, {sugar} đường, {ice}. Sếp vừa nói \"mình trao đổi nhanh nha\" — tức là hai tiếng.",
+    "Em ơi {drink}, {sugar} đường, {ice}. Anh vừa gửi mail \"theo như mail trước\" lần thứ ba.",
+    "Một {drink}, {sugar} đường, {ice}. Không có ly này chắc anh trả lời khách bằng sticker.",
+    "Em làm giùm anh {drink}, {sugar} đường, {ice}. File tên \"final_final_v7\" đang chờ anh.",
+  ],
+  "khach-quen": [
+    "Con ơi, như mọi khi: {drink}, {sugar} đường, {ice}. Cô dặn rồi đó nghen.",
+    "Con ơi {drink}, {sugar} đường, {ice}. Thằng cháu cô nó khen quán con quá trời.",
+    "Cho cô ly {drink}, {sugar} đường, {ice}. Bữa trước con pha ngon, cô kể nguyên chợ nghe.",
+    "Con ơi {drink}, {sugar} đường, {ice} nha. Cô mới đi tập dưỡng sinh về, phải thưởng chứ.",
+    "Như cũ nghen con: {drink}, {sugar} đường, {ice}. Mà con ăn cơm chưa đó?",
+  ],
+  "di-ngang": [
+    "Em ơi cho anh ly {drink}, {sugar} đường, {ice}. Anh ghé nhanh, xe còn nổ máy ngoài kia.",
+    "Cho anh {drink}, {sugar} đường, {ice}. Bản đồ chỉ anh quẹo trái, mà anh quẹo vô đây.",
+    "Em ơi {drink}, {sugar} đường, {ice}. Anh còn 6 đơn giao nữa, ly này tiếp sức.",
+    "Một {drink}, {sugar} đường, {ice} nha. Trời nắng tới mức nón bảo hiểm cũng muốn nghỉ.",
+  ],
+  "hoc-sinh": [
+    "Chị ơi cho em ly {drink}, {sugar} đường, {ice}. Em vừa được 8 điểm Toán nên tự thưởng.",
+    "Chị ơi {drink}, {sugar} đường, {ice}. Em gom tiền ăn sáng ba ngày cho ly này đó.",
+    "Cho em {drink}, {sugar} đường, {ice}. Mẹ hỏi thì chị nói em mua nước lọc nha.",
+    "Chị ơi {drink}, {sugar} đường, {ice}. Mai em kiểm tra 15 phút, cần nạp năng lượng.",
+    "Em lấy {drink}, {sugar} đường, {ice}. Nhóm em đang chờ em chụp hình check-in.",
+  ],
+  "reviewer": [
+    "Hello chị chủ, cho mình {drink}, {sugar} đường, {ice}. Mình quay nhẹ thôi, chị cứ tự nhiên.",
+    "Cho mình {drink}, {sugar} đường, {ice} nha. Clip này mà lên xu hướng là quán nổi luôn.",
+    "Mình lấy {drink}, {sugar} đường, {ice}. Chị pha đẹp xíu, khán giả mình khó tính lắm.",
+  ],
+  "vip": [
+    "Em ơi cho chị {drink}, {sugar} đường, {ice}. Chị hơi kỹ tính, mà chị trả tiền sòng phẳng.",
+    "Chị lấy {drink}, {sugar} đường, {ice}. Đúng công thức nha em, chị uống là biết liền.",
+    "Cho chị một {drink}, {sugar} đường, {ice}. Ly đẹp thì chị giới thiệu cả công ty.",
+  ],
 };
 
 export const IMPATIENT_LINES = [

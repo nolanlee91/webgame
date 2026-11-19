@@ -102,7 +102,7 @@ function spawn(s, g, events) {
     say: null, leaveT: null, reactUntil: null, review: null,
   };
   const lines = [...L.ORDER_LINES, ...(L.ORDER_LINES_BY_ARCH[c.arch] || [])];
-  c.orderLine = pickLine(s, lines, lineCtx(c));
+  c.orderLine = freshLine(s, lines, lineCtx(c)); // không lặp câu trong cùng ca
   sh.customers.push(c);
   events.push({ type: "spawn", cid: c.id, arch: c.arch });
 }
