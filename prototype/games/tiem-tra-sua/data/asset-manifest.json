@@ -111,10 +111,12 @@
       "category": "equipment",
       "dimensions": [
         768,
-        576
+        768
       ],
       "pixelScale": 2,
-      "animationFrames": 1,
+      "animationFrames": {
+        "topping-stove-cooking": 4
+      },
       "transparency": "hard alpha",
       "intendedUse": "Thiết bị, hũ và nội thất cơ bản.",
       "type": "game-ready sprite",
@@ -263,6 +265,66 @@
             96,
             168
           ]
+        },
+        "topping-stove-cooking-1": {
+          "rect": [
+            0,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "topping-stove-cooking-2": {
+          "rect": [
+            192,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "topping-stove-cooking-3": {
+          "rect": [
+            384,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "topping-stove-cooking-4": {
+          "rect": [
+            576,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      },
+      "animations": {
+        "topping-stove-cooking": {
+          "frames": [
+            "topping-stove-cooking-1",
+            "topping-stove-cooking-2",
+            "topping-stove-cooking-3",
+            "topping-stove-cooking-4"
+          ],
+          "fps": 8,
+          "loop": true
         }
       }
     },
@@ -371,7 +433,7 @@
       "category": "characters",
       "dimensions": [
         1152,
-        160
+        320
       ],
       "pixelScale": 2,
       "animationFrames": 1,
@@ -444,6 +506,18 @@
           "rect": [
             960,
             0,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "office-worker": {
+          "rect": [
+            0,
+            160,
             192,
             160
           ],
@@ -1227,7 +1301,7 @@
       "category": "drinks",
       "dimensions": [
         640,
-        576
+        1152
       ],
       "pixelScale": 2,
       "animationFrames": 1,
@@ -1372,6 +1446,114 @@
           "rect": [
             480,
             384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "syrup-swirl": {
+          "rect": [
+            0,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "brown-sugar-streak": {
+          "rect": [
+            160,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fruit-peach": {
+          "rect": [
+            320,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fruit-lychee": {
+          "rect": [
+            480,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fruit-passion": {
+          "rect": [
+            0,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "pudding-bottom": {
+          "rect": [
+            160,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "matcha-50": {
+          "rect": [
+            320,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "matcha-milk-75": {
+          "rect": [
+            480,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "cream-top": {
+          "rect": [
+            0,
+            960,
             160,
             192
           ],
@@ -1688,7 +1870,7 @@
       "category": "ui",
       "dimensions": [
         192,
-        96
+        144
       ],
       "pixelScale": 2,
       "animationFrames": 1,
@@ -1792,6 +1974,54 @@
             24,
             42
           ]
+        },
+        "sound-on": {
+          "rect": [
+            0,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "sound-off": {
+          "rect": [
+            48,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "pause": {
+          "rect": [
+            96,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "help": {
+          "rect": [
+            144,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
         }
       }
     },
@@ -1800,7 +2030,7 @@
       "category": "characters",
       "dimensions": [
         768,
-        320
+        1120
       ],
       "pixelScale": 2,
       "animationFrames": 1,
@@ -1897,6 +2127,246 @@
           "rect": [
             576,
             160,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "vip-waiting": {
+          "rect": [
+            0,
+            320,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "vip-happy": {
+          "rect": [
+            192,
+            320,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "vip-sheepish": {
+          "rect": [
+            384,
+            320,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "vip-annoyed": {
+          "rect": [
+            576,
+            320,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "reviewer-waiting": {
+          "rect": [
+            0,
+            480,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "reviewer-happy": {
+          "rect": [
+            192,
+            480,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "reviewer-sheepish": {
+          "rect": [
+            384,
+            480,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "reviewer-annoyed": {
+          "rect": [
+            576,
+            480,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "courier-waiting": {
+          "rect": [
+            0,
+            640,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "courier-happy": {
+          "rect": [
+            192,
+            640,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "courier-sheepish": {
+          "rect": [
+            384,
+            640,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "courier-annoyed": {
+          "rect": [
+            576,
+            640,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "neighbor-waiting": {
+          "rect": [
+            0,
+            800,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "neighbor-happy": {
+          "rect": [
+            192,
+            800,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "neighbor-sheepish": {
+          "rect": [
+            384,
+            800,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "neighbor-annoyed": {
+          "rect": [
+            576,
+            800,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "office-worker-waiting": {
+          "rect": [
+            0,
+            960,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "office-worker-happy": {
+          "rect": [
+            192,
+            960,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "office-worker-sheepish": {
+          "rect": [
+            384,
+            960,
+            192,
+            160
+          ],
+          "anchor": [
+            96,
+            154
+          ]
+        },
+        "office-worker-annoyed": {
+          "rect": [
+            576,
+            960,
             192,
             160
           ],
@@ -4911,5 +5381,85 @@
     "assets/decor.webp": "assets/equipment.webp + assets/decor-and-pantry.webp + assets/upgrades.webp",
     "assets/ingredients.webp": "assets/cup-states-and-ingredients.webp + assets/decor-and-pantry.webp + assets/pantry-supply.webp",
     "assets/shop-layers.webp": "assets/shop-scene.webp + assets/street-background.webp + assets/shop-counter-foreground.webp + assets/shop-fixtures.webp"
+  },
+  "placements": {
+    "tea-brewer": {
+      "at": [
+        356,
+        282
+      ],
+      "surface": "back-counter"
+    },
+    "cup-sealer": {
+      "at": [
+        222,
+        330
+      ],
+      "surface": "back-counter"
+    },
+    "topping-stove": {
+      "at": [
+        452,
+        258
+      ],
+      "surface": "back-counter"
+    },
+    "pearls-jar": {
+      "at": [
+        300,
+        428
+      ],
+      "surface": "front-counter"
+    },
+    "ice-jar": {
+      "at": [
+        250,
+        418
+      ],
+      "surface": "front-counter"
+    },
+    "cup-stack": {
+      "at": [
+        668,
+        374
+      ],
+      "surface": "side-counter"
+    },
+    "door": [
+      1190,
+      470
+    ],
+    "queueSpots": [
+      [
+        790,
+        505
+      ],
+      [
+        890,
+        540
+      ],
+      [
+        990,
+        575
+      ],
+      [
+        890,
+        625
+      ]
+    ],
+    "exitPath": [
+      [
+        1030,
+        540
+      ],
+      [
+        1114,
+        506
+      ],
+      [
+        1190,
+        470
+      ]
+    ]
   }
 }
