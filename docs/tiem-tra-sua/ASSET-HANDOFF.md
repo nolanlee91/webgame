@@ -31,3 +31,18 @@ Các lớp trong cup-layers.webp dùng chung ô 160 × 192, neo [80,174]. Dùng 
 Trạng thái `produced-phase-2` có file và metadata để thử tích hợp. `planReplacements` ghi các nhóm của kế hoạch Phase 1 đã tách thành nhiều file. Dùng các tên file thực tế trong manifest. Phase 2 hiện cung cấp cảnh ghép, atlas môi trường, thiết bị, nguyên liệu, ly theo lớp, nhân vật, biểu cảm, trang trí và hoạt ảnh mẫu. Cần playtest nhịp, thao tác, tầm đọc và vùng che quầy sau khi Claude đưa asset vào gameplay. So lại sắc độ trang phục khi chuyển giữa sprite đứng, đi và phản ứng của cùng một vai. Khách văn phòng chưa có chu kỳ đi riêng. Trạng thái vui và sốt ruột dùng pose tĩnh kết hợp hiệu ứng UI ở bản đầu.
 
 Bộ asset được lưu trên worktree riêng. Chưa nối gameplay, homepage, backend hoặc deploy.
+
+## Phase 3b · Atlas cận cảnh 1×
+
+| Sheet HD | Ô · anchor | Nội dung |
+|---|---|---|
+| barista-actions-hd.webp | 256 × 256 · [128,244] | Thân trên barista, giữ nguyên ID và ba clip pour, topping, handoff. |
+| cup-layers-hd.webp | 320 × 384 · [160,348] | Lớp ly ở cùng hệ tọa độ, gồm siro, đường đen, ba lớp trái cây, pudding, hai mức matcha mới và kem sữa. |
+| portraits-hd.webp | 384 × 320 · [192,308] | Chân dung mặc định, gồm khách văn phòng. |
+| portrait-expressions-hd.webp | 384 × 320 · [192,308] | Biểu cảm theo nhân vật, gồm các vai bổ sung từ gói M3–M5. |
+
+Atlas HD dùng lưới 1×, alpha cứng và WebP lossless. Điểm neo và tọa độ từng ô là gấp đôi các giá trị trong bộ nguồn. FPS, thứ tự và loop của clip barista giữ nguyên. Hai manifest có cùng dữ liệu. Trường fallbackFilename trỏ tới sheet cũ tương ứng. Các ID bổ sung lấy từ gói M3–M5, commit 3044d3b. Nếu bản game chưa có gói đó, chỉ những ID đã tồn tại trong manifest cũ mới có ảnh dự phòng.
+
+Khi nối vào Quầy pha hoặc hội thoại, dùng tỉ lệ vẽ HD bằng một nửa tỉ lệ của frame cũ để giữ nguyên kích thước và vị trí trong UI. Khi cần trả về 2×, dùng kích thước và neo từ manifest của chính sheet cũ. Asset này chưa đổi render.
+
+[Đối chiếu chân dung và barista](concepts/phase-3b-hd-comparison.webp) · [Kiểm tra ghép lớp ly HD](concepts/phase-3b-hd-cups.webp)

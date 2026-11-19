@@ -3657,6 +3657,1004 @@
           ]
         }
       }
+    },
+    {
+      "filename": "assets/barista-actions-hd.webp",
+      "category": "characters",
+      "dimensions": [
+        1536,
+        768
+      ],
+      "pixelScale": 1,
+      "animationFrames": {
+        "pour": 6,
+        "topping": 6,
+        "handoff": 6
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Thân trên khi rót, xúc topping và giao đồ.",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-3b",
+      "frames": {
+        "pour-1": {
+          "rect": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "pour-2": {
+          "rect": [
+            256,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "pour-3": {
+          "rect": [
+            512,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "pour-4": {
+          "rect": [
+            768,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "pour-5": {
+          "rect": [
+            1024,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "pour-6": {
+          "rect": [
+            1280,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "topping-1": {
+          "rect": [
+            0,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "topping-2": {
+          "rect": [
+            256,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "topping-3": {
+          "rect": [
+            512,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "topping-4": {
+          "rect": [
+            768,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "topping-5": {
+          "rect": [
+            1024,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "topping-6": {
+          "rect": [
+            1280,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "handoff-1": {
+          "rect": [
+            0,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "handoff-2": {
+          "rect": [
+            256,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "handoff-3": {
+          "rect": [
+            512,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "handoff-4": {
+          "rect": [
+            768,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "handoff-5": {
+          "rect": [
+            1024,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        },
+        "handoff-6": {
+          "rect": [
+            1280,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            244
+          ]
+        }
+      },
+      "animations": {
+        "pour": {
+          "frames": [
+            "pour-1",
+            "pour-2",
+            "pour-3",
+            "pour-4",
+            "pour-5",
+            "pour-6"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "topping": {
+          "frames": [
+            "topping-1",
+            "topping-2",
+            "topping-3",
+            "topping-4",
+            "topping-5",
+            "topping-6"
+          ],
+          "fps": 10,
+          "loop": false
+        },
+        "handoff": {
+          "frames": [
+            "handoff-1",
+            "handoff-2",
+            "handoff-3",
+            "handoff-4",
+            "handoff-5",
+            "handoff-6"
+          ],
+          "fps": 10,
+          "loop": false
+        }
+      },
+      "fallbackFilename": "assets/barista-actions.webp"
+    },
+    {
+      "filename": "assets/cup-layers-hd.webp",
+      "category": "drinks",
+      "dimensions": [
+        1280,
+        2304
+      ],
+      "pixelScale": 1,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Lớp dùng chung neo để ráp ly theo công thức.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-3b",
+      "frames": {
+        "empty-cup": {
+          "rect": [
+            0,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "amber-25": {
+          "rect": [
+            320,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "amber-50": {
+          "rect": [
+            640,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "amber-75": {
+          "rect": [
+            960,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "milk-25": {
+          "rect": [
+            0,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "milk-50": {
+          "rect": [
+            320,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "milk-75": {
+          "rect": [
+            640,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "matcha-75": {
+          "rect": [
+            960,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "pearls-bottom": {
+          "rect": [
+            0,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "jelly-bottom": {
+          "rect": [
+            320,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ice-top": {
+          "rect": [
+            640,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "dome-lid": {
+          "rect": [
+            960,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "syrup-swirl": {
+          "rect": [
+            0,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "brown-sugar-streak": {
+          "rect": [
+            320,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fruit-peach": {
+          "rect": [
+            640,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fruit-lychee": {
+          "rect": [
+            960,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fruit-passion": {
+          "rect": [
+            0,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "pudding-bottom": {
+          "rect": [
+            320,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "matcha-50": {
+          "rect": [
+            640,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "matcha-milk-75": {
+          "rect": [
+            960,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "cream-top": {
+          "rect": [
+            0,
+            1920,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        }
+      },
+      "fallbackFilename": "assets/cup-layers.webp"
+    },
+    {
+      "filename": "assets/portraits-hd.webp",
+      "category": "characters",
+      "dimensions": [
+        2304,
+        640
+      ],
+      "pixelScale": 1,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Chân dung mặc định cho hội thoại.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-3b",
+      "frames": {
+        "barista": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "vip": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "courier": {
+          "rect": [
+            1536,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "neighbor": {
+          "rect": [
+            1920,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-worker": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "fallbackFilename": "assets/portraits.webp"
+    },
+    {
+      "filename": "assets/portrait-expressions-hd.webp",
+      "category": "characters",
+      "dimensions": [
+        1536,
+        2240
+      ],
+      "pixelScale": 1,
+      "animationFrames": 1,
+      "transparency": "hard alpha",
+      "intendedUse": "Hai vai của C02, bốn biểu cảm mỗi người.",
+      "type": "game-ready sprite",
+      "productionStatus": "produced-phase-3b",
+      "frames": {
+        "barista-neutral": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "barista-happy": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "barista-concerned": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "barista-surprised": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-waiting": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-happy": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-sheepish": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-annoyed": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "vip-waiting": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "vip-happy": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "vip-sheepish": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "vip-annoyed": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-waiting": {
+          "rect": [
+            0,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-happy": {
+          "rect": [
+            384,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-sheepish": {
+          "rect": [
+            768,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-annoyed": {
+          "rect": [
+            1152,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "courier-waiting": {
+          "rect": [
+            0,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "courier-happy": {
+          "rect": [
+            384,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "courier-sheepish": {
+          "rect": [
+            768,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "courier-annoyed": {
+          "rect": [
+            1152,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "neighbor-waiting": {
+          "rect": [
+            0,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "neighbor-happy": {
+          "rect": [
+            384,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "neighbor-sheepish": {
+          "rect": [
+            768,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "neighbor-annoyed": {
+          "rect": [
+            1152,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-worker-waiting": {
+          "rect": [
+            0,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-worker-happy": {
+          "rect": [
+            384,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-worker-sheepish": {
+          "rect": [
+            768,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-worker-annoyed": {
+          "rect": [
+            1152,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "fallbackFilename": "assets/portrait-expressions.webp"
     }
   ],
   "rectConvention": "[x, y, width, height] in atlas pixels from upper left",
