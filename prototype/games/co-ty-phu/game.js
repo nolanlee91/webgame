@@ -366,6 +366,8 @@ function lobbyView(which) { // "entry" | "solo" | "room"
   $("#vEntry").hidden = which !== "entry"; $("#vSolo").hidden = which !== "solo"; $("#vRoom").hidden = which !== "room";
   $("#lobbyBtns").hidden = which === "entry";
   $("#backBtn").textContent = which === "room" ? "Rời phòng" : "Quay lại";
+  // nút Bắt đầu dùng chung với phòng online (ở đó bị khoá khi chưa đủ người / không phải chủ) ⇒ chơi với máy luôn mở lại
+  if (which === "solo") { $("#start").disabled = false; $("#start").textContent = "Bắt đầu"; }
 }
 function setConnecting(on) {
   ["#mkRoom", "#joinRoom", "#goSolo"].forEach((s) => ($(s).disabled = on));

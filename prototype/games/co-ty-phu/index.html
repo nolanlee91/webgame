@@ -147,6 +147,9 @@
     .kcard { width: min(320px, 80vw); aspect-ratio: 3/4; position: relative; perspective: 800px; margin: 0 auto 16px; }
     .kcard .face { position: absolute; inset: 0; backface-visibility: hidden; transition: transform .45s steps(6); box-shadow: 0 0 0 3px var(--line), var(--drop); }
     .kcard .back { background: url(assets/cards-keo.webp) 0 0 / 200% 100% no-repeat; image-rendering: pixelated; }
+    /* Ảnh lớn bị THU NHỎ khi hiện (bàn 1024px, poster 960px, quân 256px/ô, lá Kèo 384px) ⇒ vẽ mượt; "pixelated" khi thu nhỏ
+       làm rụng pixel lởm chởm trông như nhoè. Icon xúc xắc / nhà (ảnh nhỏ, phóng to) vẫn giữ pixelated. */
+    .board, .poster, .tk, .kcard .back { image-rendering: auto; }
     .kcard.thoi .back { background-position: 100% 0; }
     .kcard .front { transform: rotateY(180deg); background: #fbf1d6; color: #2b1a0c; display: grid; align-content: center; justify-items: center; gap: 14px; padding: 22px; border: 10px solid #e0a92a; }
     .kcard.thoi .front { border-color: #7b4bb8; background: #efe6f7; }
@@ -316,6 +319,6 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=private1"></script>
+  <script type="module" src="game.js?v=start2"></script>
 </body>
 </html>
