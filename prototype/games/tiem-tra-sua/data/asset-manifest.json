@@ -270,86 +270,98 @@
       "filename": "assets/characters.webp",
       "category": "characters",
       "dimensions": [
-        576,
-        128
+        1008,
+        192
       ],
       "pixelScale": 2,
       "animationFrames": 1,
       "transparency": "hard alpha",
       "intendedUse": "Sprite toàn thân đứng tĩnh của sáu vai.",
       "type": "game-ready sprite",
-      "productionStatus": "produced-phase-2",
+      "productionStatus": "produced-phase-3c",
       "frames": {
         "barista": {
           "rect": [
             0,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "regular": {
           "rect": [
-            96,
+            144,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip": {
           "rect": [
-            192,
+            288,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer": {
           "rect": [
-            288,
+            432,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier": {
           "rect": [
-            384,
+            576,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor": {
           "rect": [
-            480,
+            720,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
+          ]
+        },
+        "office-worker": {
+          "rect": [
+            864,
+            0,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
           ]
         }
       }
@@ -1040,8 +1052,8 @@
       "filename": "assets/character-motion-sample.webp",
       "category": "characters",
       "dimensions": [
-        384,
-        384
+        576,
+        576
       ],
       "pixelScale": 2,
       "animationFrames": {
@@ -1050,150 +1062,150 @@
       "transparency": "hard alpha",
       "intendedUse": "Khách thường đi, dáng gọi món và dáng thao tác mẫu.",
       "type": "animation spritesheet",
-      "productionStatus": "produced-phase-2",
+      "productionStatus": "produced-phase-3c",
       "frames": {
         "walk-1": {
           "rect": [
             0,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "walk-2": {
           "rect": [
-            96,
+            144,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "walk-3": {
           "rect": [
-            192,
+            288,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "walk-4": {
           "rect": [
-            288,
+            432,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "idle": {
           "rect": [
             0,
-            128,
-            96,
-            128
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "order": {
           "rect": [
-            96,
-            128,
-            96,
-            128
+            144,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "happy": {
           "rect": [
+            288,
             192,
-            128,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "annoyed": {
           "rect": [
-            288,
-            128,
-            96,
-            128
+            432,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "hold": {
           "rect": [
             0,
-            256,
-            96,
-            128
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "pour": {
           "rect": [
-            96,
-            256,
-            96,
-            128
+            144,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "add-topping": {
           "rect": [
-            192,
-            256,
-            96,
-            128
+            288,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "handoff": {
           "rect": [
-            288,
-            256,
-            96,
-            128
+            432,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         }
       },
@@ -2173,211 +2185,260 @@
       "filename": "assets/customer-walk-cycles.webp",
       "category": "characters",
       "dimensions": [
-        384,
-        512
+        576,
+        960
       ],
       "pixelScale": 2,
       "animationFrames": {
         "vip-walk": 4,
         "reviewer-walk": 4,
         "courier-walk": 4,
-        "neighbor-walk": 4
+        "neighbor-walk": 4,
+        "office-worker-walk": 4
       },
       "transparency": "hard alpha",
       "intendedUse": "Bốn vai khách đi theo từng clip.",
       "type": "animation spritesheet",
-      "productionStatus": "produced-phase-2",
+      "productionStatus": "produced-phase-3c",
       "frames": {
         "vip-walk-1": {
           "rect": [
             0,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-walk-2": {
           "rect": [
-            96,
+            144,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-walk-3": {
           "rect": [
-            192,
+            288,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-walk-4": {
           "rect": [
-            288,
+            432,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-walk-1": {
           "rect": [
             0,
-            128,
-            96,
-            128
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-walk-2": {
           "rect": [
-            96,
-            128,
-            96,
-            128
+            144,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-walk-3": {
           "rect": [
+            288,
             192,
-            128,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-walk-4": {
           "rect": [
-            288,
-            128,
-            96,
-            128
+            432,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-walk-1": {
           "rect": [
             0,
-            256,
-            96,
-            128
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-walk-2": {
           "rect": [
-            96,
-            256,
-            96,
-            128
+            144,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-walk-3": {
           "rect": [
-            192,
-            256,
-            96,
-            128
+            288,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-walk-4": {
           "rect": [
-            288,
-            256,
-            96,
-            128
+            432,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-walk-1": {
           "rect": [
             0,
-            384,
-            96,
-            128
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-walk-2": {
           "rect": [
-            96,
-            384,
-            96,
-            128
+            144,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-walk-3": {
           "rect": [
-            192,
-            384,
-            96,
-            128
+            288,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-walk-4": {
           "rect": [
-            288,
-            384,
-            96,
-            128
+            432,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
+          ]
+        },
+        "office-worker-walk-1": {
+          "rect": [
+            0,
+            768,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "office-worker-walk-2": {
+          "rect": [
+            144,
+            768,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "office-worker-walk-3": {
+          "rect": [
+            288,
+            768,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "office-worker-walk-4": {
+          "rect": [
+            432,
+            768,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
           ]
         }
       },
@@ -2421,6 +2482,16 @@
           ],
           "fps": 8,
           "loop": true
+        },
+        "office-worker-walk": {
+          "frames": [
+            "office-worker-walk-1",
+            "office-worker-walk-2",
+            "office-worker-walk-3",
+            "office-worker-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
         }
       }
     },
@@ -2428,230 +2499,230 @@
       "filename": "assets/customer-reactions.webp",
       "category": "characters",
       "dimensions": [
-        576,
-        384
+        864,
+        576
       ],
       "pixelScale": 2,
       "animationFrames": 1,
       "transparency": "hard alpha",
       "intendedUse": "Dáng tĩnh chờ, vui và sốt ruột của sáu vai khách.",
       "type": "game-ready sprite",
-      "productionStatus": "produced-phase-2",
+      "productionStatus": "produced-phase-3c",
       "frames": {
         "regular-waiting": {
           "rect": [
             0,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-waiting": {
           "rect": [
-            96,
+            144,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-waiting": {
           "rect": [
-            192,
+            288,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-waiting": {
           "rect": [
-            288,
+            432,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-waiting": {
           "rect": [
-            384,
+            576,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-waiting": {
           "rect": [
-            480,
+            720,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "regular-happy": {
           "rect": [
             0,
-            128,
-            96,
-            128
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-happy": {
           "rect": [
-            96,
-            128,
-            96,
-            128
+            144,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-happy": {
           "rect": [
+            288,
             192,
-            128,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-happy": {
           "rect": [
-            288,
-            128,
-            96,
-            128
+            432,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-happy": {
           "rect": [
-            384,
-            128,
-            96,
-            128
+            576,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-happy": {
           "rect": [
-            480,
-            128,
-            96,
-            128
+            720,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "regular-impatient": {
           "rect": [
             0,
-            256,
-            96,
-            128
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-impatient": {
           "rect": [
-            96,
-            256,
-            96,
-            128
+            144,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-impatient": {
           "rect": [
-            192,
-            256,
-            96,
-            128
+            288,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-impatient": {
           "rect": [
-            288,
-            256,
-            96,
-            128
+            432,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-impatient": {
           "rect": [
+            576,
             384,
-            256,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-impatient": {
           "rect": [
-            480,
-            256,
-            96,
-            128
+            720,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         }
       }
@@ -2660,8 +2731,8 @@
       "filename": "assets/customer-actions.webp",
       "category": "characters",
       "dimensions": [
-        576,
-        512
+        864,
+        768
       ],
       "pixelScale": 2,
       "animationFrames": {
@@ -2681,294 +2752,294 @@
       "transparency": "hard alpha",
       "intendedUse": "Hai khung gọi món và hai khung ngạc nhiên cho mỗi vai khách.",
       "type": "animation spritesheet",
-      "productionStatus": "produced-phase-2",
+      "productionStatus": "produced-phase-3c",
       "frames": {
         "regular-order-1": {
           "rect": [
             0,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-order-1": {
           "rect": [
-            96,
+            144,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-order-1": {
           "rect": [
-            192,
+            288,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-order-1": {
           "rect": [
-            288,
+            432,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-order-1": {
           "rect": [
-            384,
+            576,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-order-1": {
           "rect": [
-            480,
+            720,
             0,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "regular-order-2": {
           "rect": [
             0,
-            128,
-            96,
-            128
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-order-2": {
           "rect": [
-            96,
-            128,
-            96,
-            128
+            144,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-order-2": {
           "rect": [
+            288,
             192,
-            128,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-order-2": {
           "rect": [
-            288,
-            128,
-            96,
-            128
+            432,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-order-2": {
           "rect": [
-            384,
-            128,
-            96,
-            128
+            576,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-order-2": {
           "rect": [
-            480,
-            128,
-            96,
-            128
+            720,
+            192,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "regular-surprised-1": {
           "rect": [
             0,
-            256,
-            96,
-            128
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-surprised-1": {
           "rect": [
-            96,
-            256,
-            96,
-            128
+            144,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-surprised-1": {
           "rect": [
-            192,
-            256,
-            96,
-            128
+            288,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-surprised-1": {
           "rect": [
-            288,
-            256,
-            96,
-            128
+            432,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-surprised-1": {
           "rect": [
+            576,
             384,
-            256,
-            96,
-            128
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-surprised-1": {
           "rect": [
-            480,
-            256,
-            96,
-            128
+            720,
+            384,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "regular-surprised-2": {
           "rect": [
             0,
-            384,
-            96,
-            128
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "vip-surprised-2": {
           "rect": [
-            96,
-            384,
-            96,
-            128
+            144,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "reviewer-surprised-2": {
           "rect": [
-            192,
-            384,
-            96,
-            128
+            288,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "courier-surprised-2": {
           "rect": [
-            288,
-            384,
-            96,
-            128
+            432,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "neighbor-surprised-2": {
           "rect": [
-            384,
-            384,
-            96,
-            128
+            576,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         },
         "office-worker-surprised-2": {
           "rect": [
-            480,
-            384,
-            96,
-            128
+            720,
+            576,
+            144,
+            192
           ],
           "anchor": [
-            48,
-            116
+            72,
+            174
           ]
         }
       },
@@ -4655,6 +4726,176 @@
         }
       },
       "fallbackFilename": "assets/portrait-expressions.webp"
+    },
+    {
+      "filename": "assets/barista-scene.webp",
+      "category": "characters",
+      "dimensions": [
+        576,
+        576
+      ],
+      "pixelScale": 2,
+      "animationFrames": {
+        "idle": 2,
+        "pour": 4,
+        "serve": 4
+      },
+      "transparency": "hard alpha",
+      "intendedUse": "Nhân viên toàn thân trong cảnh quán",
+      "type": "animation spritesheet",
+      "productionStatus": "produced-phase-3c",
+      "frames": {
+        "idle-1": {
+          "rect": [
+            0,
+            0,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "idle-2": {
+          "rect": [
+            144,
+            0,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "pour-1": {
+          "rect": [
+            288,
+            0,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "pour-2": {
+          "rect": [
+            432,
+            0,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "pour-3": {
+          "rect": [
+            0,
+            192,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "pour-4": {
+          "rect": [
+            144,
+            192,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "serve-1": {
+          "rect": [
+            288,
+            192,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "serve-2": {
+          "rect": [
+            432,
+            192,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "serve-3": {
+          "rect": [
+            0,
+            384,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        },
+        "serve-4": {
+          "rect": [
+            144,
+            384,
+            144,
+            192
+          ],
+          "anchor": [
+            72,
+            174
+          ]
+        }
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            "idle-1",
+            "idle-2"
+          ],
+          "fps": 3,
+          "loop": true
+        },
+        "pour": {
+          "frames": [
+            "pour-1",
+            "pour-2",
+            "pour-3",
+            "pour-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "serve": {
+          "frames": [
+            "serve-1",
+            "serve-2",
+            "serve-3",
+            "serve-4"
+          ],
+          "fps": 8,
+          "loop": false
+        }
+      }
     }
   ],
   "rectConvention": "[x, y, width, height] in atlas pixels from upper left",

@@ -46,3 +46,20 @@ Atlas HD dùng lưới 1×, alpha cứng và WebP lossless. Điểm neo và tọ
 Khi nối vào Quầy pha hoặc hội thoại, dùng tỉ lệ vẽ HD bằng một nửa tỉ lệ của frame cũ để giữ nguyên kích thước và vị trí trong UI. Khi cần trả về 2×, dùng kích thước và neo từ manifest của chính sheet cũ. Asset này chưa đổi render.
 
 [Đối chiếu chân dung và barista](concepts/phase-3b-hd-comparison.webp) · [Kiểm tra ghép lớp ly HD](concepts/phase-3b-hd-cups.webp)
+
+## Phase 3c · Nhân vật toàn thân 144 × 192
+
+Cả sáu atlas nhân vật trong cảnh dùng ô 144 × 192 và điểm neo [72,174]. Mỗi ô chứa lưới 72 × 96 pixel nghệ thuật và xuất ở 2× bằng nearest-neighbor. Sprite lấy từ bản vẽ mới trước khi đóng lưới. Render theo kích thước ô, đặt vị trí bằng anchor từ manifest. Với render nhắm chiều cao 192 px, các sheet này dùng hệ số 1.
+
+| Sheet | Phạm vi |
+|---|---|
+| characters.webp | Dáng đứng của barista và sáu vai khách, có office-worker. |
+| customer-walk-cycles.webp | Bốn khung cho mỗi khách VIP, reviewer, courier, neighbor và office-worker. |
+| customer-reactions.webp | Chờ, vui và sốt ruột của sáu vai khách. |
+| customer-actions.webp | Hai khung gọi món và hai khung ngạc nhiên của mỗi vai. VIP dùng cùng chiều cao khi gọi món. |
+| character-motion-sample.webp | Giữ walk-1..4 và các pose mẫu cùng atlas. |
+| barista-scene.webp | Hai khung idle, bốn khung pour và bốn khung serve trong cảnh. |
+
+Tên frame, clip, thứ tự, FPS và quy tắc loop giữ theo sheet nguồn. Tọa độ trong atlas đổi theo kích thước ô mới. Hai manifest có cùng dữ liệu. VIP dùng áo sage, quần kem, búi tóc thấp và túi nâu. Reviewer dùng áo kem, váy nâu gạch, búi tóc cao và điện thoại.
+
+[Đối chiếu từng vai qua các sheet](concepts/phase-3c-scene-sprites.webp) · [Ảnh ghép ở tỉ lệ thực trong quán](concepts/phase-3c-in-shop.webp)

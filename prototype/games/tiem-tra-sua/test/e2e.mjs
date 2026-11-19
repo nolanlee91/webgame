@@ -50,7 +50,13 @@ async function brewClicks(o, onStep = null) {
 await b.view(1366, 768, false); await b.touch(false); press = b.click;
 await b.nav(BASE); await b.ev("localStorage.clear()"); await b.nav(BASE);
 check("mở game: bảng chào mừng có chân dung nhân viên (portraits.webp) và ô tên tiệm", await visible("#introGo") && await visible("#shopName") && await b.ev("!!document.querySelector('.intro .portrait[style*=\"portraits.webp\"]')"));
-check("cảnh tiệm thật từ asset Codex: nền shop-scene + lớp che quầy + nhân viên", await b.ev(`!!document.querySelector('.stage img[src$="shop-scene.webp"]')&&!!document.querySelector('.stage img[src$="shop-counter-foreground.webp"]')&&/characters\\.webp/.test(document.querySelector('.stage .barista').style.backgroundImage)`));
+check("cảnh tiệm dùng nhân viên 144 × 192 từ barista-scene", await waitFor(`(() => {
+  const actor = document.querySelector('.stage .barista');
+  return !!document.querySelector('.stage img[src$="shop-scene.webp"]') &&
+    !!document.querySelector('.stage img[src$="shop-counter-foreground.webp"]') &&
+    actor?.style.backgroundImage.includes("barista-scene.webp") &&
+    actor.style.width === "144px" && actor.style.height === "192px";
+})()`));
 await b.shot(OUT + "/01-desktop-chao-mung.png");
 await b.ev(`(()=>{const i=document.querySelector('#shopName');i.value='';})()`);
 await pressSel("#shopName");
