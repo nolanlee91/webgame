@@ -4,15 +4,16 @@
 // Công trình dùng MỘT mô hình với Milestone 3 — core/build.js (data/buildings.js id "xuong", số liệu khớp data/workshop.js):
 //   s.buildings.xuong = { level (level ĐÃ XONG; 0 khi đang xây lần đầu), done, startAt, readyAt }
 // s.production = { machines: { [id]: { level, slots, readyAt, queue: [{ uid, recipe, startAt, endAt }], nextUid } } }
-import { WORKSHOP } from "../data/workshop.js?v=m5";
-import { MACHINE, MACHINES } from "../data/machines.js?v=m5";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m5";
-import { ITEM } from "../data/catalog.js?v=m5";
-import * as P from "./production.js?v=m5";
-import * as B from "./build.js?v=m5";
-import { MARKET } from "./market.js?v=m5";
-import { bag, wallet } from "./inventory.js?v=m5";
-import { addXp } from "./progression.js?v=m5";
+import { WORKSHOP } from "../data/workshop.js?v=m6";
+import { MACHINE, MACHINES } from "../data/machines.js?v=m6";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m6";
+import { ITEM } from "../data/catalog.js?v=m6";
+import * as P from "./production.js?v=m6";
+import * as B from "./build.js?v=m6";
+import { MARKET, MAX_LOT } from "./market.js?v=m6";
+import * as fair from "./fair.js?v=m6";
+import { bag, wallet } from "./inventory.js?v=m6";
+import { addXp } from "./progression.js?v=m6";
 
 const ID = WORKSHOP.id; // "xuong"
 export const workshopOf = (s) => s.buildings?.[ID] || null;
@@ -108,13 +109,20 @@ export function collectAll(s, a, now, events) {
   return r;
 }
 
+/** Bán ở Khu chợ: kiểm như MARKET.sell (món bán được, số lượng 1..999, đủ hàng), tiền theo giá chợ hoặc Phiên chợ (core/fair.js). */
 export function marketSell(s, a, now, events) {
-  const r = MARKET.sell(bag(s), wallet(s), a.id, a.n, now);
-  if (r.err) return r;
-  const trend = MARKET.trend(a.id, now);
-  events.push({ type: "sold", count: r.count, coins: r.coins, items: { [a.id]: r.count }, price: r.price, market: true, trend,
-    productUp: trend === "↑" && ITEM[a.id]?.cat === "thanh-pham" });
-  return r;
+  if (!MARKET.sellable(a.id) || !Number.isFinite(now)) return { err: "bad" };
+  if (!Number.isInteger(a.n) || a.n <= 0 || a.n > MAX_LOT) return { err: "bad-count" };
+  const inv = bag(s);
+  if (!inv.has(a.id, a.n)) return { err: "empty-stock" };
+  const q = fair.quote(s, a.id, a.n, now);
+  if (!inv.take(a.id, a.n)) return { err: "empty-stock" };
+  fair.commitSale(s, a.id, q);
+  wallet(s).earn(q.coins);
+  const trend = q.fair ? "·" : MARKET.trend(a.id, now);
+  events.push({ type: "sold", count: a.n, coins: q.coins, items: { [a.id]: a.n }, price: q.price, market: true, trend, fair: q.fair, hot: q.hotUnits,
+    productUp: !q.fair && trend === "↑" && ITEM[a.id]?.cat === "thanh-pham" });
+  return { ok: true, id: a.id, count: a.n, price: q.price, coins: q.coins };
 }
 export function marketBuy(s, a, now, events) {
   const r = MARKET.buy(bag(s), wallet(s), a.id, a.n, now, ctxOf(s, now));

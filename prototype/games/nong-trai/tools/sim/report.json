@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-19T16:49:23.900Z",
+ "generated": "2026-11-19T20:49:26.391Z",
  "days": 7,
  "seed": 12345,
- "elapsedSec": 23.97,
+ "elapsedSec": 69.106,
  "results": [
   {
    "profile": {
@@ -16,10 +16,10 @@
    "final": {
     "level": 20,
     "xp": 120750,
-    "coins": 249447,
-    "earned": 1472626,
-    "delivered": 1404,
-    "harvested": 52545,
+    "coins": 258480,
+    "earned": 1497201,
+    "delivered": 1254,
+    "harvested": 52056,
     "plots": 43,
     "animals": {
      "ga": 10,
@@ -33,15 +33,16 @@
      "noi-duong": 3
     },
     "buildings": {
-     "nha-kho": 3,
+     "nha-kho": 4,
      "xuong": 2,
      "chuong-ga": 3,
      "chuong-bo": 2,
      "nha-kinh": 2,
      "nha": 10,
+     "hang-rao": 2,
      "dat-phia-dong": 1
     },
-    "warehouseCap": 130,
+    "warehouseCap": 180,
     "questIndex": 13,
     "villageProg": 6,
     "chains": {
@@ -51,24 +52,32 @@
      "anh-ut": 3
     },
     "inv": {
-     "hop-dinh": 291,
-     "thung-son": 371,
-     "van-go": 407,
-     "trung-ga": 31,
-     "banh-trung": 5,
-     "dau-tay": 12,
-     "lua": 6,
-     "sot-ca-chua": 2,
-     "duong": 2,
-     "ngo": 2,
-     "nuoc-ep-ca-rot": 2,
-     "banh-flan": 1,
+     "hop-dinh": 304,
+     "thung-son": 364,
+     "van-go": 375,
+     "bi-ngo": 2,
+     "ngo": 4,
+     "trung-ga": 9,
+     "dau-tay": 16,
+     "sot-ca-chua": 5,
+     "che-bi-ngo": 3,
+     "banh-ngo": 5,
+     "lua": 4,
      "bo": 1,
-     "sua": 1,
-     "bap-rang": 1,
-     "mut-dau": 1
+     "duong": 1,
+     "bot-gao": 2,
+     "sua": 2
     },
-    "savingFor": null
+    "savingFor": null,
+    "book": 30,
+    "bookClaimed": 3,
+    "bookAt": {
+     "10": 0.3,
+     "20": 2.3,
+     "30": 8.5
+    },
+    "fairBonus": 1408,
+    "specialDelivered": 20
    },
    "activeMin": 2940,
    "levels": {
@@ -93,64 +102,64 @@
      "active": 960000
     },
     "6": {
-     "real": 1560000,
-     "active": 1560000
+     "real": 1620000,
+     "active": 1620000
     },
     "7": {
-     "real": 4080000,
-     "active": 2280000
+     "real": 4140000,
+     "active": 2340000
     },
     "8": {
-     "real": 7200000,
-     "active": 3600000
+     "real": 5220000,
+     "active": 3420000
     },
     "9": {
-     "real": 8580000,
-     "active": 4980000
+     "real": 8340000,
+     "active": 4740000
     },
     "10": {
-     "real": 12180000,
-     "active": 6780000
+     "real": 11940000,
+     "active": 6540000
     },
     "11": {
-     "real": 15780000,
-     "active": 8580000
+     "real": 15420000,
+     "active": 8220000
     },
     "12": {
-     "real": 21600000,
-     "active": 10800000
+     "real": 19440000,
+     "active": 10440000
     },
     "13": {
-     "real": 25920000,
-     "active": 13320000
+     "real": 25680000,
+     "active": 13080000
     },
     "14": {
-     "real": 32580000,
-     "active": 16380000
+     "real": 32400000,
+     "active": 16200000
     },
     "15": {
-     "real": 37500000,
-     "active": 19500000
+     "real": 37440000,
+     "active": 19440000
     },
     "16": {
-     "real": 46980000,
-     "active": 23580000
+     "real": 44820000,
+     "active": 23220000
     },
     "17": {
-     "real": 90540000,
-     "active": 27540000
+     "real": 90240000,
+     "active": 27240000
     },
     "18": {
-     "real": 98160000,
-     "active": 31560000
+     "real": 97980000,
+     "active": 31380000
     },
     "19": {
      "real": 108000000,
      "active": 36000000
     },
     "20": {
-     "real": 116340000,
-     "active": 40740000
+     "real": 118800000,
+     "active": 41400000
     }
    },
    "samples": [
@@ -158,51 +167,51 @@
      "realH": 0.5,
      "activeMin": 30,
      "level": 6,
-     "xp": 2129,
-     "coins": 8,
-     "earned": 4747,
+     "xp": 2163,
+     "coins": 126,
+     "earned": 5569,
      "income": {
-      "raw": 1302,
-      "orders": 3173,
+      "raw": 1784,
+      "orders": 2723,
       "products": 0,
       "animals": 0,
-      "quests": 272,
+      "quests": 1062,
       "other": 0
      },
-     "plots": 19,
+     "plots": 20,
      "animals": 0
     },
     {
      "realH": 1.5,
      "activeMin": 60,
-     "level": 7,
-     "xp": 5236,
-     "coins": 1152,
-     "earned": 12726,
+     "level": 8,
+     "xp": 5581,
+     "coins": 907,
+     "earned": 14641,
      "income": {
-      "raw": 4656,
-      "orders": 5968,
-      "products": 0,
-      "animals": 420,
-      "quests": 1682,
+      "raw": 4311,
+      "orders": 7018,
+      "products": 370,
+      "animals": 385,
+      "quests": 2557,
       "other": 0
      },
-     "plots": 22,
+     "plots": 23,
      "animals": 6
     },
     {
      "realH": 2.5,
      "activeMin": 90,
      "level": 9,
-     "xp": 8880,
-     "coins": 2034,
-     "earned": 22160,
+     "xp": 9181,
+     "coins": 2112,
+     "earned": 24097,
      "income": {
-      "raw": 7610,
-      "orders": 9730,
-      "products": 138,
-      "animals": 1505,
-      "quests": 3177,
+      "raw": 8365,
+      "orders": 9743,
+      "products": 1087,
+      "animals": 980,
+      "quests": 3922,
       "other": 0
      },
      "plots": 24,
@@ -212,15 +221,15 @@
      "realH": 3.5,
      "activeMin": 120,
      "level": 10,
-     "xp": 12554,
-     "coins": 42,
-     "earned": 32082,
+     "xp": 13361,
+     "coins": 3181,
+     "earned": 35895,
      "income": {
-      "raw": 10310,
-      "orders": 13979,
-      "products": 972,
-      "animals": 2839,
-      "quests": 3982,
+      "raw": 10727,
+      "orders": 14626,
+      "products": 2659,
+      "animals": 2746,
+      "quests": 5137,
       "other": 0
      },
      "plots": 31,
@@ -230,15 +239,15 @@
      "realH": 4.5,
      "activeMin": 150,
      "level": 11,
-     "xp": 17063,
-     "coins": 9016,
-     "earned": 44823,
+     "xp": 18049,
+     "coins": 15332,
+     "earned": 51617,
      "income": {
-      "raw": 14081,
-      "orders": 18450,
-      "products": 2953,
-      "animals": 4192,
-      "quests": 5147,
+      "raw": 12417,
+      "orders": 21860,
+      "products": 3668,
+      "animals": 3440,
+      "quests": 10232,
       "other": 0
      },
      "plots": 31,
@@ -247,34 +256,34 @@
     {
      "realH": 5.5,
      "activeMin": 180,
-     "level": 11,
-     "xp": 21686,
-     "coins": 17634,
-     "earned": 57107,
+     "level": 12,
+     "xp": 22460,
+     "coins": 16461,
+     "earned": 63978,
      "income": {
-      "raw": 16790,
-      "orders": 25001,
-      "products": 3978,
-      "animals": 5246,
-      "quests": 6092,
+      "raw": 16605,
+      "orders": 25882,
+      "products": 4923,
+      "animals": 5126,
+      "quests": 11442,
       "other": 0
      },
      "plots": 31,
-     "animals": 12
+     "animals": 14
     },
     {
      "realH": 6.5,
      "activeMin": 210,
      "level": 12,
-     "xp": 26036,
-     "coins": 18477,
-     "earned": 69234,
+     "xp": 26506,
+     "coins": 24228,
+     "earned": 75290,
      "income": {
-      "raw": 21233,
-      "orders": 28530,
-      "products": 6115,
-      "animals": 6324,
-      "quests": 7032,
+      "raw": 21573,
+      "orders": 29034,
+      "products": 6968,
+      "animals": 5498,
+      "quests": 12217,
       "other": 0
      },
      "plots": 31,
@@ -284,15 +293,15 @@
      "realH": 7.5,
      "activeMin": 240,
      "level": 13,
-     "xp": 30986,
-     "coins": 21372,
-     "earned": 82880,
+     "xp": 31257,
+     "coins": 26593,
+     "earned": 88540,
      "income": {
-      "raw": 24022,
-      "orders": 35812,
-      "products": 8140,
-      "animals": 6904,
-      "quests": 8002,
+      "raw": 25093,
+      "orders": 34871,
+      "products": 8694,
+      "animals": 6600,
+      "quests": 13282,
       "other": 0
      },
      "plots": 31,
@@ -302,15 +311,15 @@
      "realH": 8.5,
      "activeMin": 270,
      "level": 13,
-     "xp": 34999,
-     "coins": 28565,
-     "earned": 93400,
+     "xp": 35673,
+     "coins": 35427,
+     "earned": 101112,
      "income": {
-      "raw": 27152,
-      "orders": 40027,
-      "products": 9649,
-      "animals": 7745,
-      "quests": 8827,
+      "raw": 29580,
+      "orders": 38720,
+      "products": 11068,
+      "animals": 7412,
+      "quests": 14332,
       "other": 0
      },
      "plots": 31,
@@ -320,15 +329,15 @@
      "realH": 9.5,
      "activeMin": 300,
      "level": 14,
-     "xp": 39994,
-     "coins": 27460,
-     "earned": 107222,
+     "xp": 40323,
+     "coins": 32617,
+     "earned": 114467,
      "income": {
-      "raw": 30184,
-      "orders": 46984,
-      "products": 10752,
-      "animals": 8470,
-      "quests": 10832,
+      "raw": 33966,
+      "orders": 42756,
+      "products": 13842,
+      "animals": 7731,
+      "quests": 16172,
       "other": 0
      },
      "plots": 31,
@@ -338,15 +347,15 @@
      "realH": 10.5,
      "activeMin": 330,
      "level": 15,
-     "xp": 44550,
-     "coins": 35974,
-     "earned": 119265,
+     "xp": 44691,
+     "coins": 34333,
+     "earned": 126150,
      "income": {
-      "raw": 34432,
-      "orders": 51862,
-      "products": 11884,
-      "animals": 8935,
-      "quests": 12152,
+      "raw": 39418,
+      "orders": 44337,
+      "products": 16320,
+      "animals": 8878,
+      "quests": 17197,
       "other": 0
      },
      "plots": 31,
@@ -356,15 +365,15 @@
      "realH": 11.5,
      "activeMin": 360,
      "level": 15,
-     "xp": 49176,
-     "coins": 47152,
-     "earned": 133710,
+     "xp": 49110,
+     "coins": 43794,
+     "earned": 139057,
      "income": {
-      "raw": 37814,
-      "orders": 59256,
-      "products": 13947,
-      "animals": 9121,
-      "quests": 13572,
+      "raw": 43382,
+      "orders": 49847,
+      "products": 18184,
+      "animals": 9157,
+      "quests": 18487,
       "other": 0
      },
      "plots": 31,
@@ -373,16 +382,16 @@
     {
      "realH": 12.5,
      "activeMin": 390,
-     "level": 15,
-     "xp": 52523,
-     "coins": 52009,
-     "earned": 141928,
+     "level": 16,
+     "xp": 53504,
+     "coins": 28788,
+     "earned": 152728,
      "income": {
-      "raw": 41983,
-      "orders": 62379,
-      "products": 14367,
-      "animals": 9307,
-      "quests": 13892,
+      "raw": 47612,
+      "orders": 53253,
+      "products": 22452,
+      "animals": 9839,
+      "quests": 19572,
       "other": 0
      },
      "plots": 31,
@@ -392,15 +401,15 @@
      "realH": 13.5,
      "activeMin": 420,
      "level": 16,
-     "xp": 56938,
-     "coins": 36304,
-     "earned": 155092,
+     "xp": 57985,
+     "coins": 37377,
+     "earned": 165333,
      "income": {
-      "raw": 47811,
-      "orders": 66429,
-      "products": 16622,
-      "animals": 9423,
-      "quests": 14807,
+      "raw": 51752,
+      "orders": 56424,
+      "products": 24836,
+      "animals": 11724,
+      "quests": 20597,
       "other": 0
      },
      "plots": 34,
@@ -410,15 +419,15 @@
      "realH": 24.5,
      "activeMin": 450,
      "level": 16,
-     "xp": 62030,
-     "coins": 44713,
-     "earned": 167701,
+     "xp": 62813,
+     "coins": 46576,
+     "earned": 178439,
      "income": {
-      "raw": 51577,
-      "orders": 71570,
-      "products": 17885,
-      "animals": 10447,
-      "quests": 16222,
+      "raw": 56526,
+      "orders": 60610,
+      "products": 27434,
+      "animals": 12332,
+      "quests": 21537,
       "other": 0
      },
      "plots": 34,
@@ -428,15 +437,15 @@
      "realH": 25.5,
      "activeMin": 480,
      "level": 17,
-     "xp": 67121,
-     "coins": 9212,
-     "earned": 183017,
+     "xp": 67938,
+     "coins": 9602,
+     "earned": 192405,
      "income": {
-      "raw": 56936,
-      "orders": 78747,
-      "products": 19123,
-      "animals": 10969,
-      "quests": 17242,
+      "raw": 61579,
+      "orders": 65720,
+      "products": 29490,
+      "animals": 12999,
+      "quests": 22617,
       "other": 0
      },
      "plots": 43,
@@ -446,15 +455,15 @@
      "realH": 26.5,
      "activeMin": 510,
      "level": 17,
-     "xp": 72863,
-     "coins": 19494,
-     "earned": 199175,
+     "xp": 73120,
+     "coins": 22191,
+     "earned": 209288,
      "income": {
-      "raw": 62234,
-      "orders": 84346,
-      "products": 22173,
-      "animals": 11955,
-      "quests": 18467,
+      "raw": 66670,
+      "orders": 70421,
+      "products": 34024,
+      "animals": 14246,
+      "quests": 23927,
       "other": 0
      },
      "plots": 43,
@@ -464,15 +473,15 @@
      "realH": 27.5,
      "activeMin": 540,
      "level": 18,
-     "xp": 78342,
-     "coins": 30798,
-     "earned": 215304,
+     "xp": 78965,
+     "coins": 49915,
+     "earned": 241673,
      "income": {
-      "raw": 68380,
-      "orders": 90433,
-      "products": 24621,
-      "animals": 12593,
-      "quests": 19277,
+      "raw": 72171,
+      "orders": 78943,
+      "products": 35389,
+      "animals": 14768,
+      "quests": 40402,
       "other": 0
      },
      "plots": 43,
@@ -482,15 +491,15 @@
      "realH": 28.5,
      "activeMin": 570,
      "level": 18,
-     "xp": 83503,
-     "coins": 40142,
-     "earned": 228871,
+     "xp": 83741,
+     "coins": 2763,
+     "earned": 254978,
      "income": {
-      "raw": 73528,
-      "orders": 95587,
-      "products": 26028,
-      "animals": 13616,
-      "quests": 20112,
+      "raw": 76533,
+      "orders": 84896,
+      "products": 35991,
+      "animals": 15481,
+      "quests": 42077,
       "other": 0
      },
      "plots": 43,
@@ -500,15 +509,15 @@
      "realH": 29.5,
      "activeMin": 600,
      "level": 18,
-     "xp": 89046,
-     "coins": 52735,
-     "earned": 246197,
+     "xp": 88809,
+     "coins": 9835,
+     "earned": 266692,
      "income": {
-      "raw": 81012,
-      "orders": 101941,
-      "products": 28333,
-      "animals": 13864,
-      "quests": 21047,
+      "raw": 80535,
+      "orders": 88912,
+      "products": 37650,
+      "animals": 16473,
+      "quests": 43122,
       "other": 0
      },
      "plots": 43,
@@ -518,15 +527,15 @@
      "realH": 30.5,
      "activeMin": 630,
      "level": 19,
-     "xp": 94809,
-     "coins": 6295,
-     "earned": 261616,
+     "xp": 92325,
+     "coins": 18467,
+     "earned": 278418,
      "income": {
-      "raw": 86756,
-      "orders": 107439,
-      "products": 30394,
-      "animals": 14980,
-      "quests": 22047,
+      "raw": 85151,
+      "orders": 92882,
+      "products": 39734,
+      "animals": 16814,
+      "quests": 43837,
       "other": 0
      },
      "plots": 43,
@@ -536,15 +545,15 @@
      "realH": 31.5,
      "activeMin": 660,
      "level": 19,
-     "xp": 100738,
-     "coins": 18820,
-     "earned": 279254,
+     "xp": 98052,
+     "coins": 29134,
+     "earned": 294175,
      "income": {
-      "raw": 94405,
-      "orders": 112719,
-      "products": 32362,
-      "animals": 16356,
-      "quests": 23412,
+      "raw": 92007,
+      "orders": 97821,
+      "products": 41921,
+      "animals": 17454,
+      "quests": 44972,
       "other": 0
      },
      "plots": 43,
@@ -553,16 +562,16 @@
     {
      "realH": 32.5,
      "activeMin": 690,
-     "level": 20,
-     "xp": 105946,
-     "coins": 27319,
-     "earned": 294535,
+     "level": 19,
+     "xp": 104135,
+     "coins": 40584,
+     "earned": 310617,
      "income": {
-      "raw": 100209,
-      "orders": 119474,
-      "products": 33277,
-      "animals": 16868,
-      "quests": 24707,
+      "raw": 98221,
+      "orders": 105201,
+      "products": 42805,
+      "animals": 18478,
+      "quests": 45912,
       "other": 0
      },
      "plots": 43,
@@ -572,15 +581,15 @@
      "realH": 33.5,
      "activeMin": 720,
      "level": 20,
-     "xp": 111359,
-     "coins": 37735,
-     "earned": 310012,
+     "xp": 109348,
+     "coins": 53635,
+     "earned": 328652,
      "income": {
-      "raw": 106656,
-      "orders": 125152,
-      "products": 35516,
-      "animals": 17316,
-      "quests": 25372,
+      "raw": 105824,
+      "orders": 107135,
+      "products": 48689,
+      "animals": 19982,
+      "quests": 47022,
       "other": 0
      },
      "plots": 43,
@@ -590,15 +599,15 @@
      "realH": 34.5,
      "activeMin": 750,
      "level": 20,
-     "xp": 117001,
-     "coins": 49553,
-     "earned": 326831,
+     "xp": 115136,
+     "coins": 65501,
+     "earned": 345858,
      "income": {
-      "raw": 114312,
-      "orders": 129733,
-      "products": 38982,
-      "animals": 17347,
-      "quests": 26457,
+      "raw": 111972,
+      "orders": 114972,
+      "products": 50375,
+      "animals": 20602,
+      "quests": 47937,
       "other": 0
      },
      "plots": 43,
@@ -608,15 +617,15 @@
      "realH": 35.5,
      "activeMin": 780,
      "level": 20,
-     "xp": 120750,
-     "coins": 60641,
-     "earned": 342585,
+     "xp": 120071,
+     "coins": 74161,
+     "earned": 359558,
      "income": {
-      "raw": 122484,
-      "orders": 135371,
-      "products": 39635,
-      "animals": 17843,
-      "quests": 27252,
+      "raw": 118523,
+      "orders": 118947,
+      "products": 52784,
+      "animals": 20602,
+      "quests": 48702,
       "other": 0
      },
      "plots": 43,
@@ -627,14 +636,14 @@
      "activeMin": 810,
      "level": 20,
      "xp": 120750,
-     "coins": 74115,
-     "earned": 360663,
+     "coins": 86317,
+     "earned": 376319,
      "income": {
-      "raw": 128105,
-      "orders": 142897,
-      "products": 42131,
-      "animals": 18928,
-      "quests": 28602,
+      "raw": 124473,
+      "orders": 124159,
+      "products": 55426,
+      "animals": 22524,
+      "quests": 49737,
       "other": 0
      },
      "plots": 43,
@@ -645,14 +654,14 @@
      "activeMin": 840,
      "level": 20,
      "xp": 120750,
-     "coins": 84905,
-     "earned": 376649,
+     "coins": 95738,
+     "earned": 390366,
      "income": {
-      "raw": 133680,
-      "orders": 149793,
-      "products": 44430,
-      "animals": 19044,
-      "quests": 29702,
+      "raw": 131058,
+      "orders": 126516,
+      "products": 58842,
+      "animals": 22988,
+      "quests": 50962,
       "other": 0
      },
      "plots": 43,
@@ -663,14 +672,14 @@
      "activeMin": 870,
      "level": 20,
      "xp": 120750,
-     "coins": 96040,
-     "earned": 390770,
+     "coins": 4616,
+     "earned": 406024,
      "income": {
-      "raw": 136354,
-      "orders": 157082,
-      "products": 45576,
-      "animals": 21156,
-      "quests": 30602,
+      "raw": 136569,
+      "orders": 130581,
+      "products": 62058,
+      "animals": 25004,
+      "quests": 51812,
       "other": 0
      },
      "plots": 43,
@@ -681,14 +690,14 @@
      "activeMin": 900,
      "level": 20,
      "xp": 120750,
-     "coins": 5022,
-     "earned": 406644,
+     "coins": 12577,
+     "earned": 420450,
      "income": {
-      "raw": 140553,
-      "orders": 166065,
-      "products": 45728,
-      "animals": 22236,
-      "quests": 32062,
+      "raw": 141892,
+      "orders": 135408,
+      "products": 64418,
+      "animals": 25940,
+      "quests": 52792,
       "other": 0
      },
      "plots": 43,
@@ -699,14 +708,14 @@
      "activeMin": 930,
      "level": 20,
      "xp": 120750,
-     "coins": 18079,
-     "earned": 424200,
+     "coins": 25202,
+     "earned": 437880,
      "income": {
-      "raw": 145388,
-      "orders": 175442,
-      "products": 46760,
-      "animals": 23388,
-      "quests": 33222,
+      "raw": 146706,
+      "orders": 143391,
+      "products": 67600,
+      "animals": 26336,
+      "quests": 53847,
       "other": 0
      },
      "plots": 43,
@@ -717,14 +726,14 @@
      "activeMin": 960,
      "level": 20,
      "xp": 120750,
-     "coins": 27396,
-     "earned": 438468,
+     "coins": 34780,
+     "earned": 452739,
      "income": {
-      "raw": 149768,
-      "orders": 179447,
-      "products": 50511,
-      "animals": 24720,
-      "quests": 34022,
+      "raw": 154916,
+      "orders": 148408,
+      "products": 68190,
+      "animals": 26588,
+      "quests": 54637,
       "other": 0
      },
      "plots": 43,
@@ -735,14 +744,14 @@
      "activeMin": 990,
      "level": 20,
      "xp": 120750,
-     "coins": 38723,
-     "earned": 454450,
+     "coins": 49706,
+     "earned": 472158,
      "income": {
-      "raw": 153679,
-      "orders": 188080,
-      "products": 52463,
-      "animals": 25271,
-      "quests": 34957,
+      "raw": 158801,
+      "orders": 157702,
+      "products": 73382,
+      "animals": 26646,
+      "quests": 55627,
       "other": 0
      },
      "plots": 43,
@@ -753,14 +762,14 @@
      "activeMin": 1020,
      "level": 20,
      "xp": 120750,
-     "coins": 50151,
-     "earned": 470937,
+     "coins": 60341,
+     "earned": 486248,
      "income": {
-      "raw": 161100,
-      "orders": 193708,
-      "products": 53779,
-      "animals": 26663,
-      "quests": 35687,
+      "raw": 162407,
+      "orders": 163600,
+      "products": 75498,
+      "animals": 27951,
+      "quests": 56792,
       "other": 0
      },
      "plots": 43,
@@ -771,14 +780,14 @@
      "activeMin": 1050,
      "level": 20,
      "xp": 120750,
-     "coins": 63053,
-     "earned": 487885,
+     "coins": 73492,
+     "earned": 504022,
      "income": {
-      "raw": 168084,
-      "orders": 200274,
-      "products": 56043,
-      "animals": 26837,
-      "quests": 36647,
+      "raw": 168705,
+      "orders": 171319,
+      "products": 76921,
+      "animals": 29140,
+      "quests": 57937,
       "other": 0
      },
      "plots": 43,
@@ -789,14 +798,14 @@
      "activeMin": 1080,
      "level": 20,
      "xp": 120750,
-     "coins": 75309,
-     "earned": 504849,
+     "coins": 82479,
+     "earned": 517507,
      "income": {
-      "raw": 173510,
-      "orders": 207559,
-      "products": 57765,
-      "animals": 28223,
-      "quests": 37792,
+      "raw": 173729,
+      "orders": 176595,
+      "products": 78580,
+      "animals": 29866,
+      "quests": 58737,
       "other": 0
      },
      "plots": 43,
@@ -807,14 +816,14 @@
      "activeMin": 1110,
      "level": 20,
      "xp": 120750,
-     "coins": 86397,
-     "earned": 520056,
+     "coins": 92506,
+     "earned": 532457,
      "income": {
-      "raw": 178850,
-      "orders": 214028,
-      "products": 59618,
-      "animals": 28388,
-      "quests": 39172,
+      "raw": 178903,
+      "orders": 183244,
+      "products": 79748,
+      "animals": 30955,
+      "quests": 59607,
       "other": 0
      },
      "plots": 43,
@@ -825,14 +834,14 @@
      "activeMin": 1140,
      "level": 20,
      "xp": 120750,
-     "coins": 94485,
-     "earned": 533181,
+     "coins": 104091,
+     "earned": 548839,
      "income": {
-      "raw": 182887,
-      "orders": 222131,
-      "products": 59684,
-      "animals": 28652,
-      "quests": 39827,
+      "raw": 184830,
+      "orders": 186741,
+      "products": 84684,
+      "animals": 32077,
+      "quests": 60507,
       "other": 0
      },
      "plots": 43,
@@ -843,14 +852,14 @@
      "activeMin": 1170,
      "level": 20,
      "xp": 120750,
-     "coins": 105803,
-     "earned": 548978,
+     "coins": 113886,
+     "earned": 563290,
      "income": {
-      "raw": 188321,
-      "orders": 226757,
-      "products": 63802,
-      "animals": 29406,
-      "quests": 40692,
+      "raw": 190261,
+      "orders": 191232,
+      "products": 87424,
+      "animals": 32686,
+      "quests": 61687,
       "other": 0
      },
      "plots": 43,
@@ -861,14 +870,14 @@
      "activeMin": 1200,
      "level": 20,
      "xp": 120750,
-     "coins": 115367,
-     "earned": 563070,
+     "coins": 126425,
+     "earned": 580129,
      "income": {
-      "raw": 192366,
-      "orders": 233858,
-      "products": 65113,
-      "animals": 29841,
-      "quests": 41892,
+      "raw": 193997,
+      "orders": 199380,
+      "products": 90174,
+      "animals": 33556,
+      "quests": 63022,
       "other": 0
      },
      "plots": 43,
@@ -879,14 +888,14 @@
      "activeMin": 1230,
      "level": 20,
      "xp": 120750,
-     "coins": 125402,
-     "earned": 578288,
+     "coins": 134637,
+     "earned": 593086,
      "income": {
-      "raw": 196272,
-      "orders": 241439,
-      "products": 67317,
-      "animals": 30508,
-      "quests": 42752,
+      "raw": 200191,
+      "orders": 201748,
+      "products": 92708,
+      "animals": 34542,
+      "quests": 63897,
       "other": 0
      },
      "plots": 43,
@@ -897,14 +906,14 @@
      "activeMin": 1260,
      "level": 20,
      "xp": 120750,
-     "coins": 138116,
-     "earned": 595522,
+     "coins": 148050,
+     "earned": 611045,
      "income": {
-      "raw": 201372,
-      "orders": 249189,
-      "products": 69885,
-      "animals": 31159,
-      "quests": 43917,
+      "raw": 206513,
+      "orders": 209687,
+      "products": 94650,
+      "animals": 35193,
+      "quests": 65002,
       "other": 0
      },
      "plots": 43,
@@ -915,14 +924,14 @@
      "activeMin": 1290,
      "level": 20,
      "xp": 120750,
-     "coins": 149338,
-     "earned": 611623,
+     "coins": 159046,
+     "earned": 626732,
      "income": {
-      "raw": 205989,
-      "orders": 256070,
-      "products": 72643,
-      "animals": 31999,
-      "quests": 44922,
+      "raw": 212362,
+      "orders": 216243,
+      "products": 96612,
+      "animals": 35553,
+      "quests": 65962,
       "other": 0
      },
      "plots": 43,
@@ -933,14 +942,14 @@
      "activeMin": 1320,
      "level": 20,
      "xp": 120750,
-     "coins": 161530,
-     "earned": 628792,
+     "coins": 169525,
+     "earned": 641912,
      "income": {
-      "raw": 211837,
-      "orders": 261577,
-      "products": 75612,
-      "animals": 33559,
-      "quests": 46207,
+      "raw": 219160,
+      "orders": 219111,
+      "products": 99416,
+      "animals": 37413,
+      "quests": 66812,
       "other": 0
      },
      "plots": 43,
@@ -951,14 +960,14 @@
      "activeMin": 1350,
      "level": 20,
      "xp": 120750,
-     "coins": 169753,
-     "earned": 640390,
+     "coins": 182223,
+     "earned": 659488,
      "income": {
-      "raw": 216809,
-      "orders": 266084,
-      "products": 76386,
-      "animals": 33859,
-      "quests": 47252,
+      "raw": 224886,
+      "orders": 223556,
+      "products": 104966,
+      "animals": 38373,
+      "quests": 67707,
       "other": 0
      },
      "plots": 43,
@@ -969,14 +978,14 @@
      "activeMin": 1380,
      "level": 20,
      "xp": 120750,
-     "coins": 452,
-     "earned": 659966,
+     "coins": 8592,
+     "earned": 674920,
      "income": {
-      "raw": 221239,
-      "orders": 278097,
-      "products": 77699,
-      "animals": 34369,
-      "quests": 48562,
+      "raw": 232810,
+      "orders": 227987,
+      "products": 106023,
+      "animals": 39603,
+      "quests": 68497,
       "other": 0
      },
      "plots": 43,
@@ -987,14 +996,14 @@
      "activeMin": 1410,
      "level": 20,
      "xp": 120750,
-     "coins": 13944,
-     "earned": 677493,
+     "coins": 18428,
+     "earned": 691507,
      "income": {
-      "raw": 225907,
-      "orders": 285680,
-      "products": 80800,
-      "animals": 35594,
-      "quests": 49512,
+      "raw": 239763,
+      "orders": 231453,
+      "products": 108821,
+      "animals": 42228,
+      "quests": 69242,
       "other": 0
      },
      "plots": 43,
@@ -1005,14 +1014,14 @@
      "activeMin": 1440,
      "level": 20,
      "xp": 120750,
-     "coins": 22580,
-     "earned": 690756,
+     "coins": 29554,
+     "earned": 707057,
      "income": {
-      "raw": 231098,
-      "orders": 289669,
-      "products": 82298,
-      "animals": 37239,
-      "quests": 50452,
+      "raw": 245135,
+      "orders": 236777,
+      "products": 111425,
+      "animals": 42963,
+      "quests": 70757,
       "other": 0
      },
      "plots": 43,
@@ -1023,14 +1032,14 @@
      "activeMin": 1470,
      "level": 20,
      "xp": 120750,
-     "coins": 33035,
-     "earned": 705688,
+     "coins": 42472,
+     "earned": 724363,
      "income": {
-      "raw": 237550,
-      "orders": 294512,
-      "products": 83265,
-      "animals": 38604,
-      "quests": 51757,
+      "raw": 250373,
+      "orders": 243734,
+      "products": 114681,
+      "animals": 43593,
+      "quests": 71982,
       "other": 0
      },
      "plots": 43,
@@ -1041,14 +1050,14 @@
      "activeMin": 1500,
      "level": 20,
      "xp": 120750,
-     "coins": 47676,
-     "earned": 724887,
+     "coins": 55167,
+     "earned": 741935,
      "income": {
-      "raw": 243476,
-      "orders": 303584,
-      "products": 85138,
-      "animals": 39957,
-      "quests": 52732,
+      "raw": 255405,
+      "orders": 252736,
+      "products": 117115,
+      "animals": 43692,
+      "quests": 72987,
       "other": 0
      },
      "plots": 43,
@@ -1059,14 +1068,14 @@
      "activeMin": 1530,
      "level": 20,
      "xp": 120750,
-     "coins": 59931,
-     "earned": 740617,
+     "coins": 66075,
+     "earned": 757834,
      "income": {
-      "raw": 247578,
-      "orders": 310822,
-      "products": 86526,
-      "animals": 41574,
-      "quests": 54117,
+      "raw": 261279,
+      "orders": 260237,
+      "products": 118318,
+      "animals": 44253,
+      "quests": 73747,
       "other": 0
      },
      "plots": 43,
@@ -1077,14 +1086,14 @@
      "activeMin": 1560,
      "level": 20,
      "xp": 120750,
-     "coins": 69566,
-     "earned": 755389,
+     "coins": 76013,
+     "earned": 771101,
      "income": {
-      "raw": 254464,
-      "orders": 315845,
-      "products": 87370,
-      "animals": 42663,
-      "quests": 55047,
+      "raw": 266458,
+      "orders": 264553,
+      "products": 120061,
+      "animals": 45342,
+      "quests": 74687,
       "other": 0
      },
      "plots": 43,
@@ -1095,14 +1104,14 @@
      "activeMin": 1590,
      "level": 20,
      "xp": 120750,
-     "coins": 84120,
-     "earned": 774832,
+     "coins": 86252,
+     "earned": 786090,
      "income": {
-      "raw": 259138,
-      "orders": 326060,
-      "products": 90408,
-      "animals": 43224,
-      "quests": 56002,
+      "raw": 270198,
+      "orders": 272230,
+      "products": 122153,
+      "animals": 45837,
+      "quests": 75672,
       "other": 0
      },
      "plots": 43,
@@ -1113,14 +1122,14 @@
      "activeMin": 1620,
      "level": 20,
      "xp": 120750,
-     "coins": 95264,
-     "earned": 790687,
+     "coins": 96049,
+     "earned": 800577,
      "income": {
-      "raw": 265091,
-      "orders": 331599,
-      "products": 92189,
-      "animals": 44511,
-      "quests": 57297,
+      "raw": 276108,
+      "orders": 275875,
+      "products": 124767,
+      "animals": 47190,
+      "quests": 76637,
       "other": 0
      },
      "plots": 43,
@@ -1131,14 +1140,14 @@
      "activeMin": 1650,
      "level": 20,
      "xp": 120750,
-     "coins": 105251,
-     "earned": 805057,
+     "coins": 108453,
+     "earned": 817695,
      "income": {
-      "raw": 270991,
-      "orders": 335999,
-      "products": 94122,
-      "animals": 45633,
-      "quests": 58312,
+      "raw": 281736,
+      "orders": 280880,
+      "products": 129633,
+      "animals": 47949,
+      "quests": 77497,
       "other": 0
      },
      "plots": 43,
@@ -1149,14 +1158,14 @@
      "activeMin": 1680,
      "level": 20,
      "xp": 120750,
-     "coins": 117960,
-     "earned": 822472,
+     "coins": 120641,
+     "earned": 834172,
      "income": {
-      "raw": 278206,
-      "orders": 341506,
-      "products": 97305,
-      "animals": 46333,
-      "quests": 59122,
+      "raw": 288748,
+      "orders": 284331,
+      "products": 134132,
+      "animals": 48649,
+      "quests": 78312,
       "other": 0
      },
      "plots": 43,
@@ -1167,14 +1176,14 @@
      "activeMin": 1710,
      "level": 20,
      "xp": 120750,
-     "coins": 128859,
-     "earned": 837925,
+     "coins": 133737,
+     "earned": 852341,
      "income": {
-      "raw": 281942,
-      "orders": 349738,
-      "products": 98795,
-      "animals": 47108,
-      "quests": 60342,
+      "raw": 296850,
+      "orders": 286945,
+      "products": 139534,
+      "animals": 49610,
+      "quests": 79402,
       "other": 0
      },
      "plots": 43,
@@ -1185,14 +1194,14 @@
      "activeMin": 1740,
      "level": 20,
      "xp": 120750,
-     "coins": 139302,
-     "earned": 852000,
+     "coins": 143395,
+     "earned": 866662,
      "income": {
-      "raw": 284847,
-      "orders": 357181,
-      "products": 101437,
-      "animals": 47408,
-      "quests": 61127,
+      "raw": 303411,
+      "orders": 289408,
+      "products": 142631,
+      "animals": 50990,
+      "quests": 80222,
       "other": 0
      },
      "plots": 43,
@@ -1203,14 +1212,14 @@
      "activeMin": 1770,
      "level": 20,
      "xp": 120750,
-     "coins": 150156,
-     "earned": 867826,
+     "coins": 152494,
+     "earned": 880804,
      "income": {
-      "raw": 290427,
-      "orders": 363148,
-      "products": 103626,
-      "animals": 48608,
-      "quests": 62017,
+      "raw": 309477,
+      "orders": 292453,
+      "products": 145572,
+      "animals": 51860,
+      "quests": 81442,
       "other": 0
      },
      "plots": 43,
@@ -1221,14 +1230,14 @@
      "activeMin": 1800,
      "level": 20,
      "xp": 120750,
-     "coins": 161296,
-     "earned": 884073,
+     "coins": 164923,
+     "earned": 898189,
      "income": {
-      "raw": 297777,
-      "orders": 366671,
-      "products": 106730,
-      "animals": 49808,
-      "quests": 63087,
+      "raw": 315327,
+      "orders": 299036,
+      "products": 148039,
+      "animals": 53210,
+      "quests": 82577,
       "other": 0
      },
      "plots": 43,
@@ -1239,14 +1248,14 @@
      "activeMin": 1830,
      "level": 20,
      "xp": 120750,
-     "coins": 170873,
-     "earned": 898234,
+     "coins": 177229,
+     "earned": 915205,
      "income": {
-      "raw": 302994,
-      "orders": 371703,
-      "products": 108300,
-      "animals": 51120,
-      "quests": 64117,
+      "raw": 320369,
+      "orders": 306586,
+      "products": 149169,
+      "animals": 55514,
+      "quests": 83567,
       "other": 0
      },
      "plots": 43,
@@ -1257,14 +1266,14 @@
      "activeMin": 1860,
      "level": 20,
      "xp": 120750,
-     "coins": 181636,
-     "earned": 913322,
+     "coins": 187452,
+     "earned": 930099,
      "income": {
-      "raw": 308972,
-      "orders": 375426,
-      "products": 111457,
-      "animals": 52240,
-      "quests": 65227,
+      "raw": 326628,
+      "orders": 311734,
+      "products": 150634,
+      "animals": 56506,
+      "quests": 84597,
       "other": 0
      },
      "plots": 43,
@@ -1275,14 +1284,14 @@
      "activeMin": 1890,
      "level": 20,
      "xp": 120750,
-     "coins": 193523,
-     "earned": 930451,
+     "coins": 198153,
+     "earned": 945911,
      "income": {
-      "raw": 315218,
-      "orders": 383718,
-      "products": 111979,
-      "animals": 53104,
-      "quests": 66432,
+      "raw": 332687,
+      "orders": 316988,
+      "products": 152643,
+      "animals": 57786,
+      "quests": 85807,
       "other": 0
      },
      "plots": 43,
@@ -1293,14 +1302,14 @@
      "activeMin": 1920,
      "level": 20,
      "xp": 120750,
-     "coins": 205607,
-     "earned": 946150,
+     "coins": 212705,
+     "earned": 965049,
      "income": {
-      "raw": 319919,
-      "orders": 388773,
-      "products": 115887,
-      "animals": 54004,
-      "quests": 67567,
+      "raw": 338219,
+      "orders": 323025,
+      "products": 158367,
+      "animals": 58536,
+      "quests": 86902,
       "other": 0
      },
      "plots": 43,
@@ -1311,14 +1320,14 @@
      "activeMin": 1950,
      "level": 20,
      "xp": 120750,
-     "coins": 217521,
-     "earned": 962674,
+     "coins": 224169,
+     "earned": 980972,
      "income": {
-      "raw": 324545,
-      "orders": 395960,
-      "products": 118158,
-      "animals": 55114,
-      "quests": 68897,
+      "raw": 343015,
+      "orders": 330937,
+      "products": 160262,
+      "animals": 58956,
+      "quests": 87802,
       "other": 0
      },
      "plots": 43,
@@ -1329,14 +1338,14 @@
      "activeMin": 1980,
      "level": 20,
      "xp": 120750,
-     "coins": 228039,
-     "earned": 978232,
+     "coins": 236059,
+     "earned": 997298,
      "income": {
-      "raw": 330173,
-      "orders": 402124,
-      "products": 120044,
-      "animals": 56134,
-      "quests": 69757,
+      "raw": 347933,
+      "orders": 336066,
+      "products": 163916,
+      "animals": 60516,
+      "quests": 88867,
       "other": 0
      },
      "plots": 43,
@@ -1347,14 +1356,14 @@
      "activeMin": 2010,
      "level": 20,
      "xp": 120750,
-     "coins": 237299,
-     "earned": 992104,
+     "coins": 246549,
+     "earned": 1012537,
      "income": {
-      "raw": 336125,
-      "orders": 405321,
-      "products": 122545,
-      "animals": 57286,
-      "quests": 70827,
+      "raw": 353549,
+      "orders": 341004,
+      "products": 166477,
+      "animals": 61860,
+      "quests": 89647,
       "other": 0
      },
      "plots": 43,
@@ -1365,14 +1374,14 @@
      "activeMin": 2040,
      "level": 20,
      "xp": 120750,
-     "coins": 245715,
-     "earned": 1007068,
+     "coins": 256998,
+     "earned": 1026946,
      "income": {
-      "raw": 341889,
-      "orders": 408520,
-      "products": 126067,
-      "animals": 58630,
-      "quests": 71962,
+      "raw": 357437,
+      "orders": 346824,
+      "products": 168518,
+      "animals": 63140,
+      "quests": 91027,
       "other": 0
      },
      "plots": 43,
@@ -1383,14 +1392,14 @@
      "activeMin": 2070,
      "level": 20,
      "xp": 120750,
-     "coins": 257287,
-     "earned": 1023219,
+     "coins": 266850,
+     "earned": 1041190,
      "income": {
-      "raw": 348143,
-      "orders": 413629,
-      "products": 128502,
-      "animals": 59718,
-      "quests": 73227,
+      "raw": 361921,
+      "orders": 351022,
+      "products": 172191,
+      "animals": 64164,
+      "quests": 91892,
       "other": 0
      },
      "plots": 43,
@@ -1401,14 +1410,14 @@
      "activeMin": 2100,
      "level": 20,
      "xp": 120750,
-     "coins": 266655,
-     "earned": 1035819,
+     "coins": 279200,
+     "earned": 1057500,
      "income": {
-      "raw": 351262,
-      "orders": 420253,
-      "products": 129773,
-      "animals": 60294,
-      "quests": 74237,
+      "raw": 366271,
+      "orders": 359035,
+      "products": 173539,
+      "animals": 65508,
+      "quests": 93147,
       "other": 0
      },
      "plots": 43,
@@ -1419,14 +1428,14 @@
      "activeMin": 2130,
      "level": 20,
      "xp": 120750,
-     "coins": 278054,
-     "earned": 1051777,
+     "coins": 289083,
+     "earned": 1071627,
      "income": {
-      "raw": 355172,
-      "orders": 427879,
-      "products": 131763,
-      "animals": 61606,
-      "quests": 75357,
+      "raw": 370713,
+      "orders": 364363,
+      "products": 175967,
+      "animals": 66372,
+      "quests": 94212,
       "other": 0
      },
      "plots": 43,
@@ -1437,14 +1446,14 @@
      "activeMin": 2160,
      "level": 20,
      "xp": 120750,
-     "coins": 288445,
-     "earned": 1066013,
+     "coins": 301661,
+     "earned": 1088129,
      "income": {
-      "raw": 359196,
-      "orders": 435525,
-      "products": 133239,
-      "animals": 61761,
-      "quests": 76292,
+      "raw": 376810,
+      "orders": 370531,
+      "products": 179209,
+      "animals": 66527,
+      "quests": 95052,
       "other": 0
      },
      "plots": 43,
@@ -1455,14 +1464,14 @@
      "activeMin": 2190,
      "level": 20,
      "xp": 120750,
-     "coins": 299731,
-     "earned": 1082091,
+     "coins": 311531,
+     "earned": 1102871,
      "income": {
-      "raw": 363633,
-      "orders": 442548,
-      "products": 135369,
-      "animals": 62939,
-      "quests": 77602,
+      "raw": 381177,
+      "orders": 376506,
+      "products": 182722,
+      "animals": 66589,
+      "quests": 95877,
       "other": 0
      },
      "plots": 43,
@@ -1473,14 +1482,14 @@
      "activeMin": 2220,
      "level": 20,
      "xp": 120750,
-     "coins": 312363,
-     "earned": 1098247,
+     "coins": 324812,
+     "earned": 1120665,
      "income": {
-      "raw": 369509,
-      "orders": 449573,
-      "products": 136987,
-      "animals": 63466,
-      "quests": 78712,
+      "raw": 385984,
+      "orders": 386177,
+      "products": 184045,
+      "animals": 67302,
+      "quests": 97157,
       "other": 0
      },
      "plots": 43,
@@ -1491,14 +1500,14 @@
      "activeMin": 2250,
      "level": 20,
      "xp": 120750,
-     "coins": 323684,
-     "earned": 1114069,
+     "coins": 4823,
+     "earned": 1135690,
      "income": {
-      "raw": 373559,
-      "orders": 457183,
-      "products": 138359,
-      "animals": 65146,
-      "quests": 79822,
+      "raw": 391255,
+      "orders": 390630,
+      "products": 186488,
+      "animals": 69290,
+      "quests": 98027,
       "other": 0
      },
      "plots": 43,
@@ -1509,14 +1518,14 @@
      "activeMin": 2280,
      "level": 20,
      "xp": 120750,
-     "coins": 3097,
-     "earned": 1128498,
+     "coins": 16568,
+     "earned": 1152272,
      "income": {
-      "raw": 378154,
-      "orders": 462469,
-      "products": 140961,
-      "animals": 66042,
-      "quests": 80872,
+      "raw": 397655,
+      "orders": 395971,
+      "products": 190047,
+      "animals": 69822,
+      "quests": 98777,
       "other": 0
      },
      "plots": 43,
@@ -1527,14 +1536,14 @@
      "activeMin": 2310,
      "level": 20,
      "xp": 120750,
-     "coins": 16451,
-     "earned": 1145937,
+     "coins": 27699,
+     "earned": 1167365,
      "income": {
-      "raw": 382609,
-      "orders": 470469,
-      "products": 143189,
-      "animals": 67638,
-      "quests": 82032,
+      "raw": 403115,
+      "orders": 401793,
+      "products": 192709,
+      "animals": 69906,
+      "quests": 99842,
       "other": 0
      },
      "plots": 43,
@@ -1545,14 +1554,14 @@
      "activeMin": 2340,
      "level": 20,
      "xp": 120750,
-     "coins": 26970,
-     "earned": 1161586,
+     "coins": 37262,
+     "earned": 1181172,
      "income": {
-      "raw": 390425,
-      "orders": 474806,
-      "products": 145789,
-      "animals": 67734,
-      "quests": 82832,
+      "raw": 407593,
+      "orders": 407206,
+      "products": 194244,
+      "animals": 71282,
+      "quests": 100847,
       "other": 0
      },
      "plots": 43,
@@ -1563,14 +1572,14 @@
      "activeMin": 2370,
      "level": 20,
      "xp": 120750,
-     "coins": 35808,
-     "earned": 1173785,
+     "coins": 47691,
+     "earned": 1195510,
      "income": {
-      "raw": 393424,
-      "orders": 478470,
-      "products": 149061,
-      "animals": 68918,
-      "quests": 83912,
+      "raw": 411190,
+      "orders": 414487,
+      "products": 195767,
+      "animals": 71794,
+      "quests": 102272,
       "other": 0
      },
      "plots": 43,
@@ -1581,14 +1590,14 @@
      "activeMin": 2400,
      "level": 20,
      "xp": 120750,
-     "coins": 46868,
-     "earned": 1189740,
+     "coins": 56720,
+     "earned": 1209747,
      "income": {
-      "raw": 397649,
-      "orders": 485720,
-      "products": 150755,
-      "animals": 70454,
-      "quests": 85162,
+      "raw": 417826,
+      "orders": 416926,
+      "products": 198800,
+      "animals": 73138,
+      "quests": 103057,
       "other": 0
      },
      "plots": 43,
@@ -1599,14 +1608,14 @@
      "activeMin": 2430,
      "level": 20,
      "xp": 120750,
-     "coins": 59020,
-     "earned": 1206578,
+     "coins": 69463,
+     "earned": 1227007,
      "income": {
-      "raw": 402149,
-      "orders": 494164,
-      "products": 151984,
-      "animals": 72054,
-      "quests": 86227,
+      "raw": 424115,
+      "orders": 421516,
+      "products": 202725,
+      "animals": 74514,
+      "quests": 104137,
       "other": 0
      },
      "plots": 43,
@@ -1617,14 +1626,14 @@
      "activeMin": 2460,
      "level": 20,
      "xp": 120750,
-     "coins": 72933,
-     "earned": 1225491,
+     "coins": 81426,
+     "earned": 1243587,
      "income": {
-      "raw": 405970,
-      "orders": 504456,
-      "products": 155603,
-      "animals": 72310,
-      "quests": 87152,
+      "raw": 430300,
+      "orders": 427839,
+      "products": 204307,
+      "animals": 75954,
+      "quests": 105187,
       "other": 0
      },
      "plots": 43,
@@ -1635,14 +1644,14 @@
      "activeMin": 2490,
      "level": 20,
      "xp": 120750,
-     "coins": 83226,
-     "earned": 1240365,
+     "coins": 92765,
+     "earned": 1259383,
      "income": {
-      "raw": 411913,
-      "orders": 507740,
-      "products": 158602,
-      "animals": 73878,
-      "quests": 88232,
+      "raw": 437861,
+      "orders": 431146,
+      "products": 207272,
+      "animals": 77202,
+      "quests": 105902,
       "other": 0
      },
      "plots": 43,
@@ -1653,14 +1662,14 @@
      "activeMin": 2520,
      "level": 20,
      "xp": 120750,
-     "coins": 95429,
-     "earned": 1256971,
+     "coins": 102737,
+     "earned": 1274343,
      "income": {
-      "raw": 418387,
-      "orders": 512821,
-      "products": 161388,
-      "animals": 75278,
-      "quests": 89097,
+      "raw": 444313,
+      "orders": 434896,
+      "products": 210790,
+      "animals": 77412,
+      "quests": 106932,
       "other": 0
      },
      "plots": 43,
@@ -1671,14 +1680,14 @@
      "activeMin": 2550,
      "level": 20,
      "xp": 120750,
-     "coins": 103101,
-     "earned": 1269756,
+     "coins": 113149,
+     "earned": 1289450,
      "income": {
-      "raw": 424439,
-      "orders": 516600,
-      "products": 162635,
-      "animals": 76070,
-      "quests": 90012,
+      "raw": 449696,
+      "orders": 439223,
+      "products": 215135,
+      "animals": 77484,
+      "quests": 107912,
       "other": 0
      },
      "plots": 43,
@@ -1689,14 +1698,14 @@
      "activeMin": 2580,
      "level": 20,
      "xp": 120750,
-     "coins": 116629,
-     "earned": 1288212,
+     "coins": 120233,
+     "earned": 1304435,
      "income": {
-      "raw": 429717,
-      "orders": 525299,
-      "products": 164919,
-      "animals": 77150,
-      "quests": 91127,
+      "raw": 454595,
+      "orders": 445049,
+      "products": 216902,
+      "animals": 78672,
+      "quests": 109217,
       "other": 0
      },
      "plots": 43,
@@ -1707,14 +1716,14 @@
      "activeMin": 2610,
      "level": 20,
      "xp": 120750,
-     "coins": 128626,
-     "earned": 1304768,
+     "coins": 132882,
+     "earned": 1321526,
      "income": {
-      "raw": 434854,
-      "orders": 531891,
-      "products": 167521,
-      "animals": 78050,
-      "quests": 92452,
+      "raw": 460070,
+      "orders": 450916,
+      "products": 219655,
+      "animals": 80508,
+      "quests": 110377,
       "other": 0
      },
      "plots": 43,
@@ -1725,14 +1734,14 @@
      "activeMin": 2640,
      "level": 20,
      "xp": 120750,
-     "coins": 138246,
-     "earned": 1319474,
+     "coins": 143481,
+     "earned": 1337372,
      "income": {
-      "raw": 441085,
-      "orders": 536459,
-      "products": 168918,
-      "animals": 79490,
-      "quests": 93522,
+      "raw": 467031,
+      "orders": 455789,
+      "products": 220702,
+      "animals": 82488,
+      "quests": 111362,
       "other": 0
      },
      "plots": 43,
@@ -1743,14 +1752,14 @@
      "activeMin": 2670,
      "level": 20,
      "xp": 120750,
-     "coins": 151591,
-     "earned": 1337223,
+     "coins": 157541,
+     "earned": 1356183,
      "income": {
-      "raw": 448103,
-      "orders": 541195,
-      "products": 172723,
-      "animals": 80840,
-      "quests": 94362,
+      "raw": 471601,
+      "orders": 463500,
+      "products": 226272,
+      "animals": 82488,
+      "quests": 112322,
       "other": 0
      },
      "plots": 43,
@@ -1761,14 +1770,14 @@
      "activeMin": 2700,
      "level": 20,
      "xp": 120750,
-     "coins": 160135,
-     "earned": 1350706,
+     "coins": 167723,
+     "earned": 1370149,
      "income": {
-      "raw": 453529,
-      "orders": 544650,
-      "products": 175150,
-      "animals": 81980,
-      "quests": 95397,
+      "raw": 474714,
+      "orders": 471160,
+      "products": 228370,
+      "animals": 82488,
+      "quests": 113417,
       "other": 0
      },
      "plots": 43,
@@ -1779,14 +1788,14 @@
      "activeMin": 2730,
      "level": 20,
      "xp": 120750,
-     "coins": 171573,
-     "earned": 1366309,
+     "coins": 179878,
+     "earned": 1387217,
      "income": {
-      "raw": 458488,
-      "orders": 552229,
-      "products": 176580,
-      "animals": 82640,
-      "quests": 96372,
+      "raw": 480490,
+      "orders": 476847,
+      "products": 231425,
+      "animals": 84078,
+      "quests": 114377,
       "other": 0
      },
      "plots": 43,
@@ -1797,14 +1806,14 @@
      "activeMin": 2760,
      "level": 20,
      "xp": 120750,
-     "coins": 181997,
-     "earned": 1381216,
+     "coins": 191582,
+     "earned": 1403588,
      "income": {
-      "raw": 462513,
-      "orders": 558434,
-      "products": 178626,
-      "animals": 84066,
-      "quests": 97577,
+      "raw": 486053,
+      "orders": 481993,
+      "products": 234189,
+      "animals": 86031,
+      "quests": 115322,
       "other": 0
      },
      "plots": 43,
@@ -1815,14 +1824,14 @@
      "activeMin": 2790,
      "level": 20,
      "xp": 120750,
-     "coins": 194489,
-     "earned": 1396951,
+     "coins": 202921,
+     "earned": 1418794,
      "income": {
-      "raw": 465666,
-      "orders": 568502,
-      "products": 180185,
-      "animals": 84066,
-      "quests": 98532,
+      "raw": 490227,
+      "orders": 489926,
+      "products": 236108,
+      "animals": 86031,
+      "quests": 116502,
       "other": 0
      },
      "plots": 43,
@@ -1833,14 +1842,14 @@
      "activeMin": 2820,
      "level": 20,
      "xp": 120750,
-     "coins": 205890,
-     "earned": 1412913,
+     "coins": 212891,
+     "earned": 1433665,
      "income": {
-      "raw": 470767,
-      "orders": 573638,
-      "products": 182920,
-      "animals": 85926,
-      "quests": 99662,
+      "raw": 494477,
+      "orders": 498248,
+      "products": 237557,
+      "animals": 86031,
+      "quests": 117352,
       "other": 0
      },
      "plots": 43,
@@ -1851,14 +1860,14 @@
      "activeMin": 2850,
      "level": 20,
      "xp": 120750,
-     "coins": 216697,
-     "earned": 1427702,
+     "coins": 226730,
+     "earned": 1451959,
      "income": {
-      "raw": 475882,
-      "orders": 580387,
-      "products": 184240,
-      "animals": 86626,
-      "quests": 100567,
+      "raw": 499772,
+      "orders": 506350,
+      "products": 239554,
+      "animals": 87676,
+      "quests": 118607,
       "other": 0
      },
      "plots": 43,
@@ -1869,14 +1878,14 @@
      "activeMin": 2880,
      "level": 20,
      "xp": 120750,
-     "coins": 227888,
-     "earned": 1443788,
+     "coins": 236602,
+     "earned": 1465740,
      "income": {
-      "raw": 481433,
-      "orders": 585975,
-      "products": 187017,
-      "animals": 88026,
-      "quests": 101337,
+      "raw": 503930,
+      "orders": 510628,
+      "products": 242359,
+      "animals": 89006,
+      "quests": 119817,
       "other": 0
      },
      "plots": 43,
@@ -1887,14 +1896,14 @@
      "activeMin": 2910,
      "level": 20,
      "xp": 120750,
-     "coins": 240385,
-     "earned": 1459832,
+     "coins": 246809,
+     "earned": 1480281,
      "income": {
-      "raw": 484027,
-      "orders": 595991,
-      "products": 187481,
-      "animals": 89321,
-      "quests": 103012,
+      "raw": 509180,
+      "orders": 513654,
+      "products": 245664,
+      "animals": 91106,
+      "quests": 120677,
       "other": 0
      },
      "plots": 43,
@@ -1905,14 +1914,14 @@
      "activeMin": 2940,
      "level": 20,
      "xp": 120750,
-     "coins": 249447,
-     "earned": 1472626,
+     "coins": 258480,
+     "earned": 1497201,
      "income": {
-      "raw": 488219,
-      "orders": 602206,
-      "products": 188708,
-      "animals": 89321,
-      "quests": 104172,
+      "raw": 515506,
+      "orders": 519408,
+      "products": 248540,
+      "animals": 92160,
+      "quests": 121587,
       "other": 0
      },
      "plots": 43,
@@ -1922,59 +1931,59 @@
    "perDay": [
     {
      "day": 1,
-     "earned": 155092,
+     "earned": 165333,
      "activeMin": 420,
      "level": 16
     },
     {
      "day": 2,
-     "earned": 221557,
+     "earned": 225033,
      "activeMin": 420,
      "level": 20
     },
     {
      "day": 3,
-     "earned": 218873,
+     "earned": 220679,
      "activeMin": 420,
      "level": 20
     },
     {
      "day": 4,
-     "earned": 226950,
+     "earned": 223127,
      "activeMin": 420,
      "level": 20
     },
     {
      "day": 5,
-     "earned": 213347,
+     "earned": 223328,
      "activeMin": 420,
      "level": 20
     },
     {
      "day": 6,
-     "earned": 221152,
+     "earned": 216843,
      "activeMin": 420,
      "level": 20
     },
     {
      "day": 7,
-     "earned": 215655,
+     "earned": 222858,
      "activeMin": 420,
      "level": 20
     }
    ],
    "income": {
-    "raw": 488219,
-    "orders": 602206,
-    "products": 188708,
-    "animals": 89321,
-    "quests": 104172,
+    "raw": 515506,
+    "orders": 519408,
+    "products": 248540,
+    "animals": 92160,
+    "quests": 121587,
     "other": 0
    },
    "spend": {
-    "seeds": 424383,
+    "seeds": 430325,
     "plots": 10350,
-    "buildings": 774190,
+    "buildings": 783790,
     "machines": 2450,
     "machineUpgrades": 10150,
     "animals": 1680,
@@ -1982,43 +1991,48 @@
     "feed": 0
    },
    "counts": {
-    "plant": 52584,
-    "water": 8080,
+    "plant": 52099,
+    "water": 8261,
     "claimQuest": 13,
-    "harvestAll": 2867,
-    "deliver": 1404,
+    "harvestAll": 2865,
+    "deliver:thuong": 1172,
+    "deliver": 1254,
     "buyPlot": 16,
-    "sell": 6925,
+    "sell": 7191,
     "build": 6,
-    "upgradeBuilding": 16,
-    "enqueue": 6987,
-    "collect": 2820,
+    "upgradeBuilding": 18,
+    "enqueue": 7136,
+    "collect": 2803,
     "upgradeMachine": 10,
     "buildMachine": 4,
-    "villageClaim": 1998,
+    "claimBook": 3,
+    "deliver:ket-hop": 62,
+    "villageClaim": 1984,
     "buyAnimal": 16,
-    "feed": 1886,
-    "collectAnimals": 1911,
-    "cancel": 192
+    "feed": 1930,
+    "collectAnimals": 1956,
+    "cancel": 234,
+    "deliver:dac-biet": 20
    },
    "xpBy": {
     "plant": 0,
     "water": 0,
     "claimQuest": 257,
-    "harvestAll": 85843,
-    "deliver": 14849,
+    "harvestAll": 86040,
+    "deliver": 13086,
     "buyPlot": 0,
     "sell": 0,
     "build": 0,
     "upgradeBuilding": 0,
     "enqueue": 0,
-    "collect": 10493,
+    "collect": 11439,
     "upgradeMachine": 0,
     "buildMachine": 0,
-    "villageClaim": 6607,
+    "claimBook": 0,
+    "villageClaim": 7045,
     "buyAnimal": 0,
     "feed": 0,
-    "collectAnimals": 2701,
+    "collectAnimals": 2883,
     "cancel": 0
    },
    "firsts": {
@@ -2039,6 +2053,10 @@
      "active": 0
     },
     "harvested": {
+     "real": 60000,
+     "active": 60000
+    },
+    "bookNew": {
      "real": 60000,
      "active": 60000
     },
@@ -2126,174 +2144,190 @@
      "real": 960000,
      "active": 960000
     },
+    "bookTierReady": {
+     "real": 1080000,
+     "active": 1080000
+    },
+    "bookClaimed": {
+     "real": 1080000,
+     "active": 1080000
+    },
     "order:ket-hop": {
      "real": 1080000,
      "active": 1080000
     },
     "deliver:ket-hop": {
-     "real": 1320000,
-     "active": 1320000
-    },
-    "boardRefilled": {
      "real": 1620000,
      "active": 1620000
     },
+    "boardRefilled": {
+     "real": 1680000,
+     "active": 1680000
+    },
     "villageQuestDone": {
-     "real": 3600000,
-     "active": 1800000
+     "real": 1680000,
+     "active": 1680000
     },
     "villageQuestClaimed": {
-     "real": 3600000,
-     "active": 1800000
+     "real": 1680000,
+     "active": 1680000
+    },
+    "friendUp": {
+     "real": 4140000,
+     "active": 2340000
     },
     "startBuild:chuong-ga": {
-     "real": 4080000,
-     "active": 2280000
+     "real": 4140000,
+     "active": 2340000
     },
     "built:chuong-ga@1": {
-     "real": 4200000,
-     "active": 2400000
-    },
-    "animalBought": {
-     "real": 4200000,
-     "active": 2400000
-    },
-    "animalFed": {
      "real": 4260000,
      "active": 2460000
     },
-    "animalCollected": {
-     "real": 4500000,
-     "active": 2700000
+    "animalBought": {
+     "real": 4260000,
+     "active": 2460000
     },
-    "friendUp": {
-     "real": 4500000,
-     "active": 2700000
+    "animalFed": {
+     "real": 4320000,
+     "active": 2520000
+    },
+    "animalCollected": {
+     "real": 4560000,
+     "active": 2760000
     },
     "machine:lo-banh": {
-     "real": 7200000,
-     "active": 3600000
-    },
-    "startBuild:chuong-bo": {
-     "real": 8580000,
-     "active": 4980000
+     "real": 5220000,
+     "active": 3420000
     },
     "orderCancelled": {
-     "real": 8640000,
-     "active": 5040000
+     "real": 5340000,
+     "active": 3540000
+    },
+    "startBuild:chuong-bo": {
+     "real": 8340000,
+     "active": 4740000
     },
     "built:chuong-bo@1": {
-     "real": 8760000,
-     "active": 5160000
+     "real": 8520000,
+     "active": 4920000
     },
     "startBuild:nha-kinh": {
-     "real": 12180000,
-     "active": 6780000
+     "real": 11940000,
+     "active": 6540000
     },
     "built:chuong-ga@2": {
-     "real": 12300000,
-     "active": 6900000
-    },
-    "built:nha-kinh@1": {
-     "real": 12480000,
-     "active": 7080000
+     "real": 12060000,
+     "active": 6660000
     },
     "built:nha@2": {
-     "real": 14400000,
-     "active": 7200000
+     "real": 12060000,
+     "active": 6660000
+    },
+    "built:nha-kinh@1": {
+     "real": 12240000,
+     "active": 6840000
     },
     "order:dac-biet": {
-     "real": 15840000,
-     "active": 8640000
+     "real": 15480000,
+     "active": 8280000
     },
     "machine:may-bo-sua": {
-     "real": 21600000,
-     "active": 10800000
+     "real": 19440000,
+     "active": 10440000
     },
     "built:nha@3": {
-     "real": 21720000,
-     "active": 10920000
+     "real": 19560000,
+     "active": 10560000
     },
     "built:chuong-bo@2": {
-     "real": 21780000,
-     "active": 10980000
+     "real": 19620000,
+     "active": 10620000
     },
     "orderExpired": {
-     "real": 23040000,
-     "active": 12240000
-    },
-    "deliver:dac-biet": {
-     "real": 25500000,
-     "active": 12900000
+     "real": 22680000,
+     "active": 11880000
     },
     "built:xuong@2": {
-     "real": 25920000,
-     "active": 13320000
+     "real": 25680000,
+     "active": 13080000
     },
     "machine:noi-duong": {
-     "real": 25920000,
-     "active": 13320000
+     "real": 25680000,
+     "active": 13080000
     },
     "built:nha@4": {
-     "real": 32700000,
-     "active": 16500000
+     "real": 32520000,
+     "active": 16320000
     },
     "built:chuong-ga@3": {
-     "real": 32760000,
-     "active": 16560000
+     "real": 32580000,
+     "active": 16380000
     },
     "chainComplete": {
-     "real": 33360000,
-     "active": 17160000
+     "real": 33900000,
+     "active": 17700000
+    },
+    "built:hang-rao@2": {
+     "real": 37440000,
+     "active": 19440000
     },
     "built:nha@5": {
-     "real": 47100000,
-     "active": 23700000
+     "real": 44940000,
+     "active": 23340000
     },
     "built:nha-kinh@2": {
-     "real": 47280000,
-     "active": 23880000
+     "real": 46800000,
+     "active": 23400000
     },
     "startBuild:dat-phia-dong": {
+     "real": 90240000,
+     "active": 27240000
+    },
+    "built:nha@6": {
+     "real": 90360000,
+     "active": 27360000
+    },
+    "built:dat-phia-dong@1": {
      "real": 90540000,
      "active": 27540000
     },
-    "built:nha@6": {
-     "real": 90660000,
-     "active": 27660000
-    },
-    "built:dat-phia-dong@1": {
-     "real": 90840000,
-     "active": 27840000
+    "deliver:dac-biet": {
+     "real": 101460000,
+     "active": 33060000
     },
     "built:nha@7": {
-     "real": 108300000,
-     "active": 36300000
+     "real": 102000000,
+     "active": 33600000
     },
     "built:nha-kho@3": {
-     "real": 113160000,
-     "active": 39360000
+     "real": 105420000,
+     "active": 35220000
     },
     "built:nha@8": {
-     "real": 177600000,
-     "active": 53400000
+     "real": 173640000,
+     "active": 51240000
     },
     "built:nha@9": {
-     "real": 273600000,
-     "active": 82800000
+     "real": 270120000,
+     "active": 81120000
     },
     "built:nha@10": {
-     "real": 451020000,
-     "active": 136020000
+     "real": 447000000,
+     "active": 133800000
+    },
+    "built:nha-kho@4": {
+     "real": 522960000,
+     "active": 153960000
     }
    },
    "waits": [],
    "stalls": [],
    "idleMin": 0,
    "blockedMin": 0,
-   "brokeMin": 10,
+   "brokeMin": 1,
    "reasons": {
-    "broke": 10
+    "broke": 1
    },
    "errors": [],
    "gifts": 0
@@ -2308,12 +2342,12 @@
    "days": 7,
    "seed": 12345,
    "final": {
-    "level": 12,
-    "xp": 28105,
-    "coins": 23173,
-    "earned": 75433,
-    "delivered": 110,
-    "harvested": 2619,
+    "level": 13,
+    "xp": 29131,
+    "coins": 21640,
+    "earned": 82328,
+    "delivered": 127,
+    "harvested": 2664,
     "plots": 31,
     "animals": {
      "ga": 8,
@@ -2323,11 +2357,12 @@
      "bep-sen": 3,
      "coi-xay": 3,
      "lo-banh": 3,
-     "may-bo-sua": 1
+     "may-bo-sua": 1,
+     "noi-duong": 1
     },
     "buildings": {
      "nha-kho": 2,
-     "xuong": 1,
+     "xuong": 2,
      "chuong-ga": 2,
      "chuong-bo": 2,
      "nha-kinh": 1,
@@ -2343,21 +2378,28 @@
      "anh-ut": 0
     },
     "inv": {
-     "van-go": 20,
-     "hop-dinh": 20,
-     "thung-son": 25,
-     "trung-ga": 12,
-     "bi-ngo": 11,
-     "mut-dau": 3,
-     "sot-ca-chua": 1,
-     "ca-chua": 11,
+     "van-go": 18,
+     "hop-dinh": 15,
+     "thung-son": 30,
+     "bi-ngo": 20,
+     "mut-dau": 6,
+     "mia": 2,
+     "banh-trung": 1,
+     "sua": 3,
+     "bot-gao": 3,
+     "trung-ga": 4,
      "dau-tay": 4,
-     "bap-rang": 4,
-     "ngo": 4,
-     "ca-rot": 3,
-     "bot-gao": 1
+     "ngo": 4
     },
-    "savingFor": null
+    "savingFor": null,
+    "book": 21,
+    "bookClaimed": 2,
+    "bookAt": {
+     "10": 0.2,
+     "20": 1.6
+    },
+    "fairBonus": 0,
+    "specialDelivered": 0
    },
    "activeMin": 210,
    "levels": {
@@ -2386,28 +2428,32 @@
      "active": 1200000
     },
     "7": {
-     "real": 86430000,
-     "active": 1830000
+     "real": 86400000,
+     "active": 1800000
     },
     "8": {
-     "real": 129840000,
-     "active": 3240000
+     "real": 104910000,
+     "active": 2910000
     },
     "9": {
-     "real": 191130000,
-     "active": 4530000
+     "real": 190800000,
+     "active": 4200000
     },
     "10": {
-     "real": 277200000,
-     "active": 6000000
+     "real": 259620000,
+     "active": 5820000
     },
     "11": {
-     "real": 346170000,
-     "active": 7770000
+     "real": 346020000,
+     "active": 7620000
     },
     "12": {
-     "real": 450390000,
-     "active": 9990000
+     "real": 450000000,
+     "active": 9600000
+    },
+    "13": {
+     "real": 561810000,
+     "active": 12210000
     }
    },
    "samples": [
@@ -2433,141 +2479,141 @@
      "realH": 5.167,
      "activeMin": 20,
      "level": 5,
-     "xp": 1777,
-     "coins": 204,
-     "earned": 3754,
+     "xp": 1837,
+     "coins": 0,
+     "earned": 4694,
      "income": {
-      "raw": 1246,
-      "orders": 2208,
+      "raw": 982,
+      "orders": 2612,
       "products": 78,
       "animals": 0,
-      "quests": 222,
-      "other": 0
-     },
-     "plots": 18,
-     "animals": 0
-    },
-    {
-     "realH": 12.167,
-     "activeMin": 30,
-     "level": 6,
-     "xp": 2736,
-     "coins": 220,
-     "earned": 6278,
-     "income": {
-      "raw": 2555,
-      "orders": 2934,
-      "products": 242,
-      "animals": 0,
-      "quests": 547,
+      "quests": 1022,
       "other": 0
      },
      "plots": 20,
      "animals": 0
     },
     {
-     "realH": 24.167,
-     "activeMin": 40,
-     "level": 7,
-     "xp": 3895,
-     "coins": 725,
-     "earned": 9507,
+     "realH": 12.167,
+     "activeMin": 30,
+     "level": 6,
+     "xp": 2952,
+     "coins": 813,
+     "earned": 7835,
      "income": {
-      "raw": 4173,
-      "orders": 4055,
-      "products": 242,
+      "raw": 2736,
+      "orders": 3524,
+      "products": 158,
       "animals": 0,
-      "quests": 1037,
+      "quests": 1417,
       "other": 0
      },
      "plots": 21,
-     "animals": 6
+     "animals": 0
     },
     {
-     "realH": 29.167,
-     "activeMin": 50,
+     "realH": 24.167,
+     "activeMin": 40,
      "level": 7,
-     "xp": 4892,
-     "coins": 1277,
-     "earned": 11883,
+     "xp": 4250,
+     "coins": 1271,
+     "earned": 11122,
      "income": {
-      "raw": 5417,
-      "orders": 4797,
-      "products": 242,
+      "raw": 3934,
+      "orders": 5158,
+      "products": 158,
       "animals": 0,
-      "quests": 1427,
+      "quests": 1872,
       "other": 0
      },
      "plots": 22,
      "animals": 6
     },
     {
-     "realH": 36.167,
-     "activeMin": 60,
+     "realH": 29.167,
+     "activeMin": 50,
      "level": 8,
-     "xp": 5844,
-     "coins": 413,
-     "earned": 14550,
+     "xp": 5404,
+     "coins": 718,
+     "earned": 13715,
      "income": {
-      "raw": 6534,
-      "orders": 5377,
-      "products": 242,
-      "animals": 620,
-      "quests": 1777,
+      "raw": 5202,
+      "orders": 5978,
+      "products": 158,
+      "animals": 0,
+      "quests": 2377,
       "other": 0
      },
      "plots": 23,
+     "animals": 6
+    },
+    {
+     "realH": 36.167,
+     "activeMin": 60,
+     "level": 8,
+     "xp": 6715,
+     "coins": 558,
+     "earned": 17397,
+     "income": {
+      "raw": 6695,
+      "orders": 7912,
+      "products": 158,
+      "animals": 0,
+      "quests": 2632,
+      "other": 0
+     },
+     "plots": 24,
      "animals": 6
     },
     {
      "realH": 48.167,
      "activeMin": 70,
      "level": 8,
-     "xp": 7209,
-     "coins": 527,
-     "earned": 17763,
+     "xp": 8052,
+     "coins": 943,
+     "earned": 20681,
      "income": {
-      "raw": 7539,
-      "orders": 6631,
-      "products": 761,
-      "animals": 620,
-      "quests": 2212,
+      "raw": 7757,
+      "orders": 9084,
+      "products": 310,
+      "animals": 608,
+      "quests": 2922,
       "other": 0
      },
-     "plots": 23,
+     "plots": 24,
      "animals": 6
     },
     {
      "realH": 53.167,
      "activeMin": 80,
      "level": 9,
-     "xp": 8710,
-     "coins": 754,
-     "earned": 22197,
+     "xp": 9352,
+     "coins": 297,
+     "earned": 24914,
      "income": {
-      "raw": 8605,
-      "orders": 8822,
-      "products": 1603,
-      "animals": 620,
-      "quests": 2547,
+      "raw": 8880,
+      "orders": 10785,
+      "products": 1139,
+      "animals": 608,
+      "quests": 3502,
       "other": 0
      },
-     "plots": 24,
-     "animals": 9
+     "plots": 25,
+     "animals": 10
     },
     {
      "realH": 60.167,
      "activeMin": 90,
      "level": 9,
-     "xp": 10249,
-     "coins": 148,
-     "earned": 25587,
+     "xp": 10578,
+     "coins": 1343,
+     "earned": 27261,
      "income": {
-      "raw": 9223,
-      "orders": 11066,
-      "products": 1831,
-      "animals": 620,
-      "quests": 2847,
+      "raw": 9820,
+      "orders": 11885,
+      "products": 1291,
+      "animals": 608,
+      "quests": 3657,
       "other": 0
      },
      "plots": 25,
@@ -2576,34 +2622,34 @@
     {
      "realH": 72.167,
      "activeMin": 100,
-     "level": 9,
-     "xp": 11568,
-     "coins": 2642,
-     "earned": 29220,
+     "level": 10,
+     "xp": 12059,
+     "coins": 3713,
+     "earned": 35397,
      "income": {
-      "raw": 10523,
-      "orders": 12657,
-      "products": 2218,
-      "animals": 620,
-      "quests": 3202,
+      "raw": 10570,
+      "orders": 14296,
+      "products": 1711,
+      "animals": 608,
+      "quests": 8212,
       "other": 0
      },
      "plots": 25,
-     "animals": 10
+     "animals": 12
     },
     {
      "realH": 77.167,
      "activeMin": 110,
      "level": 10,
-     "xp": 12984,
-     "coins": 900,
-     "earned": 33558,
+     "xp": 13607,
+     "coins": 6973,
+     "earned": 39903,
      "income": {
-      "raw": 12106,
-      "orders": 13115,
-      "products": 3630,
-      "animals": 1005,
-      "quests": 3702,
+      "raw": 11656,
+      "orders": 16150,
+      "products": 2055,
+      "animals": 1565,
+      "quests": 8477,
       "other": 0
      },
      "plots": 31,
@@ -2613,15 +2659,15 @@
      "realH": 84.167,
      "activeMin": 120,
      "level": 10,
-     "xp": 14559,
-     "coins": 4384,
-     "earned": 38430,
+     "xp": 15033,
+     "coins": 9542,
+     "earned": 43773,
      "income": {
-      "raw": 14056,
-      "orders": 13873,
-      "products": 4642,
-      "animals": 1632,
-      "quests": 4227,
+      "raw": 13164,
+      "orders": 16696,
+      "products": 2880,
+      "animals": 2311,
+      "quests": 8722,
       "other": 0
      },
      "plots": 31,
@@ -2631,15 +2677,15 @@
      "realH": 96.167,
      "activeMin": 130,
      "level": 11,
-     "xp": 16336,
-     "coins": 6470,
-     "earned": 41880,
+     "xp": 16743,
+     "coins": 12172,
+     "earned": 47742,
      "income": {
-      "raw": 15012,
-      "orders": 15972,
-      "products": 4642,
-      "animals": 1632,
-      "quests": 4622,
+      "raw": 14854,
+      "orders": 18333,
+      "products": 2950,
+      "animals": 2383,
+      "quests": 9222,
       "other": 0
      },
      "plots": 31,
@@ -2649,15 +2695,15 @@
      "realH": 101.167,
      "activeMin": 140,
      "level": 11,
-     "xp": 18040,
-     "coins": 11735,
-     "earned": 48187,
+     "xp": 18303,
+     "coins": 15451,
+     "earned": 52383,
      "income": {
-      "raw": 16668,
-      "orders": 18222,
-      "products": 6066,
-      "animals": 2304,
-      "quests": 4927,
+      "raw": 15730,
+      "orders": 20949,
+      "products": 3286,
+      "animals": 2821,
+      "quests": 9597,
       "other": 0
      },
      "plots": 31,
@@ -2667,15 +2713,15 @@
      "realH": 108.167,
      "activeMin": 150,
      "level": 11,
-     "xp": 19407,
-     "coins": 13770,
-     "earned": 51490,
+     "xp": 19879,
+     "coins": 18398,
+     "earned": 56500,
      "income": {
-      "raw": 18280,
-      "orders": 19248,
-      "products": 6492,
-      "animals": 2368,
-      "quests": 5102,
+      "raw": 17736,
+      "orders": 21625,
+      "products": 3970,
+      "animals": 3237,
+      "quests": 9932,
       "other": 0
      },
      "plots": 31,
@@ -2685,15 +2731,15 @@
      "realH": 120.167,
      "activeMin": 160,
      "level": 11,
-     "xp": 20770,
-     "coins": 17196,
-     "earned": 55546,
+     "xp": 21185,
+     "coins": 21119,
+     "earned": 60459,
      "income": {
-      "raw": 19086,
-      "orders": 21161,
-      "products": 7344,
-      "animals": 2528,
-      "quests": 5427,
+      "raw": 18614,
+      "orders": 23255,
+      "products": 4834,
+      "animals": 3589,
+      "quests": 10167,
       "other": 0
      },
      "plots": 31,
@@ -2703,33 +2749,33 @@
      "realH": 125.167,
      "activeMin": 170,
      "level": 12,
-     "xp": 22135,
-     "coins": 11253,
-     "earned": 58421,
+     "xp": 22925,
+     "coins": 17234,
+     "earned": 65561,
      "income": {
-      "raw": 19991,
-      "orders": 22771,
-      "products": 7344,
-      "animals": 2528,
-      "quests": 5787,
+      "raw": 19832,
+      "orders": 25928,
+      "products": 5514,
+      "animals": 3645,
+      "quests": 10642,
       "other": 0
      },
      "plots": 31,
-     "animals": 13
+     "animals": 14
     },
     {
      "realH": 132.167,
      "activeMin": 180,
      "level": 12,
-     "xp": 23797,
-     "coins": 13526,
-     "earned": 62355,
+     "xp": 24517,
+     "coins": 19952,
+     "earned": 69584,
      "income": {
-      "raw": 20757,
-      "orders": 24589,
-      "products": 8229,
-      "animals": 2848,
-      "quests": 5932,
+      "raw": 21678,
+      "orders": 27683,
+      "products": 5691,
+      "animals": 3645,
+      "quests": 10887,
       "other": 0
      },
      "plots": 31,
@@ -2739,15 +2785,15 @@
      "realH": 144.167,
      "activeMin": 190,
      "level": 12,
-     "xp": 25441,
-     "coins": 17379,
-     "earned": 67337,
+     "xp": 26027,
+     "coins": 24118,
+     "earned": 74905,
      "income": {
-      "raw": 23162,
-      "orders": 26081,
-      "products": 8420,
-      "animals": 3172,
-      "quests": 6502,
+      "raw": 23744,
+      "orders": 29004,
+      "products": 6769,
+      "animals": 4041,
+      "quests": 11347,
       "other": 0
      },
      "plots": 31,
@@ -2757,15 +2803,15 @@
      "realH": 149.167,
      "activeMin": 200,
      "level": 12,
-     "xp": 26513,
-     "coins": 20233,
-     "earned": 71201,
+     "xp": 27521,
+     "coins": 26711,
+     "earned": 78862,
      "income": {
-      "raw": 24074,
-      "orders": 26583,
-      "products": 10510,
-      "animals": 3172,
-      "quests": 6862,
+      "raw": 25680,
+      "orders": 29869,
+      "products": 7465,
+      "animals": 4041,
+      "quests": 11807,
       "other": 0
      },
      "plots": 31,
@@ -2774,16 +2820,16 @@
     {
      "realH": 156.167,
      "activeMin": 210,
-     "level": 12,
-     "xp": 28105,
-     "coins": 23173,
-     "earned": 75433,
+     "level": 13,
+     "xp": 29131,
+     "coins": 21640,
+     "earned": 82328,
      "income": {
-      "raw": 24669,
-      "orders": 28229,
-      "products": 11321,
-      "animals": 4047,
-      "quests": 7167,
+      "raw": 26193,
+      "orders": 31134,
+      "products": 8588,
+      "animals": 4391,
+      "quests": 12022,
       "other": 0
      },
      "plots": 31,
@@ -2793,103 +2839,107 @@
    "perDay": [
     {
      "day": 1,
-     "earned": 6278,
+     "earned": 7835,
      "activeMin": 30,
      "level": 6
     },
     {
      "day": 2,
-     "earned": 8272,
+     "earned": 9562,
      "activeMin": 30,
      "level": 8
     },
     {
      "day": 3,
-     "earned": 11037,
+     "earned": 9864,
      "activeMin": 30,
      "level": 9
     },
     {
      "day": 4,
-     "earned": 12843,
+     "earned": 16512,
      "activeMin": 30,
      "level": 10
     },
     {
      "day": 5,
-     "earned": 13060,
+     "earned": 12727,
      "activeMin": 30,
      "level": 11
     },
     {
      "day": 6,
-     "earned": 10865,
+     "earned": 13084,
      "activeMin": 30,
      "level": 12
     },
     {
      "day": 7,
-     "earned": 13078,
+     "earned": 12744,
      "activeMin": 30,
-     "level": 12
+     "level": 13
     }
    ],
    "income": {
-    "raw": 24669,
-    "orders": 28229,
-    "products": 11321,
-    "animals": 4047,
-    "quests": 7167,
+    "raw": 26193,
+    "orders": 31134,
+    "products": 8588,
+    "animals": 4391,
+    "quests": 12022,
     "other": 0
    },
    "spend": {
-    "seeds": 23184,
+    "seeds": 24612,
     "plots": 10350,
-    "buildings": 12190,
-    "machines": 1450,
+    "buildings": 18190,
+    "machines": 2450,
     "machineUpgrades": 3550,
     "animals": 1560,
     "materials": 0,
     "feed": 0
    },
    "counts": {
-    "plant": 2650,
-    "water": 1297,
-    "harvestAll": 335,
+    "plant": 2695,
+    "water": 1325,
+    "harvestAll": 338,
     "claimQuest": 13,
-    "deliver": 110,
-    "sell": 438,
+    "deliver:thuong": 107,
+    "deliver": 127,
+    "sell": 472,
     "buyPlot": 16,
     "build": 5,
-    "upgradeBuilding": 5,
-    "enqueue": 421,
-    "collect": 213,
-    "buildMachine": 3,
+    "upgradeBuilding": 6,
+    "enqueue": 407,
+    "collect": 204,
+    "claimBook": 2,
+    "buildMachine": 4,
     "upgradeMachine": 6,
-    "villageClaim": 133,
+    "deliver:ket-hop": 20,
+    "villageClaim": 137,
     "buyAnimal": 14,
-    "feed": 89,
-    "collectAnimals": 71,
-    "cancel": 6
+    "feed": 88,
+    "collectAnimals": 69,
+    "cancel": 5
    },
    "xpBy": {
     "plant": 0,
     "water": 0,
-    "harvestAll": 19622,
+    "harvestAll": 20462,
     "claimQuest": 257,
-    "deliver": 3268,
+    "deliver": 3661,
     "sell": 0,
     "buyPlot": 0,
     "build": 0,
     "upgradeBuilding": 0,
     "enqueue": 0,
-    "collect": 2664,
+    "collect": 2475,
+    "claimBook": 0,
     "buildMachine": 0,
     "upgradeMachine": 0,
-    "villageClaim": 1701,
+    "villageClaim": 1708,
     "buyAnimal": 0,
     "feed": 0,
-    "collectAnimals": 593,
+    "collectAnimals": 568,
     "cancel": 0
    },
    "firsts": {
@@ -2906,6 +2956,10 @@
      "active": 0
     },
     "harvested": {
+     "real": 30000,
+     "active": 30000
+    },
+    "bookNew": {
      "real": 30000,
      "active": 30000
     },
@@ -2985,17 +3039,25 @@
      "real": 18120000,
      "active": 720000
     },
+    "bookTierReady": {
+     "real": 18180000,
+     "active": 780000
+    },
+    "bookClaimed": {
+     "real": 18180000,
+     "active": 780000
+    },
     "order:ket-hop": {
      "real": 18180000,
      "active": 780000
     },
     "machine:coi-xay": {
-     "real": 18270000,
-     "active": 870000
+     "real": 18180000,
+     "active": 780000
     },
     "machineBuildStarted": {
-     "real": 18270000,
-     "active": 870000
+     "real": 18180000,
+     "active": 780000
     },
     "machineUpgraded": {
      "real": 18540000,
@@ -3010,101 +3072,105 @@
      "active": 1230000
     },
     "villageQuestDone": {
-     "real": 43410000,
-     "active": 1410000
+     "real": 43470000,
+     "active": 1470000
     },
     "villageQuestClaimed": {
-     "real": 43410000,
-     "active": 1410000
+     "real": 43500000,
+     "active": 1500000
     },
-    "friendUp": {
+    "startBuild:chuong-ga": {
      "real": 86400000,
      "active": 1800000
     },
-    "startBuild:chuong-ga": {
-     "real": 86430000,
-     "active": 1830000
+    "friendUp": {
+     "real": 86490000,
+     "active": 1890000
     },
     "built:chuong-ga@1": {
-     "real": 86550000,
-     "active": 1950000
+     "real": 86520000,
+     "active": 1920000
     },
     "animalBought": {
-     "real": 86550000,
-     "active": 1950000
+     "real": 86520000,
+     "active": 1920000
     },
     "animalFed": {
-     "real": 86580000,
-     "active": 1980000
+     "real": 86760000,
+     "active": 2160000
     },
     "animalCollected": {
-     "real": 86820000,
-     "active": 2220000
+     "real": 104400000,
+     "active": 2400000
     },
     "machine:lo-banh": {
-     "real": 129870000,
-     "active": 3270000
+     "real": 104910000,
+     "active": 2910000
     },
     "startBuild:chuong-bo": {
-     "real": 191130000,
-     "active": 4530000
+     "real": 190830000,
+     "active": 4230000
     },
     "built:chuong-bo@1": {
-     "real": 191310000,
-     "active": 4710000
-    },
-    "startBuild:nha-kinh": {
-     "real": 277230000,
-     "active": 6030000
+     "real": 191010000,
+     "active": 4410000
     },
     "orderCancelled": {
-     "real": 277260000,
-     "active": 6060000
+     "real": 259290000,
+     "active": 5490000
+    },
+    "startBuild:nha-kinh": {
+     "real": 259620000,
+     "active": 5820000
     },
     "built:chuong-ga@2": {
-     "real": 277350000,
-     "active": 6150000
+     "real": 259740000,
+     "active": 5940000
     },
     "built:nha@2": {
-     "real": 277350000,
-     "active": 6150000
+     "real": 259740000,
+     "active": 5940000
     },
     "built:nha-kinh@1": {
-     "real": 277530000,
-     "active": 6330000
+     "real": 277200000,
+     "active": 6000000
     },
     "order:dac-biet": {
+     "real": 346050000,
+     "active": 7650000
+    },
+    "orderExpired": {
      "real": 363600000,
      "active": 7800000
     },
-    "orderExpired": {
-     "real": 388800000,
-     "active": 8400000
-    },
-    "deliver:dac-biet": {
-     "real": 432240000,
-     "active": 9240000
-    },
     "machine:may-bo-sua": {
-     "real": 450390000,
-     "active": 9990000
+     "real": 450030000,
+     "active": 9630000
     },
     "built:nha@3": {
-     "real": 450510000,
-     "active": 10110000
+     "real": 450150000,
+     "active": 9750000
     },
     "built:chuong-bo@2": {
-     "real": 450570000,
-     "active": 10170000
+     "real": 450210000,
+     "active": 9810000
+    },
+    "built:xuong@2": {
+     "real": 561810000,
+     "active": 12210000
+    },
+    "machine:noi-duong": {
+     "real": 561810000,
+     "active": 12210000
     }
    },
    "waits": [],
    "stalls": [],
    "idleMin": 9.5,
    "blockedMin": 0,
-   "brokeMin": 3,
+   "brokeMin": 0.5,
    "reasons": {
-    "broke": 6
+    "broke": 1
    },
    "errors": [],
    "gifts": 0
@@ -3120,30 +3186,30 @@
    "seed": 12345,
    "final": {
     "level": 9,
-    "xp": 8421,
-    "coins": 1000,
-    "earned": 20920,
-    "delivered": 72,
-    "harvested": 974,
+    "xp": 8515,
+    "coins": 2124,
+    "earned": 21634,
+    "delivered": 69,
+    "harvested": 991,
     "plots": 24,
     "animals": {
      "ga": 6,
-     "bo-sua": 0
+     "bo-sua": 4
     },
     "machines": {
      "bep-sen": 3,
      "coi-xay": 3,
-     "lo-banh": 3
+     "lo-banh": 2
     },
     "buildings": {
      "nha-kho": 2,
      "xuong": 1,
      "chuong-ga": 1,
-     "chuong-bo": 0
+     "chuong-bo": 1
     },
     "warehouseCap": 90,
     "questIndex": 13,
-    "villageProg": 5,
+    "villageProg": 6,
     "chains": {
      "chi-ba": 0,
      "co-hai": 0,
@@ -3151,18 +3217,27 @@
      "anh-ut": 0
     },
     "inv": {
-     "van-go": 9,
-     "hop-dinh": 7,
-     "thung-son": 8,
-     "bi-ngo": 2,
-     "ngo": 4,
-     "nuoc-ep-ca-rot": 1,
+     "van-go": 12,
+     "hop-dinh": 10,
+     "thung-son": 9,
+     "dau-tay": 7,
+     "sot-ca-chua": 2,
+     "nuoc-ep-ca-rot": 2,
      "trung-ga": 4,
-     "dau-tay": 3,
-     "lua": 4,
-     "mut-dau": 1
+     "ngo": 6,
+     "ca-chua": 5,
+     "bi-ngo": 4,
+     "banh-trung": 1,
+     "lua": 4
     },
-    "savingFor": null
+    "savingFor": null,
+    "book": 17,
+    "bookClaimed": 1,
+    "bookAt": {
+     "10": 0.3
+    },
+    "fairBonus": 0,
+    "specialDelivered": 0
    },
    "activeMin": 70,
    "levels": {
@@ -3191,16 +3266,16 @@
      "active": 1200000
     },
     "7": {
-     "real": 216270000,
-     "active": 1770000
+     "real": 259200000,
+     "active": 1800000
     },
     "8": {
-     "real": 388800000,
-     "active": 2700000
+     "real": 388980000,
+     "active": 2880000
     },
     "9": {
-     "real": 561750000,
-     "active": 4050000
+     "real": 561600000,
+     "active": 3900000
     }
    },
    "samples": [
@@ -3263,86 +3338,86 @@
      "activeMin": 20,
      "level": 5,
      "xp": 1717,
-     "coins": 312,
-     "earned": 3785,
+     "coins": 52,
+     "earned": 4585,
      "income": {
       "raw": 905,
       "orders": 2658,
       "products": 0,
       "animals": 0,
-      "quests": 222,
-      "other": 0
-     },
-     "plots": 18,
-     "animals": 0
-    },
-    {
-     "realH": 48.083,
-     "activeMin": 25,
-     "level": 6,
-     "xp": 2378,
-     "coins": 235,
-     "earned": 5116,
-     "income": {
-      "raw": 1254,
-      "orders": 3580,
-      "products": 0,
-      "animals": 0,
-      "quests": 282,
-      "other": 0
-     },
-     "plots": 19,
-     "animals": 0
-    },
-    {
-     "realH": 60.083,
-     "activeMin": 30,
-     "level": 7,
-     "xp": 3110,
-     "coins": 793,
-     "earned": 7076,
-     "income": {
-      "raw": 1377,
-      "orders": 5202,
-      "products": 0,
-      "animals": 0,
-      "quests": 497,
+      "quests": 1022,
       "other": 0
      },
      "plots": 20,
      "animals": 0
     },
     {
+     "realH": 48.083,
+     "activeMin": 25,
+     "level": 6,
+     "xp": 2301,
+     "coins": 609,
+     "earned": 6037,
+     "income": {
+      "raw": 1780,
+      "orders": 3035,
+      "products": 0,
+      "animals": 0,
+      "quests": 1222,
+      "other": 0
+     },
+     "plots": 20,
+     "animals": 0
+    },
+    {
+     "realH": 60.083,
+     "activeMin": 30,
+     "level": 6,
+     "xp": 2951,
+     "coins": 78,
+     "earned": 7844,
+     "income": {
+      "raw": 2147,
+      "orders": 4175,
+      "products": 0,
+      "animals": 0,
+      "quests": 1522,
+      "other": 0
+     },
+     "plots": 22,
+     "animals": 0
+    },
+    {
      "realH": 72.083,
      "activeMin": 35,
      "level": 7,
-     "xp": 3756,
-     "coins": 686,
-     "earned": 8643,
+     "xp": 3460,
+     "coins": 86,
+     "earned": 9241,
      "income": {
-      "raw": 2020,
-      "orders": 5731,
+      "raw": 2435,
+      "orders": 4989,
       "products": 0,
       "animals": 0,
-      "quests": 892,
+      "quests": 1817,
       "other": 0
      },
-     "plots": 21,
-     "animals": 6
+     "plots": 22,
+     "animals": 5
     },
     {
      "realH": 84.083,
      "activeMin": 40,
      "level": 7,
-     "xp": 4315,
-     "coins": 391,
-     "earned": 10335,
+     "xp": 4122,
+     "coins": 444,
+     "earned": 10947,
      "income": {
-      "raw": 2608,
-      "orders": 6463,
+      "raw": 2977,
+      "orders": 5873,
       "products": 0,
-      "animals": 132,
-      "quests": 1132,
+      "animals": 0,
+      "quests": 2097,
       "other": 0
      },
      "plots": 22,
@@ -3352,15 +3427,15 @@
      "realH": 96.083,
      "activeMin": 45,
      "level": 7,
-     "xp": 5019,
-     "coins": 111,
-     "earned": 12069,
+     "xp": 4810,
+     "coins": 262,
+     "earned": 12763,
      "income": {
-      "raw": 3212,
-      "orders": 7353,
-      "products": 0,
-      "animals": 132,
-      "quests": 1372,
+      "raw": 3341,
+      "orders": 7055,
+      "products": 35,
+      "animals": 0,
+      "quests": 2332,
       "other": 0
      },
      "plots": 23,
@@ -3370,15 +3445,15 @@
      "realH": 108.083,
      "activeMin": 50,
      "level": 8,
-     "xp": 5674,
-     "coins": 749,
-     "earned": 13609,
+     "xp": 5510,
+     "coins": 1204,
+     "earned": 14645,
      "income": {
-      "raw": 3592,
-      "orders": 8141,
-      "products": 0,
-      "animals": 324,
-      "quests": 1552,
+      "raw": 3795,
+      "orders": 8171,
+      "products": 35,
+      "animals": 32,
+      "quests": 2612,
       "other": 0
      },
      "plots": 23,
@@ -3388,33 +3463,33 @@
      "realH": 120.083,
      "activeMin": 55,
      "level": 8,
-     "xp": 6355,
-     "coins": 1070,
-     "earned": 15147,
+     "xp": 6167,
+     "coins": 179,
+     "earned": 16145,
      "income": {
-      "raw": 4018,
-      "orders": 8781,
-      "products": 0,
-      "animals": 356,
-      "quests": 1992,
+      "raw": 3971,
+      "orders": 9223,
+      "products": 112,
+      "animals": 32,
+      "quests": 2807,
       "other": 0
      },
-     "plots": 23,
+     "plots": 24,
      "animals": 6
     },
     {
      "realH": 132.083,
      "activeMin": 60,
      "level": 8,
-     "xp": 7158,
-     "coins": 35,
-     "earned": 17227,
+     "xp": 7000,
+     "coins": 1949,
+     "earned": 18447,
      "income": {
-      "raw": 4114,
-      "orders": 10191,
-      "products": 354,
-      "animals": 356,
-      "quests": 2212,
+      "raw": 4085,
+      "orders": 10802,
+      "products": 112,
+      "animals": 256,
+      "quests": 3192,
       "other": 0
      },
      "plots": 24,
@@ -3424,15 +3499,15 @@
      "realH": 144.083,
      "activeMin": 65,
      "level": 8,
-     "xp": 7791,
-     "coins": 1,
-     "earned": 18779,
+     "xp": 7818,
+     "coins": 2675,
+     "earned": 20315,
      "income": {
-      "raw": 4654,
-      "orders": 10403,
-      "products": 927,
-      "animals": 428,
-      "quests": 2367,
+      "raw": 4164,
+      "orders": 12020,
+      "products": 303,
+      "animals": 436,
+      "quests": 3392,
       "other": 0
      },
      "plots": 24,
@@ -3442,19 +3517,19 @@
      "realH": 156.083,
      "activeMin": 70,
      "level": 9,
-     "xp": 8421,
-     "coins": 1000,
-     "earned": 20920,
+     "xp": 8515,
+     "coins": 2124,
+     "earned": 21634,
      "income": {
-      "raw": 4714,
-      "orders": 11679,
-      "products": 1262,
-      "animals": 638,
-      "quests": 2627,
+      "raw": 4248,
+      "orders": 12649,
+      "products": 489,
+      "animals": 576,
+      "quests": 3672,
       "other": 0
      },
      "plots": 24,
-     "animals": 6
+     "animals": 10
     }
    ],
    "perDay": [
@@ -3466,98 +3541,100 @@
     },
     {
      "day": 2,
-     "earned": 2247,
+     "earned": 3047,
      "activeMin": 10,
      "level": 5
     },
     {
      "day": 3,
-     "earned": 3291,
+     "earned": 3259,
      "activeMin": 10,
-     "level": 7
+     "level": 6
     },
     {
      "day": 4,
-     "earned": 3259,
+     "earned": 3103,
      "activeMin": 10,
      "level": 7
     },
     {
      "day": 5,
-     "earned": 3274,
+     "earned": 3698,
      "activeMin": 10,
      "level": 8
     },
     {
      "day": 6,
-     "earned": 3618,
+     "earned": 3802,
      "activeMin": 10,
      "level": 8
     },
     {
      "day": 7,
-     "earned": 3693,
+     "earned": 3187,
      "activeMin": 10,
      "level": 9
     }
    ],
    "income": {
-    "raw": 4714,
-    "orders": 11679,
-    "products": 1262,
-    "animals": 638,
-    "quests": 2627,
+    "raw": 4248,
+    "orders": 12649,
+    "products": 489,
+    "animals": 576,
+    "quests": 3672,
     "other": 0
    },
    "spend": {
-    "seeds": 6549,
+    "seeds": 6619,
     "plots": 7645,
     "buildings": 1190,
     "machines": 650,
-    "machineUpgrades": 3550,
-    "animals": 360,
+    "machineUpgrades": 2350,
+    "animals": 1080,
     "materials": 0,
     "feed": 0
    },
    "counts": {
-    "plant": 998,
-    "water": 419,
-    "harvestAll": 123,
+    "plant": 1015,
+    "water": 393,
+    "harvestAll": 124,
     "claimQuest": 13,
-    "deliver": 72,
-    "sell": 126,
+    "deliver:thuong": 60,
+    "deliver": 69,
+    "sell": 147,
     "buyPlot": 15,
     "build": 4,
     "upgradeBuilding": 1,
-    "enqueue": 104,
+    "enqueue": 107,
     "buildMachine": 2,
-    "collect": 46,
-    "upgradeMachine": 6,
-    "villageClaim": 43,
-    "buyAnimal": 6,
-    "feed": 14,
-    "collectAnimals": 11,
-    "cancel": 1
+    "collect": 50,
+    "deliver:ket-hop": 9,
+    "upgradeMachine": 5,
+    "claimBook": 1,
+    "villageClaim": 53,
+    "buyAnimal": 10,
+    "feed": 20,
+    "collectAnimals": 12
    },
    "xpBy": {
     "plant": 0,
     "water": 0,
-    "harvestAll": 5404,
+    "harvestAll": 5400,
     "claimQuest": 257,
-    "deliver": 1510,
+    "deliver": 1551,
     "sell": 0,
     "buyPlot": 0,
     "build": 0,
     "upgradeBuilding": 0,
     "enqueue": 0,
     "buildMachine": 0,
-    "collect": 590,
+    "collect": 596,
     "upgradeMachine": 0,
-    "villageClaim": 566,
+    "claimBook": 0,
+    "villageClaim": 625,
     "buyAnimal": 0,
     "feed": 0,
-    "collectAnimals": 94,
-    "cancel": 0
+    "collectAnimals": 86
    },
    "firsts": {
     "planted": {
@@ -3573,6 +3650,10 @@
      "active": 0
     },
     "harvested": {
+     "real": 30000,
+     "active": 30000
+    },
+    "bookNew": {
      "real": 30000,
      "active": 30000
     },
@@ -3672,62 +3753,70 @@
      "real": 129600000,
      "active": 900000
     },
+    "bookTierReady": {
+     "real": 129810000,
+     "active": 1110000
+    },
+    "bookClaimed": {
+     "real": 129810000,
+     "active": 1110000
+    },
     "boardRefilled": {
      "real": 172830000,
      "active": 1230000
     },
     "villageQuestDone": {
-     "real": 172920000,
-     "active": 1320000
+     "real": 172950000,
+     "active": 1350000
     },
     "villageQuestClaimed": {
-     "real": 172920000,
-     "active": 1320000
-    },
-    "friendUp": {
-     "real": 216090000,
-     "active": 1590000
+     "real": 172950000,
+     "active": 1350000
     },
     "startBuild:chuong-ga": {
-     "real": 216270000,
-     "active": 1770000
+     "real": 259200000,
+     "active": 1800000
     },
     "built:chuong-ga@1": {
-     "real": 259200000,
-     "active": 1800000
+     "real": 259320000,
+     "active": 1920000
     },
     "animalBought": {
-     "real": 259200000,
-     "active": 1800000
+     "real": 259320000,
+     "active": 1920000
     },
     "animalFed": {
-     "real": 259230000,
-     "active": 1830000
+     "real": 259350000,
+     "active": 1950000
+    },
+    "friendUp": {
+     "real": 259440000,
+     "active": 2040000
     },
     "animalCollected": {
-     "real": 259470000,
-     "active": 2070000
+     "real": 302400000,
+     "active": 2100000
     },
     "machine:lo-banh": {
-     "real": 388800000,
-     "active": 2700000
-    },
-    "orderCancelled": {
-     "real": 432060000,
-     "active": 3060000
+     "real": 388980000,
+     "active": 2880000
     },
     "startBuild:chuong-bo": {
-     "real": 561750000,
-     "active": 4050000
+     "real": 561600000,
+     "active": 3900000
+    },
+    "built:chuong-bo@1": {
+     "real": 561780000,
+     "active": 4080000
     }
    },
    "waits": [],
    "stalls": [],
-   "idleMin": 1.5,
+   "idleMin": 0,
    "blockedMin": 0,
-   "brokeMin": 1,
+   "brokeMin": 0.5,
    "reasons": {
-    "broke": 2
+    "broke": 1
    },
    "errors": [],
    "gifts": 0
@@ -3756,9 +3845,9 @@
        30,
        55
       ],
-      "activeMin": 38,
-      "realH": 1.13,
-      "ratio": 0.95
+      "activeMin": 39,
+      "realH": 1.15,
+      "ratio": 0.98
      },
      {
       "level": 10,
@@ -3767,9 +3856,9 @@
        90,
        160
       ],
-      "activeMin": 113,
-      "realH": 3.38,
-      "ratio": 0.94
+      "activeMin": 109,
+      "realH": 3.32,
+      "ratio": 0.91
      },
      {
       "level": 20,
@@ -3778,9 +3867,9 @@
        600,
        720
       ],
-      "activeMin": 679,
-      "realH": 32.32,
-      "ratio": 1.03
+      "activeMin": 690,
+      "realH": 33,
+      "ratio": 1.05
      }
     ]
    },
@@ -3805,9 +3894,9 @@
        30,
        55
       ],
-      "activeMin": 30.5,
-      "realH": 24.01,
-      "ratio": 0.76
+      "activeMin": 30,
+      "realH": 24,
+      "ratio": 0.75
      },
      {
       "level": 10,
@@ -3816,9 +3905,9 @@
        90,
        160
       ],
-      "activeMin": 100,
-      "realH": 77,
-      "ratio": 0.83
+      "activeMin": 97,
+      "realH": 72.12,
+      "ratio": 0.81
      },
      {
       "level": 20,
@@ -3854,9 +3943,9 @@
        30,
        55
       ],
-      "activeMin": 29.5,
-      "realH": 60.08,
-      "ratio": 0.74
+      "activeMin": 30,
+      "realH": 72,
+      "ratio": 0.75
      },
      {
       "level": 10,
@@ -3886,61 +3975,61 @@
   "income": [
    {
     "profile": "cham",
-    "total": 1472626,
+    "total": 1497201,
     "share": {
-     "raw": 33,
-     "orders": 41,
-     "products": 13,
+     "raw": 34,
+     "orders": 35,
+     "products": 17,
      "animals": 6,
-     "quests": 7,
+     "quests": 8,
      "other": 0
     },
     "abs": {
-     "raw": 488219,
-     "orders": 602206,
-     "products": 188708,
-     "animals": 89321,
-     "quests": 104172,
+     "raw": 515506,
+     "orders": 519408,
+     "products": 248540,
+     "animals": 92160,
+     "quests": 121587,
      "other": 0
     }
    },
    {
     "profile": "thinh-thoang",
-    "total": 75433,
+    "total": 82328,
     "share": {
-     "raw": 33,
-     "orders": 37,
-     "products": 15,
+     "raw": 32,
+     "orders": 38,
+     "products": 10,
      "animals": 5,
-     "quests": 10,
+     "quests": 15,
      "other": 0
     },
     "abs": {
-     "raw": 24669,
-     "orders": 28229,
-     "products": 11321,
-     "animals": 4047,
-     "quests": 7167,
+     "raw": 26193,
+     "orders": 31134,
+     "products": 8588,
+     "animals": 4391,
+     "quests": 12022,
      "other": 0
     }
    },
    {
     "profile": "ngay-2-lan",
-    "total": 20920,
+    "total": 21634,
     "share": {
-     "raw": 23,
-     "orders": 56,
-     "products": 6,
+     "raw": 20,
+     "orders": 58,
+     "products": 2,
      "animals": 3,
-     "quests": 13,
+     "quests": 17,
      "other": 0
     },
     "abs": {
-     "raw": 4714,
-     "orders": 11679,
-     "products": 1262,
-     "animals": 638,
-     "quests": 2627,
+     "raw": 4248,
+     "orders": 12649,
+     "products": 489,
+     "animals": 576,
+     "quests": 3672,
      "other": 0
     }
    }
@@ -3976,80 +4065,80 @@
      {
       "key": "deliver:ket-hop",
       "name": "Giao đơn kết hợp đầu",
-      "activeMin": 22,
-      "realH": 0.37
+      "activeMin": 27,
+      "realH": 0.45
      },
      {
       "key": "built:chuong-ga@1",
       "name": "Chuồng gà xây xong",
-      "activeMin": 40,
-      "realH": 1.17
+      "activeMin": 41,
+      "realH": 1.18
      },
      {
       "key": "animalCollected",
       "name": "Thu sản phẩm vật nuôi đầu",
-      "activeMin": 45,
-      "realH": 1.25
+      "activeMin": 46,
+      "realH": 1.27
      },
      {
       "key": "machine:lo-banh",
       "name": "Lò bánh bắt đầu xây",
-      "activeMin": 60,
-      "realH": 2
+      "activeMin": 57,
+      "realH": 1.45
      },
      {
       "key": "built:chuong-bo@1",
       "name": "Chuồng bò xây xong",
-      "activeMin": 86,
-      "realH": 2.43
+      "activeMin": 82,
+      "realH": 2.37
      },
      {
       "key": "built:nha-kinh@1",
       "name": "Nhà kính xây xong",
-      "activeMin": 118,
-      "realH": 3.47
+      "activeMin": 114,
+      "realH": 3.4
      },
      {
       "key": "order:dac-biet",
       "name": "Đơn đặc biệt đầu tiên",
-      "activeMin": 144,
-      "realH": 4.4
+      "activeMin": 138,
+      "realH": 4.3
      },
      {
       "key": "deliver:dac-biet",
       "name": "Giao đơn đặc biệt đầu",
-      "activeMin": 215,
-      "realH": 7.08
+      "activeMin": 551,
+      "realH": 28.18
      },
      {
       "key": "machine:may-bo-sua",
       "name": "Máy bơ sữa bắt đầu xây",
-      "activeMin": 180,
-      "realH": 6
+      "activeMin": 174,
+      "realH": 5.4
      },
      {
       "key": "machine:noi-duong",
       "name": "Nồi đường bắt đầu xây",
-      "activeMin": 222,
-      "realH": 7.2
+      "activeMin": 218,
+      "realH": 7.13
      },
      {
       "key": "built:xuong@2",
       "name": "Xưởng cấp 2",
-      "activeMin": 222,
-      "realH": 7.2
+      "activeMin": 218,
+      "realH": 7.13
      },
      {
       "key": "built:dat-phia-dong@1",
       "name": "Khu đất phía Đông mở",
-      "activeMin": 464,
-      "realH": 25.23
+      "activeMin": 459,
+      "realH": 25.15
      },
      {
       "key": "chainComplete",
       "name": "Hoàn thành chuỗi NPC đầu",
-      "activeMin": 286,
-      "realH": 9.27
+      "activeMin": 295,
+      "realH": 9.42
      },
      {
       "key": "gift",
@@ -4075,8 +4164,8 @@
      {
       "key": "machine:coi-xay",
       "name": "Cối xay bắt đầu xây",
-      "activeMin": 14.5,
-      "realH": 5.08
+      "activeMin": 13,
+      "realH": 5.05
      },
      {
       "key": "order:ket-hop",
@@ -4093,58 +4182,60 @@
      {
       "key": "built:chuong-ga@1",
       "name": "Chuồng gà xây xong",
-      "activeMin": 32.5,
-      "realH": 24.04
+      "activeMin": 32,
+      "realH": 24.03
      },
      {
       "key": "animalCollected",
       "name": "Thu sản phẩm vật nuôi đầu",
-      "activeMin": 37,
-      "realH": 24.12
+      "activeMin": 40,
+      "realH": 29
      },
      {
       "key": "machine:lo-banh",
       "name": "Lò bánh bắt đầu xây",
-      "activeMin": 54.5,
-      "realH": 36.08
+      "activeMin": 48.5,
+      "realH": 29.14
      },
      {
       "key": "built:chuong-bo@1",
       "name": "Chuồng bò xây xong",
-      "activeMin": 78.5,
-      "realH": 53.14
+      "activeMin": 73.5,
+      "realH": 53.06
      },
      {
       "key": "built:nha-kinh@1",
       "name": "Nhà kính xây xong",
-      "activeMin": 105.5,
-      "realH": 77.09
+      "activeMin": 100,
+      "realH": 77
      },
      {
       "key": "order:dac-biet",
       "name": "Đơn đặc biệt đầu tiên",
-      "activeMin": 130,
-      "realH": 101
+      "activeMin": 127.5,
+      "realH": 96.13
      },
      {
       "key": "deliver:dac-biet",
-      "name": "Giao đơn đặc biệt đầu",
-      "activeMin": 154,
-      "realH": 120.07
+      "name": "Giao đơn đặc biệt đầu"
      },
      {
       "key": "machine:may-bo-sua",
       "name": "Máy bơ sữa bắt đầu xây",
-      "activeMin": 166.5,
-      "realH": 125.11
+      "activeMin": 160.5,
+      "realH": 125.01
      },
      {
       "key": "machine:noi-duong",
-      "name": "Nồi đường bắt đầu xây"
+      "name": "Nồi đường bắt đầu xây",
+      "activeMin": 203.5,
+      "realH": 156.06
      },
      {
       "key": "built:xuong@2",
-      "name": "Xưởng cấp 2"
+      "name": "Xưởng cấp 2",
+      "activeMin": 203.5,
+      "realH": 156.06
      },
      {
       "key": "built:dat-phia-dong@1",
@@ -4196,24 +4287,26 @@
      {
       "key": "built:chuong-ga@1",
       "name": "Chuồng gà xây xong",
-      "activeMin": 30,
-      "realH": 72
+      "activeMin": 32,
+      "realH": 72.03
      },
      {
       "key": "animalCollected",
       "name": "Thu sản phẩm vật nuôi đầu",
-      "activeMin": 34.5,
-      "realH": 72.08
+      "activeMin": 35,
+      "realH": 84
      },
      {
       "key": "machine:lo-banh",
       "name": "Lò bánh bắt đầu xây",
-      "activeMin": 45,
-      "realH": 108
+      "activeMin": 48,
+      "realH": 108.05
      },
      {
       "key": "built:chuong-bo@1",
-      "name": "Chuồng bò xây xong"
+      "name": "Chuồng bò xây xong",
+      "activeMin": 68,
+      "realH": 156.05
      },
      {
       "key": "built:nha-kinh@1",
@@ -4263,44 +4356,44 @@
      "days": [
       {
        "day": 1,
-       "perActiveHour": 22156,
-       "earned": 155092
+       "perActiveHour": 23619,
+       "earned": 165333
       },
       {
        "day": 2,
-       "perActiveHour": 31651,
-       "earned": 221557
+       "perActiveHour": 32148,
+       "earned": 225033
       },
       {
        "day": 3,
-       "perActiveHour": 31268,
-       "earned": 218873
+       "perActiveHour": 31526,
+       "earned": 220679
       },
       {
        "day": 4,
-       "perActiveHour": 32421,
-       "earned": 226950
+       "perActiveHour": 31875,
+       "earned": 223127
       },
       {
        "day": 5,
-       "perActiveHour": 30478,
-       "earned": 213347
+       "perActiveHour": 31904,
+       "earned": 223328
       },
       {
        "day": 6,
-       "perActiveHour": 31593,
-       "earned": 221152
+       "perActiveHour": 30978,
+       "earned": 216843
       },
       {
        "day": 7,
-       "perActiveHour": 30808,
-       "earned": 215655
+       "perActiveHour": 31837,
+       "earned": 222858
       }
      ],
-     "growth": 0.97,
+     "growth": 0.99,
      "superLinear": false,
-     "finalCoins": 249447,
-     "earned": 1472626,
+     "finalCoins": 258480,
+     "earned": 1497201,
      "hoardPct": 17
     },
     {
@@ -4308,45 +4401,45 @@
      "days": [
       {
        "day": 1,
-       "perActiveHour": 12556,
-       "earned": 6278
+       "perActiveHour": 15670,
+       "earned": 7835
       },
       {
        "day": 2,
-       "perActiveHour": 16544,
-       "earned": 8272
+       "perActiveHour": 19124,
+       "earned": 9562
       },
       {
        "day": 3,
-       "perActiveHour": 22074,
-       "earned": 11037
+       "perActiveHour": 19728,
+       "earned": 9864
       },
       {
        "day": 4,
-       "perActiveHour": 25686,
-       "earned": 12843
+       "perActiveHour": 33024,
+       "earned": 16512
       },
       {
        "day": 5,
-       "perActiveHour": 26120,
-       "earned": 13060
+       "perActiveHour": 25454,
+       "earned": 12727
       },
       {
        "day": 6,
-       "perActiveHour": 21730,
-       "earned": 10865
+       "perActiveHour": 26168,
+       "earned": 13084
       },
       {
        "day": 7,
-       "perActiveHour": 26156,
-       "earned": 13078
+       "perActiveHour": 25488,
+       "earned": 12744
       }
      ],
-     "growth": 1.58,
+     "growth": 1.33,
      "superLinear": false,
-     "finalCoins": 23173,
-     "earned": 75433,
-     "hoardPct": 31
+     "finalCoins": 21640,
+     "earned": 82328,
+     "hoardPct": 26
     },
     {
      "profile": "ngay-2-lan",
@@ -4358,40 +4451,40 @@
       },
       {
        "day": 2,
-       "perActiveHour": 13482,
-       "earned": 2247
+       "perActiveHour": 18282,
+       "earned": 3047
       },
       {
        "day": 3,
-       "perActiveHour": 19746,
-       "earned": 3291
-      },
-      {
-       "day": 4,
        "perActiveHour": 19554,
        "earned": 3259
       },
       {
+       "day": 4,
+       "perActiveHour": 18618,
+       "earned": 3103
+      },
+      {
        "day": 5,
-       "perActiveHour": 19644,
-       "earned": 3274
+       "perActiveHour": 22188,
+       "earned": 3698
       },
       {
        "day": 6,
-       "perActiveHour": 21708,
-       "earned": 3618
+       "perActiveHour": 22812,
+       "earned": 3802
       },
       {
        "day": 7,
-       "perActiveHour": 22158,
-       "earned": 3693
+       "perActiveHour": 19122,
+       "earned": 3187
       }
      ],
-     "growth": 1.64,
+     "growth": 1.05,
      "superLinear": false,
-     "finalCoins": 1000,
-     "earned": 20920,
-     "hoardPct": 5
+     "finalCoins": 2124,
+     "earned": 21634,
+     "hoardPct": 10
     }
    ]
   },
@@ -4606,6 +4699,72 @@
     "ratio": 1.29,
     "valueAddPerMachineMin": 14,
     "xp": 26
+   },
+   {
+    "id": "banh-ngo",
+    "machine": "lo-banh",
+    "level": 9,
+    "min": 3,
+    "inputValue": 119,
+    "outputValue": 155,
+    "ratio": 1.3,
+    "valueAddPerMachineMin": 12,
+    "xp": 11
+   },
+   {
+    "id": "sinh-to-dau",
+    "machine": "may-bo-sua",
+    "level": 12,
+    "min": 3,
+    "inputValue": 126,
+    "outputValue": 165,
+    "ratio": 1.31,
+    "valueAddPerMachineMin": 13,
+    "xp": 12
+   },
+   {
+    "id": "bap-rang-bo",
+    "machine": "lo-banh",
+    "level": 13,
+    "min": 5,
+    "inputValue": 243,
+    "outputValue": 315,
+    "ratio": 1.3,
+    "valueAddPerMachineMin": 14.4,
+    "xp": 22
+   },
+   {
+    "id": "che-bi-ngo",
+    "machine": "noi-duong",
+    "level": 14,
+    "min": 5,
+    "inputValue": 197,
+    "outputValue": 255,
+    "ratio": 1.29,
+    "valueAddPerMachineMin": 11.6,
+    "xp": 18
+   },
+   {
+    "id": "sua-chua",
+    "machine": "may-bo-sua",
+    "level": 15,
+    "min": 6,
+    "inputValue": 294,
+    "outputValue": 380,
+    "ratio": 1.29,
+    "valueAddPerMachineMin": 14.3,
+    "xp": 27
+   },
+   {
+    "id": "banh-gao",
+    "machine": "lo-banh",
+    "level": 17,
+    "min": 6,
+    "inputValue": 290,
+    "outputValue": 375,
+    "ratio": 1.29,
+    "valueAddPerMachineMin": 14.2,
+    "xp": 26
    }
   ],
   "animals": [
@@ -4617,9 +4776,9 @@
     "product": "trung-ga",
     "value": 32,
     "feedCostFarm": 19.3,
-    "feedCostShop": 56,
+    "feedCostShop": 72,
     "profitPerHourFarmFeed": 190,
-    "profitPerHourShopFeed": -360,
+    "profitPerHourShopFeed": -600,
     "paybackCycles": 4.7
    },
    {
@@ -4630,9 +4789,9 @@
     "product": "sua",
     "value": 72,
     "feedCostFarm": 38.7,
-    "feedCostShop": 112,
+    "feedCostShop": 144,
     "profitPerHourFarmFeed": 250,
-    "profitPerHourShopFeed": -300,
+    "profitPerHourShopFeed": -540,
     "paybackCycles": 5.4
    }
   ],
@@ -4835,9 +4994,9 @@
      "b": 2,
      "got": {
       "4": 9,
-      "7": 42,
-      "10": 113,
-      "20": 650
+      "7": 41,
+      "10": 109,
+      "20": 667
      },
      "err": 0.02,
      "totalXp20": 98800
@@ -4847,60 +5006,48 @@
      "b": 1.9,
      "got": {
       "4": 9,
-      "7": 41,
-      "10": 107,
-      "20": 627
+      "7": 42,
+      "10": 109,
+      "20": 628
      },
      "err": 0.03,
      "totalXp20": 94932
-    },
-    {
-     "a": 40,
-     "b": 2.1,
-     "got": {
-      "4": 9,
-      "7": 43,
-      "10": 124,
-      "20": 799
-     },
-     "err": 0.05,
-     "totalXp20": 128677
     },
     {
      "a": 50,
      "b": 2,
      "got": {
       "4": 10,
-      "7": 45,
-      "10": 126,
-      "20": 789
+      "7": 46,
+      "10": 130,
+      "20": 785
      },
-     "err": 0.05,
+     "err": 0.06,
      "totalXp20": 123500
+    },
+    {
+     "a": 40,
+     "b": 2.1,
+     "got": {
+      "4": 9,
+      "7": 44,
+      "10": 129,
+      "20": 814
+     },
+     "err": 0.07,
+     "totalXp20": 128677
     },
     {
      "a": 60,
      "b": 1.9,
      "got": {
       "4": 12,
-      "7": 48,
-      "10": 127,
-      "20": 744
+      "7": 49,
+      "10": 130,
+      "20": 733
      },
-     "err": 0.08,
+     "err": 0.09,
      "totalXp20": 113918
-    },
-    {
-     "a": 30,
-     "b": 2.1,
-     "got": {
-      "4": 7,
-      "7": 39,
-      "10": 101,
-      "20": 626
-     },
-     "err": 0.16,
-     "totalXp20": 96508
     },
     {
      "a": 40,
@@ -4908,20 +5055,32 @@
      "got": {
       "4": 8,
       "7": 38,
-      "10": 90,
-      "20": 510
+      "10": 96,
+      "20": 502
      },
-     "err": 0.2,
+     "err": 0.18,
      "totalXp20": 75944
+    },
+    {
+     "a": 30,
+     "b": 2.1,
+     "got": {
+      "4": 7,
+      "7": 36,
+      "10": 96,
+      "20": 614
+     },
+     "err": 0.19,
+     "totalXp20": 96508
     },
     {
      "a": 50,
      "b": 2.1,
      "got": {
       "4": 10,
-      "7": 48,
-      "10": 141,
-      "20": 992
+      "7": 50,
+      "10": 139,
+      "20": 984
      },
      "err": 0.23,
      "totalXp20": 160844
@@ -4932,10 +5091,10 @@
      "got": {
       "4": 12,
       "7": 53,
-      "10": 145,
+      "10": 142,
       "20": 920
      },
-     "err": 0.26,
+     "err": 0.25,
      "totalXp20": 148200
     },
     {
@@ -4943,11 +5102,11 @@
      "b": 2,
      "got": {
       "4": 6,
-      "7": 35,
+      "7": 37,
       "10": 86,
-      "20": 497
+      "20": 492
      },
-     "err": 0.47,
+     "err": 0.46,
      "totalXp20": 74100
     },
     {
@@ -4955,11 +5114,11 @@
      "b": 2.1,
      "got": {
       "4": 13,
-      "7": 57,
-      "10": 168,
-      "20": 1147
+      "7": 55,
+      "10": 159,
+      "20": 1151
      },
-     "err": 0.61,
+     "err": 0.56,
      "totalXp20": 193015
     },
     {
@@ -4967,11 +5126,11 @@
      "b": 1.9,
      "got": {
       "4": 6,
-      "7": 31,
-      "10": 74,
-      "20": 399
+      "7": 30,
+      "10": 73,
+      "20": 391
      },
-     "err": 0.81,
+     "err": 0.86,
      "totalXp20": 56961
     }
    ],
@@ -4980,9 +5139,9 @@
     "b": 2,
     "got": {
      "4": 9,
-     "7": 42,
-     "10": 113,
-     "20": 650
+     "7": 41,
+     "10": 109,
+     "20": 667
     },
     "err": 0.02,
     "totalXp20": 98800
@@ -5001,21 +5160,21 @@
       "realH": 0.15
      },
      "7": {
-      "activeMin": 42,
-      "realH": 1.2
+      "activeMin": 41,
+      "realH": 1.18
      },
      "10": {
-      "activeMin": 113,
-      "realH": 3.38
+      "activeMin": 109,
+      "realH": 3.32
      },
      "20": {
-      "activeMin": 650,
-      "realH": 31.33
+      "activeMin": 667,
+      "realH": 32.12
      }
     },
     "final": {
      "level": 20,
-     "coins": 257756
+     "coins": 251769
     },
     "withCropXp": {
      "levels": {
@@ -5028,24 +5187,24 @@
        "realH": 1.28
       },
       "10": {
-       "activeMin": 118,
-       "realH": 3.47
+       "activeMin": 119,
+       "realH": 3.48
       },
       "20": {
-       "activeMin": 677,
-       "realH": 32.28
+       "activeMin": 654,
+       "realH": 31.4
       }
      },
      "final": {
       "level": 20,
-      "coins": 285298
+      "coins": 306054
      }
     },
     "firsts": {
      "built:xuong@1": 10,
-     "built:chuong-ga@1": 44,
-     "built:nha-kinh@1": 118,
-     "built:dat-phia-dong@1": 447
+     "built:chuong-ga@1": 43,
+     "built:nha-kinh@1": 114,
+     "built:dat-phia-dong@1": 446
     }
    },
    {
@@ -5060,18 +5219,18 @@
       "realH": 0.11
      },
      "7": {
-      "activeMin": 35,
-      "realH": 24.08
+      "activeMin": 31.5,
+      "realH": 24.02
      },
      "10": {
-      "activeMin": 98,
-      "realH": 72.13
+      "activeMin": 94,
+      "realH": 72.07
      },
      "20": null
     },
     "final": {
      "level": 13,
-     "coins": 17918
+     "coins": 22414
     },
     "withCropXp": {
      "levels": {
@@ -5080,24 +5239,24 @@
        "realH": 0.14
       },
       "7": {
-       "activeMin": 39,
-       "realH": 24.15
+       "activeMin": 40,
+       "realH": 29
       },
       "10": {
-       "activeMin": 102,
-       "realH": 77.03
+       "activeMin": 105,
+       "realH": 77.08
       },
       "20": null
      },
      "final": {
       "level": 13,
-      "coins": 17917
+      "coins": 21739
      }
     },
     "firsts": {
      "built:xuong@1": 7.5,
-     "built:chuong-ga@1": 37,
-     "built:nha-kinh@1": 100,
+     "built:chuong-ga@1": 33.5,
+     "built:nha-kinh@1": 99,
      "built:dat-phia-dong@1": null
     }
    },
@@ -5113,15 +5272,15 @@
       "realH": 12
      },
      "7": {
-      "activeMin": 32.5,
-      "realH": 72.04
+      "activeMin": 30,
+      "realH": 72
      },
      "10": null,
      "20": null
     },
     "final": {
      "level": 9,
-     "coins": 1447
+     "coins": 423
     },
     "withCropXp": {
      "levels": {
@@ -5130,20 +5289,20 @@
        "realH": 12.05
       },
       "7": {
-       "activeMin": 35,
-       "realH": 84
+       "activeMin": 39,
+       "realH": 84.07
       },
       "10": null,
       "20": null
      },
      "final": {
       "level": 8,
-      "coins": 1260
+      "coins": 1003
      }
     },
     "firsts": {
      "built:xuong@1": 6,
-     "built:chuong-ga@1": 34.5,
+     "built:chuong-ga@1": 32,
      "built:nha-kinh@1": null,
      "built:dat-phia-dong@1": null
     }
@@ -5152,15 +5311,16 @@
   "recommendations": [
    {
     "priority": 6,
+    "decided": "M6: đã xét, không áp dụng — xem §11",
     "file": "data/crops.js — xp",
     "from": "ca-rot 2, ca-chua 4, dau-tay 6",
     "to": "ca-rot 1, ca-chua 2, dau-tay 4 (XP/phút-ô thấp hơn cho cây rất nhanh)",
-    "why": "XP mỗi phút-ô gần như phẳng (4 / 4 / 4 / 3.3 / 3.2 / 3 / 2.5) nên cây 30 giây ăn đứt khi đang chơi. Giảm XP cây rất nhanh tạo đánh đổi \"cây nhanh lấy xu / cây dài lấy XP\". Mô phỏng (đường cong dò được): chăm cấp 4/7/10/20 = 11 ph / 47 ph / 2.0 h / 11.3 h so với 9 ph / 42 ph / 1.9 h / 10.8 h không đổi XP cây — ưu tiên thấp."
+    "why": "XP mỗi phút-ô gần như phẳng (4 / 4 / 4 / 3.3 / 3.2 / 3 / 2.5) nên cây 30 giây ăn đứt khi đang chơi. Giảm XP cây rất nhanh tạo đánh đổi \"cây nhanh lấy xu / cây dài lấy XP\". Mô phỏng (đường cong dò được): chăm cấp 4/7/10/20 = 11 ph / 47 ph / 2.0 h / 10.9 h so với 9 ph / 41 ph / 1.8 h / 11.1 h không đổi XP cây — ưu tiên thấp."
    }
   ],
   "sinks": {
    "cham": {
-    "left": 631750,
+    "left": 628150,
     "next": {
      "id": "sap-cho",
      "level": 2,
@@ -5176,13 +5336,170 @@
     }
    },
    "ngay-2-lan": {
-    "left": 1405350,
+    "left": 1410750,
     "next": {
      "id": "sap-cho",
      "level": 2,
      "cost": 50
     }
    }
+  },
+  "m6": {
+   "whatIf": [
+    {
+     "profile": "cham",
+     "cropXp": {
+      "levels": {
+       "4": {
+        "activeMin": 12,
+        "realH": 0.2
+       },
+       "7": {
+        "activeMin": 41,
+        "realH": 1.18
+       },
+       "10": {
+        "activeMin": 119,
+        "realH": 3.48
+       },
+       "20": {
+        "activeMin": 690,
+        "realH": 33
+       }
+      },
+      "final": {
+       "level": 20,
+       "coins": 293743,
+       "earned": 1579329
+      },
+      "animals": 67443,
+      "idleMin": 6
+     },
+     "feed4": {
+      "levels": {
+       "4": {
+        "activeMin": 9,
+        "realH": 0.15
+       },
+       "7": {
+        "activeMin": 39,
+        "realH": 1.15
+       },
+       "10": {
+        "activeMin": 112,
+        "realH": 3.37
+       },
+       "20": {
+        "activeMin": 671,
+        "realH": 32.18
+       }
+      },
+      "final": {
+       "level": 20,
+       "coins": 374141,
+       "earned": 1607991
+      },
+      "animals": 97241,
+      "idleMin": 0
+     }
+    },
+    {
+     "profile": "thinh-thoang",
+     "cropXp": {
+      "levels": {
+       "4": {
+        "activeMin": 9.5,
+        "realH": 0.16
+       },
+       "7": {
+        "activeMin": 36,
+        "realH": 24.1
+       },
+       "10": {
+        "activeMin": 101,
+        "realH": 77.02
+       },
+       "20": null
+      },
+      "final": {
+       "level": 13,
+       "coins": 24284,
+       "earned": 85481
+      },
+      "animals": 3918,
+      "idleMin": 15.5
+     },
+     "feed4": {
+      "levels": {
+       "4": {
+        "activeMin": 8,
+        "realH": 0.13
+       },
+       "7": {
+        "activeMin": 30,
+        "realH": 24
+       },
+       "10": {
+        "activeMin": 98,
+        "realH": 72.13
+       },
+       "20": null
+      },
+      "final": {
+       "level": 13,
+       "coins": 27583,
+       "earned": 89138
+      },
+      "animals": 4139,
+      "idleMin": 6.5
+     }
+    },
+    {
+     "profile": "ngay-2-lan",
+     "cropXp": {
+      "levels": {
+       "4": {
+        "activeMin": 9,
+        "realH": 12.07
+       },
+       "7": {
+        "activeMin": 34.5,
+        "realH": 72.08
+       },
+       "10": null,
+       "20": null
+      },
+      "final": {
+       "level": 8,
+       "coins": 2229,
+       "earned": 22263
+      },
+      "animals": 1319,
+      "idleMin": 4
+     },
+     "feed4": {
+      "levels": {
+       "4": {
+        "activeMin": 7.5,
+        "realH": 12.04
+       },
+       "7": {
+        "activeMin": 30,
+        "realH": 72
+       },
+       "10": null,
+       "20": null
+      },
+      "final": {
+       "level": 9,
+       "coins": 1741,
+       "earned": 21708
+      },
+      "animals": 1086,
+      "idleMin": 0
+     }
+    }
+   ]
   }
  }
 }

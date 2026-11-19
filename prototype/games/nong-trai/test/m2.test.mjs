@@ -2,19 +2,19 @@
 // một nguồn giá cho Nhà kho, di chuyển save v3 → v4, offline, đơn có thành phẩm, chuỗi A & C, nhiệm vụ tiến trình.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m5";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m5";
-import { MARKET, CYCLE_MS } from "../core/market.js?v=m5";
-import { workshopState, finishedJobs, finishedWhileAway } from "../core/workshop.js?v=m5";
-import * as O from "../core/orders.js?v=m5";
-import { used, capacity } from "../core/inventory.js?v=m5";
-import { currentQuest } from "../core/quests.js?v=m5";
-import { xpNeed } from "../core/progression.js?v=m5";
-import { TUTORIAL } from "../data/quests.js?v=m5";
-import { WORKSHOP } from "../data/workshop.js?v=m5";
-import { RECIPE } from "../data/recipes.js?v=m5";
-import { ITEM } from "../data/catalog.js?v=m5";
-import { farmSave, KEY, V3_KEY, V3_BACKUP_KEY } from "../save.js?v=m5";
+import { apply } from "../core/apply.js?v=m6";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m6";
+import { MARKET, CYCLE_MS } from "../core/market.js?v=m6";
+import { workshopState, finishedJobs, finishedWhileAway } from "../core/workshop.js?v=m6";
+import * as O from "../core/orders.js?v=m6";
+import { used, capacity } from "../core/inventory.js?v=m6";
+import { currentQuest } from "../core/quests.js?v=m6";
+import { xpNeed } from "../core/progression.js?v=m6";
+import { TUTORIAL } from "../data/quests.js?v=m6";
+import { WORKSHOP } from "../data/workshop.js?v=m6";
+import { RECIPE } from "../data/recipes.js?v=m6";
+import { ITEM } from "../data/catalog.js?v=m6";
+import { farmSave, KEY, V3_KEY, V3_BACKUP_KEY } from "../save.js?v=m6";
 import { act, err, START } from "./helpers.mjs";
 
 const MIN = 60_000, HOUR = 3600_000;
@@ -142,8 +142,8 @@ test("chợ mua: cấp mở, thức ăn vào kho (tính sức chứa), trang tr�
   assert.equal(err(s, { type: "marketBuy", id: "thuc-an-gia-suc", n: 1 }), "locked");
   s.level = 7;
   const r = act(s, { type: "marketBuy", id: "thuc-an-gia-suc", n: 2 });
-  assert.ok(r.events.some((e) => e.type === "bought" && e.coins === 112)); // 56 xu / bao từ Milestone 4
-  assert.equal(s.coins, 888);
+  assert.ok(r.events.some((e) => e.type === "bought" && e.coins === 144)); // 72 xu / bao từ Milestone 6 (56 ở M4)
+  assert.equal(s.coins, 856);
   assert.equal(s.inv["thuc-an-gia-suc"], 2);
   assert.equal(used(s), 2);
   act(s, { type: "marketBuy", id: "ghe-tre", n: 1 });
@@ -162,7 +162,7 @@ test("chợ mua: cấp mở, thức ăn vào kho (tính sức chứa), trang tr�
   assert.deepEqual(loadSave(dump(s, START), START).decor, { "ghe-tre": 1 });
 });
 
-test("di chuyển save v3 (Milestone 1) → v6: giữ mọi thứ, Xưởng trống, sao lưu v3 không xoá", () => {
+test("di chuyển save v3 (Milestone 1) → v7: giữ mọi thứ, Xưởng trống, sao lưu v3 không xoá", () => {
   const m1 = createState(START, 4);
   Object.assign(m1, { v: 3, coins: 321, level: 4, xp: 20, inv: { "dau-tay": 7 } });
   delete m1.production; delete m1.decor;
@@ -176,7 +176,7 @@ test("di chuyển save v3 (Milestone 1) → v6: giữ mọi thứ, Xưởng tr�
   assert.equal(st.getItem(V3_KEY), raw3, "bản v3 gốc vẫn còn");
   const v4 = JSON.parse(st.getItem(KEY));
   assert.equal(v4.v, SAVE_VERSION);
-  assert.equal(SAVE_VERSION, 6);
+  assert.equal(SAVE_VERSION, 7);
   const s = save.read(START + 1000).state;
   assert.equal(s.coins, 321); assert.equal(s.level, 4); assert.equal(s.xp, 20);
   assert.deepEqual(s.inv, { "dau-tay": 7 });

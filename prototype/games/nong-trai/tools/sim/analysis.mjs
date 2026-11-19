@@ -1,9 +1,9 @@
 // Phân tích kết quả mô phỏng: mục tiêu §3, nguồn thu, khựng, vòng lặp lời vô hạn, lợi nhuận chuỗi A/B/C,
 // dò đường cong XP hợp mục tiêu, và gợi ý chỉnh số (KHÔNG áp dụng — chỉ đề xuất).
 import { CROP, CROPS, ITEM, RECIPE, ANIMAL, MARKET, xpNeed } from "./harness.mjs";
-import { ORDER_TYPES } from "../../data/orders.js?v=m5";
-import { WATER_FACTOR, plotCost } from "../../core/plots.js?v=m5";
-import { BUILDING, BUILDINGS } from "../../data/buildings.js?v=m5";
+import { ORDER_TYPES } from "../../data/orders.js?v=m6";
+import { WATER_FACTOR, plotCost } from "../../core/plots.js?v=m6";
+import { BUILDING, BUILDINGS } from "../../data/buildings.js?v=m6";
 import { runBugChecks } from "./bugs.mjs";
 
 /** §3: thời gian CHƠI (phút) mong muốn tới cấp. Cấp 20: 10–12 giờ ⇒ lấy 11 giờ làm điểm giữa. */
@@ -204,7 +204,7 @@ export function recommend(results, extra = {}) {
   const ga = animalTable().find((a) => a.id === "ga"), bo = animalTable().find((a) => a.id === "bo-sua");
   const tomato = cropTable().find((c) => c.id === "ca-chua");
   if (ga.profitPerHourFarmFeed < tomato.coinPerPlotMin * 60 * 0.4) {
-    recs.push({ priority: 4, file: "data/catalog.js — trung-ga.sell, sua.sell (và ANIMAL_REF); hoặc data/recipes.js thuc-an-gia-suc qty",
+    recs.push({ priority: 4, decided: "M6: đã xét, không áp dụng — xem §11", file: "data/catalog.js — trung-ga.sell, sua.sell (và ANIMAL_REF); hoặc data/recipes.js thuc-an-gia-suc qty",
       from: `trứng ${ITEM["trung-ga"].sell}, sữa ${ITEM.sua.sell}`, to: "tăng giá trứng / sữa ~15 % hoặc 2 ngô → 4 bao thức ăn",
       why: `Một con gà lãi ${ga.profitPerHourFarmFeed} xu/giờ, bò ${bo.profitPerHourFarmFeed} xu/giờ (thức ăn tự làm) — dưới 40 % một ô cà chua (${Math.round(tomato.coinPerPlotMin * 60)} xu/giờ chưa tưới). Kiểm lại MARKET.assertEconomy() sau khi đổi.` });
   }
@@ -217,7 +217,7 @@ export function recommend(results, extra = {}) {
   // 6) cây nhanh cho XP/phút như cây chậm ⇒ không có đánh đổi "cây nhanh khi đang chơi" (ưu tiên thấp, chỉ cảm giác lựa chọn)
   const crops = cropTable();
   const flat = Math.max(...crops.map((c) => c.xpPerPlotMin)) / Math.min(...crops.map((c) => c.xpPerPlotMin)) < 1.8;
-  if (flat) recs.push({ priority: 6, file: "data/crops.js — xp", from: Object.keys(CROP_XP_TWEAK).map((id) => `${id} ${CROP[id].xp}`).join(", "),
+  if (flat) recs.push({ priority: 6, decided: "M6: đã xét, không áp dụng — xem §11", file: "data/crops.js — xp", from: Object.keys(CROP_XP_TWEAK).map((id) => `${id} ${CROP[id].xp}`).join(", "),
     to: Object.entries(CROP_XP_TWEAK).map(([id, x]) => `${id} ${x}`).join(", ") + " (XP/phút-ô thấp hơn cho cây rất nhanh)",
     why: `XP mỗi phút-ô gần như phẳng (${crops.map((c) => c.xpPerPlotMin).join(" / ")}) nên cây 30 giây ăn đứt khi đang chơi. Giảm XP cây rất nhanh tạo đánh đổi "cây nhanh lấy xu / cây dài lấy XP".` +
       (fitCham ? ` Mô phỏng (đường cong dò được): chăm cấp 4/7/10/20 = ${[4, 7, 10, 20].map((L) => fmt(fitCham.withCropXp.levels[L]?.activeMin ?? null)).join(" / ")} so với ${[4, 7, 10, 20].map((L) => fmt(fitCham.levels[L]?.activeMin ?? null)).join(" / ")} không đổi XP cây — ưu tiên thấp.` : "") });

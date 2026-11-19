@@ -1,22 +1,25 @@
 // Milestone 5 — hồi quy: bố cục bản đồ 960 × 640 (không công trình nào bị cắt mép / đè ruộng), bậc Nhà "danh tiếng" (chỗ tiêu xu
-// cuối game + đơn hàng thêm xu), đường XP mới + dồn XP save cũ, needsSync một bản chép, một tag module ?v=m5 cho mọi import.
+// cuối game + đơn hàng thêm xu), đường XP mới + dồn XP save cũ, needsSync một bản chép, một tag module ?v=m6 cho mọi import.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { apply, needsSync } from "../core/apply.js?v=m5";
-import { createState, loadSave, dump, carryXp } from "../core/state.js?v=m5";
-import { orderPayout } from "../core/orders.js?v=m5";
-import { effects } from "../core/build.js?v=m5";
-import { xpNeed } from "../core/progression.js?v=m5";
-import { BUILDINGS, BUILDING, DECOR_SLOTS, FIELD, MAP_W, MAP_H, FAME_TITLES, FAME_BONUS_STEP } from "../data/buildings.js?v=m5";
-import { CURRENT_MILESTONE, LEVELS, featureLevel } from "../data/levels.js?v=m5";
-import { TUTORIAL } from "../data/quests.js?v=m5";
+import { apply, needsSync } from "../core/apply.js?v=m6";
+import { createState, loadSave, dump, carryXp } from "../core/state.js?v=m6";
+import { orderPayout } from "../core/orders.js?v=m6";
+import { effects } from "../core/build.js?v=m6";
+import { xpNeed } from "../core/progression.js?v=m6";
+import { BUILDINGS, BUILDING, DECOR_SLOTS, FIELD, MAP_W, MAP_H, FAME_TITLES, FAME_BONUS_STEP } from "../data/buildings.js?v=m6";
+import { CURRENT_MILESTONE, LEVELS, featureLevel } from "../data/levels.js?v=m6";
+import { TUTORIAL } from "../data/quests.js?v=m6";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = JSON.parse(readFileSync(join(ROOT, "assets/v3/manifest.json"), "utf8"));
-const GARDEN = { house: [269, 184], market: [205, 190] }; // = ui/farm-map.js
+const GARDEN = { house: [269, 184], market: [205, 190], fence: [229, 77] }; // = ui/farm-map.js
+// Milestone 6: sheet chưa có trong manifest (chờ Codex) ⇒ hộp tính theo hợp đồng docs/nong-trai/asset-spec.json (ô + neo)
+const SPEC = JSON.parse(readFileSync(join(ROOT, "../../../docs/nong-trai/asset-spec.json"), "utf8"));
+const specFrame = (sp) => { const sh = SPEC.sheets.find((x) => x.file === "assets/v3/" + sp.sheet + ".webp"); return sh ? { width: sh.cell[0], height: sh.cell[1], anchor: sh.anchor } : null; };
 const T = 5_000_000, MIN = 60_000;
 const act = (s, a, t = T) => { const r = apply(s, a, t); if (r.err) throw new Error(`${a.type}: ${r.err}`); return r; };
 function player(lv, coins = 2_000_000, t = T) {
@@ -30,7 +33,7 @@ const frameOf = (sp) => MANIFEST.sheets[sp.sheet]?.frames.find((f) => f.id === s
 function box(def, sprite) {
   const x = def.x * MAP_W, y = def.y * MAP_H, w = def.w * MAP_W;
   if (sprite.sheet === "garden") { const [nw, nh] = GARDEN[sprite.id]; return { l: x - w / 2, t: y - (w * nh) / nw, r: x + w / 2, b: y }; }
-  const f = frameOf(sprite); assert.ok(f, `${sprite.sheet}/${sprite.id} có trong manifest`);
+  const f = frameOf(sprite) || specFrame(sprite); assert.ok(f, `${sprite.sheet}/${sprite.id} có trong manifest / asset-spec`);
   const h = (w * f.height) / f.width, [ax, ay] = sprite.id === "lo-ban-ve" ? [f.width / 2, (f.height * 226) / 256] : f.anchor; // = farm-map place()
   const l = x - (w * ax) / f.width, t = y - (h * ay) / f.height;
   return { l, t, r: l + w, b: t + h };
@@ -42,7 +45,7 @@ test("bản đồ 960 × 640: mọi công trình ở khu chính nằm trọn tro
   assert.deepEqual([MAP_W, MAP_H], [960, 640]);
   for (const def of BUILDINGS) {
     if (def.area !== "base") continue;
-    const sprites = new Set(def.levels.map((l) => l.sprite).filter(Boolean).map((sp) => sp.sheet + "/" + sp.id));
+    const sprites = new Set(def.levels.map((l) => l.sprite).filter(Boolean).flatMap((sp) => [sp, sp.fallback].filter(Boolean)).map((sp) => sp.sheet + "/" + sp.id));
     if (def.kind !== "prebuilt") { sprites.add("buildings/lo-ban-ve"); sprites.add("buildings/gian-giao"); } // bản vẽ / giàn giáo cũng vẽ ở lô này
     for (const key of sprites) {
       const [sheet, id] = key.split("/"), bx = box(def, { sheet, id });
@@ -149,26 +152,26 @@ test("needsSync (một bản chép) khớp apply tick: có sự kiện ⇔ true,
   assert.equal(needsSync(s, NaN), false);
 });
 
-test("CURRENT_MILESTONE = 5: chỉ báo món đã làm; đơn đặc biệt hai lúc / Phiên chợ / hàng rào đá để milestone 6", () => {
-  assert.equal(CURRENT_MILESTONE, 5);
+test("CURRENT_MILESTONE = 6: đơn đặc biệt hai lúc / Phiên chợ / hàng rào đá thuộc milestone 6 và đã có trong bản này", () => {
+  assert.ok(CURRENT_MILESTONE >= 6);
   const ms = Object.fromEntries(LEVELS.flatMap((l) => l.unlocks).map((u) => [u.id, u.milestone]));
   assert.deepEqual([ms["special-2"], ms.fair, ms["stone-fence"]], [6, 6, 6]);
   assert.deepEqual([ms["fame-house"], ms.fame, ms["warehouse-6"]], [5, 5, 5]);
 });
 
-test("một tag module ?v=m5 cho mọi import trong game (không lẫn bản cũ trong bộ nhớ đệm)", () => {
+test("một tag module ?v=m6 cho mọi import trong game (không lẫn bản cũ trong bộ nhớ đệm)", () => {
   const files = [];
   const walk = (d) => { for (const n of readdirSync(d)) { const p = join(d, n); if (n === "assets" || n === "node_modules") continue; if (statSync(p).isDirectory()) walk(p); else if (/\.(m?js|html)$/.test(n)) files.push(p); } };
   walk(ROOT);
   let count = 0;
   for (const f of files) {
     const src = readFileSync(f, "utf8");
-    for (const m of src.matchAll(/\.(?:m?js)\?v=([\w-]+)/g)) { count++; assert.equal(m[1], "m5", `${f}: ?v=${m[1]}`); }
+    for (const m of src.matchAll(/\.(?:m?js)\?v=([\w-]+)/g)) { count++; assert.equal(m[1], "m6", `${f}: ?v=${m[1]}`); }
     // import tĩnh / động của file .js trong game phải có tag (trừ ../_shared/ dùng chung toàn site)
     for (const m of src.matchAll(/(?:import\s[^"']*?from\s*|import\(\s*)["'](\.{1,2}\/[^"']+\.m?js)["']/g)) {
       if (m[1].includes("_shared/") || f.endsWith(".test.mjs") && /\.\/(harness|policy|sim|analysis|report|profiles|bugs|helpers)\.mjs$/.test(m[1])) continue;
       if (/\/tools\/sim\//.test(f.replace(/\\/g, "/")) && /\.mjs$/.test(m[1])) continue;
-      assert.fail(`${f}: import không có tag ?v=m5: ${m[1]}`);
+      assert.fail(`${f}: import không có tag ?v=m6: ${m[1]}`);
     }
   }
   assert.ok(count > 300, `chỉ thấy ${count} import có tag`);

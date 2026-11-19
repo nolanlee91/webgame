@@ -75,6 +75,17 @@ test("báo cáo kết xuất được", () => {
   assert.match(md, /Gợi ý chỉnh số/);
 });
 
+// Milestone 6 — sổ sưu tập + đơn đặc biệt hai lúc + phiên chợ chạy trong mô phỏng bằng luật thật, không vi phạm bất biến.
+test("M6: chăm 4 ngày đầy sổ 30 món + nhận 3 mốc, giao đơn đặc biệt, có tiền thêm từ phiên chợ; thỉnh thoảng nhận ít nhất mốc 10", () => {
+  const r = runSim("cham", { days: 4 });
+  assert.equal(r.errors.length, 0);
+  assert.equal(r.final.book, 30); assert.equal(r.final.bookClaimed, 3);
+  assert.ok(r.final.specialDelivered > 0);
+  assert.ok(r.final.fairBonus > 0, "người chơi cấp 18+ bán được ở phiên chợ");
+  const c = runSim("thinh-thoang", { days: 2 });
+  assert.ok(c.final.bookClaimed >= 1);
+});
+
 // Milestone 5 — hồi quy cân bằng: "chăm" 7 ngày (seed mặc định) phải nằm trong khoảng mục tiêu §3 và còn chỗ tiêu xu.
 test("cân bằng M5: chăm lên cấp 4/7/10/20 trong khoảng mục tiêu §3; xu cuối tuần ít hơn chỗ tiêu còn lại (không dư xu)", async () => {
   const { TARGET_RANGE, coinSinkLeft } = await import("./analysis.mjs");

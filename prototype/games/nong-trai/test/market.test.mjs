@@ -1,12 +1,12 @@
 // Test luật Khu chợ (core/market.js) + fuzz Xưởng/Chợ. Chạy: node --test prototype/games/nong-trai/test/market.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createMarket, CYCLE_MS, nextChangeAt, swing, seedId, RESALE_MIN_RATIO } from "../core/market.js?v=m5";
-import * as P from "../core/production.js?v=m5";
-import { ITEMS, ITEM as GOOD } from "../data/catalog.js?v=m5";
+import { createMarket, CYCLE_MS, nextChangeAt, swing, seedId, RESALE_MIN_RATIO } from "../core/market.js?v=m6";
+import * as P from "../core/production.js?v=m6";
+import { ITEMS, ITEM as GOOD } from "../data/catalog.js?v=m6";
 const GOODS = ITEMS.filter((it) => it.producer.kind !== "crop"); // món không phải nông sản (trước M2: data/goods.js)
-import { RECIPES } from "../data/recipes.js?v=m5";
-import { MACHINES } from "../data/machines.js?v=m5";
+import { RECIPES } from "../data/recipes.js?v=m6";
+import { MACHINES } from "../data/machines.js?v=m6";
 
 /** Kho / ví trong bộ nhớ, chỉ cho test (giống production.test.mjs). */
 function memInv(init = {}, cap = Infinity) {
@@ -91,14 +91,14 @@ test("bán: kiểm số lượng, món tồn tại, có hàng; cộng xu theo gi
 });
 
 test("mua: cấp mở, đủ xu, kho đầy hoàn tác, hạt giống chỉ mua lúc gieo", () => {
-  const inv = memInv({}, 3), w = memWallet(120);
+  const inv = memInv({}, 3), w = memWallet(160);
   assert.equal(M.buy(inv, w, "thuc-an-gia-suc", 1, T0, { level: 6 }).err, "locked");
   assert.equal(M.buy(inv, w, "thuc-an-gia-suc", 3, T0, { level: 7 }).err, "coins");
   assert.equal(M.buy(inv, w, seedId("ca-rot"), 1, T0, { level: 7 }).err, "plant-only");
   assert.equal(M.buy(inv, w, "mut-dau", 1, T0, { level: 20 }).err, "bad");
   assert.equal(M.buy(inv, w, "thuc-an-gia-suc", 0, T0, { level: 7 }).err, "bad-count");
   const r = M.buy(inv, w, "thuc-an-gia-suc", 2, T0, { level: 7 });
-  assert.deepEqual([r.coins, w.value, inv.count("thuc-an-gia-suc")], [112, 8, 2]);
+  assert.deepEqual([r.coins, w.value, inv.count("thuc-an-gia-suc")], [144, 16, 2]); // 72 xu / bao (Milestone 6)
   const big = memInv({}, 1), w2 = memWallet(1000);
   assert.equal(M.buy(big, w2, "chau-hoa", 2, T0, { level: 20 }).err, "full");
   assert.equal(w2.value, 1000);
@@ -129,7 +129,9 @@ test("bất biến kinh tế: mua ≥ 1,6 × bán lại tối đa; không chuỗ
   // 48 (bản M2) cũng không đủ từ Milestone 4: sữa 72 ⇒ bơ ≥ 1,25 × 144 = 180 ⇒ 4 × 48 = 192 < 185 × 1,15.
   assert.ok(2 * 2 * 36 < M.maxSell("bo"));
   assert.ok(2 * 2 * 48 < M.maxSell("bo"));
-  assert.equal(GOOD["thuc-an-gia-suc"].buy, 56);
+  // Milestone 6: Phiên chợ trả bơ / phô mai tới ×1,5 (hàng săn) ⇒ 56 không đủ (4 × 56 = 224 < 185 × 1,5) ⇒ 72.
+  assert.ok(2 * 2 * 56 < M.maxSell("bo"));
+  assert.equal(GOOD["thuc-an-gia-suc"].buy, 72);
 });
 
 test("chế biến tăng giá trị 1,25–1,45× so với bán thô (trừ thức ăn gia súc)", () => {

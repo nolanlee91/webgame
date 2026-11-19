@@ -2,7 +2,7 @@
 // (npc-market.webp, keeperLayer.drawRect) với bong bóng thoại xoay vòng, kệ "Bán" (hàng trong kho, giá hôm nay + ↑↓·),
 // bảng giá + "đổi giá sau h:mm:ss", kệ "Mua" (market.catalogue: hạt giống trả lúc gieo, thức ăn, vật liệu, trang trí).
 // Mọi giao dịch qua ctx.exec ⇒ apply() (marketSell / marketBuy).
-import { loadSprites, draw, sheet, image, frame, playFx } from "./sprites.js?v=m5";
+import { loadSprites, draw, sheet, image, frame, playFx } from "./sprites.js?v=m6";
 
 const BUY_KIND = { seed: "Hạt giống", feed: "Thức ăn", material: "Vật liệu", decor: "Trang trí" };
 const TREND = { "↑": ["up", "giá đang lên"], "↓": ["down", "giá đang xuống"], "·": ["flat", "giá đứng"] };
@@ -61,10 +61,34 @@ export function createMarketScene(ctx) {
     if (!force && now - lineT < 6000) return;
     lineT = now;
     const s = ctx.s, t = ctx.now();
+    const fair = L.activeFair(s, t);
+    if (fair) { // Milestone 6: câu riêng trong Phiên chợ
+      const hot = fair.hot.map((id) => L.ITEM[id].name.toLowerCase()).join(", ");
+      bubble.textContent = "Cô Hai: “" + L.FAIR_LINES[lineK++ % L.FAIR_LINES.length].replace("{hot}", hot) + "”";
+      return;
+    }
     const up = boardIds(s).filter((id) => L.MARKET.trend(id, t) === "↑").sort((a, b) => L.ITEM[b].sell - L.ITEM[a].sell)[0];
     let lines = L.MARKET_LINES.filter((l) => up || !l.includes("{up}"));
     const line = lines[lineK++ % lines.length].replace("{up}", up ? L.ITEM[up].name.toLowerCase() : "");
     bubble.textContent = "Cô Hai: “" + line + "”";
+  }
+
+  // ---------- Milestone 6: Phiên chợ ----------
+  const fairEl = document.getElementById("mkFair");
+  /** Số hàng săn còn bán giá ×1,5 trong phiên đang mở; null ⇒ món không phải hàng săn / không có phiên. */
+  function hotLeft(s, id, now) { const f = L.activeFair(s, now); return f && f.hot.includes(id) ? f.left[id] : null; }
+  const clock = (t) => new Date(t).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+  function renderFair(s, now) {
+    if (s.level < L.FAIR_LEVEL - 3) { fairEl.hidden = true; return; }
+    fairEl.hidden = false;
+    const f = L.activeFair(s, now), hotIcons = (ids, left) => ids.map((id) => `<span class="hot">${iconHtml(id, "it--xs")}${esc(L.ITEM[id].name)}${left ? ` ${left[id]}/${L.FAIR_HOT_CAP}` : ""}</span>`).join("");
+    fairEl.classList.toggle("on", !!f);
+    let html;
+    if (s.level < L.FAIR_LEVEL) html = `<b>Phiên chợ</b> mở ở cấp ${L.FAIR_LEVEL}: mỗi ngày 30 phút, thành phẩm +25 %, Cô Hai săn 3 món giá rưỡi.`;
+    else if (f) html = `<b>Phiên chợ đang diễn ra</b> — còn ${until(f.endAt)} · thành phẩm giá chốt +25 % · hàng săn giá rưỡi (10 món đầu): ${hotIcons(f.hot, f.left)}`;
+    else { const n = L.nextFair(now), day = Math.floor((n.startAt + 7 * 3600_000) / 86400_000) === Math.floor((now + 7 * 3600_000) / 86400_000) ? "hôm nay" : "ngày mai";
+      html = `<b>Phiên chợ kế tiếp</b>: ${day} lúc ${clock(n.startAt)} (30 phút) · hàng săn: ${hotIcons(n.hot)}`; }
+    setHtml(fairEl, html);
   }
 
   // ---------- HTML ----------
@@ -75,17 +99,17 @@ export function createMarketScene(ctx) {
     if (!ids.length) return `<li class="mk-empty">Chưa có hàng để bán. Thu hoạch hoặc lấy thành phẩm ở Xưởng rồi quay lại nhé.</li>`;
     const need = L.demand(s);
     return ids.map((id) => {
-      const it = L.ITEM[id], q = L.have(s, id), p = L.priceOf(id, now);
+      const it = L.ITEM[id], q = L.have(s, id), p = L.salePrice(s, id, now), hot = hotLeft(s, id, now);
       return `<li class="mk-row">${iconHtml(id)}<div class="mk-info"><b>${esc(it.name)} <span class="qty">×${fmtNum(q)}</span></b>` +
-        `<small>${iconHtml("dong-xu", "it--xs")}<b class="mk-price">${fmtNum(p)}</b> xu ${trendHtml(id, now)} <span class="mk-base">gốc ${it.sell}</span>${need[id] ? ` · <span class="want">đơn cần ${need[id]}</span>` : ""}</small></div>` +
+        `<small>${iconHtml("dong-xu", "it--xs")}<b class="mk-price">${fmtNum(p)}</b> xu ${trendHtml(id, now)} <span class="mk-base">gốc ${it.sell}</span>${hot !== null ? ` · <span class="mk-hot">hàng săn: còn ${hot}</span>` : ""}${need[id] ? ` · <span class="want">đơn cần ${need[id]}</span>` : ""}</small></div>` +
         `<div class="mk-btns"><button class="btn btn--sm" type="button" data-act="sell" data-id="${id}" data-n="1" data-key="ms1-${id}" aria-label="Bán 1 ${esc(it.name)}">Bán 1</button>` +
-        `<button class="btn btn--sm btn--primary" type="button" data-act="sell" data-id="${id}" data-n="${q}" data-key="msn-${id}" aria-label="Bán hết ${esc(it.name)}">Bán hết · ${fmtNum(p * q)}</button></div></li>`;
+        `<button class="btn btn--sm btn--primary" type="button" data-act="sell" data-id="${id}" data-n="${q}" data-key="msn-${id}" aria-label="Bán hết ${esc(it.name)}">Bán hết · ${fmtNum(L.fairQuote(s, id, q, now)?.coins ?? p * q)}</button></div></li>`;
     }).join("");
   }
   function boardHtml(s, now) {
     return boardIds(s).map((id) => {
-      const p = L.priceOf(id, now), it = L.ITEM[id];
-      return `<li data-id="${id}">${iconHtml(id, "it--sm")}<span>${esc(it.name)}</span><b>${fmtNum(p)}</b>${trendHtml(id, now)}</li>`;
+      const p = L.salePrice(s, id, now), it = L.ITEM[id], hot = hotLeft(s, id, now);
+      return `<li data-id="${id}"${hot !== null ? ' class="hot"' : ""}>${iconHtml(id, "it--sm")}<span>${esc(it.name)}${hot !== null ? " ★" : ""}</span><b>${fmtNum(p)}</b>${trendHtml(id, now)}</li>`;
     }).join("");
   }
   function buyHtml(s) {
@@ -114,6 +138,7 @@ export function createMarketScene(ctx) {
     setHtml(boardEl, boardHtml(s, now));
     setHtml(buyEl, buyHtml(s));
     setHtml(changeEl, `đổi giá sau ${until(L.nextChangeAt(now))}`);
+    renderFair(s, now);
     speak(false);
     if (!raf) raf = requestAnimationFrame(loop);
   }
@@ -137,7 +162,7 @@ export function createMarketScene(ctx) {
 
   loadSprites().then(() => { paintedKey = ""; render(); });
   return {
-    root, render, fxAt,
+    root, render, fxAt, hotLeft,
     show() { root.hidden = false; paintedKey = ""; speak(true); render(); },
     hide() { root.hidden = true; },
   };

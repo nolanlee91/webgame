@@ -21,7 +21,7 @@
 // Hàm trả { ok: true, ..., events: [...] } hoặc { err: "<mã>" }; khi err thì KHÔNG đổi gì (farm, inv, wallet).
 // `events` là sự kiện gợi ý cho apply() đẩy vào danh sách chung (nhiệm vụ ở core/village.js đếm từ đây).
 
-import { ANIMAL, ANIMALS, FEED, HARD_MAX, EAT_ANIM_MS, LEGACY_KIND } from "../data/animals.js?v=m5";
+import { ANIMAL, ANIMALS, FEED, HARD_MAX, EAT_ANIM_MS, LEGACY_KIND } from "../data/animals.js?v=m6";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", NO_HOUSING: "no-housing", CAPACITY: "capacity", COINS: "coins", NOT_FOUND: "not-found",

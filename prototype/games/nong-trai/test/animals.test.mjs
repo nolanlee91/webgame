@@ -1,10 +1,10 @@
 // Test luật Khu chăn nuôi (core/animals.js, Milestone 4). Chạy: node --test prototype/games/nong-trai/test/animals.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as A from "../core/animals.js?v=m5";
-import { ANIMALS, ANIMAL, FEED, HARD_MAX, HOUSING } from "../data/animals.js?v=m5";
-import { RECIPE } from "../data/recipes.js?v=m5";
-import { ITEM } from "../data/catalog.js?v=m5";
+import * as A from "../core/animals.js?v=m6";
+import { ANIMALS, ANIMAL, FEED, HARD_MAX, HOUSING } from "../data/animals.js?v=m6";
+import { RECIPE } from "../data/recipes.js?v=m6";
+import { ITEM } from "../data/catalog.js?v=m6";
 
 const T0 = 1_700_000_000_000, MIN = 60_000, HOUR = 3600_000;
 
@@ -258,8 +258,8 @@ test("fuzz: vài nghìn thao tác ngẫu nhiên — xu ≥ 0, số món nguyên 
 });
 
 // ---------- Sửa M4: id bò, giá một nguồn, cân bằng ----------
-import { productValue, PROPOSED_SELL, LEGACY_KIND, PRODUCER_OF } from "../data/animals.js?v=m5";
-import { ITEMS as ITEMS4, ANIMAL_REF } from "../data/catalog.js?v=m5";
+import { productValue, PROPOSED_SELL, LEGACY_KIND, PRODUCER_OF } from "../data/animals.js?v=m6";
+import { ITEMS as ITEMS4, ANIMAL_REF } from "../data/catalog.js?v=m6";
 
 test("id bò sữa = bo-sua, không trùng id món nào trong kho (bo = Bơ); save cũ kind \"bo\" ⇒ bo-sua", () => {
   assert.equal(ANIMAL.bo, undefined);
@@ -302,10 +302,10 @@ function feedLoop(sell) {
   return bad;
 }
 
-test("cân bằng: giá trứng 32 / sữa 72 (đã áp vào catalog) làm vật nuôi đáng nuôi mà thức ăn mua 56 vẫn luôn lỗ (kể cả MARKET.assertEconomy thật)", async () => {
+test("cân bằng: giá trứng 32 / sữa 72 (đã áp vào catalog) làm vật nuôi đáng nuôi mà thức ăn mua 72 (Milestone 6) vẫn luôn lỗ (kể cả MARKET.assertEconomy thật)", async () => {
   assert.deepEqual(PROPOSED_SELL, { "trung-ga": 32, sua: 72 });
   for (const [id, v] of Object.entries(PROPOSED_SELL)) assert.equal(ITEM[id].sell, v, `catalog.js ${id}`);
-  assert.equal(ITEM[FEED].buy, 56);
+  assert.equal(ITEM[FEED].buy, 72);
   assert.deepEqual(feedLoop({}), [], "giá hiện tại");
   assert.deepEqual(feedLoop(PROPOSED_SELL), [], "giá đề xuất");
   // lãi / giờ với thức ăn tự làm (2 ngô 29 xu → 3 bao) cao hơn rõ so với giá cũ (trứng 26, sữa 58)
@@ -324,7 +324,7 @@ test("cân bằng: giá trứng 32 / sữa 72 (đã áp vào catalog) làm vật
     for (const [id, v] of Object.entries(PROPOSED_SELL)) cat.ITEM[id].sell = v;
     const r = createMarket().assertEconomy();
     assert.deepEqual(r.violations, [], "assertEconomy với giá đề xuất");
-    assert.ok(r.costs["trung-ga"] === 56 && r.costs.sua === 112, "trứng / sữa mua-được qua thức ăn chợ: 56 / 112 xu");
+    assert.ok(r.costs["trung-ga"] === 72 && r.costs.sua === 144, "trứng / sữa mua-được qua thức ăn chợ: 72 / 144 xu");
   } finally {
     for (const [id, v] of Object.entries(old)) cat.ITEM[id].sell = v;
   }

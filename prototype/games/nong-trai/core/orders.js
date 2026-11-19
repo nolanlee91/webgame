@@ -1,22 +1,23 @@
 // Bảng đơn hàng: sinh đơn (chỉ món đã mở, số lượng theo sản lượng thật), giao (id + revision, không trừ trước khi giao),
 // bỏ đơn (đơn mới sau 2 phút theo mốc thời gian), đơn đặc biệt có hạn. Chỉ gọi qua apply().
 //
-// s.orders = { nextId, slots: [{ rev, order | null, refillAt }], special: { rev, order | null, refillAt } | null }
+// s.orders = { nextId, slots: [{ rev, order | null, refillAt }], special: { rev, order | null, refillAt } | null, special2: … | null }
+// Milestone 6: "đơn đặc biệt hai lúc" (cấp 18) = ô thứ hai `special2`, cùng luật với `special` (hạn 2 giờ, chờ 15 phút sau khi giao / hết hạn).
 // order = { id, type, npc, items: { id: qty }, mult, coins, xp, materials: { id: qty }, createdAt, expiresAt | null }
-import { CROP, CROPS } from "../data/crops.js?v=m5";
-import { ITEM, MATERIALS } from "../data/catalog.js?v=m5";
-import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m5";
-import { featureLevel } from "../data/levels.js?v=m5";
-import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m5";
-import { have, take, add } from "./inventory.js?v=m5";
-import { rand, randInt, pick, sample } from "./rng.js?v=m5";
-import { RECIPES } from "../data/recipes.js?v=m5";
-import { MACHINE } from "../data/machines.js?v=m5";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m5";
-import { capacity as queueCap } from "./production.js?v=m5";
-import { extraSlots } from "./workshop.js?v=m5";
-import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m5";
-import { effects as buildEffects } from "./build.js?v=m5";
+import { CROP, CROPS } from "../data/crops.js?v=m6";
+import { ITEM, MATERIALS } from "../data/catalog.js?v=m6";
+import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m6";
+import { featureLevel } from "../data/levels.js?v=m6";
+import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m6";
+import { have, take, add } from "./inventory.js?v=m6";
+import { rand, randInt, pick, sample } from "./rng.js?v=m6";
+import { RECIPES } from "../data/recipes.js?v=m6";
+import { MACHINE } from "../data/machines.js?v=m6";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m6";
+import { capacity as queueCap } from "./production.js?v=m6";
+import { extraSlots } from "./workshop.js?v=m6";
+import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m6";
+import { effects as buildEffects } from "./build.js?v=m6";
 
 /** Xu thật nhận khi giao đơn: thưởng của phiếu + danh tiếng Nhà (Milestone 5, +2 % mỗi bậc). Phiếu lưu giá gốc ⇒ nâng Nhà có tác dụng ngay. */
 export function orderPayout(s, order, now) {
@@ -24,7 +25,12 @@ export function orderPayout(s, order, now) {
   return Math.round(order.coins * (1 + bonus));
 }
 
-export const COMBO_LEVEL = featureLevel("orders-combo"), SPECIAL_LEVEL = featureLevel("orders-special");
+export const COMBO_LEVEL = featureLevel("orders-combo"), SPECIAL_LEVEL = featureLevel("orders-special"), SPECIAL2_LEVEL = featureLevel("special-2");
+/** Ô đơn đặc biệt (theo thứ tự mở). */
+export const SPECIAL_SLOTS = Object.freeze(["special", "special2"]);
+export const isSpecialSlot = (slot) => SPECIAL_SLOTS.includes(slot);
+/** Số ô đơn đặc biệt theo cấp: 0 · 1 (cấp 11) · 2 (cấp 18). */
+export const specialSlotCount = (level) => (level >= SPECIAL2_LEVEL ? 2 : level >= SPECIAL_LEVEL ? 1 : 0);
 
 /** Nông sản có thể yêu cầu trong đơn (đã mở). */
 export const orderableCrops = (s) => CROPS.filter((c) => cropUnlocked(s, c.id)).map((c) => c.id);
@@ -155,8 +161,8 @@ function generateRegular(s, now) {
   return generate(s, "thuong", now);
 }
 
-export const allOrders = (s) => [...s.orders.slots.map((x) => x.order), s.orders.special?.order].filter(Boolean);
-const slotOf = (s, slot) => (slot === "special" ? s.orders.special : Number.isInteger(slot) ? s.orders.slots[slot] : null);
+export const allOrders = (s) => [...s.orders.slots.map((x) => x.order), ...SPECIAL_SLOTS.map((k) => s.orders[k]?.order)].filter(Boolean);
+const slotOf = (s, slot) => (isSpecialSlot(slot) ? s.orders[slot] || null : Number.isInteger(slot) ? s.orders.slots[slot] : null);
 
 /** Đồng bộ bảng đơn theo thời gian: thêm ô khi lên cấp, lấp ô trống đã tới giờ, hết hạn đơn đặc biệt. */
 export function sync(s, now, events) {
@@ -169,17 +175,18 @@ export function sync(s, now, events) {
     x.order = order; x.rev++;
     events.push({ type: "orderNew", slot, id: order.id, orderType: order.type });
   });
-  if (s.level < SPECIAL_LEVEL) return;
-  if (!s.orders.special) s.orders.special = { rev: 0, order: null, refillAt: now };
-  const sp = s.orders.special;
-  if (sp.order && now >= sp.order.expiresAt) {
-    events.push({ type: "orderExpired", slot: "special", id: sp.order.id });
-    sp.refillAt = sp.order.expiresAt + SPECIAL_COOLDOWN_MS; sp.order = null; sp.rev++;
-  }
-  if (!sp.order && sp.refillAt <= now) {
-    const order = generate(s, "dac-biet", now);
-    if (order) { sp.order = order; sp.rev++; events.push({ type: "orderNew", slot: "special", id: order.id, orderType: order.type }); }
-  }
+  SPECIAL_SLOTS.slice(0, specialSlotCount(s.level)).forEach((key) => {
+    if (!s.orders[key]) s.orders[key] = { rev: 0, order: null, refillAt: now };
+    const sp = s.orders[key];
+    if (sp.order && now >= sp.order.expiresAt) {
+      events.push({ type: "orderExpired", slot: key, id: sp.order.id });
+      sp.refillAt = sp.order.expiresAt + SPECIAL_COOLDOWN_MS; sp.order = null; sp.rev++;
+    }
+    if (!sp.order && sp.refillAt <= now) {
+      const order = generate(s, "dac-biet", now);
+      if (order) { sp.order = order; sp.rev++; events.push({ type: "orderNew", slot: key, id: order.id, orderType: order.type }); }
+    }
+  });
 }
 
 function check(s, slot, id, rev, now) {
@@ -205,7 +212,7 @@ export function deliver(s, slot, id, rev, now, events) {
   events.push({ type: "delivered", slot, id: order.id, orderType: order.type, npc: order.npc, items: { ...order.items }, coins, baseCoins: order.coins, xp: order.xp, materials: { ...order.materials },
     withProduct: Object.keys(order.items).some((it) => ITEM[it]?.cat === "thanh-pham") });
   x.rev++;
-  if (slot === "special") { x.order = null; x.refillAt = now + SPECIAL_COOLDOWN_MS; }
+  if (isSpecialSlot(slot)) { x.order = null; x.refillAt = now + SPECIAL_COOLDOWN_MS; }
   else {
     x.order = generateRegular(s, now);
     if (x.order) events.push({ type: "orderNew", slot, id: x.order.id, orderType: x.order.type });
@@ -222,7 +229,7 @@ export function cancel(s, slot, id, rev, now, events) {
   const { x } = c;
   events.push({ type: "orderCancelled", slot, id });
   x.order = null; x.rev++;
-  x.refillAt = now + (slot === "special" ? SPECIAL_COOLDOWN_MS : CANCEL_REFILL_MS);
+  x.refillAt = now + (isSpecialSlot(slot) ? SPECIAL_COOLDOWN_MS : CANCEL_REFILL_MS);
   return { ok: true, refillAt: x.refillAt };
 }
 
@@ -233,7 +240,8 @@ export function boardView(s) {
     const items = Object.entries(x.order.items).map(([id, need]) => ({ id, need, have: Math.min(need, have(s, id)), owned: have(s, id) }));
     return { slot, rev: x.rev, order: x.order, items, ready: items.every((it) => it.owned >= it.need) };
   };
-  return { slots: s.orders.slots.map(one), special: s.orders.special ? one(s.orders.special, "special") : null };
+  return { slots: s.orders.slots.map(one), special: s.orders.special ? one(s.orders.special, "special") : null,
+    special2: s.orders.special2 ? one(s.orders.special2, "special2") : null };
 }
 /** Tổng số mỗi món mà các đơn đang cần (để kho nhắc "đơn đang cần"). */
 export function demand(s) {

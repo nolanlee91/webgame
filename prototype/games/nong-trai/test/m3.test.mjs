@@ -3,18 +3,18 @@
 // công trình Milestone 4 bị từ chối, save v5 + sao lưu.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m5";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m5";
-import { capacity } from "../core/inventory.js?v=m5";
-import { extraSlots } from "../core/workshop.js?v=m5";
-import { inMilestone } from "../core/construct.js?v=m5";
-import { mapLayout } from "../core/levels-map.js?v=m5";
-import { BUILDING } from "../data/buildings.js?v=m5";
-import { CROP } from "../data/crops.js?v=m5";
-import { TUTORIAL } from "../data/quests.js?v=m5";
-import { CURRENT_MILESTONE, LEVELS } from "../data/levels.js?v=m5";
-import { WAREHOUSE } from "../data/warehouse.js?v=m5";
-import { farmSave, KEY, V4_KEY, V4_BACKUP_KEY } from "../save.js?v=m5";
+import { apply } from "../core/apply.js?v=m6";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m6";
+import { capacity } from "../core/inventory.js?v=m6";
+import { extraSlots } from "../core/workshop.js?v=m6";
+import { inMilestone } from "../core/construct.js?v=m6";
+import { mapLayout } from "../core/levels-map.js?v=m6";
+import { BUILDING } from "../data/buildings.js?v=m6";
+import { CROP } from "../data/crops.js?v=m6";
+import { TUTORIAL } from "../data/quests.js?v=m6";
+import { CURRENT_MILESTONE, LEVELS } from "../data/levels.js?v=m6";
+import { WAREHOUSE } from "../data/warehouse.js?v=m6";
+import { farmSave, KEY, V4_KEY, V4_BACKUP_KEY } from "../save.js?v=m6";
 
 const T = 3_000_000, MIN = 60_000;
 const act = (s, a, t = T) => { const r = apply(s, a, t); if (r.err) throw new Error(`${a.type}: ${r.err}`); return r; };
@@ -31,8 +31,8 @@ const memStorage = (init = {}) => {
   return { map: m, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
 };
 
-test("CURRENT_MILESTONE = 5: chuồng gà (cấp 7) / chuồng bò (cấp 9) xây được qua apply; dưới cấp ⇒ locked; id lạ ⇒ lỗi", () => {
-  assert.equal(CURRENT_MILESTONE, 5);
+test("CURRENT_MILESTONE = 6: chuồng gà (cấp 7) / chuồng bò (cấp 9) xây được qua apply; dưới cấp ⇒ locked; id lạ ⇒ lỗi", () => {
+  assert.equal(CURRENT_MILESTONE, 6);
   assert.ok(inMilestone("nha-kho") && inMilestone("nha-kinh") && inMilestone("dat-phia-dong") && inMilestone("xuong"));
   assert.ok(inMilestone("chuong-ga") && inMilestone("chuong-bo"));
   const low = player(6, 5000), lowBefore = structuredClone(low);
@@ -96,7 +96,7 @@ test("di chuyển save v4 (M2) đã nâng kho ở cấp 2: Nhà kho level 2, s�
   assert.equal(first.migrated, true); assert.equal(first.from, "v4");
   assert.equal(st.getItem(V4_BACKUP_KEY), raw4); assert.equal(st.getItem(V4_KEY), raw4, "bản v4 gốc vẫn còn");
   assert.equal(JSON.parse(st.getItem(KEY)).v, SAVE_VERSION);
-  assert.equal(SAVE_VERSION, 6);
+  assert.equal(SAVE_VERSION, 7);
   const s = save.read(T + 1000).state;
   assert.equal(s.level, 2);
   assert.deepEqual(s.buildings["nha-kho"], { level: 2, done: true, startAt: T, readyAt: T });

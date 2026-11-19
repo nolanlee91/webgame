@@ -5,7 +5,7 @@
 //   Đơn hàng KHÔNG dùng giá này (dùng giá gốc). Giá MUA ở chợ cố định.
 // CHỢ BÁN RA: hạt giống (từ danh sách cây truyền vào — mua lúc gieo ở ô đất, `buy` từ chối với "plant-only"),
 //   thức ăn gia súc dự phòng, vật liệu, trang trí (data/catalog.js: `buy`, `shopLevel`).
-// CHỐNG LỜI VÔ HẠN: assertEconomy() kiểm (1) mọi món chợ bán: giá mua ≥ 1,6 × giá bán lại cao nhất (gốc × 1,15);
+// CHỐNG LỜI VÔ HẠN: assertEconomy() kiểm (1) mọi món chợ bán: giá mua ≥ 1,6 × giá bán lại cao nhất (gốc × 1,15, hoặc giá Phiên chợ);
 //   (2) mọi chuỗi chỉ dùng hàng mua ở chợ (công thức Xưởng, vật nuôi ăn thức ăn mua) đều lỗ ở giá chợ cao nhất.
 //   Nông sản không tính là "mua được" — hạt giống cần ô đất + thời gian trồng, lời là chủ ý của game.
 //
@@ -14,9 +14,10 @@
 //   wallet = { coins() -> number, spend(n) -> bool, earn(n) }
 //   ctx    = { level }
 
-import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m5";
-import { CROPS } from "../data/crops.js?v=m5";
-import { RECIPES } from "../data/recipes.js?v=m5";
+import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m6";
+import { CROPS } from "../data/crops.js?v=m6";
+import { RECIPES } from "../data/recipes.js?v=m6";
+import { FAIR_GOODS_MULT, FAIR_HOT_MULT } from "../data/fair.js?v=m6";
 
 export const CYCLE_MS = 3 * 3600_000;
 export const SWING = 0.15;
@@ -57,7 +58,11 @@ export function createMarket({ crops = CROPS } = {}) {
 
   const sellable = (id) => base[id] > 0;
   const basePrice = (id) => (sellable(id) ? base[id] : 0);
-  const maxSell = (id) => basePrice(id) * (1 + SWING);
+  // Milestone 6 — Phiên chợ (core/fair.js): hàng săn ×1,5, thành phẩm ×1,25 ⇒ "bán tối đa" tính cả giá phiên chợ.
+  const catOf = Object.create(null);
+  for (const it of ITEMS) catOf[it.id] = it.cat;
+  const fairMult = (id) => (id !== "thuc-an-gia-suc" && ["nong-san", "chan-nuoi", "thanh-pham"].includes(catOf[id]) ? FAIR_HOT_MULT : catOf[id] === "thanh-pham" ? FAIR_GOODS_MULT : 1);
+  const maxSell = (id) => basePrice(id) * Math.max(1 + SWING, fairMult(id));
 
   function priceAt(id, cycle) {
     if (!sellable(id)) return null;

@@ -21,10 +21,10 @@
 //   effect: giá trị mà core/build.js effects() cộng dồn (mốc sau ghi đè mốc trước).
 // SPRITE: { sheet, id } — sheet là key trong assets/v3/manifest.json `sheets`, hoặc "garden" = assets/garden/<id>.webp.
 
-import { featureLevel } from "./levels.js?v=m5";
+import { featureLevel } from "./levels.js?v=m6";
 // Cấp của một tính năng trong data/levels.js; tính năng chưa có trong bản levels.js đang dùng ⇒ số dự phòng (theo §3).
 const fl = (id, fallback) => (Number.isFinite(featureLevel(id)) ? featureLevel(id) : fallback);
-import { WAREHOUSE } from "./warehouse.js?v=m5";
+import { WAREHOUSE } from "./warehouse.js?v=m6";
 
 // Milestone 5: bản đồ cao 600 → 640 px (thêm dải cỏ dưới cùng) — chuồng gà / chuồng bò / Nhà kính ở mép dưới không còn bị cắt nhãn,
 // có chỗ cho gà / bò đi lại trước chuồng. Mọi toạ độ ghi bằng px gốc nên công trình giữ nguyên chỗ.
@@ -61,11 +61,26 @@ export const FAME_TITLES = Object.freeze(["Nông trại nhỏ", "Nông trại ch
   "Nông trại kiểu mẫu", "Nông trại danh tiếng", "Nông trại vang danh", "Nông trại huyền thoại", "Điền trang vàng", "Nông trại mạ vàng"]);
 export const FAME_BONUS_STEP = 0.02;
 const HOUSE_UNLOCK = [1, 10, 12, 14, 16, 17, 18, 19, 20, 20, 20];
+// Milestone 6 — ảnh nhà theo bậc: sheet "house-tiers" (assets/v3/house-tiers.webp, ô 288 × 224, neo [144, 216]), frame nha-bac-1..10
+// (docs/nong-trai/asset-spec.json). Giao diện (ui/farm-map.js resolveSprite) dùng frame đúng bậc nếu có, không có thì frame bậc thấp
+// gần nhất đã vẽ, không có frame nào ⇒ `fallback` = ảnh garden/house như M5 (nhãn "Nhà ★n" vẫn hiện).
+export const HOUSE_SHEET = "house-tiers", HOUSE_FRAME = "nha-bac-";
+const houseSprite = (tier) => Object.freeze({ sheet: HOUSE_SHEET, id: HOUSE_FRAME + tier, tier, prefix: HOUSE_FRAME, fallback: S("garden", "house") });
 const HOUSE_LEVELS = FAME_TITLES.map((title, i) => i === 0
   ? { unlock: 1, sprite: S("garden", "house"), effect: { fameLevel: 1, orderBonus: 0 } }
   : { ...(i === 1 ? { feature: "fame-house" } : {}), unlock: HOUSE_UNLOCK[i], cost: Math.round((3000 * 1.8 ** (i - 1)) / 100) * 100,
       materials: i < 3 ? {} : { "van-go": i, "hop-dinh": i - 1, ...(i >= 6 ? { "thung-son": i - 4 } : {}) },
-      ms: 120_000, sprite: S("garden", "house"), effect: { fameLevel: i + 1, orderBonus: +(FAME_BONUS_STEP * i).toFixed(2) } });
+      ms: 120_000, sprite: houseSprite(i), effect: { fameLevel: i + 1, orderBonus: +(FAME_BONUS_STEP * i).toFixed(2) } });
+// Milestone 6 — Hàng rào (§3 cấp 15 "hàng rào đá"): hàng rào gỗ có sẵn ở mép dưới bản đồ (trước là ảnh tĩnh garden/fence), nâng lên
+// hàng rào đá. Sprite đá: sheet "hang-rao" (assets/v3/hang-rao.webp, ô 256 × 128, neo [128, 120]) frame "hang-rao-da"; chưa có ⇒
+// hàng rào gỗ lọc màu đá (fallback.filter "stone", ui/farm-map.js). Chỉ trang trí + chỗ tiêu xu (không đổi luật).
+export const FENCE_SHEET = "hang-rao", FENCE_FRAME = "hang-rao-da";
+const FENCE_LEVELS = [
+  { unlock: 1, sprite: S("garden", "fence"), effect: { stoneFence: false } },
+  { feature: "stone-fence", cost: 6000, materials: { "hop-dinh": 4, "thung-son": 2 }, ms: 0, // công trình nhỏ ⇒ xong ngay (§3)
+    sprite: Object.freeze({ sheet: FENCE_SHEET, id: FENCE_FRAME, fallback: Object.freeze({ sheet: "garden", id: "fence", filter: "stone" }) }),
+    effect: { stoneFence: true } },
+];
 
 const RAW = [
   // Nhà = "Nông trại danh tiếng" (§3 cấp 20, Milestone 5): chỗ tiêu xu dài hạn cuối game. Mỗi lần nâng ⇒ danh hiệu mới + đơn hàng
@@ -80,6 +95,7 @@ const RAW = [
       // §3 cấp 3 "Khu chợ đầy đủ" — sạp nhỏ thành quầy chợ, công trình nhỏ ⇒ tức thì.
       { feature: "market", cost: 50, materials: {}, ms: 0, sprite: S("market-stall", "quay-cho-hoan-chinh"), effect: { marketFull: true } },
     ] },
+  { id: "hang-rao", name: "Hàng rào", kind: "prebuilt", lot: "lo-rao", size: "small", ...px(560, 626, 200), hitH: 100, levels: FENCE_LEVELS },
   { id: "bang-don-hang", name: "Bảng đơn hàng", kind: "prebuilt", lot: "lo-bang", size: "small", ...px(560, 170, 86),
     levels: [{ unlock: 1, sprite: B("bang-don-hang") }] },
   { id: "bien-lang", name: "Biển Làng", kind: "auto", lot: null, size: "small", ...px(420, 70, 80),

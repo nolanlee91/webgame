@@ -6,10 +6,10 @@
 // buy / shopLevel: có ⇒ chợ bán món này với giá `buy`, từ cấp `shopLevel` (hạt giống: giá trong data/crops.js, trả lúc gieo).
 // producer: { kind: "crop", id } | { kind: "machine", id, recipe } | { kind: "animal", id } | { kind: "reward" } | { kind: "shop" }.
 // icon: ô trong assets/v3/items.webp (8 × 4) hoặc assets/v3/decor.webp (4 × 2).
-import { CROPS } from "./crops.js?v=m5";
-import { RECIPES } from "./recipes.js?v=m5";
-import { MACHINE } from "./machines.js?v=m5";
-import { CURRENT_MILESTONE } from "./levels.js?v=m5";
+import { CROPS } from "./crops.js?v=m6";
+import { RECIPES } from "./recipes.js?v=m6";
+import { MACHINE } from "./machines.js?v=m6";
+import { CURRENT_MILESTONE } from "./levels.js?v=m6";
 
 // Thứ tự ô trong assets/v3/items.webp (8 × 4, ô 64 px), khớp assets/v3/manifest.json.
 export const ICON_IDS = [
@@ -19,6 +19,20 @@ export const ICON_IDS = [
   "thung-son", "dong-xu", "sao-xp", "kho", "bua-xay-dung", "bang-don", "chuong-thong-bao", "o-khoa",
 ];
 export const ICON_COLS = 8, ICON_ROWS = 4;
+// assets/v3/items-2.webp (4 × 2, ô 64 px, Milestone 6 — chờ Codex, docs/nong-trai/asset-spec.json). Chưa có sheet / frame
+// ⇒ giao diện vẽ icon dự phòng: ô `fallback` của items.webp + bộ lọc CSS `filter` (ICON_FALLBACK).
+export const ICON2_IDS = ["banh-ngo", "sinh-to-dau", "bap-rang-bo", "che-bi-ngo", "sua-chua", "banh-gao", "so-suu-tap", "co-phien-cho"];
+export const ICON2_COLS = 4, ICON2_ROWS = 2;
+export const ICON_FALLBACK = Object.freeze({
+  "banh-ngo": ["banh-bi-ngo", "hue-rotate(18deg) saturate(1.25)"],
+  "sinh-to-dau": ["nuoc-ep-ca-rot", "hue-rotate(-38deg) saturate(1.2)"],
+  "bap-rang-bo": ["bap-rang", "sepia(.45) saturate(1.3) brightness(1.05)"],
+  "che-bi-ngo": ["mut-dau", "hue-rotate(32deg) saturate(1.2)"],
+  "sua-chua": ["sua", "hue-rotate(-25deg) brightness(1.06)"],
+  "banh-gao": ["bot-gao", "sepia(.55) saturate(1.4)"],
+  "so-suu-tap": ["bang-don", ""],
+  "co-phien-cho": ["chuong-thong-bao", ""],
+});
 // assets/v3/decor.webp (4 × 2, ô 128 px)
 export const DECOR_ICON_IDS = ["den-long", "chau-hoa", "bu-nhin", "ghe-tre", "gieng-da", "cong-tre", "dong-bi-ngo", "co-lau"];
 
@@ -57,7 +71,8 @@ export const ITEMS = [
   // Thức ăn gia súc: chợ bán dự phòng, giá 56 (≥ ngưỡng chống lời khi đổi thức ăn mua → sữa → bơ / phô mai, xem core/market.js).
   // Milestone 4: 48 → 56 vì sữa 72 ⇒ bơ / phô mai phải ≥ 1,25 × 2 / 3 sữa (180 / 270) mà vẫn lỗ khi nuôi bằng thức ăn mua
   // (4 bao × 56 = 224 > bơ 185 × 1,15; 6 × 56 = 336 > phô mai 280 × 1,15). Với 48 hai điều kiện này mâu thuẫn.
-  product("thuc-an-gia-suc", "Thức ăn gia súc", 19, { uses: "Cho gà (1 bao), bò (2 bao) ăn · Đơn hàng", buy: 56, shopLevel: 7 }),
+  // Milestone 6: 56 → 72 vì Phiên chợ trả bơ / phô mai tới ×1,5 (hàng săn): 4 bao × 72 = 288 > bơ 185 × 1,5; 6 × 72 = 432 > phô mai 280 × 1,5.
+  product("thuc-an-gia-suc", "Thức ăn gia súc", 19, { uses: "Cho gà (1 bao), bò (2 bao) ăn · Đơn hàng", buy: 72, shopLevel: 7 }),
   product("bot-gao", "Bột gạo", 70),
   product("bap-rang", "Bắp rang", 78),
   product("banh-trung", "Bánh trứng", 175), // M4: trứng 26 → 32 ⇒ giữ chế biến ≥ 1,25× (2 × 32 + 70 = 134)
@@ -66,6 +81,13 @@ export const ITEMS = [
   product("pho-mai", "Phô mai", 280), // 3 × 72 = 216 ⇒ ×1,30
   product("duong", "Đường", 150),
   product("banh-flan", "Bánh flan", 370), // M4: 2 trứng + sữa + đường = 286 ⇒ ×1,29. Lò bánh level 2 (recipe.machineLevel = 2), không phải máy riêng
+  // Milestone 6 (Sổ sưu tập 30 món): icon ở assets/v3/items-2.webp khi Codex giao, chưa có ⇒ icon gần nghĩa + bộ lọc màu (ICON_FALLBACK).
+  product("banh-ngo", "Bánh ngô", 155),        // 3 ngô + 1 trứng = 119 ⇒ ×1,30
+  product("sinh-to-dau", "Sinh tố dâu", 165),  // 3 dâu + 1 sữa = 126 ⇒ ×1,31
+  product("bap-rang-bo", "Bắp rang bơ", 315),  // 2 ngô + 1 bơ = 243 ⇒ ×1,30
+  product("che-bi-ngo", "Chè bí ngô", 255),    // 1 bí + 1 đường = 197 ⇒ ×1,29
+  product("sua-chua", "Sữa chua", 380),        // 2 sữa + 1 đường = 294 ⇒ ×1,29
+  product("banh-gao", "Bánh gạo", 375),        // 2 bột gạo + 1 đường = 290 ⇒ ×1,29
   // Sản phẩm vật nuôi (§2.4) — Milestone 4. Giá theo mô phỏng (data/animals.js PROPOSED_SELL, core/README-M4.md "Balance"):
   // mua thức ăn 48 > trứng 32 × 1,15 và 2 × 48 > sữa 72 × 1,15 ⇒ mua thức ăn để nuôi vẫn lỗ (MARKET.assertEconomy).
   { id: "trung-ga", name: "Trứng gà", cat: "chan-nuoi", sell: 32, counts: true, producer: { kind: "animal", id: "ga" }, source: "Chuồng gà", uses: usesOf("trung-ga", ["Đơn hàng"]) },
@@ -89,10 +111,19 @@ export const MATERIALS = ITEMS.filter((it) => it.cat === "vat-lieu").map((it) =>
 export const PRODUCTS = ITEMS.filter((it) => it.cat === "thanh-pham").map((it) => it.id);
 export const isDecor = (id) => ITEM[id]?.bag === "decor";
 
-/** Vị trí ô icon: { sheet: "items" | "decor", col, row }; không có ⇒ null. */
+/**
+ * Vị trí ô icon: { sheet: "items" | "decor", col, row }; không có ⇒ null.
+ * Món Milestone 6 (items-2): trả ô DỰ PHÒNG trong items.webp + `filter` (mọi nơi vẽ icon cũ vẫn ra hình hợp lý) và `hd`
+ * = ô thật trong items-2.webp — giao diện dùng `hd` khi manifest đã có frame cùng tên (ui/sprites.js frame("items-2", id)).
+ */
 export function iconCell(id) {
   const k = ICON_IDS.indexOf(id);
   if (k >= 0) return { sheet: "items", col: k % ICON_COLS, row: Math.floor(k / ICON_COLS) };
+  const k2 = ICON2_IDS.indexOf(id);
+  if (k2 >= 0) {
+    const [fb, filter] = ICON_FALLBACK[id], f = ICON_IDS.indexOf(fb);
+    return { sheet: "items", col: f % ICON_COLS, row: Math.floor(f / ICON_COLS), filter, hd: { sheet: "items-2", id, col: k2 % ICON2_COLS, row: Math.floor(k2 / ICON2_COLS) } };
+  }
   const d = DECOR_ICON_IDS.indexOf(id);
   return d < 0 ? null : { sheet: "decor", col: d % 4, row: Math.floor(d / 4) };
 }

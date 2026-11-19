@@ -18,6 +18,14 @@ export const RECIPES = [
   R("pho-mai", "may-bo-sua", "Phô mai", { sua: 3 }, 360_000, "pho-mai", 1, 20, 12),
   R("duong", "noi-duong", "Đường", { mia: 2 }, 180_000, "duong", 1, 12, 13),
   R("banh-flan", "lo-banh", "Bánh flan", { "trung-ga": 2, sua: 1, duong: 1 }, 360_000, "banh-flan", 1, 26, 16, 2),
+  // Milestone 6: 6 công thức mới trên máy đã có (đủ 30 món cho Sổ sưu tập). Giá ra ≈ 1,29–1,31 × giá vào (§2.1 "1,25–1,45×"),
+  // giá trị cộng thêm / phút-máy 12–14,5 (ngang bánh flan, bơ) ⇒ không công thức nào "ăn đứt" món cũ.
+  R("banh-ngo", "lo-banh", "Bánh ngô", { ngo: 3, "trung-ga": 1 }, 180_000, "banh-ngo", 1, 11, 9),
+  R("sinh-to-dau", "may-bo-sua", "Sinh tố dâu", { "dau-tay": 3, sua: 1 }, 180_000, "sinh-to-dau", 1, 12, 12),
+  R("bap-rang-bo", "lo-banh", "Bắp rang bơ", { ngo: 2, bo: 1 }, 300_000, "bap-rang-bo", 1, 22, 13),
+  R("che-bi-ngo", "noi-duong", "Chè bí ngô", { "bi-ngo": 1, duong: 1 }, 300_000, "che-bi-ngo", 1, 18, 14),
+  R("sua-chua", "may-bo-sua", "Sữa chua", { sua: 2, duong: 1 }, 360_000, "sua-chua", 1, 27, 15),
+  R("banh-gao", "lo-banh", "Bánh gạo", { "bot-gao": 2, duong: 1 }, 360_000, "banh-gao", 1, 26, 17),
 ];
 
 export const RECIPE = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(RECIPES.map((r) => [r.id, r]))));

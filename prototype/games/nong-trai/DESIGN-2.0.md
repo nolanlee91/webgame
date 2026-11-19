@@ -208,6 +208,7 @@ prototype/games/nong-trai/
 | 3 | Chế độ xây dựng, trạng thái công trình, bản đồ đổi theo cấp, 20 cấp | e2e: xây→xuất hiện bản đồ, nâng kho→sức chứa đổi |
 | 4 | Chăn nuôi (gà, bò), Lò bánh, Làng + NPC + nhiệm vụ, chuỗi B | e2e: ngô→thức ăn→gà→trứng→bánh |
 | 5 | Animation, âm thanh, cân bằng, điện thoại, hiệu năng, test hồi quy | Đủ 12 tiêu chí nghiệm thu (§9) |
+| 6 | Sổ sưu tập 30 món, đơn đặc biệt hai lúc, Phiên chợ, hàng rào đá, ảnh nhà theo bậc (chờ Codex), 6 công thức mới, save v7 | §10: test luật + sim + e2e, hợp đồng asset `docs/nong-trai/asset-spec.json` chạy 0 lỗi |
 
 Mỗi milestone chỉ đẩy lên bản thật khi chủ dự án đồng ý.
 
@@ -235,4 +236,68 @@ Mỗi milestone chỉ đẩy lên bản thật khi chủ dự án đồng ý.
 **Thay đổi cân bằng M5** (chi tiết: `tools/sim/report.md`):
 - Đường XP: bảng `data/levels.js XP_TO_NEXT` ≈ 45·cấp² (cấp 4–6 ×0,7, từ cấp 14 ×0,92), tổng tới cấp 20 ≈ 104 000 XP (bản M4 60·cấp²: 148 200).
 - Chỗ tiêu xu cuối game: **Nhà = "Nông trại danh tiếng"** — 10 bậc nâng từ cấp 10 (3 000 → 595 000 xu, ×1,8 mỗi bậc, bậc cao cần vật liệu), mỗi bậc một danh hiệu và mọi đơn hàng +2 % xu (tối đa +20 %); Nhà kho mốc 320 chỗ (cấp 19, 24 000 xu + vật liệu).
-- Để milestone 6: đơn đặc biệt hai lúc, Phiên chợ, hàng rào đá (chưa có sprite), sổ sưu tập 30 món.
+- Để milestone 6: đơn đặc biệt hai lúc, Phiên chợ, hàng rào đá (chưa có sprite), sổ sưu tập 30 món. → **Đã làm ở Milestone 6 (§10).**
+
+---
+
+## 10. Milestone 6 — hoàn thiện Nông Trại
+
+Mọi tính năng còn treo của §3 đã có trong bản này (`data/levels.js CURRENT_MILESTONE = 6`). Tag module `?v=m6`. Save **v7** (`wgp.nongtrai.v7`): thêm `collection`, `fair`, `orders.special2`; save v2–v6 di chuyển tự động, bản gốc v6 chép sang `wgp.nongtrai.v6.backup` (không xoá khoá gốc). Cân bằng: `tools/sim/report.md` §11.
+
+### 10.1 Sổ sưu tập (cấp 1 trở đi, nút **Sổ** trên HUD)
+- **30 món**: 7 nông sản · 2 chăn nuôi (trứng, sữa) · 18 thành phẩm (12 cũ + 6 công thức mới bên dưới) · 3 vật liệu (ván gỗ, hộp đinh, thùng sơn).
+- Món tự ghi khi lần đầu **vào kho do người chơi làm ra / nhận được**: thu hoạch, nhận từ máy, thu trứng sữa, thưởng đơn / nhiệm vụ, vật liệu rơi khi thu hoạch. **Mua ở chợ không tính.** Sổ đếm tổng số đã làm (hiện "×n" trên ô). Cách đếm: `apply()` so số lượng trước / sau mỗi action (`core/collection.js track`) — một chỗ, không phải sửa từng module.
+- Mốc thưởng (nhận bằng nút "Nhận" trong Sổ, theo thứ tự, không có XP để không đổi nhịp lên cấp):
+  | Mốc | Danh hiệu | Thưởng |
+  |---|---|---|
+  | 10 món | Nhà sưu tầm tập sự | 800 xu · 2 ván gỗ · 2 hộp đinh |
+  | 20 món | Nhà sưu tầm chăm chỉ | 4 000 xu · 3 thùng sơn · 1 ghế tre |
+  | 30 món | Nhà sưu tầm danh tiếng | 15 000 xu · 2 thùng sơn · 1 đèn lồng · 1 giếng đá |
+- Save cũ: món đang có trong kho được ghi sẵn vào sổ (người chơi lâu năm không phải làm lại từ đầu).
+- Mô phỏng: "chăm" đủ 10 / 20 / 30 món sau ~0,3 / 2,3 / 8,5 giờ chơi; "thỉnh thoảng" 21 món sau 7 ngày.
+
+### 10.2 Sáu công thức mới (để đủ 30 món)
+| Công thức | Máy | Cấp | Nguyên liệu | Thời gian | Bán | XP |
+|---|---|---|---|---|---|---|
+| Bánh ngô | Lò bánh | 9 | 3 ngô + 1 trứng | 3 ph | 155 | 11 |
+| Sinh tố dâu | Máy bơ sữa | 12 | 3 dâu + 1 sữa | 3 ph | 165 | 12 |
+| Bắp rang bơ | Lò bánh | 13 | 2 ngô + 1 bơ | 5 ph | 315 | 22 |
+| Chè bí ngô | Nồi đường | 14 | 1 bí ngô + 1 đường | 5 ph | 255 | 18 |
+| Sữa chua | Máy bơ sữa | 15 | 2 sữa + 1 đường | 6 ph | 380 | 27 |
+| Bánh gạo | Lò bánh | 17 | 2 bột gạo + 1 đường | 6 ph | 375 | 26 |
+Giá ra ≈ 1,29–1,31 × giá vào (§2.1), giá trị cộng thêm 12–14,5 xu / phút-máy (ngang bơ, bánh flan). Icon: `items-2.webp` (Cần Codex); chưa có ⇒ icon gần nghĩa + bộ lọc màu.
+
+### 10.3 Đơn đặc biệt hai lúc (cấp 18)
+Ô thứ hai `special2` cùng luật ô thứ nhất: Anh Út, hạn 2 giờ, thưởng ×1,35 + vật liệu, giao / hết hạn ⇒ đơn mới sau 15 phút, bỏ đơn không phạt. Bảng đơn hiện "Đơn đặc biệt thứ hai mở ở cấp 18" từ cấp 11.
+
+### 10.4 Phiên chợ (cấp 18) — §3 chỉ ghi "giá thành phẩm +25 % trong 30 ph, 1 lần/ngày"; phần còn thiếu chốt như sau
+- **Giờ**: mỗi ngày (giờ Việt Nam) đúng một phiên 30 phút, bắt đầu ở một mốc 30 phút trong 9:00–21:30, **tất định theo ngày** (hash ngày, không random giấu, mọi thiết bị thấy cùng giờ). Khu chợ báo trước "Phiên chợ kế tiếp: hôm nay lúc 15:30" + hàng săn, nên người chơi lên kế hoạch được; không phạt nếu lỡ.
+- **Giá**: trong phiên, mọi thành phẩm bán **giá chốt gốc × 1,25** (không dao động). **Hàng săn**: mỗi ngày Cô Hai săn 3 món (1 nông sản + 2 món chăn nuôi / thành phẩm, trừ thức ăn gia súc) trả **gốc × 1,5 cho 10 món đầu mỗi loại**, quá 10 về giá phiên / giá chợ. Đơn hàng không đổi.
+- **Trạng thái lưu**: chỉ `s.fair = { day, sold }` (số hàng săn đã bán trong phiên hôm nay). Một nguồn giá cho Nhà kho, giỏ tràn, Khu chợ, bộ mô phỏng: `core/fair.js quote()`.
+- **Chống lời vô hạn**: `MARKET.assertEconomy` tính cả giá phiên chợ ⇒ thức ăn gia súc ở chợ 56 → **72 xu** (4 bao = 288 > bơ 185 × 1,5; 6 bao = 432 > phô mai 280 × 1,5).
+- Bản đồ: sạp chợ treo cờ hội (frame `phien-cho.webp`, chưa có ⇒ 2 đèn lồng) + nhãn "Phiên chợ!", nút Chợ có huy hiệu "Hội". Cô Hai có 10 câu riêng cho phiên chợ.
+
+### 10.5 Hàng rào đá (cấp 15)
+Hàng rào gỗ mép dưới bản đồ thành công trình "Hàng rào" (có sẵn, cấp 1 = gỗ). Nâng lên **hàng rào đá**: 6 000 xu + 4 hộp đinh + 2 thùng sơn, xong ngay, chỉ trang trí. Sprite đá: `hang-rao.webp` frame `hang-rao-da` (Cần Codex); chưa có ⇒ hàng rào gỗ lọc màu đá xám.
+
+### 10.6 Ảnh nhà theo bậc
+Bậc Nhà ★1–★10 dùng frame `nha-bac-1` … `nha-bac-10` của `house-tiers.webp` khi Codex giao. Thiếu frame bậc đang có ⇒ dùng frame bậc thấp gần nhất đã vẽ (giao dần 3–4 frame một lượt vẫn được); không có frame nào ⇒ ảnh `garden/house` như M5. Nhãn "Nhà ★n" giữ nguyên.
+
+### 10.7 Cân bằng (tools/sim, 7 ngày)
+- Chăm: cấp 4 / 7 / 10 / 20 sau 9 ph / 39 ph / 1,8 h / 11,5 h chơi (M5: 9 / 38 / 1,9 h / 11,3 h); xu cuối tuần 258 000 (M5: 249 000), vẫn dưới chỗ tiêu còn lại.
+- Hai gợi ý treo của M5 (giảm XP cây nhanh; vật nuôi lãi/giờ thấp hơn ô cà chua) đã chạy thử và **không áp dụng** — lý do và số liệu ở `tools/sim/report.md` §11.
+
+---
+
+## Cần Codex (Milestone 6)
+
+Hợp đồng máy đọc được: `docs/nong-trai/asset-spec.json` (kiểm: `python -I tools/asset-check/check_assets.py docs/nong-trai/asset-spec.json --preview <tmp>`, phải ra 0 lỗi). Chuẩn chung: PLAYBOOK §1–§2 — **lưới 2×** (1 điểm vẽ = ô 2×2 px), alpha cứng, WebP lossless, cùng phong cách `assets/v3` (3/4 từ trên xuống, ánh sáng ấm trên-trái, viền tối 1 điểm vẽ, bảng màu quê Việt). Mỗi sheet mới thêm vào `assets/v3/manifest.json` → `sheets.<alias>` (alias = tên file không đuôi), `frames: [{ id, x, y, width, height, anchor }]` giống các sheet đang có. Code tự nhận frame theo tên, không cần sửa code.
+
+| Sheet (file / alias) | Ô (px) | Anchor | Frame | Brief |
+|---|---|---|---|---|
+| `assets/v3/house-tiers.webp` / `house-tiers` | 288 × 224 | [144, 216] (đáy giữa, chân tường) | `nha-bac-1` … `nha-bac-10` (lưới 5 × 2) | Cùng một ngôi nhà của `assets/garden/house.webp` (mái ngói đỏ, hiên gỗ, tường vôi), lớn dần theo bậc danh tiếng, **giữ nguyên chân móng / bề ngang ~270 px** để đặt cùng chỗ trên bản đồ: ★1–3 sửa sang (chậu hoa, cửa sổ mới, hàng hiên dài), ★4–6 thêm chái / gác, mái ngói mới, đèn lồng, ★7–9 nhà hai tầng, cột gỗ chạm, sân gạch, ★10 "nông trại mạ vàng": biển tên viền vàng, đèn lồng đỏ, hoa giấy. Không vẽ đất / cỏ quanh nhà. Phần trên ô để trống cho mái cao. |
+| `assets/v3/hang-rao.webp` / `hang-rao` | 256 × 128 | [128, 120] | `hang-rao-da` | Một đoạn hàng rào đá thấp nằm ngang (đá ong / đá xanh xếp, mũ gạch, 2–3 trụ), dài như `assets/garden/fence.webp` (~230 px), đọc rõ là "nâng cấp" của hàng rào gỗ. Chân hàng rào chạm y = 120; phần trên ô có thể có dây leo / hoa nhỏ trên mũ tường. |
+| `assets/v3/items-2.webp` / `items-2` | 64 × 64 | [32, 32] | `banh-ngo`, `sinh-to-dau`, `bap-rang-bo`, `che-bi-ngo`, `sua-chua`, `banh-gao`, `so-suu-tap`, `co-phien-cho` (lưới 4 × 2, đúng thứ tự) | Cùng cỡ / nét icon `items.webp`: bánh ngô vàng nướng; ly sinh tố dâu hồng có ống hút; túi bắp rang bơ vàng óng; chén chè bí ngô nước cốt dừa; hũ sữa chua thuỷ tinh nắp giấy; bánh gạo tròn nướng; **so-suu-tap** = cuốn sổ bìa da có dấu ngôi sao; **co-phien-cho** = lá cờ hội đuôi nheo đỏ vàng. |
+| `assets/v3/phien-cho.webp` / `phien-cho` | 192 × 192 | [96, 168] | `co-hoi-1`, `co-hoi-2` + animation `co-hoi` (frames [co-hoi-1, co-hoi-2], fps 3) | Dây cờ hội đuôi nheo nhiều màu + 2 đèn lồng căng trên nóc sạp chợ (đặt chồng lên `market-stall` trên bản đồ), 2 khung cờ bay. Nền trong suốt, không vẽ sạp. |
+
+Hiện game dùng hình dự phòng cho cả 4 sheet (nhà garden, hàng rào gỗ lọc đá, icon gần nghĩa lọc màu, đèn lồng `decor.webp`) — giao sheet nào thì sheet đó tự thay.
