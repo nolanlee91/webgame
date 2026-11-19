@@ -29,7 +29,7 @@ const SFX = { hop: () => beep(520, 0.04), dice: () => beep(220 + Math.random() *
   bad: () => { beep(220, 0.12, "sawtooth"); setTimeout(() => beep(160, 0.16, "sawtooth"), 110); }, build: () => { beep(660, 0.06); setTimeout(() => beep(880, 0.08), 60); setTimeout(() => beep(1100, 0.1), 130); },
   win: () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.14), i * 140)),
   // online: tin chat mới, người vào / rời phòng, tới lượt mình, ván bắt đầu
-  msg: () => { beep(1175, 0.05, "triangle", 0.04); setTimeout(() => beep(1568, 0.07, "triangle", 0.04), 60); },
+  msg: () => { beep(1175, 0.06, "triangle", 0.12); setTimeout(() => beep(1568, 0.09, "triangle", 0.12), 60); }, // tin mới từ người khác: đủ to để nghe
   join: () => { beep(440, 0.06, "triangle"); setTimeout(() => beep(660, 0.08, "triangle"), 80); },
   leave: () => { beep(523, 0.07, "triangle"); setTimeout(() => beep(330, 0.1, "triangle"), 90); },
   turn: () => { beep(784, 0.06); setTimeout(() => beep(1047, 0.09), 90); },

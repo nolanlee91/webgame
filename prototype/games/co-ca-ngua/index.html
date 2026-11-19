@@ -66,5 +66,6 @@
     if (direct || params.get("bot") === "1" || params.get("local") === "1") { window.__game = mount(stage, ctx); if (direct) stage.querySelector("canvas").focus(); } // ?bot=1 (hoặc ?local=1 cũ) → phòng chờ chơi với máy
     else startOnline(stage, ctx);
   </script>
+  <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>
