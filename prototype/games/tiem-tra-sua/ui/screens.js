@@ -1,5 +1,5 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon } from "../render/atlas.js?v=m34";
+import { icon, dpr } from "../render/atlas.js?v=m34";
 import { ingIcon, headIcon } from "./brew.js?v=m34";
 import { RECIPE, RECIPES } from "../data/recipes.js?v=m34";
 import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m34";
@@ -140,6 +140,14 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       const bg = h("img"); bg.src = "assets/street-background.webp"; bg.alt = ""; bg.width = 1280; bg.height = 720; art.appendChild(bg);
       art.appendChild(icon(atlas, ["portraits", "barista"], 150, "ico portrait"));
       c.appendChild(art);
+      // ảnh phố: phủ khung (cover) với hệ số làm tròn lên bội 0,5 px thiết bị ⇒ ô tranh 2×2 đều, không nhòe như object-fit co nhỏ
+      requestAnimationFrame(() => {
+        const w = art.clientWidth, hh = art.clientHeight, d = dpr() * 2;
+        if (!w || !hh) return;
+        const sc = Math.ceil(Math.max(w / 1280, hh / 720) * d - 1e-6) / d;
+        Object.assign(bg.style, { position: "absolute", width: 1280 * sc + "px", height: 720 * sc + "px", maxWidth: "none", objectFit: "fill",
+          left: Math.round(((w - 1280 * sc) / 2) * dpr()) / dpr() + "px", top: Math.round((hh - 720 * sc) * 0.6 * dpr()) / dpr() + "px" });
+      });
       const tx = h("div", "intro-tx");
       tx.appendChild(h("h2", "", "Chào chủ tiệm mới!"));
       tx.appendChild(h("p", "", "Dì Ba giao lại cái tiệm nhỏ đầu hẻm, kèm một câu: \"Pha cho đúng, thối tiền cho đủ, đừng cãi khách về chuyện 0% đường.\" Hôm nay là ngày đầu: 5 vị khách, kiên nhẫn dài hơn và có gợi ý từng bước."));

@@ -16,6 +16,8 @@ const ease = (p) => p * p * (3 - 2 * p);
 function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; parent?.appendChild(e); return e; }
 
 /** Frame cho một khách tại thời điểm ca t. Trả [frame, flip, bob]. */
+const BARISTA_SCALE = 1.5;
+
 export function customerFrame(atlas, c, t) {
   const role = c.sprite;
   const walkFrame = () => {
@@ -227,8 +229,9 @@ export function createScene(root, atlas, { onCustomer }) {
     // nhân viên: dáng đứng có ly (characters.webp); nhún nhẹ khi đang pha
     const busy = (sh?.stations || []).some((x) => x.cup && !x.cup.sealed);
     const [fb, bob] = baristaFrame(t, busy, performance.now() < serveUntil);
-    paint(barista, fb, 1);
-    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, 1);
+    // chủ tiệm đứng sau quầy (xa hơn khách, bị quầy che nửa người) ⇒ vẽ ×1,5 cho rõ; 1,5 giữ ô tranh 2×2 thành 3×3 đều
+    paint(barista, fb, BARISTA_SCALE);
+    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, BARISTA_SCALE);
     drawMiniCups(sh?.stations || [{ cup: null }]);
     stoveAnim(!!sh?.kitchen?.batches.length, opts.reduced);
     if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
