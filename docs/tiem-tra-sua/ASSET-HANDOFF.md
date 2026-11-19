@@ -63,3 +63,17 @@ Cả sáu atlas nhân vật trong cảnh dùng ô 144 × 192 và điểm neo [72
 Tên frame, clip, thứ tự, FPS và quy tắc loop giữ theo sheet nguồn. Tọa độ trong atlas đổi theo kích thước ô mới. Hai manifest có cùng dữ liệu. VIP dùng áo sage, quần kem, búi tóc thấp và túi nâu. Reviewer dùng áo kem, váy nâu gạch, búi tóc cao và điện thoại.
 
 [Đối chiếu từng vai qua các sheet](concepts/phase-3c-scene-sprites.webp) · [Ảnh ghép ở tỉ lệ thực trong quán](concepts/phase-3c-in-shop.webp)
+
+## Kiểm hợp đồng asset sau khi gộp master
+
+- Bản asset đã kiểm: commit `259c905`. Gộp hợp đồng từ master local `fadf958`.
+- Vẽ lại năm khung walk-4 ở chiều cao 168 px. Giữ nguyên khung 1–3, vị trí ô, điểm neo và clip. Đã mở ảnh soi để đối chiếu chiều cao, trang phục và khuôn mặt từng vai, gồm VIP và reviewer.
+- Gộp atlas 2× của ly, bếp đang nấu, icon điều khiển, chân dung và biểu cảm từ `3044d3b`. Hai manifest khớp nhau và có đủ sáu điểm đặt trên quầy, cửa, bốn chỗ xếp hàng và đường ra.
+- Lệnh: `python -I tools/asset-check/check_assets.py docs/tiem-tra-sua/asset-spec.json --preview <tmp>`
+
+```text
+0 lỗi, 0 cảnh báo — ĐẠT, giao được.
+Ảnh soi nhân vật: <tmp>/nhan-vat-xep-hang-x2.png
+```
+
+Test lõi: 126/126 đạt.
