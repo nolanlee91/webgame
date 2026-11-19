@@ -17,7 +17,10 @@ Hai chế độ: **Chơi với máy** (bạn + 1–3 máy, không cần mạng) 
 - `screenshots/e2e.mjs` — test trên Chrome headless bằng chuột/phím/chạm thật, quay video; có kiểm tra toạ độ từng ô so với màu trên ảnh bàn cờ.
 
 ## Chơi với máy
-Màn vào → **Chơi với máy** → phòng chờ chọn 1/2/3 máy + luật xuất ngựa → Chơi. Bạn cầm phường Đỏ (ghế 0), máy cầm các phường còn lại;
+Màn vào → **Chơi với máy** → phòng chờ chọn 1/2/3 máy, **màu của bạn** (Đỏ / Xanh dương / Vàng / Xanh lá) + luật xuất ngựa → Chơi.
+Màu nhớ qua `localStorage` `wgp.co-ca-ngua.botColor` (mặc định Đỏ; `?players=N` cũng dùng màu đã nhớ). Ghế dùng = `seatsFor(n, ghế bạn)` trong `game.js`:
+các ghế theo chiều đi bắt đầu từ ghế bạn (2 người ngồi đối diện, 3 người bỏ ghế ngay trước bạn) ⇒ bạn luôn gieo trước; chọn Đỏ thì y hệt `SEATS_FOR`
+của `logic.js` (luật / máy chủ không đổi). Máy cầm các phường còn lại;
 thẻ người chơi ghi "Bạn" / "Máy", khay xúc xắc ghi "Máy sắp gieo…" / "Máy chọn ngựa". Tới lượt máy: máy chờ hoạt ảnh trước xong, ~0,45–0,7 s rồi
 gieo, "nghĩ" 0,4–0,7 s rồi đi — đi bằng đúng đường của người (`applyRoll` / `applyMove` trong `game.js`) nên xúc xắc, bước nhảy, đá quân, về chuồng,
 âm thanh y hệt. Trong lượt máy, bấm khay / chạm ngựa / Space / 1–4 đều bị bỏ qua. Tạm dừng (P, nút, hoặc chuyển tab) dừng cả máy.
@@ -30,7 +33,8 @@ chung máy nào được lưu, nên không có gì phải chuyển đổi).
   vận tốc ~100 ms cuối lúc thả (`releaseVelocity`) quyết định hướng + lực. Chạm không kéo / chạm khay / Space / Enter → tung nhẹ hướng ngẫu nhiên.
 - `simulateThrow({x, y, vx, vy, bounds, r, seed, reduced})` (thuần, có test): xúc xắc bay (độ cao + bóng), xoay, nảy trên mặt sân,
   dội mép sân (hệ số nảy ngẫu nhiên), chậm dần, xoay về góc vuông rồi nằm yên — luôn trong sân; mỗi lần một seed nên đường bay, số lần nảy,
-  chỗ nằm khác nhau. Khi bay mặt trên đổi liên tục; ~140 ms cuối và lúc nằm yên hiện **đúng mặt logic/máy chủ gieo** + vòng sáng vàng, số to nảy lên.
+  chỗ nằm khác nhau. `keepOut` = vùng tròn quanh ngựa còn đứng trong lán: xúc xắc dừng đè lên ngựa thì trong lúc nằm yên trượt sang chỗ trống gần nhất
+  (`freeSpot`, cũng dùng cho chỗ xúc xắc chờ trước khi tung / khi ngựa bị đá về lán đứng đúng chỗ xúc xắc) — không bao giờ che ngựa. Khi bay mặt trên đổi liên tục; ~140 ms cuối và lúc nằm yên hiện **đúng mặt logic/máy chủ gieo** + vòng sáng vàng, số to nảy lên.
 - Máy và người chơi online khác tung y như vậy trong sân của họ (không kéo được), để mình xem. Online: thả tay là gửi `roll` ngay và xúc xắc bay luôn;
   máy chủ báo mặt về thì đáp xuống mặt đó (về chậm thì xúc xắc nảy tiếp vài cú nhẹ, quá 5 s thì thôi).
 - Tiếng: `do-xuc-xac` một lần lúc tung + mỗi lần nảy/dội mép phát một đoạn 90 ms của chính file đó, to nhỏ theo lực, cao độ ngẫu nhiên (log `do-xuc-xac:nay`); tắt tiếng thì im.

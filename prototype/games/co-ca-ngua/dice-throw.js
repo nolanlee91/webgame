@@ -16,10 +16,32 @@ function rng(seed) {
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+// Vùng cấm (keepOut) = [{x, y, r}]: hình tròn quanh ngựa đang đứng trong sân — xúc xắc NẰM YÊN không được đè lên
+// (tâm xúc xắc cách tâm vùng ≥ r + bán kính xúc xắc). Bay / nảy ngang qua thì được, chỉ chỗ dừng cuối phải trống.
+const clear = (x, y, keepOut, r) => keepOut.reduce((m, k) => Math.min(m, Math.hypot(x - k.x, y - k.y) - (k.r + r)), Infinity);
+
+// Chỗ trống gần (x, y) nhất trong sân (tâm cách mép ≥ r, không chạm vùng cấm). Thuần, tất định.
+// (x, y) đã trống → giữ nguyên. Không còn chỗ nào trống → chỗ "ít đè" nhất (xa vùng cấm nhất).
+export function freeSpot(x, y, bounds, r = 26, keepOut = [], step = 2) {
+  const [bx0, by0, bx1, by1] = bounds;
+  const minX = bx0 + r, maxX = Math.max(minX, bx1 - r), minY = by0 + r, maxY = Math.max(minY, by1 - r);
+  x = clamp(x, minX, maxX); y = clamp(y, minY, maxY);
+  if (!keepOut || !keepOut.length || clear(x, y, keepOut, r) >= 0) return { x, y };
+  let best = null, bd = Infinity, worst = { x, y }, wc = -Infinity;
+  const pts = (a, b) => { const out = []; for (let v = a; v < b; v += step) out.push(v); out.push(b); return out; };
+  for (const px of pts(minX, maxX)) for (const py of pts(minY, maxY)) {
+    const c = clear(px, py, keepOut, r);
+    if (c >= 0) { const d = (px - x) ** 2 + (py - y) ** 2; if (d < bd) { bd = d; best = { x: px, y: py }; } }
+    else if (c > wc) { wc = c; worst = { x: px, y: py }; }
+  }
+  return best || worst;
+}
+
 // bounds = [x0, y0, x1, y1] (vùng sân), r = nửa cạnh xúc xắc (tâm luôn cách mép ≥ r).
 // vx, vy (px/giây) = hướng + lực tung (kéo-thả); không có → tung nhẹ theo hướng ngẫu nhiên.
+// keepOut = vùng cấm (ngựa trong sân): nếu xúc xắc dừng đè lên thì trong lúc "nằm yên" nó trượt sang chỗ trống gần nhất.
 // Trả về { frames: [{x, y, z, a}], bounces: [{t, k}], duration (ms), end: {x, y, a}, seed }.
-export function simulateThrow({ x, y, vx, vy, bounds, r = 26, seed = 1, reduced = false, gentle = false }) {
+export function simulateThrow({ x, y, vx, vy, bounds, r = 26, seed = 1, reduced = false, gentle = false, keepOut = [] }) {
   const R = rng(seed);
   const [bx0, by0, bx1, by1] = bounds;
   const minX = bx0 + r, maxX = Math.max(minX, bx1 - r), minY = by0 + r, maxY = Math.max(minY, by1 - r);
@@ -33,7 +55,7 @@ export function simulateThrow({ x, y, vx, vy, bounds, r = 26, seed = 1, reduced 
   const cap = clamp(sp, 120, 1600);
   vx = (vx / sp) * cap; vy = (vy / sp) * cap;
   if (reduced) { // giảm chuyển động: trượt ngắn ~0,25 s, không xoay, không nảy
-    const n = 15, tx = clamp(x + vx * 0.08, minX, maxX), ty = clamp(y + vy * 0.08, minY, maxY), frames = [];
+    const n = 15, { x: tx, y: ty } = freeSpot(x + vx * 0.08, y + vy * 0.08, bounds, r, keepOut), frames = [];
     for (let i = 0; i <= n; i++) { const k = 1 - (1 - i / n) ** 2; frames.push({ x: x + (tx - x) * k, y: y + (ty - y) * k, z: 0, a: 0 }); }
     return { frames, bounces: [], duration: n * FRAME_MS, end: { x: tx, y: ty, a: 0 }, seed };
   }
@@ -61,8 +83,11 @@ export function simulateThrow({ x, y, vx, vy, bounds, r = 26, seed = 1, reduced 
   }
   // nằm yên: xoay về THẲNG ĐỨNG (bội của 360°, ~230 ms). Ảnh xúc xắc là khối nghiêng 3 mặt — xoay 90° là mặt trên
   // lật sang bên, nhìn chéo không biết mặt nào ngửa ⇒ chỉ dừng ở góc 0.
-  const a1 = Math.round(a / (Math.PI * 2)) * (Math.PI * 2), a0 = a;
-  for (let i = 1; i <= 14; i++) { const k = 1 - (1 - i / 14) ** 3; frames.push({ x, y, z: 0, a: a0 + (a1 - a0) * k }); }
+  // Dừng đè lên ngựa (vùng cấm) → cùng lúc đó trượt sang chỗ trống gần nhất (xa hơn thì trượt lâu hơn, tối đa ~0,5 s).
+  const a1 = Math.round(a / (Math.PI * 2)) * (Math.PI * 2), a0 = a, x0 = x, y0 = y;
+  ({ x, y } = freeSpot(x, y, bounds, r, keepOut));
+  const n = Math.min(30, 14 + Math.round(Math.hypot(x - x0, y - y0) / 8));
+  for (let i = 1; i <= n; i++) { const k = 1 - (1 - i / n) ** 3; frames.push({ x: x0 + (x - x0) * k, y: y0 + (y - y0) * k, z: 0, a: a0 + (a1 - a0) * k }); }
   return { frames, bounces, duration: (frames.length - 1) * FRAME_MS, end: { x, y, a: a1 }, seed };
 }
 

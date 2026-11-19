@@ -4,9 +4,9 @@
 // Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
-import { createHud } from "./hud.js";
+import { createHud } from "./hud.js?v=bots1";
 import { botMove, makeRng } from "./ai.js";
-import { simulateThrow, sampleThrow, releaseVelocity } from "./dice-throw.js";
+import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=bots1";
 
 export const W = 832, H = 832;
 const N = 13, C = 64, BX = 0, BY = 0;   // canvas = đúng ảnh board-v5 (13×13 ô 64px); HUD nằm ngoài (hud.js)
@@ -48,6 +48,13 @@ export const ART = {
 const HUT = 32, HUT_SIZE = 256;
 const SLOT_FEET = [[104, 206], [204, 206], [104, 270], [204, 270]]; // chân ngựa, toạ độ trong khối 5×5 (px)
 const FOOT = 22;                                                     // chân ngựa thấp hơn tâm ô 22px
+// Chơi với máy: ghế của người chơi chọn được (màu). Ghế dùng = các ghế theo chiều đi bắt đầu từ ghế người chơi
+// (2 người đối diện, 3 người bỏ ghế ngay trước mình) → người chơi luôn gieo trước; ghế 0 ⇒ đúng SEATS_FOR của logic.js.
+export function seatsFor(players, human = 0) {
+  const ring = [0, 1, 2, 3].map((k) => (human + k) % 4);
+  return players === 2 ? [ring[0], ring[2]] : ring.slice(0, players);
+}
+export const COLOR_KEY = "wgp.co-ca-ngua.botColor"; // màu người chơi chọn ở phòng chờ chơi với máy (nhớ qua localStorage)
 export { PATH, STABLE, CORNER };
 let GRID = { cellSize: C, origin: [0, 0] };
 // So board-v5-grid.json với đường đi/chuồng đích của game: trả về danh sách chỗ lệch (rỗng = khớp).
@@ -126,7 +133,6 @@ export function mount(el, ctx = {}) {
   let ruleKey = ctx.rules && ctx.rules.launchOn && ctx.rules.launchOn.includes(1) ? "16" : "6";
   const rulesOf = () => ({ ...(ctx.rules || {}), launchOn: ruleKey === "16" ? [1, 6] : [6] });
   let lobby = !!ctx.lobby;      // phòng chờ: chọn số người/luật trên chính bàn cờ, chưa nhận thao tác chơi
-  let g = createGame({ players, seed: ctx.seed, rules: rulesOf() });
   // ---- Online (ctx.online = { send, leave }): máy chủ giữ ván; client chỉ gửi ý định và PHÁT LẠI hành động máy chủ gửi về
   // bằng chính logic.js (roll với mặt xúc xắc máy chủ gieo, move) để có hoạt ảnh; lệch / thiếu gói thì nhận nguyên trạng thái.
   const net = ctx.online || null;
@@ -134,10 +140,22 @@ export function mount(el, ctx = {}) {
   const inbox = [];
   const mySeat = () => (room && room.players[room.you] ? room.players[room.you].seat : -1);
   const myTurn = () => !!net && !lobby && g.phase !== "over" && currentSeat(g) === mySeat();
-  // ---- Chơi với máy (không online): người chơi cầm ghế HUMAN (Đỏ), các ghế còn lại là máy (ai.js) ----
-  const HUMAN = 0;
-  const isBot = (s) => !net && s !== HUMAN;
-  const meSeat = () => (net ? mySeat() : HUMAN);
+  // ---- Chơi với máy (không online): người chơi cầm ghế `human` (chọn màu ở phòng chờ, mặc định Đỏ = ghế 0), các ghế còn lại là máy (ai.js) ----
+  const loadColor = () => { try { const i = VIEW_COLORS.indexOf(localStorage.getItem(COLOR_KEY)); return i >= 0 ? i : 0; } catch { return 0; } };
+  const saveColor = (s) => { try { localStorage.setItem(COLOR_KEY, VIEW_COLORS[s]); } catch {} };
+  let human = net ? 0 : [0, 1, 2, 3].includes(ctx.humanSeat) ? ctx.humanSeat : loadColor();
+  const isBot = (s) => !net && s !== human;
+  const meSeat = () => (net ? mySeat() : human);
+  // Ván chơi với máy: logic.js không đổi, chỉ thay bộ ghế theo màu người chơi chọn (ghế 0 ⇒ y hệt createGame).
+  function withSeats(G) {
+    if (net) return G;
+    const seats = seatsFor(G.players, human);
+    if (seats.join() === G.seats.join()) return G;
+    G.seats = seats; G.horses = {};
+    for (const s of seats) G.horses[s] = Array(G.rules.horses).fill(BASE);
+    return G;
+  }
+  let g = withSeats(createGame({ players, seed: ctx.seed, rules: rulesOf() }));
   const botTurn = () => !lobby && g.phase !== "over" && isBot(currentSeat(g));
   const botRng = makeRng(ctx.seed != null ? ctx.seed * 7 + 3 : Date.now());
   let botAt = 0, botKey = "";
@@ -175,11 +193,13 @@ export function mount(el, ctx = {}) {
 
   const colorOf = (seat) => VIEW_COLORS[seat];
   const playerAt = (seat) => (room && room.game ? room.players[room.game.seats.indexOf(seat)] : null);
-  const nameOf = (seat) => { const p = net && playerAt(seat); return p ? (seat === mySeat() ? "Bạn" : p.name) : net ? SEAT_NAMES[colorOf(seat)] : seat === HUMAN ? "Bạn" : "Máy " + SEAT_NAMES[colorOf(seat)]; };
+  const nameOf = (seat) => { const p = net && playerAt(seat); return p ? (seat === mySeat() ? "Bạn" : p.name) : net ? SEAT_NAMES[colorOf(seat)] : seat === human ? "Bạn" : "Máy " + SEAT_NAMES[colorOf(seat)]; };
   const hud = createHud(el, {
     homeHref,
     shareUrl: () => { if (net && room) { const u = new URL(location.href); u.search = "?room=" + room.code; u.hash = ""; return u.href; } const u = new URL(location.href); u.searchParams.set("players", players); if (ruleKey === "16") u.searchParams.set("rule", "16"); else u.searchParams.delete("rule"); return u.href; },
     onPlayers(n) { if (net) return; if (lobby) { players = n; newGame(); } refocus(); },
+    onColor(s) { if (net || ![0, 1, 2, 3].includes(s)) return; if (lobby) { human = s; saveColor(s); newGame(); } refocus(); },
+    onBot(b) { if (net) net.send(b === "add" ? { t: "add-bot" } : { t: "kick-bot", seat: Number(b) }); refocus(); }, // chủ phòng online: lấp / bớt ghế bot
     onRule(k) { if (net) { net.send({ t: "rule", rule: k }); return; } if (lobby) { ruleKey = k; newGame(); } refocus(); },
     onPlay() { sfx.unlock(); if (net) { net.send({ t: "start" }); return; } lobby = false; newGame(); refocus(); },
     onLobby() { if (net) { net.leave(); return; } lobby = true; paused = false; newGame(); },
@@ -222,7 +242,7 @@ export function mount(el, ctx = {}) {
     shownSeat = currentSeat(g); shownDice = null;
     msg = lobby ? (net ? lobbyMsg() : "Chơi với máy — chọn số đối thủ, luật xuất ngựa rồi bấm CHƠI") : "Lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
   }
-  function newGame() { g = createGame({ players, seed: ctx.seed, rules: rulesOf() }); resetView(); }
+  function newGame() { g = withSeats(createGame({ players, seed: ctx.seed, rules: rulesOf() })); resetView(); }
   resetView();
 
   // ---------- Hành động ----------
@@ -243,14 +263,28 @@ export function mount(el, ctx = {}) {
   // ---------- Xúc xắc tung trong sân (khối 5×5 ô ở góc) của từng ghế ----------
   const DIE = 60, DIE_R = 26;
   function yardOf(seat) { const [cc, cr] = CORNER[seat]; return [cc * C + 16, cr * C + 44, (cc + 5) * C - 16, (cr + 5) * C - 8]; } // chừa phía trên cho xúc xắc bay cao
-  function idleDie(seat) {
-    if (restDie && restDie.seat === seat) return restDie;
-    const [x0, y0, x1, y1] = yardOf(seat);
-    return { seat, x: (x0 + x1) / 2, y: y0 + (y1 - y0) * 0.66, a: 0 };
+  // Vùng cấm cho xúc xắc nằm yên: ngựa còn đứng trong lán của sân này (hình ngựa ~64×50px phía trên chân + số ngựa bên phải; xúc xắc ~56px).
+  function keepOut(seat) {
+    const out = [];
+    if (!g.horses[seat]) return out;
+    g.horses[seat].forEach((pos, h) => { if (pos === BASE) { const q = posXY(g, seat, h, BASE); out.push({ x: q.x + 3, y: q.y + FOOT - 24, r: 40 }); } });
+    return out;
   }
+  let idleMemo = { key: "", v: null };
+  function idleDie(seat) {
+    const ko = keepOut(seat), rd = restDie && restDie.seat === seat ? restDie : null;
+    const key = seat + "|" + (rd ? rd.x + "," + rd.y : "") + "|" + ko.map((k) => k.x + "," + k.y).join(";");
+    if (idleMemo.key === key) return idleMemo.v;
+    // chỗ xúc xắc chờ / nằm sau lần tung trước — nếu có ngựa về lán đứng đè lên thì dời sang chỗ trống gần nhất
+    const [x0, y0, x1, y1] = yardOf(seat), base = rd || { x: (x0 + x1) / 2, y: y0 + (y1 - y0) * 0.66, a: 0 };
+    const p = freeSpot(base.x, base.y, yardOf(seat), DIE_R, ko);
+    idleMemo = { key, v: { seat, x: p.x, y: p.y, a: base.a || 0 } };
+    return idleMemo.v;
+  }
+  const throwFrom = (seat, x, y, extra) => simulateThrow({ x, y, bounds: yardOf(seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, keepOut: keepOut(seat), ...extra });
   function makeThrow(seat, spec, gentle = false) {
     const st = spec && spec.x != null ? spec : idleDie(seat);
-    return simulateThrow({ x: st.x, y: st.y, vx: spec && spec.vx, vy: spec && spec.vy, bounds: yardOf(seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, gentle });
+    return throwFrom(seat, st.x, st.y, { vx: spec && spec.vx, vy: spec && spec.vy, gentle });
   }
   function bounceSfx(o, now) { // tiếng "cộp" mỗi lần xúc xắc nảy / dội mép — to nhỏ, cao thấp theo lực
     const b = o.sim.bounces;
@@ -263,7 +297,7 @@ export function mount(el, ctx = {}) {
     let sim, t0 = now, bi = 0;
     if (pendThrow && pendThrow.seat === seat) { // online: tiếp tục đúng cú tung của mình, chỉ đáp xuống mặt máy chủ gieo
       ({ sim, t0, bi } = pendThrow);
-      if (t0 + sim.duration - now < 220) { const e = sampleThrow(sim, now - t0); sim = simulateThrow({ x: e.x, y: e.y, bounds: yardOf(seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, gentle: true }); t0 = now; bi = 0; }
+      if (t0 + sim.duration - now < 220) { const e = sampleThrow(sim, now - t0); sim = throwFrom(seat, e.x, e.y, { gentle: true }); t0 = now; bi = 0; }
       pendThrow = null;
     } else { sim = makeThrow(seat, spec); sfx.play("do-xuc-xac", 0.6); } // tiếng tung: đúng 1 lần mỗi lần gieo
     const land = t0 + sim.duration;
@@ -304,7 +338,7 @@ export function mount(el, ctx = {}) {
   }
   function advanceOver() {
     if (net || lobby || g.phase !== "over" || busy()) return false;
-    g = restart(g);
+    g = withSeats(restart(g));
     resetView();
     msg = "Ván mới — lượt " + nameOf(shownSeat) + ": gieo xúc xắc";
     return true;
@@ -505,7 +539,7 @@ export function mount(el, ctx = {}) {
       if (now - pendThrow.at > 5000) pendThrow = null;
       else if (now >= pendThrow.t0 + pendThrow.sim.duration) {
         const e = pendThrow.sim.end;
-        pendThrow.sim = simulateThrow({ x: e.x, y: e.y, bounds: yardOf(pendThrow.seat), r: DIE_R, seed: (Math.random() * 2 ** 32) >>> 0, reduced, gentle: true });
+        pendThrow.sim = throwFrom(pendThrow.seat, e.x, e.y, { gentle: true });
         pendThrow.t0 = now; pendThrow.bi = 0;
       }
     }
@@ -549,7 +583,7 @@ export function mount(el, ctx = {}) {
     }
     let online = null;
     if (net && room) {
-      const list = room.players.map((p, i) => ({ seat: lobby ? g.seats[i] : p.seat, name: p.name, away: p.left ? "left" : p.connected ? "" : "away", me: i === room.you, host: i === room.host }));
+      const list = room.players.map((p, i) => ({ seat: lobby ? g.seats[i] : p.seat, name: p.name, away: p.left ? "left" : p.connected ? "" : "away", me: i === room.you, host: i === room.host, bot: !!p.bot, idx: i }));
       online = { code: room.code, host: room.you === room.host, count: room.players.length, me: list[room.you] ? list[room.you].seat : -1, list, left: room.deadline && !inbox.length ? Math.max(0, Math.ceil((room.deadline - Date.now() - (room.skew || 0)) / 1000)) : null };
     }
     return { lobby, players, rule: ruleKey, seats: g.seats, active: tray ? tray.seat : -1, cards, tray, msg, paused, muted: !!sdk.sound.muted, over, online, vsBot: !net, me: meSeat() };
@@ -866,7 +900,9 @@ export function mount(el, ctx = {}) {
     }
     if (d.idle && !d.held && throwsDone < 3) { // gợi ý 3 lần đầu
       c2.font = "800 15px 'Be Vietnam Pro', system-ui"; c2.textAlign = "center"; c2.textBaseline = "middle";
-      const yy = d.y + size * 0.72, txt = "KÉO ĐỂ TUNG";
+      // nhãn nằm dưới xúc xắc; nếu che ngựa trong lán thì đưa lên trên xúc xắc
+      const below = d.y + size * 0.72, covers = keepOut(currentSeat(g)).some((k) => Math.abs(k.x - d.x) < k.r + 50 && Math.abs(k.y - below) < k.r + 12);
+      const yy = covers ? d.y - size * 0.85 : below, txt = "KÉO ĐỂ TUNG";
       const tw = c2.measureText(txt).width + 18; c2.fillStyle = "rgba(0,0,0,.72)"; c2.fillRect(d.x - tw / 2, yy - 12, tw, 24);
       c2.fillStyle = PAL.gold; c2.fillText(txt, d.x, yy + 1);
     }
@@ -912,6 +948,8 @@ export function mount(el, ctx = {}) {
     get diceFlight() { return diceAnim && diceAnim.sim ? { seat: diceAnim.seat, face: diceAnim.face, duration: diceAnim.sim.duration, bounces: diceAnim.sim.bounces.length, start: diceAnim.sim.frames[0], end: diceAnim.sim.end, yard: yardOf(diceAnim.seat) } : null; },
     get botTurn() { return botTurn(); },
     get humanSeat() { return meSeat(); },
+    keepOut(seat) { return keepOut(seat); },
+    get restDie() { return restDie ? idleDie(restDie.seat) : null; },
     get artReady() { return art.ready; },
     get hudArtReady() { return !!(art.tray && art.trayGrey && art.podium); },
     get sfx() { return { loaded: sfx.loaded, state: sfx.state, log: sfx.log.slice() }; },

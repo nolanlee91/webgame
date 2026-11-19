@@ -3,7 +3,7 @@
 //   • cho tạo phòng / nhập mã phòng / chọn "Chơi với máy" (đấu với 1–3 máy, không cần mạng),
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi).
-import { mount } from "./game.js";
+import { mount } from "./game.js?v=bots1";
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
 const SEAT_KEY = "wgp.co-ca-ngua.seat";

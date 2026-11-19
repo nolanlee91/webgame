@@ -45,6 +45,8 @@ export function createHud(root, cb) {
           <button class="px-btn icon" data-act="copy" type="button" title="Sao chép link phòng" aria-label="Sao chép link phòng">${ic("copy-link").replace("px-ic", "")}</button></div>
         <div class="sec sec-n"><div class="lb">Số người</div>
           <div class="segs">${[2, 3, 4].map((n) => `<button class="px-btn seg" data-n="${n}" type="button" aria-pressed="false">${n} người</button>`).join("")}</div></div>
+        <div class="sec sec-color local-only" role="group" aria-labelledby="cnColorLb"><div class="lb" id="cnColorLb">Màu của bạn</div>
+          <div class="segs colors">${[0, 1, 2, 3].map((s) => `<button class="px-btn seg color" data-color="${s}" type="button" aria-pressed="false" style="${seatVars(s)}" title="Cầm phường ${NAMES[s]}"><i class="sw" aria-hidden="true"></i>${NAMES[s]}</button>`).join("")}</div></div>
         <div class="sec"><div class="lb">Chỗ ngồi</div><div class="rows">
           ${[0, 1, 2, 3].map((s) => `<div class="cn-row" data-seat="${s}" style="${seatVars(s)}"><canvas class="av" width="64" height="64"></canvas><span class="nm">${NAMES[s]}${s === 0 ? " " + ic("chu-phong") : ""}</span><span class="st"></span></div>`).join("")}
         </div></div>
@@ -77,9 +79,11 @@ export function createHud(root, cb) {
 
   // Bấm: chặn pointerdown lan xuống canvas; nút gọi lại game.
   root.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-act],[data-n],[data-rule]");
+    const b = e.target.closest("[data-act],[data-n],[data-rule],[data-color],[data-bot]");
     if (!b || b.disabled) return;
     if (b.dataset.n) return cb.onPlayers(Number(b.dataset.n));
+    if (b.dataset.color) return cb.onColor && cb.onColor(Number(b.dataset.color));
+    if (b.dataset.bot) return cb.onBot && cb.onBot(b.dataset.bot);
     if (b.dataset.rule) return cb.onRule(b.dataset.rule);
     const a = b.dataset.act;
     if (a === "mute") cb.onMute();
@@ -154,6 +158,7 @@ export function createHud(root, cb) {
     // phòng chờ
     root.querySelectorAll("[data-n]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.n) === v.players)));
     root.querySelectorAll("[data-rule]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rule === v.rule)));
+    root.querySelectorAll("[data-color]").forEach((b) => b.setAttribute("aria-pressed", String(!v.online && Number(b.dataset.color) === v.me)));
     if (!v.online) root.querySelectorAll(".cn-row").forEach((r) => {
       const s = Number(r.dataset.seat), on = v.seats.includes(s);
       r.classList.toggle("off", !on);
@@ -205,12 +210,15 @@ export function createHud(root, cb) {
     $(".host-only-note").textContent = o.host ? "" : "(chủ phòng chọn)";
     play.textContent = o.host ? "Bắt đầu" : "Chờ chủ phòng";
     play.disabled = !o.host || o.count < 2;
-    note.textContent = o.count < 2 ? "Gửi mã " + o.code + " (hoặc bấm nút chép link) cho bạn bè — cần ít nhất 2 người, tối đa 4." : o.host ? "Mọi người đã vào đủ thì bấm Bắt đầu." : "Mỗi người chơi trên máy của mình, theo lượt.";
+    note.textContent = o.count < 2 ? "Gửi mã " + o.code + " (hoặc bấm nút chép link) cho bạn bè, hoặc bấm “+ Bot” ở ghế trống — cần ít nhất 2 người, tối đa 4." : o.host ? "Mọi người đã vào đủ thì bấm Bắt đầu." : "Mỗi người chơi trên máy của mình, theo lượt.";
     root.querySelectorAll(".cn-row").forEach((r) => {
       const s = Number(r.dataset.seat), p = v.lobby ? o.list.find((x) => x.seat === s) : who(v, s);
       r.classList.toggle("off", !p);
-      r.querySelector(".nm").innerHTML = p ? esc(p.name) + (p.me ? " (Bạn)" : "") + (p.host ? " " + ic("chu-phong") : "") : NAMES[s];
-      r.querySelector(".st").innerHTML = !p ? "Đang chờ…" : p.away ? `${ic("mat-ket-noi")} Mất kết nối` : `${ic("san-sang")} Sẵn sàng`;
+      r.querySelector(".nm").innerHTML = p ? (p.bot ? "🤖 " : "") + esc(p.name) + (p.me ? " (Bạn)" : "") + (p.host ? " " + ic("chu-phong") : "") : NAMES[s];
+      const canBot = v.lobby && o.host; // chủ phòng: ghế trống ⇒ "+ Bot", ghế bot ⇒ "✕" để bớt
+      r.querySelector(".st").innerHTML = !p ? (canBot ? `<button class="px-btn mini" data-bot="add" type="button" aria-label="Thêm bot vào ghế trống">+ Bot</button>` : "Đang chờ…")
+        : p.bot ? "Máy" + (canBot ? ` <button class="px-btn mini" data-bot="${p.idx}" type="button" aria-label="Bớt ${esc(p.name)}">✕</button>` : "")
+        : p.away ? `${ic("mat-ket-noi")} Mất kết nối` : `${ic("san-sang")} Sẵn sàng`;
       r.querySelector(".st").classList.toggle("bad", !!(p && p.away));
     });
   }
