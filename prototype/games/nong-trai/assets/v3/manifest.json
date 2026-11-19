@@ -1,0 +1,2319 @@
+{
+  "version": 3,
+  "scale": 2,
+  "plotSize": 64,
+  "origin": "top-left",
+  "sheets": {
+    "buildings": {
+      "file": "buildings.webp",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 4,
+      "rows": 3,
+      "frames": [
+        {
+          "id": "nha-kho",
+          "x": 0,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "xuong-che-bien",
+          "x": 256,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "than-coi-xay",
+          "x": 512,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "canh-coi-xay",
+          "x": 768,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            128
+          ]
+        },
+        {
+          "id": "chuong-ga",
+          "x": 0,
+          "y": 256,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "chuong-bo",
+          "x": 256,
+          "y": 256,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "nha-kinh",
+          "x": 512,
+          "y": 256,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "bang-don-hang",
+          "x": 768,
+          "y": 256,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "gian-giao",
+          "x": 0,
+          "y": 512,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "lo-ban-ve",
+          "x": 256,
+          "y": 512,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            128
+          ]
+        },
+        {
+          "id": "bien-lang",
+          "x": 512,
+          "y": 512,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "xe-giao-hang",
+          "x": 768,
+          "y": 512,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        }
+      ],
+      "animations": {
+        "coi-xay": {
+          "body": 2,
+          "rotor": 3,
+          "rotorPivot": [
+            128,
+            128
+          ],
+          "bodyHub": [
+            114,
+            98
+          ]
+        }
+      }
+    },
+    "decor": {
+      "file": "decor.webp",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 4,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "den-long",
+          "x": 0,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "chau-hoa",
+          "x": 128,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bu-nhin",
+          "x": 256,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "ghe-tre",
+          "x": 384,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "gieng-da",
+          "x": 0,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "cong-tre",
+          "x": 128,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "dong-bi-ngo",
+          "x": 256,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "co-lau",
+          "x": 384,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        }
+      ]
+    },
+    "workshop": {
+      "file": "workshop.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "columns": 4,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "san-go-a",
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "san-go-b",
+          "x": 64,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "tuong-van-go",
+          "x": 128,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "chan-tuong",
+          "x": 192,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "cua-so",
+          "x": 0,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "ke-go",
+          "x": 64,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "bao-bot",
+          "x": 128,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        },
+        {
+          "id": "thung-go",
+          "x": 192,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            56
+          ]
+        }
+      ],
+      "fullBleed": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "machines": {
+      "file": "machines.webp",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "columns": 3,
+      "rows": 3,
+      "frames": [
+        {
+          "id": "bep-sen-idle",
+          "x": 0,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "bep-sen-run-1",
+          "x": 192,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "bep-sen-run-2",
+          "x": 384,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "coi-bot-idle",
+          "x": 0,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "coi-bot-run-1",
+          "x": 192,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "coi-bot-run-2",
+          "x": 384,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "lo-banh-idle",
+          "x": 0,
+          "y": 384,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "lo-banh-run-1",
+          "x": 192,
+          "y": 384,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "lo-banh-run-2",
+          "x": 384,
+          "y": 384,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      ],
+      "animations": {
+        "bep-sen": {
+          "idle": [
+            0
+          ],
+          "running": [
+            1,
+            2
+          ],
+          "frameMs": 240
+        },
+        "coi-bot": {
+          "idle": [
+            3
+          ],
+          "running": [
+            4,
+            5
+          ],
+          "frameMs": 240
+        },
+        "lo-banh": {
+          "idle": [
+            6
+          ],
+          "running": [
+            7,
+            8
+          ],
+          "frameMs": 240
+        }
+      }
+    },
+    "market": {
+      "file": "market.webp",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "columns": 3,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "quay-cho",
+          "x": 0,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "mai-bat",
+          "x": 192,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "bang-gia",
+          "x": 384,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "thung-rau",
+          "x": 0,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "gio-trai-cay",
+          "x": 192,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "can-dia",
+          "x": 384,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      ],
+      "counterRepeat": {
+        "frame": 0,
+        "suggestedStepX": 134
+      }
+    },
+    "npc": {
+      "file": "npc.webp",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 4,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "co-hai-idle-1",
+          "x": 0,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "co-hai-idle-2",
+          "x": 128,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "co-hai-vay-tay",
+          "x": 256,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "co-hai-chan-dung",
+          "x": 384,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            64
+          ]
+        },
+        {
+          "id": "chi-ba-idle-1",
+          "x": 0,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "chi-ba-idle-2",
+          "x": 128,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "chi-ba-vay-tay",
+          "x": 256,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "chi-ba-chan-dung",
+          "x": 384,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            64
+          ]
+        }
+      ],
+      "animations": {
+        "co-hai": {
+          "idle": [
+            0,
+            1
+          ],
+          "wave": [
+            2
+          ],
+          "portrait": 3,
+          "frameMs": 750
+        },
+        "chi-ba": {
+          "idle": [
+            4,
+            5
+          ],
+          "wave": [
+            6
+          ],
+          "portrait": 7,
+          "frameMs": 750
+        }
+      }
+    },
+    "items": {
+      "file": "items.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "columns": 8,
+      "rows": 4,
+      "frames": [
+        {
+          "id": "ca-rot",
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "ca-chua",
+          "x": 64,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "dau-tay",
+          "x": 128,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "ngo",
+          "x": 192,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bi-ngo",
+          "x": 256,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "lua",
+          "x": 320,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "mia",
+          "x": 384,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "hat-giong",
+          "x": 448,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "mut-dau",
+          "x": 0,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "sot-ca-chua",
+          "x": 64,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "nuoc-ep-ca-rot",
+          "x": 128,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "thuc-an-gia-suc",
+          "x": 192,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bot-gao",
+          "x": 256,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bap-rang",
+          "x": 320,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "banh-trung",
+          "x": 384,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "banh-bi-ngo",
+          "x": 448,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "trung-ga",
+          "x": 0,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "sua",
+          "x": 64,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bo",
+          "x": 128,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "pho-mai",
+          "x": 192,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "duong",
+          "x": 256,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "banh-flan",
+          "x": 320,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "van-go",
+          "x": 384,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "hop-dinh",
+          "x": 448,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "thung-son",
+          "x": 0,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "dong-xu",
+          "x": 64,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "sao-xp",
+          "x": 128,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "kho",
+          "x": 192,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bua-xay-dung",
+          "x": 256,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "bang-don",
+          "x": 320,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "chuong-thong-bao",
+          "x": 384,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "o-khoa",
+          "x": 448,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        }
+      ]
+    },
+    "market-stall": {
+      "file": "market-stall.webp",
+      "frameWidth": 384,
+      "frameHeight": 384,
+      "columns": 1,
+      "rows": 1,
+      "frames": [
+        {
+          "id": "quay-cho-hoan-chinh",
+          "x": 0,
+          "y": 0,
+          "width": 384,
+          "height": 384,
+          "anchor": [
+            192,
+            338
+          ]
+        }
+      ],
+      "repeatStepX": 264,
+      "postCentersX": [
+        60,
+        324
+      ],
+      "openingY": [
+        146,
+        240
+      ],
+      "keeperLayer": {
+        "sheet": "npc-market",
+        "drawRect": [
+          127,
+          130,
+          130,
+          130
+        ],
+        "drawOrder": "Draw keeper before stall"
+      }
+    },
+    "npc-market": {
+      "file": "npc-market.webp",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "columns": 1,
+      "rows": 1,
+      "frames": [
+        {
+          "id": "co-hai-sau-quay",
+          "x": 0,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      ]
+    },
+    "npc-2": {
+      "file": "npc-2.webp",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 4,
+      "rows": 2,
+      "frames": [
+        {
+          "id": "bac-tu-idle-1",
+          "x": 0,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bac-tu-idle-2",
+          "x": 128,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bac-tu-vay-tay",
+          "x": 256,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bac-tu-chan-dung",
+          "x": 384,
+          "y": 0,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            64
+          ]
+        },
+        {
+          "id": "anh-ut-idle-1",
+          "x": 0,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "anh-ut-idle-2",
+          "x": 128,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "anh-ut-vay-tay",
+          "x": 256,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "anh-ut-chan-dung",
+          "x": 384,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            64
+          ]
+        }
+      ],
+      "animations": {
+        "bac-tu": {
+          "idle": [
+            0,
+            1
+          ],
+          "wave": [
+            2
+          ],
+          "portrait": 3,
+          "frameMs": 750
+        },
+        "anh-ut": {
+          "idle": [
+            4,
+            5
+          ],
+          "wave": [
+            6
+          ],
+          "portrait": 7,
+          "frameMs": 750
+        }
+      }
+    },
+    "ui-kit": {
+      "file": "ui-kit.webp",
+      "width": 384,
+      "height": 384,
+      "gridSlotWidth": 96,
+      "gridSlotHeight": 96,
+      "columns": 4,
+      "rows": 4,
+      "frames": [
+        {
+          "id": "bang-go",
+          "x": 0,
+          "y": 0,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            48
+          ],
+          "slice": {
+            "top": 16,
+            "right": 14,
+            "bottom": 16,
+            "left": 14
+          }
+        },
+        {
+          "id": "phieu-don",
+          "x": 96,
+          "y": 0,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            48
+          ],
+          "slice": {
+            "top": 26,
+            "right": 14,
+            "bottom": 12,
+            "left": 24
+          }
+        },
+        {
+          "id": "the-cong-thuc",
+          "x": 192,
+          "y": 0,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            48
+          ],
+          "slice": {
+            "top": 14,
+            "right": 14,
+            "bottom": 14,
+            "left": 14
+          }
+        },
+        {
+          "id": "hang-cho-trong",
+          "x": 304,
+          "y": 16,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "hang-cho-dang-chay",
+          "x": 16,
+          "y": 112,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "hang-cho-xong",
+          "x": 112,
+          "y": 112,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "nut-thuong",
+          "x": 192,
+          "y": 120,
+          "width": 96,
+          "height": 48,
+          "anchor": [
+            48,
+            24
+          ],
+          "slice": {
+            "top": 10,
+            "right": 14,
+            "bottom": 10,
+            "left": 14
+          }
+        },
+        {
+          "id": "nut-nhan",
+          "x": 288,
+          "y": 120,
+          "width": 96,
+          "height": 48,
+          "anchor": [
+            48,
+            24
+          ],
+          "slice": {
+            "top": 10,
+            "right": 14,
+            "bottom": 10,
+            "left": 14
+          }
+        },
+        {
+          "id": "nut-khoa",
+          "x": 0,
+          "y": 216,
+          "width": 96,
+          "height": 48,
+          "anchor": [
+            48,
+            24
+          ],
+          "slice": {
+            "top": 10,
+            "right": 14,
+            "bottom": 10,
+            "left": 14
+          }
+        },
+        {
+          "id": "tien-do-khung",
+          "x": 96,
+          "y": 228,
+          "width": 96,
+          "height": 24,
+          "anchor": [
+            48,
+            12
+          ],
+          "repeatX": {
+            "leftCap": 8,
+            "rightCap": 8
+          }
+        },
+        {
+          "id": "tien-do-ruot",
+          "x": 192,
+          "y": 234,
+          "width": 96,
+          "height": 12,
+          "anchor": [
+            48,
+            6
+          ],
+          "repeatX": {
+            "leftCap": 6,
+            "rightCap": 6
+          }
+        },
+        {
+          "id": "tab-nong-san",
+          "x": 304,
+          "y": 220,
+          "width": 64,
+          "height": 40,
+          "anchor": [
+            32,
+            20
+          ]
+        },
+        {
+          "id": "tab-chan-nuoi",
+          "x": 16,
+          "y": 316,
+          "width": 64,
+          "height": 40,
+          "anchor": [
+            32,
+            20
+          ]
+        },
+        {
+          "id": "tab-thanh-pham",
+          "x": 112,
+          "y": 316,
+          "width": 64,
+          "height": 40,
+          "anchor": [
+            32,
+            20
+          ]
+        },
+        {
+          "id": "tab-vat-lieu",
+          "x": 208,
+          "y": 316,
+          "width": 64,
+          "height": 40,
+          "anchor": [
+            32,
+            20
+          ]
+        },
+        {
+          "id": "tab-dac-biet",
+          "x": 304,
+          "y": 316,
+          "width": 64,
+          "height": 40,
+          "anchor": [
+            32,
+            20
+          ]
+        }
+      ]
+    },
+    "fx": {
+      "file": "fx.webp",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "columns": 4,
+      "rows": 6,
+      "frames": [
+        {
+          "id": "xu-bay-1",
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "xu-bay-2",
+          "x": 64,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "xu-bay-3",
+          "x": 128,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "xu-bay-4",
+          "x": 192,
+          "y": 0,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "lap-lanh-1",
+          "x": 0,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "lap-lanh-2",
+          "x": 64,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "lap-lanh-3",
+          "x": 128,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "lap-lanh-4",
+          "x": 192,
+          "y": 64,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "nuoc-tuoi-1",
+          "x": 0,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "nuoc-tuoi-2",
+          "x": 64,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "nuoc-tuoi-3",
+          "x": 128,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "nuoc-tuoi-4",
+          "x": 192,
+          "y": 128,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "khoi-xay-dung-1",
+          "x": 0,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "khoi-xay-dung-2",
+          "x": 64,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "khoi-xay-dung-3",
+          "x": 128,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "khoi-xay-dung-4",
+          "x": 192,
+          "y": 192,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "giao-don-1",
+          "x": 0,
+          "y": 256,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "giao-don-2",
+          "x": 64,
+          "y": 256,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "giao-don-3",
+          "x": 128,
+          "y": 256,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "giao-don-4",
+          "x": 192,
+          "y": 256,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "thanh-am-vat-nuoi-1",
+          "x": 0,
+          "y": 320,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "thanh-am-vat-nuoi-2",
+          "x": 64,
+          "y": 320,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "thanh-am-vat-nuoi-3",
+          "x": 128,
+          "y": 320,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "thanh-am-vat-nuoi-4",
+          "x": 192,
+          "y": 320,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ]
+        }
+      ],
+      "animations": {
+        "xu-bay": {
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameMs": 90,
+          "loop": false
+        },
+        "lap-lanh": {
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameMs": 90,
+          "loop": false
+        },
+        "nuoc-tuoi": {
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameMs": 90,
+          "loop": false
+        },
+        "khoi-xay-dung": {
+          "frames": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "frameMs": 90,
+          "loop": false
+        },
+        "giao-don": {
+          "frames": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "frameMs": 90,
+          "loop": false
+        },
+        "thanh-am-vat-nuoi": {
+          "frames": [
+            20,
+            21,
+            22,
+            23
+          ],
+          "frameMs": 90,
+          "loop": false
+        }
+      }
+    },
+    "animals": {
+      "file": "animals.webp",
+      "width": 768,
+      "height": 304,
+      "columns": 6,
+      "rows": 3,
+      "frames": [
+        {
+          "id": "ga-idle-1",
+          "x": 16,
+          "y": 32,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            84
+          ]
+        },
+        {
+          "id": "ga-idle-2",
+          "x": 144,
+          "y": 32,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            84
+          ]
+        },
+        {
+          "id": "ga-an-1",
+          "x": 272,
+          "y": 32,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            84
+          ]
+        },
+        {
+          "id": "ga-an-2",
+          "x": 400,
+          "y": 32,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            84
+          ]
+        },
+        {
+          "id": "ga-di-trai-1",
+          "x": 528,
+          "y": 32,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            84
+          ]
+        },
+        {
+          "id": "ga-di-trai-2",
+          "x": 656,
+          "y": 32,
+          "width": 96,
+          "height": 96,
+          "anchor": [
+            48,
+            84
+          ]
+        },
+        {
+          "id": "bo-idle-1",
+          "x": 0,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bo-idle-2",
+          "x": 128,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bo-an-1",
+          "x": 256,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bo-an-2",
+          "x": 384,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bo-di-trai-1",
+          "x": 512,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bo-di-trai-2",
+          "x": 640,
+          "y": 128,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bong-bong-trung",
+          "x": 40,
+          "y": 256,
+          "width": 48,
+          "height": 48,
+          "anchor": [
+            24,
+            24
+          ]
+        },
+        {
+          "id": "bong-bong-sua",
+          "x": 168,
+          "y": 256,
+          "width": 48,
+          "height": 48,
+          "anchor": [
+            24,
+            24
+          ]
+        },
+        {
+          "id": "bong-bong-doi",
+          "x": 296,
+          "y": 256,
+          "width": 48,
+          "height": 48,
+          "anchor": [
+            24,
+            24
+          ]
+        }
+      ],
+      "animations": {
+        "ga": {
+          "idle": [
+            0,
+            1
+          ],
+          "eat": [
+            2,
+            3
+          ],
+          "walkLeft": [
+            4,
+            5
+          ],
+          "frameMs": 180
+        },
+        "bo": {
+          "idle": [
+            6,
+            7
+          ],
+          "eat": [
+            8,
+            9
+          ],
+          "walkLeft": [
+            10,
+            11
+          ],
+          "frameMs": 180
+        }
+      }
+    },
+    "village": {
+      "file": "village.webp",
+      "width": 768,
+      "height": 768,
+      "columns": 3,
+      "rows": 3,
+      "frames": [
+        {
+          "id": "tiem-banh-bac-tu",
+          "x": 0,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "nha-co-hai",
+          "x": 256,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "nha-chi-ba",
+          "x": 512,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "kho-xe-anh-ut",
+          "x": 0,
+          "y": 256,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "duong-lang",
+          "x": 256,
+          "y": 256,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ],
+          "repeatX": true
+        },
+        {
+          "id": "mep-co",
+          "x": 512,
+          "y": 256,
+          "width": 64,
+          "height": 64,
+          "anchor": [
+            32,
+            32
+          ],
+          "repeatX": true
+        },
+        {
+          "id": "tre",
+          "x": 0,
+          "y": 512,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "bui-chuoi",
+          "x": 256,
+          "y": 512,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        },
+        {
+          "id": "cot-den-long",
+          "x": 512,
+          "y": 512,
+          "width": 128,
+          "height": 128,
+          "anchor": [
+            64,
+            112
+          ]
+        }
+      ]
+    },
+    "buildings-2": {
+      "file": "buildings-2.webp",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 4,
+      "rows": 1,
+      "frames": [
+        {
+          "id": "nha-kho-2",
+          "x": 0,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "xuong-che-bien-2",
+          "x": 256,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "chuong-ga-2",
+          "x": 512,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        },
+        {
+          "id": "nha-kinh-2",
+          "x": 768,
+          "y": 0,
+          "width": 256,
+          "height": 256,
+          "anchor": [
+            128,
+            226
+          ]
+        }
+      ]
+    },
+    "machines-2": {
+      "file": "machines-2.webp",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "columns": 3,
+      "rows": 3,
+      "frames": [
+        {
+          "id": "may-bo-sua-idle",
+          "x": 0,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "may-bo-sua-run-1",
+          "x": 192,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "may-bo-sua-run-2",
+          "x": 384,
+          "y": 0,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "noi-duong-idle",
+          "x": 0,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "noi-duong-run-1",
+          "x": 192,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "noi-duong-run-2",
+          "x": 384,
+          "y": 192,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "lo-banh-2-idle",
+          "x": 0,
+          "y": 384,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "lo-banh-2-run-1",
+          "x": 192,
+          "y": 384,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        {
+          "id": "lo-banh-2-run-2",
+          "x": 384,
+          "y": 384,
+          "width": 192,
+          "height": 192,
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      ],
+      "animations": {
+        "may-bo-sua": {
+          "idle": [
+            0
+          ],
+          "running": [
+            1,
+            2
+          ],
+          "frameMs": 240
+        },
+        "noi-duong": {
+          "idle": [
+            3
+          ],
+          "running": [
+            4,
+            5
+          ],
+          "frameMs": 240
+        },
+        "lo-banh-2": {
+          "idle": [
+            6
+          ],
+          "running": [
+            7,
+            8
+          ],
+          "frameMs": 240
+        }
+      }
+    }
+  }
+}

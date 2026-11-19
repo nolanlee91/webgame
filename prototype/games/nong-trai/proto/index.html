@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Nông Trại 2.0 — prototype duyệt hình ảnh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <style>
+    :root { --bg: #17110b; --panel: #2a1f15; --ink: #f6ead0; --soft: #c9b48f; --gold: #ffd45a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 600 14px/1.4 "Be Vietnam Pro", system-ui, sans-serif; }
+    header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 10px 16px; }
+    header h1 { margin: 0; font-size: 17px; color: var(--gold); }
+    header p { margin: 0; color: var(--soft); font-size: 13px; }
+    .bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 8px; align-items: center; }
+    .bar span { color: var(--soft); margin-right: 4px; }
+    button { font: 800 13px "Be Vietnam Pro", sans-serif; color: var(--ink); background: var(--panel); border: 2px solid #5a4126; padding: 8px 12px; min-height: 40px; cursor: pointer; }
+    button[aria-pressed="true"] { background: var(--gold); color: #2b1c08; border-color: #8a6a1e; }
+    main { padding: 0 16px 16px; }
+    canvas { display: block; width: 100%; max-width: min(1200px, calc((100vh - 150px) * 1.6)); aspect-ratio: 960 / 600; margin: 0 auto; image-rendering: pixelated; background: #0c0905; box-shadow: 0 0 0 3px #000, 0 0 0 6px #5a4126; }
+    #status { text-align: center; color: var(--soft); font-size: 12px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Nông Trại 2.0 · prototype duyệt Art Direction</h1>
+    <p>Không phải game hoàn chỉnh — chỉ ghép sprite thật thành 3 khu để duyệt hình ảnh và bố cục. Tiến trình không được lưu.</p>
+  </header>
+  <div class="bar" role="group" aria-label="Khu vực">
+    <span>Khu:</span>
+    <button data-scene="farm" aria-pressed="true">Nông trại chính</button>
+    <button data-scene="workshop" aria-pressed="false">Xưởng chế biến</button>
+    <button data-scene="market" aria-pressed="false">Khu chợ</button>
+  </div>
+  <div class="bar" role="group" aria-label="Trạng thái công trình">
+    <span>Trạng thái công trình:</span>
+    <button data-b="locked" aria-pressed="false">Khoá</button>
+    <button data-b="avail" aria-pressed="false">Có thể xây</button>
+    <button data-b="building" aria-pressed="false">Đang xây</button>
+    <button data-b="done" aria-pressed="true">Hoàn thành</button>
+  </div>
+  <main>
+    <canvas id="cv" width="960" height="600" aria-label="Cảnh prototype"></canvas>
+    <p id="status">Đang nạp ảnh…</p>
+  </main>
+  <script type="module" src="proto.js"></script>
+</body>
+</html>
