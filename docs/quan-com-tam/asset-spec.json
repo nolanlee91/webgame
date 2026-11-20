@@ -1,0 +1,882 @@
+{
+  "_doc": "Hợp đồng asset Quán Cơm Tấm. Kiểm: python -I tools/asset-check/check_assets.py docs/quan-com-tam/asset-spec.json --preview <thư mục>. Luật chung: docs/tap-lam-chu/PLAYBOOK.md §1–§2 và AGENTS.md. Mẫu art: prototype/homepage/assets/thumbs/quan-com-tam.webp. Mô tả từng sheet, bảng màu, toạ độ đề xuất: docs/quan-com-tam/ART-DIRECTION.md. Đợt 1 ('wave': 1) đủ để code M1–M2; đợt 2 ('wave': 2) cho M3–M5. Sheet đợt 2 đang để 'optional' (script chỉ cảnh báo khi thiếu), khi gửi đợt 2 thì bỏ 'optional'.",
+  "game": "quan-com-tam",
+  "root": "prototype/games/quan-com-tam",
+  "manifest": "../../../docs/quan-com-tam/asset-manifest.json",
+  "scene": [
+    1280,
+    720
+  ],
+  "previewBackground": "assets/street-scene.webp",
+  "defaults": {
+    "grid": 2,
+    "hardAlpha": true
+  },
+  "figureHeightTolerance": 0.08,
+  "sheets": [
+    {
+      "file": "assets/street-scene.webp",
+      "wave": 1
+    },
+    {
+      "file": "assets/street-foreground.webp",
+      "wave": 1
+    },
+    {
+      "file": "assets/quan-scene.webp",
+      "wave": 1
+    },
+    {
+      "file": "assets/quan-foreground.webp",
+      "wave": 1
+    },
+    {
+      "file": "assets/title-art.webp",
+      "wave": 1
+    },
+    {
+      "file": "assets/characters.webp",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        235,
+        275
+      ],
+      "frames": [
+        "{owner,helper,office,worker,worker2,student,student2,shipper,regular,reviewer,driver,nurse,tourist}"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/customer-walk-cycles.webp",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        235,
+        275
+      ],
+      "frames": [
+        "{office,worker,worker2,student,student2,shipper,regular,reviewer,driver,nurse,tourist}-walk-{1..4}"
+      ],
+      "animations": [
+        "office-walk",
+        "worker-walk",
+        "worker2-walk",
+        "student-walk",
+        "student2-walk",
+        "shipper-walk",
+        "regular-walk",
+        "reviewer-walk",
+        "driver-walk",
+        "nurse-walk",
+        "tourist-walk"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/customer-reactions.webp",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        235,
+        275
+      ],
+      "frames": [
+        "{office,worker,worker2,student,student2,shipper,regular,reviewer,driver,nurse,tourist}-{waiting,happy,impatient}"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/customer-actions.webp",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        235,
+        275
+      ],
+      "frames": [
+        "{office,worker,worker2,student,student2,shipper,regular,reviewer,driver,nurse,tourist}-{order,surprised}-{1..2}"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/customer-seated.webp",
+      "_note": "Khách NGỒI trên ghế nhựa thấp, vẽ luôn cái ghế trong frame, nhìn 3/4 quay sang PHẢI (về phía bàn). Code tự lật ngang cho ghế bên phải bàn. Anchor = giữa chân ghế chạm sàn. Cao từ chân ghế tới đỉnh đầu 190–232 px (người 1,65 m ngồi ghế 40 cm ≈ 210 px). Shipper không ngồi. roleMap tách nhóm chiều cao ngồi khỏi dáng đứng của cùng vai.",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        190,
+        232
+      ],
+      "roleMap": {
+        "office": "office-sit",
+        "worker": "worker-sit",
+        "worker2": "worker2-sit",
+        "student": "student-sit",
+        "student2": "student2-sit",
+        "regular": "regular-sit",
+        "reviewer": "reviewer-sit",
+        "driver": "driver-sit",
+        "nurse": "nurse-sit",
+        "tourist": "tourist-sit"
+      },
+      "frames": [
+        "{office,worker,worker2,student,student2,regular,reviewer,driver,nurse,tourist}-sit-{eat-1,eat-2,wait,call,happy,annoyed}"
+      ],
+      "animations": [
+        "office-sit-eat",
+        "worker-sit-eat",
+        "worker2-sit-eat",
+        "student-sit-eat",
+        "student2-sit-eat",
+        "regular-sit-eat",
+        "reviewer-sit-eat",
+        "driver-sit-eat",
+        "nurse-sit-eat",
+        "tourist-sit-eat"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/owner-scene.webp",
+      "_note": "Cô chủ quán (khăn chàm, tạp dề, khăn trắng vắt vai) như thumbnail. grill = gắp lật sườn bằng kẹp; fan = quạt mo; plate = xới cơm, bày dĩa; carry = bưng dĩa đi; serve = đặt dĩa xuống bàn; pour = rót trà đá; wipe = lau bàn; box = đóng hộp mang về.",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        235,
+        275
+      ],
+      "frames": [
+        "owner-idle-{1..2}",
+        "owner-{grill,fan,plate,walk,carry,wipe}-{1..4}",
+        "owner-{serve,pour,box}-{1..2}"
+      ],
+      "animations": [
+        "owner-idle",
+        "owner-grill",
+        "owner-fan",
+        "owner-plate",
+        "owner-walk",
+        "owner-carry",
+        "owner-wipe",
+        "owner-serve",
+        "owner-pour",
+        "owner-box"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/helper-scene.webp",
+      "_note": "Phụ bàn Bông (mở cấp 9). Cùng một người với chân dung 'bong' ở drama-portraits-hd.",
+      "role": "character",
+      "cell": [
+        216,
+        288
+      ],
+      "anchor": [
+        108,
+        262
+      ],
+      "figureHeight": [
+        235,
+        275
+      ],
+      "frames": [
+        "helper-idle-{1..2}",
+        "helper-{walk,carry,wipe}-{1..4}",
+        "helper-{serve,pour,clear}-{1..2}"
+      ],
+      "animations": [
+        "helper-idle",
+        "helper-walk",
+        "helper-carry",
+        "helper-wipe",
+        "helper-serve",
+        "helper-pour",
+        "helper-clear"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/grill.webp",
+      "_note": "Bếp than dài nhìn 3/4, vỉ nướng 6 chỗ chia 3 vùng (trái nóng, giữa vừa, phải giữ ấm). cold = than nguội; low/mid/high = than đỏ ít/vừa/rực; ash = hết than (tro xám); flare = lửa bùng khi mỡ nhỏ xuống; smoke = khói dày khi quạt. Dùng chung cho bếp 1 và bếp 2.",
+      "cell": [
+        320,
+        192
+      ],
+      "anchor": [
+        160,
+        176
+      ],
+      "frames": [
+        "grill-{cold,low,mid,high,ash}",
+        "grill-flare-{1..3}",
+        "grill-smoke-{1..3}"
+      ],
+      "animations": [
+        "grill-flare",
+        "grill-smoke"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/grill-items.webp",
+      "_note": "Món trên vỉ, nhìn từ trên xuống chéo nhẹ. raw → half (tái, còn hồng) → done (vàng nâu, vân vỉ) → charred (cháy cạnh, mép đen giòn, vẫn ngon) → burnt (đen). flip-1..2 = đang lật (miếng thịt nghiêng lên). egg-* là trứng ốp la trong chảo nhỏ: runny = lòng đào, set = lòng vừa, hard = chín kỹ.",
+      "cell": [
+        96,
+        64
+      ],
+      "anchor": [
+        48,
+        52
+      ],
+      "frames": [
+        "{suon,suon-non,ga,lap-xuong,dau-hu}-{raw,half,done,charred,burnt}",
+        "{suon,suon-non,ga,lap-xuong,dau-hu}-flip-{1..2}",
+        "egg-{raw,runny,set,hard,burnt}"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/plate-layers.webp",
+      "_note": "Mọi lớp vẽ trên CÙNG một khung dĩa (dĩa sứ trắng viền xanh, góc 3/4) hoặc cùng khung hộp giấy, để chồng khít không cần dời. Thứ tự lớp: ART-DIRECTION.md mục 5.",
+      "cell": [
+        160,
+        192
+      ],
+      "anchor": [
+        80,
+        174
+      ],
+      "frames": [
+        "plate-{dia,dia-dirty}",
+        "box-{open,closed,bag}",
+        "com",
+        "com-them",
+        "mo-hanh",
+        "hanh-phi",
+        "suon-{half,done,charred,burnt}",
+        "{suon-non,ga}-{done,charred}",
+        "lap-xuong",
+        "dau-hu",
+        "{bi,bi-chay,cha,cha-chay}",
+        "trung-{runny,set,hard}",
+        "do-chua",
+        "dua-leo",
+        "ca-chua",
+        "nuoc-mam-chan",
+        "chen-nuoc-mam",
+        "bich-nuoc-mam",
+        "ot",
+        "chen-canh",
+        "ngo-rac"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/equipment.webp",
+      "cell": [
+        192,
+        192
+      ],
+      "anchor": [
+        96,
+        168
+      ],
+      "frames": [
+        "rice-cooker-{empty,ready,low,broken}",
+        "rice-cooker-cooking-{1..3}",
+        "rice-cooker-big-{empty,ready,low}",
+        "rice-cooker-big-cooking-{1..3}",
+        "egg-pan-idle",
+        "egg-pan-fry-{1..2}",
+        "steamer-idle",
+        "steamer-steam-{1..3}",
+        "steamer-tray-{raw,done}",
+        "soup-pot-idle",
+        "soup-pot-steam-{1..2}",
+        "mo-hanh-pot-{full,low,empty}",
+        "tea-cooler-{full,low}",
+        "charcoal-sack-{full,low,empty}",
+        "palm-fan",
+        "electric-blower-off",
+        "electric-blower-on-{1..2}",
+        "plate-stack-{full,low,empty}",
+        "wash-tub-{empty,half,full}",
+        "box-stack",
+        "sauce-jar",
+        "chili-jar",
+        "pickle-jar",
+        "cucumber-tray",
+        "bi-tray",
+        "suon-tray",
+        "cash-tin",
+        "ledger",
+        "bag-hook",
+        "smoke-hood",
+        "water-can"
+      ],
+      "animations": [
+        "rice-cooker-cooking",
+        "rice-cooker-big-cooking",
+        "egg-pan-fry",
+        "steamer-steam",
+        "soup-pot-steam",
+        "electric-blower-on"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/tables.webp",
+      "_note": "Bàn nhựa thấp + KHÔNG kèm ghế (ghế rời ở table-items). table2 = bàn vuông 2 chỗ (ngồi hai bên trái / phải); table4 = bàn chữ nhật 4 chỗ. clean = trống sạch; set = đã bày ống đũa, hũ nước mắm, hộp khăn giấy; dirty = dĩa dơ, ly trà, khăn giấy vo; wet = vừa lau, vệt nước sáng. Mặt bàn cao ~120 px so với chân bàn (anchor).",
+      "cell": [
+        320,
+        224
+      ],
+      "anchor": [
+        160,
+        208
+      ],
+      "frames": [
+        "{table2,table4}-{clean,set,dirty,wet}"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/table-items.webp",
+      "_note": "Đồ đặt trên mặt bàn (anchor = điểm chạm mặt bàn) và ghế trống (anchor = chân ghế). plate-eating = dĩa đang ăn trên bàn (đầy / còn nửa / sạch trơn).",
+      "cell": [
+        96,
+        96
+      ],
+      "anchor": [
+        48,
+        84
+      ],
+      "frames": [
+        "stool-{red,blue}",
+        "plate-eating-{full,half,empty}",
+        "box-eating",
+        "tea-glass-{full,half,empty}",
+        "tea-pitcher",
+        "khan-lanh",
+        "bill-tray",
+        "dirty-stack",
+        "chen-canh-table"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/ingredients.webp",
+      "cell": [
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "frames": [
+        "{gao-tam,suon,suon-non,ga,lap-xuong,dau-hu}",
+        "{bi,bi-chay,cha,cha-chay,trung}",
+        "{do-chua,dua-leo,ca-chua,hanh-la,mo-heo,nuoc-mam,nuoc-tuong,ot,rau-canh}",
+        "{tra,da,than,gas,hop,tui,khan-lanh,dia}"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/bills.webp",
+      "cell": [
+        96,
+        48
+      ],
+      "anchor": [
+        48,
+        24
+      ],
+      "frames": [
+        "bill-{1,2,5,10,20,50,100,200,500}k",
+        "coin-stack",
+        "slip-{blank,paid,ghi-so}",
+        "qr-card"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/fx.webp",
+      "cell": [
+        96,
+        96
+      ],
+      "anchor": [
+        48,
+        48
+      ],
+      "frames": [
+        "smoke-puff-{1..3}",
+        "sizzle-{1..3}",
+        "flame-{1..2}",
+        "steam-{1..3}",
+        "sparkle-{1..3}",
+        "coin-fly-{1..3}",
+        "ding-{1..2}",
+        "wipe-shine-{1..2}",
+        "pour-{1..2}"
+      ],
+      "animations": [
+        "smoke-puff",
+        "sizzle",
+        "flame",
+        "steam",
+        "sparkle",
+        "coin-fly",
+        "ding",
+        "wipe-shine",
+        "pour"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/ui-icons.webp",
+      "cell": [
+        48,
+        48
+      ],
+      "anchor": [
+        24,
+        42
+      ],
+      "frames": [
+        "coin",
+        "star",
+        "star-empty",
+        "follower",
+        "buzz",
+        "xp",
+        "clock",
+        "sound-on",
+        "sound-off",
+        "pause",
+        "help",
+        "journal",
+        "stock",
+        "grill",
+        "flip",
+        "fan",
+        "charcoal",
+        "rice",
+        "plate",
+        "tea",
+        "wipe",
+        "table",
+        "takeaway",
+        "ticket",
+        "bill",
+        "ledger",
+        "smoke",
+        "check",
+        "cross",
+        "mission",
+        "upgrade",
+        "decor",
+        "reviews",
+        "level",
+        "preorder"
+      ],
+      "wave": 1
+    },
+    {
+      "file": "assets/owner-actions-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        320,
+        320
+      ],
+      "anchor": [
+        160,
+        316
+      ],
+      "frames": [
+        "idle-{1..2}",
+        "{grill,fan,plate,pour,box,bill}-{1..4}"
+      ],
+      "animations": [
+        "idle",
+        "grill",
+        "fan",
+        "plate",
+        "pour",
+        "box",
+        "bill"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/plate-layers-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        320,
+        384
+      ],
+      "anchor": [
+        160,
+        348
+      ],
+      "frames": [
+        "plate-{dia,dia-dirty}",
+        "box-{open,closed,bag}",
+        "com",
+        "com-them",
+        "mo-hanh",
+        "hanh-phi",
+        "suon-{half,done,charred,burnt}",
+        "{suon-non,ga}-{done,charred}",
+        "lap-xuong",
+        "dau-hu",
+        "{bi,bi-chay,cha,cha-chay}",
+        "trung-{runny,set,hard}",
+        "do-chua",
+        "dua-leo",
+        "ca-chua",
+        "nuoc-mam-chan",
+        "chen-nuoc-mam",
+        "bich-nuoc-mam",
+        "ot",
+        "chen-canh",
+        "ngo-rac"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/grill-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        640,
+        320
+      ],
+      "anchor": [
+        320,
+        304
+      ],
+      "frames": [
+        "grill-hd-{cold,low,mid,high,ash}",
+        "grill-hd-flare-{1..2}"
+      ],
+      "animations": [
+        "grill-hd-flare"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/grill-items-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        192,
+        128
+      ],
+      "anchor": [
+        96,
+        104
+      ],
+      "frames": [
+        "{suon,suon-non,ga,lap-xuong,dau-hu}-{raw,half,done,charred,burnt}",
+        "{suon,suon-non,ga,lap-xuong,dau-hu}-flip-{1..2}",
+        "egg-{raw,runny,set,hard,burnt}"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/portraits-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        384,
+        320
+      ],
+      "anchor": [
+        192,
+        308
+      ],
+      "frames": [
+        "{owner,office,worker,worker2,student,student2,shipper,regular,reviewer,driver,nurse,tourist}"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/portrait-expressions-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        384,
+        320
+      ],
+      "anchor": [
+        192,
+        308
+      ],
+      "frames": [
+        "{office,worker,worker2,student,student2,shipper,regular,reviewer,driver,nurse,tourist}-{waiting,happy,sheepish,annoyed,surprised}",
+        "owner-{neutral,happy,concerned,surprised,proud}"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/drama-portraits-hd.webp",
+      "optional": true,
+      "grid": 1,
+      "cell": [
+        384,
+        320
+      ],
+      "anchor": [
+        192,
+        308
+      ],
+      "frames": [
+        "{me,chu-tu,anh-sau,co-ba,chu-hoa,co-lan,anh-quang,bep-vu,mai-an-dem,bong,anh-hung,chi-thu}-{neutral,happy,annoyed,surprised}"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/weather-fx.webp",
+      "optional": true,
+      "cell": [
+        640,
+        360
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "hardAlpha": false,
+      "frames": [
+        "rain-{1..4}",
+        "lightning-{1..2}",
+        "flood-{1..2}",
+        "smoke-{1..3}",
+        "power-cut-glow"
+      ],
+      "animations": [
+        "rain",
+        "lightning",
+        "flood",
+        "smoke"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/fixtures.webp",
+      "optional": true,
+      "cell": [
+        384,
+        256
+      ],
+      "anchor": [
+        192,
+        240
+      ],
+      "frames": [
+        "glass-case-{empty,low,full}",
+        "signboard-{1..3}",
+        "awning-street",
+        "lantern-string",
+        "menu-board",
+        "takeaway-shelf",
+        "helper-station",
+        "wash-station",
+        "queue-bench"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/decor.webp",
+      "optional": true,
+      "cell": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "frames": [
+        "bougainvillea-pot",
+        "red-lantern",
+        "paper-lantern",
+        "fairy-lights",
+        "ceramic-jar",
+        "chalk-menu",
+        "wall-calendar",
+        "old-radio",
+        "wall-fan",
+        "old-tv",
+        "bird-cage",
+        "banana-plant",
+        "award-frame",
+        "neon-sign"
+      ],
+      "wave": 2
+    },
+    {
+      "file": "assets/journal-card.webp",
+      "optional": true,
+      "cell": [
+        1080,
+        1350
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "frames": [
+        "journal-card"
+      ],
+      "wave": 2
+    }
+  ],
+  "placements": [
+    "owner",
+    "helper-home",
+    "grill",
+    "grill-2",
+    "glass-case",
+    "rice-cooker",
+    "rice-cooker-2",
+    "egg-pan",
+    "steamer",
+    "soup-pot",
+    "mo-hanh-pot",
+    "tea-cooler",
+    "charcoal-sack",
+    "electric-blower",
+    "smoke-hood",
+    "plate-stack",
+    "wash-tub",
+    "box-stack",
+    "sauce-jar",
+    "chili-jar",
+    "pickle-jar",
+    "cucumber-tray",
+    "bi-tray",
+    "suon-tray",
+    "cash-tin",
+    "ledger",
+    "bag-hook",
+    "water-can",
+    "signboard",
+    "menu-board",
+    "takeaway-shelf",
+    "helper-station",
+    "wash-station",
+    "queue-bench",
+    "lantern-string",
+    "street-owner",
+    "street-grill",
+    "street-glass-case",
+    "street-rice-cooker",
+    "street-egg-pan",
+    "street-steamer",
+    "street-soup-pot",
+    "street-mo-hanh-pot",
+    "street-tea-cooler",
+    "street-charcoal-sack",
+    "street-plate-stack",
+    "street-wash-tub",
+    "street-box-stack",
+    "street-sauce-jar",
+    "street-chili-jar",
+    "street-pickle-jar",
+    "street-cucumber-tray",
+    "street-bi-tray",
+    "street-suon-tray",
+    "street-cash-tin",
+    "street-ledger",
+    "street-water-can",
+    "street-awning",
+    "street-signboard",
+    "street-lantern-string",
+    "bougainvillea-pot",
+    "red-lantern",
+    "paper-lantern",
+    "fairy-lights",
+    "ceramic-jar",
+    "chalk-menu",
+    "wall-calendar",
+    "old-radio",
+    "wall-fan",
+    "old-tv",
+    "bird-cage",
+    "banana-plant",
+    "award-frame",
+    "neon-sign"
+  ],
+  "paths": [
+    "door",
+    "queueSpots",
+    "waitSpots",
+    "exitPath",
+    "tables",
+    "aisle",
+    "streetEntry",
+    "streetQueueSpots",
+    "streetWaitSpots",
+    "streetExitPath",
+    "streetTables",
+    "streetAisle"
+  ],
+  "_paths": "queueSpots = chỗ đứng chờ lấy hộp mang về trước quầy (shipper); waitSpots = chỗ đứng chờ bàn trống; tables = [{id, seats: 2|4, unlock, at:[x,y] chân bàn, seatSpots:[{at:[x,y] chân ghế, face:'right'|'left'}], plateSpots:[[x,y] điểm chạm mặt bàn mỗi chỗ ngồi], servePoint:[x,y] chỗ chủ quán / phụ bàn đứng khi bưng, dọn, lau, joinWith?: id bàn ghép được (vỉa hè)}]; aisle = đường đi của chủ quán / phụ bàn [[x,y]...] từ đầu quầy qua lối giữa các hàng bàn. Khoá không tiền tố thuộc quan-scene, tiền tố street- thuộc street-scene. Decor: toạ độ mặc định trong quan-scene.",
+  "_waves": "Đợt 1: cảnh (Codex đang vẽ), nhân vật đứng + ngồi, chủ quán, phụ bàn, bếp than + món nướng, lớp dĩa, thiết bị, bàn ghế, nguyên liệu, tiền, fx, icon. Đợt 2: cận cảnh HD (chủ quán, dĩa, bếp), chân dung + biểu cảm, chân dung Drama, thời tiết, đồ cố định, trang trí, thẻ Nhật Ký. Hai đợt đều bắt buộc.",
+  "checkSceneScale": true,
+  "scaleTolerance": 0.1,
+  "scenes": [
+    "assets/street-scene.webp",
+    "assets/quan-scene.webp"
+  ],
+  "_scale": "Cả hai cảnh vẽ cận như Bánh Mì: cửa ~330 px (2,1 m), mặt quầy nướng ~150 px trên sàn (~95 cm), mặt bàn nhựa ~120 px (~75 cm) ⇒ người 1,65 m đứng ≈ 260 px. Nhân vật đứng ô 216×288, anchor [108,262], cao 235–275 px. Khách ngồi (customer-seated) cao 190–232 px tính cả ghế. Codex ghi manifest.sceneScale['assets/street-scene.webp'].humanHeight và ['assets/quan-scene.webp'].humanHeight (dự kiến 260)."
+}

@@ -1,0 +1,190 @@
+# Quán Cơm Tấm · Ghi chú phát triển
+
+**Vị trí và chuẩn:**
+- Game sẽ nằm ở `prototype/games/quan-com-tam/` (chưa có code).
+- Lưu ở `localStorage["wgp.quancomtam.v1"]`.
+- Làm trong worktree `.claude/worktrees/quan-com-tam`, branch `claude/quan-com-tam`.
+- Khung code chép từ **Tiệm Bánh Mì** (bản M5), không chép từ Trà Sữa.
+- Chuẩn chung: `docs/tap-lam-chu/PLAYBOOK.md`.
+
+## Trạng thái milestone
+
+| Mốc | Trạng thái | Nội dung |
+|---|---|---|
+| M0 · Thiết kế + hợp đồng asset | **Xong, chờ chủ dự án duyệt** | GAME-DESIGN, ECONOMY, DRAMA (58 sự kiện, 13 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json`, `asset-manifest.json` rỗng. Chi tiết `asset-spec.json`:<br>- 33 sheet, 777 frame;<br>- đợt 1: 22 sheet / 509 frame;<br>- đợt 2: 11 sheet / 268 frame;<br>- 74 toạ độ đặt + 12 đường đi / bàn;<br>- `checkSceneScale` cho 2 cảnh.<br>`check_assets` chạy được, hiện chỉ báo thiếu file (đúng, chưa có art). |
+| Cảnh (Codex) | **Đang vẽ** | `street-scene`, `street-foreground`, `quan-scene`, `quan-foreground`. Thước: người 260 / cửa 330 / quầy 150 / bàn 120. |
+| M1 · Kiến trúc + cảnh + bàn | Chưa bắt đầu | GAME-DESIGN §7 |
+| M2 · Một ca trọn | Chưa bắt đầu | |
+| M3 · Kinh tế + nội dung cơ chế | Chưa bắt đầu | |
+| M4 · Drama + review + Nhật Ký | Chưa bắt đầu | |
+| M5 · Polish + cân bằng | Chưa bắt đầu | |
+
+## Ghi chú cho dev (M1 trở đi)
+
+- **Chép từ Bánh Mì:**
+
+  | File | Phần cần chép |
+  |---|---|
+  | `core/apply.js` | Bản nháp + bất biến |
+  | `core/state.js` | MIGRATIONS, kẹp |
+  | `core/rng.js` | |
+  | `core/text.js` | freshLine |
+  | `core/flags.js`, `core/drama.js`, `core/reviews.js`, `core/journal.js`, `core/missions.js` | |
+  | `core/expiry.js` | Lô hàng |
+  | `core/contracts.js` | Hợp đồng định kỳ |
+  | `core/partial.js` | Khách lấy phần đã xong |
+  | `core/placements.js` | |
+  | `render/atlas.js` | crisp, snap, HD, LAZY, placeholder |
+  | `render/scene.js` | Camera bội 0,5, `CHAR_H = 288`, `placeBubble` |
+  | `ui/sfx.js` | |
+  | `save.js` | |
+  | `test/cdp.mjs`, `test/e2e*.mjs`, `tools/sim/` | |
+
+- **Mới so với Bánh Mì:**
+
+  | File | Việc |
+  |---|---|
+  | `core/grill.js` | Chỗ, vùng, 2 mặt, than, quạt, khói, giữ ấm |
+  | `core/rice.js` | Nồi, gạo tấm, mỡ hành, chảo, xửng, canh |
+  | `core/plate.js` | Bày dĩa: dây chuyền lớp, thay `board.js` |
+  | `core/tables.js` | Vòng bàn 8 bước, ghép bàn, dĩa sạch, rửa chén, việc của Bông |
+  | `core/bill.js` | Tính tiền, sổ nợ |
+  | `core/walker.js` | Chủ quán / Bông đi theo `aisle` + `servePoint`; thời gian đi tính vào ca |
+  | `render/tables.js` | Vẽ bàn, ghế, khách ngồi lật theo `face`, `plate-eating` trên `plateSpots`; sắp lớp theo y chân |
+
+- **Bếp dừng khi hội thoại / bảng phủ mở** (cùng đồng hồ ca). Lật được trong lúc ô bày đang mở; test bắt buộc.
+- **Khách ngồi:**
+  - Frame `<vai>-sit-*` vẽ quay phải.
+  - Ghế có `face: "left"` thì vẽ lật ngang. Lật bằng `scale(-1,1)` quanh anchor x, vẫn snap lưới 2 px.
+- **Thiếu frame thì vẽ hình dự phòng** cùng ô + anchor (`render/placeholder.js`).
+  - Khách ngồi chưa có: vẽ dáng `waiting` cắt ngang hông, đặt thấp xuống 50 px.
+- **Mọi import** mang tag `?v=c1` (đổi cùng lúc khi deploy có đổi API).
+
+## Quyết định cần chủ dự án
+
+1. **Hai ca (trưa + tối), người chơi chọn mở ca nào** từ cấp 5. Phương án khác: chỉ một ca tối có ba nhịp. Gọn hơn, ngày ngắn hơn (5 phút), nhưng mất nhịp "dân văn phòng dồn 45 phút".
+2. **Chủ quán đi thật trong cảnh** (bưng, dọn, rửa chén tốn thời gian di chuyển, bếp vẫn chạy). Đây là nét căng thẳng chính. Phương án khác: bưng tức thì, chỉ tốn một chạm. Dễ hơn nhưng mất cái hay "bưng ra bàn xa thì sườn cháy".
+3. **Chủ quán nữ như thumbnail** (khăn chàm), không có lựa chọn chủ nam.
+4. **Tính tiền tay** (chạm cộng từng dòng), ngày 1–3 có nút "Tính đúng", hộp tính tiền ở cấp 15. Không làm thối tiền như Bánh Mì, để hai game khác nhau.
+5. **Khối lượng asset**: 33 sheet / 777 frame, nhiều nhất trong ba game. Phần thêm chủ yếu do khách ngồi (60 frame), bếp và món trên vỉ (51), bàn ghế (22), và hai vai biến thể `worker2` / `student2` để nhóm khách không là bản sao.
+   - Giữ nguyên, hoặc bỏ `worker2` / `student2`. Bỏ thì bớt 48 frame, code sẽ đổi màu áo bằng bảng màu.
+
+## Cần Codex
+
+Mọi sheet ở `asset-spec.json`, mô tả ở `ART-DIRECTION.md` mục 8.
+
+**Ghi vào `docs/quan-com-tam/asset-manifest.json`:**
+- `filename`, `dimensions`, `frames{name:{rect,anchor}}`, `animations{name:{frames,fps,loop}}`.
+- `sceneScale` cho 2 cảnh.
+- `placements`:
+  - 74 khoá `at`;
+  - `door`, `queueSpots`, `waitSpots`, `exitPath`, `tables`, `aisle`;
+  - `streetEntry`, `streetQueueSpots`, `streetWaitSpots`, `streetExitPath`, `streetTables`, `streetAisle`;
+  - `grill.slots` / `street-grill.slots` nếu khác đề xuất.
+
+| # | Sheet | Ô · anchor · lưới | Đợt |
+|---:|---|---|---:|
+| 1 | `assets/street-scene.webp`, `assets/street-foreground.webp` | 1280×720 · 2× | 1 (đang vẽ) |
+| 2 | `assets/quan-scene.webp`, `assets/quan-foreground.webp` | 1280×720 · 2× | 1 (đang vẽ) |
+| 3 | `assets/title-art.webp` | 1280×720 · 2× | 1 |
+| 4 | `assets/characters.webp` | 216×288 · [108,262] · 2× | 1 |
+| 5 | `assets/customer-walk-cycles.webp` | 216×288 · [108,262] · 2× | 1 |
+| 6 | `assets/customer-reactions.webp` | 216×288 · [108,262] · 2× | 1 |
+| 7 | `assets/customer-actions.webp` | 216×288 · [108,262] · 2× | 1 |
+| 8 | `assets/customer-seated.webp` | 216×288 · [108,262] · 2× (cao 190–232) | 1 |
+| 9 | `assets/owner-scene.webp` | 216×288 · [108,262] · 2× | 1 |
+| 10 | `assets/helper-scene.webp` | 216×288 · [108,262] · 2× | 1 |
+| 11 | `assets/grill.webp` | 320×192 · [160,176] · 2× | 1 |
+| 12 | `assets/grill-items.webp` | 96×64 · [48,52] · 2× | 1 |
+| 13 | `assets/plate-layers.webp` | 160×192 · [80,174] · 2× | 1 |
+| 14 | `assets/equipment.webp` | 192×192 · [96,168] · 2× | 1 |
+| 15 | `assets/tables.webp` | 320×224 · [160,208] · 2× | 1 |
+| 16 | `assets/table-items.webp` | 96×96 · [48,84] · 2× | 1 |
+| 17 | `assets/ingredients.webp` | 64×64 · [32,32] · 2× | 1 |
+| 18 | `assets/bills.webp` | 96×48 · [48,24] · 2× | 1 |
+| 19 | `assets/fx.webp` | 96×96 · [48,48] · 2× | 1 |
+| 20 | `assets/ui-icons.webp` | 48×48 · [24,42] · 2× | 1 |
+| 21 | `assets/owner-actions-hd.webp` | 320×320 · [160,316] · 1× | 2 |
+| 22 | `assets/plate-layers-hd.webp` | 320×384 · [160,348] · 1× | 2 |
+| 23 | `assets/grill-hd.webp` | 640×320 · [320,304] · 1× | 2 |
+| 24 | `assets/grill-items-hd.webp` | 192×128 · [96,104] · 1× | 2 |
+| 25 | `assets/portraits-hd.webp` | 384×320 · [192,308] · 1× | 2 |
+| 26 | `assets/portrait-expressions-hd.webp` | 384×320 · [192,308] · 1× | 2 |
+| 27 | `assets/drama-portraits-hd.webp` | 384×320 · [192,308] · 1× | 2 |
+| 28 | `assets/weather-fx.webp` | 640×360 · [0,0] · 2× (alpha mềm được) | 2 |
+| 29 | `assets/fixtures.webp` | 384×256 · [192,240] · 2× | 2 |
+| 30 | `assets/decor.webp` | 128×128 · [64,120] · 2× | 2 |
+| 31 | `assets/journal-card.webp` | 1080×1350 · 2× | 2 |
+
+## Câu nhắn gửi Codex
+
+### Đợt 1: nhân vật và phần còn lại (gửi SAU KHI chủ dự án duyệt 2 cảnh)
+
+```
+Quán Cơm Tấm (quan-com-tam) — ĐỢT 1, phần nhân vật và đồ. Pull master.
+
+Bối cảnh: bạn đang / đã vẽ 4 tranh cảnh assets/street-scene.webp, street-foreground.webp,
+quan-scene.webp, quan-foreground.webp (1280×720, lưới 2×, người 1,65 m ≈ 260 px, cửa ≈ 330,
+mặt quầy ≈ 150, mặt bàn ≈ 120). Chủ dự án đã duyệt 2 cảnh. Giờ vẽ phần còn lại CÙNG THƯỚC đó.
+
+1. Đọc AGENTS.md, docs/tap-lam-chu/PLAYBOOK.md §1 và §2 (nhất là §1.2b: cảnh và người cùng thước).
+2. Hợp đồng: docs/quan-com-tam/asset-spec.json — các sheet "wave": 1.
+   Mô tả, bảng màu, thước đo, thứ tự lớp dĩa, toạ độ đề xuất: docs/quan-com-tam/ART-DIRECTION.md (mục 0, 4–8).
+3. Mẫu art: prototype/homepage/assets/thumbs/quan-com-tam.webp. Chủ quán là NỮ, khăn chàm, tạp dề nâu,
+   khăn trắng vắt vai, như thumbnail.
+4. Vẽ vào prototype/games/quan-com-tam/assets/. Ghi manifest vào docs/quan-com-tam/asset-manifest.json.
+5. Sheet đợt 1 còn lại:
+   title-art (1280×720);
+   characters, customer-walk-cycles, customer-reactions, customer-actions, owner-scene, helper-scene
+     (ô 216×288, anchor [108,262], người đứng cao 235–275 px; 13 vai: owner, helper, office, worker,
+     worker2, student, student2, shipper, regular, reviewer, driver, nurse, tourist);
+   customer-seated (cùng ô + anchor; khách NGỒI trên ghế nhựa, vẽ luôn ghế, quay 3/4 sang PHẢI,
+     anchor = chân ghế chạm sàn, cao 190–232 px; 10 vai, không có shipper;
+     sit-eat-1..2, sit-wait, sit-call, sit-happy, sit-annoyed);
+   grill (320×192), grill-items (96×64: sườn, sườn non, gà, lạp xưởng, đậu hũ × sống / tái / chín /
+     cháy cạnh / cháy + lật 2 khung; trứng 5 độ);
+   plate-layers (160×192: mọi lớp vẽ trên CÙNG một khung dĩa / hộp để chồng khít);
+   equipment (192×192), tables (320×224: bàn 2 và 4 chỗ × sạch / bày sẵn / dơ / ướt, không kèm ghế),
+   table-items (96×96: ghế, dĩa đang ăn, ly trà…), ingredients (64×64), bills (96×48), fx (96×96),
+   ui-icons (48×48).
+6. Luật cứng: lưới 2×, alpha cứng, WebP lossless, cùng mật độ điểm vẽ với cảnh; mọi frame một vai cao bằng
+   nhau ±8%; mỗi vai là CÙNG MỘT NGƯỜI trên mọi sheet (đứng, đi, ngồi); worker2 / student2 là người
+   KHÁC worker / student; không chữ, logo, thương hiệu, người thật.
+7. manifest: sceneScale["assets/street-scene.webp"].humanHeight và ["assets/quan-scene.webp"].humanHeight
+   (đo theo cửa / quầy trong cảnh của bạn, dự kiến 260); placements.<khoá>.at đủ 74 khoá;
+   door, queueSpots, waitSpots, exitPath, aisle, tables (mỗi bàn: id, seats, unlock, at, seatSpots[{at,face}],
+   plateSpots, servePoint) và street- tương ứng (streetEntry, streetQueueSpots, streetWaitSpots,
+   streetExitPath, streetAisle, streetTables có joinWith). Đề xuất ở ART-DIRECTION §7.1–7.2; đặt theo
+   tranh thật của bạn (bàn không đè cột / chậu vẽ sẵn, lối đi không bị chắn).
+8. Chạy: python -I tools/asset-check/check_assets.py docs/quan-com-tam/asset-spec.json --preview <thư mục tạm>
+   đến "0 lỗi — ĐẠT" (cảnh báo chỉ được là các sheet wave 2 tuỳ chọn). Mở nhan-vat-xep-hang-x2.png soi:
+   người đứng / ngồi so với cửa, quầy, bàn trong cảnh; mỗi vai giữ cùng một người.
+9. Dán kết quả + commit hash vào docs/quan-com-tam/ASSET-HANDOFF.md, commit lên branch riêng rồi báo.
+```
+
+### Đợt 2 (gửi khi code tới M3)
+
+```
+Quán Cơm Tấm ĐỢT 2. Pull master. Trong docs/quan-com-tam/asset-spec.json, bỏ "optional": true ở các sheet
+"wave": 2 rồi vẽ:
+owner-actions-hd (320×320, lưới 1×: thân trên chủ quán, cùng người với owner-scene),
+plate-layers-hd (320×384, lưới 1×, CÙNG tên lớp và bố cục với plate-layers),
+grill-hd (640×320, lưới 1×) + grill-items-hd (192×128, lưới 1×, cùng tên frame với grill-items),
+portraits-hd, portrait-expressions-hd, drama-portraits-hd (384×320, lưới 1×; 12 NPC ở DRAMA.md §1 —
+  "bong" là cùng người với helper; "chu-tu" cùng kiểu người với worker; "anh-sau" xe ôm khác driver),
+weather-fx (640×360: mưa, chớp, nước tràn vỉa hè, khói bếp dày, cúp điện),
+fixtures (384×256), decor (128×128, 14 món), journal-card (1080×1350).
+Cùng luật như đợt 1. Chạy check_assets đến 0 lỗi, soi ảnh, dán kết quả vào ASSET-HANDOFF.md rồi báo.
+```
+
+## Kiểm hợp đồng (M0)
+
+`python -I tools/asset-check/check_assets.py docs/quan-com-tam/asset-spec.json`:
+- Chạy được, đọc manifest qua `../../../docs/quan-com-tam/asset-manifest.json`.
+- Báo 110 lỗi, đúng dự kiến khi chưa có art:
+  - 22 file đợt 1 chưa có;
+  - 2 `sceneScale` chưa ghi;
+  - 74 toạ độ đặt;
+  - 12 khoá đường đi / bàn.
+- 11 cảnh báo cho sheet đợt 2 (tuỳ chọn về mặt script nhưng vẫn phải vẽ).
+- Mọi mẫu tên frame mở rộng đúng, không trùng tên trong cùng sheet (777 frame).
