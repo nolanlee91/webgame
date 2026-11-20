@@ -1,5 +1,30 @@
 # Bàn giao asset · Tiệm Bánh Mì
 
+## Kiểm mép ô sau Đợt 2
+
+Asset commit `3dd5aa9`. Đã đồng bộ checker từ master local `250df10`.
+
+- Đã tách lại 5 ổ nguyên HD từ ảnh nguồn để bỏ mẩu bánh lẫn ở `loaf-whole-pale` và khôi phục đầu ổ bị cắt ở các ô kế. Đã soi cả 39 ô mỗi atlas. Lề trong suốt nhỏ nhất là 6 px ở bản thường và 9 px ở bản HD.
+- Đã chừa lề cho mũ công nhân, mũ reviewer, tóc khách du lịch và các tư thế đưa tay hoặc đưa bánh chạm mép phải. Giữ mốc chân, rect và clip. Đã bỏ chấm rời ở bên trái `star-empty`.
+- **Đã soi, bỏ qua 30 cảnh báo còn lại**, gồm:
+
+| Sheet | Frame | Lý do giữ |
+| --- | --- | --- |
+| `drama-portraits-hd` | `chi-mai-neutral/happy/annoyed/surprised`, `be-na-neutral/happy/surprised`, `ollie-neutral` | Sợi tóc và điểm sáng viền tóc/kính, đối chiếu với ảnh nguồn. |
+| `weather-fx` | `rain-1..4`, `lightning-1..2`, `flood-1..2` | Giọt mưa rời và lớp mưa phủ sát biên, tia chớp đi từ cạnh trên, nước ngập phủ đáy và hai bên. |
+| `decor` | `wheat-bundle`, `wall-fan`, `wind-chime` | Đầu bông lúa, điểm sáng trên lồng quạt và dây treo. |
+| `ingredients` | `ga-xe`, `cha-bong`, `than` | Sợi và vụn cùng nguyên liệu với phần chính. |
+| `fx` | `steam-1` | Điểm rời ở đuôi vệt hơi nước. |
+| `ui-icons` | `crisp`, `upgrade` | Vụn bánh và đốm sáng quanh mũi tên. |
+| `journal-card` | `journal-card` | Thẻ nền kín, chủ đích phủ hết ảnh. |
+
+```text
+python -I tools/asset-check/check_assets.py docs/tiem-banh-mi/asset-spec.json --preview <tmp>
+
+0 lỗi, 30 cảnh báo — ĐẠT, giao được.
+Ảnh soi nhân vật: <tmp>/nhan-vat-xep-hang-x2.png
+```
+
 ## Đợt 2
 
 Asset commit `da56168` trên `codex/banh-mi-wave2`. Nhánh gồm master local `0c8fb0a` và bản bàn giao Đợt 1 `abea23e`.
