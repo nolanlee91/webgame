@@ -237,7 +237,9 @@ async function boot() {
   }
 
   // ---------- bố cục ----------
-  function layout() { scene.layout(640, 360, 1); }
+  // mobile 390@3: hệ số 1,0 thiết bị cắt ~110 px ngang ⇒ dồn khung sang phải để thấy chỗ khách đứng chờ (mép phải) và mọi bàn
+  const narrow = matchMedia("(max-width: 760px)");
+  function layout() { scene.layout(narrow.matches ? 1280 : 640, 360, 1); }
   addEventListener("resize", layout);
   new ResizeObserver(layout).observe($("#scene"));
   layout();

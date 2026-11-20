@@ -300,7 +300,7 @@ export function deliverPlate(s, task, ev) {
   const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), dishOrderBonus: DISHES[t.dish]?.ngo && plate.order.indexOf("trung") > plate.order.indexOf("meat") });
   t.status = "served"; t.plateCom = plate.com; t.servedT = sh.t;
   m.plate = { kind: plate.kind, frames: null }; m.score = res;
-  m.eatMs = Math.round((SERVICE.eatMs[0] + next(s) * (SERVICE.eatMs[1] - SERVICE.eatMs[0])) * (ARCHETYPES[m.role]?.eat || 1));
+  m.eatMs = Math.round((SERVICE.eatMs[0] + next(s) * (SERVICE.eatMs[1] - SERVICE.eatMs[0])) * (ARCHETYPES[m.role]?.eat || 1) * (sh.tutorial ? 0.75 : 1));
   m.eatUntil = sh.t + m.eatMs; m.eaten = false;
   const cost = plateCost(plate.used);
   sh.stats.cogs += cost; sh.stats.plates++;

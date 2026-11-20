@@ -189,8 +189,10 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     const tag = el("div", "gtag", ui); tag.hidden = true;
     const btn = el("button", "gbtn", ui); btn.type = "button"; btn.hidden = true; btn.dataset.gid = g.id;
     btn.addEventListener("click", () => onGroup(g.id));
-    const bar = el("i", "pfill", tag);
-    const lbl = el("b", "", tag);
+    // nhóm chờ bàn: chính nhãn "n người" + thanh kiên nhẫn là nút chạm (≥ 44 px), đặt trên đầu khách, không đè nút bàn
+    const host = g.takeaway ? tag : btn;
+    const bar = el("i", "pfill", host);
+    const lbl = el("b", "", host);
     n = { bubble, tag, btn, bar, lbl, sayAt: -1 };
     groupUi.set(g.id, n);
     return n;
@@ -270,6 +272,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     const tables = sh ? sh.tables : availableTables(s).map((tp) => ({ id: tp.id, seats: tp.seats, state: "clean", gid: null }));
     const live = new Set();
     const usedCust = new Set();
+    const tRects = [];
     for (const tb of tables) {
       const tp = P.tables.find((x) => x.id === tb.id);
       if (!tp) continue;
@@ -296,8 +299,9 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       });
       // nút chạm bàn: hình chữ nhật bao bàn + ghế (SCREENS: chạm bàn, không chạm ghế)
       const xs = tp.seatSpots.map((x) => x.at[0]);
-      const [bx0, by0] = toScreen(Math.min(...xs) - 38, tp.at[1] - 190), [bx1, by1] = toScreen(Math.max(...xs) + 38, tp.at[1] + 24);
+      const [bx0, by0] = toScreen(Math.min(...xs) - 38, tp.at[1] - 180), [bx1, by1] = toScreen(Math.max(...xs) + 38, tp.at[1] + 24);
       const b = n.btn;
+      tRects.push({ x0: bx0, y0: by0, x1: bx1, y1: by1 });
       b.style.left = bx0 + "px"; b.style.top = by0 + "px"; b.style.width = bx1 - bx0 + "px"; b.style.height = by1 - by0 + "px";
       const job = sh ? tableJob(s, tb.id) : null;
       const selFit = selGid !== null && sh?.groups.find((x) => x.id === selGid && x.phase === "wait" && tb.gid === null && tb.state !== "dirty" && tb.seats >= x.size);
@@ -338,20 +342,24 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       // nút chọn nhóm đang chờ + nhãn số người + thanh kiên nhẫn
       const waiting = grp.phase === "wait";
       gn.btn.hidden = !waiting || !sh;
-      gn.tag.hidden = !(waiting || grp.phase === "queue");
+      gn.tag.hidden = !(grp.phase === "queue");
       if (waiting || grp.phase === "queue") {
         const spot = grp.takeaway ? P.queueSpots[grp.spot] : P.waitSpots[grp.spot];
         const [sx, sy] = toScreen(spot[0] - (grp.size > 1 ? 0 : 0), spot[1]);
         const [hx, hy] = toScreen(head.x, head.y);
-        const wpx = Math.max(54, 90 * k * Math.max(1, grp.size * 0.7));
-        gn.btn.style.left = Math.min(root.clientWidth - wpx, sx - wpx / 2 + (grp.size > 1 ? 14 * k : 0)) + "px"; gn.btn.style.top = hy + "px";
-        gn.btn.style.width = wpx + "px"; gn.btn.style.height = Math.max(44, sy - hy + 10 * k) + "px";
+        const wpx = grp.size > 1 ? 88 : 72, hpx = 44;
+        const left = Math.max(2, Math.min(root.clientWidth - wpx - 2, hx - wpx / 2));
+        let bottom = hy + 22;
+        for (const r of tRects) if (r.x0 < left + wpx && r.x1 > left) bottom = Math.min(bottom, r.y0 - 2);
+        gn.btn.style.left = left + "px"; gn.btn.style.top = Math.max(2, bottom - hpx) + "px";
+        gn.btn.style.width = wpx + "px"; gn.btn.style.height = hpx + "px";
+        gn.btn.className = "gbtn" + (p0 => p0 <= 0.35 ? " low" : p0 <= 0.6 ? " mid" : "")(patienceLeft(s, grp));
         gn.btn.classList.toggle("sel", selGid === grp.id);
         gn.btn.classList.toggle("hint", !!opts.hintSeat && selGid === null);
         gn.btn.setAttribute("aria-label", `${grp.members[0].name}, ${grp.size} người đang chờ bàn — chạm để chọn rồi chạm bàn`);
         const p = patienceLeft(s, grp);
         gn.bar.style.width = Math.round(p * 100) + "%";
-        gn.tag.className = "gtag" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "") + (selGid === grp.id ? " sel" : "");
+        gn.tag.className = "gtag" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
         const txt = grp.takeaway ? "Hộp mang về" : `${grp.size} người`;
         if (gn.lbl.textContent !== txt) gn.lbl.textContent = txt;
         gn.tag.style.left = hx + "px"; gn.tag.style.top = hy - 4 + "px";
@@ -363,7 +371,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
         if (gn.sayAt !== grp.say.at) { gn.sayAt = grp.say.at; gn.bubble.textContent = grp.say.text; gn.bubble.classList.remove("pop"); void gn.bubble.offsetWidth; gn.bubble.classList.add("pop"); }
         gn.bubble.hidden = false;
         const [hx, hy] = toScreen(head.x, head.y);
-        const keep = (waiting || grp.phase === "queue") ? [gn.tag.getBoundingClientRect && rectOf(gn.tag)] : [];
+        const keep = waiting ? [rectOf(gn.btn)] : grp.phase === "queue" ? [rectOf(gn.tag)] : [];
         const r = placeBubble(gn.bubble, hx, hy, head.w * k, keep.filter(Boolean));
         if (!r) gn.bubble.hidden = true;
       } else gn.bubble.hidden = true;

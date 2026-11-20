@@ -51,7 +51,7 @@ export function makeSchedule(s, kind, maxSeats) {
   };
   if (tutorial) {
     // ca hướng dẫn: nhóm đầu 1 người tới ngay, sau đó thưa dần; tổng ~9 người
-    const plan = [["student", 1, 0.008], ["nurse", 1, 0.17], ["worker", 2, 0.3], ["student2", 1, 0.44], ["driver", 1, 0.55], ["worker2", 2, 0.66], ["regular", 1, 0.8]];
+    const plan = [["student", 1, 0.008], ["nurse", 1, 0.14], ["worker", 2, 0.3], ["student2", 1, 0.42], ["driver", 1, 0.55], ["worker2", 2, 0.68]];
     for (const [arch, size, f] of plan) {
       const A = ARCHETYPES[arch];
       const rs = [arch]; for (let i = 1; i < Math.min(size, maxSeats); i++) rs.push(A.mates[int(s, A.mates.length)] || arch);

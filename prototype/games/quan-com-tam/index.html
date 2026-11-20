@@ -70,7 +70,9 @@
     .tbtn-scene[data-job="clean"] .tbadge { background: var(--ember-l); }
     .tring { position: absolute; right: 4px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: conic-gradient(#7fc08d calc(var(--p, 1) * 1turn), rgba(20, 20, 40, .35) 0); box-shadow: 0 0 0 1.5px var(--cream); }
     .tring.mid { background: conic-gradient(var(--amber) calc(var(--p, 1) * 1turn), rgba(20, 20, 40, .35) 0); } .tring.low { background: conic-gradient(#e0604f calc(var(--p, 1) * 1turn), rgba(20, 20, 40, .35) 0); }
-    .gbtn { position: absolute; pointer-events: auto; background: transparent; border: 0; border-radius: 12px; cursor: pointer; padding: 0; touch-action: manipulation; }
+    .gbtn { position: absolute; pointer-events: auto; background: rgba(22, 22, 45, .88); color: var(--cream); border: 0; border-radius: 12px; cursor: pointer; padding: 0 6px 4px; touch-action: manipulation; font-size: 12px; font-weight: 800; overflow: hidden; box-shadow: 0 0 0 2px rgba(255, 242, 220, .6); }
+    .gbtn .pfill { position: absolute; left: 0; bottom: 0; height: 5px; background: #7fc08d; } .gbtn.mid .pfill { background: var(--amber); } .gbtn.low .pfill { background: #e0604f; }
+    .gbtn b { position: relative; }
     .gbtn.sel { box-shadow: 0 0 0 3px #9ff0dc inset; } .gbtn.hint { box-shadow: 0 0 0 3px var(--amber) inset; animation: pulse 1.1s ease-in-out infinite; }
     .gtag { position: absolute; transform: translate(-50%, -100%); background: rgba(22, 22, 45, .85); color: var(--cream); border-radius: 8px; padding: 1px 7px 3px; font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; }
     .gtag .pfill { position: absolute; left: 0; bottom: 0; height: 3px; background: #7fc08d; } .gtag.mid .pfill { background: var(--amber); } .gtag.low .pfill { background: #e0604f; } .gtag.sel { background: var(--moss); }
@@ -247,10 +249,11 @@
       .help-cards { grid-template-columns: 1fr; }
       .bubble { max-width: 170px; font-size: 11.5px; padding: 4px 8px; }
       .tbadge { font-size: 9.5px; padding: 0 5px; }
-      .hintbar { font-size: 11.5px; line-height: 1.3; padding: 4px 8px; top: 4px; left: 4px; right: 4px; }
-      .toasts { top: 4px; }
-      .hintbar:not([hidden]) ~ .toasts { top: 46px; }
-      .toast { font-size: 11.5px; padding: 3px 8px; }
+      /* cảnh chỉ cao 240: gợi ý + thông báo mỗi thứ một dòng, ở vùng trời (không che khách, bàn) */
+      .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .toasts { top: 3px; left: 3px; right: 3px; }
+      .hintbar:not([hidden]) ~ .toasts { top: 26px; }
+      .toast { font-size: 11px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .toast:not(:last-child) { display: none; }
       .banner { font-size: 12px; top: 4px; }
     }

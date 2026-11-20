@@ -19,7 +19,9 @@ async function pressSel(sel, wait = 25) {
   for (let i = 0; i < wait && !(p = await at(sel)); i++) await sleep(60);
   if (!p) { await b.shot(`${OUT}/LOI-${sel.replace(/[^a-z0-9]+/gi, "_").slice(0, 40)}.png`).catch(() => {}); throw new Error("không thấy " + sel + " :: " + (await b.ev("JSON.stringify({ov:__game.overlay,dialog:__game.state.shift?.dialog,hint:__game.hint()})"))); }
   await press(...p); await sleep(70);
+  if (process.env.DEBUG) { LAST.push(sel); if (LAST.length > 6) LAST.shift(); }
 }
+const LAST = [];
 const S = (expr) => b.ev(`(()=>{const s=__game.state;return ${expr}})()`);
 const visible = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});return !!e&&!e.closest('[hidden]')&&e.getBoundingClientRect().width>0})()`);
 const noOverflowX = () => b.ev("document.documentElement.scrollWidth<=document.documentElement.clientWidth");
@@ -27,7 +29,7 @@ async function waitFor(expr, ms = 8000) { for (let t = 0; t < ms; t += 80) { if 
 /** Mọi nút trong danh sách không bị phần tử khác che (5 điểm: tâm + 4 góc lùi vào 20%). */
 async function notCovered(sels) {
   return b.ev(`(()=>{const bad=[];for(const sel of ${JSON.stringify(sels)}){for(const e of document.querySelectorAll(sel)){if(e.closest('[hidden]')||!e.getBoundingClientRect().width)continue;const r=e.getBoundingClientRect();
-    if(r.bottom>innerHeight||r.top<0)continue;
+    if(r.bottom>innerHeight||r.top<0||r.right>innerWidth||r.left<0)continue;
     const pts=[[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8]];for(const[fx,fy]of pts){const x=r.left+r.width*fx,y=r.top+r.height*fy;const h=document.elementFromPoint(x,y);if(!h||!(h===e||e.contains(h))){bad.push(sel+(e.dataset.slot??e.dataset.layer??e.dataset.table??e.dataset.dock??e.dataset.act??'')+'@'+Math.round(x)+','+Math.round(y)+' ⇐ '+(h?h.className||h.tagName:'null'));break;}}}}return bad})()`);
 }
 const CONTROLS = ['[data-act="serve"]', '[data-act="undo"]', ".strip .lay", ".gchip", '[data-act="addCoal"]', '[data-act="fan"]', '[data-act="cookRice"]', '[data-act="wash"]', "#dock button", ".tbtn-scene", ".slip"];
@@ -46,7 +48,7 @@ const grillSafe = (sec) => S(`(()=>{const g=s.shift.grill;for(let i=0;i<6;i++){c
 async function tendGrill() {
   // lật mặt dưới đã chín, bỏ miếng cháy (chạm chip thật)
   for (let i = 0; i < 6; i++) {
-    const st = await S(`(()=>{const it=s.shift&&s.shift.grill.slots[${i}];if(!it)return null;return it.sides[0]>=130||it.sides[1]>=130?"burnt":it.sides[0]>=100&&it.sides[1]<100?"flip":null})()`);
+    const st = await S(`(()=>{const it=s.shift&&s.shift.grill.slots[${i}];if(!it)return null;return it.sides[0]>=130||it.sides[1]>=130?"burnt":it.sides[0]>=100&&it.sides[1]<100?"flip":(${i}<4&&it.sides[0]>=100&&it.sides[1]>=100&&s.shift.grill.slots.slice(4).some(x=>!x))?"warm":null})()`);
     if (st && (await b.ev("__game.ownerFree()"))) await pressSel(`.gchip[data-slot="${i}"]`);
   }
 }
@@ -96,6 +98,11 @@ async function playDay1(tag, shots) {
     }
     // bày dĩa
     const free = await b.ev("__game.ownerFree()");
+    // nướng sẵn: số miếng trên vỉ theo kịp số người đã ngồi chưa có món (chạm chip trống ở vùng nóng)
+    if (free) {
+      const pre = await S(`(()=>{const sh=s.shift;const want=sh.groups.filter(g=>g.phase==='seated'&&!g.paid).reduce((a,g)=>a+g.members.filter(m=>!m.plate&&(m.tk===null||sh.tickets.find(t=>t.id===m.tk&&t.status!=='served'&&t.status!=='carrying'))).length,0)-sh.slots.filter(x=>x.plate&&x.plate.meat).length;const have=sh.grill.slots.filter(Boolean).length;if(have>=want||have>=4||s.stock['suon-uop']<=0)return -1;return [0,1,2,3].find(i=>!sh.grill.slots[i])??-1})()`);
+      if (pre >= 0) { await pressSel(`.gchip[data-slot="${pre}"]`); continue; }
+    }
     if (free) {
       if (await S("s.shift.slots[s.shift.sel].tk===null")) {
         const tk = await S("(s.shift.tickets.find(t=>t.status==='open')||{}).id??null");
@@ -111,7 +118,7 @@ async function playDay1(tag, shots) {
           continue;
         } else if (st === "serve") {
           if (firstPlate) { await shot("05-dia-du-lop"); covered = await notCovered(CONTROLS); }
-          if (await grillSafe(6)) { await pressSel('[data-act="serve"]'); delivered++; firstPlate = false; continue; }
+          if (await grillSafe(5)) { await pressSel('[data-act="serve"]'); delivered++; firstPlate = false; continue; }
         } else if (st && !st.startsWith("wait") && st !== "egg") {
           await pressSel(`[data-layer="${st}"]`);
           if (firstPlate) { const after = await b.ev(`(document.querySelector('.plate-view')||{dataset:{}}).dataset.layers||''`); if (after === before) layersOk = false; if (st === "com") await shot("04-xoi-com"); }
@@ -128,14 +135,14 @@ async function playDay1(tag, shots) {
     }
     if (free && (await S("s.shift.cleanPlates<=3&&s.shift.dirty>0")) && (await grillSafe(9))) { await pressSel('[data-act="wash"]'); washed++; continue; }
     if (free && (await S("s.shift.grill.coal<35&&s.shift.grill.pending.length===0&&s.stock.than>0"))) { await pressSel('[data-act="addCoal"]'); continue; }
-    if (process.env.DEBUG && guard % 60 === 0) console.log(guard, JSON.stringify(h), await S("JSON.stringify({t:Math.round(s.shift.t/1000),own:s.shift.owner.task&&s.shift.owner.task.kind,q:s.shift.owner.queue.length,slot:s.shift.slots[0].tk,g:s.shift.groups.map(g=>g.phase+':'+g.table),tk:s.shift.tickets.map(t=>t.status)})"), await step());
+    if (process.env.DEBUG && guard % 20 === 0) console.log(guard, LAST.join(' ; '), JSON.stringify(h), await S("JSON.stringify({t:Math.round(s.shift.t/1000),own:s.shift.owner.task&&s.shift.owner.task.kind,q:s.shift.owner.queue.length,slot:s.shift.slots[0].tk,g:s.shift.groups.map(g=>g.phase+':'+g.table),tk:s.shift.tickets.map(t=>t.status)})"), await step());
     await b.ev("__game.advance(600)");
   }
   check(`${tag}: chơi trọn ngày 1 bằng nút thật`, delivered >= 6, `${delivered} dĩa bưng ra bàn, ${seatedByTap} lần mời ngồi`);
   check(`${tag}: dĩa đổi lớp sau mỗi bước bày (plate-layers)`, layersOk);
   check(`${tag}: tính tiền cả nút Tính đúng lẫn cộng tay từng dòng`, billsAuto >= 1 && billsManual >= 1, `${billsAuto} tự động · ${billsManual} tay`);
   check(`${tag}: dọn bàn bằng chạm bàn`, cleaned >= 1, String(cleaned));
-  check(`${tag}: gợi ý ngày 1 dẫn từng bước (mời ngồi, lấy phiếu, ghim phiếu, nướng, lật, bày, giao)`, ["seat", "visit", "pin", "grill", "flip", "layer", "serve"].every((k) => hintSeen.has(k)), [...hintSeen].join(","));
+  check(`${tag}: gợi ý ngày 1 dẫn từng bước (mời ngồi, lấy phiếu, ghim phiếu, lật, bày, gắp, giao, tính tiền, dọn)`, ["seat", "visit", "pin", "flip", "layer", "pick", "serve", "bill", "clean"].every((k) => hintSeen.has(k)), [...hintSeen].join(","));
   check(`${tag}: không nút nào bị che lúc đang chơi (có thông báo)`, covered.length === 0, covered.slice(0, 4).join(" | "));
   check(`${tag}: bảng chốt ca hiện lời lỗ`, await waitFor("__game.overlay==='summary'", 6000));
   const sum = await S("JSON.stringify(s.lastSummary)").then(JSON.parse);
@@ -175,6 +182,7 @@ if (!MOBILE_ONLY) {
     tk = await S("(s.shift.tickets.find(t=>t.status==='open')||{}).id??null");
     if (tk === null) await b.ev("__game.advance(400)");
   }
+  for (let i = 0; i < 60 && !(await b.ev("__game.ownerFree()")); i++) await b.ev("__game.advance(300)");
   await pressSel(`.slip[data-tk="${tk}"]`);
   await pressSel('[data-layer="dia"]'); await pressSel('[data-layer="com"]'); await pressSel('[data-layer="moHanh"]');
   const before = await S("JSON.stringify([s.shift.slots[0].plate&&{c:s.shift.slots[0].plate.com,m:s.shift.slots[0].plate.moHanh},s.shift.rice.n,s.moHanh.n,s.money,s.shift.cleanPlates])");
@@ -189,7 +197,7 @@ if (!MOBILE_ONLY) {
   await waitFor("!!document.querySelector('#app.ready')", 8000);
   check("desktop: chơi lại ⇒ bản cũ ở .backup, quán mới ngày 1", (await b.ev("localStorage.getItem('wgp.quancomtam.v1.backup')")) === keyBefore && (await S("s.day")) === 1 && (await b.ev("__game.overlay")) === "intro");
   // bản lưu hỏng ⇒ chép sang .corrupt, mở quán mới, không lỗi
-  await b.ev("localStorage.setItem('wgp.quancomtam.v1','{hỏng')");
+  await b.ev("addEventListener('pagehide',()=>localStorage.setItem('wgp.quancomtam.v1','{hỏng'))");
   await b.nav(BASE);
   check("desktop: bản lưu hỏng được chép sang .corrupt, mở quán mới", (await b.ev("localStorage.getItem('wgp.quancomtam.v1.corrupt')")) === "{hỏng" && (await S("s.day")) === 1);
 }

@@ -153,3 +153,30 @@ export function playDay(s, opts = {}) {
 }
 /** RNG có hạt cho bot ẩu (không đụng s.rng). */
 export function seeded(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+/** Tua ca tới khi cond(s) đúng (tối đa maxMs), không tua qua hội thoại. */
+export function until(s, cond, maxMs = 60000, dt = 100) {
+  for (let t = 0; t < maxMs; t += dt) { if (cond(s)) return true; if (!s.shift || s.shift.dialog) return cond(s); must(s, { type: "tick", dt }); }
+  return cond(s);
+}
+/** Mở ca ngày 1 (đã chuẩn bị đủ) và đưa nhóm khách đầu tiên vào bàn, lấy phiếu xong. Trả { g, t (phiếu) }. */
+export function openWithOrder(seed = 7, opts = {}) {
+  const s = newGame(seed);
+  if (opts.notTutorial) s.tutorialDone = true;
+  prepDay(s);
+  must(s, { type: "startShift" });
+  until(s, (x) => x.shift.groups.some((g) => g.phase === "wait"), 90000);
+  const g = s.shift.groups.find((x) => x.phase === "wait");
+  const tid = s.shift.tables.find((t) => t.seats >= g.size).id;
+  must(s, { type: "seat", gid: g.id, tid });
+  until(s, () => g.phase === "seated" || s.shift.groups.find((x) => x.id === g.id)?.phase === "seated");
+  must(s, { type: "tableTap", tid });
+  until(s, (x) => x.shift.tickets.length > 0, 20000);
+  return { s, g: s.shift.groups.find((x) => x.id === g.id), tid, t: s.shift.tickets[0] };
+}
+/** Đợi cô chủ về bếp. */
+export const home = (s) => until(s, (x) => ownerFree(x), 30000);
+/** Bày đủ một dĩa đúng phiếu đang ghim (dùng miếng chín đặt sẵn lên vỉ). */
+export function cookedPiece(s, slot = 4, item = "suon", sides = [105, 105]) {
+  s.shift.grill.slots[slot] = { id: 99 + slot, item, sides: [...sides], fresh: 100, freshMax: 100, warmMs: 0, flips: 2, perfect: 1, said: {} };
+}
