@@ -168,7 +168,6 @@
         160,
         316
       ],
-      "optional": true,
       "frames": [
         "idle-{1..2}",
         "{slice,spread,fill,sauce,wrap,change}-{1..4}"
@@ -195,7 +194,6 @@
         160,
         348
       ],
-      "optional": true,
       "frames": [
         "loaf-whole-{raw,pale,golden,dark,burnt}",
         "loaf-open-back",
@@ -227,7 +225,6 @@
         192,
         308
       ],
-      "optional": true,
       "frames": [
         "{baker,student,worker,shipper,office,regular,reviewer,tourist,parent}"
       ],
@@ -244,7 +241,6 @@
         192,
         308
       ],
-      "optional": true,
       "frames": [
         "{student,worker,shipper,office,regular,reviewer,tourist,parent}-{waiting,happy,sheepish,annoyed,surprised}",
         "baker-{neutral,happy,concerned,surprised,proud}"
@@ -262,7 +258,6 @@
         192,
         308
       ],
-      "optional": true,
       "frames": [
         "{me,chu-tam,anh-bay,ba-tu,chi-mai,cau-hung,co-hai,co-sau,co-thanh,anh-lam,be-na,ollie}-{neutral,happy,annoyed,surprised}"
       ],
@@ -278,7 +273,6 @@
         0,
         0
       ],
-      "optional": true,
       "hardAlpha": false,
       "frames": [
         "rain-{1..4}",
@@ -414,8 +408,7 @@
         "queue-rope",
         "helper-station"
       ],
-      "wave": 2,
-      "optional": true
+      "wave": 2
     },
     {
       "file": "assets/decor.webp",
@@ -443,8 +436,7 @@
         "banana-plant",
         "wind-chime"
       ],
-      "wave": 2,
-      "optional": true
+      "wave": 2
     },
     {
       "file": "assets/ingredients.webp",
@@ -551,7 +543,17 @@
     {
       "file": "assets/journal-card.webp",
       "wave": 2,
-      "optional": true
+      "cell": [
+        1080,
+        1350
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "frames": [
+        "journal-card"
+      ]
     }
   ],
   "placements": [
@@ -590,7 +592,27 @@
     "cart-cash-tin",
     "cart-gas-tank",
     "cart-tea-jug",
-    "cart-baker"
+    "cart-baker",
+    "display-case-warm",
+    "signboard-1",
+    "signboard-2",
+    "signboard-3",
+    "queue-rope",
+    "helper-station",
+    "rattan-lamp",
+    "ceramic-jar",
+    "wheat-bundle",
+    "herb-pot",
+    "chalk-menu",
+    "neon-sign",
+    "plastic-stools",
+    "small-table",
+    "wall-calendar",
+    "old-radio",
+    "wall-fan",
+    "award-frame",
+    "banana-plant",
+    "wind-chime"
   ],
   "paths": [
     "door",
@@ -600,7 +622,7 @@
     "cartQueueSpots",
     "cartExitPath"
   ],
-  "_waves": "Đợt 1 (wave 1, bắt buộc để code M1–M2): cảnh xe đẩy + tiệm, title-art, nhân vật, chủ tiệm trong cảnh, lớp bánh, lò, thiết bị, nguyên liệu, tiền, fx, icon UI. Đợt 2 (wave 2, optional cho tới khi giao): cận cảnh HD, chân dung Drama, thời tiết, đồ cố định, trang trí, thẻ Nhật Ký. Khi giao đợt 2, bỏ optional ở các sheet wave 2.",
+  "_waves": "Đợt 1: cảnh, nhân vật, nguyên liệu và thiết bị cơ bản. Đợt 2: cận cảnh HD, chân dung Drama, thời tiết, đồ cố định, trang trí và thẻ Nhật Ký. Hai đợt đều bắt buộc.",
   "checkSceneScale": true,
   "scaleTolerance": 0.1,
   "scenes": [

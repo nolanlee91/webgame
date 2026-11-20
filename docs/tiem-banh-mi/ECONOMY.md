@@ -215,4 +215,22 @@ Các núm chỉnh ưu tiên trong M5: số khách theo cấp, tốc độ giảm
 
 ## Cân bằng M5
 
-(Để trống. M5 ghi bảng "Thay đổi · Trước · Sau · Lý do" như `docs/tiem-tra-sua/ECONOMY.md`.)
+Dò bằng bộ mô phỏng `prototype/games/tiem-banh-mi/tools/sim/` (3 hồ sơ, luật thật, báo cáo `report.md`, test hồi quy `sim.test.mjs`). Số trong các bảng phía trên là bản M0; bảng dưới là giá trị đang chạy trong `data/`.
+
+| Thay đổi | Trước (M0 – M4) | Sau (M5) | Lý do (bộ mô phỏng) |
+|---|---|---|---|
+| Giá bán mọi món | pate bơ 16 · chả lụa 22 · trứng 20 · xíu mại 22 · thập cẩm 34 · thịt nướng 26 · chay 20 · gà xé 25 · heo quay 32 · que 15 · gia truyền 48 | 20 · 27 · 25 · 27 · 42 · 32 · 25 · 31 · 40 · 18 · 58 (×1,25) | Người chơi trung bình ráp ~13 giây một khách (≈ 11 lần bấm) nên chỉ bán 18–22 ổ / ca: lời cấp 7 chỉ 0–60k (mục tiêu 160–200k). Giữ nguyên tỉ lệ biên giữa các món. |
+| Sức chứa kho | xe đẩy 60 · tiệm 100 · tủ mát 150 | 90 · 140 · 200 | Từ cấp 4 kho đầy chà bông / thịt nguội (gói 8–10 phần mỗi nhân), "Nhập đủ" không còn chỗ cho phôi ⇒ ngày nào cũng hết bánh, tiền về 0 ở ngày 5. |
+| "Nhập đủ cho hôm nay" | dự báo ổ × 1,15, mỗi nhân chia đều | ổ × 1,1, nhân × 1,2 theo phần món, **giữ chỗ trong kho cho phôi trước** | Hết nhân giữa ca (pate, chả lụa) khi khách lệch về món ruột; mua dư thì hết hạn. |
+| Ba buổi | sáng 55% khách × kiên nhẫn 0,8 · trưa 15% · chiều 30% | sáng 47% × 0,95 · trưa 18% · chiều 35% | Sáng dồn quá sức một người ráp ⇒ mất 5–12 khách mỗi ca, danh tiếng tụt. |
+| Kiên nhẫn khách (từ ngày 2) | ×1 | ×1,2 | Cùng lý do; ngày 1 (hướng dẫn) giữ nguyên. |
+| Hạn dùng (mới, M5) | chưa làm | phôi / que 3 ngày · chả, thịt, xíu mại, gà, chả chay 4 · heo quay 3 · đồ chua 5 · dưa leo 3 · rau 2 · pate, bơ, mayo, trứng, chà bông 10 · tủ mát +1 · chậu rau thơm +1 cho rau | Bản M0 (2 ngày / trong ngày) làm người trung bình bỏ 30–80k mỗi ca vì gói nhập lớn hơn nhu cầu một ngày. |
+| Hợp đồng K02 / X05 | một đơn đặt trước, hạn 30–40 giây sau mở cửa | hợp đồng định kỳ (12 ổ / 2 ngày × 5 đợt; 25 ổ / tuần × 4 đợt), hạn 90–100 giây, không cọc | 12 ổ trong 30 giây không ai kịp ⇒ đơn hỏng, mất hợp đồng ngay đợt đầu. |
+| Đơn nhiều ổ khách bỏ đi | mọi ổ đã gói ghi hao | khách lấy luôn ổ đã gói, trả 70% (cả đơn đặt trước giao thiếu) | Người ẩu mất 150–500k một ca vì đơn 6–30 ổ hỏng giữa chừng ⇒ kẹt nghèo hàng chục ngày (141 lần ký gửi). |
+| Cỡ đơn đặt trước ở Chuẩn bị ca | 6 + ngẫu nhiên tới cấp + 4 (tối đa 30) | 6 + ngẫu nhiên tới 3 + 0,8 × cấp (tối đa 26) | Cùng lý do. |
+| Anh Lâm chở hàng | gọi bao nhiêu chuyến cũng được | đang chở món nào thì không gọi thêm món đó | Bộ mô phỏng từng gọi 16 chuyến dưa leo trong một ca (159 phần hết hạn). |
+| Đường cong XP | 0, 35, 70, 115, 360, 580, 870, 1450, 2100, 3000, 3625, 4380, 5225, 6240, 7530, 9005, 10835, 12950, 15415, 18260 | 0, 30, 55, 125, 270, 445, 655, 1055, 1630, 2355, 2845, 3455, 4110, 5050, 6280, 7575, 9125, 11050, 13295, 16085 | `fit.mjs`: XP mỗi cấp = XP người chơi trung bình có ở phút mục tiêu (4 ≈ 10, 7 ≈ 40, 10 ≈ 120, 20 ≈ 660). Bản lưu v2 nâng lên v3 giữ cấp + phần trăm (`rescaleXp`), bản gốc cất ở `….bak-v2`. |
+
+Lỗi luật bộ mô phỏng bắt được (đã sửa trong code): người lấy đơn đặt trước bị sự kiện cho "rời quầy" không bao giờ rời ca (ca không kết thúc); ráp ×N bịch que mở hội thoại "hết que" dù còn đủ que cho vài bịch (vòng lặp vô tận).
+
+Kết quả: xem `prototype/games/tiem-banh-mi/tools/sim/report.md` và DEV-NOTES mục "M5".
