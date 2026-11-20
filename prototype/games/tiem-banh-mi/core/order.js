@@ -5,7 +5,7 @@ import { RECIPE_NEEDS } from "../data/equipment.js?v=b3";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
 /** Món bán được: đủ cấp; khi có trạng thái `s` thì cần thêm đồ / trạm (RECIPE_NEEDS) và ổ gia truyền phải đã đặt tên (s.house). */
-export const menuAt = (level, s = null) => RECIPES.filter((r) => r.level <= level && (!s || ((!RECIPE_NEEDS[r.id] || s.owned?.[RECIPE_NEEDS[r.id]]) && (!r.house || s.house))));
+export const menuAt = (level, s = null) => RECIPES.filter((r) => r.level <= level && !r.stale && (!s || ((!RECIPE_NEEDS[r.id] || s.owned?.[RECIPE_NEEDS[r.id]]) && (!r.house || s.house))));
 export const menuFor = (s) => menuAt(s.level, s);
 
 /** Một ổ theo công thức + danh sách biến thể. */

@@ -3,9 +3,10 @@
 
 /** Ba buổi: [bắt đầu ms ca, kết thúc ms ca), giờ hiển thị, phần khách, hệ số kiên nhẫn. */
 export const PHASES = [
-  { id: "sang", name: "Cao điểm sáng", from: 0, to: 105000, clock: [5 * 60 + 30, 8 * 60], share: 0.55, patience: 0.8 },
-  { id: "trua", name: "Trưa vắng", from: 105000, to: 150000, clock: [11 * 60, 13 * 60], share: 0.15, patience: 1.1 },
-  { id: "chieu", name: "Chiều tối", from: 150000, to: 240000, clock: [16 * 60, 19 * 60], share: 0.3, patience: 1 },
+  // M5 (bộ mô phỏng): sáng 55% khách × kiên nhẫn 0,8 ⇒ người chơi trung bình (~14 giây một khách) mất 5–7 khách mỗi ca ⇒ sáng 47% × 0,95, chiều 35%
+  { id: "sang", name: "Cao điểm sáng", from: 0, to: 105000, clock: [5 * 60 + 30, 8 * 60], share: 0.47, patience: 0.95 },
+  { id: "trua", name: "Trưa vắng", from: 105000, to: 150000, clock: [11 * 60, 13 * 60], share: 0.18, patience: 1.1 },
+  { id: "chieu", name: "Chiều tối", from: 150000, to: 240000, clock: [16 * 60, 19 * 60], share: 0.35, patience: 1 },
 ];
 export const SHIFT_MS = 240000;
 /** Băng chữ khi đổi buổi. */
@@ -15,7 +16,7 @@ export const PHASE_BANNER = {
 };
 
 /** Ngày thường: số khách theo ngày + cấp (bộ mô phỏng M5 chỉnh lại). */
-export const NORMAL_DAY = { minGuests: 11, maxGuests: 22, multiFromDay: 2, multiChance: 0.18 };
+export const NORMAL_DAY = { minGuests: 11, maxGuests: 22, multiFromDay: 2, multiChance: 0.18, patienceMul: 1.2 };
 /** Ngày 1 (hướng dẫn): ít khách, kiên nhẫn dài, khách đầu tới lúc 6 giây, gợi ý từng bước. */
 export const TUTORIAL = { guests: 10, patienceMul: 1.8, firstAt: 6000, gap: 14000 };
 

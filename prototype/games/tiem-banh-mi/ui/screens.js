@@ -16,7 +16,9 @@ import { buildEvent } from "./drama.js?v=b3";
 import { buildNotebook } from "./notebook.js?v=b3";
 import { drawJournal, download, share } from "./journal.js?v=b3";
 import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b3";
-import { canBuy, preorderOffers, fairAvailable, helperToday, houseRange, appeal, CHALLENGE_GOAL } from "../core/progress.js?v=b3";
+import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b3";
+import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b3";
+import { expiringOn } from "../core/expiry.js?v=b3";
 import { maiOpen, MAI } from "../core/stock.js?v=b3";
 import { currentEvent } from "../core/drama.js?v=b3";
 import { PERSONAS } from "../data/lines-reply.js?v=b3";
@@ -200,6 +202,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
     body.appendChild(top);
     const list = h("div", "stocklist");
     const short = new Set(est.short.map((x) => x.id));
+    const exp = expiringOn(s, s.day);
     for (const id of STOCK_IDS) {
       const it = STOCK[id];
       if (it.unlock > s.level) continue;
@@ -208,7 +211,8 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       const row = h("div", "stockitem" + (short.has(id) ? " short" : ""));
       row.dataset.item = id;
       row.appendChild(icon(atlas, ["ingr", it.icon], 32));
-      const nm = h("div", "nm"); nm.appendChild(h("b", "", it.name)); nm.appendChild(h("small", "", `Còn ${s.stock[id]}${est.need[id] ? ` · cần ~${est.need[id]}` : ""}`)); row.appendChild(nm);
+      const nm = h("div", "nm"); nm.appendChild(h("b", "", it.name)); nm.appendChild(h("small", "", `Còn ${s.stock[id]}${est.need[id] ? ` · cần ~${est.need[id]}` : ""}${exp[id] ? ` · ${exp[id]} hết hạn cuối ca nay` : ""}`)); row.appendChild(nm);
+      if (exp[id]) row.dataset.expiring = exp[id];
       const price = packPrice(id, false, sup, s);
       const b = btn(`+${packSize(id, sup)} · ${price}k`, "small", "buy", () => { const r = dispatch({ type: "restock", id, sup }); if (r.err) hooks.toast(r.err === "capacity" ? "Kho đầy rồi." : r.err === "promised" ? "Đã hứa chỉ lấy pate của Bà Tư." : "Không đủ tiền.", "warn"); prep(hooks.state()); });
       b.dataset.item = id; b.dataset.sup = sup; b.disabled = price > s.money;
@@ -274,12 +278,39 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
     if (s.stale?.n) {
       const box = h("div", "card-note"); box.dataset.card = "stale";
       box.appendChild(h("b", "", `Bánh hôm qua: ${s.stale.n} ổ (giòn 30)`));
-      box.appendChild(h("p", "small", s.stale.choice ? `Đã chọn: ${{ sell: "bán nướng bơ đường (rẻ 30%, nướng lại tối đa 70)", give: "cho đi", toss: "bỏ" }[s.stale.choice]}.` : "Sáng nay làm gì với bánh dư hôm qua?"));
+      box.appendChild(h("p", "small", s.stale.choice ? `Đã chọn: ${{ sell: "bán bánh mì nướng bơ đường 10k (khách sáng gọi, nướng lại ở lò than, giòn tối đa 70)", give: "cho đi", toss: "bỏ" }[s.stale.choice]}.` : "Sáng nay làm gì với bánh dư hôm qua?"));
       const row = h("div", "row");
       for (const [id, label] of [["sell", "Bán nướng bơ đường"], ["give", "Cho đi (+1 danh tiếng)"], ["toss", "Bỏ"]]) {
         const b = btn(label, s.stale.choice === id ? "small primary" : "small", "stale", () => { dispatch({ type: "stale", choice: id }); prep(hooks.state()); });
         b.dataset.choice = id; row.appendChild(b);
       }
+      box.appendChild(row); c.appendChild(box);
+    }
+    // hợp đồng định kỳ (M5)
+    if ((s.contracts || []).length) {
+      const box = h("div", "card-note"); box.dataset.card = "contracts";
+      box.appendChild(h("b", "", "Hợp đồng định kỳ"));
+      for (const k of s.contracts) box.appendChild(h("p", "small", `${k.name}: ${k.n} ổ ${NAMES[k.recipe] ? NAMES[k.recipe].toLocaleLowerCase("vi") : k.recipe} mỗi ${k.every} ngày · đợt kế ${k.next === s.day ? "HÔM NAY" : "ngày " + k.next} (giao trong ${Math.round(k.dueMs / 1000)} giây sau mở cửa) · còn ${k.left} đợt${k.strikes ? ` · đã trễ ${k.strikes} lần (trễ ${2} lần là mất hợp đồng)` : ""}`));
+      c.appendChild(box);
+    }
+    // ca đặc biệt (M5): hội chợ cấp 18 + thử thách cấp 20
+    if (s.level >= FAIR.level && s.shop) {
+      const box = h("div", "card-note gold"); box.dataset.card = "fair";
+      box.appendChild(h("b", "", "Lễ hội Bánh Mì phố (hội chợ)"));
+      box.appendChild(h("p", "small", `Thuê gian ${FAIR.price}k: ca dài 4,5 phút, +${FAIR.guests} khách, giá +15%, khách đi nhóm gọi đơn 2–3 ổ, kém kiên nhẫn hơn. Mỗi ${FAIR.every} ngày một lần · đã dự ${s.fairCount || 0} lần.`));
+      const row = h("div", "row");
+      const b = btn(fairToday(s) ? "Hôm nay là ca hội chợ" : fairAvailable(s) ? `Thuê gian (${FAIR.price}k)` : `Hội chợ kế: ngày ${nextFairDay(s)}`, fairToday(s) ? "small primary" : "small", "fair", () => { const r = dispatch({ type: "fair" }); if (r.err) hooks.toast(r.err === "money" ? "Không đủ tiền thuê gian." : "Chưa thuê được gian.", "warn"); prep(hooks.state()); });
+      b.disabled = fairToday(s) || !fairAvailable(s) || s.money < FAIR.price; row.appendChild(b); box.appendChild(row); c.appendChild(box);
+    }
+    if (s.level >= CHALLENGE.level) {
+      const today = challengeToday(s), on = activeChallenge(s);
+      const box = h("div", "card-note gold"); box.dataset.card = "challenge";
+      box.appendChild(h("b", "", `Lịch thử thách · hôm nay: ${today.name}`));
+      box.appendChild(h("p", "small", `${today.desc} Thưởng lần đầu ${CHALLENGE.firstReward.money}k + ${CHALLENGE.firstReward.xp} XP + huy hiệu, lần sau ${CHALLENGE.reward.money}k + ${CHALLENGE.reward.xp} XP. Miễn phí, bỏ được trước khi mở hàng.`));
+      const wk = h("div", "week"); for (const d of challengeWeek(s)) { const x = h("span", d.day === s.day ? "on" : "", `Ngày ${d.day}: ${d.name}${s.badges?.["tt-" + d.id] ? " ✓" : ""}`); wk.appendChild(x); }
+      box.appendChild(wk);
+      const row = h("div", "row");
+      row.appendChild(btn(on ? "Đã nhận thử thách (bấm để bỏ)" : "Nhận thử thách hôm nay", on ? "small primary" : "small", "challenge", () => { dispatch({ type: "challenge", on: !on }); prep(hooks.state()); }));
       box.appendChild(row); c.appendChild(box);
     }
     if (s.level >= RENT.level && !s.shop) {
@@ -349,14 +380,6 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
     if (s.level >= HELPER.level) {
       const on = helperToday(s);
       body.appendChild(btn(on ? "Bé Na phụ hôm nay (bấm để thôi)" : `Thuê Bé Na phụ ca · ${HELPER.price}k (tự gói + thối tiền)`, on ? "primary" : "", "helper", () => { dispatch({ type: "helper", on: !on }); prep(hooks.state(), "shop"); }));
-    }
-    if (s.level >= FAIR.level && s.shop) {
-      const b = btn(s.fairDay === s.day ? "Hôm nay là ca hội chợ" : `Thuê gian Lễ hội Bánh Mì phố · ${FAIR.price}k (+8 khách, giá +15%)`, s.fairDay === s.day ? "primary" : "", "fair", () => { const r = dispatch({ type: "fair" }); if (r.err) hooks.toast("Chưa thuê được gian.", "warn"); prep(hooks.state(), "shop"); });
-      b.disabled = s.fairDay === s.day || !fairAvailable(s); body.appendChild(b);
-    }
-    if (s.level >= CHALLENGE.level) {
-      const on = s.challengeDay === s.day;
-      body.appendChild(btn(on ? `Thử thách bật: ≥ ${CHALLENGE_GOAL.loaves} ổ, ≥ ${CHALLENGE_GOAL.avg} sao` : "Bật ca thử thách hôm nay", on ? "primary" : "", "challenge", () => { dispatch({ type: "challenge", on: !on }); prep(hooks.state(), "shop"); }));
     }
     if (s.level >= HOUSE_LOAF.level) houseForm(body, s);
   }
@@ -477,7 +500,11 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       if (S.wasteLog?.length) right.appendChild(h("p", "muted", "Hao: " + S.wasteLog.join(" · ")));
       if (S.missions?.length) right.appendChild(h("p", "", "Nhiệm vụ: " + S.missions.map((m) => `${m.done ? "✓" : "✗"} ${m.text}`).join(" · ")));
       if (S.preorders || S.multi) right.appendChild(h("p", "", `Đơn nhiều ổ ${S.multi || 0} · đơn đặt trước ${S.preorders || 0}${S.preLate ? ` (trễ ${S.preLate})` : ""}${S.staleSold ? ` · bán ${S.staleSold} ổ bánh hôm qua` : ""}`));
-      if (S.followersDelta) right.appendChild(h("p", "", `Người theo dõi ${S.followersDelta > 0 ? "+" : ""}${S.followersDelta}${S.challenge ? ` · thử thách ${S.challenge.ok ? "ĐẠT" : "chưa đạt"}` : ""}`));
+      if (S.followersDelta) right.appendChild(h("p", "", `Người theo dõi ${S.followersDelta > 0 ? "+" : ""}${S.followersDelta}`));
+      if (S.expiredK) right.appendChild(h("p", "", `Hết hạn bỏ đi: ${fmtK(S.expiredK)} (${Object.entries(S.expired || {}).map(([id, n]) => `${STOCK[id]?.name || id} ${n}`).join(", ")}). Nhập vừa đủ theo dự báo để đỡ hao.`));
+      if (S.fair) right.appendChild(h("p", "", `Ca hội chợ: giá +15%, +${FAIR.guests} khách.`));
+      if (S.challenge) { const p = h("p", "card-note" + (S.challenge.ok ? " gold" : "")); p.dataset.card = "challengeResult"; p.textContent = `Thử thách “${S.challenge.name}”: ${S.challenge.ok ? `ĐẠT · +${S.challenge.money}k, +${S.challenge.xp} XP` : "chưa đạt"}. ${S.challenge.line}`; right.appendChild(p); }
+      for (const bg of S.badges || []) { const p = h("p", "card-note gold"); p.dataset.card = "badge"; p.textContent = `Huy hiệu mới: ${bg.name}. ${bg.line}`; right.appendChild(p); }
       const dm = (S.moments || []).filter((m) => m.kind === "drama").slice(-2);
       for (const m of dm) right.appendChild(h("p", "say small", `${m.name}: “${m.line}”`));
       for (const r of [S.best, S.worst].filter(Boolean).filter((r, i, a) => a.findIndex((x) => x.id === r.id) === i)) {

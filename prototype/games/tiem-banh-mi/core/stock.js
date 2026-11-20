@@ -7,6 +7,7 @@ import { modCost, today, modGuests, modSum, engineFlag } from "./flags.js?v=b3";
 import { trafficBonus } from "./reviews.js?v=b3";
 import { appeal, promoGuests, fairToday, rainMul } from "./progress.js?v=b3";
 import { FAIR } from "../data/equipment.js?v=b3";
+import { addLot } from "./expiry.js?v=b3";
 
 export const stage = (s) => (s.shop ? (s.level >= 16 ? "famous" : "shop") : "cart");
 export const capacity = (s) => (stage(s) === "cart" ? CAPACITY.cart : s.owned?.fridge ? CAPACITY.fridge : CAPACITY.shop);
@@ -39,6 +40,7 @@ export function restock(s, id, ev, sup = "tu") {
   if (it.kho && stockUsed(s) + n > capacity(s)) return { err: "capacity" };
   spend(s, price);
   s.stock[id] = (s.stock[id] || 0) + n;
+  addLot(s, id, n);
   s.stats.spentStock += price;
   if (s.shift) s.shift.stats.restockSpent += price;
   if (sup === "mai") {
@@ -66,13 +68,13 @@ export function baseGuests(s) {
 /** Phần hàng cần cho ca tới: { guests, loaves, need, short: [{id, have, need}] }. */
 export function demandEstimate(s) {
   const guests = expectedGuests(s);
-  const loaves = Math.round(guests * (s.tutorialDone ? 1.15 : 1));
+  const loaves = Math.round(guests * (s.tutorialDone ? 1.1 : 1));
   const menu = menuAt(s.level, s).filter((r) => !r.que);
   const need = { phoi: loaves, "do-chua": loaves, "dua-leo": loaves, rau: loaves, "gia-vi": loaves, "giay-goi": loaves, tui: Math.ceil(loaves / 5), than: Math.ceil(loaves / 3), gas: Math.ceil(loaves / 4) + 1 };
   for (const R of menu) {
     const share = loaves / menu.length;
     for (const [id, lvl] of Object.entries(R.spreads)) need[id] = (need[id] || 0) + share * (lvl === 3 ? 2 : 1) * 1.1;
-    for (const id of R.fills) need[id] = (need[id] || 0) + share;
+    for (const id of R.fills) need[id] = (need[id] || 0) + share * 1.2; // khách hay gọi món ruột (lệch đều) ⇒ dư một chút mỗi nhân
   }
   const short = [];
   for (const id of STOCK_IDS) {
@@ -92,11 +94,15 @@ export function restockToday(s, ev) {
   for (let guard = 0; guard < 60; guard++) {
     const { short } = demandEstimate(s);
     const room = capacity(s) - stockUsed(s);
-    const x = short.find((q) => STOCK[q.id].unlock <= s.level && packPrice(q.id) <= s.money - shiftFee(s) && (!STOCK[q.id].kho || packSize(q.id) <= room));
+    // M5: giữ chỗ trong kho cho phôi (không có phôi là không có bánh) — trước đây kho 60 đầy chà bông / thịt nguội, phôi không vào được
+    const ph = short.find((q) => q.id === "phoi");
+    const keep = ph ? Math.ceil((ph.need - ph.have) / packSize("phoi")) * packSize("phoi") : 0;
+    const x = short.find((q) => STOCK[q.id].unlock <= s.level && packPrice(q.id) <= s.money - shiftFee(s) && (!STOCK[q.id].kho || packSize(q.id) <= room - (q.id === "phoi" ? 0 : keep)));
     if (!x) break;
     const p = packPrice(x.id);
     spend(s, p);
     s.stock[x.id] += packSize(x.id);
+    addLot(s, x.id, packSize(x.id));
     s.stats.spentStock += p;
     bought[x.id] = (bought[x.id] || 0) + packSize(x.id);
     spent += p;
@@ -145,7 +151,7 @@ export function consign(s, ev, force = false) {
   const got = {};
   for (const [id, n] of Object.entries(CONSIGN.use)) {
     const want = n * CONSIGN.loaves, add = Math.max(0, want - (s.stock[id] || 0));
-    if (add) { s.stock[id] = (s.stock[id] || 0) + add; got[id] = add; owed += add * STOCK[id].cost; }
+    if (add) { s.stock[id] = (s.stock[id] || 0) + add; addLot(s, id, add); got[id] = add; owed += add * STOCK[id].cost; }
   }
   const g = Math.max(0, CONSIGN.gas - (s.stock.gas || 0));
   if (g) { s.stock.gas += g; got.gas = g; owed += g * STOCK.gas.cost; }

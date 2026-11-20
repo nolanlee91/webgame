@@ -50,7 +50,13 @@ async function boot() {
     store.write(state); lastSave = now; dirty = false;
   };
   const say = (t, kind = "") => toast($("#toasts"), t, kind);
-  const scene = createScene($("#scene"), atlas, { onCustomer: (cid) => act({ type: "pin", cid }) });
+  /** Vùng bong bóng thoại phải tránh: chip HUD + viên Lò / Gas (toạ độ trong khung cảnh). */
+  const avoidRects = () => {
+    const r0 = $("#scene").getBoundingClientRect();
+    return [...document.querySelectorAll("#hud .chip, #pills > *")].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0)
+      .map((r) => ({ x0: r.left - r0.left - 4, y0: r.top - r0.top - 4, x1: r.right - r0.left + 4, y1: r.bottom - r0.top + 4 }));
+  };
+  const scene = createScene($("#scene"), atlas, { onCustomer: (cid) => act({ type: "pin", cid }), avoid: avoidRects });
   const bench = createBench($("#bench"), atlas, (a) => act(a));
   const hud = createHud($("#hud"), $("#pills"), atlas, (a) => act(a));
   const rail = createRail($("#rail"), (cid) => act({ type: "pin", cid }));
@@ -90,6 +96,10 @@ async function boot() {
     "no-bills": () => "Quỹ lẻ không còn tờ đó.",
     "not-waiting": () => "Khách này không còn chờ nữa.",
     "cannot-afford": () => "Chưa đủ tiền cho lựa chọn này.",
+    "pan-busy": () => "Chảo đang chiên hết chỗ. Chờ trứng chín.",
+    "grill-busy": () => "Bếp than đang có mẻ thịt.",
+    "grill-raw": () => "Thịt chưa chín, chờ thêm chút.",
+    "too-soon": () => "Hội chợ mỗi 4 ngày mới thuê gian lại được.",
   };
   function act(a, fromLoop = false) {
     if (a?.type === "startShift") store.snapshotDay(state);
@@ -132,6 +142,18 @@ async function boot() {
         case "preorderFail": say(`Trễ đơn đặt trước của ${e.name}. ${e.line}`, "warn"); break;
         case "helperChange": say(e.line, "good"); break;
         case "spareGas": say("Hết gas, đã thay bình dự phòng.", "good"); break;
+        case "cookWait": say(e.why === "egg" ? "Trứng đang chiên (6 giây), xong là bỏ vào ổ." : e.why === "meat" ? "Đã bỏ mẻ thịt lên bếp than (25 giây). Chín thì gắp rồi bỏ vào ổ." : e.why === "meat-pull" ? "Thịt chín rồi, bấm “Gắp thịt” trước." : "Hết hàng sống để nấu.", "warn"); break;
+        case "eggReady": say("Trứng chín rồi!", "good"); break;
+        case "grillReady": say("Mẻ thịt nướng chín, gắp ra!", "good"); break;
+        case "grillBurnt": say(e.pulled ? "Mẻ thịt cháy mất rồi." : "Thịt trên bếp than sắp cháy!", "warn"); break;
+        case "grillPulled": say(`Gắp ${e.n} phần thịt nướng, giữ ấm tới hết ca.`, "good"); break;
+        case "contract": say(e.renew ? `Gia hạn hợp đồng với ${e.name} (còn ${e.left} đợt).` : `Ký hợp đồng với ${e.name}: ${e.left} đợt giao, đợt đầu ngày ${e.next}.`, "good"); break;
+        case "contractDone": say(`Trọn hợp đồng với ${e.name}: ${e.done} đợt giao!`, "good"); break;
+        case "contractBroken": say(`${e.name} ngưng hợp đồng vì giao trễ.`, "warn"); break;
+        case "badge": say(e.line, "good"); break;
+        case "challengeResult": say(e.ok ? `Đạt thử thách “${e.name}”! +${e.money}k, +${e.xp} XP` : `Chưa đạt thử thách “${e.name}”.`, e.ok ? "good" : "warn"); break;
+        case "challenge": if (e.on) say(`Nhận thử thách hôm nay: ${e.name}.`, "good"); break;
+        case "fair": say(`Thuê gian Lễ hội Bánh Mì phố (lần ${e.count}). Ca hôm nay dài hơn, đông hơn!`, "good"); break;
         case "replied": break;
         case "persona": break;
         case "lowStock": say(`“${LOW_LINES[0].replace("{item}", STOCK[e.id]?.name || e.id).replace("{n}", e.n)}”`, "warn"); break;
@@ -143,7 +165,7 @@ async function boot() {
         case "restockedToday": say(`Đã nhập đủ cho hôm nay (−${fmtK(e.spent)}).`, "good"); break;
         case "consigned": say(`Bà Tư ký gửi một gói hàng (${fmtK(e.owed)}, bán tới đâu trả tới đó).`, "good"); break;
         case "exchanged": say(`Cô Sáu đổi ${e.value}k tiền lẻ.`, "good"); break;
-        case "shiftStarted": say(`Mở hàng ngày ${e.day}! Khoảng ${e.guests} khách. Phí ca ${e.fee}k.`, "good"); break;
+        case "shiftStarted": dock(); say(`Mở hàng ngày ${e.day}! Khoảng ${e.guests} khách. Phí ca ${e.fee}k.`, "good"); break;
         case "shiftEnded": setTimeout(() => { dock(); overlays.summary(state); }, reduced() ? 0 : 600); break;
         default: break;
       }

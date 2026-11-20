@@ -6,6 +6,7 @@ import { hint } from "../core/tutorial.js";
 import { clockOf, phaseAt } from "../core/shift.js";
 import { soundsFor, AVAILABLE, play, MUTE_KEY, SFX, LOOPS, WARM } from "../ui/sfx.js";
 import { readdirSync } from "node:fs";
+import { PHASES } from "../data/shift.js";
 
 test("gợi ý ngày 1 theo đúng bước: nướng → rút → ghim → lấy bánh → rạch → phết … → giao → thối tiền", () => {
   const s = shop(); act(s, { type: "startShift" });
@@ -50,7 +51,7 @@ test("ba buổi: cao điểm sáng 05:30–08:00 (55% khách), trưa vắng 11:0
   act(s, { type: "startShift" });
   const sang = s.shift.schedule.filter((g) => g.at < 105000).length / s.shift.schedule.length;
   assert.ok(sang > 0.3 && sang < 0.85, String(sang));
-  assert.ok(s.shift.schedule.filter((g) => g.at < 105000).every((g) => g.patienceMul === 0.8), "sáng kiên nhẫn ngắn");
+  assert.ok(s.shift.schedule.filter((g) => g.at < 105000).every((g) => g.patienceMul === PHASES[0].patience && PHASES[0].patience < PHASES[1].patience), "sáng kiên nhẫn ngắn");
   const ev = advance(s, 110000);
   assert.ok(ev.some((e) => e.type === "phase" && e.id === "trua"));
 });

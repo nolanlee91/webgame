@@ -3,7 +3,7 @@
 // MIGRATIONS[v] nâng v → v+1. v1 → v2 (M3 + M4): thêm tính cách chủ tiệm, người theo dõi / độ hot, Drama, Nhật Ký, bánh hôm qua, bộ điều chỉnh,
 // trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, đơn đặt trước, quảng bá, phụ việc, hội chợ, thử thách, thời tiết (mặc định an toàn).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-v1) một lần trước khi nâng.
-import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS } from "../data/economy.js?v=b3";
+import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b3";
 import { ARCHETYPES } from "../data/customers.js?v=b3";
 import { QUIRKS } from "../data/quirks.js?v=b3";
 import { levelForXp } from "./shift.js?v=b3";
@@ -13,11 +13,37 @@ import { EVENT } from "../data/events.js?v=b3";
 import { NPCS } from "../data/npcs.js?v=b3";
 import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b3";
 import { PERSONAS } from "../data/lines-reply.js?v=b3";
+import { loadContracts } from "./contracts.js?v=b3";
+import { loadCook } from "./cook.js?v=b3";
+import { loadLots } from "./expiry.js?v=b3";
+import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b3";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
+/** v2 → v3 (M5): hợp đồng định kỳ, lô hàng theo ngày (hạn dùng), số lần hội chợ, thử thách theo lịch, huy hiệu theo id.
+ *  Huy hiệu cũ "chuTiem" (đếm số lần đạt thử thách M3) chuyển thành s.stats.challenges; thử thách đang bật hôm nay giữ thành thử thách trên lịch.
+ *  Cấp + phần trăm tới cấp sau giữ nguyên khi đổi đường cong XP (rescaleXp). save.js cất bản gốc ở KEY.bak-v2 một lần trước khi nâng. */
 export const MIGRATIONS = {
   1: (d) => ({ ...d, v: 2, owner: { persona: null, lastPersona: null, switches: [] }, followers: 0, buzz: 0, drama: freshDrama(), journal: [], mods: [] }),
+  2: (d) => {
+    const b = d.badges && typeof d.badges === "object" ? d.badges : {};
+    const stats = { ...(d.stats || {}), challenges: Number.isInteger(b.chuTiem) ? b.chuTiem : 0 };
+    const out = { ...d, v: 3, stats, badges: {}, contracts: [], lots: {}, fairCount: d.fairDay ? 1 : 0, challenge: null };
+    if (Number.isInteger(d.challengeDay) && d.challengeDay === d.day && (d.level || 1) >= 20) out.challenge = { id: CHALLENGE_LIST()[d.day % 5], day: d.day };
+    out.xp = rescaleXp(d.xp, LEVELS_V2);
+    return out;
+  },
 };
+const CHALLENGE_LIST = () => Object.keys(CHALLENGE_BY_ID);
+/** Đường cong XP bản lưu v2 (M3/M4). Bản v3 dùng LEVELS (data/economy.js) sau cân bằng M5. */
+export const LEVELS_V2 = [0, 35, 70, 115, 360, 580, 870, 1450, 2100, 3000, 3625, 4380, 5225, 6240, 7530, 9005, 10835, 12950, 15415, 18260];
+/** Giữ cấp + phần trăm đường tới cấp sau khi đổi bảng XP: xp cũ trên bảng `from` ⇒ xp tương ứng trên LEVELS hiện tại. */
+export function rescaleXp(xp, from, to = LEVELS) {
+  xp = Math.max(0, Math.floor(Number(xp) || 0));
+  let i = 0; for (let k = 0; k < from.length; k++) if (xp >= from[k]) i = k;
+  if (i >= from.length - 1) return to[to.length - 1] + Math.max(0, xp - from[from.length - 1]);
+  const f = (xp - from[i]) / (from[i + 1] - from[i]);
+  return Math.floor(to[i] + f * (to[i + 1] - to[i]));
+}
 
 export function createState(seed = 20261119) {
   return {
@@ -30,6 +56,7 @@ export function createState(seed = 20261119) {
     owner: { persona: null, lastPersona: null, switches: [] }, followers: 0, buzz: 0, rating: null, promises: [], returning: [],
     drama: freshDrama(), journal: [], cartMemory: null, stale: null, mods: [], placement: {}, rank: 0, pate: 0, house: null,
     preorders: [], nextPre: 0, offers: null, promo: null, helperDay: 0, fairDay: 0, challengeDay: 0, badges: {}, weather: null,
+    contracts: [], lots: {}, fairCount: 0, challenge: null,
   };
 }
 
@@ -62,7 +89,7 @@ function loadLoaf(l, built) {
   const out = {
     spreads: lvlMap(l.spreads, SPREAD_KEYS), fills: arr(l.fills).filter((x) => FILL_KEYS.includes(x)), veg: boolMap(l.veg, VEG_KEYS), ot: int(l.ot, 0, 3, 0),
     sauces: boolMap(l.sauces, SAUCE_KEYS), wrap: WRAPS[l.wrap] ? l.wrap : null, crisp: num(l.crisp, 0, 100, 60), burnt: bool(l.burnt), dark: bool(l.dark),
-    toasted: bool(l.toasted), src: SRC.has(l.src) ? l.src : "oven",
+    toasted: bool(l.toasted), src: SRC.has(l.src) ? l.src : "oven", ...(["hot", "wait", "fresh", "held"].includes(l.ck) ? { ck: l.ck } : {}), ...(l.ckWait ? { ckWait: true } : {}),
     used: Object.fromEntries(Object.entries(obj(l.used) ? l.used : {}).filter(([k, v]) => STOCK_IDS.includes(k) && Number.isInteger(v) && v > 0 && v < 50)),
   };
   if (built) { out.item = int(l.item, 0, 30, 0); return out; }
@@ -81,7 +108,7 @@ function loadPre(p) {
   if (!obj(p)) return null;
   return { id: int(p.id, 0, BIG, 0), dueT: num(p.dueT, -BIG, BIG, 0), deposit: int(p.deposit, 0, 5000, 0), label: str(p.label, 40, "Đơn đặt trước"), tip: int(p.tip, 0, 500, 0),
     flagOk: typeof p.flagOk === "string" ? p.flagOk.slice(0, 40) : null, laterOk: obj(p.laterOk) && EVENT[p.laterOk.id] ? { id: p.laterOk.id, days: int(p.laterOk.days, 0, 30, 1) } : null,
-    okStars: int(p.okStars, 1, 5, 4), ...(p.onTime !== undefined ? { onTime: bool(p.onTime), late: num(p.late, 0, BIG, 0) } : {}) };
+    okStars: int(p.okStars, 1, 5, 4), ...(p.onTime !== undefined ? { onTime: bool(p.onTime), late: num(p.late, 0, BIG, 0) } : {}), ...(typeof p.contract === "string" ? { contract: p.contract.slice(0, 30) } : {}) };
 }
 function loadCustomer(c, t) {
   if (!obj(c) || !Number.isInteger(c.id) || !ARCHETYPES[c.arch] || !PHASE.has(c.phase)) throw 0;
@@ -178,7 +205,8 @@ function loadPreorder(p) {
     if (!items.length) return null;
     return { id: int(p.id, 0, BIG, 0), day: int(p.day, 0, BIG, 0), name: str(p.name, 40, "Khách đặt trước"), arch: ARCHETYPES[p.arch] ? p.arch : "office", items, total: int(p.total, 0, 5000, 0),
       deposit: int(p.deposit, 0, 5000, 0), discount: num(p.discount, 0, 0.3, 0), tip: int(p.tip, 0, 500, 0), label: str(p.label, 40, "Đơn đặt trước"), dueMs: int(p.dueMs, 0, 240000, 60000),
-      flagOk: typeof p.flagOk === "string" ? p.flagOk.slice(0, 40) : null, laterOk: obj(p.laterOk) && EVENT[p.laterOk.id] ? { id: p.laterOk.id, days: int(p.laterOk.days, 0, 30, 1) } : null, okStars: int(p.okStars, 1, 5, 4) };
+      flagOk: typeof p.flagOk === "string" ? p.flagOk.slice(0, 40) : null, laterOk: obj(p.laterOk) && EVENT[p.laterOk.id] ? { id: p.laterOk.id, days: int(p.laterOk.days, 0, 30, 1) } : null, okStars: int(p.okStars, 1, 5, 4),
+      ...(typeof p.contract === "string" ? { contract: p.contract.slice(0, 30) } : {}) };
   } catch { return null; }
 }
 const loadMoment = (m) => (obj(m) && typeof m.line === "string" ? { kind: str(m.kind, 20, "drama"), name: str(m.name, 60, ""), line: m.line.slice(0, 400), ...(m.outcome ? { outcome: str(m.outcome, 12, "") } : {}), ...(m.id ? { id: str(m.id, 20, "") } : {}) } : null);
@@ -200,7 +228,7 @@ function loadShift(sh, s) {
     const t = num(sh.t, 0, 3_600_000, 0);
     const customers = arr(sh.customers).slice(0, 12).map((c) => loadCustomer(c, t));
     const ids = new Set(customers.map((c) => c.id));
-    const slots = (OVENS[s.oven] || OVENS.mini).slots;
+    const slots = Math.min((OVENS[s.oven] || OVENS.mini).slots, s.challenge?.day === s.day && CHALLENGE_BY_ID[s.challenge.id]?.mods.slots || 9);
     const oven = Array.from({ length: slots }, (_, i) => { const b = arr(sh.oven)[i]; return obj(b) ? { n: int(b.n, 1, 12, 4), t0: num(b.t0, -600000, t + 600000, t), said: obj(b.said) ? { golden: bool(b.said.golden), dark: bool(b.said.dark), burnt: bool(b.said.burnt) } : {}, ...(b.kind === "que" ? { kind: "que" } : {}) } : null; });
     const boards = arr(sh.boards).slice(0, 3).map((b) => loadBoard(b, ids));
     const sel = int(sh.sel, 0, Math.max(0, boards.length - 1), 0);
@@ -215,7 +243,7 @@ function loadShift(sh, s) {
       que: int(sh.que, 0, 200, 0), moments: arr(sh.moments).map(loadMoment).filter(Boolean).slice(-40), lastServe: null, burntAt: typeof sh.burntAt === "number" ? num(sh.burntAt, 0, t, 0) : null,
       helperUntil: num(sh.helperUntil, 0, t + 600000, 0), followers0: int(sh.followers0, 0, BIG, 0), witness: obj(sh.witness) && ["ran", "swapYes", "swapNo"].includes(sh.witness.kind) ? { kind: sh.witness.kind, t: num(sh.witness.t, 0, t, 0) } : null,
       drama: obj(sh.drama) ? { count: int(sh.drama.count, 0, 9, 0), max: int(sh.drama.max, 0, 9, 1), nextAt: num(sh.drama.nextAt, 0, BIG, 30000) } : { count: 0, max: 1, nextAt: 30000 },
-      dramaDone: int(sh.dramaDone, 0, 50, 0),
+      dramaDone: int(sh.dramaDone, 0, 50, 0), len: int(sh.len, 240000, 300000, 240000), cook: loadCook(sh.cook, s, t),
       missions: arr(sh.missions).filter(obj).slice(0, 3).map((m) => ({ id: str(m.id, 20, ""), kind: str(m.kind, 20, ""), text: str(m.text, 120, ""), n: int(m.n, 1, 10000, 1), prog: int(m.prog, 0, 10000, 0), done: bool(m.done), reward: { xp: int(m.reward?.xp, 0, 100, 0), money: int(m.reward?.money, 0, 100, 0) } })),
       dialog: loadDialog(sh.dialog, ids), away: obj(sh.away) && ["run", "si", "gas", "change", "event"].includes(sh.away.kind) ? { until: num(sh.away.until, 0, t + 30000, t), kind: sh.away.kind, ...(STOCK_IDS.includes(sh.away.id) ? { id: sh.away.id } : {}), ...(Number.isInteger(sh.away.cid) ? { cid: sh.away.cid } : {}) } : null,
       deliveries: arr(sh.deliveries).slice(0, 5).filter((d) => obj(d) && STOCK_IDS.includes(d.id)).map((d) => ({ at: num(d.at, 0, t + 60000, t), id: d.id, want: STOCK_IDS.includes(d.want) ? d.want : d.id, n: int(d.n, 1, 60, 1) })),
@@ -225,7 +253,7 @@ function loadShift(sh, s) {
       stats: { served: S("served"), loaves: S("loaves"), revenue: S("revenue"), cogs: S("cogs"), batches: S("batches"), burntBatches: S("burntBatches"), goldenPulls: S("goldenPulls"), toasts: S("toasts"),
         lost: S("lost"), timeouts: S("timeouts"), stars: arr(stats.stars).filter((x) => Number.isInteger(x) && x >= 1 && x <= 5).slice(0, 200), changeRight: S("changeRight"), changeWrong: S("changeWrong"),
         changeLoss: S("changeLoss"), restockSpent: S("restockSpent"), rescueSpent: S("rescueSpent"), xp: S("xp"), consignRepaid: S("consignRepaid"), owed: S("owed"),
-        multi: S("multi"), preorders: S("preorders"), preLate: S("preLate"), staleSold: S("staleSold"), eventCash: num(stats.eventCash, -BIG, BIG, 0), missionCash: S("missionCash"), lostSang: S("lostSang"),
+        multi: S("multi"), preorders: S("preorders"), preLate: S("preLate"), staleSold: S("staleSold"), burntMeat: S("burntMeat"), boDuong: S("boDuong"), eventCash: num(stats.eventCash, -BIG, BIG, 0), missionCash: S("missionCash"), lostSang: S("lostSang"),
         mistakes: Object.fromEntries(Object.entries(obj(stats.mistakes) ? stats.mistakes : {}).filter(([, v]) => Number.isInteger(v) && v >= 0)) },
     };
     if (out.dialog?.kind === "nochange" && !customers.some((c) => c.id === out.dialog.cid && c.phase === "pay")) out.dialog = null;
@@ -264,6 +292,7 @@ export function loadSave(raw) {
   s.daily = obj(d.daily) ? { exchanged: int(d.daily.exchanged, 0, 1000, 0), consigned: bool(d.daily.consigned), borrowed: bool(d.daily.borrowed), gasBorrowed: bool(d.daily.gasBorrowed) } : {};
   s.prep = obj(d.prep) ? { batches: int(d.prep.batches, 0, 10, 0), burnt: int(d.prep.burnt, 0, 100, 0), ...(d.prep.golden ? { golden: true } : {}), loaves: arr(d.prep.loaves).filter(obj).slice(0, 20).map((l) => ({ crisp: num(l.crisp, 0, 100, 60), dark: bool(l.dark) })) } : null;
   s.usedDay = arr(d.usedDay).filter((x) => typeof x === "string").slice(-120);
+  s.challenge = obj(d.challenge) && CHALLENGE_BY_ID[d.challenge.id] ? { id: d.challenge.id, day: int(d.challenge.day, 0, BIG, 0) } : null;
   s.shift = loadShift(d.shift, s);
   s.lastSummary = obj(d.lastSummary) ? { ...d.lastSummary, seen: bool(d.lastSummary.seen) } : null;
   // M3 + M4
@@ -286,9 +315,10 @@ export function loadSave(raw) {
   s.offers = obj(d.offers) && Array.isArray(d.offers.list) ? { day: int(d.offers.day, 0, BIG, 0), list: d.offers.list.filter(obj).slice(0, 3).map((o) => ({ ...o, taken: bool(o.taken) })) } : null;
   s.promo = obj(d.promo) && typeof d.promo.kind === "string" ? { day: int(d.promo.day, 0, BIG, 0), kind: d.promo.kind } : null;
   s.helperDay = int(d.helperDay, 0, BIG, 0); s.fairDay = int(d.fairDay, 0, BIG, 0); s.challengeDay = int(d.challengeDay, 0, BIG, 0);
-  s.badges = Object.fromEntries(Object.entries(obj(d.badges) ? d.badges : {}).filter(([, v]) => Number.isInteger(v)));
+  s.badges = Object.fromEntries(Object.entries(obj(d.badges) ? d.badges : {}).filter(([k, v]) => BADGE[k] && Number.isInteger(v)).map(([k, v]) => [k, int(v, 1, BIG, 1)]));
+  s.contracts = loadContracts(d.contracts); s.lots = loadLots(d.lots); s.fairCount = int(d.fairCount, 0, BIG, 0);
   s.weather = obj(d.weather) && ["rain", "clear"].includes(d.weather.kind) ? { day: int(d.weather.day, 0, BIG, 0), kind: d.weather.kind } : null;
-  if (obj(d.stats)) for (const k of ["mai", "spentGear", "deposits", "missions"]) if (typeof d.stats[k] === "number") s.stats[k] = num(d.stats[k], 0, BIG, 0);
+  if (obj(d.stats)) for (const k of ["mai", "spentGear", "deposits", "missions", "challenges"]) if (typeof d.stats[k] === "number") s.stats[k] = num(d.stats[k], 0, BIG, 0);
   s.owned = Object.fromEntries(Object.entries(s.owned).filter(([k]) => EQUIPMENT[k] || DECOR[k] || SIGNBOARDS[k] || k === "tray-6" || k === "warm-case"));
   if (s.owned["electric-oven"]) s.oven = "electric";
   else if (s.shop && s.oven === "mini") s.oven = "gas";

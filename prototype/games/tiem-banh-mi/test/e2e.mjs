@@ -6,7 +6,7 @@
 // Tua thời gian ca bằng __game.advance (không chờ thật). Yêu cầu 0 lỗi console.
 import { launch, sleep } from "./cdp.mjs";
 import { playM34 } from "./e2e-m34.mjs";
-import { audioBeforeGesture, audioAfterGesture, audioInShift } from "./e2e-m5.mjs";
+import { audioBeforeGesture, audioAfterGesture, audioInShift, coverChecks, queueChecks } from "./e2e-m5.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8841;
 const BASE = `http://127.0.0.1:${PORT}/games/tiem-banh-mi/?seed=777&prepSpeed=8`;
@@ -139,6 +139,7 @@ async function playDay1(tag, shots) {
       if (crispy) toastOk = await S("s.shift.boards[0].loaf.crisp>=85&&s.shift.boards[0].loaf.toasted");
       if (new Set(st).size < st.length - 1) layersOk = false;
       if (firstShot && shots) await b.shot(`${OUT}/${tag}-06-goi.png`);
+      if (firstShot && k === 0) { await coverChecks(ctx, tag); await queueChecks(ctx, tag); if (shots) await b.shot(`${OUT}/${tag}-06b-khong-che.png`); }
       await pressSel('[data-act="serve"]');
     }
     await clearDialogs();

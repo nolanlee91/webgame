@@ -82,7 +82,7 @@ export const PROMO_UNLOCK = 11;
 /** Đơn đặt trước (cấp 7): cọc 30%, tối đa 2 đơn mỗi ngày, trễ ≤ 30 s ca −10%, trễ hơn / thiếu −30% + review 2 sao. */
 export const PREORDER = { level: 7, deposit: 0.3, perDay: 2, lateSmall: 30000, lateSmallCut: 0.1, lateBigCut: 0.3, grace: 60000, minN: 6, maxN: 30 };
 /** Hội chợ (cấp 18): thuê gian 150k mỗi 4 ngày, +8 khách, giá +15%. Thử thách (cấp 20). */
-export const FAIR = { level: 18, price: 150, every: 4, guests: 8, priceMul: 1.15 };
+export const FAIR = { level: 18, price: 150, every: 4, guests: 8, priceMul: 1.15, ms: 270000, patienceMul: 0.9, two: 0.4, three: 0.2 };
 export const CHALLENGE = { level: 20, firstReward: { money: 120, xp: 60 }, reward: { money: 60, xp: 30 } };
 
 /** Nhiệm vụ ngày (ECONOMY §8): 3 mục mỗi ca từ cấp 2. kind = cách đếm ở core/missions.js. */

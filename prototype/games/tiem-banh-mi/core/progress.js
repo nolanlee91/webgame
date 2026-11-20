@@ -166,39 +166,27 @@ export function hireHelper(s, on, ev) {
   return { ok: true };
 }
 export const helperToday = (s) => s.helperDay === s.day;
-export const fairAvailable = (s) => s.level >= FAIR.level && s.shop && (!s.fairDay || s.day - s.fairDay >= FAIR.every);
+/** Hội chợ (cấp 18, Milestone 5 chép Trà Sữa): trả phí gian trước ca ⇒ ca hôm nay là "Lễ hội Bánh Mì phố": dài 4,5 phút, +8 khách, giá +15%,
+ *  khách kém kiên nhẫn 10%, khách nào cũng hay đi nhóm (đơn kết hợp 2–3 ổ). Mỗi FAIR.every ngày một lần. s.fair = { last, count }. */
+export const fairToday = (s) => s.fairDay === s.day;
+export const fairAvailable = (s) => s.level >= FAIR.level && s.shop && !s.shift && !fairToday(s) && (!s.fairDay || s.day - s.fairDay >= FAIR.every);
+export const nextFairDay = (s) => (!s.fairDay ? s.day : Math.max(s.day, s.fairDay + FAIR.every));
 export function rentFair(s, ev) {
   if (s.shift) return { err: "shift-open" };
   if (s.level < FAIR.level || !s.shop) return { err: "locked" };
-  if (!fairAvailable(s)) return { err: "once-per-day" };
+  if (fairToday(s)) return { err: "already" };
+  if (!fairAvailable(s)) return { err: "too-soon" };
   if (s.money < FAIR.price) return { err: "money" };
   spend(s, FAIR.price);
   s.fairDay = s.day;
+  s.fairCount = (s.fairCount || 0) + 1;
   s.drama.flags["hoi-cho"] = s.day;
-  ev.push({ type: "fair" });
+  ev.push({ type: "fair", count: s.fairCount });
   return { ok: true };
 }
-export const fairToday = (s) => s.fairDay === s.day;
-/** Thử thách hôm nay (cấp 20): bán ≥ 40 ổ, trung bình ≥ 4,3 sao, không ai bỏ về quá 1. */
-export const CHALLENGE_GOAL = { loaves: 40, avg: 4.3, lostMax: 1 };
-export function setChallenge(s, on, ev) {
-  if (s.shift) return { err: "shift-open" };
-  if (s.level < CHALLENGE.level) return { err: "locked" };
-  s.challengeDay = on ? s.day : 0;
-  if (on) s.drama.flags["thu-thach"] = s.day; else delete s.drama.flags["thu-thach"];
-  ev.push({ type: "challenge", on: !!on });
-  return { ok: true };
-}
-export function judgeChallenge(s, sum) {
-  if (s.challengeDay !== sum.day) return null;
-  const ok = sum.loaves >= CHALLENGE_GOAL.loaves && sum.avg >= CHALLENGE_GOAL.avg && sum.lost <= CHALLENGE_GOAL.lostMax;
-  if (!ok) return { ok };
-  const first = !s.badges?.chuTiem;
-  const R = first ? CHALLENGE.firstReward : CHALLENGE.reward;
-  s.money += R.money;
-  s.badges = { ...(s.badges || {}), chuTiem: (s.badges?.chuTiem || 0) + 1 };
-  return { ok, money: R.money, xp: R.xp, first };
-}
+/** Độ dài ca hôm nay (ms ca): hội chợ 4,5 phút, ngày thường 4 phút. */
+export const shiftLenFor = (s) => (fairToday(s) ? FAIR.ms : 240000);
+export { CHALLENGES, CHALLENGE_BY_ID, challengeToday, challengeWeek, activeChallenge, setChallenge, judgeChallenge, challengeMods } from "./challenge.js?v=b3";
 
 // ---------- bánh hôm qua ----------
 export const STALE_CRISP = 30, STALE_MAX = 70, STALE_PRICE = 10;
@@ -293,17 +281,17 @@ export function createPreorder(s, spec, ev, hooks = {}) {
   if (!items.length) return null;
   const discount = Math.max(0, Math.min(0.3, spec.discount || 0));
   const total = Math.round(items.reduce((a, it) => a + it.price, 0) * (1 - discount));
-  const deposit = Math.round(total * PREORDER.deposit);
+  const deposit = spec.noDeposit ? 0 : Math.round(total * PREORDER.deposit);
   s.money += deposit;
   s.stats.deposits = (s.stats.deposits || 0) + deposit;
   const pre = {
     id: (s.nextPre = (s.nextPre || 0) + 1), name: String(spec.name || "Khách đặt trước").slice(0, 40), arch: ARCHETYPES[spec.arch] ? spec.arch : "office",
     items, total, deposit, discount, tip: Math.max(0, spec.tip || 0), label: String(spec.label || "Đơn đặt trước").slice(0, 40),
-    flagOk: spec.flagOk || null, laterOk: spec.laterOk || null, okStars: spec.okStars || 4,
+    flagOk: spec.flagOk || null, laterOk: spec.laterOk || null, okStars: spec.okStars || 4, ...(spec.contract ? { contract: String(spec.contract) } : {}),
   };
   if (spec.when === "now" && s.shift) { pre.dueT = s.shift.t + (spec.dueMs ?? 90000); hooks.spawnPre?.(s, pre, ev); }
   else { pre.day = s.shift ? s.day + 1 : s.day; pre.dueMs = spec.dueMs ?? 60000; s.preorders = [...(s.preorders || []), pre].slice(-6); }
-  ev.push({ type: "preorder", id: pre.id, name: pre.name, n: items.length, deposit, when: pre.dueT !== undefined ? "now" : "next" });
+  ev.push({ type: "preorder", id: pre.id, name: pre.name, n: items.length, deposit, when: pre.dueT !== undefined ? "now" : "next", contract: !!spec.contract });
   return pre;
 }
 /** Đơn đặt trước mời nhận ở Chuẩn bị ca hôm nay (cấp 7, tối đa 2 mỗi ngày). Tung một lần mỗi ngày, lưu trong s.offers. */

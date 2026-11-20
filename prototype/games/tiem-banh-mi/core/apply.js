@@ -15,6 +15,8 @@ import { setPersona, reply } from "./reviews.js?v=b3";
 import { missionsOnPull } from "./missions.js?v=b3";
 import * as pg from "./progress.js?v=b3";
 import { scenePointsShop } from "./placements.js?v=b3";
+import { fry, grillLoad, grillPull } from "./cook.js?v=b3";
+import { checkBadges } from "./challenge.js?v=b3";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),
@@ -39,6 +41,9 @@ const HANDLERS = {
   giveChange: (s, a, ev) => shift.giveChange(s, a.bills, ev),
   autoChange: (s, a, ev) => shift.autoChange(s, ev),
   noChange: (s, a, ev) => shift.noChange(s, ev),
+  fry: (s, a, ev) => fry(s, ev),
+  grill: (s, a, ev) => grillLoad(s, ev),
+  grillPull: (s, a, ev) => grillPull(s, ev),
   bake: (s, a, ev) => loadBatch(s, a.slot ?? 0, ev, a.kind === "que" ? "que" : "banh"),
   pull: (s, a, ev) => { const r = pullBatch(s, a.slot ?? 0, ev); const p = ev.find((e) => e.type === "batchPulled"); if (p) missionsOnPull(s, p.level, ev, shift.gainXp); return r; },
   firstBatch: (s, a, ev) => firstBatch(s, a.sec, ev),
@@ -62,7 +67,7 @@ const HANDLERS = {
   // M3: tiến trình
   buy: (s, a, ev) => pg.buyItem(s, a.id, ev),
   rentShop: (s, a, ev) => pg.rentShop(s, ev),
-  buyRank: (s, a, ev) => pg.buyRank(s, ev),
+  buyRank: (s, a, ev) => { const r = pg.buyRank(s, ev); if (r.ok) checkBadges(s, null, ev); return r; },
   buyPate: (s, a, ev) => pg.buyPate(s, ev),
   promo: (s, a, ev) => pg.promo(s, a.kind, ev),
   helper: (s, a, ev) => pg.hireHelper(s, a.on !== false, ev),

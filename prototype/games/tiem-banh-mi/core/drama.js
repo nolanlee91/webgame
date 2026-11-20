@@ -22,7 +22,7 @@ export { freshDrama };
 export const DRAMA = { perShift: 2, perShiftEarly: 1, manyFromDay: 5, firstAt: [30000, 70000], gap: [50000, 80000], closeBefore: 25000, betweenDaysChance: 0.6 };
 export const FX_KEYS = new Set(["money", "rep", "followers", "buzz", "xp", "stock", "bread", "patience", "whoPatience", "away", "guests", "arch", "group", "preorder", "nextGuests",
   "mod", "flag", "flagDays", "unflag", "review", "priceWho", "freeWho", "leaveWho", "sell", "own", "regular", "helper", "debt", "ovenPause", "ovenRaw", "ovenDump",
-  "closeEarly", "moment", "flagLast", "quirk", "bachucTotal"]);
+  "closeEarly", "moment", "flagLast", "quirk", "bachucTotal", "contract"]);
 export const IF_KEYS = new Set(["minDay", "minLevel", "maxLevel", "minRep", "maxRep", "minFollowers", "minMoney", "maxMoney", "minBuzz", "flags", "noFlags", "anyFlags",
   "owns", "notOwns", "shop", "oven", "weather", "reviewLow", "staleMin", "sum", "chain", "waitingMin", "queueFree", "phase", "tMin", "tMax", "archWaiting",
   "caseMin", "caseMax", "caseCrispOne", "boardStep", "burntRecent", "gasOut", "noChange", "lastServe"]);
@@ -300,6 +300,7 @@ export function fxSummary(fx = {}, later = null) {
   if (fx.arch) out.push(`+${fx.arch.n} ${ARCHETYPES[fx.arch.arch]?.label.toLocaleLowerCase("vi") || "khách"}`);
   if (fx.group) out.push(`Đơn ${fx.group.n} ổ${fx.group.tip ? `, thưởng ${fx.group.tip}k nếu đúng` : ""}`);
   if (fx.preorder) out.push(`Đơn đặt trước ${fx.preorder.n || (fx.preorder.mix || []).reduce((a, m) => a + m.n, 0)} ổ${fx.preorder.when === "next" ? " (ca sau)" : ""}`);
+  if (fx.contract) out.push(`Hợp đồng ${fx.contract.n} ổ mỗi ${fx.contract.every} ngày × ${fx.contract.deliveries} đợt`);
   if (fx.nextGuests) out.push(`Ca sau ${sign(fx.nextGuests)} khách`);
   if (fx.mod) out.push(`Hiệu lực ${fx.mod.days ?? 1} ngày`);
   if (fx.review) out.push(`Review ${fx.review.stars} sao`);
@@ -340,6 +341,7 @@ function applyFx(s, d, fx, events, hooks) {
   if (fx.flagLast && sh?.lastServe) { const st = sh.lastServe.stars; D.flags[`${fx.flagLast}-${st >= 4 ? "hi" : st === 3 ? "mid" : "lo"}`] = today(s) + days + 2; }
   if (fx.review) hooks.netReview(s, { name: fill(fx.review.name || "{name}", textCtx(s, d)), stars: fx.review.stars, line: fill(fx.review.line, textCtx(s, d)) });
   if (fx.preorder) hooks.preorder(s, fx.preorder, events);
+  if (fx.contract) hooks.contract(s, fx.contract, events);
   if (fx.regular && who) { s.regulars[who.name] = s.regulars[who.name] || { visits: 0, good: 0 }; s.regulars[who.name].good = Math.max(2, s.regulars[who.name].good); s.regulars[who.name].fav = who.items[0].recipe; }
   if (!sh) {
     // sự kiện giữa hai ca: khách thêm dồn sang ca tới

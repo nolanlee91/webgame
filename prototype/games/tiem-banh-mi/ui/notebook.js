@@ -8,6 +8,7 @@ import { REGULARS } from "../data/customers.js?v=b3";
 import { RECIPE } from "../data/economy.js?v=b3";
 import { RANKS, HOUSE_PATE } from "../data/equipment.js?v=b3";
 import { PERSONAS } from "../data/lines-reply.js?v=b3";
+import { BADGES, BADGE } from "../core/challenge.js?v=b3";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const stars = (n) => "★".repeat(n) + "☆".repeat(5 - n);
@@ -141,11 +142,19 @@ function badgesTab(body, state) {
     ["Hạng tiệm", `${state.rank || 0}/${RANKS.length}`],
     ["Pate nhà làm", `${state.pate || 0}/${HOUSE_PATE.length}`],
     ["Ổ mang tên tiệm", state.house ? `${state.house.name} · ${state.house.price}k` : "chưa có"],
-    ["Huy hiệu Chủ Tiệm", state.badges?.chuTiem ? `${state.badges.chuTiem} lần đạt thử thách` : "chưa có"],
+    ["Thử thách đã đạt", String(state.stats?.challenges || 0)],
+    ["Hội chợ đã dự", String(state.fairCount || 0)],
+    ["Hợp đồng đang chạy", (state.contracts || []).map((c) => `${c.name} (${c.left} đợt)`).join(", ") || "không có"],
     ["Ổ đã bán", String(state.stats?.loaves || 0)],
     ["Nhiệm vụ đã xong", String(state.stats?.missions || 0)],
   ];
   const t = h("table", "pl");
   for (const [a, b] of rows) { const tr = h("tr"); tr.appendChild(h("td", "", a)); tr.appendChild(h("td", "", b)); t.appendChild(tr); }
   body.appendChild(t);
+  // bức tường huy hiệu (14): đã nhận hiện ngày nhận, chưa nhận hiện điều kiện
+  const bw = h("div", "badge-wall"); bw.id = "badgeWall";
+  bw.appendChild(h("h3", "", `Huy hiệu · ${Object.keys(state.badges || {}).filter((id) => BADGE[id]).length}/${BADGES.length}`));
+  const grid = h("div", "bw-grid");
+  for (const b of BADGES) { const got = state.badges?.[b.id]; const it = h("div", "bw-item" + (got ? " on" : "")); it.dataset.badge = b.id; it.appendChild(h("b", "", b.name)); it.appendChild(h("small", "", got ? `Nhận ngày ${got}` : b.desc)); grid.appendChild(it); }
+  bw.appendChild(grid); body.appendChild(bw);
 }

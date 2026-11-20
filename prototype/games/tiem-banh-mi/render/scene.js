@@ -14,6 +14,7 @@ import { patienceLeft } from "../core/shift.js?v=b3";
 import { batchLevel } from "../core/oven.js?v=b3";
 import { placeOf } from "../core/progress.js?v=b3";
 import { crustOf } from "./loafview.js?v=b3";
+import { orderQueue, exitRoute, entryRoute, along } from "../core/placements.js?v=b3";
 
 const W = 1280, H = 720;
 const lerp = (a, b, p) => a + (b - a) * p;
@@ -29,7 +30,7 @@ const pts = (v) => (Array.isArray(v) && Array.isArray(v[0]) ? v : Array.isArray(
 export function scenePoints(placements = {}) {
   const at = (k, d) => pt(placements[k]) || d;
   return {
-    mode: "cart", entry: at("cartEntry", CART.entry), queue: pts(placements.cartQueueSpots) || CART.queue, exit: pts(placements.cartExitPath) || CART.exit,
+    mode: "cart", entry: at("cartEntry", CART.entry), queue: orderQueue(pts(placements.cartQueueSpots) || CART.queue, at("cart-baker", CART.baker), at("cartEntry", CART.entry)), exit: pts(placements.cartExitPath) || CART.exit,
     baker: at("cart-baker", CART.baker), oven: at("cart-oven", CART.oven), toaster: at("cart-toaster", CART.toaster), sauce: at("cart-sauce-bottles", CART.sauce),
     pate: at("cart-pate-jar", CART.pate), boards: [at("cart-board", CART.board)], pickle: at("cart-pickle-jar", CART.pickle), herb: at("cart-herb-basket", CART.herb),
     display: at("cart-display", CART.display), slots: placements["cart-display"]?.stockSlots || null, paper: at("cart-paper-stack", CART.paper), cash: at("cart-cash-tin", CART.cash), gas: at("cart-gas-tank", CART.gas), tea: at("cart-tea-jug", CART.tea),
@@ -38,7 +39,7 @@ export function scenePoints(placements = {}) {
 export function shopPoints(placements = {}) {
   const at = (k, d) => pt(placements[k]) || d;
   return {
-    mode: "shop", entry: pt(placements.door) || SHOP.door, queue: pts(placements.queueSpots) || SHOP.queue, exit: pts(placements.exitPath) || SHOP.exit,
+    mode: "shop", entry: pt(placements.door) || SHOP.door, queue: orderQueue(pts(placements.queueSpots) || SHOP.queue, at("baker", SHOP.baker), pt(placements.door) || SHOP.door), exit: pts(placements.exitPath) || SHOP.exit,
     baker: at("baker", SHOP.baker), oven: at("oven", SHOP.oven), toaster: at("toaster", SHOP.toaster), grill: at("grill", SHOP.grill), pot: at("xiu-mai-pot", SHOP.pot), pan: at("egg-pan", SHOP.pan),
     sauce: at("sauce-bottles", SHOP.sauce), pate: at("pate-jar", SHOP.pate), butter: at("butter-tub", SHOP.butter), mayo: at("mayo-bottle", SHOP.mayo), chili: at("chili-bowl", SHOP.chili),
     boards: [at("board-1", SHOP.boards[0]), at("board-2", SHOP.boards[1]), at("board-3", SHOP.boards[2])], pickle: at("pickle-jar", SHOP.pickle), herb: at("herb-basket", SHOP.herb),
@@ -59,19 +60,19 @@ export function customerFrame(atlas, c, t) {
   if (c.mood === "impatient") return [atlas.frame("reactions", `${role}-impatient`), false, Math.sin(t / 90) > 0.6 ? 1 : 0];
   return [atlas.frame("reactions", `${role}-waiting`) || atlas.frame("chars", role), false, 0];
 }
+/** Vị trí khách: đi vào theo entryRoute (tiệm: đi ngược lối ra, không cắt qua quầy), đứng đúng chỗ queueSpots theo thứ tự hàng, ra theo exitRoute. */
 export function customerPos(c, t, P) {
   const spot = P.queue[c.spot] || P.queue[P.queue.length - 1];
-  if (c.phase === "enter") { const p = ease(Math.min(1, (t - c.t0) / WALK_MS)); return [lerp(P.entry[0], spot[0], p), lerp(P.entry[1], spot[1], p), 1]; }
+  if (c.phase === "enter") return [...along(entryRoute(spot, P.exit, P.entry), ease(Math.min(1, (t - c.t0) / WALK_MS))), 1];
   if (c.phase === "leave") {
-    const path = [spot, ...P.exit], seg = path.length - 1;
-    const p = Math.min(1, (t - (c.leaveT ?? t)) / WALK_MS) * seg, i = Math.min(seg - 1, Math.floor(p)), f = p - i;
-    return [lerp(path[i][0], path[i + 1][0], f), lerp(path[i][1], path[i + 1][1], f), p / seg > 0.85 ? (1 - p / seg) / 0.15 : 1];
+    const p = Math.min(1, (t - (c.leaveT ?? t)) / WALK_MS);
+    return [...along(exitRoute(spot, P.exit), p), p > 0.85 ? (1 - p) / 0.15 : 1];
   }
   return [spot[0], spot[1], 1];
 }
 const overlap = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
 
-export function createScene(root, atlas, { onCustomer }) {
+export function createScene(root, atlas, { onCustomer, avoid = () => [] }) {
   root.textContent = "";
   const stage = el("div", "stage", root);
   stage.style.width = W + "px"; stage.style.height = H + "px";
@@ -194,18 +195,24 @@ export function createScene(root, atlas, { onCustomer }) {
 
   let bakerFace = { x0: 0, x1: 0, y0: 0, y1: 0 };
   /** Đặt bong bóng: trên đầu → bên phải → bên trái (theo phía xa chủ tiệm trước); không chạm mặt chủ tiệm, không tràn khung. */
+  let blocks = [];
+  /** Đặt bong bóng: trên đầu → bên xa chủ tiệm → bên kia; không chạm mặt chủ tiệm, không đè HUD / viên Lò (avoid()), không tràn khung. */
   function placeBubble(n, hx, hy, headW) {
     const bw = n.bubble.offsetWidth || 200, bh = n.bubble.offsetHeight || 40, w = root.clientWidth, h = root.clientHeight;
     const awayRight = hx >= (bakerFace.x0 + bakerFace.x1) / 2;
+    const hudBottom = blocks.reduce((a, r) => Math.max(a, r.y1), 0);
+    const side = (right) => (right ? { side: "right", x0: hx + headW * 0.55, y0: hy - bh * 0.2 } : { side: "left", x0: hx - headW * 0.55 - bw, y0: hy - bh * 0.2 });
     const cands = [
-      { side: "top", x0: hx - bw / 2, y0: hy - 8 - bh },
-      awayRight ? { side: "right", x0: hx + headW * 0.55, y0: hy - bh * 0.2 } : { side: "left", x0: hx - headW * 0.55 - bw, y0: hy - bh * 0.2 },
-      awayRight ? { side: "left", x0: hx - headW * 0.55 - bw, y0: hy - bh * 0.2 } : { side: "right", x0: hx + headW * 0.55, y0: hy - bh * 0.2 },
+      { side: "top", x0: hx - bw / 2, y0: hy - 8 - bh }, side(awayRight), side(!awayRight),
       { side: "top", x0: hx - bw / 2, y0: Math.min(hy - 8 - bh, bakerFace.y0 - bh - 6) },
+      side(awayRight), side(!awayRight), // lượt 2: hạ xuống dưới HUD
     ];
-    let pick = cands.find((c) => { const r = { x0: Math.max(4, Math.min(w - bw - 4, c.x0)), y0: Math.max(2, c.y0) }; r.x1 = r.x0 + bw; r.y1 = r.y0 + bh; c.r = r; return !overlap(r, bakerFace) && r.y1 <= h; }) || cands[1];
-    if (!pick.r) pick.r = { x0: Math.max(4, Math.min(w - bw - 4, pick.x0)), y0: Math.max(2, pick.y0) };
+    const box = (c, i) => { const r = { x0: Math.max(4, Math.min(w - bw - 4, c.x0)), y0: Math.max(2, c.y0) }; if (i >= 4) r.y0 = Math.max(r.y0, hudBottom + 4); r.x1 = r.x0 + bw; r.y1 = r.y0 + bh; return r; };
+    let pick = null;
+    for (let i = 0; i < cands.length && !pick; i++) { const r = box(cands[i], i); if (!overlap(r, bakerFace) && r.y1 <= h && !blocks.some((b) => overlap(r, b))) pick = { ...cands[i], r }; }
+    if (!pick) { const r = box(cands[1], 4); pick = { ...cands[1], r }; }
     n.bubble.style.left = pick.r.x0 + "px"; n.bubble.style.top = pick.r.y0 + "px";
+    n.rect = pick.r;
     if (n.side !== pick.side) { n.bubble.dataset.side = pick.side; n.side = pick.side; }
     const tail = Math.max(10, Math.min(bw - 10, hx - pick.r.x0));
     n.bubble.style.setProperty("--tail", tail + "px");
@@ -290,6 +297,7 @@ export function createScene(root, atlas, { onCustomer }) {
     } else if (last.decor !== "") { last.decor = ""; S.decor.textContent = ""; }
     // khách (đơn đặt trước không đứng hàng chờ)
     const live = new Set();
+    blocks = sh ? avoid() : [];
     for (const c of sh?.customers || []) {
       if (c.pre || c.spot < 0) continue;
       live.add(c.id);

@@ -42,7 +42,7 @@ test("mọi hội thoại hết hàng luôn có lựa chọn miễn phí bấm �
 
 test("kho đầy: nhập hàng bị chặn với lý do; hàng cứu giữa ca được để tạm (vượt sức chứa)", () => {
   const s = shop(); s.money = 999;
-  s.stock.phoi = 50;
+  s.stock.phoi = 80;
   assert.equal(err(s, { type: "restock", id: "phoi" }), "capacity");
   openDay(s);
   const c = untilWaiting(s);

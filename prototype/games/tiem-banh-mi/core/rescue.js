@@ -4,6 +4,7 @@
 import { STOCK, STOCK_IDS, RESCUE, VEG } from "../data/economy.js?v=b3";
 import { ARCHETYPES } from "../data/customers.js?v=b3";
 import { RESCUE_SAY, NOCHANGE, OUT_LINES } from "../data/lines-ops.js?v=b3";
+import { addLot } from "./expiry.js?v=b3";
 import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=b3";
 import { spend, receive, greedyBills } from "./money.js?v=b3";
 import { newLoaf } from "./oven.js?v=b3";
@@ -26,7 +27,8 @@ export function stockoutOptions(s) {
   const id = d.id, out = [];
   const borrowOk = !s.daily.borrowed;
   if (id === "gas") {
-    out.push({ id: "gasCall", label: "Gọi Anh Lâm thay bình", hint: "Bình mới tới sau 20 giây", cost: `−${RESCUE.gasTank + RESCUE.shipTip}k`, price: RESCUE.gasTank + RESCUE.shipTip });
+    const coming = sh.deliveries.some((x) => x.want === "gas");
+    out.push({ id: "gasCall", label: coming ? "Anh Lâm đang chở bình tới" : "Gọi Anh Lâm thay bình", hint: coming ? "Đã gọi rồi, chờ chút" : "Bình mới tới sau 20 giây", cost: `−${RESCUE.gasTank + RESCUE.shipTip}k`, price: RESCUE.gasTank + RESCUE.shipTip, ...(coming ? { ok: false } : {}) });
     out.push({ id: "gasBorrow", label: "Chạy qua mượn bình Cô Sáu", hint: "Quầy trống 10 giây, mai trả bình", cost: "Miễn phí · 1 lần/ngày", price: 0, ok: !s.daily.gasBorrowed, free: true });
     out.push({ id: "dismiss", label: "Bán bánh trong tủ trước", hint: "Chưa nướng mẻ mới tới khi có gas", cost: "Miễn phí", price: 0, free: true });
   } else if (id === "que") {
@@ -43,7 +45,10 @@ export function stockoutOptions(s) {
     }
   } else {
     out.push({ id: "run", label: "Chạy ra chợ mua gấp", hint: `${packSize(id)} phần, quầy bỏ trống 12 giây`, cost: `−${runPrice(id)}k (+30%)`, price: runPrice(id), item: id });
-    out.push({ id: "ship", label: "Nhờ Anh Lâm chở tới", hint: "Tới sau 20 giây, đôi khi mua nhầm", cost: `−${shipPrice(id)}k`, price: shipPrice(id), item: id, risk: true });
+    // M5: đã nhờ chở món này thì không gọi thêm lần nữa (bộ mô phỏng từng gọi 16 chuyến dưa leo trong một ca), mời khách chờ hàng tới
+    const coming = sh.deliveries.find((x) => x.want === id);
+    if (coming) out.push({ id: "dismiss", label: `Anh Lâm đang chở ${itemName(id)} tới`, hint: `Còn khoảng ${Math.max(1, Math.ceil((coming.at - sh.t) / 1000))} giây, làm ổ khác trước`, cost: "Miễn phí", price: 0, free: true });
+    else out.push({ id: "ship", label: "Nhờ Anh Lâm chở tới", hint: "Tới sau 20 giây, đôi khi mua nhầm", cost: `−${shipPrice(id)}k`, price: shipPrice(id), item: id, risk: true });
     out.push({ id: "borrow", label: `Mượn Cậu Hưng ${RESCUE.borrowN} phần`, hint: "Xe bên kia đường, mai trả", cost: "Miễn phí · 1 lần/ngày", price: 0, ok: borrowOk, free: true, item: id });
     const c = d.cid !== null ? sh.customers.find((x) => x.id === d.cid) : null;
     if (c && SWAPPABLE.has(id)) out.push({ id: "swap", label: `Hỏi khách bỏ ${itemName(id)}`, hint: `Khả năng khách chịu ${Math.round((RESCUE.swapAccept[c.arch] ?? 0.6) * 100)}%`, cost: "Miễn phí · hên xui", price: 0, free: true, risk: true });
@@ -167,7 +172,7 @@ export function tickRescue(s, ev) {
   if (sh.away && sh.t >= sh.away.until) {
     const a = sh.away;
     sh.away = null;
-    if (a.kind === "run") { s.stock[a.id] = (s.stock[a.id] || 0) + packSize(a.id); ev.push({ type: "ranBack", id: a.id, line: freshLine(s, RESCUE_SAY.back, { item: itemName(a.id) }) }); }
+    if (a.kind === "run") { s.stock[a.id] = (s.stock[a.id] || 0) + packSize(a.id); addLot(s, a.id, packSize(a.id)); ev.push({ type: "ranBack", id: a.id, line: freshLine(s, RESCUE_SAY.back, { item: itemName(a.id) }) }); }
     else if (a.kind === "si") { for (let i = 0; i < RESCUE.siPack; i++) sh.case.push(newLoaf(s, RESCUE.siCrisp, "si")); ev.push({ type: "ranBack", id: "banh-si", line: "Mang về mười ổ bánh sỉ, giòn vừa thôi nhưng đỡ." }); }
     else if (a.kind === "gas") { s.stock.gas = (s.stock.gas || 0) + 10; ev.push({ type: "ranBack", id: "gas", line: "Mượn được bình gas của Cô Sáu, lò lên lửa rồi." }); }
     else if (a.kind === "change") { finishRunChange(s, a, ev); }
@@ -176,7 +181,7 @@ export function tickRescue(s, ev) {
     const dv = sh.deliveries[i];
     if (sh.t < dv.at) continue;
     sh.deliveries.splice(i, 1);
-    s.stock[dv.id] = (s.stock[dv.id] || 0) + dv.n;
+    s.stock[dv.id] = (s.stock[dv.id] || 0) + dv.n; addLot(s, dv.id, dv.n);
     const wrong = dv.id !== dv.want;
     ev.push({ type: "delivered", id: dv.id, wrong, line: freshLine(s, wrong ? RESCUE_SAY.deliveredWrong : RESCUE_SAY.delivered, { item: itemName(dv.want), got: itemName(dv.id), n: dv.n }) });
   }

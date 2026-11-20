@@ -42,6 +42,7 @@
 //   guests n (thêm khách ngay ca này; sự kiện "day" ⇒ ca sau) · arch { arch, n } (thêm khách một nhóm)
 //   group { n, recipe?, arch?, name?, tip?, quirks? [ids], line?, flagOk?, laterOk? {id, days}, okStars? (mặc định 3) } (đơn nhiều ổ tới ngay, n = 2..20;
 //            giao trọn ≥ okStars sao ⇒ đặt cờ flagOk và hẹn laterOk — dùng cho chuỗi "hẹn từ K01 giao ≥ 3 sao")
+//   contract { id, name, arch, recipe, n, every (ngày), deliveries (số đợt), dueMs, discount?, label } (hợp đồng định kỳ, core/contracts.js: đơn tự sinh đúng lịch)
 //   preorder { n, recipe?, mix? [{ recipe, n, quirks? }], name, arch?, when: "now"|"next", dueMs? (now: ms từ lúc này; next: ms sau giờ mở cửa), discount? 0..0.3, tip?, label?,
 //            flagOk?, laterOk?, okStars? (mặc định 4) } (đơn đặt trước, cọc 30% nhận ngay; recipe: pate-bo cha-lua trung xiu-mai thap-cam thit-nuong chay ga-xe heo-quay que)
 //   flagLast "tiền-tố" (đặt cờ "<tiền-tố>-hi" nếu ổ khách vừa nhận ≥ 4 sao, "-mid" nếu 3, "-lo" nếu ≤ 2 — dùng cho M01 → M02)
@@ -70,8 +71,10 @@ import { EVENTS_VANHANH } from "./events-van-hanh.js?v=b3";
 import { EVENTS_MANG } from "./events-mang.js?v=b3";
 import { EVENTS_M3 } from "./events-m3.js?v=b3";
 import { EVENTS_REPLY } from "./events-reply.js?v=b3";
+import { EVENTS_M5 } from "./events-m5.js?v=b3";
 
-export const EVENTS = [...EVENTS_KHACH, ...EVENTS_VANHANH, ...EVENTS_MANG, ...EVENTS_M3, ...EVENTS_REPLY];
+export const EVENTS = [...EVENTS_KHACH, ...EVENTS_VANHANH, ...EVENTS_MANG, ...EVENTS_M3, ...EVENTS_REPLY, ...EVENTS_M5];
+export { M5_IDS } from "./events-m5.js?v=b3";
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));
 /** 59 sự kiện của DRAMA.md §2.1–2.5 (test kiểm đủ). */
 export const DRAMA_IDS = [

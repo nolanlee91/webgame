@@ -4,6 +4,7 @@
 import { STOCK, LEVEL_USE, SPREADS, FILLINGS, VEG, VEG_IDS, SAUCES, WRAPS, TOASTER, QUE } from "../data/economy.js?v=b3";
 import { addWaste, toastResult } from "./oven.js?v=b3";
 import { modSum } from "./flags.js?v=b3";
+import { takeCooked } from "./cook.js?v=b3";
 
 /** Ổ bánh hôm qua nướng lại tối đa 70 giòn (core/progress.js STALE_MAX). */
 const STALE_MAX = 70;
@@ -80,9 +81,12 @@ export function take(s, loafId, ev, want = 1) {
   const sh = s.shift, b = g.b;
   const c = sh.customers.find((x) => x.id === b.cid);
   const it = c?.items[b.item];
-  const n = Math.max(1, Math.min(Number.isInteger(want) ? want : 1, batchMax(s), sameLeft(s, b)));
+  let n = Math.max(1, Math.min(Number.isInteger(want) ? want : 1, batchMax(s), sameLeft(s, b)));
   if (it?.recipe === "que") {
-    if ((sh.que || 0) < QUE.bag * n) { if (!sh.dialog) { sh.dialog = { kind: "stockout", id: "que", cid: b.cid }; ev.push({ type: "stockout", id: "que" }); } return { ok: true, dialog: true }; }
+    // M5: ráp ×N bịch que mà que chín chỉ đủ vài bịch ⇒ lấy số bịch đủ que (trước đây mở hội thoại hết que dù còn que)
+    const can = Math.floor((sh.que || 0) / QUE.bag);
+    if (can < 1) { if (!sh.dialog) { sh.dialog = { kind: "stockout", id: "que", cid: b.cid }; ev.push({ type: "stockout", id: "que" }); } return { ok: true, dialog: true }; }
+    n = Math.min(n, can);
     sh.que -= QUE.bag * n;
     b.loaf = { ...blank(), id: 0, crisp: 100, src: "que", que: true, ...(n > 1 ? { n } : {}) };
     b.hist = []; b.step = 0;
@@ -93,6 +97,7 @@ export function take(s, loafId, ev, want = 1) {
   let picked;
   if (n === 1) {
     let i = Number.isInteger(loafId) ? sh.case.findIndex((l) => l.id === loafId) : -1;
+    if (i < 0 && it?.recipe === "bo-duong") i = sh.case.findIndex((l) => l.src === "stale");
     if (i < 0) i = sh.case.reduce((bi, l, k) => (l.crisp > sh.case[bi].crisp ? k : bi), 0);
     picked = sh.case.splice(i, 1);
   } else { sh.case.sort((x, y) => y.crisp - x.crisp); picked = sh.case.splice(0, n); }
@@ -169,6 +174,22 @@ export function fill(s, id, ev) {
   const g = guard(s, "fill"); if (g.err) return g;
   const l = g.b.loaf;
   if (l.fills.includes(id)) { record(g.b, "fill"); l.fills = l.fills.filter((x) => x !== id); addWaste(s.shift, "spoil", STOCK[id].cost * (l.n || 1)); ev.push({ type: "step", step: "fill", id, on: false }); return { ok: true }; }
+  if (id === "trung" || id === "thit-nuong") {
+    // đồ nấu theo mẻ (core/cook.js): lấy phần đã chín; chưa có thì bắc chảo / bỏ mẻ thịt rồi báo chờ (ổ chưa đổi)
+    const n = l.n || 1, r = takeCooked(s, id, n, ev);
+    if (r.wait) {
+      l.ckWait = true;
+      if (r.wait.endsWith("-stock") && (s.stock[id] || 0) < 1) { openStockout(s, id, ev); return { ok: true, dialog: true }; }
+      ev.push({ type: "cookWait", id, why: r.wait });
+      return { ok: true, wait: r.wait };
+    }
+    record(g.b, "fill");
+    l.used[id] = (l.used[id] || 0) + n;
+    l.fills.push(id);
+    l.ck = id === "thit-nuong" ? (r.held > 90000 ? "held" : "fresh") : l.ckWait ? "wait" : "hot";
+    ev.push({ type: "step", step: "fill", id, on: true });
+    return { ok: true };
+  }
   if (!use(s, l, id, 1, ev)) return { ok: true, dialog: true };
   record(g.b, "fill");
   l.fills.push(id);
@@ -283,5 +304,5 @@ export function finished(l, item) {
   const n = l.n || 1;
   const used = Object.fromEntries(Object.entries(l.used || {}).map(([id, k]) => [id, Math.round((k / n) * 100) / 100]));
   return { spreads: { ...l.spreads }, fills: [...l.fills], veg: { ...l.veg }, ot: l.ot, sauces: { ...l.sauces }, wrap: l.wrap, crisp: l.crisp,
-    burnt: !!l.burnt, dark: !!l.dark, toasted: !!l.toasted, src: l.src, used, item };
+    burnt: !!l.burnt, dark: !!l.dark, toasted: !!l.toasted, src: l.src, used, item, ...(l.ck ? { ck: l.ck } : {}) };
 }

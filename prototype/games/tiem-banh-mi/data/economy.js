@@ -31,7 +31,8 @@ export const STOCK = {
 export const STOCK_IDS = Object.keys(STOCK);
 /** Ghi chú M2: đồ chua / dưa leo / rau (để trong hũ, rổ trên quầy) không tính sức chứa, nếu không gói học đầu game (85 phần) đã vượt kho 60.
  *  Bộ mô phỏng M5 dò lại (docs/tiem-banh-mi/DEV-NOTES.md). */
-export const CAPACITY = { cart: 60, shop: 100, fridge: 150 };
+/** M5 (bộ mô phỏng): kho 60 đầy chà bông / thịt nguội từ cấp 4 (gói 8–10 phần cho mỗi nhân) ⇒ phôi không vào được, ngày nào cũng hết bánh. Nới 60 → 90 / 100 → 140 / 150 → 200. */
+export const CAPACITY = { cart: 90, shop: 140, fridge: 200 };
 export const EXPRESS_MARKUP = 0.15;
 
 /** Vốn đầu + gói học (ECONOMY §5): đủ ~12 ổ. */
@@ -55,24 +56,28 @@ export const NAMES = {
   "do-chua": "Đồ chua", "dua-leo": "Dưa leo", "rau-mui": "Rau mùi", "hanh-la": "Hành lá", ot: "Ớt", "nuoc-tuong": "Nước tương", "tuong-ot": "Tương ớt",
 };
 
-/** Công thức (ECONOMY §2). Mọi ổ ráp có phần nền: phôi + đồ chua + dưa leo + rau + gia vị + giấy = 7k. */
+/** Công thức (ECONOMY §2). Mọi ổ ráp có phần nền: phôi + đồ chua + dưa leo + rau + gia vị + giấy = 7k.
+ *  M5 (bộ mô phỏng): giá bán ×1,25 (16 → 20k…) — người chơi trung bình ráp ~13 giây một ổ nên lời vận hành chỉ 20–60k ở cấp 7 (mục tiêu 160–200k). */
 export const BASE_COST = 7;
 const baseVeg = { "do-chua": true, "dua-leo": true, "rau-mui": true, "hanh-la": true };
 export const RECIPES = [
-  { id: "pate-bo", name: "Bánh mì pate bơ", level: 1, price: 16, xp: 6, spreads: { pate: 2, bo: 2 }, fills: [], cost: 10 },
-  { id: "cha-lua", name: "Bánh mì chả lụa", level: 1, price: 22, xp: 7, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua"], cost: 14 },
-  { id: "trung", name: "Bánh mì trứng ốp la", level: 2, price: 20, xp: 7, spreads: { pate: 2 }, fills: ["trung"], cost: 12 },
-  { id: "xiu-mai", name: "Bánh mì xíu mại", level: 3, price: 22, xp: 8, spreads: {}, fills: ["xiu-mai"], cost: 12 },
-  { id: "thap-cam", name: "Bánh mì thập cẩm", level: 4, price: 34, xp: 9, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua", "thit-nguoi", "cha-bong"], cost: 21 },
-  { id: "thit-nuong", name: "Bánh mì thịt nướng", level: 5, price: 26, xp: 9, spreads: { mayo: 2 }, fills: ["thit-nuong"], cost: 14 },
-  { id: "chay", name: "Bánh mì chay", level: 6, price: 20, xp: 8, spreads: { bo: 2 }, fills: ["cha-chay"], cost: 11, vegan: true },
-  { id: "ga-xe", name: "Bánh mì gà xé", level: 8, price: 25, xp: 9, spreads: { mayo: 2 }, fills: ["ga-xe"], cost: 13 },
-  { id: "heo-quay", name: "Bánh mì heo quay", level: 10, price: 32, xp: 10, spreads: { pate: 2 }, fills: ["heo-quay"], cost: 16 },
+  { id: "pate-bo", name: "Bánh mì pate bơ", level: 1, price: 20, xp: 6, spreads: { pate: 2, bo: 2 }, fills: [], cost: 10 },
+  { id: "cha-lua", name: "Bánh mì chả lụa", level: 1, price: 27, xp: 7, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua"], cost: 14 },
+  { id: "trung", name: "Bánh mì trứng ốp la", level: 2, price: 25, xp: 7, spreads: { pate: 2 }, fills: ["trung"], cost: 12 },
+  { id: "xiu-mai", name: "Bánh mì xíu mại", level: 3, price: 27, xp: 8, spreads: {}, fills: ["xiu-mai"], cost: 12 },
+  { id: "thap-cam", name: "Bánh mì thập cẩm", level: 4, price: 42, xp: 9, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua", "thit-nguoi", "cha-bong"], cost: 21 },
+  { id: "thit-nuong", name: "Bánh mì thịt nướng", level: 5, price: 32, xp: 9, spreads: { mayo: 2 }, fills: ["thit-nuong"], cost: 14 },
+  { id: "chay", name: "Bánh mì chay", level: 6, price: 25, xp: 8, spreads: { bo: 2 }, fills: ["cha-chay"], cost: 11, vegan: true },
+  { id: "ga-xe", name: "Bánh mì gà xé", level: 8, price: 31, xp: 9, spreads: { mayo: 2 }, fills: ["ga-xe"], cost: 13 },
+  { id: "heo-quay", name: "Bánh mì heo quay", level: 10, price: 40, xp: 10, spreads: { pate: 2 }, fills: ["heo-quay"], cost: 16 },
   /** Ổ mang tên tiệm (cấp 19): công thức mặc định, người chơi đặt tên / nhân / giá (core/progress.js setHouse ghi đè trên phiếu). */
-  { id: "gia-truyen", name: "Ổ gia truyền", level: 19, price: 48, xp: 12, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua", "thit-nguoi", "heo-quay", "cha-bong"], cost: 28, house: true },
+  { id: "gia-truyen", name: "Ổ gia truyền", level: 19, price: 58, xp: 12, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua", "thit-nguoi", "heo-quay", "cha-bong"], cost: 28, house: true },
 ].map((r) => ({ ...r, veg: { ...baseVeg }, ot: 2, sauces: { "nuoc-tuong": true, "tuong-ot": false }, wrap: "giay" }));
 /** Bánh mì que (cấp 12): bịch 5 que nướng trên khay que, phết pate, bỏ túi. Không rạch, không rau dưa, không gia vị. */
-RECIPES.push({ id: "que", name: "Bánh mì que (bịch 5)", level: 12, price: 15, xp: 8, cost: 6, que: true, spreads: { pate: 2 }, fills: [], veg: { "do-chua": false, "dua-leo": false, "rau-mui": false, "hanh-la": false }, ot: 0, sauces: {}, wrap: "tui" });
+RECIPES.push({ id: "que", name: "Bánh mì que (bịch 5)", level: 12, price: 18, xp: 8, cost: 6, que: true, spreads: { pate: 2 }, fills: [], veg: { "do-chua": false, "dua-leo": false, "rau-mui": false, "hanh-la": false }, ot: 0, sauces: {}, wrap: "tui" });
+/** Bánh mì nướng bơ đường (M5): món riêng 10k làm từ bánh hôm qua (Chuẩn bị ca chọn "Bán nướng bơ đường"). Nướng lại ở lò than (tối đa giòn 70),
+ *  phết bơ, gói giấy; không rau, không ớt. Không nằm trong menu thường: chỉ khách sáng hôm đó gọi, tối đa bằng số ổ bánh hôm qua. */
+RECIPES.push({ id: "bo-duong", name: "Bánh mì nướng bơ đường", level: 1, price: 10, xp: 3, cost: 1, stale: true, spreads: { bo: 2 }, fills: [], veg: { "do-chua": false, "dua-leo": false, "rau-mui": false, "hanh-la": false }, ot: 0, sauces: {}, wrap: "giay" });
 export const RECIPE = Object.fromEntries(RECIPES.map((r) => [r.id, r]));
 /** Khay que: 12 que một ngăn, chín 14–19 giây, cháy sau 22 giây; một bịch = 5 que. */
 export const QUE = { tray: 12, bag: 5, golden: [14, 19], dark: 22 };

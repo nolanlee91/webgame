@@ -700,10 +700,10 @@ export const EVENTS_MANG = [
       start: {
         mood: "happy", line: "Sếp khen lắm em. Công ty muốn đặt mỗi sáng thứ Hai 25 ổ cho họp giao ban.",
         choices: [
-          { id: "sign4", label: "Ký 4 tuần, giảm 8%", hint: "Không tốn · đơn 25 ổ sáng mai, hợp đồng 4 tuần",
+          { id: "sign4", label: "Ký 4 tuần, giảm 8%", hint: "Không tốn · 25 ổ mỗi tuần × 4 đợt (đợt đầu sáng mai)",
             say: "Có khách hàng doanh nghiệp. Họp giao ban của họ giờ có mùi pate.",
             fx: { flag: "hop-dong-hoa-sen", flagDays: 28, unflag: "x03-dat",
-              preorder: { n: 25, recipe: "thap-cam", when: "next", dueMs: 40000, discount: 0.08, name: "Chị Thảo", arch: "office", label: "Họp giao ban Hoa Sen Xanh" } },
+              contract: { id: "hoa-sen", n: 25, recipe: "thap-cam", every: 7, deliveries: 4, dueMs: 100000, discount: 0.08, name: "Chị Thảo", arch: "office", label: "Họp giao ban Hoa Sen Xanh" } },
             goto: "box" },
           { id: "sign2", label: "Ký 2 tuần giá gốc", hint: "Không tốn · hên xui 60% chị đồng ý",
             say: "Giá gốc nha chị, bù lại tiệm giao đúng giờ như đồng hồ.",
@@ -711,7 +711,7 @@ export const EVENTS_MANG = [
             roll: { p: 0.6,
               win: { say: "\"Được, giá gốc mà đúng giờ là được.\" Hợp đồng 2 tuần, ký bằng bút bi của tiệm.", goto: "box",
                 fx: { flag: "hop-dong-hoa-sen", flagDays: 14,
-                  preorder: { n: 25, recipe: "thap-cam", when: "next", dueMs: 40000, name: "Chị Thảo", arch: "office", label: "Họp giao ban Hoa Sen Xanh" } } },
+                  contract: { id: "hoa-sen", n: 25, recipe: "thap-cam", every: 7, deliveries: 2, dueMs: 100000, name: "Chị Thảo", arch: "office", label: "Họp giao ban Hoa Sen Xanh" } } },
               lose: { say: "\"Để chị hỏi lại sếp nha.\" Sếp đang họp. Về chuyện họp.", fx: { rep: 1 } } } },
           { id: "thanks", label: "Cảm ơn, nhận khi rảnh", hint: "Không tốn · +1 danh tiếng",
             say: "Dạ tiệm cảm ơn chị, hôm nào tiệm rảnh tay chị gọi là có liền.",

@@ -1,4 +1,5 @@
 // Chấm điểm + sao, biến thể phiếu, 11 kiểu lỗi, ổ ba chục, "như cũ", khiếu nại (làm lại / giảm / tặng), bỏ về.
+import { RECIPE } from "../data/economy.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { shop, act, err, openDay, untilWaiting, build, serveRight, payRight, board, customer, advance } from "./helpers.mjs";
@@ -24,7 +25,7 @@ test("biến thể: không hành / ít ớt / nhiều pate / cắt đôi / thêm
   assert.equal(it.veg["hanh-la"], false); assert.equal(it.ot, 1); assert.equal(it.spreads.pate, 3); assert.equal(it.wrap, "cat-doi");
   assert.match(orderText([it]), /một ổ chả lụa, không hành, ít ớt, nhiều pate, cắt đôi/);
   const eg = makeItem("pate-bo", ["them-trung"]);
-  assert.ok(eg.fills.includes("trung")); assert.equal(eg.price, 21);
+  assert.ok(eg.fills.includes("trung")); assert.equal(eg.price, RECIPE["pate-bo"].price + 5);
   assert.deepEqual(makeItem("pate-bo", ["it-ot", "khong-ot"]).quirks, ["it-ot"], "biến thể xung đột bị bỏ");
 });
 

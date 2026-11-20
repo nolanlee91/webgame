@@ -13,6 +13,7 @@ import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, T
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
 import { QUIRKS } from "../data/quirks.js?v=b3";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b3";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -56,6 +57,29 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
       box.appendChild(row);
       dyn.bars.push({ b, mark, lbl, btn, max, slot: i });
     });
+    // chảo trứng + bếp than (M5): chiên / nướng sẵn khi rảnh; bước Nhân lấy phần đã chín
+    const ck = sh.cook;
+    dyn.cook = null;
+    if (ck && (panSlots(state) || state.owned?.grill)) {
+      const row = h("div", "cook-row");
+      if (panSlots(state)) {
+        const frying = ck.pan.filter((x) => x !== null).length;
+        const lbl = h("span", "cook-lbl", `Chảo: ${ck.eggs} trứng chín${frying ? ` · đang chiên ${frying}` : ""}`); lbl.dataset.cook = "egg";
+        const bt = h("button", "btn small", "Chiên trứng"); bt.type = "button"; bt.dataset.act = "fry";
+        bt.disabled = ck.pan.every((x) => x !== null) || (state.stock.trung || 0) < 1;
+        bt.addEventListener("click", () => dispatch({ type: "fry" }));
+        row.append(lbl, bt);
+      }
+      if (state.owned?.grill) {
+        const lbl = h("span", "cook-lbl", ""); lbl.dataset.cook = "meat";
+        const bt = h("button", "btn small", ck.grill ? "Gắp thịt" : "Nướng thịt"); bt.type = "button"; bt.dataset.act = ck.grill ? "grillPull" : "grill";
+        bt.disabled = !ck.grill && (state.stock["thit-nuong"] || 0) < 1;
+        bt.addEventListener("click", () => dispatch({ type: ck.grill ? "grillPull" : "grill" }));
+        row.append(lbl, bt);
+        dyn.cook = { lbl, bt };
+      }
+      box.appendChild(row);
+    }
     const meta = h("div", "meta");
     const cs = sh.case;
     const avg = cs.length ? Math.round(cs.reduce((a, l) => a + l.crisp, 0) / cs.length) : 0;
@@ -307,7 +331,8 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const l = b.loaf;
     const k = JSON.stringify([b.cid, b.item, b.step, l && [l.sliced, l.wrap, l.toastT0 !== null, l.spreads, l.fills, l.veg, l.ot, l.sauces, l.toasted, l.burnt, l.id],
       sh.paying, sh.paying !== null && state.float, picked, sh.oven.map((x) => !!x), sh.case.length, state.stock, hint?.key, showBook, loafScale, state.day,
-      b.cid !== null && customer(state, b.cid)?.filled.map(Boolean), sh.sel, sh.boards.map((x) => [x.cid, !!x.loaf]), sh.que, l?.n, helperOn(state), Object.keys(state.owned || {}).length]);
+      b.cid !== null && customer(state, b.cid)?.filled.map(Boolean), sh.sel, sh.boards.map((x) => [x.cid, !!x.loaf]), sh.que, l?.n, helperOn(state), Object.keys(state.owned || {}).length,
+      sh.cook && [sh.cook.eggs, sh.cook.pan.map((x) => x !== null), sh.cook.meat, !!sh.cook.grill]]);
     if (k === key) return;
     if (b.cid === null) showBook = false;
     key = k;
@@ -348,6 +373,12 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
       d.lbl.textContent = `${LEVEL_LABEL[lv]} · ${Math.floor(sec)}s`;
       d.lbl.className = "oven-lbl " + lv;
       d.btn.textContent = lv === "burnt" ? "Bỏ mẻ cháy" : "Rút";
+    }
+    if (dyn.cook) {
+      const g = sh.cook?.grill, lv = grillLevel(sh);
+      dyn.cook.lbl.textContent = g ? `Bếp than: ${g.n} phần · ${lv === "raw" ? `chín sau ${fmtS(COOK.grill.golden - (sh.t - g.t0))}` : lv === "golden" ? "chín rồi, gắp!" : "cháy rồi!"}` : `Thịt nướng chín: ${sh.cook.meat}`;
+      dyn.cook.lbl.className = "cook-lbl" + (lv === "golden" ? " golden" : lv === "burnt" ? " burnt" : "");
+      dyn.cook.bt.disabled = g ? lv === "raw" : (state.stock["thit-nuong"] || 0) < 1;
     }
     if (dyn.due) dyn.due.textContent = dyn.due.textContent.replace(/(giao trong |trễ )\S+$/, (sh.t <= Number(dyn.due.dataset.due) ? "giao trong " : "trễ ") + fmtS(Math.abs(Number(dyn.due.dataset.due) - sh.t)));
     const l = sh.boards[sh.sel].loaf;

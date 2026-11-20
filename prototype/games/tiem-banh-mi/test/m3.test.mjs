@@ -9,7 +9,7 @@ import { spawnPre, genGuests } from "../core/shift.js";
 import { createPreorder, preorderOffers, appeal, placeError, PLACE_REASON } from "../core/progress.js";
 import { scenePointsShop } from "../core/placements.js";
 import { packPrice, packSize, baseGuests } from "../core/stock.js";
-import { LEVELS } from "../data/economy.js";
+import { LEVELS, RECIPE } from "../data/economy.js";
 import { MISSIONS, EQUIPMENT, DECOR } from "../data/equipment.js";
 import * as M3 from "../data/lines-m3.js";
 
@@ -202,7 +202,7 @@ test("hạng tiệm 8 bậc + pate nhà làm: cần tiệm + đúng cấp, trừ
   act(s, { type: "buyPate" });
   act(s, { type: "startShift" });
   const withPate = s.shift.schedule.flatMap((g) => g.items).find((it) => it.recipe === "pate-bo");
-  if (withPate) assert.equal(withPate.price, 17);
+  if (withPate) assert.equal(withPate.price, RECIPE["pate-bo"].price + 1);
 });
 
 test("bánh hôm qua: bánh dư cuối ca thành bánh hôm qua; sáng chọn bán ⇒ vào tủ giòn 30, ổ làm từ đó rẻ 30%, nướng lại tối đa 70; cho đi +1 danh tiếng", () => {

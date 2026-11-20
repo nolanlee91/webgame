@@ -24,7 +24,12 @@ import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./dra
 import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b3";
 import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b3";
 import { caption } from "./journal.js?v=b3";
-import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, judgeChallenge, rollWeather, createPreorder, STALE_CRISP, rainMul } from "./progress.js?v=b3";
+import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, rollWeather, createPreorder, STALE_CRISP, rainMul, shiftLenFor } from "./progress.js?v=b3";
+import { judgeChallenge, challengeMods, checkBadges } from "./challenge.js?v=b3";
+import { freshCook, tickCook, cookLeftover } from "./cook.js?v=b3";
+import { addContract, contractOrders, contractDelivered, contractFailed } from "./contracts.js?v=b3";
+import { expire } from "./expiry.js?v=b3";
+import { CONTRACT_LINES, CONTRACT_REVIEW, COOK_LINES, EXPIRY_LINES, BO_DUONG, FAIR_LINES } from "../data/lines-m5.js?v=b3";
 
 export const customer = (s, cid) => s.shift?.customers.find((c) => c.id === cid) || null;
 export const levelForXp = (xp) => { let lv = 1; for (let i = 0; i < LEVELS.length; i++) if (xp >= LEVELS[i]) lv = i + 1; return lv; };
@@ -34,13 +39,15 @@ export function clockOf(t) {
   const m = Math.floor(p.clock[0] + f * (p.clock[1] - p.clock[0]));
   return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
 }
-export const autoChangeAllowed = (s) => s.day <= AUTO_CHANGE_DAYS;
+export const autoChangeAllowed = (s) => s.day <= AUTO_CHANGE_DAYS && !challengeMods(s).manual;
+/** Độ dài ca đang mở (hội chợ 4,5 phút). */
+export const shiftLen = (sh) => sh?.len || SHIFT_MS;
 export const lineCtx = (c, extra = {}) => ({ self: c.self, call: c.call, name: c.name, n: c.items?.length || 1, loaf: c.items?.[0] ? loafName(c.items[0]) : "bánh mì", ...extra });
 export const patienceLeft = (s, c) => (c.pre ? Math.max(0, Math.min(1, (c.pre.dueT - s.shift.t) / Math.max(1, c.pre.dueT - c.t0))) : c.phase === "wait" && c.arriveT !== null ? Math.max(0, 1 - (s.shift.t - c.arriveT) / c.patience) : 1);
 export const orderPrice = (c) => c.items.reduce((a, it) => a + it.price, 0);
 export const waiting = (s) => (s.shift ? s.shift.customers.filter((c) => c.phase === "wait") : []);
 /** Có người phụ (mẹ / Bé Na): tự gói + tự thối tiền. */
-export const helperOn = (s) => !!s.shift && (helperToday(s) || (s.shift.helperUntil || 0) > s.shift.t);
+export const helperOn = (s) => !!s.shift && !challengeMods(s).manual && (helperToday(s) || (s.shift.helperUntil || 0) > s.shift.t);
 
 /** Cộng XP + lên cấp (ghi sự kiện). Trả số XP đã cộng. */
 export function gainXp(s, xp, ev) {
@@ -56,16 +63,16 @@ export function gainXp(s, xp, ev) {
 
 // ---------- khách tới ----------
 const TUT = [
-  { at: 6000, arch: "student", recipe: "pate-bo", q: [], pay: 20 },
+  { at: 6000, arch: "student", recipe: "pate-bo", q: [], pay: 50 },
   { at: 26000, arch: "office", recipe: "cha-lua", q: [], pay: 50 },
   { at: 46000, arch: "regular", name: "Cụ Năm", recipe: "cha-lua", q: ["gion-gion", "khong-ot"], pay: "exact" },
   { at: 64000, arch: "worker", recipe: "cha-lua", q: ["nhieu-ot"], pay: "exact" },
-  { at: 82000, arch: "student", recipe: "pate-bo", q: ["khong-hanh"], pay: 20 },
+  { at: 82000, arch: "student", recipe: "pate-bo", q: ["khong-hanh"], pay: 50 },
   { at: 98000, arch: "parent", recipe: "pate-bo", q: ["cat-doi", "khong-ot"], pay: "exact" },
   { at: 120000, arch: "office", recipe: "pate-bo", q: ["it-ot"], pay: "transfer" },
   { at: 142000, arch: "shipper", recipe: "cha-lua", q: [], pay: "transfer", bag: true },
   { at: 168000, arch: "office", recipe: "cha-lua", q: ["khong-hanh", "it-ot"], pay: 50 },
-  { at: 194000, arch: "parent", recipe: "pate-bo", q: [], pay: 20 },
+  { at: 194000, arch: "parent", recipe: "pate-bo", q: [], pay: 50 },
 ];
 function pickQuirks(s, A, level, max = 2) {
   const pool = Object.entries(A.quirks).filter(([q]) => QUIRKS[q] && QUIRKS[q].unlock <= level && (q !== "them-trung" || s.owned?.["egg-pan"])).map(([q, w]) => ({ q, w }));
@@ -105,6 +112,8 @@ function guestFor(s, arch, at, ph, usedRegulars) {
   }
   let count = 1;
   if (s.day >= NORMAL_DAY.multiFromDay && ["parent", "worker", "office", "shipper"].includes(arch) && next(s) < NORMAL_DAY.multiChance) count = next(s) < 0.3 ? 3 : 2;
+  // hội chợ: khách nào cũng hay đi nhóm, gọi đơn kết hợp (mỗi người một món)
+  if (fairToday(s) && count === 1) { const r = next(s); count = r < FAIR.three ? 3 : r < FAIR.three + FAIR.two ? 2 : 1; if (count > 1) g.tag = "fair"; }
   // cấp 10+: đội thợ hồ đặt 6–12 ổ giờ cao điểm (ráp ×N)
   if (s.level >= 10 && arch === "worker" && ph.id === "sang" && next(s) < 0.22) count = 6 + int(s, 7);
   g.items = [];
@@ -121,13 +130,25 @@ function guestFor(s, arch, at, ph, usedRegulars) {
 /** Lịch khách của ca (xác định theo hạt RNG). */
 export function genGuests(s) {
   if (!s.tutorialDone) return TUT.map((g) => ({ ...g, items: [makeItem(g.recipe, g.q, g.bag ? { bag: true } : {})], patienceMul: TUTORIAL.patienceMul }));
+  const CM = challengeMods(s);
   const n = Math.max(4, baseGuests(s) + int(s, 3) - 1);
   const out = [];
   const usedRegulars = new Set();
-  const atIn = (ph) => Math.round(ph.from + 2000 + next(s) * (Math.min(ph.to, SHIFT_MS - 20000) - ph.from - 2000));
+  const len = shiftLenFor(s);
+  const atIn = (ph) => { const to = ph.id === "chieu" ? len - 20000 : Math.min(ph.to, len - 20000); return Math.round(ph.from + 2000 + next(s) * (to - ph.from - 2000)); };
+  const archOf = (ph) => (CM.tourist && next(s) < CM.tourist ? "tourist" : weighted(s, archPool(s, ph)).id);
   for (let i = 0; i < n; i++) {
     const ph = weighted(s, PHASES.map((p) => ({ p, w: p.share }))).p;
-    out.push(guestFor(s, weighted(s, archPool(s, ph)).id, atIn(ph), ph, usedRegulars));
+    out.push(guestFor(s, archOf(ph), atIn(ph), ph, usedRegulars));
+  }
+  // thử thách Rush kép: thêm khách giờ cao điểm sáng
+  for (let i = 0; i < (CM.guests || 0); i++) out.push(guestFor(s, archOf(PHASES[0]), atIn(PHASES[0]), PHASES[0], null));
+  // bánh hôm qua bán nướng bơ đường: khách buổi sáng gọi món riêng 10k (tối đa bằng số ổ)
+  if (s.stale?.choice === "sell" && s.stale.n) {
+    for (let i = 0; i < Math.ceil(s.stale.n * 0.7); i++) {
+      const ph = next(s) < 0.75 ? PHASES[0] : PHASES[1], arch = pick(s, ["student", "regular", "worker", "parent"]);
+      out.push({ at: atIn(ph), arch, patienceMul: ph.patience, items: [makeItem("bo-duong", [])], tag: "boDuong" });
+    }
   }
   // khách thêm theo nhóm: bộ điều chỉnh (song ngữ…), quảng bá (tờ rơi: học sinh buổi sáng), sự kiện giữa hai ca
   const extra = { ...modGuests(s).byArch };
@@ -183,10 +204,10 @@ function spawn(s, g, spot, ev) {
   const id = sh.nextCid++;
   const name = g.name || pick(s, A.names);
   const known = reg && (s.regulars[name]?.good || 0) >= REGULAR_KNOWN_AT;
-  const pMul = (g.patienceMul || 1) * (1 + (patienceBonus(s) + modSum(s, "patience")) / 100);
+  const pMul = (g.patienceMul || 1) * (1 + (patienceBonus(s) + modSum(s, "patience")) / 100) * (fairToday(s) ? FAIR.patienceMul : 1) * (challengeMods(s).patienceMul || 1);
   const c = {
     id, arch: g.arch, sprite: A.sprite, name, self: reg?.self || A.self, call: A.call, items: g.items, filled: g.items.map(() => null),
-    phase: "enter", t0: sh.t, arriveT: null, patience: Math.round(A.patience * pMul), spot, mood: "waiting", say: null,
+    phase: "enter", t0: sh.t, arriveT: null, patience: Math.round(A.patience * pMul * (s.tutorialDone ? NORMAL_DAY.patienceMul : 1)), spot, mood: "waiting", say: null,
     orderLine: "", nhuCu: !!known, pay: null, payPlan: g.pay ?? null, leaveT: null, reactUntil: null, remade: false, impatientSaid: false, discount: 0,
   };
   if (g.tag) c.tag = g.tag;
@@ -196,6 +217,8 @@ function spawn(s, g, spot, ev) {
   else if (c.nhuCu) c.orderLine = freshLine(s, L.NHU_CU_LINES, ctx);
   else if (c.items[0].recipe === "bachuc") c.orderLine = freshLine(s, L.BACHUC_LINES, { ...ctx, target: c.items[0].target });
   else if (c.items.length > 1) c.orderLine = freshLine(s, L.MULTI_LINES, ctx);
+  else if (c.items[0].recipe === "bo-duong") c.orderLine = freshLine(s, BO_DUONG.say, ctx);
+  else if (g.tag === "fair") c.orderLine = freshLine(s, FAIR_LINES.say, ctx) + " " + orderText(c.items) + ".";
   else if (c.items[0].recipe === "que") c.orderLine = freshLine(s, M3.QUE.say, ctx);
   else if (c.items[0].recipe === "gia-truyen") c.orderLine = freshLine(s, M3.HOUSE_LOAF.say, ctx);
   else if (s.shop && s.cartMemory && s.day - s.cartMemory.movedDay < 4 && next(s) < 0.25) c.orderLine = freshLine(s, M3.SHOP.say, ctx) + " Cho " + orderText(c.items) + ".";
@@ -215,8 +238,9 @@ export function spawnPre(s, p, ev) {
     id: sh.nextCid++, arch: p.arch, sprite: A.sprite, name: p.name, self: A.self, call: A.call, items: p.items, filled: p.items.map(() => null),
     phase: "wait", t0: sh.t, arriveT: sh.t, patience: Math.max(30000, due - sh.t + PREORDER.grace), spot: -1, mood: "waiting", say: null,
     orderLine: `${p.label}: ${orderText(p.items)}`, nhuCu: false, pay: null, payPlan: "transfer", leaveT: null, reactUntil: null, remade: false, impatientSaid: true, discount: 0,
-    pre: { id: p.id, dueT: due, deposit: p.deposit, label: p.label, tip: p.tip || 0, flagOk: p.flagOk, laterOk: p.laterOk, okStars: p.okStars || 4 },
+    pre: { id: p.id, dueT: due, deposit: p.deposit, label: p.label, tip: p.tip || 0, flagOk: p.flagOk, laterOk: p.laterOk, okStars: p.okStars || 4, ...(p.contract ? { contract: p.contract } : {}) },
   };
+  if (p.contract) c.orderLine = `${p.label}: ${orderText(p.items)}. ` + freshLine(s, CONTRACT_LINES.say, lineCtx(c, { n: p.items.length }));
   sh.customers.push(c);
   ev.push({ type: "preorderOpen", cid: c.id, name: c.name, n: c.items.length, due });
   return c;
@@ -230,12 +254,12 @@ export function startShift(s, ev) {
   spend(s, fee);
   const sh = {
     status: "open", t: 0, day: s.day, phase: "sang", schedule: [], customers: [], nextCid: 1, boards: Array.from({ length: boardCount(s) }, () => emptyBoard()), sel: 0,
-    oven: new Array(ovenOf(s).slots).fill(null), case: [], que: 0, dialog: null, away: null, deliveries: [], paying: null, usedLines: [], lowSaid: {},
+    oven: new Array(Math.min(ovenOf(s).slots, challengeMods(s).slots || 9)).fill(null), case: [], que: 0, len: shiftLenFor(s), cook: freshCook(s), dialog: null, away: null, deliveries: [], paying: null, usedLines: [], lowSaid: {},
     waste: {}, wasteLog: [], fee, tutorial: !s.tutorialDone, consignUsed: false, settleQueue: [], feedFrom: s.feed.length ? s.feed[0].id : 0,
     moments: [], missions: [], lastServe: null, burntAt: null, helperUntil: 0, followers0: s.followers || 0, witness: null,
     stats: { served: 0, loaves: 0, revenue: 0, cogs: 0, batches: s.prep?.batches || 0, burntBatches: 0, goldenPulls: 0, toasts: 0, lost: 0, timeouts: 0, stars: [],
       changeRight: 0, changeWrong: 0, changeLoss: 0, restockSpent: 0, rescueSpent: 0, xp: 0, consignRepaid: 0, owed: 0, mistakes: {}, multi: 0, preorders: 0, preLate: 0,
-      staleSold: 0, eventCash: 0, missionCash: 0, lostSang: 0 },
+      staleSold: 0, eventCash: 0, missionCash: 0, lostSang: 0, burntMeat: 0, boDuong: 0 },
   };
   s.shift = sh;
   sh.schedule = genGuests(s);
@@ -244,14 +268,18 @@ export function startShift(s, ev) {
   if (s.prep?.golden) engineFlag(s, "me-vang", 0);
   // bánh hôm qua: bán nướng bơ đường (vào tủ giòn 30) · cho đi (+1 danh tiếng) · bỏ
   if (s.stale?.n) {
-    if (s.stale.choice === "sell") for (let i = 0; i < s.stale.n; i++) sh.case.push(newLoaf(s, STALE_CRISP, "stale"));
+    if (s.stale.choice === "sell") { for (let i = 0; i < s.stale.n; i++) sh.case.push(newLoaf(s, STALE_CRISP, "stale")); engineFlag(s, "bo-duong", 0); }
     else if (s.stale.choice === "give") { s.rep = Math.min(100, s.rep + 1); sh.moments.push({ kind: "stale", name: "", line: `Cho đi ${s.stale.n} ổ bánh hôm qua. Hẻm no thêm một chút.` }); }
     s.stale = null;
   }
   // bánh sỉ trong kho (Chị Mai) ra tủ lúc mở cửa, giòn 80
   const si = Math.min(s.stock["banh-si"] || 0, 20);
   if (si) { s.stock["banh-si"] -= si; for (let i = 0; i < si; i++) sh.case.push(newLoaf(s, 80, "si")); }
+  contractOrders(s, ev, (st, spec, e) => createPreorder(st, spec, e, { spawnPre }));
   for (const p of (s.preorders || []).filter((x) => x.day === s.day)) spawnPre(s, p, ev);
+  // cờ cho sự kiện cơ chế M5 (TR1, NT1): hôm nay có chảo trứng / bếp than
+  if (s.owned?.["egg-pan"] && menuFor(s).some((r) => r.id === "trung")) engineFlag(s, "chao-trung", 0);
+  if (s.owned?.grill && menuFor(s).some((r) => r.id === "thit-nuong")) engineFlag(s, "nuong-thit", 0);
   s.preorders = (s.preorders || []).filter((x) => x.day > s.day);
   s.prep = null;
   s.usedDay = [];
@@ -267,6 +295,7 @@ export const HOOKS = {
   gainXp, netReview: (s, r) => netReview(s, r), preorder: (s, spec, ev) => createPreorder(s, spec, ev, { spawnPre }),
   extraGuest, group: (s, G, d) => groupGuest(s, G, d), addQuirk: (c, q) => addQuirk(c, q), leave: (s, c) => leaveQuiet(s, c),
   onDramaDone: (s, ev) => missionsOnDrama(s, ev, gainXp),
+  contract: (s, spec, ev) => addContract(s, spec, ev),
 };
 function addQuirk(c, q) {
   const Q = QUIRKS[q];
@@ -291,8 +320,8 @@ export function tick(s, dt, ev) {
   if (sh.closeNow) { sh.closeNow = false; return endShift(s, ev, true); }
   sh.t += dt;
   const ph = phaseAt(sh.t);
-  if (ph.id !== sh.phase && sh.t < SHIFT_MS) { sh.phase = ph.id; ev.push({ type: "phase", id: ph.id, text: PHASE_BANNER[ph.id] || ph.name }); }
-  if (sh.t >= SHIFT_MS) sh.schedule = [];
+  if (ph.id !== sh.phase && sh.t < shiftLen(sh)) { sh.phase = ph.id; ev.push({ type: "phase", id: ph.id, text: PHASE_BANNER[ph.id] || ph.name }); }
+  if (sh.t >= shiftLen(sh)) sh.schedule = [];
   while (sh.schedule.length && sh.schedule[0].at <= sh.t) {
     const spot = freeSpot(s);
     if (spot < 0) break;
@@ -302,6 +331,7 @@ export function tick(s, dt, ev) {
     if (c.pre) {
       if (c.phase === "wait" && sh.t > c.pre.dueT + PREORDER.grace) preFail(s, c, ev);
       else if (c.phase === "react" && sh.t >= c.reactUntil) sh.customers.splice(sh.customers.indexOf(c), 1);
+      else if (c.phase === "leave" || c.phase === "enter" || c.phase === "pay" && !c.pay) sh.customers.splice(sh.customers.indexOf(c), 1); // người lấy đơn đặt trước rời quầy (sự kiện): không đứng hàng chờ nên bỏ ngay
       continue;
     }
     if (c.phase === "enter" && sh.t - c.t0 >= WALK_MS) {
@@ -314,6 +344,7 @@ export function tick(s, dt, ev) {
     else if (c.phase === "leave" && sh.t - c.leaveT >= WALK_MS) sh.customers.splice(sh.customers.indexOf(c), 1);
   }
   tickOven(s, dt, ev);
+  tickCook(s, ev);
   tickRescue(s, ev);
   while (sh.settleQueue.length) {
     const q = sh.settleQueue.shift(), c = customer(s, q.cid);
@@ -324,7 +355,7 @@ export function tick(s, dt, ev) {
     const c = customer(s, sh.paying), mk = c && makeChange(s.float, c.pay.change);
     if (mk) { ev.push({ type: "helperChange", line: freshLine(s, helperToday(s) ? M3.HELPER_LINES : M3.MOM_HELP_LINES, {}) }); settle(s, c, { received: { [c.pay.bill]: 1 }, change: mk }, ev); }
   }
-  if (sh.t >= SHIFT_MS && !sh.customers.length && !sh.schedule.length && !sh.dialog && !sh.away) return endShift(s, ev, false);
+  if (sh.t >= shiftLen(sh) && !sh.customers.length && !sh.schedule.length && !sh.dialog && !sh.away) return endShift(s, ev, false);
   maybeTrigger(s, ev);
   return { ok: true };
 }
@@ -348,6 +379,7 @@ function preFail(s, c, ev) {
   const got = c.filled.filter(Boolean).length;
   for (const f of c.filled) if (f) wasteLoaf(sh, f, "Ổ của đơn đặt trước giao thiếu");
   sh.stats.revenue += c.pre.deposit;
+  if (c.pre.contract) contractFailed(s, c.pre.contract, ev);
   c.phase = "react"; c.reactUntil = sh.t + 1200; c.mood = "impatient";
   review(s, c, 2, freshLine(s, M3.PREORDER_REVIEW.short, lineCtx(c, { n: c.items.length })), "preShort");
   s.rep = Math.max(0, s.rep - 2);
@@ -600,11 +632,13 @@ export function settle(s, c, pay, ev) {
     sh.stats.preorders++;
     if (!c.pre.onTime) sh.stats.preLate++;
     if (c.pre.onTime && c.pre.tip && sc.stars >= 3) { s.money += c.pre.tip; sh.stats.revenue += c.pre.tip; }
+    if (c.pre.contract) contractDelivered(s, c.pre.contract, c.pre.onTime, ev);
   }
   if (c.group?.tip && sc.stars >= 4 && !sc.mistakes.length) { s.money += c.group.tip; sh.stats.revenue += c.group.tip; }
   sh.stats.revenue += received;
   sh.stats.served++; sh.stats.loaves += c.items.length; sh.stats.stars.push(sc.stars);
   sh.stats.staleSold += c.filled.filter((f) => f.src === "stale").length;
+  sh.stats.boDuong += c.items.filter((it) => it.recipe === "bo-duong").length;
   if (c.items.length > 1) sh.stats.multi++;
   for (const m of sc.mistakes) sh.stats.mistakes[m] = (sh.stats.mistakes[m] || 0) + 1;
   // XP: 4 ổ đầu đủ, ổ thứ 5 trở đi 50%; tặng luôn = 0 XP
@@ -646,6 +680,7 @@ function reviewLine(s, c, sc, changeErr) {
   const pickL = (list, reason) => ({ line: freshLine(s, list, ctx), reason });
   const mk = sc.mistakes[0];
   const multi = c.items.length > 1;
+  if (c.pre?.contract) return pickL(c.pre.late > 0 ? CONTRACT_REVIEW.late : CONTRACT_REVIEW.onTime, c.pre.late > 0 ? "preLate" : "preorder");
   if (c.pre) {
     if (c.pre.late > PREORDER.lateSmall) return pickL(M3.PREORDER_REVIEW.lateBig, "preLate");
     if (c.pre.late > 0) return pickL(M3.PREORDER_REVIEW.lateLittle, "preLate");
@@ -666,7 +701,11 @@ function reviewLine(s, c, sc, changeErr) {
   }
   if (sh?.witness && sh.t - sh.witness.t < 40000 && next(s) < 0.6) { const w = sh.witness.kind; sh.witness = null; return pickL(M3.STOCKOUT_REVIEW[w], sc.stars >= 4 ? "good" : "ok"); }
   if (changeErr === "overBack" && next(s) < 0.6) return pickL(M3.CHANGE_REVIEW.overBack, "good");
+  if (it.recipe === "bo-duong") return pickL(BO_DUONG.review[sc.stars >= 4 ? "good" : "soggy"], sc.stars >= 4 ? "good" : "stale");
   if (c.filled.some((f) => f.src === "stale")) return pickL(M3.STALE.review, sc.stars >= 4 ? "good" : "stale");
+  const ck = c.filled.find((f) => f.ck)?.ck;
+  if (ck && next(s) < 0.55) return ck === "fresh" || ck === "held" ? pickL(COOK_LINES.grillReview[ck], ck === "fresh" && sc.stars >= 4 ? "good" : "ok") : pickL(COOK_LINES.eggReview[ck], ck === "hot" && sc.stars >= 4 ? "good" : "ok");
+  if (c.filled.some((f) => f.veg?.["do-chua"]) && next(s) < 0.12) { const old = (s.lots?.["do-chua"]?.[0]?.[0] ?? s.day) <= s.day - 2; return pickL(old ? EXPIRY_LINES.old : EXPIRY_LINES.fresh, sc.stars >= 4 ? "good" : "ok"); }
   if (it.recipe === "que" && next(s) < 0.6) return pickL(M3.QUE.review, sc.stars >= 4 ? "good" : "ok");
   if (it.recipe === "gia-truyen" && next(s) < 0.7) return pickL(M3.HOUSE_LOAF.review, sc.stars >= 4 ? "good" : "ok");
   if (c.tag === "promo" && s.promo?.kind && next(s) < 0.6) return pickL(M3.PROMO_REVIEW[s.promo.kind] || M3.PROMO_REVIEW["to-roi"], sc.stars >= 4 ? "good" : "ok");
@@ -700,6 +739,10 @@ export function endShift(s, ev, early = false) {
   if (freshLeft) addWaste(sh, "leftover", freshLeft * STOCK.phoi.cost, `Bánh dư cuối ca (${freshLeft} ổ, sáng mai thành bánh hôm qua)`);
   if (staleLeft) sh.wasteLog.push(`Bánh hôm qua không bán hết (${staleLeft} ổ, bỏ)`);
   if (sh.que) addWaste(sh, "leftover", Math.round(sh.que * STOCK["phoi-que"].cost * 10) / 10, `Que dư (${sh.que})`);
+  cookLeftover(sh);
+  const expired = expire(s, sh);
+  const expiredK = sh.waste.expired || 0;
+  if (expiredK >= 8) { engineFlag(s, "het-han", 2); sh.moments.push({ kind: "expired", name: "", line: freshLine(s, EXPIRY_LINES.toss, {}) }); }
   const st = sh.stats;
   const waste = Math.round(Object.values(sh.waste).reduce((a, b) => a + b, 0) * 10) / 10;
   const gas = st.batches * STOCK.gas.cost, than = Math.round(st.toasts * STOCK.than.cost * 10) / 10;
@@ -717,12 +760,18 @@ export function endShift(s, ev, early = false) {
     leftover: freshLeft, multi: st.multi, preorders: st.preorders, preLate: st.preLate, staleSold: st.staleSold, eventCash: st.eventCash, missionCash: st.missionCash,
     dramaN: sh.dramaDone || 0, missions: sh.missions.map((m) => ({ text: m.text, done: m.done, prog: m.prog, n: m.n })), moments: sh.moments.slice(-30),
     followersDelta: (s.followers || 0) - (sh.followers0 || 0), rain: s.weather?.kind === "rain" && s.weather.day === sh.day, fair: fairToday(s), ranItem: ranM?.id || null,
-    moved: !!(s.cartMemory && s.cartMemory.movedDay === sh.day), rating: s.rating,
+    moved: !!(s.cartMemory && s.cartMemory.movedDay === sh.day), rating: s.rating, expired, expiredK, len: sh.len || SHIFT_MS, burntMeat: st.burntMeat || 0, boDuong: st.boDuong || 0,
   };
   const S = s.lastSummary;
   S.challenge = judgeChallenge(s, S);
-  if (S.challenge?.ok) { gainXp(s, S.challenge.xp, ev); engineFlag(s, "thu-thach-dat", 2); S.moments.push({ kind: "challenge", name: "", line: freshLine(s, M3.CHALLENGE.win, {}) }); }
-  else if (S.challenge) S.moments.push({ kind: "challenge", name: "", line: freshLine(s, M3.CHALLENGE.lose, {}) });
+  if (S.challenge) {
+    if (S.challenge.ok) { gainXp(s, S.challenge.xp, ev); engineFlag(s, "thu-thach-dat", 2); } else engineFlag(s, "thu-thach-hut", 2);
+    S.moments.push({ kind: "challenge", name: S.challenge.name, line: S.challenge.line, outcome: S.challenge.ok ? "win" : "lose" });
+    ev.push({ type: "challengeResult", ok: S.challenge.ok, name: S.challenge.name, money: S.challenge.money, xp: S.challenge.xp });
+    s.challenge = null;
+  }
+  S.badges = checkBadges(s, S, ev).map((b) => ({ id: b.id, name: b.name, line: b.line }));
+  S.money = s.money;
   archiveShift(s, S);
   if (profit < 0) engineFlag(s, "lo-ngay", 2);
   s.stats.shifts++; s.stats.loaves += st.loaves; s.stats.revenue += st.revenue;

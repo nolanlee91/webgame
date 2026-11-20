@@ -126,7 +126,7 @@ test("Chơi lại ngày hôm nay: ảnh đầu ngày chụp lúc Chuẩn bị ca
   assert.ok(mem.getItem(DAY_KEY));
 });
 
-test("bản lưu v1 (M2) nâng lên v2: giữ tiền / cấp / kho / review, thêm mặc định M3–M4, cất bản sao .bak-v1 một lần", () => {
+test("bản lưu v1 (M2) nâng lên bản mới (qua v2): giữ tiền / cấp / kho / review, thêm mặc định M3–M4, cất bản sao .bak-v1 một lần", () => {
   const old = createState(42);
   old.v = 1; old.money = 345; old.level = 4; old.xp = 120; old.day = 6; old.introSeen = true; old.tutorialDone = true;
   old.feed = [{ id: 1, day: 5, name: "Bin", arch: "student", stars: 5, line: "Giòn.", reason: "good" }];
@@ -136,7 +136,7 @@ test("bản lưu v1 (M2) nâng lên v2: giữ tiền / cấp / kho / review, th�
   const store = shopSave(mem);
   const r = store.read(1);
   assert.equal(r.migrated, 1);
-  assert.equal(r.state.v, SAVE_VERSION); assert.equal(SAVE_VERSION, 2);
+  assert.equal(r.state.v, SAVE_VERSION); assert.ok(SAVE_VERSION >= 2);
   assert.equal(r.state.money, 345); assert.equal(r.state.level, 4); assert.equal(r.state.feed[0].line, "Giòn.");
   assert.equal(r.state.owner.persona, null); assert.equal(r.state.followers, 0); assert.ok(r.state.drama.flags);
   assert.equal(mem.getItem(backupKey(1)), raw);

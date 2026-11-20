@@ -24,13 +24,13 @@ test("máy giải tiền thối: ít tờ nhất, tôn trọng số tờ có; kh
 });
 
 test("thối đúng bằng tờ tay: tờ khách đưa ≤ 50k vào quỹ lẻ, tiền tăng đúng giá ổ", () => {
-  const [s, c] = paying(7, 20);
+  const [s, c] = paying(7, 50);
   const due = c.pay.due, change = c.pay.change, m0 = s.money, f0 = { ...s.float };
   const bills = makeChange(s.float, change);
   const r = act(s, { type: "giveChange", bills });
   assert.equal(r.events.find((e) => e.type === "served").change, null);
   assert.equal(s.money, m0 + due);
-  assert.equal((s.float[20] || 0), (f0[20] || 0) + 1);
+  assert.equal((s.float[50] || 0), (f0[50] || 0) + 1);
   assert.equal(s.shift.stats.changeRight, 1);
   assert.notEqual(err(s, { type: "giveChange", bills }), undefined, "bấm lặp không thối hai lần");
 });
