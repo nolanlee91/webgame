@@ -17,6 +17,10 @@ function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) 
 export const CHAR_H = 288;
 export const charScale = (f) => (f ? Math.max(1, Math.round((CHAR_H / f.h) * 2) / 2) : 1);
 
+/** Thiết bị (equipment.webp) vẽ to trong ô 192 (nồi cơm cao ~132 px) ⇒ hiện ×0,5 cho đúng thước cảnh (nồi ~66 px, ART-DIRECTION §0),
+ *  như Tiệm Bánh Mì. Ly trà (table-items) cũng ×0,5; ghế, dĩa đang ăn, bàn, bếp, món trên vỉ hiện ×1. Đều là bội 0,5 ⇒ vẫn nét. */
+export const EQUIP_SCALE = 0.5;
+export const SMALL_ITEM_SCALE = 0.5;
 export const JOB_LABEL = { seat: "Mời ngồi", visit: "Châm trà · lấy phiếu", bill: "Tính tiền", clean: "Dọn bàn", rice: "Thêm cơm" };
 
 /** Frame khách đứng / đi. */
@@ -80,13 +84,15 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     };
     S = {};
     layer(stageId === "quan" ? "quan" : "street", 0);
+    // kệ sau lưng cô chủ (nồi cơm, nồi canh, xửng, nóc tủ kính): sau cô chủ, sau bếp
+    S.back = el("div", "back-layer", stage);
     S.owner = el("div", "spr owner", stage);
     layer(stageId === "quan" ? "quanFg" : "streetFg", 200);
     S.counter = el("div", "counter-layer", stage);
     S.grill = el("div", "spr grill", S.counter);
     S.items = P.grillSlots.map(() => el("div", "spr gitem", S.counter));
     S.eq = {};
-    for (const key of ["rice-cooker", "mo-hanh-pot", "plate-stack", "suon-tray", "pickle-jar", "cucumber-tray", "sauce-jar", "chili-jar", "cash-tin", "box-stack", "egg-pan", "bi-tray", "steamer"]) if (P[key]) S.eq[key] = el("div", "spr", S.counter);
+    for (const key of ["rice-cooker", "mo-hanh-pot", "plate-stack", "suon-tray", "pickle-jar", "cucumber-tray", "sauce-jar", "chili-jar", "cash-tin", "box-stack", "egg-pan", "bi-tray", "steamer"]) if (P[key]) S.eq[key] = el("div", "spr", P[key][1] < 380 ? S.back : S.counter);
     S.floor = el("div", "floor-layer", stage);
     for (const key of ["wash-tub", "charcoal-sack"]) if (P[key]) S.eq[key] = el("div", "spr", S.floor);
     // bình trà đá: toạ độ đề xuất (ART-DIRECTION) đè ghế trái bàn 1 ⇒ chỉ vẽ khi manifest có toạ độ thật của Codex
@@ -265,7 +271,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     for (const [key, e] of Object.entries(S.eq)) {
       const name = eqName[key];
       if (!name) { e.hidden = true; last["eq" + key] = ""; continue; }
-      setSpr("eq" + key, e, "equip", name, P[key]);
+      setSpr("eq" + key, e, "equip", name, P[key], EQUIP_SCALE);
       if (e.parentElement === S.floor) e.style.zIndex = 1000 + P[key][1];
     }
     // ---- bàn ----
@@ -294,7 +300,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
           const name = m.plate.kind === "hop" ? "box-eating" : prog >= 0.95 ? "plate-eating-empty" : prog > 0.5 ? "plate-eating-half" : "plate-eating-full";
           setSpr(`pe${tb.id}${i}`, pe, "tableItems", name, ps); pe.style.zIndex = 1001 + tp.at[1];
         } else { pe.hidden = true; last[`pe${tb.id}${i}`] = ""; }
-        if (m) { const tx = ps[0] + (sp.face === "left" ? 22 : -22); setSpr(`te${tb.id}${i}`, te, "tableItems", `tea-glass-${m.tea}`, [tx, ps[1] - 2]); te.style.zIndex = 1002 + tp.at[1]; }
+        if (m) { const tx = ps[0] + (sp.face === "left" ? 22 : -22); setSpr(`te${tb.id}${i}`, te, "tableItems", `tea-glass-${m.tea}`, [tx, ps[1] - 2], SMALL_ITEM_SCALE); te.style.zIndex = 1002 + tp.at[1]; }
         else { te.hidden = true; last[`te${tb.id}${i}`] = ""; }
       });
       // nút chạm bàn: hình chữ nhật bao bàn + ghế (SCREENS: chạm bàn, không chạm ghế)

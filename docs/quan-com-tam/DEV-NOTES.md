@@ -1,7 +1,7 @@
 # Quán Cơm Tấm · Ghi chú phát triển
 
 **Vị trí và chuẩn:**
-- Game sẽ nằm ở `prototype/games/quan-com-tam/` (chưa có code).
+- Game ở `prototype/games/quan-com-tam/` (M1 + M2 lõi, chưa có thẻ trang chủ).
 - Lưu ở `localStorage["wgp.quancomtam.v1"]`.
 - Làm trong worktree `.claude/worktrees/quan-com-tam`, branch `claude/quan-com-tam`.
 - Khung code chép từ **Tiệm Bánh Mì** (bản M5), không chép từ Trà Sữa.
@@ -12,12 +12,54 @@
 | Mốc | Trạng thái | Nội dung |
 |---|---|---|
 | M0 · Thiết kế + hợp đồng asset | **Xong, chủ dự án đã duyệt 20/11/2026** | GAME-DESIGN, ECONOMY, DRAMA (58 sự kiện, 13 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json`, `asset-manifest.json` rỗng. Chi tiết `asset-spec.json`:<br>- 33 sheet, 777 frame;<br>- đợt 1: 22 sheet / 509 frame;<br>- đợt 2: 11 sheet / 268 frame;<br>- 74 toạ độ đặt + 12 đường đi / bàn;<br>- `checkSceneScale` cho 2 cảnh.<br>`check_assets` chạy được, hiện chỉ báo thiếu file (đúng, chưa có art). |
-| Cảnh (Codex) | **Đang vẽ** | `street-scene`, `street-foreground`, `quan-scene`, `quan-foreground`. Thước: người 260 / cửa 330 / quầy 150 / bàn 120. |
-| M1 · Kiến trúc + cảnh + bàn | Chưa bắt đầu | GAME-DESIGN §7 |
-| M2 · Một ca trọn | Chưa bắt đầu | |
+| Cảnh (Codex, đợt 0) | **Đã giao, đã gộp** (`codex/com-tam-scenes` b11f926) | 4 tranh cảnh; `sceneScale` vỉa hè 257, quán 258 (chủ dự án duyệt). |
+| Đợt 1 (Codex) | **Đã giao, đã gộp** (`codex/com-tam-wave1` 4bc6dab) | `check_assets`: 0 lỗi, 11 cảnh báo (đợt 2 tuỳ chọn). Đủ 74 toạ độ + 12 khoá đường đi / bàn. |
+| M1 · Kiến trúc + cảnh + bàn | **Xong (lõi)** | Xem "M1 + M2 lõi" bên dưới. |
+| M2 · Một ca trọn | **Xong (lõi)** | Ngày 1 chơi trọn bằng chạm thật (e2e desktop 1366@1,25 + mobile 390@3). |
 | M3 · Kinh tế + nội dung cơ chế | Chưa bắt đầu | |
 | M4 · Drama + review + Nhật Ký | Chưa bắt đầu | |
 | M5 · Polish + cân bằng | Chưa bắt đầu | |
+
+## M1 + M2 lõi (đã làm)
+
+**Chơi được:** màn chào (tên quán) → Chuẩn bị (Nhập hàng, Ướp sườn, Mẻ đầu: nấu nồi cơm / làm mỡ hành / nhóm bếp, Menu, Ca, Đồ nghề, Dự báo) → ca tối 210 giây
+→ chốt ca lời lỗ → ngày tiếp theo. Ngày 1 là ca hướng dẫn: 6 nhóm / 8 khách, kiên nhẫn ×1,6, bếp chín ×0,7, dải gợi ý từng bước (`core/tutorial.js`).
+
+**Luật (thuần, `core/`):**
+
+| File | Nội dung |
+|---|---|
+| `grill.js` | 6 chỗ, 3 vùng (×1,5 / ×1 / ×0,25, giữ ấm không cháy trước 60 giây, khô dần), 2 mặt, lật (đúng lúc 100–114 tính tay nướng), kết quả = mặt kém hơn, than −0,5/giây + rổ +35 sau 4 giây, lửa bùng, quạt +1 nấc / than ×2, khói. |
+| `rice.js` | Nồi cơm theo mẻ (gạo tấm, 40 giây), hũ mỡ hành 20 phần, chảo trứng 5 độ, xửng chả (dữ liệu cho cấp 2 / 4). |
+| `plate.js` | Bày dĩa xếp lớp (dĩa/hộp → cơm 1–2 vá → mỡ hành → món nướng → bì → chả → trứng → đồ chua → dưa leo → nước mắm chan/chén/bịch → ngò), hoàn tác, đổ dĩa, bước kế tiếp (Space). |
+| `tables.js` | Nhóm khách, chỗ chờ theo người, mời ngồi, bàn dơ chặn khách, châm trà + lấy phiếu, ly trà vơi / cạn, ăn, gọi thêm (chén cơm, khăn lạnh), gọi tính tiền, trả tiền, về, bàn dơ có dĩa, dọn + lau, thau rửa, hộp mang về (shipper, cấp 4), khiếu nại, hết món. |
+| `walker.js` | Cô chủ đi bộ thật theo lối đi (330 px/giây), hàng đợi 4 việc, việc bếp / bày chỉ làm khi đứng ở bếp; bưng dĩa ghé quầy trước. |
+| `bill.js` | Phiếu tính tiền: dòng thật + 1–2 dòng nhiễu, chạm cộng từng dòng, "Tính đúng" ngày 1–3, thiếu = mất tiền, dư = khách phản đối. |
+| `score.js` | 0–100 (công thức 45 · nướng 20 · thời gian 20 · phục vụ 15), sao 0/40/55/70/85, đủ 13 kiểu lỗi + trần sao, bưng nhầm bàn / tráo dĩa nhận ra khi dĩa khớp phiếu người khác. |
+| `stock.js`, `rescue.js` | Nhập hàng, hạn hàng tươi (FIFO), "Nhập + ướp đủ", đồ nghề, gói ký gửi Cô Ba (cả khi kho đầy), hết hàng giữa ca (chạy chợ 12 giây, Anh Sáu 20 giây, mượn, ướp gấp, bánh mì sườn, treo bảng hết, bỏ qua), bao than dự phòng. |
+| `shift.js` | Lịch khách theo nhịp ca, mở / đóng ca (90 giây ân hạn rồi tự trả tiền), hao cuối ca, phí ca, chốt lời lỗ, sang ngày. Ca trưa là dữ liệu (cấp 5). |
+| `apply.js` | Cửa duy nhất; bất biến gồm bảo toàn dĩa (sạch + dơ + đang bày + đang bưng + trên bàn = số dĩa quán có). |
+
+**Hiển thị:** cảnh thật + lớp che quầy, bàn / ghế / khách ngồi (lật theo `face`) / dĩa đang ăn / ly trà theo `placements`, cô chủ đi theo lối đi
+(sau quầy thì nằm sau lớp che), bếp + miếng trên vỉ theo `grill.slots`, thiết bị ×0,5 (equipment vẽ to trong ô 192), kệ sau nằm sau cô chủ.
+Thanh Bếp (6 chip vòng hai nửa, Than, Quạt giữ, Cơm, Dĩa sạch, Mỡ hành), Cột Dĩa (thanh phiếu màu bàn, dĩa xếp lớp `plate-layers`, dải lớp,
+Hoàn tác / Đổ / Giao, phiếu tính tiền, việc ở bàn), dock mobile (Dĩa · Bàn · Bếp · Kho · Sổ). Gợi ý + thông báo nằm đầu khung cảnh (đáy cảnh là
+hàng bàn trước và chỗ shipper, không được che). Mobile: camera dồn phải để thấy chỗ chờ + mọi bàn, hệ số 1,0 thiết bị.
+
+**Âm thanh:** `ui/sfx.js` theo Bánh Mì, `wgp.muted` + `qct.music`; `AVAILABLE` rỗng ⇒ im lặng an toàn tới khi Codex giao `assets/audio/*.mp3`.
+
+**Nội dung:** 18 câu gọi món chung + 5 câu × 11 vai; 13 kiểu lỗi × (6 câu chung + biến thể vai) câu khách nói và × (6–8 + biến thể) câu review;
+review 1–5 sao (6–10 câu chung + theo vai); câu tới quán, chờ bàn, gọi trà, gọi thêm, tính tiền, vui / buồn, bỏ về, hết món, như hôm qua.
+
+**Test:** `node --test "test/*.test.mjs"` (55 test: bếp, bày dĩa + biến thể, phục vụ + đi bộ + tính tiền, 13 lỗi, bản lưu, không kẹt
+6 ngày × 3 hạt × 2 kiểu người chơi, thoại không lặp, manifest khớp + tên frame trong spec + giá vốn). E2E: `PORT=8851 node server.js` rồi
+`PORT=8851 node prototype/games/quan-com-tam/test/e2e.mjs <thư mục ảnh>`.
+
+**Còn thiếu / để M3–M5:**
+- Cân bằng: người chơi "ẩu" (bot) lỗ ở ngày 2+ vì cháy nhiều; người chăm có lời. Vùng chín 100–114 ở vùng nóng chỉ ~0,7 giây — núm chỉnh M5.
+- Chưa có: nhiệm vụ, drama, trả lời review, Nhật Ký, sổ nợ / ghi sổ, đơn đặt trước, mâm cơm, phụ bàn Bông, lên quán, trang trí, cơm chiên từ cơm dư, ghép bàn, bày ×N, ca trưa chơi được (mới là dữ liệu), nồi canh + chén canh, chảo / xửng có UI riêng (chỉ nút ở bảng Bếp mobile), bếp lớn HD.
+- Chưa dùng ảnh đợt 2 (`plate-layers-hd`, `grill-items-hd` sẽ tự dùng khi có vì cùng tên frame).
+- Thời gian thực ngày 1 ≈ 4–5 phút; chưa đo người thật.
 
 ## Ghi chú cho dev (M1 trở đi)
 
@@ -59,6 +101,7 @@
 - **Thiếu frame thì vẽ hình dự phòng** cùng ô + anchor (`render/placeholder.js`).
   - Khách ngồi chưa có: vẽ dáng `waiting` cắt ngang hông, đặt thấp xuống 50 px.
 - **Mọi import** mang tag `?v=c1` (đổi cùng lúc khi deploy có đổi API).
+- `CHAR_H = 288` (`render/scene.js`); ô nhân vật 216×288 hiện ×1.
 
 ## Quyết định cần chủ dự án
 

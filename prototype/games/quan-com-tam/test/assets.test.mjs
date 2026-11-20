@@ -97,19 +97,32 @@ test("atlas: frame thật trong manifest thắng hình dự phòng; thiếu thì
   assert.equal(charScale({ h: 192 }), 1.5);
 });
 
-test("toạ độ: manifest (owner, grill, door) đè dự phòng; khoá chưa có thì dùng đề xuất ART-DIRECTION", () => {
-  const P = buildPoints("street", game.placements), Q = buildPoints("quan", game.placements);
-  assert.deepEqual(P.owner, game.placements["street-owner"].at);
-  assert.deepEqual(P.grill, game.placements["street-grill"].at);
-  assert.deepEqual(Q.entry, game.placements.door);
-  assert.deepEqual(P.grillSlots[0], [P.grill[0] - 100, P.grill[1] - 40], "chỗ vỉ tương đối anchor bếp");
-  assert.deepEqual(P.tables.map((t) => t.id), STREET.tables.map((t) => t.id));
-  assert.deepEqual(P["wash-tub"], STREET["wash-tub"]);
-  assert.deepEqual(Q.waitSpots, QUAN.waitSpots);
-  // khi Codex ghi bàn: dùng bàn của manifest
+test("toạ độ: manifest của Codex đè dự phòng (chủ quán, bếp, chỗ vỉ, bàn, chỗ chờ, lối đi); khoá thiếu thì dùng đề xuất ART-DIRECTION", () => {
+  const pl = game.placements;
+  const P = buildPoints("street", pl), Q = buildPoints("quan", pl);
+  assert.deepEqual(P.owner, pl["street-owner"].at);
+  assert.deepEqual(P.grill, pl["street-grill"].at);
+  const rel = pl["street-grill"].slots?.[0] || [-100, -40];
+  assert.deepEqual(P.grillSlots[0], [P.grill[0] + rel[0], P.grill[1] + rel[1]], "chỗ vỉ tương đối anchor bếp");
+  assert.deepEqual(Q.entry, pl.door);
+  if (pl.streetTables) assert.deepEqual(P.tables.map((t) => t.at), pl.streetTables.map((t) => t.at));
+  if (pl.streetWaitSpots) assert.deepEqual(P.waitSpots, pl.streetWaitSpots);
+  // manifest thiếu khoá ⇒ dự phòng ART-DIRECTION
+  const F = buildPoints("street", { "street-owner": { at: [330, 532] } });
+  assert.deepEqual(F.owner, [330, 532]);
+  assert.deepEqual(F.tables.map((t) => t.id), STREET.tables.map((t) => t.id));
+  assert.deepEqual(F["wash-tub"], STREET["wash-tub"]);
+  assert.deepEqual(buildPoints("quan", {}).waitSpots, QUAN.waitSpots);
   const T = buildPoints("street", { streetTables: [{ id: "s1", seats: 2, at: [760, 540], seatSpots: [{ at: [660, 546], face: "right" }, { at: [860, 546], face: "left" }], servePoint: [760, 612] }] });
   assert.deepEqual(T.tables[0].at, [760, 540]);
   assert.equal(T.tables[0].seatSpots[1].face, "left");
+});
+
+test("đợt 1: mọi sheet bắt buộc có trong manifest + có file; đường vẽ chính có frame thật", () => {
+  for (const [alias, f] of Object.entries(SHEETS)) if (!OPTIONAL_SHEETS.has(alias)) { assert.ok(game.items.some((i) => i.filename === f), f); assert.ok(existsSync(here("../" + f)), f); }
+  const a = makeAtlas(game);
+  const miss = codeFrames().filter(([alias, name]) => !a.has(alias, name));
+  assert.deepEqual(miss, []);
 });
 
 test("giá vốn món tính từ thành phần khớp bảng ECONOMY §2", () => {
