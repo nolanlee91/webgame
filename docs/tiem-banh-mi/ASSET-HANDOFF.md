@@ -1,4 +1,21 @@
-# Bàn giao asset Đợt 1 · Tiệm Bánh Mì
+# Bàn giao asset · Tiệm Bánh Mì
+
+## Đợt 2
+
+Asset commit `da56168` trên `codex/banh-mi-wave2`. Nhánh gồm master local `0c8fb0a` và bản bàn giao Đợt 1 `abea23e`.
+
+- Đã bỏ cờ `optional` cho cả 9 sheet Đợt 2. Bộ mới gồm 208 frame, 11 clip, WebP lossless và alpha cứng. Các sheet HD dùng lưới 1×. Cảnh, vật dụng, thời tiết và thẻ Nhật Ký dùng lưới 2×.
+- Chủ tiệm nam giữ khăn, ria và tạp dề từ Đợt 1. Có đủ 7 clip quầy ráp, 39 lớp ổ bánh trùng tên bản nhỏ, 9 chân dung chính, 45 biểu cảm của dàn vai và 48 chân dung biểu cảm của 12 NPC Drama.
+- Trong cảnh xe đẩy, tủ kính đã tách khỏi cả nền lẫn lớp che quầy. Vẽ `fixtures.webp#cart-display-empty` ở `placements.cart-display.at = [766,348]`, rồi xếp bánh theo ba dãy `stockSlots` trong tọa độ cảnh. Các bản `low` và `full` vẫn có trong atlas theo spec. Dùng bản `empty` khi dựng số bánh theo tồn kho.
+- Manifest ghi điểm đặt cho tủ kính, bảng hiệu, dây chờ, chỗ phụ việc và đồ trang trí. Thẻ Nhật Ký 1080×1350 có `safeAreas` cho đầu thẻ, ảnh cảnh 960×640 và phần chữ cuối.
+- Đã soi ảnh từ `nhan-vat-xep-hang-x2.png`, đối chiếu mặt và trang phục của dàn vai, kiểm tra các biểu cảm Drama, ảnh ghép tủ trống và ảnh ráp ổ HD. Kiểm ở cấp asset và ảnh ghép, chưa tích hợp gameplay.
+
+```text
+python -I tools/asset-check/check_assets.py docs/tiem-banh-mi/asset-spec.json --preview <tmp>
+
+0 lỗi, 0 cảnh báo — ĐẠT, giao được.
+Ảnh soi nhân vật: <tmp>/nhan-vat-xep-hang-x2.png
+```
 
 ## Bản chỉnh tỉ lệ nhân vật
 
