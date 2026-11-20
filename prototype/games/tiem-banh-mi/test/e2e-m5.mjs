@@ -75,3 +75,48 @@ export async function queueChecks(ctx, tag) {
       return JSON.stringify({n:w.length,onSpot,front:P.queue[0][0]===front[0]&&P.queue[0][1]===front[1],pos});})();})()`).then(JSON.parse);
   check(`${tag}: khách chờ đứng đúng chỗ xếp hàng của manifest, đầu hàng gần chủ tiệm`, r.n >= 1 && r.onSpot && r.front, JSON.stringify(r));
 }
+
+/** Luồng M5 bằng nút thật: thẻ Hội chợ + Lịch thử thách ở Chuẩn bị ca (cấp 20), nhận thử thách, thuê gian, ca hội chợ dài 4,5 phút, Một lò ép 1 ngăn,
+ *  khách ở tiệm đứng đúng queueSpots, chảo / bếp than trên quầy, chốt ca hiện kết quả thử thách, Sổ có bức tường 14 huy hiệu. */
+export async function m5Flows(ctx, tag, shots = true) {
+  const { b, OUT, PORT, BASE, check, pressSel, S, waitFor } = ctx;
+  await b.send("Page.navigate", { url: "about:blank" }); await sleep(300);
+  await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
+  await b.nav(BASE);
+  await pressSel("#introGo");
+  await b.ev(`(()=>{const s=__game.state;s.level=20;s.xp=999999;s.money=2500;s.day=21;s.tutorialDone=true;s.shop=true;s.oven="gas";s.rep=70;
+    for(const id of ["egg-pan","egg-pan-2","grill","xiu-mai-pot","long-board","vegan-board"])s.owned[id]=true;s.stock.trung=10;s.stock["thit-nuong"]=10;s.stock.phoi=40;
+    s.drama.pending=null;__game.save();__game.overlays.prep(s);})()`);
+  check(`${tag}: Chuẩn bị ca cấp 20 có thẻ Hội chợ + Lịch thử thách (5 ngày)`, await waitFor(`!!document.querySelector('[data-card="fair"]')&&!!document.querySelector('[data-card="challenge"]')&&document.querySelectorAll('[data-card="challenge"] .week span').length===5`));
+  if (shots) await b.shot(`${OUT}/${tag}-n1-ca-dac-biet.png`);
+  await pressSel('[data-act="challenge"]');
+  check(`${tag}: nhận thử thách hôm nay bằng nút (Một lò)`, (await S("s.challenge&&s.challenge.id")) === "mot-lo");
+  await pressSel('[data-act="fair"]');
+  check(`${tag}: thuê gian hội chợ (−150k, lần 1)`, (await S("s.fairDay===s.day&&s.fairCount===1&&s.money===2350")) === true);
+  await pressSel("#openShop");
+  check(`${tag}: ca hội chợ dài 4,5 phút, thử thách Một lò ép 1 ngăn lò`, (await waitFor("!!__game.state.shift")) && (await S("s.shift.len")) === 270000 && (await S("s.shift.oven.length")) === 1);
+  check(`${tag}: quầy có chảo đôi + bếp than (nút Chiên trứng / Nướng thịt)`, await waitFor(`!!document.querySelector('[data-act="fry"]')&&!!document.querySelector('[data-act="grill"]')`, 3000));
+  await pressSel('[data-act="grill"]');
+  check(`${tag}: bỏ mẻ thịt lên bếp than bằng nút`, (await S("!!s.shift.cook.grill")) === true);
+  await b.ev("__game.state.shift.drama.max=0");
+  for (let i = 0; i < 120 && !(await S("s.shift.customers.some(c=>c.phase==='wait'&&!c.pre)")); i++) await b.ev("__game.advance(400)");
+  await b.ev("__game.advance(300)"); await sleep(150);
+  await queueChecks(ctx, tag + " (tiệm)");
+  await coverChecks(ctx, tag + " (tiệm)");
+  if (shots) await b.shot(`${OUT}/${tag}-n2-hoi-cho-tiem.png`);
+  await b.ev("__game.state.shift.closeNow=true;__game.advance(200)");
+  check(`${tag}: chốt ca hiện kết quả thử thách`, await waitFor("__game.overlay==='summary'&&!!document.querySelector('[data-card=\"challengeResult\"]')", 5000));
+  if (shots) await b.shot(`${OUT}/${tag}-n3-chot-thu-thach.png`);
+  await pressSel('[data-act="nextDay"]'); await sleep(250);
+  for (let i = 0; i < 8 && (await b.ev("__game.overlay==='event'")); i++) {
+    if (await b.ev(`!!document.querySelector('#sheet [data-act="eventNext"],#sheet [data-act="eventDone"]')`)) await pressSel('#sheet [data-act="eventNext"], #sheet [data-act="eventDone"]');
+    else await pressSel("#sheet .choice:not(:disabled)");
+  }
+  if (tag === "mobile") await pressSel('#dock [data-dock="book"]'); else await pressSel("#bookBtn");
+  await waitFor("__game.overlay==='notebook'", 3000);
+  await waitFor("__game.overlay==='notebook'", 3000) || await b.ev("document.querySelector('#bookBtn').click()");
+  await waitFor("__game.overlay==='notebook'", 3000);
+  await pressSel('#sheet [data-tab="badges"]');
+  check(`${tag}: Sổ · Huy hiệu: bức tường 14 huy hiệu`, await waitFor("document.querySelectorAll('#badgeWall .bw-item').length===14", 3000));
+  if (shots) await b.shot(`${OUT}/${tag}-n4-huy-hieu.png`);
+}

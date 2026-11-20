@@ -305,7 +305,8 @@ export function preorderOffers(s) {
     const W = pick(s, PRE_WHO);
     const rs = W.recipes.filter((r) => menu.includes(r));
     if (!rs.length) continue;
-    const size = Math.min(PREORDER.maxN, PREORDER.minN + int(s, Math.min(25, 4 + s.level)));
+    // M5: trước đây tới 30 ổ ở cấp 16+ ⇒ người chơi ẩu hỏng cả đơn (hao 300–500k một ca). Nay 6 → tối đa 6 + 0,8 × cấp.
+    const size = Math.min(PREORDER.maxN, PREORDER.minN + int(s, Math.min(20, 3 + Math.floor(s.level * 0.8))));
     const mix = rs.length > 1 && size >= 10 ? [{ recipe: rs[0], n: Math.ceil(size * 0.6) }, { recipe: rs[1], n: Math.floor(size * 0.4) }] : [{ recipe: rs[0], n: size }];
     list.push({ name: W.name, arch: W.arch, label: W.label, mix, dueMs: 40000 + int(s, 6) * 20000, discount: size >= 10 ? 0.05 : 0, taken: false });
   }

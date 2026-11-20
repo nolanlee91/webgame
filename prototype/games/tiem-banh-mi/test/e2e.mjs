@@ -6,7 +6,7 @@
 // Tua thời gian ca bằng __game.advance (không chờ thật). Yêu cầu 0 lỗi console.
 import { launch, sleep } from "./cdp.mjs";
 import { playM34 } from "./e2e-m34.mjs";
-import { audioBeforeGesture, audioAfterGesture, audioInShift, coverChecks, queueChecks } from "./e2e-m5.mjs";
+import { audioBeforeGesture, audioAfterGesture, audioInShift, coverChecks, queueChecks, m5Flows } from "./e2e-m5.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8841;
 const BASE = `http://127.0.0.1:${PORT}/games/tiem-banh-mi/?seed=777&prepSpeed=8`;
@@ -195,6 +195,7 @@ await waitFor("!!document.querySelector('#app.ready')", 8000);
 check("desktop: chơi lại ⇒ bản cũ ở .backup, tiệm mới ngày 1", (await b.ev("localStorage.getItem('wgp.tiembanhmi.v1.backup')")) === keyBefore && (await S("s.day")) === 1 && (await b.ev("__game.overlay")) === "intro");
 
 await playM34(ctx, "desktop");
+await m5Flows(ctx, "desktop");
 
 }
 
@@ -202,6 +203,7 @@ await playM34(ctx, "desktop");
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 await playDay1("mobile", true);
 await playM34(ctx, "mobile");
+await m5Flows(ctx, "mobile");
 check("mobile: cảnh hệ số bội 0,5 thiết bị", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio*2;return Math.abs(k-Math.round(k))<1e-6})()"), String(await b.ev("__game.sceneScale()")));
 check("0 lỗi console", b.errors.length === 0, b.errors.slice(0, 5).join(" | "));
 b.close();

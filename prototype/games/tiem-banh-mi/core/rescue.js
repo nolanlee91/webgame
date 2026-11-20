@@ -5,6 +5,7 @@ import { STOCK, STOCK_IDS, RESCUE, VEG } from "../data/economy.js?v=b3";
 import { ARCHETYPES } from "../data/customers.js?v=b3";
 import { RESCUE_SAY, NOCHANGE, OUT_LINES } from "../data/lines-ops.js?v=b3";
 import { addLot } from "./expiry.js?v=b3";
+import { takePartial } from "./partial.js?v=b3";
 import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=b3";
 import { spend, receive, greedyBills } from "./money.js?v=b3";
 import { newLoaf } from "./oven.js?v=b3";
@@ -159,6 +160,7 @@ export function walkOff(s, c, ev) {
     else if (b.loaf) wasteLoaf(sh, b.loaf, "Ổ làm dở, khách bỏ đi");
     Object.assign(b, emptyBoard());
   }
+  takePartial(s, c, ev);
   for (const f of c.filled) if (f) wasteLoaf(sh, f, "Ổ đã gói, khách bỏ đi");
   c.phase = "leave"; c.leaveT = sh.t; c.mood = "impatient";
   if (sh.paying === c.id) sh.paying = null;

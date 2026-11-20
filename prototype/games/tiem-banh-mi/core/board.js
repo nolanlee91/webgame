@@ -5,6 +5,8 @@ import { STOCK, LEVEL_USE, SPREADS, FILLINGS, VEG, VEG_IDS, SAUCES, WRAPS, TOAST
 import { addWaste, toastResult } from "./oven.js?v=b3";
 import { modSum } from "./flags.js?v=b3";
 import { takeCooked } from "./cook.js?v=b3";
+import { freshLine } from "./text.js?v=b3";
+import { COOK_LINES } from "../data/lines-m5.js?v=b3";
 
 /** Ổ bánh hôm qua nướng lại tối đa 70 giòn (core/progress.js STALE_MAX). */
 const STALE_MAX = 70;
@@ -181,6 +183,9 @@ export function fill(s, id, ev) {
       l.ckWait = true;
       if (r.wait.endsWith("-stock") && (s.stock[id] || 0) < 1) { openStockout(s, id, ev); return { ok: true, dialog: true }; }
       ev.push({ type: "cookWait", id, why: r.wait });
+      // khách đang được ráp nói một câu chờ trứng / chờ thịt (một lần mỗi ổ)
+      const c = s.shift.customers.find((x) => x.id === g.b.cid);
+      if (c && !l.ckSaid && (r.wait === "egg" || r.wait === "meat")) { l.ckSaid = true; c.say = { text: freshLine(s, r.wait === "egg" ? COOK_LINES.eggWait : COOK_LINES.grillWait, { self: c.self, call: c.call, name: c.name }), at: s.shift.t }; }
       return { ok: true, wait: r.wait };
     }
     record(g.b, "fill");

@@ -1,19 +1,21 @@
 // Nhật Ký Làm Chủ (DRAMA.md §6, chép core/journal.js Trà Sữa): câu chốt ca kiểu meme theo dữ kiện ca + nội dung thẻ 1080×1350
 // (ui/journal.js vẽ lên journal-card.webp khi có, không thì nền canvas dự phòng). Thuần: test kiểm câu chọn đúng tình huống, thẻ đủ dòng.
 import { CAPTIONS } from "../data/lines-m3.js?v=b3";
+import { CAPTIONS_M5 } from "../data/lines-m5.js?v=b3";
 import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b3";
 import { STOCK } from "../data/economy.js?v=b3";
 import { fill } from "./text.js?v=b3";
 import { int } from "./rng.js?v=b3";
 
 const PLAIN = new Set(["good", "few", "perfect"]);
-const ALL = { ...CAPTIONS, replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip };
+const ALL = { ...CAPTIONS, ...CAPTIONS_M5, replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip };
 
 /** Nhóm câu theo dữ kiện ca (ưu tiên từ trên xuống). */
 export function captionKind(sum) {
   const ms = sum.moments || [];
   if (sum.early || ms.some((m) => m.kind === "closed")) return "closed";
   if (sum.challenge) return sum.challenge.ok ? "challengeWin" : "challengeLose";
+  if ((sum.badges || []).length) return "badge";
   if (sum.moved) return "shop";
   if (sum.profit < 0) return "loss";
   if (sum.fair) return "fair";
@@ -23,6 +25,7 @@ export function captionKind(sum) {
   if (ms.some((m) => m.kind === "flip")) return "flip";
   if (sum.rain) return "rain";
   if (sum.lost > 1) return "lost";
+  if (ms.some((m) => m.kind === "contract")) return "contract";
   if ((sum.preorders || 0) > 0) return "preorder";
   if ((sum.dramaN || 0) >= 2) return "drama";
   if (sum.burntBatches >= 1) return "burnt";
@@ -49,7 +52,7 @@ export function caption(s, sum) {
     flips: Math.max(3, (s.owner?.switches || []).filter((x) => x.day === sum.day).length),
   });
 }
-const JOURNAL_KINDS = new Set(["challenge", "closed", "ran", "reply", "flip", "drama", "mistake", "five", "multi", "promise", "mission-all", "mission-miss", "consign-done", "preorder", "shop", "stale"]);
+const JOURNAL_KINDS = new Set(["badge", "contract", "partial", "expired", "challenge", "closed", "ran", "reply", "flip", "drama", "mistake", "five", "multi", "promise", "mission-all", "mission-miss", "consign-done", "preorder", "shop", "stale"]);
 /** Khoảnh khắc đặt làm câu trích trên thẻ (câu trả lời nổi / phốt trước, rồi drama, rồi review hay nhất). */
 export function journalMoments(sum) {
   const out = [];

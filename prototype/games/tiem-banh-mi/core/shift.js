@@ -29,6 +29,7 @@ import { judgeChallenge, challengeMods, checkBadges } from "./challenge.js?v=b3"
 import { freshCook, tickCook, cookLeftover } from "./cook.js?v=b3";
 import { addContract, contractOrders, contractDelivered, contractFailed } from "./contracts.js?v=b3";
 import { expire } from "./expiry.js?v=b3";
+import { takePartial } from "./partial.js?v=b3";
 import { CONTRACT_LINES, CONTRACT_REVIEW, COOK_LINES, EXPIRY_LINES, BO_DUONG, FAIR_LINES } from "../data/lines-m5.js?v=b3";
 
 export const customer = (s, cid) => s.shift?.customers.find((c) => c.id === cid) || null;
@@ -363,6 +364,7 @@ export function tick(s, dt, ev) {
 function timeout(s, c, ev) {
   const sh = s.shift;
   for (const b of sh.boards) if (b.cid === c.id) { if (b.loaf) wasteLoaf(sh, b.loaf, "Ổ làm dở, khách bỏ về"); Object.assign(b, emptyBoard()); }
+  takePartial(s, c, ev);
   for (const f of c.filled) if (f) wasteLoaf(sh, f, "Ổ đã gói, khách bỏ về");
   c.phase = "leave"; c.leaveT = sh.t; c.mood = "impatient";
   c.say = { text: freshLine(s, L.TIMEOUT_SAY, lineCtx(c)), at: sh.t };
@@ -377,6 +379,7 @@ function preFail(s, c, ev) {
   const sh = s.shift;
   for (const b of sh.boards) if (b.cid === c.id) { if (b.loaf) wasteLoaf(sh, b.loaf, "Ổ làm dở, đơn đặt trước huỷ"); Object.assign(b, emptyBoard()); }
   const got = c.filled.filter(Boolean).length;
+  takePartial(s, c, ev); // người lấy đơn mang về phần đã gói (trả 70%), phần còn lại huỷ
   for (const f of c.filled) if (f) wasteLoaf(sh, f, "Ổ của đơn đặt trước giao thiếu");
   sh.stats.revenue += c.pre.deposit;
   if (c.pre.contract) contractFailed(s, c.pre.contract, ev);

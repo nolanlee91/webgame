@@ -89,7 +89,7 @@ function loadLoaf(l, built) {
   const out = {
     spreads: lvlMap(l.spreads, SPREAD_KEYS), fills: arr(l.fills).filter((x) => FILL_KEYS.includes(x)), veg: boolMap(l.veg, VEG_KEYS), ot: int(l.ot, 0, 3, 0),
     sauces: boolMap(l.sauces, SAUCE_KEYS), wrap: WRAPS[l.wrap] ? l.wrap : null, crisp: num(l.crisp, 0, 100, 60), burnt: bool(l.burnt), dark: bool(l.dark),
-    toasted: bool(l.toasted), src: SRC.has(l.src) ? l.src : "oven", ...(["hot", "wait", "fresh", "held"].includes(l.ck) ? { ck: l.ck } : {}), ...(l.ckWait ? { ckWait: true } : {}),
+    toasted: bool(l.toasted), src: SRC.has(l.src) ? l.src : "oven", ...(["hot", "wait", "fresh", "held"].includes(l.ck) ? { ck: l.ck } : {}), ...(l.ckWait ? { ckWait: true } : {}), ...(l.ckSaid ? { ckSaid: true } : {}),
     used: Object.fromEntries(Object.entries(obj(l.used) ? l.used : {}).filter(([k, v]) => STOCK_IDS.includes(k) && Number.isInteger(v) && v > 0 && v < 50)),
   };
   if (built) { out.item = int(l.item, 0, 30, 0); return out; }

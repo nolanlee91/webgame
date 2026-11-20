@@ -91,7 +91,7 @@ export class Player {
     const plan = this.p.shopping === "plan";
     // thuê tiệm (cấp 7): người "plan" để dành ưu tiên, người "impulse" thuê khi dư
     if (s.level >= RENT.level && !s.shop) {
-      if (s.money >= RENT.price + (plan ? 60 : 30)) { if (!this.act({ type: "rentShop" }).err) this.clock += 6000; }
+      if (s.money >= RENT.price + (plan ? 60 : 90)) { if (!this.act({ type: "rentShop" }).err) this.clock += 6000; }
       else if (plan) return; // để dành
     }
     const reserve = plan ? 80 + 4 * s.level : 40 + 5 * s.level;
@@ -320,7 +320,7 @@ export class Player {
       if (d.kind === "stockout") {
         this.log.stockouts++; this.log.soIds = this.log.soIds || {}; const kk = d.id + ">" ; this.log.soIds[kk] = (this.log.soIds[kk] || 0) + 1;
         const opts = stockoutOptions(s).filter((o) => o.ok !== false && (o.price || 0) <= s.money);
-        const pref = this.p.id === "careful" ? ["waitOven", "consign", "run", "ship", "si", "borrow", "gasCall", "gasBorrow", "swap", "dismiss", "close"] : this.p.id === "average" ? ["waitOven", "consign", "ship", "run", "borrow", "si", "gasBorrow", "gasCall", "swap", "dismiss", "close"] : ["consign", "borrow", "gasBorrow", "swap", "waitOven", "dismiss", "run", "close"];
+        const pref = this.p.id === "careful" ? ["waitOven", "consign", "run", "ship", "si", "borrow", "gasCall", "gasBorrow", "swap", "dismiss", "close"] : this.p.id === "average" ? ["waitOven", "consign", "ship", "run", "borrow", "si", "gasBorrow", "gasCall", "swap", "dismiss", "close"] : ["waitOven", "consign", "borrow", "gasBorrow", "run", "ship", "swap", "dismiss", "close"];
         // cùng một món hết lặp lại nhiều lần trong ca (không còn tiền, ký gửi đã dùng) ⇒ người chơi thật đóng cửa sớm
         const rk = s.day + ":" + d.id; this.soRepeat = this.soRepeat?.k === rk ? { k: rk, n: this.soRepeat.n + 1 } : { k: rk, n: 1 };
         let o = pref.map((id) => opts.find((x) => x.id === id)).find(Boolean) || opts[0];

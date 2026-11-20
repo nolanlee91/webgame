@@ -33,14 +33,18 @@ async function boot() {
   const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
   const replaced = new Set(hdOn.filter(([al]) => !KEEP_BASE.has(al)).map(([al]) => SHEETS[al]));
   const want = [...Object.entries(SHEETS).filter(([al, src]) => files.has(src) && !replaced.has(src) && !(OPTIONAL_SHEETS.has(al) && !files.has(src))).map(([, s]) => s), ...hdOn.map(([, f]) => f)];
-  await Promise.all(want.filter((src) => !LAZY_SHEETS.has(src)).map(load));
-  const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 1200));
-  idle(() => want.filter((src) => LAZY_SHEETS.has(src)).forEach(load));
-
-  if (files.has("assets/journal-card.webp")) setJournalBg("assets/journal-card.webp");
   const store = shopSave(browserStorage());
   const seed = params.has("seed") ? Number(params.get("seed")) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
   const loaded = store.read(seed);
+  // M5 tải nhanh: chỉ chờ ảnh của khung hình đầu (cảnh đang ở — xe đẩy hay tiệm — + chủ tiệm, lò, đồ trên quầy, icon), tối đa 2,5 giây.
+  // Khách, ổ bánh cận cảnh (HD), chân dung, thời tiết, trang trí… tải nền sau khi tiệm hiện ra (CSS nền tự tải khi cần, không hỏng hình).
+  const first = new Set([loaded.state.shop ? SHEETS.shop : SHEETS.cart, loaded.state.shop ? SHEETS.shopFg : SHEETS.cartFg, SHEETS.baker, SHEETS.chars, SHEETS.ovens, SHEETS.equip, SHEETS.icons, SHEETS.ingr]);
+  await Promise.race([Promise.all(want.filter((src) => first.has(src)).map(load)), new Promise((ok) => setTimeout(ok, 2500))]);
+  const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 300));
+  const rest = want.filter((src) => !first.has(src)).sort((a, b) => Number(LAZY_SHEETS.has(a)) - Number(LAZY_SHEETS.has(b)));
+  idle(() => { let i = 0; const nextBatch = () => { const part = rest.slice(i, i + 3); i += 3; if (part.length) Promise.all(part.map(load)).then(() => idle(nextBatch)); }; nextBatch(); });
+
+  if (files.has("assets/journal-card.webp")) setJournalBg("assets/journal-card.webp");
   let state = loaded.state;
   let paused = false, lastSave = 0, dirty = false, restarting = false;
   const save = (force = false) => {
@@ -141,6 +145,7 @@ async function boot() {
         case "preorderOpen": say(`Đơn đặt trước của ${e.name}: ${e.n} ổ, giao trong ${Math.round((e.due - (state.shift?.t || 0)) / 1000)} giây.`, "good"); break;
         case "preorderFail": say(`Trễ đơn đặt trước của ${e.name}. ${e.line}`, "warn"); break;
         case "helperChange": say(e.line, "good"); break;
+        case "partialTaken": say(`Khách lấy luôn ${e.n} ổ đã gói, trả ${e.pay}k (70%).`, "warn"); break;
         case "spareGas": say("Hết gas, đã thay bình dự phòng.", "good"); break;
         case "cookWait": say(e.why === "egg" ? "Trứng đang chiên (6 giây), xong là bỏ vào ổ." : e.why === "meat" ? "Đã bỏ mẻ thịt lên bếp than (25 giây). Chín thì gắp rồi bỏ vào ổ." : e.why === "meat-pull" ? "Thịt chín rồi, bấm “Gắp thịt” trước." : "Hết hàng sống để nấu.", "warn"); break;
         case "eggReady": say("Trứng chín rồi!", "good"); break;

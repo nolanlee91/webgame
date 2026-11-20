@@ -68,14 +68,14 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
         const bt = h("button", "btn small", "Chiên trứng"); bt.type = "button"; bt.dataset.act = "fry";
         bt.disabled = ck.pan.every((x) => x !== null) || (state.stock.trung || 0) < 1;
         bt.addEventListener("click", () => dispatch({ type: "fry" }));
-        row.append(lbl, bt);
+        const it = h("div", "cook-item"); it.append(lbl, bt); row.appendChild(it);
       }
       if (state.owned?.grill) {
         const lbl = h("span", "cook-lbl", ""); lbl.dataset.cook = "meat";
         const bt = h("button", "btn small", ck.grill ? "Gắp thịt" : "Nướng thịt"); bt.type = "button"; bt.dataset.act = ck.grill ? "grillPull" : "grill";
         bt.disabled = !ck.grill && (state.stock["thit-nuong"] || 0) < 1;
         bt.addEventListener("click", () => dispatch({ type: ck.grill ? "grillPull" : "grill" }));
-        row.append(lbl, bt);
+        const it = h("div", "cook-item"); it.append(lbl, bt); row.appendChild(it);
         dyn.cook = { lbl, bt };
       }
       box.appendChild(row);
