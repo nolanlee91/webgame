@@ -4,7 +4,7 @@
 const CELL = {
   chars: [144, 192, 72, 174], walks: [144, 192, 72, 174], reactions: [144, 192, 72, 174], actions: [144, 192, 72, 174], baker: [144, 192, 72, 174],
   loaf: [160, 192, 80, 174], ovens: [256, 256, 128, 240], equip: [192, 192, 96, 168], ingr: [64, 64, 32, 32], bills: [96, 48, 48, 24],
-  cart: [1280, 720, 0, 0], cartFg: [1280, 720, 0, 0], title: [1280, 720, 0, 0],
+  cart: [1280, 720, 0, 0], cartFg: [1280, 720, 0, 0], title: [1280, 720, 0, 0], decor: [128, 128, 64, 120],
 };
 const ROLE = {
   baker: { skin: "#D9A27A", top: "#E9DCC0", top2: "#D2C2A0", bottom: "#3A2A20", hat: "#E9DCC0", apron: "#4A3024", hair: "#2A1D16", mustache: true },
@@ -199,6 +199,29 @@ function billFrame(name) {
   return render(96, 48, (R) => { R(1, 2, 46, 20, shade(col)); R(2, 3, 44, 18, col); R(4, 5, 40, 14, light(col)); R(6, 7, 36, 10, col); }, (G) => { G.fillStyle = "#1a1a1a"; G.font = "bold 18px system-ui, sans-serif"; G.textAlign = "center"; G.textBaseline = "middle"; G.fillText(m[1] + "k", 48, 25); });
 }
 
+// ---------- trang trí 128×128 (decor.webp đợt 2 chưa có): khối màu theo món, không chữ ----------
+const DECOR_DRAW = {
+  "rattan-lamp": (R, E) => { R(31, 4, 2, 18, "#5A311E"); E(32, 34, 14, 12, "#C89A55"); E(32, 34, 9, 8, "#FFD27A"); R(24, 44, 16, 3, "#8A5A2E"); },
+  "chalk-menu": (R) => { R(18, 20, 28, 34, "#5A311E"); R(21, 23, 22, 26, "#2B3A33"); for (let y = 27; y < 47; y += 5) R(24, y, 16, 1, "#E8E2D0"); R(20, 54, 3, 6, "#5A311E"); R(41, 54, 3, 6, "#5A311E"); },
+  "ceramic-jar": (R, E) => { E(32, 44, 13, 14, "#F2F4F6"); E(32, 44, 9, 9, "#3A6FB8"); R(25, 26, 14, 5, "#F2F4F6"); E(32, 58, 12, 2, "#1d1510"); },
+  "wheat-bundle": (R) => { for (let i = 0; i < 5; i++) R(24 + i * 3, 18, 2, 34, "#C8A050"); R(22, 36, 20, 3, "#8A5A2E"); for (let i = 0; i < 5; i++) R(23 + i * 3, 14, 4, 6, "#E3B860"); },
+  "herb-pot": (R, E) => { R(22, 42, 20, 16, "#B8643A"); E(32, 36, 14, 9, "#3E7A3A"); E(28, 31, 7, 6, "#5A9A48"); E(37, 32, 6, 5, "#5A9A48"); },
+  "wind-chime": (R) => { R(20, 8, 24, 3, "#8A5A2E"); for (let i = 0; i < 4; i++) R(22 + i * 6, 11, 2, 16 + i * 4, "#C8D8E0"); R(30, 11, 1, 30, "#5A311E"); },
+  "wall-calendar": (R) => { R(20, 14, 24, 32, "#F4F2EC"); R(20, 14, 24, 7, "#B8433A"); for (let y = 24; y < 44; y += 4) for (let x = 22; x < 42; x += 4) R(x, y, 2, 2, "#8A8A8A"); },
+  "old-radio": (R, E) => { R(14, 26, 36, 22, "#8A5A2E"); E(24, 37, 7, 7, "#3A2A20"); R(34, 31, 12, 3, "#E8D8B0"); R(34, 37, 12, 3, "#E8D8B0"); R(40, 18, 2, 8, "#5A5A5A"); },
+  "wall-fan": (R, E) => { E(32, 30, 15, 15, "#C8D0D8"); E(32, 30, 4, 4, "#5A6670"); R(31, 45, 2, 10, "#5A6670"); },
+  "banana-plant": (R, E) => { R(29, 30, 4, 30, "#5A7A30"); E(22, 26, 10, 5, "#4A8A3A"); E(42, 22, 10, 5, "#4A8A3A"); E(30, 14, 6, 10, "#5A9A48"); R(22, 54, 18, 6, "#B8643A"); },
+  "plastic-stools": (R) => { R(10, 38, 18, 4, "#C8342A"); R(11, 42, 3, 16, "#C8342A"); R(24, 42, 3, 16, "#C8342A"); R(34, 42, 18, 4, "#3A6FB8"); R(35, 46, 3, 12, "#3A6FB8"); R(48, 46, 3, 12, "#3A6FB8"); },
+  "small-table": (R) => { R(12, 34, 40, 5, "#8A5A2E"); R(16, 39, 3, 20, "#5A311E"); R(45, 39, 3, 20, "#5A311E"); R(28, 28, 8, 6, "#F4F2EC"); },
+  "neon-sign": (R) => { R(6, 22, 52, 22, "#22344A"); R(9, 25, 46, 2, "#FF7AA0"); R(9, 39, 46, 2, "#7AE0FF"); R(14, 30, 36, 5, "#FFD27A"); },
+  "award-frame": (R) => { R(18, 16, 28, 34, "#C89A55"); R(21, 19, 22, 28, "#F4F2EC"); R(27, 38, 10, 6, "#B8433A"); for (let y = 23; y < 35; y += 4) R(24, y, 16, 1, "#8A8A8A"); },
+};
+function decorFrame(name) {
+  const draw = DECOR_DRAW[name];
+  if (!draw) return null;
+  return render(128, 128, (R, E) => draw(R, E));
+}
+
 // ---------- cảnh xe đẩy 1280×720 + lớp che ----------
 function cartScene(fg) {
   return render(1280, 720, (R, E) => {
@@ -256,6 +279,7 @@ export function placeholderFallback() {
       else if (alias === "ingr") url = ingrFrame(name);
       else if (alias === "bills") url = billFrame(name);
       else if (alias === "cart" || alias === "cartFg") url = cartScene(alias === "cartFg");
+      else if (alias === "decor") url = decorFrame(name);
     } catch { url = null; }
     const f = url ? { url, sw: cell[0], sh: cell[1], x: 0, y: 0, w: cell[0], h: cell[1], ax: cell[2], ay: cell[3], ph: true } : null;
     cache.set(key, f);

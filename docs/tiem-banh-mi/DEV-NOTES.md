@@ -9,8 +9,8 @@ Game ở `prototype/games/tiem-banh-mi/` (M1 + M2 lõi đã có, chưa lên tran
 | M0 · Thiết kế + hợp đồng asset | **Xong, chủ dự án đã duyệt 19/11/2026** | GAME-DESIGN, ECONOMY, DRAMA (59 sự kiện, 11 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json` (26 sheet, 512 frame, 36 toạ độ đặt + 6 đường đi), `asset-manifest.json` rỗng. `check_assets` chạy được: hiện báo thiếu file (đúng, chưa có art). |
 | M1 · Kiến trúc + cảnh | **Xong (lõi), chờ duyệt** | Khung chép từ Trà Sữa (apply + bất biến, state + MIGRATIONS, rng, freshLine, save + .corrupt + .backup, atlas crisp/snap/HD, camera bội 0,5, charScale 288). Cảnh xe đẩy dùng ảnh thật đợt 1 (`abea23e`), nhân vật ô 216×288 hiện ×1, toạ độ từ `manifest.placements`. Thiếu frame nào thì vẽ hình dự phòng canvas cùng ô + anchor (`render/placeholder.js`). |
 | M2 · Một ca trọn | **Xong (lõi), chờ duyệt** | Lò (mẻ, 5 mức vỏ, rút, cháy, gas), tủ kính nguội dần, lò than nướng lại, ráp 9 bước có thứ tự + hoàn tác, 10 biến thể phiếu, ổ ba chục, "như cũ", đơn nhiều ổ, chấm 0–100 + sao, 11 kiểu lỗi, khiếu nại (làm lại / giảm / tặng), thối tiền bằng quỹ lẻ (Thối đúng ngày 1–3), hết lẻ, hết hàng / hết bánh / hết gas có cứu, ký gửi, ba buổi, ngày 1 hướng dẫn, chốt ca lời lỗ, mẻ đầu ngày. 66 unit test + e2e desktop/mobile ĐẠT. |
-| M3 · Kinh tế + nội dung cơ chế | | |
-| M4 · Drama + review + Nhật Ký | | |
+| M3 · Kinh tế + nội dung cơ chế | **Xong (lõi), chờ duyệt** | Sửa M1 (bong bóng, HUD / thông báo mobile, khung cảnh, tủ kính, chơi lại ngày, bánh hôm qua); món theo trạm, mua đồ / trang trí / bảng hiệu, lên tiệm cấp 7, đơn đặt trước, ráp ×N, thớt đôi / ba, Bé Na, nhiệm vụ, Chị Mai, quảng bá, kéo thả trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, bánh mì que, thời tiết, hội chợ + thử thách (tối thiểu). Xem mục "M3 + M4". |
+| M4 · Drama + review + Nhật Ký | **Xong (lõi), chờ duyệt** | 96 sự kiện (59 DRAMA.md + 27 cơ chế + R01–R10), review lưu sổ + người theo dõi / độ hot, trả lời theo 4 tính cách đổi ngay trên review, Sổ 6 tab, thẻ Nhật Ký trên journal-card. Asset đợt 2 đã gộp (`ca6cc4b`). |
 | M5 · Polish + cân bằng (sim) | | |
 
 ## Kiến trúc (M1 + M2)
@@ -46,6 +46,44 @@ Lệch so với M0 (ghi để sim M5 dò lại): đồ chua / dưa leo / rau kh�
 - Ổ bánh: `loaf-whole-{raw,pale,golden,dark,burnt}`, `loaf-open-back/front`, `loaf-toasted-sheen`, `spread-*`, `fill-*`, `do-chua`, `dua-leo`, `rau-mui`, `hanh-la`, `ot-{it,vua,nhieu}`, `sauce-*`, `wrap-{paper,paper-half,bag}`; `loaf-layers-hd` (đợt 2) tự thay qua HD_SHEETS.
 - Nguyên liệu (icon trong nút + Nhập hàng), `bill-{1..500}k`, clip fx `crumbs`, `coin-fly`.
 - Đợt 2 (chưa dùng ở M2): chân dung HD, `baker-actions-hd`, fixtures (`cart-display-*` thay ổ nhỏ vẽ chồng trong tủ), weather, decor, journal.
+
+## M3 + M4 (bản lưu v2, tag `?v=b2`)
+
+### Sửa M1
+- Bong bóng thoại đặt bằng `placeBubble` (render/scene.js): thử trên đầu → bên xa chủ tiệm → bên kia; không bao giờ chạm vùng mặt chủ tiệm (`scene.bakerFace`, e2e kiểm).
+- Mobile: HUD gọn (giờ · tiền · lẻ; cấp / danh tiếng / theo dõi trong Sổ), thông báo ở đáy cảnh trên dock, dock 5 nút **Quầy · Lò · Khách · Kho · Sổ**. Khung cảnh mobile tính từ `scene.region()` (chủ tiệm + 2 chỗ đứng đầu hàng + lò), nút Khách lia sang hàng chờ.
+- Tủ kính: đợt 2 có `cart-display-empty` + `placements["cart-display"].stockSlots` ⇒ code vẽ từng ổ theo mức vỏ vào ô; tủ tiệm đổi `display-case-*` theo số ổ; chưa có fixtures thì không vẽ chồng lên tranh. Nhãn "Tủ n ổ · giòn TB" luôn hiện.
+- "Chơi lại ngày hôm nay": ở Chốt ca, Tạm dừng, Cách chơi; hỏi xác nhận, bản hiện tại cất ở `.before-replay` (save.js `replayDay`).
+- Bánh dư cuối ca ⇒ `s.stale` (giòn 30). Sáng: bán nướng bơ đường (vào tủ, ổ làm từ đó rẻ 30% tối thiểu 10k, nướng lại tối đa 70) · cho đi (+1 danh tiếng, mở D07) · bỏ.
+
+### Module mới
+| File | Vai trò |
+|---|---|
+| `core/flags.js` | Cờ Drama (hạn theo ngày, `today(s)`) + bộ điều chỉnh có hạn `s.mods` (khách, giá, pate, giá nhập, vùng chín, mẻ đầu, đổi lẻ, kiên nhẫn, rạch chậm). |
+| `core/drama.js` | Drama Engine chép Trà Sữa: `if` khai báo, ưu tiên lỗi người chơi, ≥ 1 sự kiện vui / 3, nghỉ theo `cooldown`, hẹn `later` (+ `flagOk` / `laterOk` khi đơn nhóm / đặt trước giao đủ sao), `alt` + `need.flags` theo lựa chọn cũ, hên xui, hậu quả hiện ngay; tối đa 1–2 / ca + 1 giữa hai ca. |
+| `core/reviews.js` | Sổ review (40), điểm đánh giá, người theo dõi, độ hot, trả lời theo tính cách, câu đáp lại, lời hứa, khách quay lại, sự kiện sinh từ câu trả lời; review chay dính mặn chỉ cho lựa chọn xin lỗi. |
+| `core/progress.js` | Mua đồ / trang trí, thuê tiệm (kỷ niệm xe đẩy vào Nhật Ký), hạng tiệm, pate nhà làm, ổ mang tên tiệm, quảng bá, Bé Na, hội chợ, thử thách, bánh hôm qua, thời tiết, kéo thả trang trí, đơn đặt trước. |
+| `core/missions.js`, `core/journal.js` | Nhiệm vụ 16 mẫu (ECONOMY §8); câu chốt ca theo dữ kiện + nội dung thẻ. |
+| `ui/drama.js`, `ui/notebook.js`, `ui/journal.js`, `ui/persona.js` | Hội thoại Drama (chân dung), Sổ 6 tab, thẻ Nhật Ký (journal-card hoặc nền canvas), thẻ / nút tính cách. |
+| `data/events*.js`, `data/npcs.js`, `data/equipment.js`, `data/lines-m3.js`, `data/lines-reply.js`, `data/lines-reviews.js` | Nội dung (lược đồ sự kiện ở đầu `data/events.js`). |
+
+### Frame đợt 2 code đang dùng
+- `drama-portraits-hd` "<npc>-<neutral|happy|annoyed|surprised>" (id NPC trùng DRAMA.md: me, chu-tam, anh-bay, ba-tu, chi-mai, cau-hung, co-hai, co-sau, co-thanh, anh-lam, be-na, ollie) → `portrait-expressions-hd` "<vai>-<biểu cảm>" / "baker-<…>" → `portraits-hd` "<vai>" → `characters` (ui/drama.js `portraitRef`).
+- `loaf-layers-hd` (HD_SHEETS, trừ `loaf-whole-pale` dính mép ổ bên cạnh ⇒ `HD_SKIP` dùng bản thường; sheet thường vẫn tải), `baker-actions-hd` (mờ sau ổ ở Quầy ráp, động tác theo bước).
+- `fixtures`: `cart-display-empty` + stockSlots, `display-case[-warm]-{empty,low,full}`, `signboard-1..3`, `queue-rope`, `helper-station`. `decor` (vị trí mặc định `placements[id]`, kéo thả lưu `s.placement`). `weather-fx` `rain-1..4` (ngày mưa). `journal-card`.
+- LAZY: portraits / expressions / drama / baker-actions / weather / journal / title / shop.
+
+### Lệch so với thiết kế (ghi để M5 dò)
+- Bánh hôm qua dùng như phôi rẻ (ổ làm từ đó −30%) thay vì món riêng "nướng bơ đường 10k".
+- Chảo đôi chưa có tác dụng (chưa mô phỏng chiên trứng); bếp than nướng xiên chỉ mở món, chưa nướng mẻ thịt.
+- Hạn dùng nguyên liệu (hao lúc chốt ca) chưa làm; tủ mát chỉ tăng kho.
+- Hội chợ / thử thách là bản tối thiểu (bật ở Chuẩn bị ca, +khách / giá, xét cuối ca) để F01–F03, CH1–CH2 mở được; cảnh hội chợ riêng để M5.
+- Sự kiện: vài hiệu ứng phức tạp gần đúng bằng cờ / mod (đơn định kỳ K02 / X05 chỉ tạo đơn đầu + cờ hợp đồng; "2 review" thành 1 review + −1 danh tiếng).
+- Ca có thể có 2 sự kiện; mỗi ca 1 sự kiện trước ngày 5.
+
+### Kiểm
+- `node --test "test/*.test.mjs"`: 100 test (thêm `drama.test.mjs` 8, `m3.test.mjs` 16, `m4.test.mjs` 10; test cũ chạy với Drama bật). Test "mọi lựa chọn giải quyết được" dựng trạng thái thoả điều kiện cho từng sự kiện, đi mọi đường goto, thử cả nhánh thắng / thua.
+- E2E: `test/e2e.mjs` + `test/e2e-m34.mjs` (thuê tiệm, đơn đặt, Drama, đổi tính cách + trả lời, thẻ Nhật Ký, chơi lại ngày) ở 1366@1,25 và 390@3.
 
 ## Quyết định cần chủ dự án
 

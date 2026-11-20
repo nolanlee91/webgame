@@ -1,15 +1,18 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b1";
-import { loafLayers } from "../render/loafview.js?v=b1";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b1";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b1";
-import { autoChangeAllowed, customer, orderPrice } from "../core/shift.js?v=b1";
-import { sumBills } from "../core/money.js?v=b1";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b1";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE } from "../data/economy.js?v=b1";
-import { QUIRKS } from "../data/quirks.js?v=b1";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b2";
+import { loafLayers } from "../render/loafview.js?v=b2";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b2";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b2";
+import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b2";
+import { sumBills, makeChange } from "../core/money.js?v=b2";
+import { sameLeft, batchMax } from "../core/board.js?v=b2";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b2";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b2";
+const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
+const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
+import { QUIRKS } from "../data/quirks.js?v=b2";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -25,7 +28,7 @@ export function quirkChips(it) {
 
 export function createBench(root, atlas, dispatch, hooks = {}) {
   let key = "", picked = {}, showBook = false, loafScale = 1;
-  const dyn = { bars: [], crispNum: null, toastBar: null };
+  const dyn = { bars: [], crispNum: null, toastBar: null, due: null };
 
   function ovenBox(state) {
     const sh = state.shift, box = h("div", "box ovenbox");
@@ -44,18 +47,37 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
       btn.addEventListener("click", () => dispatch({ type: b ? "pull" : "bake", slot: i }));
       if (!b && (state.stock.phoi || 0) <= 0 && (state.stock.gas || 0) > 0) btn.title = "Hết phôi";
       row.append(lbl, bar, btn);
+      if (b?.kind === "que") lbl.dataset.que = "1";
+      if (!b && state.owned?.["que-tray"]) {
+        const qb = h("button", "btn small", "Khay que"); qb.type = "button"; qb.dataset.act = "bakeQue"; qb.dataset.slot = i;
+        qb.disabled = (state.stock["phoi-que"] || 0) < QUE.bag; qb.addEventListener("click", () => dispatch({ type: "bake", slot: i, kind: "que" }));
+        row.appendChild(qb);
+      }
       box.appendChild(row);
       dyn.bars.push({ b, mark, lbl, btn, max, slot: i });
     });
     const meta = h("div", "meta");
     const cs = sh.case;
     const avg = cs.length ? Math.round(cs.reduce((a, l) => a + l.crisp, 0) / cs.length) : 0;
-    meta.appendChild(h("span", "", `Tủ kính: ${cs.length}/${caseCap(state)} ổ${cs.length ? ` · giòn TB ${avg}` : ""}`));
+    const stale = cs.filter((l) => l.src === "stale").length;
+    meta.appendChild(h("span", "", `Tủ kính: ${cs.length}/${caseCap(state)} ổ${cs.length ? ` · giòn TB ${avg}` : ""}${stale ? ` · ${stale} bánh hôm qua` : ""}${sh.que ? ` · que ${sh.que}` : ""}`));
     meta.appendChild(h("span", "", `Phôi ${state.stock.phoi} · Gas ${state.stock.gas} mẻ`));
     box.appendChild(meta);
     return box;
   }
 
+  function boardTabs(state) {
+    const sh = state.shift;
+    const row = h("div", "t-items boards");
+    sh.boards.forEach((bd, i) => {
+      const c = bd.cid !== null ? customer(state, bd.cid) : null;
+      const bt = h("button", "t-item" + (i === sh.sel ? " on" : bd.loaf ? " done" : ""), `Thớt ${i + 1}${c ? " · " + c.name.split(" ").slice(-1)[0] : ""}`);
+      bt.type = "button"; bt.dataset.board = i;
+      bt.addEventListener("click", () => dispatch({ type: "selectBoard", idx: i }));
+      row.appendChild(bt);
+    });
+    return row;
+  }
   function ticket(state) {
     const sh = state.shift, b = sh.boards[sh.sel];
     const c = b.cid !== null ? customer(state, b.cid) : null;
@@ -71,6 +93,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     head.appendChild(h("span", "who", c.name));
     head.appendChild(h("span", "price", orderPrice(c) + "k"));
     t.appendChild(head);
+    if (c.pre) { t.classList.add("pre"); const due = h("p", "t-spec pre-due"); due.dataset.due = c.pre.dueT; due.textContent = `${c.pre.label} · đã cọc ${c.pre.deposit}k · giao trong ${fmtS(c.pre.dueT - sh.t)}`; t.appendChild(due); dyn.due = due; }
     if (c.items.length > 1) {
       const tabs = h("div", "t-items");
       c.items.forEach((it, i) => {
@@ -114,6 +137,10 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     if (!l) { wrap.appendChild(h("div", "empty-loaf", b.cid === null ? "Thớt trống" : sh.case.length ? "Lấy một ổ từ tủ kính để bắt đầu." : "Tủ kính hết bánh: nướng mẻ mới!")); wrap.dataset.stage = "empty"; return wrap; }
     const names = loafLayers(l);
     wrap.dataset.stage = names.join("|");
+    // chủ tiệm cận cảnh HD (baker-actions-hd, đợt 2) mờ phía sau ổ bánh, động tác theo bước đang làm
+    const act = ["slice", "slice", "slice", "spread", "fill", "fill", "sauce", "wrap"][Math.min(7, b.step + 1)] || "idle";
+    const bk = atlas.has("bakerhd", `${act}-1`) ? `${act}-${(b.step % 4) + 1}` : atlas.has("bakerhd", "idle-1") ? "idle-1" : null;
+    if (bk) { const e = h("i", "spr baker-hd"); const f = atlas.frame("bakerhd", bk); paint(e, f, loafScale * 0.75); e.dataset.frame = bk; wrap.appendChild(e); }
     const v = h("div", "loafview");
     const f0 = atlas.frame("loaf", names[0]) || atlas.frame("loaf", "loaf-open-back");
     const sc = loafScale;
@@ -153,12 +180,30 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const want = (cond) => (tut && cond ? "want" : "");
     if (!l) {
       const [g, o] = group("Lấy bánh", "grp-take");
+      if (it.recipe === "que") {
+        o.appendChild(opt("Lấy một bịch que", `${sh.que || 0} que đã nướng`, { act: "take" }, () => dispatch({ type: "take" })));
+        wrap.appendChild(g);
+        return wrap;
+      }
       o.appendChild(opt("Lấy ổ giòn nhất", sh.case.length ? `${sh.case.length} ổ trong tủ` : "Tủ trống", { act: "take" }, () => dispatch({ type: "take" })));
+      const nb = Math.min(batchMax(state), sameLeft(state, b), sh.case.length);
+      if (nb > 1) o.appendChild(opt(`Ráp ×${nb}`, `${nb} ổ giống nhau một lượt`, { act: "takeBatch", n: nb }, () => dispatch({ type: "take", n: nb }), "batch"));
       sh.case.slice().sort((a, b2) => a.crisp - b2.crisp).slice(0, 5).forEach((lf) => o.appendChild(opt(`Giòn ${Math.round(lf.crisp)}`, lf.src === "si" ? "bánh sỉ" : lf.crisp < 50 ? "ỉu" : "", { loaf: lf.id }, () => dispatch({ type: "take", loaf: lf.id }))));
       wrap.appendChild(g);
       return wrap;
     }
     if (l.wrap) return wrap;
+    if (l.n > 1) wrap.appendChild(h("p", "t-spec batch-note", `Đang ráp ${l.n} ổ một lượt trên thớt dài: mỗi bước dùng ×${l.n} phần.`));
+    if (l.que) {
+      const [g, o] = group("Phết pate", "grp-spread");
+      const cur = l.spreads.pate || 0;
+      o.appendChild(opt("Pate", cur ? LEVEL_NAMES[cur] : `còn ${state.stock.pate}`, { spread: "pate" }, () => dispatch({ type: "spread", id: "pate", lvl: nextLv(cur) }), cur ? "on" : ""));
+      wrap.appendChild(g);
+      const [g2, o2] = group("Gói", "grp-wrap");
+      o2.appendChild(opt(WRAPS.tui.name, `túi còn ${state.stock.tui}`, { wrap: "tui" }, () => dispatch({ type: "wrap", kind: "tui" })));
+      wrap.appendChild(g2);
+      return wrap;
+    }
     if (!l.sliced || l.toastT0 !== null) {
       const [g, o] = group("Chuẩn bị", "grp-prep");
       const toasting = l.toastT0 !== null;
@@ -170,11 +215,12 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const past = (step) => STEPS.indexOf(step) < b.step;
     // phết
     { const [g, o] = group("Phết", "grp-spread");
+      if (state.owned?.["auto-dose"] && it.recipe !== "bachuc" && !past("spread")) o.appendChild(opt("Theo phiếu", "máy định lượng", { act: "autoSpread" }, () => dispatch({ type: "autoSpread" }), "auto"));
       for (const id of SPREADS) { if (STOCK[id].unlock > state.level) continue; const cur = l.spreads[id] || 0; const bt = opt(NAMES[id], cur ? LEVEL_NAMES[cur] : `còn ${state.stock[id]}`, { spread: id }, () => dispatch({ type: "spread", id, lvl: nextLv(cur) }), (cur ? "on " : "") + want((it.spreads[id] || 0) > 0 && cur !== it.spreads[id])); bt.disabled = past("spread"); o.appendChild(bt); }
       wrap.appendChild(g); }
     // nhân
     { const [g, o] = group("Nhân", "grp-fill");
-      for (const id of FILLINGS) { if (STOCK[id].unlock > state.level) continue; const on = l.fills.includes(id); const bt = opt(NAMES[id], on ? "đã bỏ" : `còn ${state.stock[id]}`, { fill: id }, () => dispatch({ type: "fill", id }), (on ? "on " : "") + want(it.fills.includes(id) && !on)); bt.disabled = past("fill"); o.appendChild(bt); }
+      for (const id of FILLINGS) { if (STOCK[id].unlock > state.level || (FILL_NEEDS[id] && !state.owned?.[FILL_NEEDS[id]])) continue; const on = l.fills.includes(id); const bt = opt(NAMES[id], on ? "đã bỏ" : `còn ${state.stock[id]}`, { fill: id }, () => dispatch({ type: "fill", id }), (on ? "on " : "") + want(it.fills.includes(id) && !on)); bt.disabled = past("fill"); o.appendChild(bt); }
       wrap.appendChild(g); }
     // rau dưa
     { const [g, o] = group("Rau dưa", "grp-veg");
@@ -208,6 +254,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     due.appendChild(right);
     box.appendChild(due);
     const bills = h("div", "bills");
+    const sug = state.owned?.["cash-counter"] ? makeChange(state.float, c.pay.change) || {} : {};
     for (const d of FLOAT_BILLS) {
       const have = (state.float[d] || 0) - (picked[d] || 0);
       const b = h("button", "billbtn"); b.type = "button"; b.dataset.bill = d;
@@ -215,6 +262,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
       b.appendChild(h("span", "", d + "k"));
       b.appendChild(h("small", "", `còn ${state.float[d] || 0} tờ`));
       if (picked[d]) b.appendChild(h("span", "n", "×" + picked[d]));
+      if (sug[d] && (picked[d] || 0) < sug[d]) { b.classList.add("sug"); b.title = `Hộp đếm tiền gợi ý ${sug[d]} tờ`; }
       b.disabled = have <= 0;
       b.addEventListener("click", () => { picked[d] = (picked[d] || 0) + 1; key = ""; });
       bills.appendChild(b);
@@ -244,7 +292,8 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     undo.addEventListener("click", () => dispatch({ type: "undo" }));
     const disc = h("button", "btn", "Đổ ổ"); disc.type = "button"; disc.dataset.act = "discard"; disc.disabled = !l;
     disc.addEventListener("click", () => dispatch({ type: "discard" }));
-    const serve = h("button", "btn primary", "Giao"); serve.type = "button"; serve.dataset.act = "serve"; serve.disabled = !l?.wrap;
+    const helper = helperOn(state) && l && !l.wrap && (l.sliced || l.que);
+    const serve = h("button", "btn primary", helper ? "Giao (phụ việc gói)" : "Giao"); serve.type = "button"; serve.dataset.act = "serve"; serve.disabled = !l?.wrap && !helper;
     serve.addEventListener("click", () => dispatch({ type: "serve" }));
     row.append(undo, disc, serve);
     return row;
@@ -258,13 +307,15 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const l = b.loaf;
     const k = JSON.stringify([b.cid, b.item, b.step, l && [l.sliced, l.wrap, l.toastT0 !== null, l.spreads, l.fills, l.veg, l.ot, l.sauces, l.toasted, l.burnt, l.id],
       sh.paying, sh.paying !== null && state.float, picked, sh.oven.map((x) => !!x), sh.case.length, state.stock, hint?.key, showBook, loafScale, state.day,
-      b.cid !== null && customer(state, b.cid)?.filled.map(Boolean)]);
+      b.cid !== null && customer(state, b.cid)?.filled.map(Boolean), sh.sel, sh.boards.map((x) => [x.cid, !!x.loaf]), sh.que, l?.n, helperOn(state), Object.keys(state.owned || {}).length]);
     if (k === key) return;
     if (b.cid === null) showBook = false;
     key = k;
     const scroll = root.scrollTop;
     root.textContent = "";
+    dyn.due = null;
     root.appendChild(ovenBox(state));
+    if (sh.boards.length > 1) root.appendChild(boardTabs(state));
     root.appendChild(ticket(state));
     if (sh.paying !== null) root.appendChild(changePanel(state));
     else {
@@ -298,6 +349,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
       d.lbl.className = "oven-lbl " + lv;
       d.btn.textContent = lv === "burnt" ? "Bỏ mẻ cháy" : "Rút";
     }
+    if (dyn.due) dyn.due.textContent = dyn.due.textContent.replace(/(giao trong |trễ )\S+$/, (sh.t <= Number(dyn.due.dataset.due) ? "giao trong " : "trễ ") + fmtS(Math.abs(Number(dyn.due.dataset.due) - sh.t)));
     const l = sh.boards[sh.sel].loaf;
     if (dyn.crispNum && l) {
       const c = Math.round(l.crisp);

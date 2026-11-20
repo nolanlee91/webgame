@@ -1,15 +1,19 @@
 // Phiếu: yêu cầu của từng ổ (công thức + biến thể), chữ trên phiếu, giá "ổ ba chục". Thuần.
-import { RECIPE, RECIPES, LEVEL_USE, LEVEL_NAMES, RETAIL, BACHUC, SPREADS, FILLINGS, NAMES, STOCK } from "../data/economy.js?v=b1";
-import { QUIRKS } from "../data/quirks.js?v=b1";
+import { RECIPE, RECIPES, LEVEL_USE, LEVEL_NAMES, RETAIL, BACHUC, SPREADS, FILLINGS, NAMES, STOCK } from "../data/economy.js?v=b2";
+import { QUIRKS } from "../data/quirks.js?v=b2";
+import { RECIPE_NEEDS } from "../data/equipment.js?v=b2";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
-export const menuAt = (level) => RECIPES.filter((r) => r.level <= level);
+/** Món bán được: đủ cấp; khi có trạng thái `s` thì cần thêm đồ / trạm (RECIPE_NEEDS) và ổ gia truyền phải đã đặt tên (s.house). */
+export const menuAt = (level, s = null) => RECIPES.filter((r) => r.level <= level && (!s || ((!RECIPE_NEEDS[r.id] || s.owned?.[RECIPE_NEEDS[r.id]]) && (!r.house || s.house))));
+export const menuFor = (s) => menuAt(s.level, s);
 
 /** Một ổ theo công thức + danh sách biến thể. */
-export function makeItem(recipeId, quirks = [], extra = {}) {
+export function makeItem(recipeId, quirks = [], extra = {}, house = null) {
   const R = RECIPE[recipeId];
+  if (R.house && house) extra = { label: house.name, ...extra, price: extra.price ?? house.price };
   const it = {
-    recipe: R.id, price: R.price, spreads: { ...R.spreads }, fills: [...R.fills], veg: { ...R.veg }, ot: R.ot,
+    recipe: R.id, price: R.price, spreads: { ...(R.house && house ? house.spreads : R.spreads) }, fills: [...(R.house && house ? house.fills : R.fills)], veg: { ...R.veg }, ot: R.ot,
     sauces: { ...R.sauces }, wrap: R.wrap, crispy: false, quirks: [], vegan: !!R.vegan, ...extra,
   };
   for (const q of quirks) {
@@ -35,8 +39,9 @@ export function bachucPrice(loaf) {
   return p;
 }
 /** Giá cao nhất làm được với nhân đã mở (để không ra giá không với tới). */
-export function bachucMax(level) {
-  const fills = FILLINGS.filter((id) => STOCK[id].unlock <= level);
+const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
+export function bachucMax(level, owned = null) {
+  const fills = FILLINGS.filter((id) => STOCK[id].unlock <= level && (!owned || !FILL_NEEDS[id] || owned[FILL_NEEDS[id]]));
   let p = BACHUC.base + BACHUC.surcharge;
   for (const id of SPREADS) if (STOCK[id].unlock <= level) p += RETAIL[id] * 2;
   for (const id of fills) p += RETAIL[id];
@@ -44,7 +49,7 @@ export function bachucMax(level) {
 }
 
 /** Tên ngắn của món ("chả lụa", "pate bơ"…). */
-export const loafName = (it) => (it.recipe === "bachuc" ? `ổ ${it.target} ngàn` : lower(RECIPE[it.recipe].name.replace("Bánh mì ", "")));
+export const loafName = (it) => (it.recipe === "bachuc" ? `ổ ${it.target} ngàn` : it.label ? it.label : lower(RECIPE[it.recipe].name.replace("Bánh mì ", "")));
 /** Chữ khách nói: "một ổ chả lụa, không hành, ít ớt". */
 export function itemText(it, count = "một") {
   if (it.recipe === "bachuc") return `${count} ổ ${it.target} ngàn`;

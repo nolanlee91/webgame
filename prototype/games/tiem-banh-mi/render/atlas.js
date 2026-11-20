@@ -12,18 +12,22 @@ export const SHEETS = {
 /** Đợt 2 (asset-spec "wave": 2): không bắt buộc có trong manifest. */
 export const OPTIONAL_SHEETS = new Set(["fixtures", "decor", "weather", "journal"]);
 /** Sheet lớn không cần trong 10 giây đầu: tải nền sau khi tiệm hiện ra. */
-export const LAZY_SHEETS = new Set(["assets/portrait-expressions-hd.webp", "assets/drama-portraits-hd.webp", "assets/weather-fx.webp", "assets/journal-card.webp", "assets/title-art.webp", "assets/shop-scene.webp", "assets/shop-counter-foreground.webp"]);
+export const LAZY_SHEETS = new Set(["assets/portrait-expressions-hd.webp", "assets/drama-portraits-hd.webp", "assets/portraits-hd.webp", "assets/baker-actions-hd.webp", "assets/weather-fx.webp", "assets/journal-card.webp", "assets/title-art.webp", "assets/shop-scene.webp", "assets/shop-counter-foreground.webp"]);
 /** Bản cận cảnh vẽ lưới 1× (gấp đôi chi tiết, toạ độ đúng ×2 bản thường). Có frame cùng tên thì dùng bản HD, trả toạ độ quy về cỡ bản thường. */
 export const HD_SHEETS = {
   loaf: "assets/loaf-layers-hd.webp", bakerhd: "assets/baker-actions-hd.webp", portraits: "assets/portraits-hd.webp",
   faces: "assets/portrait-expressions-hd.webp", drama: "assets/drama-portraits-hd.webp",
 };
 
+/** Frame HD lỗi tạm (Codex sẽ vẽ lại): dùng bản thường. loaf-layers-hd "loaf-whole-pale" dính mép ổ bên cạnh. */
+export const HD_SKIP = new Set(["loaf-whole-pale"]);
+/** Sheet thường vẫn cần tải dù đã có bản HD (vì có frame HD_SKIP rơi về bản thường). */
+export const KEEP_BASE = new Set(["loaf"]);
 export function makeAtlas(manifest, base = "", { hd = true, fallback = null } = {}) {
   const byFile = new Map();
   for (const it of manifest.items || []) if (it.filename?.startsWith("assets/")) byFile.set(it.filename, it);
   const real = (alias, name) => {
-    const hf = hd && HD_SHEETS[alias], hi = hf && byFile.get(hf), g = hi?.frames?.[name];
+    const hf = hd && HD_SHEETS[alias] && !HD_SKIP.has(name) && HD_SHEETS[alias], hi = hf && byFile.get(hf), g = hi?.frames?.[name];
     if (g) return { url: base + hf, hd: true, sw: hi.dimensions[0] / 2, sh: hi.dimensions[1] / 2, x: g.rect[0] / 2, y: g.rect[1] / 2, w: g.rect[2] / 2, h: g.rect[3] / 2, ax: g.anchor[0] / 2, ay: g.anchor[1] / 2 };
     const file = SHEETS[alias] || alias;
     const it = byFile.get(file);

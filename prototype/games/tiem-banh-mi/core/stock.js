@@ -1,44 +1,73 @@
 // Kho, nhập hàng, đổi tiền lẻ, dự báo đầu ngày, gói ký gửi (ECONOMY §1, §4, §5). Thuần.
-import { STOCK, STOCK_IDS, CAPACITY, EXPRESS_MARKUP, EXCHANGE, CONSIGN, RECIPE, shiftFeeFor } from "../data/economy.js?v=b1";
-import { TUTORIAL, NORMAL_DAY } from "../data/shift.js?v=b1";
-import { spend, exchange as doExchange, sumBills, till } from "./money.js?v=b1";
-import { menuAt } from "./order.js?v=b1";
+import { STOCK, STOCK_IDS, CAPACITY, EXPRESS_MARKUP, EXCHANGE, CONSIGN, RECIPE, shiftFeeFor } from "../data/economy.js?v=b2";
+import { TUTORIAL, NORMAL_DAY } from "../data/shift.js?v=b2";
+import { spend, exchange as doExchange, sumBills, till } from "./money.js?v=b2";
+import { menuAt } from "./order.js?v=b2";
+import { modCost, today, modGuests, modSum, engineFlag } from "./flags.js?v=b2";
+import { trafficBonus } from "./reviews.js?v=b2";
+import { appeal, promoGuests, fairToday, rainMul } from "./progress.js?v=b2";
+import { FAIR } from "../data/equipment.js?v=b2";
 
-export const stage = (s) => (s.level >= 16 ? "famous" : s.level >= 7 && s.shop ? "shop" : "cart");
-export const capacity = (s) => (stage(s) === "cart" ? CAPACITY.cart : CAPACITY.shop);
+export const stage = (s) => (s.shop ? (s.level >= 16 ? "famous" : "shop") : "cart");
+export const capacity = (s) => (stage(s) === "cart" ? CAPACITY.cart : s.owned?.fridge ? CAPACITY.fridge : CAPACITY.shop);
 export const stockUsed = (s) => STOCK_IDS.reduce((a, id) => a + (STOCK[id].kho ? s.stock[id] || 0 : 0), 0);
-export const packSize = (id) => STOCK[id].pack[0];
-export const packPrice = (id, express = false) => Math.ceil(STOCK[id].pack[1] * (express ? 1 + EXPRESS_MARKUP : 1));
+export const packSize = (id, sup = "tu") => (sup === "mai" && MAI.has(id) ? STOCK[id].pack[0] * (id === "banh-si" ? 1 : 2) : STOCK[id].pack[0]);
+export const packPrice = (id, express = false, sup = "tu", s = null) => {
+  const base = sup === "mai" && MAI.has(id) ? (id === "banh-si" ? 30 : Math.ceil(STOCK[id].pack[1] * 2 * 0.9)) : STOCK[id].pack[1];
+  return Math.ceil(base * (express ? 1 + EXPRESS_MARKUP : 1) * (s ? modCost(s, id) : 1));
+};
+/** Chị Mai (cấp 9): gói gấp đôi, rẻ 10%, chỉ giao trước ca; có bánh sỉ. Gas, than, giấy, túi chỉ Bà Tư / Anh Lâm. */
+export const MAI = new Set(["phoi", "banh-si", "phoi-que", "pate", "bo", "mayo", "cha-lua", "thit-nguoi", "xiu-mai", "trung", "thit-nuong", "heo-quay", "ga-xe", "cha-chay", "cha-bong", "do-chua", "dua-leo", "rau"]);
+export const MAI_LEVEL = 9;
+export const maiOpen = (s) => s.level >= MAI_LEVEL;
 export const shiftFee = (s) => shiftFeeFor(s.level);
 
 /** Nhập một gói Bà Tư. Giữa ca = giao gấp +15%. */
-export function restock(s, id, ev) {
+export function restock(s, id, ev, sup = "tu") {
   const it = STOCK[id];
   if (!it) return { err: "bad-item" };
+  if (sup !== "tu" && sup !== "mai") return { err: "bad-supplier" };
+  if (sup === "mai" && (!maiOpen(s) || !MAI.has(id))) return { err: "locked" };
+  if (sup === "mai" && s.shift && id !== "banh-si") return { err: "mai-prep-only" };
+  if (sup === "mai" && id === "pate" && s.drama?.flags?.["pate-ba-tu"]) return { err: "promised" };
+  if (id === "banh-si" && sup !== "mai") return { err: "locked" };
   if (it.unlock > s.level) return { err: "locked" };
   if (s.shift?.away) return { err: "away" };
   const express = !!s.shift;
-  const price = packPrice(id, express), n = packSize(id);
+  const price = packPrice(id, express && sup !== "mai", sup, s) + (sup === "mai" && express ? 10 : 0), n = packSize(id, sup);
   if (price > s.money) return { err: "money" };
   if (it.kho && stockUsed(s) + n > capacity(s)) return { err: "capacity" };
   spend(s, price);
   s.stock[id] = (s.stock[id] || 0) + n;
   s.stats.spentStock += price;
   if (s.shift) s.shift.stats.restockSpent += price;
-  ev.push({ type: "restocked", id, n, price, express });
+  if (sup === "mai") {
+    s.stats.mai = (s.stats.mai || 0) + 1;
+    if (s.drama) { s.drama.flags["mai-mua"] = today(s) + 5; if (s.stats.mai >= 2) s.drama.flags["mai-mua-2"] = today(s) + 5; }
+  }
+  ev.push({ type: "restocked", id, n, price, express, sup });
   return { ok: true };
 }
 
 /** Khách dự kiến ca tới (cùng công thức core/shift.js genGuests, bỏ phần ngẫu nhiên). */
 export function expectedGuests(s) {
   if (!s.tutorialDone) return TUTORIAL.guests;
-  return Math.max(NORMAL_DAY.minGuests, Math.min(NORMAL_DAY.maxGuests, NORMAL_DAY.minGuests + Math.floor(s.day / 2) + Math.floor((s.rep - 50) / 15) + Math.floor(s.level / 3)));
+  return baseGuests(s);
+}
+/** Số khách vãng lai của ca (chưa tính phần ngẫu nhiên ±1, khách quay lại, đơn đặt trước): ngày + danh tiếng + cấp, cộng review / người theo dõi /
+ *  độ hot, trang trí (hấp dẫn), hạng tiệm, sự kiện (ca sau ±), bộ điều chỉnh, quảng bá, hội chợ; nhân hệ số mưa. Trần theo giai đoạn. */
+export const GUEST_CAP = { cart: NORMAL_DAY.maxGuests, shop: 30, famous: 38 };
+export function baseGuests(s) {
+  let n = NORMAL_DAY.minGuests + Math.floor(s.day / 2) + Math.floor((s.rep - 50) / 15) + Math.floor(s.level / 3);
+  n = Math.max(NORMAL_DAY.minGuests, Math.min(GUEST_CAP[stage(s)], n));
+  n += trafficBonus(s) + Math.floor(appeal(s)) + (s.rank || 0) + (s.drama?.nextGuests || 0) + modGuests(s).total + promoGuests(s).total + (fairToday(s) ? FAIR.guests : 0);
+  return Math.max(4, Math.round(n * rainMul(s)));
 }
 /** Phần hàng cần cho ca tới: { guests, loaves, need, short: [{id, have, need}] }. */
 export function demandEstimate(s) {
   const guests = expectedGuests(s);
   const loaves = Math.round(guests * (s.tutorialDone ? 1.15 : 1));
-  const menu = menuAt(s.level).filter((r) => r.level <= Math.max(1, s.level));
+  const menu = menuAt(s.level, s).filter((r) => !r.que);
   const need = { phoi: loaves, "do-chua": loaves, "dua-leo": loaves, rau: loaves, "gia-vi": loaves, "giay-goi": loaves, tui: Math.ceil(loaves / 5), than: Math.ceil(loaves / 3), gas: Math.ceil(loaves / 4) + 1 };
   for (const R of menu) {
     const share = loaves / menu.length;
@@ -82,7 +111,7 @@ export function exchangePack(s, pack, ev) {
   if (s.shift) return { err: "shift-open" };
   const P = EXCHANGE.packs[pack];
   if (!P) return { err: "bad-pack" };
-  const v = sumBills(P.bills), limit = EXCHANGE.limit[stage(s)];
+  const v = sumBills(P.bills), limit = EXCHANGE.limit[stage(s)] + modSum(s, "exchange");
   if ((s.daily.exchanged || 0) + v > limit) return { err: "exchange-limit" };
   if (v > till(s)) return { err: "money" };
   doExchange(s, P.bills);
@@ -122,6 +151,7 @@ export function consign(s, ev, force = false) {
   if (g) { s.stock.gas += g; got.gas = g; owed += g * STOCK.gas.cost; }
   owed = Math.ceil(owed);
   s.consign = { owed: (s.consign?.owed || 0) + owed };
+  engineFlag(s, "ky-gui", 4);
   if (s.shift) s.shift.consignUsed = true; else s.daily.consigned = true;
   ev.push({ type: "consigned", owed, got });
   return { ok: true };

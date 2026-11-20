@@ -5,6 +5,7 @@
 // "giòn giòn", gói, giao, thối tiền (nút Thối đúng + chọn tờ tay) → bảng chốt ca → tải lại giữ tiến trình → Chơi lại từ đầu có backup.
 // Tua thời gian ca bằng __game.advance (không chờ thật). Yêu cầu 0 lỗi console.
 import { launch, sleep } from "./cdp.mjs";
+import { playM34 } from "./e2e-m34.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8841;
 const BASE = `http://127.0.0.1:${PORT}/games/tiem-banh-mi/?seed=777&prepSpeed=8`;
@@ -16,6 +17,7 @@ const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(
 async function pressSel(sel, wait = 30) {
   let p = null;
   for (let i = 0; i < wait && !(p = await at(sel)); i++) await sleep(80);
+  if (!p) await b.shot(`${OUT}/LOI-${sel.replace(/[^a-z0-9]+/gi, "_").slice(0, 40)}.png`).catch(() => {});
   if (!p) throw new Error("không thấy " + sel + " :: " + (await b.ev("JSON.stringify({ov:__game.overlay,dialog:__game.state.shift?.dialog,board:__game.state.shift?.boards[0]&&{cid:__game.state.shift.boards[0].cid,step:__game.state.shift.boards[0].step},paying:__game.state.shift?.paying,toasts:document.querySelector('#toasts').textContent})")));
   await press(...p); await sleep(90);
 }
@@ -34,6 +36,13 @@ async function clearDialogs() {
     if (!d) return;
     await waitFor("!!document.querySelector('#sheet .choice:not(:disabled)')", 3000);
     await pressSel("#sheet .choice:not(:disabled)");
+  }
+}
+/** Sự kiện Drama giữa hai ca (sau Chốt ca): chọn bằng nút thật tới khi về Chuẩn bị ca. */
+async function clearEvent() {
+  for (let i = 0; i < 8 && (await b.ev("__game.overlay==='event'")); i++) {
+    if (await b.ev(`!!document.querySelector('#sheet [data-act="eventNext"],#sheet [data-act="eventDone"]')`)) await pressSel('#sheet [data-act="eventNext"], #sheet [data-act="eventDone"]');
+    else await pressSel("#sheet .choice:not(:disabled)");
   }
 }
 /** Lò: nếu tủ ít bánh thì bỏ mẻ, tua tới vùng chín rồi rút bằng nút thật. */
@@ -74,7 +83,7 @@ async function payClicks(manual) {
   if (!(await S("s.shift&&s.shift.paying!==null"))) return "none";
   await waitFor("!!document.querySelector('#change')", 3000);
   if (manual) {
-    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b1');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
+    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b2');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
     if (bills) { for (const [d, n] of Object.entries(bills)) for (let i = 0; i < n; i++) await pressSel(`[data-bill="${d}"]`); await pressSel('[data-act="giveChange"]'); return "manual"; }
   }
   await pressSel('[data-act="autoChange"]');
@@ -146,15 +155,20 @@ async function playDay1(tag, shots) {
   if (shots) await b.shot(`${OUT}/${tag}-08-chot-ca.png`);
   check(`${tag}: không tràn ngang`, await noOverflowX());
   await pressSel('[data-act="nextDay"]');
+  await sleep(200); await clearEvent();
   check(`${tag}: sang ngày 2 về Chuẩn bị ca`, await waitFor("__game.overlay==='prep'") && (await S("s.day")) === 2);
   await b.nav(BASE);
+  await clearEvent();
   check(`${tag}: tải lại giữ tiến trình (ngày 2, tên tiệm, tiền)`, (await S("s.day")) === 2 && (await S("s.shopName")) === "Bánh Mì Hẻm Mười" && (await S("s.money")) === sum.money);
   return sum;
 }
 
 // ===== desktop 1366×768 dpr 1,25, chuột =====
+const MOBILE_ONLY = !!process.env.MOBILE_ONLY;
+const ctx = { b, OUT, PORT, BASE, check, pressSel, S, waitFor, clearDialogs };
 await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
-await playDay1("desktop", true);
+if (!MOBILE_ONLY) await playDay1("desktop", true);
+if (!MOBILE_ONLY) {
 // giữa ca tải lại giữ ổ đang ráp
 await pressSel('[data-act="restockToday"]');
 await pressSel("#openShop");
@@ -175,9 +189,14 @@ await sleep(800); await b.waitGame();
 await waitFor("!!document.querySelector('#app.ready')", 8000);
 check("desktop: chơi lại ⇒ bản cũ ở .backup, tiệm mới ngày 1", (await b.ev("localStorage.getItem('wgp.tiembanhmi.v1.backup')")) === keyBefore && (await S("s.day")) === 1 && (await b.ev("__game.overlay")) === "intro");
 
+await playM34(ctx, "desktop");
+
+}
+
 // ===== mobile 390×844 dpr 3, chạm =====
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 await playDay1("mobile", true);
+await playM34(ctx, "mobile");
 check("mobile: cảnh hệ số bội 0,5 thiết bị", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio*2;return Math.abs(k-Math.round(k))<1e-6})()"), String(await b.ev("__game.sceneScale()")));
 check("0 lỗi console", b.errors.length === 0, b.errors.slice(0, 5).join(" | "));
 b.close();

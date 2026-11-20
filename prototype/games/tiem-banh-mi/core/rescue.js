@@ -1,18 +1,19 @@
 // Cứu giữa ca (mô phỏng core/stockout.js + ui/stockout.js của Trà Sữa): hết nguyên liệu, hết bánh, hết gas, hết tiền lẻ.
 // Không bao giờ kẹt: mỗi hội thoại luôn có lựa chọn miễn phí (mượn Cậu Hưng / Cô Sáu, chờ lò, khách đổi món, cho nợ, đóng cửa sớm)
 // và gói ký gửi Bà Tư lên đầu khi không đủ tiền cho lựa chọn trả tiền. Thuần, đổi trạng thái chỉ qua apply().
-import { STOCK, STOCK_IDS, RESCUE, VEG } from "../data/economy.js?v=b1";
-import { ARCHETYPES } from "../data/customers.js?v=b1";
-import { RESCUE_SAY, NOCHANGE, OUT_LINES } from "../data/lines-ops.js?v=b1";
-import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=b1";
-import { spend, receive, greedyBills } from "./money.js?v=b1";
-import { newLoaf } from "./oven.js?v=b1";
-import { next, pick } from "./rng.js?v=b1";
-import { freshLine } from "./text.js?v=b1";
-import { board, emptyBoard, wasteLoaf } from "./board.js?v=b1";
+import { STOCK, STOCK_IDS, RESCUE, VEG } from "../data/economy.js?v=b2";
+import { ARCHETYPES } from "../data/customers.js?v=b2";
+import { RESCUE_SAY, NOCHANGE, OUT_LINES } from "../data/lines-ops.js?v=b2";
+import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=b2";
+import { spend, receive, greedyBills } from "./money.js?v=b2";
+import { newLoaf } from "./oven.js?v=b2";
+import { next, pick } from "./rng.js?v=b2";
+import { freshLine } from "./text.js?v=b2";
+import { board, emptyBoard, wasteLoaf } from "./board.js?v=b2";
+import { engineFlag } from "./flags.js?v=b2";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
-export const itemName = (id) => (id === "banh" ? "bánh" : lower(STOCK[id]?.name || id));
+export const itemName = (id) => (id === "banh" ? "bánh" : id === "que" ? "bánh mì que" : lower(STOCK[id]?.name || id));
 const runPrice = (id) => Math.ceil(STOCK[id].pack[1] * (1 + RESCUE.runMarkup));
 const shipPrice = (id) => Math.ceil(STOCK[id].pack[1] * (1 + RESCUE.shipMarkup)) + RESCUE.shipTip;
 /** Món có thể bỏ khỏi ổ nếu khách chịu (không bỏ được phôi, giấy, túi, than, gas). */
@@ -28,6 +29,10 @@ export function stockoutOptions(s) {
     out.push({ id: "gasCall", label: "Gọi Anh Lâm thay bình", hint: "Bình mới tới sau 20 giây", cost: `−${RESCUE.gasTank + RESCUE.shipTip}k`, price: RESCUE.gasTank + RESCUE.shipTip });
     out.push({ id: "gasBorrow", label: "Chạy qua mượn bình Cô Sáu", hint: "Quầy trống 10 giây, mai trả bình", cost: "Miễn phí · 1 lần/ngày", price: 0, ok: !s.daily.gasBorrowed, free: true });
     out.push({ id: "dismiss", label: "Bán bánh trong tủ trước", hint: "Chưa nướng mẻ mới tới khi có gas", cost: "Miễn phí", price: 0, free: true });
+  } else if (id === "que") {
+    const baking = sh.oven.some((b) => b && b.kind === "que");
+    out.push({ id: "waitOven", label: baking ? "Mời khách chờ khay que đang nướng" : "Nướng một khay que", hint: "Que chín nhanh (14–19 giây)", cost: "Miễn phí", price: 0, free: true });
+    out.push({ id: "dismiss", label: "Để sau, làm ổ khác trước", hint: "Phiếu vẫn giữ trên thớt", cost: "Miễn phí", price: 0, free: true });
   } else if (id === "banh") {
     const baking = sh.oven.some(Boolean), canBake = (s.stock.phoi || 0) > 0 && (s.stock.gas || 0) > 0;
     if (baking || canBake) out.push({ id: "waitOven", label: baking ? "Mời khách chờ mẻ đang nướng" : "Nướng mẻ mới", hint: baking ? "Rút mẻ là ráp tiếp được" : "Bỏ phôi vào lò rồi chờ chín", cost: "Miễn phí", price: 0, free: true });
@@ -61,11 +66,14 @@ export function resolveStockout(s, choice, ev, endShift) {
   const id = d.id, ctx = { item: itemName(o.item || id), n: RESCUE.borrowN };
   let line = "";
   sh.dialog = null;
+  engineFlag(s, "het-hang", 2);
   switch (choice) {
     case "run":
       spend(s, o.price); sh.stats.rescueSpent += o.price;
       sh.away = { until: sh.t + RESCUE.runMs, kind: "run", id: o.item };
       line = freshLine(s, RESCUE_SAY.run, ctx);
+      engineFlag(s, "chay-cho", 2); sh.witness = { kind: "ran", t: sh.t };
+      sh.moments?.push({ kind: "ran", id: o.item, name: "", line: `Chạy ra chợ mua gấp ${ctx.item}, quầy bỏ trống mười hai giây.` });
       break;
     case "ship": {
       spend(s, o.price); sh.stats.rescueSpent += o.price;
@@ -78,6 +86,7 @@ export function resolveStockout(s, choice, ev, endShift) {
     case "borrow":
       s.stock[o.item] = (s.stock[o.item] || 0) + RESCUE.borrowN;
       s.daily.borrowed = true; s.debts.hung = (s.debts.hung || 0) + RESCUE.borrowN;
+      engineFlag(s, "muon-hung", 2);
       line = freshLine(s, RESCUE_SAY.borrow, ctx);
       break;
     case "swap": {
@@ -85,10 +94,12 @@ export function resolveStockout(s, choice, ev, endShift) {
       if (next(s) < (RESCUE.swapAccept[c.arch] ?? 0.6)) {
         dropRequirement(c.items[board(s).item] || c.items[0], id);
         c.swapped = id;
+        sh.witness = { kind: "swapYes", t: sh.t };
         line = freshLine(s, RESCUE_SAY.swapYes, { ...ctx, call: c.call });
         ev.push({ type: "swapped", cid: c.id, ok: true });
       } else {
         line = freshLine(s, RESCUE_SAY.swapNo, { ...ctx, call: c.call });
+        sh.witness = { kind: "swapNo", t: sh.t };
         walkOff(s, c, ev);
         ev.push({ type: "swapped", cid: c.id, ok: false });
       }
@@ -115,6 +126,8 @@ export function resolveStockout(s, choice, ev, endShift) {
     case "close":
       line = freshLine(s, RESCUE_SAY.close, ctx);
       s.rep = Math.max(0, s.rep + RESCUE.closeRep);
+      engineFlag(s, "dong-som", 2);
+      sh.moments?.push({ kind: "closed", name: "", line: `Hết ${ctx.item}, đóng cửa sớm.` });
       ev.push({ type: "stockoutResolved", choice, id, line });
       return endShift(s, ev, true);
     default: return { err: "bad-choice" };

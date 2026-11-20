@@ -1,9 +1,9 @@
 // Gợi ý ngày 1 (GAME-DESIGN §7 M2: người mới tự nướng, ráp và giao được 1 ổ không cần đọc hướng dẫn ngoài).
 // hint(s) ⇒ { key, text } theo trạng thái; key cũng là tên vùng UI được làm nổi (ui/bench.js). Thuần.
-import { HINTS } from "../data/lines-ops.js?v=b1";
-import { TOASTER } from "../data/economy.js?v=b1";
-import { batchLevel, bakingCount } from "./oven.js?v=b1";
-import { board, STEPS } from "./board.js?v=b1";
+import { HINTS } from "../data/lines-ops.js?v=b2";
+import { TOASTER } from "../data/economy.js?v=b2";
+import { batchLevel, bakingCount } from "./oven.js?v=b2";
+import { board, STEPS } from "./board.js?v=b2";
 
 export function hint(s) {
   const sh = s.shift;

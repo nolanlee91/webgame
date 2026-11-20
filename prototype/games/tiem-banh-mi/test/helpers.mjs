@@ -6,21 +6,40 @@ import { board } from "../core/board.js";
 import { batchLevel } from "../core/oven.js";
 import { stockoutOptions, nochangeOptions } from "../core/rescue.js";
 import { SPREADS, VEG_IDS, SAUCES, RETAIL, BACHUC } from "../data/economy.js";
+import { EVENT } from "../data/events.js";
+import { currentEvent, affordable, isFree, choiceVisible } from "../core/drama.js";
+
+/** Hội thoại sự kiện đang mở (trong ca hoặc giữa hai ca): chọn lựa chọn miễn phí đầu tiên (hoặc theo pickFn) tới khi đóng. Trả số bước. */
+export function resolveEvent(s, pickFn = null) {
+  let n = 0;
+  for (let d = currentEvent(s); d && n < 10; d = currentEvent(s), n++) {
+    const node = EVENT[d.id].nodes[d.node];
+    const list = node.choices.filter((c) => choiceVisible(s, c) && affordable(s, c));
+    const ch = (pickFn && pickFn(list, d)) || list.find(isFree) || list[0];
+    act(s, { type: "event", choice: ch.id });
+  }
+  return n;
+}
 
 export const shop = (seed = 7) => { const s = createState(seed); s.introSeen = true; return s; };
 export function act(s, a) { const r = apply(s, a); if (r.err) throw new Error(`${a.type}: ${r.err} ${JSON.stringify(r.detail ?? "")}`); return r; }
 export const err = (s, a) => apply(s, a).err;
 export const types = (r) => r.events.map((e) => e.type);
 /** Tua thời gian ca theo nhịp 200 ms (dừng khi có hội thoại hoặc hết ca). */
-export function advance(s, ms) {
+export function advance(s, ms, { events = true } = {}) {
   const ev = [];
-  for (let left = ms; left > 0 && s.shift && !s.shift.dialog; left -= 200) ev.push(...act(s, { type: "tick", dt: Math.min(200, left) }).events);
+  for (let left = ms; left > 0 && s.shift; left -= 200) {
+    if (s.shift.dialog?.kind === "event" && events) resolveEvent(s);
+    if (!s.shift || s.shift.dialog) break;
+    ev.push(...act(s, { type: "tick", dt: Math.min(200, left) }).events);
+  }
   return ev;
 }
 export function untilWaiting(s, max = 240000) {
   for (let t = 0; t < max && s.shift; t += 200) {
-    const c = s.shift.customers.find((q) => q.phase === "wait");
+    const c = s.shift.customers.find((q) => q.phase === "wait" && !q.pre);
     if (c) return c;
+    if (s.shift.dialog?.kind === "event") resolveEvent(s);
     act(s, { type: "tick", dt: 200 });
   }
   throw new Error("không có khách");
@@ -38,7 +57,7 @@ export function build(s, it, override = {}) {
   if (L().toastT0 !== null) { s.shift.t += 4500; go({ type: "toast" }); }
   if (!L().sliced) go({ type: "slice" });
   let spreads = want.spreads, fills = want.fills;
-  if (it.recipe === "bachuc" && !override.fills) ({ spreads, fills } = bachucPick(it.target));
+  if (it.recipe === "bachuc" && !override.fills) ({ spreads, fills } = bachucPick(it.target, s.owned));
   const step = () => board(s).step;
   if (step() < 3) for (const id of SPREADS) if (spreads[id] && (L().spreads[id] || 0) !== spreads[id]) go({ type: "spread", id, lvl: spreads[id] });
   if (step() <= 4) { for (const id of fills) if (!L().fills.includes(id)) go({ type: "fill", id }); if (step() < 4) go({ type: "skip", step: "fill" }); }
@@ -56,7 +75,7 @@ export function build(s, it, override = {}) {
   if (!L().wrap) go({ type: "wrap", kind: want.bag ? "tui" : want.wrap });
 }
 /** Chọn nhân cho ổ ba chục ở cấp 1–3: pate bơ + chả lụa… sao cho giá gần target. */
-export function bachucPick(target) {
+export function bachucPick(target, owned = {}) {
   const opts = [
     { spreads: { pate: 2, bo: 2 }, fills: [] },
     { spreads: { pate: 2, bo: 2 }, fills: ["cha-lua"] },
@@ -65,7 +84,7 @@ export function bachucPick(target) {
     { spreads: { pate: 2, bo: 2 }, fills: ["cha-lua", "xiu-mai"] },
   ];
   const price = (o) => BACHUC.base + BACHUC.surcharge + Object.entries(o.spreads).reduce((a, [id, l]) => a + RETAIL[id] * (l === 3 ? 2 : 1), 0) + o.fills.reduce((a, id) => a + RETAIL[id], 0);
-  return opts.reduce((b, o) => (Math.abs(price(o) - target) < Math.abs(price(b) - target) ? o : b));
+  return opts.filter((o) => owned["xiu-mai-pot"] || !o.fills.includes("xiu-mai")).reduce((b, o) => (Math.abs(price(o) - target) < Math.abs(price(b) - target) ? o : b));
 }
 /** Ghim + ráp đúng mọi ổ + giao + thối đúng. */
 export function serveRight(s, c, override = {}) {
@@ -92,6 +111,7 @@ import * as awaitMoney from "../core/money.js";
 /** Bot chơi trọn một ca: nướng khi thiếu bánh, rút đúng lúc, ráp đúng, thối đúng; hội thoại chọn lựa chọn miễn phí đầu tiên. Trả số bước. */
 /** Chuẩn bị ca như người chơi: ký gửi nếu cần, nhập đủ, mẻ đầu, mở hàng. */
 export function prepAndOpen(s, sec = 28) {
+  resolveEvent(s);
   apply(s, { type: "consign" });
   apply(s, { type: "restockToday" });
   apply(s, { type: "firstBatch", sec });
@@ -103,6 +123,7 @@ export function playShift(s, { sloppy = 0, rnd = Math.random, maxSteps = 20000 }
     const sh = s.shift;
     if (sh.dialog) {
       const d = sh.dialog;
+      if (d.kind === "event") { resolveEvent(s, rnd() < 0.5 ? (l) => l[Math.floor(rnd() * l.length)] : null); continue; }
       if (d.kind === "complaint") act(s, { type: "complaint", choice: rnd() < 0.5 ? "remake" : "discount" });
       else if (d.kind === "stockout") { const o = stockoutOptions(s).filter((x) => x.ok); const pick = o.find((x) => x.id !== "close" && x.price > 0) || o.find((x) => x.free && x.id !== "close") || o[0]; act(s, { type: "stockout", choice: pick.id }); }
       else if (d.kind === "nochange") act(s, { type: "nochange", choice: nochangeOptions(s)[rnd() < 0.5 ? 0 : 2].id });

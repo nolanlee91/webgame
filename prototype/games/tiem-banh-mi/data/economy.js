@@ -31,7 +31,7 @@ export const STOCK = {
 export const STOCK_IDS = Object.keys(STOCK);
 /** Ghi chú M2: đồ chua / dưa leo / rau (để trong hũ, rổ trên quầy) không tính sức chứa, nếu không gói học đầu game (85 phần) đã vượt kho 60.
  *  Bộ mô phỏng M5 dò lại (docs/tiem-banh-mi/DEV-NOTES.md). */
-export const CAPACITY = { cart: 60, shop: 100 };
+export const CAPACITY = { cart: 60, shop: 100, fridge: 150 };
 export const EXPRESS_MARKUP = 0.15;
 
 /** Vốn đầu + gói học (ECONOMY §5): đủ ~12 ổ. */
@@ -68,10 +68,14 @@ export const RECIPES = [
   { id: "chay", name: "Bánh mì chay", level: 6, price: 20, xp: 8, spreads: { bo: 2 }, fills: ["cha-chay"], cost: 11, vegan: true },
   { id: "ga-xe", name: "Bánh mì gà xé", level: 8, price: 25, xp: 9, spreads: { mayo: 2 }, fills: ["ga-xe"], cost: 13 },
   { id: "heo-quay", name: "Bánh mì heo quay", level: 10, price: 32, xp: 10, spreads: { pate: 2 }, fills: ["heo-quay"], cost: 16 },
+  /** Ổ mang tên tiệm (cấp 19): công thức mặc định, người chơi đặt tên / nhân / giá (core/progress.js setHouse ghi đè trên phiếu). */
+  { id: "gia-truyen", name: "Ổ gia truyền", level: 19, price: 48, xp: 12, spreads: { pate: 2, bo: 2 }, fills: ["cha-lua", "thit-nguoi", "heo-quay", "cha-bong"], cost: 28, house: true },
 ].map((r) => ({ ...r, veg: { ...baseVeg }, ot: 2, sauces: { "nuoc-tuong": true, "tuong-ot": false }, wrap: "giay" }));
+/** Bánh mì que (cấp 12): bịch 5 que nướng trên khay que, phết pate, bỏ túi. Không rạch, không rau dưa, không gia vị. */
+RECIPES.push({ id: "que", name: "Bánh mì que (bịch 5)", level: 12, price: 15, xp: 8, cost: 6, que: true, spreads: { pate: 2 }, fills: [], veg: { "do-chua": false, "dua-leo": false, "rau-mui": false, "hanh-la": false }, ot: 0, sauces: {}, wrap: "tui" });
 export const RECIPE = Object.fromEntries(RECIPES.map((r) => [r.id, r]));
-/** Bánh mì que (cấp 12) để dữ liệu sẵn cho M3. */
-export const QUE = { id: "que", name: "Bánh mì que (bịch 5)", level: 12, price: 15, xp: 8, cost: 6 };
+/** Khay que: 12 que một ngăn, chín 14–19 giây, cháy sau 22 giây; một bịch = 5 que. */
+export const QUE = { tray: 12, bag: 5, golden: [14, 19], dark: 22 };
 
 /** "Ổ ba chục": giá ổ = 7k nền + tổng giá lẻ từng phần + phụ thu 2k; lệch ≤ 3k là đúng. */
 export const RETAIL = { pate: 3, bo: 1, mayo: 1, "cha-lua": 7, "thit-nguoi": 8, "xiu-mai": 9, trung: 5, "thit-nuong": 11, "heo-quay": 15, "ga-xe": 11, "cha-chay": 7, "cha-bong": 3 };

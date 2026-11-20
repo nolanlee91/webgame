@@ -4240,6 +4240,2746 @@
           "loop": false
         }
       }
+    },
+    {
+      "filename": "assets/portraits-hd.webp",
+      "dimensions": [
+        1152,
+        960
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "baker": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "parent": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/portrait-expressions-hd.webp",
+      "dimensions": [
+        1920,
+        2880
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "student-waiting": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-happy": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-sheepish": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-annoyed": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-surprised": {
+          "rect": [
+            1536,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-waiting": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-happy": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-sheepish": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-annoyed": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-surprised": {
+          "rect": [
+            1536,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-waiting": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-happy": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-sheepish": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-annoyed": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-surprised": {
+          "rect": [
+            1536,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-waiting": {
+          "rect": [
+            0,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-happy": {
+          "rect": [
+            384,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-sheepish": {
+          "rect": [
+            768,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-annoyed": {
+          "rect": [
+            1152,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-surprised": {
+          "rect": [
+            1536,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-waiting": {
+          "rect": [
+            0,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-happy": {
+          "rect": [
+            384,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-sheepish": {
+          "rect": [
+            768,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-annoyed": {
+          "rect": [
+            1152,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-surprised": {
+          "rect": [
+            1536,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-waiting": {
+          "rect": [
+            0,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-happy": {
+          "rect": [
+            384,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-sheepish": {
+          "rect": [
+            768,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-annoyed": {
+          "rect": [
+            1152,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-surprised": {
+          "rect": [
+            1536,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-waiting": {
+          "rect": [
+            0,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-happy": {
+          "rect": [
+            384,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-sheepish": {
+          "rect": [
+            768,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-annoyed": {
+          "rect": [
+            1152,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-surprised": {
+          "rect": [
+            1536,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "parent-waiting": {
+          "rect": [
+            0,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "parent-happy": {
+          "rect": [
+            384,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "parent-sheepish": {
+          "rect": [
+            768,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "parent-annoyed": {
+          "rect": [
+            1152,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "parent-surprised": {
+          "rect": [
+            1536,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "baker-neutral": {
+          "rect": [
+            0,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "baker-happy": {
+          "rect": [
+            384,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "baker-concerned": {
+          "rect": [
+            768,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "baker-surprised": {
+          "rect": [
+            1152,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "baker-proud": {
+          "rect": [
+            1536,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/drama-portraits-hd.webp",
+      "dimensions": [
+        1536,
+        3840
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "me-neutral": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-happy": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-annoyed": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-surprised": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tam-neutral": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tam-happy": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tam-annoyed": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tam-surprised": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-bay-neutral": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-bay-happy": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-bay-annoyed": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-bay-surprised": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ba-tu-neutral": {
+          "rect": [
+            0,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ba-tu-happy": {
+          "rect": [
+            384,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ba-tu-annoyed": {
+          "rect": [
+            768,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ba-tu-surprised": {
+          "rect": [
+            1152,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-mai-neutral": {
+          "rect": [
+            0,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-mai-happy": {
+          "rect": [
+            384,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-mai-annoyed": {
+          "rect": [
+            768,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-mai-surprised": {
+          "rect": [
+            1152,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "cau-hung-neutral": {
+          "rect": [
+            0,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "cau-hung-happy": {
+          "rect": [
+            384,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "cau-hung-annoyed": {
+          "rect": [
+            768,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "cau-hung-surprised": {
+          "rect": [
+            1152,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-hai-neutral": {
+          "rect": [
+            0,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-hai-happy": {
+          "rect": [
+            384,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-hai-annoyed": {
+          "rect": [
+            768,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-hai-surprised": {
+          "rect": [
+            1152,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-sau-neutral": {
+          "rect": [
+            0,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-sau-happy": {
+          "rect": [
+            384,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-sau-annoyed": {
+          "rect": [
+            768,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-sau-surprised": {
+          "rect": [
+            1152,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-thanh-neutral": {
+          "rect": [
+            0,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-thanh-happy": {
+          "rect": [
+            384,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-thanh-annoyed": {
+          "rect": [
+            768,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-thanh-surprised": {
+          "rect": [
+            1152,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-lam-neutral": {
+          "rect": [
+            0,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-lam-happy": {
+          "rect": [
+            384,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-lam-annoyed": {
+          "rect": [
+            768,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-lam-surprised": {
+          "rect": [
+            1152,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-na-neutral": {
+          "rect": [
+            0,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-na-happy": {
+          "rect": [
+            384,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-na-annoyed": {
+          "rect": [
+            768,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "be-na-surprised": {
+          "rect": [
+            1152,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ollie-neutral": {
+          "rect": [
+            0,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ollie-happy": {
+          "rect": [
+            384,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ollie-annoyed": {
+          "rect": [
+            768,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "ollie-surprised": {
+          "rect": [
+            1152,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/baker-actions-hd.webp",
+      "dimensions": [
+        1280,
+        2240
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "idle-1": {
+          "rect": [
+            0,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "idle-2": {
+          "rect": [
+            320,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "slice-1": {
+          "rect": [
+            640,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "slice-2": {
+          "rect": [
+            960,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "slice-3": {
+          "rect": [
+            0,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "slice-4": {
+          "rect": [
+            320,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "spread-1": {
+          "rect": [
+            640,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "spread-2": {
+          "rect": [
+            960,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "spread-3": {
+          "rect": [
+            0,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "spread-4": {
+          "rect": [
+            320,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fill-1": {
+          "rect": [
+            640,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fill-2": {
+          "rect": [
+            960,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fill-3": {
+          "rect": [
+            0,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fill-4": {
+          "rect": [
+            320,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "sauce-1": {
+          "rect": [
+            640,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "sauce-2": {
+          "rect": [
+            960,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "sauce-3": {
+          "rect": [
+            0,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "sauce-4": {
+          "rect": [
+            320,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "wrap-1": {
+          "rect": [
+            640,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "wrap-2": {
+          "rect": [
+            960,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "wrap-3": {
+          "rect": [
+            0,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "wrap-4": {
+          "rect": [
+            320,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "change-1": {
+          "rect": [
+            640,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "change-2": {
+          "rect": [
+            960,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "change-3": {
+          "rect": [
+            0,
+            1920,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "change-4": {
+          "rect": [
+            320,
+            1920,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha",
+      "animations": {
+        "idle": {
+          "frames": [
+            "idle-1",
+            "idle-2"
+          ],
+          "fps": 2,
+          "loop": true
+        },
+        "slice": {
+          "frames": [
+            "slice-1",
+            "slice-2",
+            "slice-3",
+            "slice-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "spread": {
+          "frames": [
+            "spread-1",
+            "spread-2",
+            "spread-3",
+            "spread-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "fill": {
+          "frames": [
+            "fill-1",
+            "fill-2",
+            "fill-3",
+            "fill-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "sauce": {
+          "frames": [
+            "sauce-1",
+            "sauce-2",
+            "sauce-3",
+            "sauce-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "wrap": {
+          "frames": [
+            "wrap-1",
+            "wrap-2",
+            "wrap-3",
+            "wrap-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "change": {
+          "frames": [
+            "change-1",
+            "change-2",
+            "change-3",
+            "change-4"
+          ],
+          "fps": 8,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/loaf-layers-hd.webp",
+      "dimensions": [
+        2240,
+        2304
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "loaf-whole-raw": {
+          "rect": [
+            0,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-whole-pale": {
+          "rect": [
+            320,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-whole-golden": {
+          "rect": [
+            640,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-whole-dark": {
+          "rect": [
+            960,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-whole-burnt": {
+          "rect": [
+            1280,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-open-back": {
+          "rect": [
+            1600,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-open-front": {
+          "rect": [
+            1920,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-toasted-sheen": {
+          "rect": [
+            0,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "loaf-cut-half": {
+          "rect": [
+            320,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "spread-pate": {
+          "rect": [
+            640,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "spread-bo": {
+          "rect": [
+            960,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "spread-mayo": {
+          "rect": [
+            1280,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-cha-lua": {
+          "rect": [
+            1600,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-thit-nguoi": {
+          "rect": [
+            1920,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-xiu-mai": {
+          "rect": [
+            0,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-trung": {
+          "rect": [
+            320,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-thit-nuong": {
+          "rect": [
+            640,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-heo-quay": {
+          "rect": [
+            960,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-ga-xe": {
+          "rect": [
+            1280,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-cha-chay": {
+          "rect": [
+            1600,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-cha-bong": {
+          "rect": [
+            1920,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "fill-trend": {
+          "rect": [
+            0,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "do-chua": {
+          "rect": [
+            320,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "dua-leo": {
+          "rect": [
+            640,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "rau-mui": {
+          "rect": [
+            960,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "hanh-la": {
+          "rect": [
+            1280,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ot-it": {
+          "rect": [
+            1600,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ot-vua": {
+          "rect": [
+            1920,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ot-nhieu": {
+          "rect": [
+            0,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "sauce-nuoc-tuong": {
+          "rect": [
+            320,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "sauce-tuong-ot": {
+          "rect": [
+            640,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "wrap-paper": {
+          "rect": [
+            960,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "wrap-paper-half": {
+          "rect": [
+            1280,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "wrap-bag": {
+          "rect": [
+            1600,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "que-raw": {
+          "rect": [
+            1920,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "que-golden": {
+          "rect": [
+            0,
+            1920,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "que-burnt": {
+          "rect": [
+            320,
+            1920,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "que-pate": {
+          "rect": [
+            640,
+            1920,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "que-bag-5": {
+          "rect": [
+            960,
+            1920,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/weather-fx.webp",
+      "dimensions": [
+        2560,
+        1080
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "rain-1": {
+          "rect": [
+            0,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-2": {
+          "rect": [
+            640,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-3": {
+          "rect": [
+            1280,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-4": {
+          "rect": [
+            1920,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "lightning-1": {
+          "rect": [
+            0,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "lightning-2": {
+          "rect": [
+            640,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "power-cut-glow": {
+          "rect": [
+            1280,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "flood-1": {
+          "rect": [
+            1920,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "flood-2": {
+          "rect": [
+            0,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "smoke-1": {
+          "rect": [
+            640,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "smoke-2": {
+          "rect": [
+            1280,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "smoke-3": {
+          "rect": [
+            1920,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha",
+      "animations": {
+        "rain": {
+          "frames": [
+            "rain-1",
+            "rain-2",
+            "rain-3",
+            "rain-4"
+          ],
+          "fps": 9,
+          "loop": true
+        },
+        "lightning": {
+          "frames": [
+            "lightning-1",
+            "lightning-2"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "flood": {
+          "frames": [
+            "flood-1",
+            "flood-2"
+          ],
+          "fps": 3,
+          "loop": true
+        },
+        "smoke": {
+          "frames": [
+            "smoke-1",
+            "smoke-2",
+            "smoke-3"
+          ],
+          "fps": 5,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/fixtures.webp",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "display-case-empty": {
+          "rect": [
+            0,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "display-case-low": {
+          "rect": [
+            384,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "display-case-full": {
+          "rect": [
+            768,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "display-case-warm-empty": {
+          "rect": [
+            1152,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "display-case-warm-low": {
+          "rect": [
+            0,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "display-case-warm-full": {
+          "rect": [
+            384,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "cart-display-empty": {
+          "rect": [
+            768,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "cart-display-low": {
+          "rect": [
+            1152,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "cart-display-full": {
+          "rect": [
+            0,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "signboard-1": {
+          "rect": [
+            384,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "signboard-2": {
+          "rect": [
+            768,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "signboard-3": {
+          "rect": [
+            1152,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "queue-rope": {
+          "rect": [
+            0,
+            768,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "helper-station": {
+          "rect": [
+            384,
+            768,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/decor.webp",
+      "dimensions": [
+        896,
+        256
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "rattan-lamp": {
+          "rect": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "ceramic-jar": {
+          "rect": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "wheat-bundle": {
+          "rect": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "herb-pot": {
+          "rect": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "chalk-menu": {
+          "rect": [
+            512,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "neon-sign": {
+          "rect": [
+            640,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "plastic-stools": {
+          "rect": [
+            768,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "small-table": {
+          "rect": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "wall-calendar": {
+          "rect": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "old-radio": {
+          "rect": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "wall-fan": {
+          "rect": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "award-frame": {
+          "rect": [
+            512,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "banana-plant": {
+          "rect": [
+            640,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "wind-chime": {
+          "rect": [
+            768,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/journal-card.webp",
+      "dimensions": [
+        1080,
+        1350
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "journal-card": {
+          "rect": [
+            0,
+            0,
+            1080,
+            1350
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "opaque",
+      "safeAreas": {
+        "header": [
+          74,
+          50,
+          932,
+          175
+        ],
+        "scene": [
+          60,
+          254,
+          960,
+          640
+        ],
+        "footer": [
+          74,
+          922,
+          932,
+          362
+        ]
+      }
     }
   ],
   "placements": {
@@ -4357,8 +7097,8 @@
     },
     "display-case": {
       "at": [
-        853,
-        413
+        852,
+        420
       ],
       "surface": "front-counter"
     },
@@ -4455,10 +7195,54 @@
     },
     "cart-display": {
       "at": [
-        765,
-        349
+        766,
+        348
       ],
-      "surface": "cart"
+      "surface": "cart",
+      "stockSlots": [
+        [
+          [
+            729,
+            254
+          ],
+          [
+            753,
+            252
+          ],
+          [
+            777,
+            251
+          ]
+        ],
+        [
+          [
+            729,
+            278
+          ],
+          [
+            753,
+            276
+          ],
+          [
+            777,
+            275
+          ]
+        ],
+        [
+          [
+            729,
+            302
+          ],
+          [
+            753,
+            300
+          ],
+          [
+            777,
+            299
+          ]
+        ]
+      ]
     },
     "cart-paper-stack": {
       "at": [
@@ -4574,7 +7358,147 @@
         115,
         661
       ]
-    ]
+    ],
+    "display-case-warm": {
+      "at": [
+        852,
+        420
+      ],
+      "surface": "front-counter"
+    },
+    "signboard-1": {
+      "at": [
+        646,
+        172
+      ],
+      "surface": "wall"
+    },
+    "signboard-2": {
+      "at": [
+        646,
+        172
+      ],
+      "surface": "wall"
+    },
+    "signboard-3": {
+      "at": [
+        646,
+        172
+      ],
+      "surface": "wall"
+    },
+    "queue-rope": {
+      "at": [
+        856,
+        650
+      ],
+      "surface": "floor"
+    },
+    "helper-station": {
+      "at": [
+        574,
+        396
+      ],
+      "surface": "behind-counter"
+    },
+    "rattan-lamp": {
+      "at": [
+        837,
+        176
+      ],
+      "surface": "ceiling"
+    },
+    "ceramic-jar": {
+      "at": [
+        213,
+        320
+      ],
+      "surface": "back-counter"
+    },
+    "wheat-bundle": {
+      "at": [
+        164,
+        323
+      ],
+      "surface": "back-counter"
+    },
+    "herb-pot": {
+      "at": [
+        664,
+        415
+      ],
+      "surface": "front-counter"
+    },
+    "chalk-menu": {
+      "at": [
+        563,
+        242
+      ],
+      "surface": "wall"
+    },
+    "neon-sign": {
+      "at": [
+        650,
+        190
+      ],
+      "surface": "wall"
+    },
+    "plastic-stools": {
+      "at": [
+        94,
+        607
+      ],
+      "surface": "floor"
+    },
+    "small-table": {
+      "at": [
+        142,
+        612
+      ],
+      "surface": "floor"
+    },
+    "wall-calendar": {
+      "at": [
+        445,
+        289
+      ],
+      "surface": "wall"
+    },
+    "old-radio": {
+      "at": [
+        558,
+        329
+      ],
+      "surface": "back-counter"
+    },
+    "wall-fan": {
+      "at": [
+        889,
+        206
+      ],
+      "surface": "wall"
+    },
+    "award-frame": {
+      "at": [
+        786,
+        208
+      ],
+      "surface": "wall"
+    },
+    "banana-plant": {
+      "at": [
+        106,
+        601
+      ],
+      "surface": "floor"
+    },
+    "wind-chime": {
+      "at": [
+        1091,
+        254
+      ],
+      "surface": "ceiling"
+    }
   },
   "sceneScale": {
     "assets/cart-scene.webp": {

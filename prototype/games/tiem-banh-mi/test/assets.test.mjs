@@ -90,7 +90,7 @@ test("toạ độ cảnh lấy từ manifest placements (đồ trên xe, chỗ x
 });
 
 test("giá vốn công thức = phần nền 7k + phần riêng, khớp bảng ECONOMY §2", () => {
-  for (const R of RECIPES) {
+  for (const R of RECIPES.filter((r) => !r.que)) {
     let k = BASE_COST;
     for (const [id, lvl] of Object.entries(R.spreads)) k += STOCK[id].cost * LEVEL_USE[lvl];
     for (const id of R.fills) k += STOCK[id].cost;

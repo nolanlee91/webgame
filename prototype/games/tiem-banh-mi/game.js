@@ -1,19 +1,23 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS } from "./render/atlas.js?v=b1";
-import { placeholderFallback } from "./render/placeholder.js?v=b1";
-import { createScene } from "./render/scene.js?v=b1";
-import { createBench } from "./ui/bench.js?v=b1";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b1";
-import { apply } from "./core/apply.js?v=b1";
-import { customer } from "./core/shift.js?v=b1";
-import { hint } from "./core/tutorial.js?v=b1";
-import { itemName } from "./core/rescue.js?v=b1";
-import { STEP_NAME } from "./core/board.js?v=b1";
-import { STOCK, NAMES } from "./data/economy.js?v=b1";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b1";
-import { shopSave, browserStorage } from "./save.js?v=b1";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b1";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=b2";
+import { placeholderFallback } from "./render/placeholder.js?v=b2";
+import { createScene } from "./render/scene.js?v=b2";
+import { createBench } from "./ui/bench.js?v=b2";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b2";
+import { apply } from "./core/apply.js?v=b2";
+import { customer } from "./core/shift.js?v=b2";
+import { hint } from "./core/tutorial.js?v=b2";
+import { itemName } from "./core/rescue.js?v=b2";
+import { STEP_NAME } from "./core/board.js?v=b2";
+import { STOCK, NAMES } from "./data/economy.js?v=b2";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b2";
+import { shopSave, browserStorage } from "./save.js?v=b2";
+import { setJournalBg } from "./ui/journal.js?v=b2";
+import { currentEvent, openEvent } from "./core/drama.js?v=b2";
+import { DECOR } from "./data/equipment.js?v=b2";
+import { PLACE_REASON } from "./core/progress.js?v=b2";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b2";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -22,17 +26,18 @@ const reduced = () => reducedMQ.matches;
 const pickOf = (list, i) => list[i % list.length];
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=b1")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=b2")).json();
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
   const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
   const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
-  const replaced = new Set(hdOn.map(([al]) => SHEETS[al]));
+  const replaced = new Set(hdOn.filter(([al]) => !KEEP_BASE.has(al)).map(([al]) => SHEETS[al]));
   const want = [...Object.entries(SHEETS).filter(([al, src]) => files.has(src) && !replaced.has(src) && !(OPTIONAL_SHEETS.has(al) && !files.has(src))).map(([, s]) => s), ...hdOn.map(([, f]) => f)];
   await Promise.all(want.filter((src) => !LAZY_SHEETS.has(src)).map(load));
   const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 1200));
   idle(() => want.filter((src) => LAZY_SHEETS.has(src)).forEach(load));
 
+  if (files.has("assets/journal-card.webp")) setJournalBg("assets/journal-card.webp");
   const store = shopSave(browserStorage());
   const seed = params.has("seed") ? Number(params.get("seed")) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
   const loaded = store.read(seed);
@@ -49,12 +54,19 @@ async function boot() {
   const bench = createBench($("#bench"), atlas, (a) => act(a));
   const hud = createHud($("#hud"), $("#pills"), atlas, (a) => act(a));
   const rail = createRail($("#rail"), (cid) => act({ type: "pin", cid }));
+  /** Giữa hai ca: sự kiện Drama (nếu có) rồi Chuẩn bị ca. */
+  const toPrep = (tab) => { if (state.drama?.pending) overlays.event(state, () => toPrep(tab)); else { store.snapshotDay(state); overlays.prep(state, tab); } };
   const overlays = createOverlays($("#overlay"), $("#sheet"), atlas, (a) => act(a), {
     state: () => state,
-    afterIntro: () => { store.snapshotDay(state); overlays.prep(state); },
-    afterSummary: () => { store.snapshotDay(state); overlays.prep(state); },
+    afterIntro: () => toPrep(),
+    afterSummary: (tab) => toPrep(tab),
     resume: () => { paused = false; openDialog(); },
     restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
+    replayInfo: () => { const i = store.replayInfo(); return i && i.seed === state.seed && i.day <= state.day ? i : null; },
+    replay: () => { save(true); if (!store.replayDay()) return false; restarting = true; location.reload(); return true; },
+    moved: () => showMove(),
+    decor: () => decorMode(true),
+    sceneImage: () => { const img = document.querySelector('.stage img[data-layer="shop"], .stage img[data-layer="cart"]'); return img && img.complete && img.naturalWidth ? img : null; },
     toast: (t, k) => say(t, k),
     prepSpeed: () => Number(params.get("prepSpeed")) || 1,
   });
@@ -90,7 +102,7 @@ async function boot() {
     for (const e of r.events) {
       playEvent(e);
       switch (e.type) {
-        case "step": scene.act(e.step === "wrap" ? "wrap" : "slice", 500); if (e.step === "slice") scene.burst("crumbs", scene.points.board[0], scene.points.board[1] - 20, 0.5, reduced()); if (e.step === "toast" && e.burnt) say("Nướng quá lâu, ổ cháy rồi!", "warn"); break;
+        case "step": scene.act(e.step === "wrap" ? "wrap" : "slice", 500); if (e.step === "slice") scene.burst("crumbs", scene.points.boards[0][0], scene.points.boards[0][1] - 20, 0.5, reduced()); if (e.step === "take" && e.n > 1) say(`Ráp ×${e.n} trên thớt dài.`, "good"); if (e.step === "toast" && e.burnt) say("Nướng quá lâu, ổ cháy rồi!", "warn"); break;
         case "batchLoaded": scene.act("oven", 700); break;
         case "batchGolden": say(pickOf(OVEN_LINES.ready, state.shift?.stats.batches || 0), "good"); break;
         case "batchDark": say(pickOf(OVEN_LINES.dark, 0), "warn"); break;
@@ -109,7 +121,19 @@ async function boot() {
           say(`${e.owed ? "Khách nợ" : e.lost ? "Khách đi luôn" : "+" + fmtK(e.price)} · ${e.stars} sao${e.xp ? ` · +${e.xp} XP` : ""}${ch}`, e.stars >= 4 && !e.change ? "good" : e.stars <= 2 || e.change === "short" ? "warn" : "");
           break;
         }
-        case "complaint": case "stockout": case "nochange": setTimeout(() => openDialog(), reduced() ? 0 : 350); break;
+        case "complaint": case "stockout": case "nochange": case "drama": setTimeout(() => openDialog(), reduced() ? 0 : 350); break;
+        case "missionDone": say(`Xong nhiệm vụ: ${e.text} (+${e.xp} XP${e.money ? `, +${e.money}k` : ""})`, "good"); break;
+        case "missionsAll": say(e.line, "good"); break;
+        case "bought": say(`Đã mua ${e.name} (−${e.price}k). ${e.line || ""}`, "good"); break;
+        case "rented": say(e.line, "good"); break;
+        case "ranked": say(`Lên hạng tiệm ${e.rank}! ${e.line}`, "good"); break;
+        case "preorder": say(`Nhận đơn đặt trước ${e.name}: ${e.n} ổ, cọc ${e.deposit}k.`, "good"); break;
+        case "preorderOpen": say(`Đơn đặt trước của ${e.name}: ${e.n} ổ, giao trong ${Math.round((e.due - (state.shift?.t || 0)) / 1000)} giây.`, "good"); break;
+        case "preorderFail": say(`Trễ đơn đặt trước của ${e.name}. ${e.line}`, "warn"); break;
+        case "helperChange": say(e.line, "good"); break;
+        case "spareGas": say("Hết gas, đã thay bình dự phòng.", "good"); break;
+        case "replied": break;
+        case "persona": break;
         case "lowStock": say(`“${LOW_LINES[0].replace("{item}", STOCK[e.id]?.name || e.id).replace("{n}", e.n)}”`, "warn"); break;
         case "ranBack": case "delivered": say(e.line, e.wrong ? "warn" : "good"); break;
         case "timeout": say(`${e.name} bỏ về vì chờ lâu. Review 1 sao.`, "warn"); break;
@@ -120,7 +144,7 @@ async function boot() {
         case "consigned": say(`Bà Tư ký gửi một gói hàng (${fmtK(e.owed)}, bán tới đâu trả tới đó).`, "good"); break;
         case "exchanged": say(`Cô Sáu đổi ${e.value}k tiền lẻ.`, "good"); break;
         case "shiftStarted": say(`Mở hàng ngày ${e.day}! Khoảng ${e.guests} khách. Phí ca ${e.fee}k.`, "good"); break;
-        case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
+        case "shiftEnded": setTimeout(() => { dock(); overlays.summary(state); }, reduced() ? 0 : 600); break;
         default: break;
       }
     }
@@ -130,7 +154,8 @@ async function boot() {
   function openDialog() {
     const d = state.shift?.dialog;
     if (!d || overlays.current) return;
-    if (d.kind === "complaint") overlays.complaint(state);
+    if (d.kind === "event") overlays.event(state);
+    else if (d.kind === "complaint") overlays.complaint(state);
     else if (d.kind === "stockout") overlays.stockout(state);
     else if (d.kind === "nochange") overlays.nochange(state);
   }
@@ -150,6 +175,8 @@ async function boot() {
     setSoundScene(mode, mode === "service" && sh.oven.some(Boolean));
     const hn = sh?.tutorial ? hint(state) : null;
     scene.update(state, { reduced: reduced(), hintPin: hn?.key === "pin" });
+    if ((state.shop ? "shop" : "cart") !== sceneMode) { sceneMode = state.shop ? "shop" : "cart"; layout(); }
+    $("#world").dataset.weather = state.weather?.kind === "rain" && state.weather.day === state.day && sh ? "rain" : "";
     rail(state, hn?.key === "pin");
     hud(state);
     bench.render(state, hn);
@@ -165,9 +192,10 @@ async function boot() {
 
   // ---------- bố cục ----------
   const mobile = matchMedia("(max-width: 760px)");
+  let camQueue = false, sceneMode = state.shop ? "shop" : "cart";
   function layout() {
     // mobile: luôn thấy từ chủ tiệm sau xe tới hàng chờ (cắt bớt bầu trời / lòng đường)
-    if (mobile.matches) scene.layoutFit(330, 1180, 150, 720); else scene.layout(660, 400, 1);
+    if (mobile.matches) { const r = scene.region(camQueue ? "queue" : "work"); scene.layoutFit(r[0], r[1], r[2], r[3]); } else scene.layout(660, 400, 1);
     bench.setLoafScale(mobile.matches ? 1 : innerHeight < 820 ? 0.75 : 1);
   }
   addEventListener("resize", layout);
@@ -183,6 +211,54 @@ async function boot() {
   muteBtn.addEventListener("click", () => { if (cycleSoundMode() !== "off") unlockSound(); syncMute(); });
   addEventListener("storage", (event) => { if (event.key === MUTE_KEY || event.key === MUSIC_KEY || event.key === null) { syncMute(); syncSound(); } });
   syncMute();
+  const openBook = (tab) => { if (overlays.current && !["prep", "pause", "summary"].includes(overlays.current)) return; if (state.shift) paused = true; overlays.notebook(state, tab); };
+  $("#bookBtn").addEventListener("click", () => openBook());
+  // dock mobile 5 nút: Quầy · Lò · Khách · Kho · Sổ (SCREENS.md)
+  function dock() { for (const b of document.querySelectorAll("#dock button")) b.disabled = !state.shift && b.dataset.dock !== "book"; }
+  document.querySelector("#dock").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-dock]"); if (!b) return;
+    const k = b.dataset.dock;
+    if (k === "bench") { camQueue = false; layout(); $("#bench").scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); }
+    else if (k === "oven") { const o = document.querySelector('#bench [data-act="pull"], #bench [data-act="bake"]'); o?.scrollIntoView({ block: "center" }); const p = document.querySelector('[data-act="ovenPill"]'); if (p && state.shift) p.click(); }
+    else if (k === "queue") { camQueue = !camQueue; b.classList.toggle("on", camQueue); layout(); $("#world").scrollIntoView({ block: "start" }); }
+    else if (k === "stock") { if (state.shift) { paused = true; overlays.prep(state, "stock"); } }
+    else if (k === "book") openBook();
+  });
+  dock();
+  // ---------- lên tiệm: cảnh chuyển 4 giây ----------
+  function showMove() {
+    const m = $("#move"); m.hidden = false; m.classList.remove("go"); void m.offsetWidth; m.classList.add("go");
+    setTimeout(() => { m.hidden = true; }, reduced() ? 600 : 4000);
+  }
+  // ---------- sắp xếp trang trí (kéo thả trong cảnh tiệm) ----------
+  let decorSel = null;
+  function decorMode(on) {
+    const bar = $("#decorBar");
+    bar.hidden = !on; $("#app").classList.toggle("decor-on", on);
+    if (!on) { decorSel = null; store.snapshotDay(state); overlays.prep(state, "shop"); return; }
+    bar.textContent = "";
+    const t = document.createElement("b"); t.textContent = "Chọn đồ rồi kéo / chạm vào chỗ muốn đặt trong tiệm:"; bar.appendChild(t);
+    for (const id of Object.keys(DECOR)) {
+      if (!state.owned[id]) continue;
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn small" + (decorSel === id ? " primary" : ""); b.dataset.decor = id; b.textContent = DECOR[id].name;
+      b.addEventListener("click", () => { decorSel = id; decorMode(true); });
+      bar.appendChild(b);
+    }
+    if (decorSel) { const r = document.createElement("button"); r.type = "button"; r.className = "btn small"; r.dataset.act = "resetPlace"; r.textContent = "Đặt lại chỗ cũ"; r.addEventListener("click", () => { act({ type: "resetPlace", id: decorSel }); }); bar.appendChild(r); }
+    const done = document.createElement("button"); done.type = "button"; done.className = "btn primary small"; done.dataset.act = "decorDone"; done.textContent = "Xong"; done.addEventListener("click", () => decorMode(false)); bar.appendChild(done);
+  }
+  const sceneEl = $("#scene");
+  let dragging = false;
+  const placeAtEvent = (e, commit) => {
+    if (!decorSel || bar().hidden) return;
+    const r = sceneEl.getBoundingClientRect(); const [x, y] = scene.toScene(e.clientX - r.left, e.clientY - r.top);
+    if (!commit) { const g = document.querySelector(`.decor[data-decor="${decorSel}"]`); if (g) g.style.translate = "0 0"; return; }
+    const res = act({ type: "place", id: decorSel, x, y });
+    if (res.err) say(PLACE_REASON[res.detail?.reason] || "Chỗ này không đặt được.", "warn");
+  };
+  const bar = () => $("#decorBar");
+  sceneEl.addEventListener("pointerdown", (e) => { if (!decorSel || bar().hidden) return; dragging = true; sceneEl.setPointerCapture?.(e.pointerId); e.preventDefault(); });
+  sceneEl.addEventListener("pointerup", (e) => { if (!dragging) return; dragging = false; placeAtEvent(e, true); });
   $("#helpBtn").addEventListener("click", () => { if (overlays.current && !["prep", "pause"].includes(overlays.current)) return; if (state.shift) paused = true; overlays.help(); });
   $("#pauseBtn").addEventListener("click", () => { if (!state.shift || overlays.current) return; paused = true; overlays.pause(); });
   document.addEventListener("visibilitychange", () => { syncSound(); if (document.hidden) { save(true); if (state.shift && !overlays.current && !state.shift.dialog) { paused = true; overlays.pause(); } } });
@@ -194,6 +270,7 @@ async function boot() {
     if (key === "m") { muteBtn.click(); return; }
     if (key === "escape" || key === "p") { $("#pauseBtn").click(); return; }
     if (key === "h") { $("#helpBtn").click(); return; }
+    if (key === "s") { $("#bookBtn").click(); return; }
     if (!state.shift) return;
     const click = (sel) => { const b = document.querySelector(sel); if (b && !b.disabled) { b.click(); e.preventDefault(); return true; } return false; };
     if (/^[1-6]$/.test(e.key)) click(`#rail .slip:nth-child(${e.key})`);
@@ -210,7 +287,7 @@ async function boot() {
   else if (state.shift?.dialog) openDialog();
   else if (state.shift) { paused = true; overlays.pause(); }
   else if (state.lastSummary && !state.lastSummary.seen) overlays.summary(state);
-  else { store.snapshotDay(state); overlays.prep(state); }
+  else toPrep();
   if (loaded.fresh || loaded.migrated) save(true);
   $("#app").classList.add("ready");
   requestAnimationFrame((t) => { last = t; frame(t); });
@@ -222,6 +299,11 @@ async function boot() {
     advance(ms) { for (let left = ms; left > 0 && state.shift && !state.shift.dialog; left -= 200) act({ type: "tick", dt: Math.min(200, left) }, true); },
     get paused() { return paused || !!overlays.current; },
     get overlay() { return overlays.current; },
+    get event() { return currentEvent(state); },
+    openEvent(id) { const r = openEvent(state, id); if (r.ok) { if (state.shift) openDialog(); else overlays.event(state, () => toPrep()); } return r; },
+    save: () => save(true),
+    overlays,
+    scene,
     customer: (cid) => customer(state, cid),
     hint: () => hint(state),
     sound: () => soundDebug(),

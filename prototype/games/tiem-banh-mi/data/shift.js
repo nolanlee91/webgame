@@ -31,3 +31,12 @@ export const CART = {
 export const WALK_MS = 2600;
 export const ORDER_ANIM_MS = 1200;
 export const BUBBLE_MS = 4200;
+
+/** Toạ độ cảnh tiệm (shop-scene, cấp 7+), chép từ manifest placements của Codex đợt 1 (render/scene.js đọc manifest nếu có, đây là dự phòng
+ *  + bản dùng cho luật thuần như kiểm chỗ đặt trang trí). */
+export const SHOP = {
+  door: [1160, 508], queue: [[246, 582], [430, 602], [614, 621], [798, 640], [982, 659], [1166, 677]], exit: [[254, 692], [1098, 692], [1160, 508]],
+  baker: [482, 491], oven: [235, 336], toaster: [390, 335], grill: [486, 333], pot: [567, 334], pan: [635, 335], gas: [84, 558],
+  sauce: [165, 417], pate: [209, 418], butter: [251, 417], mayo: [306, 418], chili: [350, 420], boards: [[414, 417], [521, 417], [579, 417]],
+  pickle: [631, 418], herb: [665, 418], display: [853, 413], cash: [1000, 416], paper: [126, 413], bag: [94, 236], tea: [1074, 567], sign: [646, 172],
+};

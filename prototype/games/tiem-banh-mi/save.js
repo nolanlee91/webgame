@@ -1,7 +1,7 @@
 // Adapter lưu (localStorage). Luật đọc / kẹp / di chuyển ở core/state.js.
 // Bản lưu hỏng không bị xoá: chép nguyên văn sang KEY + ".corrupt" (một lần) rồi mới mở tiệm mới.
 // Bản lưu phiên bản cũ: chép nguyên văn sang KEY + ".bak-v<cũ>" (một lần) trước khi nâng cấp, để không bao giờ mất dữ liệu người chơi.
-import { createState, loadSave, dump, saveVersion, SAVE_VERSION } from "./core/state.js?v=b1";
+import { createState, loadSave, dump, saveVersion, SAVE_VERSION } from "./core/state.js?v=b2";
 
 export const KEY = "wgp.tiembanhmi.v1";
 export const CORRUPT_KEY = KEY + ".corrupt";
