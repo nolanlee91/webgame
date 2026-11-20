@@ -1,5 +1,7 @@
 # Quán Cơm Tấm
 
+> **Chủ dự án đã duyệt M0 (20/11/2026):** hai ca trưa + tối (chọn ca từ cấp 5); cô chủ đi bộ thật trong cảnh để bưng dĩa; tính tiền tay, ngày 1–3 có nút "Tính đúng" tự động, cấp 15 có máy tính tiền; giữ 13 vai (có worker2 / student2); cô chủ là nữ như thumbnail.
+
 > **Milestone 0, chờ chủ dự án duyệt.** Các quyết định cần chốt: DEV-NOTES.md, mục "Quyết định cần chủ dự án".
 
 Lụm Kèo · Tập Làm Chủ · Milestone 0 · Game id `quan-com-tam` · Web một người chơi, tiền ảo.

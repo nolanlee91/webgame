@@ -11,7 +11,7 @@
 
 | Mốc | Trạng thái | Nội dung |
 |---|---|---|
-| M0 · Thiết kế + hợp đồng asset | **Xong, chờ chủ dự án duyệt** | GAME-DESIGN, ECONOMY, DRAMA (58 sự kiện, 13 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json`, `asset-manifest.json` rỗng. Chi tiết `asset-spec.json`:<br>- 33 sheet, 777 frame;<br>- đợt 1: 22 sheet / 509 frame;<br>- đợt 2: 11 sheet / 268 frame;<br>- 74 toạ độ đặt + 12 đường đi / bàn;<br>- `checkSceneScale` cho 2 cảnh.<br>`check_assets` chạy được, hiện chỉ báo thiếu file (đúng, chưa có art). |
+| M0 · Thiết kế + hợp đồng asset | **Xong, chủ dự án đã duyệt 20/11/2026** | GAME-DESIGN, ECONOMY, DRAMA (58 sự kiện, 13 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json`, `asset-manifest.json` rỗng. Chi tiết `asset-spec.json`:<br>- 33 sheet, 777 frame;<br>- đợt 1: 22 sheet / 509 frame;<br>- đợt 2: 11 sheet / 268 frame;<br>- 74 toạ độ đặt + 12 đường đi / bàn;<br>- `checkSceneScale` cho 2 cảnh.<br>`check_assets` chạy được, hiện chỉ báo thiếu file (đúng, chưa có art). |
 | Cảnh (Codex) | **Đang vẽ** | `street-scene`, `street-foreground`, `quan-scene`, `quan-foreground`. Thước: người 260 / cửa 330 / quầy 150 / bàn 120. |
 | M1 · Kiến trúc + cảnh + bàn | Chưa bắt đầu | GAME-DESIGN §7 |
 | M2 · Một ca trọn | Chưa bắt đầu | |
