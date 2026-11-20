@@ -29,6 +29,28 @@ def expand(pat):
     for o in opts: out += expand(pat[:m.start()] + o + pat[m.end():])
     return out
 
+def stray_bits(crop, margin=28, frac=0.03):
+    """Mẩu alpha nhỏ, rời khỏi khối chính, nằm trong `margin` px sát mép ô ⇒ thường là hình ô bên tràn sang. Trả số px mẩu lạc."""
+    w, h = crop.size; sc = 2 if w * h > 40000 else 1
+    a = crop.getchannel("A").resize((w // sc, h // sc), Image.NEAREST); W, H = a.size; px = a.load()
+    seen = bytearray(W * H); comps = []
+    for yy in range(H):
+        for xx in range(W):
+            if px[xx, yy] and not seen[yy * W + xx]:
+                stack = [(xx, yy)]; seen[yy * W + xx] = 1; n = 0; x0 = x1 = xx; y0 = y1 = yy
+                while stack:
+                    cx, cy = stack.pop(); n += 1
+                    x0, x1, y0, y1 = min(x0, cx), max(x1, cx), min(y0, cy), max(y1, cy)
+                    for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+                        if 0 <= nx < W and 0 <= ny < H and px[nx, ny] and not seen[ny * W + nx]:
+                            seen[ny * W + nx] = 1; stack.append((nx, ny))
+                comps.append((n, x0, x1, y0, y1))
+    if len(comps) < 2: return 0
+    total = sum(c[0] for c in comps); m = margin // sc; bad = 0
+    for n, x0, x1, y0, y1 in comps:
+        if n < total * frac and (x0 < m or y0 < m or x1 >= W - m or y1 >= H - m) and n >= 4: bad += n * sc * sc
+    return bad
+
 def grid_mismatch(im, g):
     if g <= 1: return 0.0
     w, h = im.size
@@ -97,6 +119,11 @@ def main():
             if g > 1 and any(v % g for v in (x, y, w, h)): err(f"{tag} '{name}' rect {fr['rect']} không chia hết cho {g} (lệch lưới)")
             crop = im.crop((x, y, x + w, y + h)); bb = crop.getchannel("A").getbbox()
             if not bb: err(f"{tag} '{name}' trống"); continue
+            if w >= 48 and h >= 48 and not sh.get("allowEdge"):
+                edge = [k for k, box in zip("TRÁI PHẢI TRÊN DƯỚI".split(), ((0, 0, 1, h), (w - 1, 0, w, h), (0, 0, w, 1), (0, h - 1, w, h))) if crop.getchannel("A").crop(box).getbbox()]
+                if edge: warn(f"{tag} '{name}' hình chạm mép ô ({', '.join(edge)}) — có thể bị cắt hoặc tràn sang ô bên")
+                stray = stray_bits(crop)
+                if stray and sh.get("checkStray", True) and not sh.get("role") == "character": warn(f"{tag} '{name}' có mẩu rời sát mép ô (≈{stray} px) — SOI BẰNG MẮT: nếu là hình ô bên tràn sang thì phải sửa (chừa lề trong suốt); tóc / bông tai / hơi nước thì bỏ qua")
             if sh.get("role") == "character":
                 fig_h = bb[3] - bb[1]
                 if abs(bb[3] - ay) > sh.get("footTolerance", 6): err(f"{tag} '{name}' chân ở y={bb[3]} nhưng anchor y={ay} (lệch {bb[3] - ay} px)")
