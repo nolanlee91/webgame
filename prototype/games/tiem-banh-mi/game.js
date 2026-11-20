@@ -1,23 +1,23 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=b2";
-import { placeholderFallback } from "./render/placeholder.js?v=b2";
-import { createScene } from "./render/scene.js?v=b2";
-import { createBench } from "./ui/bench.js?v=b2";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b2";
-import { apply } from "./core/apply.js?v=b2";
-import { customer } from "./core/shift.js?v=b2";
-import { hint } from "./core/tutorial.js?v=b2";
-import { itemName } from "./core/rescue.js?v=b2";
-import { STEP_NAME } from "./core/board.js?v=b2";
-import { STOCK, NAMES } from "./data/economy.js?v=b2";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b2";
-import { shopSave, browserStorage } from "./save.js?v=b2";
-import { setJournalBg } from "./ui/journal.js?v=b2";
-import { currentEvent, openEvent } from "./core/drama.js?v=b2";
-import { DECOR } from "./data/equipment.js?v=b2";
-import { PLACE_REASON } from "./core/progress.js?v=b2";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b2";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=b3";
+import { placeholderFallback } from "./render/placeholder.js?v=b3";
+import { createScene } from "./render/scene.js?v=b3";
+import { createBench } from "./ui/bench.js?v=b3";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b3";
+import { apply } from "./core/apply.js?v=b3";
+import { customer } from "./core/shift.js?v=b3";
+import { hint } from "./core/tutorial.js?v=b3";
+import { itemName } from "./core/rescue.js?v=b3";
+import { STEP_NAME } from "./core/board.js?v=b3";
+import { STOCK, NAMES } from "./data/economy.js?v=b3";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b3";
+import { shopSave, browserStorage } from "./save.js?v=b3";
+import { setJournalBg } from "./ui/journal.js?v=b3";
+import { currentEvent, openEvent } from "./core/drama.js?v=b3";
+import { DECOR } from "./data/equipment.js?v=b3";
+import { PLACE_REASON } from "./core/progress.js?v=b3";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b3";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -26,7 +26,7 @@ const reduced = () => reducedMQ.matches;
 const pickOf = (list, i) => list[i % list.length];
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=b2")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=b3")).json();
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
   const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });

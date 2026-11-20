@@ -1,30 +1,30 @@
 // Một ca: khách tới theo ba buổi, ghim phiếu, giao ổ (cả ráp ×N), chấm sao, khiếu nại, trả tiền + thối, review, chốt ca lời lỗ. Thuần.
 // M3: đơn nhiều ổ (đơn nhóm từ sự kiện), đơn đặt trước (cọc, hạn giao, trễ), thớt đôi / ba, phụ việc, bánh hôm qua, quảng bá, hội chợ,
 // thử thách, nhiệm vụ ngày, bộ điều chỉnh có hạn. M4: Drama Engine (core/drama.js), review lưu sổ + trả lời (core/reviews.js), Nhật Ký.
-import { RECIPE, NAMES, LEVELS, XP_MUL, STOCK, AUTO_CHANGE_DAYS, HONEST_RETURN, BACHUC, QUEUE_MAX, QUE } from "../data/economy.js?v=b2";
-import { ARCHETYPES, ARCH_IDS, REGULARS, REGULAR_KNOWN_AT } from "../data/customers.js?v=b2";
-import { QUIRKS } from "../data/quirks.js?v=b2";
-import { PHASES, SHIFT_MS, PHASE_BANNER, NORMAL_DAY, TUTORIAL, WALK_MS } from "../data/shift.js?v=b2";
-import { PREORDER, FAIR } from "../data/equipment.js?v=b2";
-import * as L from "../data/lines.js?v=b2";
-import * as M3 from "../data/lines-m3.js?v=b2";
-import { STAR_REVIEWS_MORE, STAR_REVIEWS_ARCH_MORE, MISTAKE_SAY_MORE, MISTAKE_REVIEW_MORE } from "../data/lines-reviews.js?v=b2";
-import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=b2";
-import { next, int, pick, weighted } from "./rng.js?v=b2";
-import { fill, freshLine, poolFor } from "./text.js?v=b2";
-import { makeItem, makeBachuc, menuFor, orderText, loafName, bachucMax, bachucPrice } from "./order.js?v=b2";
-import { scoreOrder } from "./score.js?v=b2";
-import { customerPays, makeChange, canChange, payOut, receive, spend, greedyBills, sumBills } from "./money.js?v=b2";
-import { ovenOf, newLoaf, tickOven, addWaste } from "./oven.js?v=b2";
-import { emptyBoard, board, finished, wasteLoaf } from "./board.js?v=b2";
-import { shiftFee, repayConsign, stage, baseGuests } from "./stock.js?v=b2";
-import { tickRescue, openNochange } from "./rescue.js?v=b2";
-import { engineFlag, modSum, modGuests, pruneMods, today, hasFlag } from "./flags.js?v=b2";
-import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./drama.js?v=b2";
-import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b2";
-import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b2";
-import { caption } from "./journal.js?v=b2";
-import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, judgeChallenge, rollWeather, createPreorder, STALE_CRISP, rainMul } from "./progress.js?v=b2";
+import { RECIPE, NAMES, LEVELS, XP_MUL, STOCK, AUTO_CHANGE_DAYS, HONEST_RETURN, BACHUC, QUEUE_MAX, QUE } from "../data/economy.js?v=b3";
+import { ARCHETYPES, ARCH_IDS, REGULARS, REGULAR_KNOWN_AT } from "../data/customers.js?v=b3";
+import { QUIRKS } from "../data/quirks.js?v=b3";
+import { PHASES, SHIFT_MS, PHASE_BANNER, NORMAL_DAY, TUTORIAL, WALK_MS } from "../data/shift.js?v=b3";
+import { PREORDER, FAIR } from "../data/equipment.js?v=b3";
+import * as L from "../data/lines.js?v=b3";
+import * as M3 from "../data/lines-m3.js?v=b3";
+import { STAR_REVIEWS_MORE, STAR_REVIEWS_ARCH_MORE, MISTAKE_SAY_MORE, MISTAKE_REVIEW_MORE } from "../data/lines-reviews.js?v=b3";
+import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=b3";
+import { next, int, pick, weighted } from "./rng.js?v=b3";
+import { fill, freshLine, poolFor } from "./text.js?v=b3";
+import { makeItem, makeBachuc, menuFor, orderText, loafName, bachucMax, bachucPrice } from "./order.js?v=b3";
+import { scoreOrder } from "./score.js?v=b3";
+import { customerPays, makeChange, canChange, payOut, receive, spend, greedyBills, sumBills } from "./money.js?v=b3";
+import { ovenOf, newLoaf, tickOven, addWaste } from "./oven.js?v=b3";
+import { emptyBoard, board, finished, wasteLoaf } from "./board.js?v=b3";
+import { shiftFee, repayConsign, stage, baseGuests } from "./stock.js?v=b3";
+import { tickRescue, openNochange } from "./rescue.js?v=b3";
+import { engineFlag, modSum, modGuests, pruneMods, today, hasFlag } from "./flags.js?v=b3";
+import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./drama.js?v=b3";
+import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b3";
+import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b3";
+import { caption } from "./journal.js?v=b3";
+import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, judgeChallenge, rollWeather, createPreorder, STALE_CRISP, rainMul } from "./progress.js?v=b3";
 
 export const customer = (s, cid) => s.shift?.customers.find((c) => c.id === cid) || null;
 export const levelForXp = (xp) => { let lv = 1; for (let i = 0; i < LEVELS.length; i++) if (xp >= LEVELS[i]) lv = i + 1; return lv; };

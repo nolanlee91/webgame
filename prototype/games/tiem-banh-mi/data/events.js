@@ -65,11 +65,11 @@
 //   rep-viral rep-phot rep-trend rep-back rep-sale rep-cuc rep-meme rep-flip (câu trả lời review, core/reviews.js)
 //
 // ===== Biến trong câu =====  {name} {self} {Self} {call} {Call} (người nói) · {shop} tên tiệm · {day} · {followers} · {loaf} món của người nói · {n} · {price}
-import { EVENTS_KHACH } from "./events-khach.js?v=b2";
-import { EVENTS_VANHANH } from "./events-van-hanh.js?v=b2";
-import { EVENTS_MANG } from "./events-mang.js?v=b2";
-import { EVENTS_M3 } from "./events-m3.js?v=b2";
-import { EVENTS_REPLY } from "./events-reply.js?v=b2";
+import { EVENTS_KHACH } from "./events-khach.js?v=b3";
+import { EVENTS_VANHANH } from "./events-van-hanh.js?v=b3";
+import { EVENTS_MANG } from "./events-mang.js?v=b3";
+import { EVENTS_M3 } from "./events-m3.js?v=b3";
+import { EVENTS_REPLY } from "./events-reply.js?v=b3";
 
 export const EVENTS = [...EVENTS_KHACH, ...EVENTS_VANHANH, ...EVENTS_MANG, ...EVENTS_M3, ...EVENTS_REPLY];
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

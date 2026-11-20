@@ -4,13 +4,13 @@
 // và lý do review. Câu trả lời lưu nguyên văn dưới review (r.reply) kèm hậu quả (r.reply.fx) và câu đáp lại (r.reply.comeback).
 // Đổi tính cách lúc nào cũng được (ngay trên bảng trả lời); đổi nhiều lần trong ngày thì cư dân mạng để ý (rep-flip, R09, câu Nhật Ký).
 // Review "chay dính mặn" (lỗi 11) chỉ cho lựa chọn xin lỗi nghiêm túc (DRAMA.md §3: không đùa vào niềm tin của khách).
-import { PERSONAS, REPLY_OPTIONS, REPLY_LINES, MISTAKE_TEXT, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_HANDLES, NET_REVIEW, RETURN_LINES, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b2";
-import { RECIPE } from "../data/economy.js?v=b2";
-import { ARCHETYPES } from "../data/customers.js?v=b2";
-import { next, pick } from "./rng.js?v=b2";
-import { fill, freshLine } from "./text.js?v=b2";
-import { today } from "./flags.js?v=b2";
-import { spend } from "./money.js?v=b2";
+import { PERSONAS, REPLY_OPTIONS, REPLY_LINES, MISTAKE_TEXT, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_HANDLES, NET_REVIEW, RETURN_LINES, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b3";
+import { RECIPE } from "../data/economy.js?v=b3";
+import { ARCHETYPES } from "../data/customers.js?v=b3";
+import { next, pick } from "./rng.js?v=b3";
+import { fill, freshLine } from "./text.js?v=b3";
+import { today } from "./flags.js?v=b3";
+import { spend } from "./money.js?v=b3";
 
 export const FEED_MAX = 40, RATING_N = 20;
 export const FLIP_DAY = 3;

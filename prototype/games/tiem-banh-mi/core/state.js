@@ -3,16 +3,16 @@
 // MIGRATIONS[v] nâng v → v+1. v1 → v2 (M3 + M4): thêm tính cách chủ tiệm, người theo dõi / độ hot, Drama, Nhật Ký, bánh hôm qua, bộ điều chỉnh,
 // trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, đơn đặt trước, quảng bá, phụ việc, hội chợ, thử thách, thời tiết (mặc định an toàn).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-v1) một lần trước khi nâng.
-import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS } from "../data/economy.js?v=b2";
-import { ARCHETYPES } from "../data/customers.js?v=b2";
-import { QUIRKS } from "../data/quirks.js?v=b2";
-import { levelForXp } from "./shift.js?v=b2";
-import { floatValue } from "./money.js?v=b2";
-import { freshDrama } from "./flags.js?v=b2";
-import { EVENT } from "../data/events.js?v=b2";
-import { NPCS } from "../data/npcs.js?v=b2";
-import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b2";
-import { PERSONAS } from "../data/lines-reply.js?v=b2";
+import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS } from "../data/economy.js?v=b3";
+import { ARCHETYPES } from "../data/customers.js?v=b3";
+import { QUIRKS } from "../data/quirks.js?v=b3";
+import { levelForXp } from "./shift.js?v=b3";
+import { floatValue } from "./money.js?v=b3";
+import { freshDrama } from "./flags.js?v=b3";
+import { EVENT } from "../data/events.js?v=b3";
+import { NPCS } from "../data/npcs.js?v=b3";
+import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b3";
+import { PERSONAS } from "../data/lines-reply.js?v=b3";
 
 export const SAVE_VERSION = 2;
 export const MIGRATIONS = {

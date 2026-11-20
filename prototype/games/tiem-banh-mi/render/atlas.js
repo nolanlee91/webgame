@@ -19,10 +19,10 @@ export const HD_SHEETS = {
   faces: "assets/portrait-expressions-hd.webp", drama: "assets/drama-portraits-hd.webp",
 };
 
-/** Frame HD lỗi tạm (Codex sẽ vẽ lại): dùng bản thường. loaf-layers-hd "loaf-whole-pale" dính mép ổ bên cạnh. */
-export const HD_SKIP = new Set(["loaf-whole-pale"]);
+/** Frame HD lỗi tạm (dùng bản thường). Trống: Codex đã sửa "loaf-whole-pale" dính mép (88b99ac). */
+export const HD_SKIP = new Set([]);
 /** Sheet thường vẫn cần tải dù đã có bản HD (vì có frame HD_SKIP rơi về bản thường). */
-export const KEEP_BASE = new Set(["loaf"]);
+export const KEEP_BASE = new Set([]);
 export function makeAtlas(manifest, base = "", { hd = true, fallback = null } = {}) {
   const byFile = new Map();
   for (const it of manifest.items || []) if (it.filename?.startsWith("assets/")) byFile.set(it.filename, it);

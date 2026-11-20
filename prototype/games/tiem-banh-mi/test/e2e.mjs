@@ -6,6 +6,7 @@
 // Tua thời gian ca bằng __game.advance (không chờ thật). Yêu cầu 0 lỗi console.
 import { launch, sleep } from "./cdp.mjs";
 import { playM34 } from "./e2e-m34.mjs";
+import { audioBeforeGesture, audioAfterGesture, audioInShift } from "./e2e-m5.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8841;
 const BASE = `http://127.0.0.1:${PORT}/games/tiem-banh-mi/?seed=777&prepSpeed=8`;
@@ -83,7 +84,7 @@ async function payClicks(manual) {
   if (!(await S("s.shift&&s.shift.paying!==null"))) return "none";
   await waitFor("!!document.querySelector('#change')", 3000);
   if (manual) {
-    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b2');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
+    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b3');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
     if (bills) { for (const [d, n] of Object.entries(bills)) for (let i = 0; i < n; i++) await pressSel(`[data-bill="${d}"]`); await pressSel('[data-act="giveChange"]'); return "manual"; }
   }
   await pressSel('[data-act="autoChange"]');
@@ -93,6 +94,7 @@ async function payClicks(manual) {
 
 async function playDay1(tag, shots) {
   await b.send("Page.navigate", { url: "about:blank" }); await sleep(300); await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" }); await b.nav(BASE);
+  await audioBeforeGesture(ctx, tag);
   check(`${tag}: mở game có ô tên tiệm`, await visible("#introGo") && await visible("#shopName"));
   check(`${tag}: cảnh xe đẩy dùng ảnh thật cart-scene + cart-foreground`, await b.ev(`!!document.querySelector('.stage img[src$="cart-scene.webp"]')&&!!document.querySelector('.stage img[src$="cart-foreground.webp"]')`));
   if (shots) await b.shot(`${OUT}/${tag}-01-chao.png`);
@@ -100,6 +102,7 @@ async function playDay1(tag, shots) {
   await pressSel("#shopName"); await b.send("Input.insertText", { text: "Bánh Mì Hẻm Mười" });
   await pressSel("#introGo");
   check(`${tag}: bảng Chuẩn bị ca`, await waitFor("__game.overlay==='prep'"));
+  await audioAfterGesture(ctx, tag);
   check(`${tag}: tên tiệm đã lưu`, (await S("s.shopName")) === "Bánh Mì Hẻm Mười");
   await pressSel('[data-act="restockToday"]');
   if (shots) await b.shot(`${OUT}/${tag}-02-chuan-bi-ca.png`);
@@ -112,6 +115,7 @@ async function playDay1(tag, shots) {
   if (shots) await b.shot(`${OUT}/${tag}-03-me-dau.png`);
   await pressSel("#openShop");
   check(`${tag}: mở hàng, 4 ổ trong tủ kính`, await waitFor("!!__game.state.shift") && (await S("s.shift.case.length")) === 4);
+  await audioInShift(ctx, tag);
   let served = 0, manualDone = 0, autoDone = 0, layersOk = true, toastOk = null, firstShot = true;
   for (let guard = 0; guard < 40; guard++) {
     if (!(await S("!!s.shift"))) break;

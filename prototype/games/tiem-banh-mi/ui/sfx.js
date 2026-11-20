@@ -1,59 +1,76 @@
 // Âm thanh Tiệm Bánh Mì — cùng API và cách làm như Tiệm Trà Sữa (ui/sfx.js của Trà Sữa).
-// - Chỉ tạo AudioContext sau thao tác người chơi (unlockSound gọi từ pointerdown / keydown).
-// - wgp.muted (dùng chung Lụm Kèo) là công tắc tổng; tbm.music = "0" tắt riêng nhạc.
-// - CHƯA CÓ FILE ÂM THANH (assets/audio/ trống): AVAILABLE rỗng ⇒ không tải, không phát, không lỗi mạng; game im lặng an toàn.
-//   Khi có file, thêm tên (không đuôi) vào AVAILABLE là tự phát theo bảng soundsFor bên dưới.
+// - Bộ tiếng gốc của Codex (codex/banh-mi-audio, e7967c8): 28 MP3 trong assets/audio/, danh sách ở docs/tiem-banh-mi/ASSET-HANDOFF.md.
+// - Chỉ tạo AudioContext sau thao tác người chơi (unlockSound gọi từ pointerdown / keydown). Trước đó không tải byte nào.
+// - wgp.muted (dùng chung Lụm Kèo) là công tắc tổng; tbm.music = "0" tắt riêng nhạc (nút 3 trạng thái: bật hết / chỉ hiệu ứng / tắt).
+// - Hiệu ứng tải lần đầu phát (WARM tải sẵn sau thao tác đầu); vòng lặp tải khi cảnh cần. File thiếu / lỗi: im lặng, ghi vào failed, không thử lại.
 // - Bảng ánh xạ sự kiện → tiếng (soundsFor) thuần, test được bằng Node.
-
 export const MUTE_KEY = "wgp.muted";
 export const MUSIC_KEY = "tbm.music";
-/** File có thật trong assets/audio/ (chưa có). */
-export const AVAILABLE = new Set([]);
 
-/** Hiệu ứng một lần: tên file (không đuôi) → âm lượng. */
+/** Hiệu ứng một lần: tên file (không đuôi, đúng tên Codex giao) → âm lượng. */
 export const SFX = {
-  "oven-door": .34, ding: .34, slice: .32, spread: .30, topping: .32, veg: .30, chili: .30, wrap: .32, handoff: .30, coin: .31,
-  bill: .30, error: .30, arrival: .30, burnt: .34, toast: .32, stock: .33, discard: .32, level: .30, open: .29, summary: .33,
-  complaint: .35, "voice-happy": .31, "voice-sorry": .31, "voice-surprise": .31, paper: .30, timeout: .31,
+  "bread-slice": .32, "pate-spread": .30, "filling-place": .31, "herb-sprinkle": .29, "soy-squirt": .29,
+  "oven-open": .33, "oven-close": .32, "bread-ready": .34, "bread-burnt": .34, "charcoal-crackle": .28,
+  "paper-wrap": .31, "plastic-bag": .30, "change-count": .30, cashbox: .31,
+  arrival: .30, "voice-happy": .31, "voice-annoyed": .31, "voice-surprised": .31,
+  drama: .34, viral: .32, "level-up": .30, mission: .31, "shift-end": .33, error: .30,
 };
-/** Vòng lặp: music = nhạc (tắt được riêng), còn lại là âm phố. */
+/** Vòng lặp: music = nhạc (tắt được riêng), còn lại là âm phố / lò (đi theo hiệu ứng). */
 export const LOOPS = {
-  "morning-prep": { gain: .15, music: true },
-  "street-rhythm": { gain: .17, duck: .065, music: true },
-  "street-loop": { gain: .15, duck: .06 },
-  "oven-loop": { gain: .10 },
+  "prep-music-loop": { gain: .15, music: true },
+  "rush-music-loop": { gain: .16, duck: .06, music: true },
+  "dawn-street-loop": { gain: .14, duck: .06 },
+  "gas-oven-loop": { gain: .09 },
 };
-export const WARM = ["slice", "spread", "wrap", "coin", "ding", "arrival", "handoff", "error"];
-const GAP = { slice: 200, spread: 200, veg: 200, chili: 200, paper: 110, arrival: 500, error: 400, coin: 120, timeout: 700, complaint: 700, ding: 600 };
-const VOICE_GAP = 1600;
+/** File có thật trong assets/audio/ (28 file). Tên không có ở đây thì không tải, không phát. */
+export const AVAILABLE = new Set([...Object.keys(SFX), ...Object.keys(LOOPS)]);
+/** Tải sẵn ngay sau thao tác đầu tiên (mỗi file vài KB). */
+export const WARM = ["bread-slice", "pate-spread", "filling-place", "paper-wrap", "cashbox", "bread-ready", "arrival", "error"];
+// Khoảng nghỉ tối thiểu giữa hai lần phát cùng tên (ms): bấm liên tục không thành tràng tiếng.
+const GAP = { "bread-slice": 200, "pate-spread": 200, "filling-place": 180, "herb-sprinkle": 200, "soy-squirt": 200, "paper-wrap": 150, arrival: 500, error: 400,
+  cashbox: 160, "change-count": 300, "bread-ready": 600, "charcoal-crackle": 900, drama: 1200, viral: 1200 };
+const VOICE_GAP = 1600; // ba giọng không lời dùng chung một khoảng nghỉ: khách không "nói" chồng lên nhau
 
 // ---------- ánh xạ sự kiện → tiếng (thuần) ----------
-const STEP_SOUND = { take: "paper", toast: "toast", slice: "slice", spread: "spread", fill: "topping", veg: "veg", spice: "chili", wrap: "wrap" };
+const STEP_SOUND = { slice: "bread-slice", spread: "pate-spread", fill: "filling-place", veg: "herb-sprinkle", spice: "soy-squirt" };
+const REPLY = { viral: [["viral"]], phot: [["drama"], ["voice-surprised", .25]], annoyed: [["voice-annoyed"]], back: [["voice-happy"]] };
+/** Sự kiện từ apply() → danh sách [tên, trễ giây]. Sự kiện không có trong bảng thì im. */
 export function soundsFor(e) {
   switch (e?.type) {
-    case "step": return [[STEP_SOUND[e.step] || "paper"]];
+    case "step":
+      if (e.step === "toast") return e.on ? [["charcoal-crackle"]] : e.burnt ? [["bread-burnt"]] : [["oven-open"]];
+      if (e.step === "wrap") return [[e.id === "tui" ? "plastic-bag" : "paper-wrap"]];
+      if (e.step === "take") return [["filling-place"]];
+      return STEP_SOUND[e.step] && !e.skip && e.on !== false ? [[STEP_SOUND[e.step]]] : [];
     case "arrive": return [["arrival"]];
-    case "pinned": case "undone": case "itemSelected": return [["paper"]];
-    case "discarded": return [["discard"]];
-    case "impatient": return [["voice-sorry"]];
-    case "filled": return [["handoff"]];
-    case "batchLoaded": return [["oven-door"]];
-    case "batchGolden": case "toastReady": return [["ding"]];
-    case "batchBurnt": case "toastBurnt": return [["burnt"]];
-    case "batchPulled": return [["oven-door"]];
+    case "impatient": return [["voice-annoyed"]];
+    case "filled": return [["paper-wrap"]];
+    case "batchLoaded": return [["oven-close"]];
+    case "batchPulled": return [["oven-open"]];
+    case "batchGolden": case "toastReady": case "grillReady": case "eggReady": return [["bread-ready"]];
+    case "batchBurnt": case "toastBurnt": case "grillBurnt": return [["bread-burnt"]];
+    case "grillLoaded": case "eggFrying": return [["charcoal-crackle"]];
+    case "paying": return [["change-count"]];
     case "served": {
-      const out = [["handoff"]];
-      if (e.price > 0) out.push(["coin", .14]);
-      if (e.stars >= 4) out.push(["voice-happy", .31]); else if (e.stars <= 2) out.push(["voice-sorry", .19]);
-      return out;
+      const out = [];
+      if (e.price > 0) out.push(["cashbox"]);
+      if (e.change) out.push(["change-count", .08]);
+      if (e.stars >= 4) out.push(["voice-happy", .3]); else if (e.stars <= 2) out.push(["voice-annoyed", .2]);
+      return out.length ? out : [["paper-wrap"]];
     }
-    case "paying": return [["bill"]];
-    case "complaint": return [["complaint"], ["voice-surprise", .22]];
-    case "levelUp": return [["level"]];
-    case "timeout": return [["timeout"]];
-    case "restocked": case "restockedToday": case "stockout": case "lowStock": return [["stock"]];
-    case "shiftEnded": return [["summary"]];
-    case "shiftStarted": return [["open"]];
+    case "complaint": return [["voice-surprised"], ["drama", .2]];
+    case "drama": return [["drama"], ["voice-surprised", .2]];
+    case "dramaResolved": return [[e.rolled === "lose" ? "voice-annoyed" : e.rolled === "win" ? "viral" : "mission"]];
+    case "missionDone": case "missionsAll": case "contractDone": return [["mission"]];
+    case "levelUp": case "badge": case "ranked": case "rented": return [["level-up"]];
+    case "challengeResult": return [[e.ok ? "level-up" : "voice-annoyed"]];
+    case "fair": case "promoted": case "viral": return [["viral"]];
+    case "timeout": case "preorderFail": return [["voice-annoyed"]];
+    case "consigned": case "exchanged": return [["change-count"]];
+    case "bought": case "restocked": case "restockedToday": return [["cashbox"]];
+    case "stockout": case "noGas": return [["error"]];
+    case "shiftEnded": return [["shift-end"]];
+    case "replied": return REPLY[e.outcome] || [];
     default: return [];
   }
 }
@@ -141,8 +158,8 @@ function refresh() {
   if (on && ctx.state === "running") {
     const music = musicOn(), duck = scene === "dialog";
     const want = (n) => { const L = LOOPS[n]; if (!L.music || music) next.set(n, duck ? L.duck ?? 0 : L.gain); };
-    if (scene === "prep") want("morning-prep");
-    if (scene === "service" || duck) { want("street-rhythm"); want("street-loop"); if (boiling && !duck) want("oven-loop"); }
+    if (scene === "prep") { want("prep-music-loop"); want("dawn-street-loop"); }
+    if (scene === "service" || duck) { want("rush-music-loop"); want("dawn-street-loop"); if (boiling && !duck) want("gas-oven-loop"); }
     for (const n of [...next.keys()]) if (!exists(n)) next.delete(n);
     for (const [n, g] of next) if (!g) next.delete(n);
   }

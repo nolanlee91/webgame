@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { shop, act, advance, untilWaiting, build, customer, playShift } from "./helpers.mjs";
 import { hint } from "../core/tutorial.js";
 import { clockOf, phaseAt } from "../core/shift.js";
-import { soundsFor, AVAILABLE, play, MUTE_KEY } from "../ui/sfx.js";
+import { soundsFor, AVAILABLE, play, MUTE_KEY, SFX, LOOPS, WARM } from "../ui/sfx.js";
+import { readdirSync } from "node:fs";
 
 test("gợi ý ngày 1 theo đúng bước: nướng → rút → ghim → lấy bánh → rạch → phết … → giao → thối tiền", () => {
   const s = shop(); act(s, { type: "startShift" });
@@ -63,11 +64,20 @@ test("chốt ca: lời vận hành = doanh thu − giá vốn − hao hụt − 
   assert.equal(s.day, 2);
 });
 
-test("âm thanh: chưa có file ⇒ không phát, không tải; bảng sự kiện → tiếng vẫn đủ", () => {
-  assert.equal(AVAILABLE.size, 0);
-  assert.equal(play("coin"), false);
-  assert.equal(MUTE_KEY, "wgp.muted");
-  assert.deepEqual(soundsFor({ type: "step", step: "slice" }), [["slice"]]);
-  assert.ok(soundsFor({ type: "served", price: 16, stars: 5 }).length === 3);
+test("âm thanh: 28 file Codex khớp bảng tên; mọi sự kiện chỉ gọi tên có file; chưa có thao tác ⇒ không phát", () => {
+  const files = new Set(readdirSync(new URL("../assets/audio/", import.meta.url)).filter((f) => f.endsWith(".mp3")).map((f) => f.slice(0, -4)));
+  assert.equal(files.size, 28);
+  assert.deepEqual([...AVAILABLE].sort(), [...files].sort());
+  for (const n of [...Object.keys(SFX), ...Object.keys(LOOPS), ...WARM]) assert.ok(files.has(n), n);
+  const evs = [{ type: "step", step: "slice" }, { type: "step", step: "spread" }, { type: "step", step: "fill", on: true }, { type: "step", step: "veg", on: true }, { type: "step", step: "spice" },
+    { type: "step", step: "toast", on: true }, { type: "step", step: "wrap", id: "tui" }, { type: "step", step: "wrap", id: "giay" }, { type: "batchLoaded" }, { type: "batchPulled" }, { type: "batchGolden" },
+    { type: "batchBurnt" }, { type: "paying" }, { type: "served", price: 16, stars: 5, change: "short" }, { type: "arrive" }, { type: "drama" }, { type: "viral" }, { type: "levelUp" },
+    { type: "missionDone" }, { type: "shiftEnded" }, { type: "stockout" }, { type: "impatient" }, { type: "grillLoaded" }, { type: "eggReady" }, { type: "badge" }, { type: "challengeResult", ok: false }];
+  const used = new Set();
+  for (const e of evs) { const out = soundsFor(e); assert.ok(out.length, e.type); for (const [n] of out) { assert.ok(files.has(n), `${e.type} → ${n}`); used.add(n); } }
+  assert.deepEqual(soundsFor({ type: "step", step: "slice" }), [["bread-slice"]]);
+  assert.equal(soundsFor({ type: "served", price: 16, stars: 5 }).length, 2);
   assert.deepEqual(soundsFor({ type: "unknown" }), []);
+  assert.equal(play("cashbox"), false); // chưa có AudioContext (chưa thao tác) ⇒ không phát, không tải
+  assert.equal(MUTE_KEY, "wgp.muted");
 });

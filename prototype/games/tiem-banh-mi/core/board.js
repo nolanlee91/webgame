@@ -1,9 +1,9 @@
 // Dây chuyền ráp ổ trên thớt (GAME-DESIGN §3.2): lấy bánh → (nướng lại) → rạch → phết → nhân → rau dưa → gia vị → gói → giao + thối tiền.
 // Thứ tự một chiều: làm bước sau thì bước trước khoá lại (sửa được bước đang làm; Hoàn tác để quay lui). Nguyên liệu trừ ngay khi bỏ lên ổ;
 // bỏ ra / hoàn tác / đổ ổ thì phần đã dùng ghi hao hụt (không hoàn kho). Hết hàng ở bước nào thì mở hội thoại cứu (core/rescue.js).
-import { STOCK, LEVEL_USE, SPREADS, FILLINGS, VEG, VEG_IDS, SAUCES, WRAPS, TOASTER, QUE } from "../data/economy.js?v=b2";
-import { addWaste, toastResult } from "./oven.js?v=b2";
-import { modSum } from "./flags.js?v=b2";
+import { STOCK, LEVEL_USE, SPREADS, FILLINGS, VEG, VEG_IDS, SAUCES, WRAPS, TOASTER, QUE } from "../data/economy.js?v=b3";
+import { addWaste, toastResult } from "./oven.js?v=b3";
+import { modSum } from "./flags.js?v=b3";
 
 /** Ổ bánh hôm qua nướng lại tối đa 70 giòn (core/progress.js STALE_MAX). */
 const STALE_MAX = 70;
