@@ -125,7 +125,8 @@ export const shiftFeeFor = (level) => (level <= 6 ? 8 + 2 * level : 20 + 2 * lev
 export const QUEUE_MAX = { cart: 4, shop: 5, famous: 6 };
 
 /** 20 cấp (GAME-DESIGN §6). */
-export const LEVELS = [0, 35, 70, 115, 360, 580, 870, 1450, 2100, 3000, 3625, 4380, 5225, 6240, 7530, 9005, 10835, 12950, 15415, 18260];
+/** M5: dò bằng tools/sim/fit.mjs (bản M0: 0, 35, 70, 115, 360, 580, 870, 1450, 2100, 3000, 3625, 4380, 5225, 6240, 7530, 9005, 10835, 12950, 15415, 18260 — xem core/state.js LEVELS_V2). */
+export const LEVELS = [0, 30, 55, 125, 270, 445, 655, 1055, 1630, 2355, 2845, 3455, 4110, 5050, 6280, 7575, 9125, 11050, 13295, 16085];
 /** XP theo sao (ECONOMY §2): 4–5 sao đủ, 3 sao 60%, 1–2 sao 25%. Ổ thứ 5 trở đi trong một đơn 50%. */
 export const XP_MUL = { 5: 1, 4: 1, 3: 0.6, 2: 0.25, 1: 0.25 };
 

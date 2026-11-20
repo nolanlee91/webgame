@@ -101,6 +101,7 @@ async function boot() {
     "not-waiting": () => "Khách này không còn chờ nữa.",
     "cannot-afford": () => "Chưa đủ tiền cho lựa chọn này.",
     "pan-busy": () => "Chảo đang chiên hết chỗ. Chờ trứng chín.",
+    "owned": () => "Đã có rồi.",
     "grill-busy": () => "Bếp than đang có mẻ thịt.",
     "grill-raw": () => "Thịt chưa chín, chờ thêm chút.",
     "too-soon": () => "Hội chợ mỗi 4 ngày mới thuê gian lại được.",

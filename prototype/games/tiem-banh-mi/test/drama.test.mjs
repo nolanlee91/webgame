@@ -10,6 +10,7 @@ import { makeItem } from "../core/order.js";
 import { spawnPre } from "../core/shift.js";
 import { shop, act, prepAndOpen, playShift, resolveEvent } from "./helpers.mjs";
 import { apply } from "../core/apply.js";
+import { LEVELS } from "../data/economy.js";
 
 const allChoices = (ev) => Object.values(ev.nodes).flatMap((n) => n.choices);
 const fxOf = (ch) => [ch.fx, ch.roll?.win?.fx, ch.roll?.lose?.fx].filter(Boolean);
@@ -63,7 +64,7 @@ function stage(ev, seed = 11) {
   const lvl = Math.max(q.minLevel || 1, q.shop || q.owns === "electric-oven" ? 7 : 1, 1);
   s.level = Math.min(q.maxLevel || 20, Math.max(lvl, 8));
   if (q.maxLevel !== undefined) s.level = Math.min(s.level, q.maxLevel);
-  s.xp = [0, 35, 70, 115, 360, 580, 870, 1450, 2100, 3000, 3625, 4380, 5225, 6240, 7530, 9005, 10835, 12950, 15415, 18260][s.level - 1];
+  s.xp = LEVELS[s.level - 1];
   s.rep = q.minRep !== undefined ? Math.max(q.minRep, 60) : q.maxRep !== undefined ? q.maxRep : 60;
   s.followers = Math.max(q.minFollowers || 0, 50);
   s.buzz = q.minBuzz || 0;

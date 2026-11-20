@@ -88,6 +88,15 @@ export async function m5Flows(ctx, tag, shots = true) {
     for(const id of ["egg-pan","egg-pan-2","grill","xiu-mai-pot","long-board","vegan-board"])s.owned[id]=true;s.stock.trung=10;s.stock["thit-nuong"]=10;s.stock.phoi=40;
     s.drama.pending=null;__game.save();__game.overlays.prep(s);})()`);
   check(`${tag}: Chuẩn bị ca cấp 20 có thẻ Hội chợ + Lịch thử thách (5 ngày)`, await waitFor(`!!document.querySelector('[data-card="fair"]')&&!!document.querySelector('[data-card="challenge"]')&&document.querySelectorAll('[data-card="challenge"] .week span').length===5`));
+  // thông báo khi đang mở bảng phủ: nằm ở dải trên cùng, không đè nút / tab nào của bảng (kể cả khi cuộn)
+  await b.ev("document.querySelector('#sheet').scrollTop=400;__game.act({type:'rentShop'})");
+  await sleep(150);
+  const tov = await b.ev(`(()=>{const t=[...document.querySelectorAll('#toasts .toast')].filter(x=>getComputedStyle(x).display!=='none').map(x=>x.getBoundingClientRect());
+    const inter=(a,c)=>a.left<c.right&&a.right>c.left&&a.top<c.bottom&&a.bottom>c.top;
+    const bad=[...document.querySelectorAll('#sheet button')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&t.some(x=>inter(x,r))}).map(e=>e.textContent.slice(0,20));
+    return JSON.stringify({n:t.length,bad})})()`).then(JSON.parse);
+  check(`${tag}: thông báo trên bảng phủ không đè nút của bảng`, tov.n >= 1 && tov.bad.length === 0, JSON.stringify(tov));
+  await b.ev("document.querySelector('#sheet').scrollTop=0");
   if (shots) await b.shot(`${OUT}/${tag}-n1-ca-dac-biet.png`);
   await pressSel('[data-act="challenge"]');
   check(`${tag}: nhận thử thách hôm nay bằng nút (Một lò)`, (await S("s.challenge&&s.challenge.id")) === "mot-lo");

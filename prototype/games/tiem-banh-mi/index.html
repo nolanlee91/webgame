@@ -262,7 +262,11 @@
     #toasts { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); z-index: 45; display: grid; gap: 6px; width: min(520px, calc(100% - 24px)); pointer-events: none; }
     body > #toasts { position: fixed; bottom: 18px; }
     /* khi có bảng phủ: thông báo nổi trên cùng màn hình (không nằm sau lớp tối, không đè nút của bảng ở đáy) */
-    body:has(#overlay:not([hidden])) #toasts { position: fixed; top: 8px; bottom: auto; z-index: 60; }
+    /* (bảng phủ chừa dải 52 px trên cùng cho thông báo ⇒ không đè tab / nút của bảng) */
+    body:has(#overlay:not([hidden])) #toasts { position: fixed; top: 6px; bottom: auto; z-index: 60; max-height: 44px; overflow: hidden; }
+    body:has(#overlay:not([hidden])) #toasts .toast:not(:last-child) { display: none; }
+    body:has(#overlay:not([hidden])) #toasts .toast { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .overlay { padding-top: 52px !important; } .sheet { max-height: calc(100svh - 64px) !important; }
     .toast { background: rgba(22, 32, 45, .95); color: var(--cream); padding: 7px 12px; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: 0 6px 16px rgba(0, 0, 0, .4); animation: pop .25s ease-out; }
     .toast.good { background: rgba(47, 90, 80, .97); } .toast.warn { background: rgba(160, 60, 50, .97); }
     .boot-error { position: fixed; inset: auto 16px 16px; background: var(--red); color: #fff; padding: 12px; border-radius: 12px; z-index: 99; }
@@ -283,6 +287,7 @@
       #toasts { position: absolute; top: auto; bottom: 8px; width: calc(100% - 16px); } .toast { font-size: 12px; padding: 5px 10px; } .toast:not(:last-child) { display: none; }
       .world:has(.hintbar:not([hidden])) #toasts { bottom: 46px; }
       .bubble { max-width: 180px; font-size: 12px; padding: 5px 9px; }
+      .cook-row { grid-template-columns: 1fr; }
       .dock { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: 56px; background: rgba(15, 22, 31, .96); border-top: 1px solid rgba(255, 255, 255, .08); padding-bottom: env(safe-area-inset-bottom); }
       .dock button { border: 0; background: transparent; color: var(--cream); font-weight: 800; font-size: 12px; min-height: 56px; cursor: pointer; }
       .dock button.on { color: var(--amber); } .dock button:disabled { opacity: .4; }
