@@ -1,4 +1,25 @@
-# Bàn giao ảnh cảnh duyệt · Quán Cơm Tấm
+# Bàn giao asset · Quán Cơm Tấm
+
+## Đợt 1 · Nhân vật và đồ
+
+Asset commit `a6f6bcb` trên `codex/com-tam-wave1`, gồm hai cảnh đã duyệt và master local `f07fef9`.
+
+- Thêm 18 sheet; toàn Đợt 1 có 22 sheet, 514 frame khai báo (509 frame atlas và 5 frame cảnh/màn chào) và 55 clip. WebP lossless, alpha cứng, lưới 2×.
+- Chủ quán nữ khăn chàm, áo chàm, tạp dề nâu và khăn trắng. 13 vai đứng cao 242–260 px. 10 vai ngồi có ghế nhựa, cao khoảng 212 px, cùng ô 216×288 và anchor [108,262]. Các khung ngồi quay phải để trình vẽ lật theo ghế. Dĩa và ly là sprite rời. Một số khung chuyển động nhẹ được tạo từ pose chính để giữ điểm neo.
+- Có năm mức than, các mức chín và khung lật cho món nướng, các lớp dĩa/hộp đã ghép thử, bàn 2/4 chỗ với bốn trạng thái, đồ bếp, đồ bàn, nguyên liệu, tiền, FX và icon.
+- Manifest có đủ 74 điểm đặt và 12 khóa đường đi/bàn. Bảng có điểm ghế, hướng, điểm dĩa và điểm phục vụ. Dời mốc chủ quán sang [394,532] để đứng cạnh bếp thay vì bị bếp che. Đã đo lại sáu chỗ đặt món theo mặt vỉ thật. Giữ nguyên `sceneScale` 257 px (vỉa hè) và 258 px (quán).
+- Đã mở ảnh soi từ checker, đối chiếu các vai giữa dáng đứng, đi, phản ứng và ngồi, rồi ghép người, bếp, bàn, dĩa lên cả hai cảnh. Kiểm tra ở cấp file và ảnh ghép tĩnh, chưa kiểm gameplay.
+
+```text
+python -I tools/asset-check/check_assets.py docs/quan-com-tam/asset-spec.json --preview <tmp>
+
+0 lỗi, 11 cảnh báo — ĐẠT, giao được.
+Ảnh soi nhân vật: <tmp>/nhan-vat-xep-hang-x2.png
+```
+
+Cả 11 cảnh báo đều là sheet tùy chọn của Đợt 2.
+
+## Bản duyệt cảnh ban đầu
 
 Asset commit `46ade9d` trên `codex/com-tam-scenes`. Bước duyệt cảnh theo DEV-NOTES, trước khi vẽ nhân vật và đồ rời.
 
