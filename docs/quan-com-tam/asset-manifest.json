@@ -9,7 +9,148 @@
   "styleReferences": [
     "prototype/homepage/assets/thumbs/quan-com-tam.webp"
   ],
-  "items": [],
-  "placements": {},
-  "sceneScale": {}
+  "items": [
+    {
+      "filename": "assets/street-scene.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "category": "environment",
+      "transparency": "opaque",
+      "productionStatus": "scene-review",
+      "frames": {
+        "street-scene": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/street-foreground.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "category": "environment",
+      "transparency": "hard alpha",
+      "productionStatus": "scene-review",
+      "frames": {
+        "street-foreground": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/quan-scene.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "category": "environment",
+      "transparency": "opaque",
+      "productionStatus": "scene-review",
+      "frames": {
+        "quan-scene": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "filename": "assets/quan-foreground.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "category": "environment",
+      "transparency": "hard alpha",
+      "productionStatus": "scene-review",
+      "frames": {
+        "quan-foreground": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
+    }
+  ],
+  "placements": {
+    "owner": {
+      "at": [
+        330,
+        532
+      ],
+      "surface": "behind-counter"
+    },
+    "grill": {
+      "at": [
+        229,
+        404
+      ],
+      "surface": "grill-counter"
+    },
+    "door": [
+      1146,
+      452
+    ],
+    "street-owner": {
+      "at": [
+        330,
+        532
+      ],
+      "surface": "behind-counter"
+    },
+    "street-grill": {
+      "at": [
+        229,
+        404
+      ],
+      "surface": "grill-counter"
+    }
+  },
+  "sceneScale": {
+    "assets/street-scene.webp": {
+      "humanHeight": 257
+    },
+    "assets/quan-scene.webp": {
+      "humanHeight": 258
+    }
+  }
 }
