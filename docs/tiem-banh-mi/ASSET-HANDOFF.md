@@ -1,5 +1,26 @@
 # Bàn giao asset · Tiệm Bánh Mì
 
+## Âm thanh Tiệm Bánh Mì
+
+Asset commit `e7967c8` trên `codex/banh-mi-audio`. 28 MP3 trong `prototype/games/tiem-banh-mi/assets/audio/`, tự tổng hợp từ dao động, nhiễu lọc và cộng hưởng. Ba phản ứng khách dùng tổng hợp giọng không lời. Cả bộ dùng 32 kHz theo bộ Trà Sữa.
+
+| Nhóm | Tên file MP3 (bỏ đuôi .mp3) |
+| --- | --- |
+| Ráp bánh | `bread-slice` xẻ bánh, `pate-spread` phết pate, `filling-place` gắp nhân, `herb-sprinkle` rắc rau, `soy-squirt` xịt nước tương |
+| Lò và than | `oven-open` mở lò, `oven-close` đóng lò, `bread-ready` ting bánh chín, `bread-burnt` bánh cháy, `charcoal-crackle` than lép bép |
+| Gói và thu tiền | `paper-wrap` gói giấy, `plastic-bag` túi ni-lông, `change-count` đếm tiền lẻ, `cashbox` leng keng hộp tiền |
+| Khách | `arrival` khách tới, `voice-happy` vui, `voice-annoyed` bực, `voice-surprised` ngạc nhiên |
+| Sự kiện | `drama`, `viral`, `level-up` lên cấp, `mission` nhiệm vụ, `shift-end` chốt ca, `error` lỗi |
+
+| Vòng lặp | Nội dung | Thời lượng sau giải mã | Kênh và bitrate |
+| --- | --- | ---: | --- |
+| `dawn-street-loop` | Phố sáng sớm, xe máy xa và chim | 32,0 giây | Stereo 96 kbps |
+| `gas-oven-loop` | Tiếng lò gas chạy đều | 8,4 giây | Mono 56 kbps |
+| `prep-music-loop` | Nhạc chuẩn bị ca, 80 BPM | 48,0 giây | Stereo 112 kbps |
+| `rush-music-loop` | Nhạc giờ cao điểm, 104 BPM | 36,9 giây | Stereo 112 kbps |
+
+Đã giải mã 28/28 MP3 bằng FFmpeg và đối chiếu codec, kênh, bitrate, thời lượng và biên độ. 24 hiệu ứng mono 56 kbps, khoảng 0,32–1,05 giây. Cả 4 vòng lặp có bước nhảy đầu–cuối dưới 0,008 trên thang PCM chuẩn hóa sau giải mã. Kiểm tra ở cấp file, chưa tích hợp và chưa kiểm loop trong trình phát của game.
+
 ## Kiểm mép ô sau Đợt 2
 
 Asset commit `3dd5aa9`. Đã đồng bộ checker từ master local `250df10`.
