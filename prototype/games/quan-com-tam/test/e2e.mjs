@@ -197,7 +197,9 @@ if (!MOBILE_ONLY) {
   await waitFor("!!document.querySelector('#app.ready')", 8000);
   check("desktop: chơi lại ⇒ bản cũ ở .backup, quán mới ngày 1", (await b.ev("localStorage.getItem('wgp.quancomtam.v1.backup')")) === keyBefore && (await S("s.day")) === 1 && (await b.ev("__game.overlay")) === "intro");
   // bản lưu hỏng ⇒ chép sang .corrupt, mở quán mới, không lỗi
-  await b.ev("addEventListener('pagehide',()=>localStorage.setItem('wgp.quancomtam.v1','{hỏng'))");
+  // ghi bản hỏng từ một trang khác cùng origin (trang game đang mở sẽ tự lưu khi rời trang)
+  await b.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/games/quan-com-tam/data/asset-manifest.json` }); await sleep(400);
+  await b.ev("localStorage.setItem('wgp.quancomtam.v1','{hỏng');localStorage.removeItem('wgp.quancomtam.v1.corrupt')");
   await b.nav(BASE);
   check("desktop: bản lưu hỏng được chép sang .corrupt, mở quán mới", (await b.ev("localStorage.getItem('wgp.quancomtam.v1.corrupt')")) === "{hỏng" && (await S("s.day")) === 1);
 }
