@@ -1,0 +1,4587 @@
+{
+  "schemaVersion": 1,
+  "phase": 1,
+  "productionFilesRoot": "prototype/games/tiem-banh-mi/",
+  "conceptFilesRoot": "docs/tiem-banh-mi/",
+  "dimensionsConvention": "width, height",
+  "rectConvention": "[x, y, width, height] in atlas pixels from upper left",
+  "anchorConvention": "[x, y] local to frame in atlas pixels from upper left",
+  "styleReferences": [
+    "prototype/homepage/assets/thumbs/tiem-banh-mi.webp"
+  ],
+  "items": [
+    {
+      "filename": "assets/shop-scene.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "shop-scene": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "environment",
+      "productionStatus": "produced-wave-1",
+      "transparency": "opaque"
+    },
+    {
+      "filename": "assets/shop-counter-foreground.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "shop-counter-foreground": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "environment",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/cart-scene.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "cart-scene": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "environment",
+      "productionStatus": "produced-wave-1",
+      "transparency": "opaque"
+    },
+    {
+      "filename": "assets/cart-foreground.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "cart-foreground": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "environment",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/title-art.webp",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "title-art": {
+          "rect": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "environment",
+      "productionStatus": "produced-wave-1",
+      "transparency": "opaque"
+    },
+    {
+      "filename": "assets/equipment.webp",
+      "dimensions": [
+        1152,
+        1344
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "toaster-idle": {
+          "rect": [
+            0,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "toaster-on-1": {
+          "rect": [
+            192,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "toaster-on-2": {
+          "rect": [
+            384,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "toaster-on-3": {
+          "rect": [
+            576,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "toaster-on-4": {
+          "rect": [
+            768,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "egg-pan-idle": {
+          "rect": [
+            960,
+            0,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "egg-pan-fry-1": {
+          "rect": [
+            0,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "egg-pan-fry-2": {
+          "rect": [
+            192,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "egg-pan-fry-3": {
+          "rect": [
+            384,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "egg-pan-fry-4": {
+          "rect": [
+            576,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "xiu-mai-pot-idle": {
+          "rect": [
+            768,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "xiu-mai-pot-steam-1": {
+          "rect": [
+            960,
+            192,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "xiu-mai-pot-steam-2": {
+          "rect": [
+            0,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "xiu-mai-pot-steam-3": {
+          "rect": [
+            192,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "grill-idle": {
+          "rect": [
+            384,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "grill-on-1": {
+          "rect": [
+            576,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "grill-on-2": {
+          "rect": [
+            768,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "grill-on-3": {
+          "rect": [
+            960,
+            384,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "grill-on-4": {
+          "rect": [
+            0,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "gas-tank-full": {
+          "rect": [
+            192,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "gas-tank-low": {
+          "rect": [
+            384,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "gas-tank-empty": {
+          "rect": [
+            576,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "board-empty": {
+          "rect": [
+            768,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "board-busy": {
+          "rect": [
+            960,
+            576,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "long-board": {
+          "rect": [
+            0,
+            768,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "pate-jar": {
+          "rect": [
+            192,
+            768,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "butter-tub": {
+          "rect": [
+            384,
+            768,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "mayo-bottle": {
+          "rect": [
+            576,
+            768,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "pickle-jar": {
+          "rect": [
+            768,
+            768,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "herb-basket": {
+          "rect": [
+            960,
+            768,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "chili-bowl": {
+          "rect": [
+            0,
+            960,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "sauce-bottles": {
+          "rect": [
+            192,
+            960,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "paper-stack": {
+          "rect": [
+            384,
+            960,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "bag-hook": {
+          "rect": [
+            576,
+            960,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "cash-tin": {
+          "rect": [
+            768,
+            960,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "change-tray": {
+          "rect": [
+            960,
+            960,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        },
+        "tea-jug": {
+          "rect": [
+            0,
+            1152,
+            192,
+            192
+          ],
+          "anchor": [
+            96,
+            168
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha",
+      "animations": {
+        "toaster-on": {
+          "frames": [
+            "toaster-on-1",
+            "toaster-on-2",
+            "toaster-on-3",
+            "toaster-on-4"
+          ],
+          "fps": 7,
+          "loop": true
+        },
+        "egg-pan-fry": {
+          "frames": [
+            "egg-pan-fry-1",
+            "egg-pan-fry-2",
+            "egg-pan-fry-3",
+            "egg-pan-fry-4"
+          ],
+          "fps": 7,
+          "loop": true
+        },
+        "xiu-mai-pot-steam": {
+          "frames": [
+            "xiu-mai-pot-steam-1",
+            "xiu-mai-pot-steam-2",
+            "xiu-mai-pot-steam-3"
+          ],
+          "fps": 5,
+          "loop": true
+        },
+        "grill-on": {
+          "frames": [
+            "grill-on-1",
+            "grill-on-2",
+            "grill-on-3",
+            "grill-on-4"
+          ],
+          "fps": 7,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/ingredients.webp",
+      "dimensions": [
+        448,
+        256
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "phoi": {
+          "rect": [
+            0,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "phoi-que": {
+          "rect": [
+            64,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "banh-si": {
+          "rect": [
+            128,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "pate": {
+          "rect": [
+            192,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "bo": {
+          "rect": [
+            256,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "mayo": {
+          "rect": [
+            320,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "cha-lua": {
+          "rect": [
+            384,
+            0,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "thit-nguoi": {
+          "rect": [
+            0,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "xiu-mai": {
+          "rect": [
+            64,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "trung": {
+          "rect": [
+            128,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "thit-nuong": {
+          "rect": [
+            192,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "heo-quay": {
+          "rect": [
+            256,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "ga-xe": {
+          "rect": [
+            320,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "cha-chay": {
+          "rect": [
+            384,
+            64,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "cha-bong": {
+          "rect": [
+            0,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "trend": {
+          "rect": [
+            64,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "do-chua": {
+          "rect": [
+            128,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "dua-leo": {
+          "rect": [
+            192,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "rau-mui": {
+          "rect": [
+            256,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "hanh-la": {
+          "rect": [
+            320,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "ot": {
+          "rect": [
+            384,
+            128,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "nuoc-tuong": {
+          "rect": [
+            0,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "tuong-ot": {
+          "rect": [
+            64,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "giay-goi": {
+          "rect": [
+            128,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "tui": {
+          "rect": [
+            192,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "gas": {
+          "rect": [
+            256,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "than": {
+          "rect": [
+            320,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        },
+        "tien-le": {
+          "rect": [
+            384,
+            192,
+            64,
+            64
+          ],
+          "anchor": [
+            32,
+            32
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/ovens.webp",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "oven-mini-cold": {
+          "rect": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-ready": {
+          "rect": [
+            256,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-burnt": {
+          "rect": [
+            512,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-cold": {
+          "rect": [
+            768,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-ready": {
+          "rect": [
+            1024,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-burnt": {
+          "rect": [
+            1280,
+            0,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-cold": {
+          "rect": [
+            0,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-ready": {
+          "rect": [
+            256,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-burnt": {
+          "rect": [
+            512,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-baking-1": {
+          "rect": [
+            768,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-baking-2": {
+          "rect": [
+            1024,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-baking-3": {
+          "rect": [
+            1280,
+            256,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-baking-4": {
+          "rect": [
+            0,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-baking-1": {
+          "rect": [
+            256,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-baking-2": {
+          "rect": [
+            512,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-baking-3": {
+          "rect": [
+            768,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-baking-4": {
+          "rect": [
+            1024,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-baking-1": {
+          "rect": [
+            1280,
+            512,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-baking-2": {
+          "rect": [
+            0,
+            768,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-baking-3": {
+          "rect": [
+            256,
+            768,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-baking-4": {
+          "rect": [
+            512,
+            768,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-smoke-1": {
+          "rect": [
+            768,
+            768,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-mini-smoke-2": {
+          "rect": [
+            1024,
+            768,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-smoke-1": {
+          "rect": [
+            1280,
+            768,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-gas-smoke-2": {
+          "rect": [
+            0,
+            1024,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-smoke-1": {
+          "rect": [
+            256,
+            1024,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-smoke-2": {
+          "rect": [
+            512,
+            1024,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "oven-electric-off": {
+          "rect": [
+            768,
+            1024,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "tray-raw": {
+          "rect": [
+            1024,
+            1024,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "tray-pale": {
+          "rect": [
+            1280,
+            1024,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "tray-golden": {
+          "rect": [
+            0,
+            1280,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "tray-burnt": {
+          "rect": [
+            256,
+            1280,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "que-tray-raw": {
+          "rect": [
+            512,
+            1280,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        },
+        "que-tray-golden": {
+          "rect": [
+            768,
+            1280,
+            256,
+            256
+          ],
+          "anchor": [
+            128,
+            240
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha",
+      "animations": {
+        "oven-mini-baking": {
+          "frames": [
+            "oven-mini-baking-1",
+            "oven-mini-baking-2",
+            "oven-mini-baking-3",
+            "oven-mini-baking-4"
+          ],
+          "fps": 6,
+          "loop": true
+        },
+        "oven-mini-smoke": {
+          "frames": [
+            "oven-mini-smoke-1",
+            "oven-mini-smoke-2"
+          ],
+          "fps": 4,
+          "loop": true
+        },
+        "oven-gas-baking": {
+          "frames": [
+            "oven-gas-baking-1",
+            "oven-gas-baking-2",
+            "oven-gas-baking-3",
+            "oven-gas-baking-4"
+          ],
+          "fps": 6,
+          "loop": true
+        },
+        "oven-gas-smoke": {
+          "frames": [
+            "oven-gas-smoke-1",
+            "oven-gas-smoke-2"
+          ],
+          "fps": 4,
+          "loop": true
+        },
+        "oven-electric-baking": {
+          "frames": [
+            "oven-electric-baking-1",
+            "oven-electric-baking-2",
+            "oven-electric-baking-3",
+            "oven-electric-baking-4"
+          ],
+          "fps": 6,
+          "loop": true
+        },
+        "oven-electric-smoke": {
+          "frames": [
+            "oven-electric-smoke-1",
+            "oven-electric-smoke-2"
+          ],
+          "fps": 4,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/loaf-layers.webp",
+      "dimensions": [
+        1120,
+        1152
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "loaf-whole-raw": {
+          "rect": [
+            0,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-whole-pale": {
+          "rect": [
+            160,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-whole-golden": {
+          "rect": [
+            320,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-whole-dark": {
+          "rect": [
+            480,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-whole-burnt": {
+          "rect": [
+            640,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-open-back": {
+          "rect": [
+            800,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-open-front": {
+          "rect": [
+            960,
+            0,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-toasted-sheen": {
+          "rect": [
+            0,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "loaf-cut-half": {
+          "rect": [
+            160,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "spread-pate": {
+          "rect": [
+            320,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "spread-bo": {
+          "rect": [
+            480,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "spread-mayo": {
+          "rect": [
+            640,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-cha-lua": {
+          "rect": [
+            800,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-thit-nguoi": {
+          "rect": [
+            960,
+            192,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-xiu-mai": {
+          "rect": [
+            0,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-trung": {
+          "rect": [
+            160,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-thit-nuong": {
+          "rect": [
+            320,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-heo-quay": {
+          "rect": [
+            480,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-ga-xe": {
+          "rect": [
+            640,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-cha-chay": {
+          "rect": [
+            800,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-cha-bong": {
+          "rect": [
+            960,
+            384,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "fill-trend": {
+          "rect": [
+            0,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "do-chua": {
+          "rect": [
+            160,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "dua-leo": {
+          "rect": [
+            320,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "rau-mui": {
+          "rect": [
+            480,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "hanh-la": {
+          "rect": [
+            640,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ot-it": {
+          "rect": [
+            800,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ot-vua": {
+          "rect": [
+            960,
+            576,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "ot-nhieu": {
+          "rect": [
+            0,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "sauce-nuoc-tuong": {
+          "rect": [
+            160,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "sauce-tuong-ot": {
+          "rect": [
+            320,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "wrap-paper": {
+          "rect": [
+            480,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "wrap-paper-half": {
+          "rect": [
+            640,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "wrap-bag": {
+          "rect": [
+            800,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "que-raw": {
+          "rect": [
+            960,
+            768,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "que-golden": {
+          "rect": [
+            0,
+            960,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "que-burnt": {
+          "rect": [
+            160,
+            960,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "que-pate": {
+          "rect": [
+            320,
+            960,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        },
+        "que-bag-5": {
+          "rect": [
+            480,
+            960,
+            160,
+            192
+          ],
+          "anchor": [
+            80,
+            174
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/bills.webp",
+      "dimensions": [
+        480,
+        96
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "bill-1k": {
+          "rect": [
+            0,
+            0,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-2k": {
+          "rect": [
+            96,
+            0,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-5k": {
+          "rect": [
+            192,
+            0,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-10k": {
+          "rect": [
+            288,
+            0,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-20k": {
+          "rect": [
+            384,
+            0,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-50k": {
+          "rect": [
+            0,
+            48,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-100k": {
+          "rect": [
+            96,
+            48,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-200k": {
+          "rect": [
+            192,
+            48,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "bill-500k": {
+          "rect": [
+            288,
+            48,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        },
+        "coin-stack": {
+          "rect": [
+            384,
+            48,
+            96,
+            48
+          ],
+          "anchor": [
+            48,
+            24
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/ui-icons.webp",
+      "dimensions": [
+        240,
+        240
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "coin": {
+          "rect": [
+            0,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "star": {
+          "rect": [
+            48,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "star-empty": {
+          "rect": [
+            96,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "follower": {
+          "rect": [
+            144,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "buzz": {
+          "rect": [
+            192,
+            0,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "xp": {
+          "rect": [
+            0,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "clock": {
+          "rect": [
+            48,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "sound-on": {
+          "rect": [
+            96,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "sound-off": {
+          "rect": [
+            144,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "pause": {
+          "rect": [
+            192,
+            48,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "help": {
+          "rect": [
+            0,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "journal": {
+          "rect": [
+            48,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "stock": {
+          "rect": [
+            96,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "oven-timer": {
+          "rect": [
+            144,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "crisp": {
+          "rect": [
+            192,
+            96,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "bills": {
+          "rect": [
+            0,
+            144,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "ticket": {
+          "rect": [
+            48,
+            144,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "check": {
+          "rect": [
+            96,
+            144,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "cross": {
+          "rect": [
+            144,
+            144,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "mission": {
+          "rect": [
+            192,
+            144,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "upgrade": {
+          "rect": [
+            0,
+            192,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "decor": {
+          "rect": [
+            48,
+            192,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "reviews": {
+          "rect": [
+            96,
+            192,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "level": {
+          "rect": [
+            144,
+            192,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        },
+        "preorder": {
+          "rect": [
+            192,
+            192,
+            48,
+            48
+          ],
+          "anchor": [
+            24,
+            42
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/fx.webp",
+      "dimensions": [
+        576,
+        288
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "crumbs-1": {
+          "rect": [
+            0,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "crumbs-2": {
+          "rect": [
+            96,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "crumbs-3": {
+          "rect": [
+            192,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "crumbs-4": {
+          "rect": [
+            288,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "steam-1": {
+          "rect": [
+            384,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "steam-2": {
+          "rect": [
+            480,
+            0,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "steam-3": {
+          "rect": [
+            0,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "sparkle-1": {
+          "rect": [
+            96,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "sparkle-2": {
+          "rect": [
+            192,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "sparkle-3": {
+          "rect": [
+            288,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "coin-fly-1": {
+          "rect": [
+            384,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "coin-fly-2": {
+          "rect": [
+            480,
+            96,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "coin-fly-3": {
+          "rect": [
+            0,
+            192,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "ding-1": {
+          "rect": [
+            96,
+            192,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "ding-2": {
+          "rect": [
+            192,
+            192,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "crunch-1": {
+          "rect": [
+            288,
+            192,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        },
+        "crunch-2": {
+          "rect": [
+            384,
+            192,
+            96,
+            96
+          ],
+          "anchor": [
+            48,
+            48
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha",
+      "animations": {
+        "crumbs": {
+          "frames": [
+            "crumbs-1",
+            "crumbs-2",
+            "crumbs-3",
+            "crumbs-4"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "steam": {
+          "frames": [
+            "steam-1",
+            "steam-2",
+            "steam-3"
+          ],
+          "fps": 6,
+          "loop": false
+        },
+        "sparkle": {
+          "frames": [
+            "sparkle-1",
+            "sparkle-2",
+            "sparkle-3"
+          ],
+          "fps": 10,
+          "loop": false
+        },
+        "coin-fly": {
+          "frames": [
+            "coin-fly-1",
+            "coin-fly-2",
+            "coin-fly-3"
+          ],
+          "fps": 9,
+          "loop": false
+        },
+        "ding": {
+          "frames": [
+            "ding-1",
+            "ding-2"
+          ],
+          "fps": 9,
+          "loop": false
+        },
+        "crunch": {
+          "frames": [
+            "crunch-1",
+            "crunch-2"
+          ],
+          "fps": 12,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/characters.webp",
+      "dimensions": [
+        1080,
+        576
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "baker": {
+          "rect": [
+            0,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student": {
+          "rect": [
+            216,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker": {
+          "rect": [
+            432,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper": {
+          "rect": [
+            648,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office": {
+          "rect": [
+            864,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular": {
+          "rect": [
+            0,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer": {
+          "rect": [
+            216,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist": {
+          "rect": [
+            432,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent": {
+          "rect": [
+            648,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        }
+      },
+      "category": "character",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/customer-walk-cycles.webp",
+      "dimensions": [
+        864,
+        2304
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "student-walk-1": {
+          "rect": [
+            0,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-walk-2": {
+          "rect": [
+            216,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-walk-3": {
+          "rect": [
+            432,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-walk-4": {
+          "rect": [
+            648,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-walk-1": {
+          "rect": [
+            0,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-walk-2": {
+          "rect": [
+            216,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-walk-3": {
+          "rect": [
+            432,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-walk-4": {
+          "rect": [
+            648,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-walk-1": {
+          "rect": [
+            0,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-walk-2": {
+          "rect": [
+            216,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-walk-3": {
+          "rect": [
+            432,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-walk-4": {
+          "rect": [
+            648,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-walk-1": {
+          "rect": [
+            0,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-walk-2": {
+          "rect": [
+            216,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-walk-3": {
+          "rect": [
+            432,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-walk-4": {
+          "rect": [
+            648,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-walk-1": {
+          "rect": [
+            0,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-walk-2": {
+          "rect": [
+            216,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-walk-3": {
+          "rect": [
+            432,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-walk-4": {
+          "rect": [
+            648,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-walk-1": {
+          "rect": [
+            0,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-walk-2": {
+          "rect": [
+            216,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-walk-3": {
+          "rect": [
+            432,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-walk-4": {
+          "rect": [
+            648,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-walk-1": {
+          "rect": [
+            0,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-walk-2": {
+          "rect": [
+            216,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-walk-3": {
+          "rect": [
+            432,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-walk-4": {
+          "rect": [
+            648,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-walk-1": {
+          "rect": [
+            0,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-walk-2": {
+          "rect": [
+            216,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-walk-3": {
+          "rect": [
+            432,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-walk-4": {
+          "rect": [
+            648,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        }
+      },
+      "category": "character",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha",
+      "animations": {
+        "student-walk": {
+          "frames": [
+            "student-walk-1",
+            "student-walk-2",
+            "student-walk-3",
+            "student-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "worker-walk": {
+          "frames": [
+            "worker-walk-1",
+            "worker-walk-2",
+            "worker-walk-3",
+            "worker-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "shipper-walk": {
+          "frames": [
+            "shipper-walk-1",
+            "shipper-walk-2",
+            "shipper-walk-3",
+            "shipper-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "office-walk": {
+          "frames": [
+            "office-walk-1",
+            "office-walk-2",
+            "office-walk-3",
+            "office-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "regular-walk": {
+          "frames": [
+            "regular-walk-1",
+            "regular-walk-2",
+            "regular-walk-3",
+            "regular-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "reviewer-walk": {
+          "frames": [
+            "reviewer-walk-1",
+            "reviewer-walk-2",
+            "reviewer-walk-3",
+            "reviewer-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "tourist-walk": {
+          "frames": [
+            "tourist-walk-1",
+            "tourist-walk-2",
+            "tourist-walk-3",
+            "tourist-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        },
+        "parent-walk": {
+          "frames": [
+            "parent-walk-1",
+            "parent-walk-2",
+            "parent-walk-3",
+            "parent-walk-4"
+          ],
+          "fps": 8,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/customer-reactions.webp",
+      "dimensions": [
+        1296,
+        1152
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "student-waiting": {
+          "rect": [
+            0,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-happy": {
+          "rect": [
+            216,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-impatient": {
+          "rect": [
+            432,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-waiting": {
+          "rect": [
+            648,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-happy": {
+          "rect": [
+            864,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-impatient": {
+          "rect": [
+            1080,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-waiting": {
+          "rect": [
+            0,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-happy": {
+          "rect": [
+            216,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-impatient": {
+          "rect": [
+            432,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-waiting": {
+          "rect": [
+            648,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-happy": {
+          "rect": [
+            864,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-impatient": {
+          "rect": [
+            1080,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-waiting": {
+          "rect": [
+            0,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-happy": {
+          "rect": [
+            216,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-impatient": {
+          "rect": [
+            432,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-waiting": {
+          "rect": [
+            648,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-happy": {
+          "rect": [
+            864,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-impatient": {
+          "rect": [
+            1080,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-waiting": {
+          "rect": [
+            0,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-happy": {
+          "rect": [
+            216,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-impatient": {
+          "rect": [
+            432,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-waiting": {
+          "rect": [
+            648,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-happy": {
+          "rect": [
+            864,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-impatient": {
+          "rect": [
+            1080,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        }
+      },
+      "category": "character",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/customer-actions.webp",
+      "dimensions": [
+        864,
+        2304
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "student-order-1": {
+          "rect": [
+            0,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-order-2": {
+          "rect": [
+            216,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-surprised-1": {
+          "rect": [
+            432,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "student-surprised-2": {
+          "rect": [
+            648,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-order-1": {
+          "rect": [
+            0,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-order-2": {
+          "rect": [
+            216,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-surprised-1": {
+          "rect": [
+            432,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "worker-surprised-2": {
+          "rect": [
+            648,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-order-1": {
+          "rect": [
+            0,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-order-2": {
+          "rect": [
+            216,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-surprised-1": {
+          "rect": [
+            432,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "shipper-surprised-2": {
+          "rect": [
+            648,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-order-1": {
+          "rect": [
+            0,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-order-2": {
+          "rect": [
+            216,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-surprised-1": {
+          "rect": [
+            432,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "office-surprised-2": {
+          "rect": [
+            648,
+            864,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-order-1": {
+          "rect": [
+            0,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-order-2": {
+          "rect": [
+            216,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-surprised-1": {
+          "rect": [
+            432,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "regular-surprised-2": {
+          "rect": [
+            648,
+            1152,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-order-1": {
+          "rect": [
+            0,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-order-2": {
+          "rect": [
+            216,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-surprised-1": {
+          "rect": [
+            432,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "reviewer-surprised-2": {
+          "rect": [
+            648,
+            1440,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-order-1": {
+          "rect": [
+            0,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-order-2": {
+          "rect": [
+            216,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-surprised-1": {
+          "rect": [
+            432,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "tourist-surprised-2": {
+          "rect": [
+            648,
+            1728,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-order-1": {
+          "rect": [
+            0,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-order-2": {
+          "rect": [
+            216,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-surprised-1": {
+          "rect": [
+            432,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "parent-surprised-2": {
+          "rect": [
+            648,
+            2016,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        }
+      },
+      "category": "character",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/baker-scene.webp",
+      "dimensions": [
+        1296,
+        864
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "baker-idle-1": {
+          "rect": [
+            0,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-idle-2": {
+          "rect": [
+            216,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-slice-1": {
+          "rect": [
+            432,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-slice-2": {
+          "rect": [
+            648,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-slice-3": {
+          "rect": [
+            864,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-slice-4": {
+          "rect": [
+            1080,
+            0,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-oven-1": {
+          "rect": [
+            0,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-oven-2": {
+          "rect": [
+            216,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-oven-3": {
+          "rect": [
+            432,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-oven-4": {
+          "rect": [
+            648,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-serve-1": {
+          "rect": [
+            864,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-serve-2": {
+          "rect": [
+            1080,
+            288,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-serve-3": {
+          "rect": [
+            0,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-serve-4": {
+          "rect": [
+            216,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-wrap-1": {
+          "rect": [
+            432,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-wrap-2": {
+          "rect": [
+            648,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-change-1": {
+          "rect": [
+            864,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        },
+        "baker-change-2": {
+          "rect": [
+            1080,
+            576,
+            216,
+            288
+          ],
+          "anchor": [
+            108,
+            262
+          ]
+        }
+      },
+      "category": "character",
+      "productionStatus": "produced-wave-1",
+      "transparency": "hard alpha",
+      "animations": {
+        "baker-idle": {
+          "frames": [
+            "baker-idle-1",
+            "baker-idle-2"
+          ],
+          "fps": 3,
+          "loop": true
+        },
+        "baker-slice": {
+          "frames": [
+            "baker-slice-1",
+            "baker-slice-2",
+            "baker-slice-3",
+            "baker-slice-4"
+          ],
+          "fps": 9,
+          "loop": false
+        },
+        "baker-oven": {
+          "frames": [
+            "baker-oven-1",
+            "baker-oven-2",
+            "baker-oven-3",
+            "baker-oven-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "baker-serve": {
+          "frames": [
+            "baker-serve-1",
+            "baker-serve-2",
+            "baker-serve-3",
+            "baker-serve-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "baker-wrap": {
+          "frames": [
+            "baker-wrap-1",
+            "baker-wrap-2"
+          ],
+          "fps": 7,
+          "loop": false
+        },
+        "baker-change": {
+          "frames": [
+            "baker-change-1",
+            "baker-change-2"
+          ],
+          "fps": 7,
+          "loop": false
+        }
+      }
+    }
+  ],
+  "placements": {
+    "oven": {
+      "at": [
+        235,
+        336
+      ],
+      "surface": "back-counter"
+    },
+    "toaster": {
+      "at": [
+        390,
+        335
+      ],
+      "surface": "back-counter"
+    },
+    "grill": {
+      "at": [
+        486,
+        333
+      ],
+      "surface": "back-counter"
+    },
+    "xiu-mai-pot": {
+      "at": [
+        567,
+        334
+      ],
+      "surface": "back-counter"
+    },
+    "egg-pan": {
+      "at": [
+        635,
+        335
+      ],
+      "surface": "back-counter"
+    },
+    "gas-tank": {
+      "at": [
+        84,
+        558
+      ],
+      "surface": "floor"
+    },
+    "sauce-bottles": {
+      "at": [
+        165,
+        417
+      ],
+      "surface": "front-counter"
+    },
+    "pate-jar": {
+      "at": [
+        209,
+        418
+      ],
+      "surface": "front-counter"
+    },
+    "butter-tub": {
+      "at": [
+        251,
+        417
+      ],
+      "surface": "front-counter"
+    },
+    "mayo-bottle": {
+      "at": [
+        306,
+        418
+      ],
+      "surface": "front-counter"
+    },
+    "chili-bowl": {
+      "at": [
+        350,
+        420
+      ],
+      "surface": "front-counter"
+    },
+    "board-1": {
+      "at": [
+        414,
+        417
+      ],
+      "surface": "front-counter"
+    },
+    "board-2": {
+      "at": [
+        521,
+        417
+      ],
+      "surface": "front-counter"
+    },
+    "board-3": {
+      "at": [
+        579,
+        417
+      ],
+      "surface": "front-counter"
+    },
+    "pickle-jar": {
+      "at": [
+        631,
+        418
+      ],
+      "surface": "front-counter"
+    },
+    "herb-basket": {
+      "at": [
+        665,
+        418
+      ],
+      "surface": "front-counter"
+    },
+    "display-case": {
+      "at": [
+        853,
+        413
+      ],
+      "surface": "front-counter"
+    },
+    "cash-tin": {
+      "at": [
+        1000,
+        416
+      ],
+      "surface": "front-counter"
+    },
+    "paper-stack": {
+      "at": [
+        126,
+        413
+      ],
+      "surface": "front-counter"
+    },
+    "bag-hook": {
+      "at": [
+        94,
+        236
+      ],
+      "surface": "wall"
+    },
+    "tea-jug": {
+      "at": [
+        1074,
+        567
+      ],
+      "surface": "floor"
+    },
+    "signboard": {
+      "at": [
+        646,
+        172
+      ],
+      "surface": "wall"
+    },
+    "baker": {
+      "at": [
+        482,
+        491
+      ],
+      "surface": "behind-counter"
+    },
+    "cart-oven": {
+      "at": [
+        369,
+        353
+      ],
+      "surface": "cart"
+    },
+    "cart-toaster": {
+      "at": [
+        453,
+        351
+      ],
+      "surface": "cart"
+    },
+    "cart-sauce-bottles": {
+      "at": [
+        486,
+        353
+      ],
+      "surface": "cart"
+    },
+    "cart-pate-jar": {
+      "at": [
+        530,
+        353
+      ],
+      "surface": "cart"
+    },
+    "cart-board": {
+      "at": [
+        605,
+        352
+      ],
+      "surface": "cart"
+    },
+    "cart-pickle-jar": {
+      "at": [
+        651,
+        353
+      ],
+      "surface": "cart"
+    },
+    "cart-herb-basket": {
+      "at": [
+        701,
+        353
+      ],
+      "surface": "cart"
+    },
+    "cart-display": {
+      "at": [
+        765,
+        349
+      ],
+      "surface": "cart"
+    },
+    "cart-paper-stack": {
+      "at": [
+        816,
+        354
+      ],
+      "surface": "cart"
+    },
+    "cart-cash-tin": {
+      "at": [
+        852,
+        355
+      ],
+      "surface": "cart"
+    },
+    "cart-gas-tank": {
+      "at": [
+        320,
+        524
+      ],
+      "surface": "floor"
+    },
+    "cart-tea-jug": {
+      "at": [
+        1008,
+        388
+      ],
+      "surface": "stool"
+    },
+    "cart-baker": {
+      "at": [
+        601,
+        433
+      ],
+      "surface": "behind-cart"
+    },
+    "door": [
+      1160,
+      508
+    ],
+    "queueSpots": [
+      [
+        246,
+        582
+      ],
+      [
+        430,
+        602
+      ],
+      [
+        614,
+        621
+      ],
+      [
+        798,
+        640
+      ],
+      [
+        982,
+        659
+      ],
+      [
+        1166,
+        677
+      ]
+    ],
+    "exitPath": [
+      [
+        254,
+        692
+      ],
+      [
+        1098,
+        692
+      ],
+      [
+        1160,
+        508
+      ]
+    ],
+    "cartEntry": [
+      1168,
+      539
+    ],
+    "cartQueueSpots": [
+      [
+        584,
+        552
+      ],
+      [
+        776,
+        581
+      ],
+      [
+        968,
+        611
+      ],
+      [
+        1160,
+        640
+      ]
+    ],
+    "cartExitPath": [
+      [
+        557,
+        646
+      ],
+      [
+        324,
+        661
+      ],
+      [
+        115,
+        661
+      ]
+    ]
+  },
+  "sceneScale": {
+    "assets/cart-scene.webp": {
+      "humanHeight": 257
+    },
+    "assets/shop-scene.webp": {
+      "humanHeight": 260
+    }
+  }
+}

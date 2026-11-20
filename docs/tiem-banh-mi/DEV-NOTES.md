@@ -1,17 +1,51 @@
 # Tiệm Bánh Mì · Ghi chú phát triển
 
-Game sẽ ở `prototype/games/tiem-banh-mi/` (chưa có code). Lưu ở `localStorage["wgp.tiembanhmi.v1"]`. Làm trong worktree `.claude/worktrees/tiem-banh-mi`, branch `claude/tiem-banh-mi`. Chuẩn: `docs/tap-lam-chu/PLAYBOOK.md`.
+Game ở `prototype/games/tiem-banh-mi/` (M1 + M2 lõi đã có, chưa lên trang chủ). Lưu ở `localStorage["wgp.tiembanhmi.v1"]`. Làm trong worktree `.claude/worktrees/tiem-banh-mi`, branch `claude/tiem-banh-mi`. Chuẩn: `docs/tap-lam-chu/PLAYBOOK.md`.
 
 ## Trạng thái milestone
 
 | Mốc | Trạng thái | Nội dung |
 |---|---|---|
 | M0 · Thiết kế + hợp đồng asset | **Xong, chủ dự án đã duyệt 19/11/2026** | GAME-DESIGN, ECONOMY, DRAMA (59 sự kiện, 11 kiểu lỗi), SCREENS, ART-DIRECTION, `asset-spec.json` (26 sheet, 512 frame, 36 toạ độ đặt + 6 đường đi), `asset-manifest.json` rỗng. `check_assets` chạy được: hiện báo thiếu file (đúng, chưa có art). |
-| M1 · Kiến trúc + cảnh | Chờ asset Codex đợt 1 | |
-| M2 · Một ca trọn | | |
+| M1 · Kiến trúc + cảnh | **Xong (lõi), chờ duyệt** | Khung chép từ Trà Sữa (apply + bất biến, state + MIGRATIONS, rng, freshLine, save + .corrupt + .backup, atlas crisp/snap/HD, camera bội 0,5, charScale 288). Cảnh xe đẩy dùng ảnh thật đợt 1 (`abea23e`), nhân vật ô 216×288 hiện ×1, toạ độ từ `manifest.placements`. Thiếu frame nào thì vẽ hình dự phòng canvas cùng ô + anchor (`render/placeholder.js`). |
+| M2 · Một ca trọn | **Xong (lõi), chờ duyệt** | Lò (mẻ, 5 mức vỏ, rút, cháy, gas), tủ kính nguội dần, lò than nướng lại, ráp 9 bước có thứ tự + hoàn tác, 10 biến thể phiếu, ổ ba chục, "như cũ", đơn nhiều ổ, chấm 0–100 + sao, 11 kiểu lỗi, khiếu nại (làm lại / giảm / tặng), thối tiền bằng quỹ lẻ (Thối đúng ngày 1–3), hết lẻ, hết hàng / hết bánh / hết gas có cứu, ký gửi, ba buổi, ngày 1 hướng dẫn, chốt ca lời lỗ, mẻ đầu ngày. 66 unit test + e2e desktop/mobile ĐẠT. |
 | M3 · Kinh tế + nội dung cơ chế | | |
 | M4 · Drama + review + Nhật Ký | | |
 | M5 · Polish + cân bằng (sim) | | |
+
+## Kiến trúc (M1 + M2)
+
+JS module thuần, không build. Mọi import mang tag `?v=b1` (đổi cùng lúc khi deploy có đổi API).
+
+| Thư mục | File | Vai trò |
+|---|---|---|
+| `data/` | `economy.js` | Nguyên liệu, công thức (giá vốn khớp ECONOMY §2, có test), lò, tủ kính, lò than, mệnh giá tiền, đổi lẻ, phí ca, 20 cấp, cứu hàng, ký gửi. |
+| | `customers.js`, `quirks.js`, `shift.js` | 8 nhóm khách (xưng hô, kiên nhẫn, trả tiền), khách quen + món "như cũ"; 10 biến thể phiếu (thêm biến thể = thêm một dòng); ba buổi, ngày 1, toạ độ dự phòng. |
+| | `lines.js`, `lines-mistakes.js`, `lines-ops.js` | Thoại: gọi món, như cũ, ổ ba chục, nhiều ổ, sốt ruột, bỏ về, vui / ổn, khiếu nại, thối tiền, review theo sao (chung + theo nhóm), 11 kiểu lỗi × (nói + review, có biến thể), hết hàng / hết lẻ / lò / gợi ý. |
+| | `asset-manifest.json` | Bản chép của `docs/tiem-banh-mi/asset-manifest.json` (test kiểm khớp). |
+| `core/` (thuần, chạy node) | `apply.js` | Cửa duy nhất đổi trạng thái: bản nháp + bất biến (tiền nguyên ≥ 0, quỹ lẻ ≤ tiền, kho, sức chứa, tủ, cấp/XP, thớt / người đang trả tiền). |
+| | `shift.js` | Lịch khách, tick, ghim phiếu, giao, chấm, khiếu nại, trả tiền + thối (`giveChange`, `autoChange`, `noChange`), review, XP, chốt ca lời lỗ. |
+| | `board.js` | Dây chuyền ráp 8 bước trên thớt + giao: thứ tự một chiều, trừ kho khi bỏ lên ổ, hoàn tác / đổ ổ ghi hao, hết hàng mở hội thoại. |
+| | `oven.js` | Mẻ (bỏ / rút / cháy / gas), mức vỏ, tủ kính nguội dần, lò than, mẻ đầu ngày. |
+| | `money.js` | Quỹ lẻ theo mệnh giá, máy giải tiền thối (quy hoạch động, ít tờ nhất), chi tiền (két trước), cách khách trả. |
+| | `score.js`, `order.js` | Chấm 50/15/20/15, 11 kiểu lỗi + trần sao, tráo đơn; phiếu, chữ phiếu, giá ổ ba chục. |
+| | `stock.js`, `rescue.js` | Nhập hàng, "Nhập đủ cho hôm nay", dự báo, đổi lẻ, ký gửi; hội thoại hết hàng / hết bánh / hết gas / hết lẻ, luôn có lựa chọn miễn phí. |
+| | `state.js`, `rng.js`, `text.js`, `tutorial.js` | Tạo / đọc + kẹp bản lưu (giữ ca dở nếu hợp lệ, `MIGRATIONS`), RNG có hạt trong state, `fill` + `freshLine` (nhớ 120 câu), gợi ý ngày 1. |
+| `render/` | `atlas.js`, `placeholder.js`, `scene.js`, `loafview.js` | Atlas (SHEETS, HD_SHEETS, LAZY_SHEETS, crisp, snap, paint, icon) + hình dự phòng; cảnh xe đẩy (camera bội 0,5, `CHAR_H = 288`, placements); danh sách lớp loaf-layers theo ART-DIRECTION §5. |
+| `ui/` | `bench.js`, `screens.js`, `sfx.js` | Quầy ráp (lò, phiếu, ổ cận cảnh, dải bước, ô nguyên liệu, khay thối tiền); HUD, viên Lò / Gas, dải phiếu, bảng phủ (chào, Chuẩn bị ca 4 thẻ, Cách chơi, Tạm dừng, Chốt ca, khiếu nại, hết hàng, hết lẻ); âm thanh cùng API Trà Sữa, `wgp.muted`, im lặng an toàn (chưa có file: `AVAILABLE` rỗng). |
+| | `game.js`, `save.js`, `index.html` | Nối vòng lặp + lưu tự động; khoá `wgp.tiembanhmi.v1`, `.corrupt`, `.backup`, `.day` / `.before-replay` (hàm có sẵn, chưa có nút "Chơi lại ngày hôm nay"). |
+| `test/` | `*.test.mjs`, `e2e.mjs`, `cdp.mjs`, `helpers.mjs` | `npm test` (66 test); e2e: `PORT=8841 node server.js` rồi `PORT=8841 node prototype/games/tiem-banh-mi/test/e2e.mjs <thư mục ảnh>`. Hook: `?seed=N`, `?prepSpeed=N` (tua mẻ đầu), `window.__game`. |
+
+Lệch so với M0 (ghi để sim M5 dò lại): đồ chua / dưa leo / rau không tính sức chứa kho (gói học 85 phần đã vượt kho 60); trần sao 3 cho ổ ba chục thiếu nhân; khiếu nại "làm lại" trần 4 sao.
+
+### Frame code tự dùng khi manifest có (đã có ở đợt 1 trừ ghi chú)
+
+- Cảnh: `cart-scene`, `cart-foreground` (file), `shop-scene` / `shop-counter-foreground` (cấp 7, M3).
+- Nhân vật: `characters/<vai>`, `<vai>-walk-1..4`, `<vai>-{waiting,happy,impatient}`, `<vai>-{order,surprised}-1..2`, `baker-{idle 1..2, slice/oven/serve 1..4, wrap/change 1..2}`.
+- Lò, đồ trên xe: `oven-mini-{cold,ready}`, `oven-mini-baking-1..4`, `oven-mini-smoke-1..2`, `toaster-idle`, `toaster-on-1..4`, `board-{empty,busy}`, `gas-tank-{full,low,empty}`, `sauce-bottles`, `pate-jar`, `pickle-jar`, `herb-basket`, `paper-stack`, `cash-tin`, `tea-jug`.
+- Ổ bánh: `loaf-whole-{raw,pale,golden,dark,burnt}`, `loaf-open-back/front`, `loaf-toasted-sheen`, `spread-*`, `fill-*`, `do-chua`, `dua-leo`, `rau-mui`, `hanh-la`, `ot-{it,vua,nhieu}`, `sauce-*`, `wrap-{paper,paper-half,bag}`; `loaf-layers-hd` (đợt 2) tự thay qua HD_SHEETS.
+- Nguyên liệu (icon trong nút + Nhập hàng), `bill-{1..500}k`, clip fx `crumbs`, `coin-fly`.
+- Đợt 2 (chưa dùng ở M2): chân dung HD, `baker-actions-hd`, fixtures (`cart-display-*` thay ổ nhỏ vẽ chồng trong tủ), weather, decor, journal.
 
 ## Quyết định cần chủ dự án
 
