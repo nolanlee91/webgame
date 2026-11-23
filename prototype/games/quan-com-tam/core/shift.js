@@ -77,6 +77,9 @@ export function makeSchedule(s, kind, maxSeats) {
   return out.sort((a, b) => a.at - b.at);
 }
 
+/** Nhóm có hẹn không đi ngang khi cửa đầy: khách quay lại (C), đơn đặt trước / mâm (B "dr:…", A đặt tiệc). */
+export const keepsTrying = (g) => !!g.tag && (g.tag === "back" || g.tag.startsWith("dr:") || g.tag.startsWith("cat"));
+
 // ---------- mở / đóng ca ----------
 export function startShift(s, ev = []) {
   if (s.shift) return { err: "open" };
@@ -129,7 +132,8 @@ export function tick(s, dt, ev = []) {
     for (const g of sh.schedule) {
       if (g.done || g.at > t) continue;
       if (spawnGroup(s, g, ev)) g.done = true;
-      else { g.retry = (g.retry || 0) + 1; g.at = t + 6000; if (g.retry > 3) { g.done = true; sh.stats.passed += g.roles.length; ev.push({ type: "passedBy", n: g.roles.length }); } }
+      // cửa đầy: khách thường thử 4 lần rồi đi ngang; khách có hẹn (quay lại nhờ câu trả lời, đặt trước) chờ tới khi có chỗ, không bỏ về giữa ca
+      else { g.retry = (g.retry || 0) + 1; g.at = t + 6000; if (g.retry > 3 && !keepsTrying(g)) { g.done = true; sh.stats.passed += g.roles.length; ev.push({ type: "passedBy", n: g.roles.length }); } }
     }
   }
   // bếp, nồi, chảo, xửng
