@@ -1,12 +1,12 @@
 // Thanh Bếp (SCREENS.md): luôn thấy trong ca ở mọi màn trừ hội thoại. 6 chip vỉ (vòng hai nửa: trái = mặt dưới, phải = mặt trên),
 // nút Than + thanh than, nút Quạt (giữ), thanh Khói, viên Cơm (+ Nấu), viên Dĩa sạch (+ Rửa), Mỡ hành. Lật được trong lúc ô bày đang mở.
 // Dựng DOM một lần, mỗi khung chỉ đổi chữ / lớp.
-import { el, button } from "./common.js?v=c1";
-import { icon } from "../render/atlas.js?v=c1";
-import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c1";
-import { ownerFree } from "../core/walker.js?v=c1";
-import { GRILL } from "../data/economy.js?v=c1";
-import { eggState } from "../core/rice.js?v=c1"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
+import { el, button } from "./common.js?v=c2";
+import { icon } from "../render/atlas.js?v=c2";
+import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c2";
+import { ownerFree } from "../core/walker.js?v=c2";
+import { GRILL } from "../data/economy.js?v=c2";
+import { eggState } from "../core/rice.js?v=c2"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
 
 const SIDE_COL = { raw: "var(--m-raw)", half: "var(--m-half)", done: "var(--m-done)", charred: "var(--m-char)", burnt: "var(--m-burnt)" };
 const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy cạnh", burnt: "cháy" };

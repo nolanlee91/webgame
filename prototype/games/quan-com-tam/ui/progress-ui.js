@@ -2,10 +2,10 @@
 // Tab: Nhập hàng (Cô Ba + Chú Hòa), Đồ nghề (đồ, phụ việc theo ngày, thuê mặt bằng), Trang trí (mua + kéo thả trong quán),
 // Đơn đặt (đơn đặt trước / mâm cơm), Hạng quán (hạng, nước mắm nhà pha, quảng bá), Ca (trưa / tối / cả hai, ca khuya kéo dài).
 // CSS riêng chèn một lần (không sửa index.html).
-import { el, button, fmtK } from "./common.js?v=c1";
-import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c1";
-import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c1";
-import * as PG from "../core/progression.js?v=c1";
+import { el, button, fmtK } from "./common.js?v=c2";
+import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c2";
+import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c2";
+import * as PG from "../core/progression.js?v=c2";
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui", "suon-non", "ga", "lap-xuong", "dau-hu", "bi-chay", "cha-chay", "nuoc-tuong"];
 const OWN_TABS = new Set(["buy", "gear", "decor", "orders", "rank", "shift"]);

@@ -3,11 +3,11 @@
 // → sàn (bàn, ghế, khách ngồi, khách đứng, cô chủ khi ra sàn) sắp theo y chân → lớp UI không phóng (bong bóng, nhãn bàn, nút chạm bàn).
 // Toạ độ từ core/placements.js (manifest placements → dự phòng data/scene.js). Camera: hệ số bội 0,5 thiết bị (PLAYBOOK §2), snap lưới 2 px.
 // Khách ngồi: frame <vai>-sit-* vẽ quay phải; ghế face "left" ⇒ lật ngang quanh anchor (vẫn snap). Bong bóng nền đục, đặt bằng placeBubble.
-import { paint, placeAt, setSnap } from "./atlas.js?v=c1";
-import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongDist } from "../core/placements.js?v=c1";
-import { itemFrame, heatKey } from "../core/grill.js?v=c1";
-import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c1";
-import { seatSpotsFor, decorAt, isFamous } from "../core/progression.js?v=c1"; // A: bàn ghép, trang trí
+import { paint, placeAt, setSnap } from "./atlas.js?v=c2";
+import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongDist } from "../core/placements.js?v=c2";
+import { itemFrame, heatKey } from "../core/grill.js?v=c2";
+import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c2";
+import { seatSpotsFor, decorAt, isFamous } from "../core/progression.js?v=c2"; // A: bàn ghép, trang trí
 
 const W = 1280, H = 720;
 export const BUBBLE_MS = 3600;

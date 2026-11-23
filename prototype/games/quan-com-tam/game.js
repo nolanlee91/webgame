@@ -1,28 +1,28 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c1";
-import { placeholderFallback } from "./render/placeholder.js?v=c1";
-import { createScene } from "./render/scene.js?v=c1";
-import { configureScene } from "./core/placements.js?v=c1";
-import { createGrillbar } from "./ui/grillbar.js?v=c1";
-import { createColumn } from "./ui/column.js?v=c1";
-import { createOverlays } from "./ui/overlays.js?v=c1";
-import { createDrama } from "./ui/drama.js?v=c1"; // B: drama
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c1";
-import { apply } from "./core/apply.js?v=c1";
-import { hint } from "./core/tutorial.js?v=c1";
-import { layerStrip } from "./core/plate.js?v=c1";
-import { tableJob, groupById } from "./core/tables.js?v=c1";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c1";
-import { itemName } from "./core/rescue.js?v=c1";
-import { MISTAKES } from "./core/score.js?v=c1";
-import { shopSave, browserStorage } from "./save.js?v=c1";
-import { DISHES, LEVELS } from "./data/economy.js?v=c1";
-import { setJournalBg } from "./ui/journal.js?v=c1"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c1"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c1"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c1"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c1";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c2";
+import { placeholderFallback } from "./render/placeholder.js?v=c2";
+import { createScene } from "./render/scene.js?v=c2";
+import { configureScene } from "./core/placements.js?v=c2";
+import { createGrillbar } from "./ui/grillbar.js?v=c2";
+import { createColumn } from "./ui/column.js?v=c2";
+import { createOverlays } from "./ui/overlays.js?v=c2";
+import { createDrama } from "./ui/drama.js?v=c2"; // B: drama
+import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c2";
+import { apply } from "./core/apply.js?v=c2";
+import { hint } from "./core/tutorial.js?v=c2";
+import { layerStrip } from "./core/plate.js?v=c2";
+import { tableJob, groupById } from "./core/tables.js?v=c2";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c2";
+import { itemName } from "./core/rescue.js?v=c2";
+import { MISTAKES } from "./core/score.js?v=c2";
+import { shopSave, browserStorage } from "./save.js?v=c2";
+import { DISHES, LEVELS } from "./data/economy.js?v=c2";
+import { setJournalBg } from "./ui/journal.js?v=c2"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c2"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c2"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c2"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c2";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -31,7 +31,7 @@ const reduced = () => reducedMQ.matches;
 const TASK_NAME = { visit: "châm trà, lấy phiếu", deliver: "bưng dĩa", bill: "tính tiền", clean: "dọn bàn", wash: "rửa chén", rice: "bưng chén cơm", moHanh: "làm mỡ hành", marinate: "ướp sườn" };
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=c1")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=c2")).json();
   configureScene(manifest.placements || {});
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));

@@ -3,10 +3,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, openWithOrder, home, cookedPiece, until, newGame, prepDay } from "./helpers.mjs";
-import { scenePoints, ownerRoute, pathLen } from "../core/placements.js?v=c1";
-import { walkMs } from "../core/walker.js?v=c1";
-import { canAutoBill, makeBill, settle, realLines } from "../core/bill.js?v=c1";
-import { SERVICE } from "../data/economy.js?v=c1";
+import { scenePoints, ownerRoute, pathLen } from "../core/placements.js?v=c2";
+import { walkMs } from "../core/walker.js?v=c2";
+import { canAutoBill, makeBill, settle, realLines } from "../core/bill.js?v=c2";
+import { SERVICE } from "../data/economy.js?v=c2";
 
 /** Bày + giao đúng phiếu, chờ dĩa xuống bàn. */
 function serveTicket(s, t) {

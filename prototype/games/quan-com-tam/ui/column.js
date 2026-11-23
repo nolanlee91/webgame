@@ -1,18 +1,18 @@
 // Cột Dĩa (SCREENS.md): thanh phiếu (màu viền = màu bàn) + ô bày (phiếu ghim, dĩa xếp lớp từ plate-layers, dải lớp, Hoàn tác / Giao)
 // + phiếu tính tiền khi cô chủ đang đứng tính tiền ở bàn + danh sách việc theo bàn + bảng Bếp (mobile: dock Bàn / Bếp).
 // Dĩa vẽ bằng cùng đường atlas với cảnh: plate-layers (lưới 2×) hoặc plate-layers-hd khi Codex giao đợt 2 (cùng tên frame), hệ số qua crisp.
-import { el, button, fmtK, tableColor, tableName } from "./common.js?v=c1";
-import { paint, dpr } from "../render/atlas.js?v=c1";
-import { DISHES, EXTRAS } from "../data/economy.js?v=c1";
-import { QUIRKS } from "../data/customers.js?v=c1";
-import { layerStrip, LAYER_NAME, targetOf, plateFrames, slotOf, ticketOf, nextStep, bestPiece } from "../core/plate.js?v=c1";
-import { tableJob, groupById, patienceLeft } from "../core/tables.js?v=c1";
-import { billTotal, canAutoBill } from "../core/bill.js?v=c1";
-import { ownerFree } from "../core/walker.js?v=c1";
-import { isCooked } from "../core/grill.js?v=c1";
-import { JOB_LABEL } from "../render/scene.js?v=c1";
-import { missionsBox } from "./progress-ui.js?v=c1"; // A: nhiệm vụ trong ca
-import { eggState } from "../core/rice.js?v=c1"; // A: chảo trứng trong bảng Bếp
+import { el, button, fmtK, tableColor, tableName } from "./common.js?v=c2";
+import { paint, dpr } from "../render/atlas.js?v=c2";
+import { DISHES, EXTRAS } from "../data/economy.js?v=c2";
+import { QUIRKS } from "../data/customers.js?v=c2";
+import { layerStrip, LAYER_NAME, targetOf, plateFrames, slotOf, ticketOf, nextStep, bestPiece } from "../core/plate.js?v=c2";
+import { tableJob, groupById, patienceLeft } from "../core/tables.js?v=c2";
+import { billTotal, canAutoBill } from "../core/bill.js?v=c2";
+import { ownerFree } from "../core/walker.js?v=c2";
+import { isCooked } from "../core/grill.js?v=c2";
+import { JOB_LABEL } from "../render/scene.js?v=c2";
+import { missionsBox } from "./progress-ui.js?v=c2"; // A: nhiệm vụ trong ca
+import { eggState } from "../core/rice.js?v=c2"; // A: chảo trứng trong bảng Bếp
 
 const SAUCE = { chan: "chan", chen: "chén riêng", bich: "bịch" };
 

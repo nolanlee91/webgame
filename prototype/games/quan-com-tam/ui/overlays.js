@@ -1,17 +1,17 @@
 // Bảng phủ: màn chào, Chuẩn bị (Nhập hàng · Ướp sườn · Mẻ đầu · Menu · Ca · Dự báo), chốt ca (lời lỗ), nghỉ giữa ca, tạm dừng, cách chơi,
 // xác nhận chơi lại, khiếu nại, tính dư, hết hàng, Kho (nhập gấp trong ca), Sổ (review, khách quen). Ca tạm dừng khi có bảng phủ.
-import { el, button, fmtK, starText, tableName } from "./common.js?v=c1";
-import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c1";
-import { ARCHETYPES } from "../data/customers.js?v=c1";
-import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c1";
-import { stockoutOptions, itemName } from "../core/rescue.js?v=c1";
-import { MISTAKES } from "../core/score.js?v=c1";
-import { xpToNext } from "../core/progress.js?v=c1";
-import { groupById } from "../core/tables.js?v=c1";
-import { createBook } from "./notebook.js?v=c1"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
-import * as PU from "./progress-ui.js?v=c1"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
-import { potSize } from "../core/progression.js?v=c1"; // A: cỡ nồi theo giai đoạn
-import "./book-tabs.js?v=c1"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import { el, button, fmtK, starText, tableName } from "./common.js?v=c2";
+import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c2";
+import { ARCHETYPES } from "../data/customers.js?v=c2";
+import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c2";
+import { stockoutOptions, itemName } from "../core/rescue.js?v=c2";
+import { MISTAKES } from "../core/score.js?v=c2";
+import { xpToNext } from "../core/progress.js?v=c2";
+import { groupById } from "../core/tables.js?v=c2";
+import { createBook } from "./notebook.js?v=c2"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
+import * as PU from "./progress-ui.js?v=c2"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
+import { potSize } from "../core/progression.js?v=c2"; // A: cỡ nồi theo giai đoạn
+import "./book-tabs.js?v=c2"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];
 

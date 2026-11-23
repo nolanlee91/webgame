@@ -1,5 +1,5 @@
 // Tiện ích giao diện dùng chung: tạo phần tử, thông báo (toast), định dạng tiền, màu bàn, giờ ca.
-import { SHIFTS } from "../data/economy.js?v=c1";
+import { SHIFTS } from "../data/economy.js?v=c2";
 
 export function el(tag, cls, parent, text) {
   const e = document.createElement(tag);

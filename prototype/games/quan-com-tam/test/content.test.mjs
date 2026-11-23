@@ -1,13 +1,13 @@
 // Nội dung thoại: đủ khối lượng (PLAYBOOK §5), không emoji, biến điền đủ, freshLine không lặp trong ca; ca bot không lặp câu nào.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ORDER, ARRIVE, TEA_CALL, BILL_CALL, HAPPY, TIMEOUT, pool } from "../data/lines.js?v=c1";
-import * as L from "../data/lines.js?v=c1";
-import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c1";
-import { REVIEWS, TIMEOUT_REVIEW } from "../data/lines-reviews.js?v=c1";
-import { ARCHETYPES, ROLES } from "../data/customers.js?v=c1";
-import { MISTAKE_IDS } from "../core/score.js?v=c1";
-import { freshLine, fill } from "../core/text.js?v=c1";
+import { ORDER, ARRIVE, TEA_CALL, BILL_CALL, HAPPY, TIMEOUT, pool } from "../data/lines.js?v=c2";
+import * as L from "../data/lines.js?v=c2";
+import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c2";
+import { REVIEWS, TIMEOUT_REVIEW } from "../data/lines-reviews.js?v=c2";
+import { ARCHETYPES, ROLES } from "../data/customers.js?v=c2";
+import { MISTAKE_IDS } from "../core/score.js?v=c2";
+import { freshLine, fill } from "../core/text.js?v=c2";
 import { newGame, prepDay, seeded, must, botStep } from "./helpers.mjs";
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;

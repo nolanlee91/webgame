@@ -5,16 +5,16 @@
 // (shift.tick không chạy khi có hội thoại). Không chen lúc cô chủ đang bưng dĩa / đi chợ / đang tính tiền: chờ dĩa xuống bàn rồi mới mở.
 // Giữa hai ngày (nextDay): tối đa 1 sự kiện (s.drama.pending), hiện trên bảng Chuẩn bị. Mỗi lựa chọn lưu một khoảnh khắc Nhật Ký
 // (s.drama.moments) + lịch sử (s.drama.history). Chạm trạng thái hệ khác chỉ qua cờ (s.flags) hoặc khoá đọc có optional chaining.
-import { EVENTS, EVENT } from "../data/events.js?v=c1";
-import { NPCS, npcByName } from "../data/npcs.js?v=c1";
-import { ARCHETYPES } from "../data/customers.js?v=c1";
-import { STOCK, GEAR, SHIFTS } from "../data/economy.js?v=c1";
-import { next, int, pick, weighted } from "./rng.js?v=c1";
-import { fill } from "./text.js?v=c1";
-import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c1";
-import { gainXp } from "./progress.js?v=c1";
-import { sendAway } from "./walker.js?v=c1";
-import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c1"; // A: đơn mâm thật, sổ nợ thật
+import { EVENTS, EVENT } from "../data/events.js?v=c2";
+import { NPCS, npcByName } from "../data/npcs.js?v=c2";
+import { ARCHETYPES } from "../data/customers.js?v=c2";
+import { STOCK, GEAR, SHIFTS } from "../data/economy.js?v=c2";
+import { next, int, pick, weighted } from "./rng.js?v=c2";
+import { fill } from "./text.js?v=c2";
+import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c2";
+import { gainXp } from "./progress.js?v=c2";
+import { sendAway } from "./walker.js?v=c2";
+import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c2"; // A: đơn mâm thật, sổ nợ thật
 
 export { freshDrama };
 export const DRAMA = {

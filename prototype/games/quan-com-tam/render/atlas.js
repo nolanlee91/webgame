@@ -25,7 +25,7 @@ export const HD_SHEETS = {
 export const HD_SKIP = new Set([]);
 /** Sheet thường vẫn cần tải dù đã có bản HD (cảnh vẫn vẽ món trên vỉ bằng grill-items thường). */
 export const KEEP_BASE = new Set(["grillItems"]);
-import { SHEET_SCALE } from "../data/scene.js?v=c1"; // A: hệ số hiện theo sheet
+import { SHEET_SCALE } from "../data/scene.js?v=c2"; // A: hệ số hiện theo sheet
 export function makeAtlas(manifest, base = "", { hd = true, fallback = null } = {}) {
   const byFile = new Map();
   for (const it of manifest.items || []) if (it.filename?.startsWith("assets/")) byFile.set(it.filename, it);
