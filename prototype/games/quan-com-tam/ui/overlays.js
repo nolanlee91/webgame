@@ -166,6 +166,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     const fo = footer(p);
     if (m.final) {
       C.journalButton(fo, s, m.day); // C: thẻ Nhật Ký Làm Chủ
+      if (s.feed.some((r) => !r.reply)) button(fo, "btn", "Trả lời review", () => book(state(), "reviews"), { "data-act": "openBook" }); // C:
       if (hooks.replayInfo()) button(fo, "btn", "Chơi lại ngày hôm nay", () => confirm("replay", () => summary(state())), { "data-act": "replay" });
       button(fo, "btn primary", "Ngày tiếp theo", () => { act({ type: "closeSummary" }); const r = act({ type: "nextDay" }); if (!r.err) { close(); hooks.afterSummary(); } }, { "data-act": "nextDay" });
     } else button(fo, "btn primary", "Nghỉ giữa ca", () => { act({ type: "closeSummary" }); close(); prep(state(), "buy"); }, { "data-act": "toBreak" });

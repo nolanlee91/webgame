@@ -17,7 +17,7 @@
 | M1 · Kiến trúc + cảnh + bàn | **Xong (lõi)** | Xem "M1 + M2 lõi" bên dưới. |
 | M2 · Một ca trọn | **Xong (lõi)** | Ngày 1 chơi trọn bằng chạm thật (e2e desktop 1366@1,25 + mobile 390@3). |
 | M3 · Kinh tế + nội dung cơ chế | Chưa bắt đầu | |
-| M4 · Drama + review + Nhật Ký | Chưa bắt đầu | |
+| M4 · Drama + review + Nhật Ký | **Phần C xong** (review, tính cách, Sổ, Nhật Ký) | Xem "M4 phần C". Drama (B) và tiến trình (A) làm song song. |
 | M5 · Polish + cân bằng | Chưa bắt đầu | |
 
 ## M1 + M2 lõi (đã làm)
@@ -60,6 +60,84 @@ review 1–5 sao (6–10 câu chung + theo vai); câu tới quán, chờ bàn, g
 - Chưa có: nhiệm vụ, drama, trả lời review, Nhật Ký, sổ nợ / ghi sổ, đơn đặt trước, mâm cơm, phụ bàn Bông, lên quán, trang trí, cơm chiên từ cơm dư, ghép bàn, bày ×N, ca trưa chơi được (mới là dữ liệu), nồi canh + chén canh, chảo / xửng có UI riêng (chỉ nút ở bảng Bếp mobile), bếp lớn HD.
 - Chưa dùng ảnh đợt 2 (`plate-layers-hd`, `grill-items-hd` sẽ tự dùng khi có vì cùng tên frame).
 - Thời gian thực ngày 1 ≈ 4–5 phút; chưa đo người thật.
+
+## M4 phần C: review, tính cách cô chủ, Sổ quản lý, Nhật Ký (đã làm)
+
+**Chơi được:**
+- Màn chào có 4 thẻ tính cách (Hiền lành, Cục súc, Lầy lội, Sale-man). Bản lưu cũ chưa có tính cách thì hỏi một lần trước bảng Chuẩn bị.
+- Bảng chốt ngày có câu chốt Nhật Ký, nút "Trả lời review" và "Nhật Ký Làm Chủ".
+- Sổ quản lý (nút Sổ / phím S): tab Review · Nhật ký · Sự kiện · Nhiệm vụ · Huy hiệu.
+  - Review: chạm một review ⇒ khung trả lời. Hàng nút tính cách nằm trên các lựa chọn; bấm là đổi tính ngay và lựa chọn đổi theo.
+  - Mỗi nút ghi hậu quả + "Hên xui x%" / "An toàn" / tiền. Câu trả lời lưu nguyên văn dưới review (cả trong danh sách), kèm kết quả và câu đáp lại.
+  - Nhật ký: mỗi ngày một dòng (câu chốt, khoảnh khắc, số), mở thẻ 1080×1350: Lưu PNG, Chia sẻ, Ẩn tên quán, Đổi khoảnh khắc.
+
+**Luật (`core/reviews.js`, `core/journal.js`, thuần):**
+- Lý do review `r.reason`: 13 kiểu lỗi · `slow` (bỏ về / chờ món lâu, điểm thời gian ≤ 8) · `soldOut` · `takeaway` · `praise` · `charred` / `egg` (dặn cháy cạnh / lòng đào, 5 sao) · `service` (5 sao không lỗi phục vụ) · `meh` · `net` (cư dân mạng).
+- Pool câu theo lý do: `reviewPool` (tables.js gọi).
+- Đánh giá = trung bình 20 review gần nhất. Người theo dõi +3 mỗi review 5 sao, +1 mỗi review 4 sao.
+- Độ hot `s.hype` giảm một nửa mỗi ngày.
+- Khách ca sau: `trafficBonus` (−1..+5 người) + `s.nextGuests` (từ câu trả lời Sale-man). Thêm vào lịch lúc mở ca (`onShiftStart`), ngày hướng dẫn thì không.
+- Trả lời: 3–4 lựa chọn mỗi tính cách theo chủ đề (`praise` / `takeaway` / `mistake` / `slow` / `meh` / `net` / `serious`).
+  - Hiền lành an toàn. Cục súc đánh cược lên mạng / phốt (kèm review cư dân mạng 5 / 2 sao). Lầy lội độ hot lên xuống. Sale-man ra khách nhưng 1/4–1/3 bị chê phiền.
+  - Hậu quả: tiền, người theo dõi, độ hot, danh tiếng, review cư dân mạng, khách ca sau, khách quay lại (giữ tên, nói câu quay lại), lời hứa.
+  - Lời hứa: ngày tới hạn trung bình ≥ 4 sao (≥ 2 khách) thì danh tiếng +2.
+- Sườn sống / dĩa chay dính mặn: mọi tính cách chỉ còn 2 lựa chọn xin lỗi nghiêm túc (hứa sửa / hoàn tiền + mời bữa khác), câu không đùa, không khuyến mãi.
+- Đổi tính: lịch sử `s.persona.switches`. Đổi giữa hai lần trả lời thì 70% cư dân mạng bình luận (FLIP_LINES). Đổi 3 lần một ngày ⇒ khoảnh khắc "flip" và câu chốt ngày đổi.
+- Nhật Ký: cộng dồn các ca trong ngày (`s.dayLog`), chốt ở ca cuối ngày (`onShiftEnd`) ⇒ `s.journal[0]`.
+  - Câu chốt chọn theo dữ kiện (`captionKind`, 18 nhóm).
+  - Trả lời lên mạng / phốt sau lúc chốt ngày vẫn thay câu chốt (`recaption`) và đưa câu trả lời lên đầu khoảnh khắc.
+- Thẻ (`ui/journal.js`): nền `assets/journal-card.webp` khi manifest có, không thì nền canvas dự phòng + cắt ảnh cảnh quán.
+
+**Nội dung:** 624 câu, tất cả qua `freshLine`.
+- Trả lời: 310 câu, ở `data/lines-reply-a.js` (Hiền lành, Cục súc) và `data/lines-reply-b.js` (Lầy lội, Sale-man), 6–10 câu mỗi lựa chọn mỗi chủ đề, Lầy lội có câu meme riêng cho 6 kiểu lỗi.
+- Câu đáp lại (khách + cư dân mạng × 9 kết quả), cư dân mạng bình luận đổi tính, review cư dân mạng, câu khách quay lại: `data/lines-reply.js`.
+- Câu chốt ngày theo dữ kiện / tính cách / câu trả lời nổi: `data/lines-journal.js`, `data/lines-reply.js`.
+- Review theo lý do (chờ lâu, hộp mang về, cháy cạnh, lòng đào, phục vụ): `data/lines-reviews-m4.js`.
+
+**Trạng thái (khối `// --- C: reviews/journal ---` trong `core/state.js`, đọc + kẹp ở `loadSocial`):**
+
+| Khoá | Nội dung |
+|---|---|
+| `persona` | `{ id, last, switches[{day,from,to}], asked }` |
+| `followers`, `hype`, `nextGuests` | Người theo dõi, độ hot, khách thêm ca sau |
+| `promises` | Lời hứa `{ day, name, reviewId }` |
+| `returning` | Khách quay lại `{ name, arch, persona, day }` |
+| `journal` | Nhật Ký `{ day, kind, headline, plates, profit, revenue, stars, followers, moments[], replyCap }` |
+| `dayLog` | Cộng dồn ca trong ngày |
+
+Review trong `feed` có thêm `reason`, `src` (`quan` / `mang`), `reply`.
+
+**Móc vào file chung (dòng `// C:`):**
+- `core/state.js`: `freshSocial` / `loadSocial`.
+- `core/tables.js`: `addReview` ⇒ `pushReview`; `reviewPool` trong `finalizeGroup`; `spawnGroup` nhận `plan.name` / `plan.line`.
+- `core/shift.js`: `onShiftStart` / `onShiftEnd` / `onNewDay`.
+- `core/apply.js`: action `persona`, `reply`.
+- `ui/overlays.js`: thẻ tính cách ở màn chào, câu chốt + 2 nút ở bảng chốt, `book` ⇒ `ui/notebook.js`.
+- `game.js`: nền thẻ, hỏi tính cách một lần, thông báo `replied` / `persona`.
+- `index.html`: CSS.
+
+**Cắm tab vào Sổ (`ui/notebook.js`):**
+
+```js
+import { registerTab } from "./ui/notebook.js?v=c1";
+registerTab("events", "Sự kiện", (body, state, ctx) => { /* vẽ vào body; ctx = { act, rerender, close, el, button, starText } */ });
+```
+
+- Id `events` / `missions` / `badges` thay chỗ trống có sẵn. Id mới thì thêm cuối hàng tab.
+- Gọi `registerTab` lúc nạp module (trước khi mở Sổ).
+- Tab Huy hiệu tạm hiện cấp / XP / khách quen tới khi được thay.
+
+### Cờ dùng chung
+
+Ghi bằng `s.flags[name] = value`. Agent B (`core/flags.js`, sự kiện R01–R10) đọc và tự quyết hạn.
+
+| Cờ | Giá trị | Khi nào |
+|---|---|---|
+| `reply-viral` | ngày đặt (`s.day`) | Một câu trả lời "Lên mạng" |
+| `reply-phot` | ngày đặt | Một câu trả lời "Dính phốt" (Cục súc nói thẳng thua; kèm review cư dân mạng 2 sao) |
+| `reply-sale` | ngày đặt | Mỗi lần trả lời bằng tính cách Sale-man |
+| `persona-flip` | số lần đổi tính trong ngày (về 0 khi sang ngày) | Mỗi lần đổi tính |
+| `review-1star-<lý do>` | ngày đặt | Mỗi review 1 sao. Lý do như `r.reason`: `raw`, `veganMeat`, `slow`, `wrongDish`… |
 
 ## Ghi chú cho dev (M1 trở đi)
 

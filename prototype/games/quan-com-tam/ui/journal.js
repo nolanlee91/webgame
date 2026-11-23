@@ -91,11 +91,12 @@ export async function drawJournal(canvas, entry, opts = {}) {
   ctx.fillText("· " + card.title, 170 + bw + 16, 96);
   block(ctx, card.shop ? `${card.shop} · ${card.day}` : card.day, { x: 170, y: 136, w: 800, size: 28, min: 18, weight: 700, color: moss, maxLines: 1 });
   // vùng dưới
-  let y = 900;
-  y = block(ctx, card.headline, { x: 90, y, w: 900, size: 44, min: 28, weight: 800, color: ink, maxLines: 3 }) + 16;
-  ctx.fillStyle = "rgba(122,74,48,.35)"; ctx.fillRect(90, y, 900, 3); y += 20;
-  y = block(ctx, "“" + card.quote + "”", { x: 90, y, w: 900, size: 32, min: 22, weight: 600, color: indigo, maxLines: 3, style: "italic" });
-  if (card.who) block(ctx, "— " + card.who, { x: 90, y: y + 4, w: 900, size: 24, min: 18, weight: 700, color: brown, maxLines: 1, align: "right" });
+  // ngân sách chữ: 895..1160 (ba số bắt đầu ở 1168): câu chốt ≤ 2 dòng, câu trích ≤ 2 dòng, người nói 1 dòng
+  let y = 895;
+  y = block(ctx, card.headline, { x: 90, y, w: 900, size: 42, min: 26, weight: 800, color: ink, maxLines: 2, lh: 1.22 }) + 12;
+  ctx.fillStyle = "rgba(122,74,48,.35)"; ctx.fillRect(90, y, 900, 3); y += 14;
+  y = block(ctx, "“" + card.quote + "”", { x: 90, y, w: 900, size: 30, min: 20, weight: 600, color: indigo, maxLines: 2, lh: 1.22, style: "italic" });
+  if (card.who) block(ctx, "— " + card.who, { x: 90, y: Math.min(y + 2, 1132), w: 900, size: 22, min: 16, weight: 700, color: brown, maxLines: 1, align: "right" });
   // ba số
   const sy = 1168, bw3 = 280;
   card.stats.forEach((st, i) => {

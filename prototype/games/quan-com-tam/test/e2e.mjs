@@ -61,7 +61,11 @@ async function playDay1(tag, shots) {
   if (shots) await b.shot(`${OUT}/${tag}-01-chao.png`);
   await b.ev(`document.querySelector('#shopName').value=''`);
   await pressSel("#shopName"); await b.send("Input.insertText", { text: "Cơm Tấm Cô Ba Hẻm 5" });
+  // M4 (C): chọn tính cách cô chủ ở màn chào
+  await pressSel('.pcard[data-persona="lay"]');
+  check(`${tag}: màn chào có 4 thẻ tính cách, chọn Lầy lội`, (await b.ev("document.querySelectorAll('.pcard').length")) === 4 && (await b.ev("document.querySelector('.pcard[data-persona=\"lay\"]').getAttribute('aria-checked')")) === "true");
   await pressSel("#introGo");
+  check(`${tag}: tính cách đã lưu`, (await S("s.persona.id")) === "lay");
   check(`${tag}: bảng Chuẩn bị`, await waitFor("__game.overlay==='prep'"));
   check(`${tag}: tên quán đã lưu`, (await S("s.shopName")) === "Cơm Tấm Cô Ba Hẻm 5");
   await pressSel('[data-act="restockToday"]');
@@ -149,6 +153,7 @@ async function playDay1(tag, shots) {
   check(`${tag}: chốt ca có doanh thu, giá vốn, sao trung bình`, sum.revenue > 0 && sum.cogs > 0 && sum.avg >= 3, `doanh thu ${sum.revenue}k · lời ${sum.profit}k · ${sum.avg} sao · ${sum.plates} dĩa · bỏ về ${sum.lost} · lật đúng lúc ${sum.perfectFlips}`);
   await shot("08-chot-ca");
   check(`${tag}: không tràn ngang`, await noOverflowX());
+  await replyFlow(tag, shots);
   await pressSel('[data-act="nextDay"]');
   check(`${tag}: sang ngày 2 về Chuẩn bị`, await waitFor("__game.overlay==='prep'") && (await S("s.day")) === 2);
   // bảng phủ: thông báo lên dải trên cùng, không đè nút của bảng
@@ -159,6 +164,61 @@ async function playDay1(tag, shots) {
   await b.nav(BASE);
   check(`${tag}: tải lại giữ tiến trình (ngày 2, tên quán, tiền)`, (await S("s.day")) === 2 && (await S("s.shopName")) === "Cơm Tấm Cô Ba Hẻm 5" && (await S("s.money")) === moneyNow, `${moneyNow}k`);
   return sum;
+}
+
+/** M4 (C): từ bảng chốt ngày mở Sổ, trả lời review, đổi tính cách ngay trong bảng (lựa chọn đổi), trả lời lần nữa, câu trả lời hiện + còn đó, mở thẻ Nhật Ký. */
+async function replyFlow(tag, shots) {
+  check(`${tag}: chốt ngày có câu chốt Nhật Ký`, (await b.ev("(document.querySelector('#sheet .headline')||{}).textContent||''")).length > 10);
+  await pressSel('[data-act="openBook"]');
+  check(`${tag}: mở Sổ quản lý (5 tab)`, await waitFor("__game.overlay==='book'") && (await b.ev("document.querySelectorAll('#sheet .tabs .tab').length")) === 5);
+  const opts = () => b.ev("[...document.querySelectorAll('#sheet .choices [data-reply]')].map(e=>e.dataset.reply).join(',')");
+  const o1 = await opts();
+  check(`${tag}: bảng trả lời theo tính cách đang chọn (Lầy lội)`, o1.length > 0 && o1.split(",").every((x) => x.startsWith("lay-")), o1);
+  await pressSel('#sheet .persona-switch [data-persona="hien"]');
+  const o2 = await opts();
+  check(`${tag}: đổi tính ngay trong bảng ⇒ lựa chọn đổi liền`, o2 !== o1 && o2.split(",").every((x) => x.startsWith("hien-")) && (await S("s.persona.id")) === "hien", o2);
+  if (tag === "mobile") { const cv = await notCovered(["#sheet .choice", "#sheet .persona-switch .ps", "#sheet .tab"]); check(`${tag}: bảng trả lời không nút nào bị che`, cv.length === 0, cv.slice(0, 3).join(" | ")); }
+  const id1 = Number(await b.ev("document.querySelector('#sheet .nb-pane').dataset.review"));
+  await pressSel("#sheet .choices [data-reply]:not(:disabled)");
+  const t1 = await S(`(s.feed.find(r=>r.id===${id1}).reply||{}).text||''`);
+  check(`${tag}: trả lời lần 1 hiện ngay dưới review`, t1.length > 10 && (await b.ev("(document.querySelector('#sheet .reply-done .say')||{}).textContent||''")).includes(t1), t1);
+  if (shots) await b.shot(`${OUT}/${tag}-09-tra-loi-review.png`);
+  const id2 = await b.ev("(()=>{const e=document.querySelector('#sheet .revbtn:not(.done)');return e?Number(e.dataset.review):null})()");
+  let t2 = "";
+  if (id2 !== null) {
+    await pressSel(`#sheet .revbtn[data-review="${id2}"]`);
+    await pressSel('#sheet .persona-switch [data-persona="cucsuc"]');
+    const o3 = await opts();
+    check(`${tag}: đổi sang Cục súc ⇒ lựa chọn cục súc`, o3.split(",").every((x) => x.startsWith("cuc-")), o3);
+    await pressSel("#sheet .choices [data-reply]:not(:disabled)");
+    t2 = await S(`(s.feed.find(r=>r.id===${id2}).reply||{}).text||''`);
+  }
+  const listed = (id, t) => b.ev(`(()=>{const e=document.querySelector('#sheet .revbtn[data-review="${id}"] .say');return !!e&&e.textContent.includes(${JSON.stringify(t)})&&e.getBoundingClientRect().height>0})()`);
+  check(`${tag}: trả lời lần 2 xong, cả hai câu trả lời hiện trong sổ`, (await listed(id1, t1)) && (id2 === null || (t2.length > 10 && (await listed(id2, t2)))), t2);
+  // đóng sổ ⇒ về bảng chốt ngày; mở lại ⇒ câu trả lời vẫn còn
+  await pressSel('[data-act="bookClose"]');
+  check(`${tag}: đóng sổ quay về bảng chốt ngày`, await waitFor("__game.overlay==='summary'"));
+  await pressSel('[data-act="journalCard"]');
+  check(`${tag}: mở thẻ Nhật Ký 1080×1350 (nền dự phòng hoặc journal-card)`, await waitFor("__game.overlay==='journal'&&document.querySelector('#journalCanvas').dataset.ready==='1'") && (await b.ev("(()=>{const c=document.querySelector('#journalCanvas');return c.width===1080&&c.height===1350})()")));
+  const q0 = await b.ev("document.querySelector('#journalCanvas').dataset.quote");
+  await pressSel('[data-act="hideName"]');
+  await waitFor("document.querySelector('#journalCanvas').dataset.ready==='1'");
+  check(`${tag}: ẩn tên quán trên thẻ`, (await b.ev("document.querySelector('#journalCanvas').dataset.shop")) === "");
+  await pressSel('[data-act="nextMoment"]');
+  await waitFor("document.querySelector('#journalCanvas').dataset.ready==='1'");
+  const q1 = await b.ev("document.querySelector('#journalCanvas').dataset.quote");
+  check(`${tag}: đổi khoảnh khắc trên thẻ`, q1.length > 5 && (q1 !== q0 || (await S("s.journal[0].moments.length")) <= 1), q1);
+  check(`${tag}: có nút lưu PNG + chia sẻ`, (await visible('[data-act="savePng"]')) && (await visible('[data-act="sharePng"]')));
+  if (shots) await b.shot(`${OUT}/${tag}-10-nhat-ky.png`);
+  check(`${tag}: thẻ xuất PNG được (canvas không bẩn)`, await b.ev("document.querySelector('#journalCanvas').toDataURL('image/png').length>5000"));
+  await pressSel('[data-act="closeJournal"]');
+  check(`${tag}: đóng thẻ về bảng chốt ngày`, await waitFor("__game.overlay==='summary'"));
+  if (await at('[data-act="openBook"]')) {
+    await pressSel('[data-act="openBook"]');
+    check(`${tag}: mở lại sổ, câu trả lời vẫn còn`, await listed(id1, t1));
+    await pressSel('[data-act="bookClose"]');
+    await waitFor("__game.overlay==='summary'");
+  }
 }
 
 // ===== desktop 1366×768 dpr 1,25, chuột =====
