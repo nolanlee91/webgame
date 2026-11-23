@@ -514,6 +514,9 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       c.appendChild(grid);
       const foot = h("div", "row"); foot.style.marginTop = "12px";
       const go = btn("Ngày tiếp theo", "primary", "nextDay", () => { dispatch({ type: "closeSummary" }); close(); hooks.afterSummary(); }); go.dataset.autofocus = "";
+      // Review chưa trả lời ⇒ nút dẫn thẳng tới ô trả lời (như Trà Sữa); không có thì thôi
+      const open = (hooks.state().feed || []).filter((r) => !r.reply);
+      if (open.length) { const rb = btn(`Trả lời review (${open.length})`, "accent", "replyReviews", () => { bookSel = open[0].id; notebook(hooks.state(), "reviews", "summary"); }); foot.appendChild(rb); }
       foot.appendChild(btn("Lưu ảnh Nhật Ký", "", "journal", () => journalCard(hooks.state(), "summary")));
       foot.appendChild(btn("Nâng cấp", "", "upgrades", () => { dispatch({ type: "closeSummary" }); close(); hooks.afterSummary("shop"); }));
       foot.appendChild(go); c.appendChild(foot);

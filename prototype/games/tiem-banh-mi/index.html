@@ -29,6 +29,11 @@
     .top .tools { margin-left: auto; display: flex; gap: 8px; }
     .tbtn { min-height: 40px; min-width: 44px; padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255, 242, 220, .18); background: rgba(255, 242, 220, .08); cursor: pointer; font-weight: 700; font-size: 13px; }
     .tbtn:hover { background: rgba(255, 242, 220, .16); }
+    /* số review chưa trả lời trên nút Sổ (thanh trên + dock) */
+    #bookBtn[data-count], #dock button[data-dock=book][data-count] { position: relative; }
+    #bookBtn[data-count]::after, #dock button[data-dock=book][data-count]::after { content: attr(data-count); position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #d2453b; color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #1b1f2a; }
+    .rev-cta { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 8px; background: #2e6b5c; color: #fff; font-size: 11px; font-weight: 800; vertical-align: middle; }
+    .btn.accent { background: #d98a2b; color: #fff; }
     .tbtn:disabled { opacity: .45; cursor: default; }
 
     .app { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 420px; grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "world bench" "rail bench";

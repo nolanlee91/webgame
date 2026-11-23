@@ -55,6 +55,7 @@ function reviewsTab(body, state, { dispatch, sel, setSel }) {
     d.appendChild(h("b", "", r.name + (r.src === "mang" ? " (trên mạng)" : "") + ": "));
     d.appendChild(document.createTextNode(r.line));
     d.appendChild(h("small", "muted", ` · ngày ${r.day}${r.reply ? " · đã trả lời" : ""}`));
+    if (!r.reply) d.appendChild(h("span", "rev-cta", "Trả lời"));
     d.addEventListener("click", () => setSel(r.id));
     list.appendChild(d);
   }

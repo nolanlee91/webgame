@@ -207,6 +207,8 @@ async function boot() {
     $("#world").dataset.weather = state.weather?.kind === "rain" && state.weather.day === state.day && sh ? "rain" : "";
     rail(state, hn?.key === "pin");
     hud(state);
+    // số review chưa trả lời: chấm trên nút Sổ (thanh trên) và nút Sổ của dock điện thoại
+    { const n = (state.feed || []).filter((r) => !r.reply).length; for (const b of document.querySelectorAll("#bookBtn, #dock button[data-dock=book]")) { if (n) b.dataset.count = n > 9 ? "9+" : String(n); else delete b.dataset.count; } }
     bench.render(state, hn);
     bench.frame(state);
     hintbar.hidden = !hn;
