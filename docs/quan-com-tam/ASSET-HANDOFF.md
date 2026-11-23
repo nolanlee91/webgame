@@ -37,3 +37,21 @@ python -I tools/asset-check/check_assets.py docs/quan-com-tam/asset-spec.json --
 ```
 
 Phần chưa có gồm 18 sheet bắt buộc còn lại, 70 tọa độ đặt vật, 11 khóa đường đi và bàn, cùng 11 sheet tùy chọn Đợt 2. Checker sẽ có ảnh soi nhân vật khi có sprite.
+
+## Đợt 2 · Cận cảnh, chân dung và vật dụng
+
+Asset commit `4bec512` trên `codex/com-tam-wave2`, gồm master local `f7760b4` và Đợt 1 `4bc6dab`.
+
+- Đủ 11 sheet và 268 frame Đợt 2. Đã bỏ `optional` cho cả 11 sheet. Ảnh HD dùng lưới 1×, vật dụng và thời tiết dùng 2×, tất cả WebP lossless.
+- Chủ quán khăn chàm và khăn trắng trên vai nhất quán giữa dáng đứng và 7 clip cận cảnh. Tên lớp dĩa HD và các miếng trên vỉ khớp bản Đợt 1. Đã ghép thử dĩa cơm có sườn, trứng, nước mắm và canh.
+- Đủ 12 chân dung chính, 60 biểu cảm và 48 khung Drama. Bông theo sprite phụ bàn, Chú Tư cùng nhóm công nhân, Anh Sáu có đồ xanh và nón riêng so với tài xế áo xám.
+- Giữ hai thước cảnh 257/258 px và 74 điểm đặt cùng 12 khóa đường đi/bàn. Kích thước phần ảnh hữu hình tại 1×: tủ kính 124×94 px, ghế chờ 170×86 px (tính lưng tựa), mái bạt 310×78 px, hũ sứ 48×42 px, đèn đỏ 32×56 px. Đã ghép vật dụng ở đúng kích thước gốc cạnh chủ quán trong cả hai cảnh.
+- Thẻ Nhật Ký 1080×1350 có vùng đầu, vùng ảnh 960×640 và vùng chữ cuối. Thời tiết gồm mưa, chớp, nước tràn, khói dày và quầng sáng khi cúp điện.
+- Đã soi ảnh nhân vật của checker, chân dung, cảnh ghép vật dụng và từng cảnh báo. 23 cảnh báo giữ lại gồm 8 vùng tóc/biểu cảm chân dung, 12 cảnh báo mưa/chớp/nước ngập ở biên, 2 cảnh báo cánh hoa hoặc đầu dây đèn rời, và 1 cảnh báo nền thẻ Nhật Ký phủ kín. Kiểm ở cấp file và ảnh ghép tĩnh.
+
+```text
+python -I tools/asset-check/check_assets.py docs/quan-com-tam/asset-spec.json --preview <tmp>
+
+0 lỗi, 23 cảnh báo — ĐẠT, giao được.
+Ảnh soi nhân vật: <tmp>/nhan-vat-xep-hang-x2.png
+```
