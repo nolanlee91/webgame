@@ -14,6 +14,7 @@ import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTabl
 import { openStockout } from "./rescue.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { expireStock } from "./stock.js?v=c1";
+import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c1"; // C: khách nhờ review, Nhật Ký ngày
 
 /** Ca hướng dẫn ngày 1: bếp chín chậm hơn để người mới kịp hiểu "hai mặt" (vùng chín rộng hơn theo thời gian). */
 export const TUTORIAL_GRILL = 0.85;
@@ -98,6 +99,7 @@ export function startShift(s, ev = []) {
       lost: 0, timeouts: 0, soldOut: 0, passed: 0, groupsServed: 0, takeaway: 0, washed: 0, perfectFlips: 0, flips: 0, burnt: 0, stars: [], mistakes: {}, reviews: 0, xp: 0, maxDirtyMs: 0, smokeMax: 0 },
   };
   if (s.kitchen.coal > 0) s.shift.lit = true;
+  onShiftStart(s); // C: khách thêm nhờ đánh giá / độ hot + khách quay lại nhờ câu trả lời
   ev.push({ type: "shiftStarted", kind, day: s.day, guests: s.shift.schedule.reduce((a, g) => a + g.roles.length, 0), tutorial });
   return { ok: true };
 }
@@ -201,6 +203,7 @@ export function endShift(s, ev = []) {
   s.stats.bestProfit = Math.max(s.stats.bestProfit, profit);
   if (sh.tutorial) s.tutorialDone = true;
   s.lastSummary = { ...summary, seen: false };
+  onShiftEnd(s, s.lastSummary, sh, lastOfDay); // C: cộng dồn ngày, lời hứa, độ hot, câu chốt + Nhật Ký
   s.shift = null;
   if (lastOfDay) { s.dayDone = true; s.between = null; }
   else { s.shiftIdx++; s.between = s.plan[s.shiftIdx]; }
@@ -223,6 +226,7 @@ export function nextDay(s, ev = []) {
   s.daily = { consigned: false, borrowed: {} };
   s.usedDay = [];
   if (s.lastSummary) s.lastSummary.seen = true;
+  onNewDay(s); // C: cờ persona-flip về 0
   ev.push({ type: "newDay", day: s.day, expired, jar, spoiled });
   return { ok: true, expired, jar, spoiled };
 }

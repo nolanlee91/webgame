@@ -16,6 +16,7 @@ import { scorePlate, servicePoints, finalStars, worstMistake, MISTAKES } from ".
 import { addWaste } from "./plate.js?v=c1";
 import { takeRice } from "./rice.js?v=c1";
 import { gainXp } from "./progress.js?v=c1";
+import { pushReview, reviewPool } from "./reviews.js?v=c1"; // C: sổ review + lý do review
 
 export const groupById = (s, gid) => s.shift.groups.find((g) => g.id === gid) || null;
 export const tableById = (s, tid) => s.shift.tables.find((t) => t.id === tid) || null;
@@ -61,7 +62,7 @@ export function spawnGroup(s, plan, ev = []) {
   const taken = new Set(sh.groups.flatMap((g) => g.members.map((m) => m.name)));
   const members = (plan.roles || [plan.arch]).map((role, idx) => {
     const R = ARCHETYPES[role] || A;
-    let name = R.names.find((n) => !taken.has(n)) || `${R.names[0]} ${idx + 2}`;
+    let name = (idx === 0 && plan.name && !taken.has(plan.name) ? plan.name : null) || R.names.find((n) => !taken.has(n)) || `${R.names[0]} ${idx + 2}`; // C: khách quay lại giữ tên
     taken.add(name);
     return { idx, role, name, self: R.self, call: R.call, tk: null, tea: "empty", teaT: 0, teaEmpty: null, noTea: false, dirty: false, plate: null, eatUntil: null, eatMs: 0, eaten: false, req: null, reqDone: false, extras: { com: 0, khan: 0 }, score: null, bonus: 0 };
   });
@@ -69,7 +70,8 @@ export function spawnGroup(s, plan, ev = []) {
   const g = {
     id: sh.nextGid++, arch: plan.arch, size: members.length, members, takeaway, phase: "enter", t0: sh.t, walkMs: (pathLen(path) / SERVICE.guestSpeed) * 1000,
     spot, spots, table: null, arriveT: null, seatT: null, orderT: null, firstTeaT: null, billT: null, used: 0, patienceMs: Math.round(A.patience * 1000 * (plan.patienceMul || 1)),
-    said: {}, say: null, tag: plan.tag || null, paid: false, leaveT: null, outcome: null,
+    said: {}, say: plan.line ? { text: plan.line, at: sh.t, who: 0 } : null, tag: plan.tag || null, // C: câu khách quay lại
+    paid: false, leaveT: null, outcome: null,
   };
   sh.groups.push(g);
   ev.push({ type: "arrive", gid: g.id, arch: g.arch, size: g.size, takeaway });
@@ -432,8 +434,9 @@ export function finalizeGroup(s, g, ev = [], { billMs = 0, auto = false, bonus =
     const pickR = hi - low.stars >= 2 ? low : results[0];
     const st = hi - low.stars >= 2 ? low.stars : Math.round(avg);
     const worst = worstMistake(pickR.m.mistakesAll);
-    const lines = worst && st <= 4 ? pool(MISTAKE_REVIEW[worst], pickR.m.role) : pool(REVIEWS[st], pickR.m.role);
-    addReview(s, { name: pickR.m.name, role: pickR.m.role, stars: st, line: freshLine(s, lines, { ...lineCtx(pickR.m), dish: DISHES[pickR.t.dish].name.toLocaleLowerCase("vi") }), mistake: worst || null, dish: pickR.t.dish });
+    // C: review theo lý do (lỗi · hộp mang về · chờ lâu · cháy cạnh / lòng đào / trà đá kịp), core/reviews.js
+    const rp = reviewPool(worst, st, pickR.m.role, { takeaway: !!g.takeaway, slow: !worst && pickR.m.score.time <= 8, quirks: pickR.t.quirks || [], service: !g.takeaway && !pickR.m.mistakesAll.length && !auto });
+    addReview(s, { name: pickR.m.name, role: pickR.m.role, stars: st, line: freshLine(s, rp.lines, { ...lineCtx(pickR.m), dish: DISHES[pickR.t.dish].name.toLocaleLowerCase("vi") }), mistake: worst || null, dish: pickR.t.dish, reason: rp.reason, ...(g.takeaway ? { takeaway: true } : {}) });
     say(s, g, pool(st >= 4 ? HAPPY : st <= 2 ? UNHAPPY : HAPPY, pickR.m.role), {}, pickR.m.idx);
     s.rep = Math.max(0, Math.min(100, s.rep + (st - 3) * 0.6));
     sh.stats.groupsServed++;
@@ -443,14 +446,8 @@ export function finalizeGroup(s, g, ev = [], { billMs = 0, auto = false, bonus =
   gainXp(s, xp, ev);
   leaveTable(s, g, ev, results.length ? "paid" : "soldout");
 }
-export function addReview(s, r) {
-  const id = s.nextReviewId++;
-  s.feed.unshift({ id, day: s.day, ...r });
-  if (s.feed.length > 40) s.feed.length = 40;
-  s.stats.reviews[r.stars] = (s.stats.reviews[r.stars] || 0) + 1;
-  s.rating = s.rating === null ? r.stars : Math.round((s.rating * 0.85 + r.stars * 0.15) * 100) / 100;
-  s.shift && (s.shift.stats.reviews += 1);
-}
+/** C: review lên sổ qua core/reviews.js (lý do, người theo dõi, đánh giá 20 review gần nhất, cờ review-1star-<lý do>). */
+export function addReview(s, r) { return pushReview(s, r); }
 /** Nhóm rời bàn (trả tiền xong / bỏ về / hết món): bàn dơ với số dĩa đã dùng. */
 export function leaveTable(s, g, ev, outcome) {
   const sh = s.shift, P = pointsOf(s);
@@ -472,7 +469,7 @@ export function leaveTable(s, g, ev, outcome) {
 export function timeoutGroup(s, g, ev, where) {
   const sh = s.shift;
   say(s, g, pool(TIMEOUT, g.members[0].role));
-  addReview(s, { name: g.members[0].name, role: g.members[0].role, stars: 1, line: freshLine(s, pool(TIMEOUT_REVIEW, g.members[0].role), lineCtx(g.members[0])), mistake: null, timeout: where });
+  addReview(s, { name: g.members[0].name, role: g.members[0].role, stars: 1, line: freshLine(s, pool(TIMEOUT_REVIEW, g.members[0].role), lineCtx(g.members[0])), mistake: null, timeout: where, reason: "slow" });
   sh.stats.lost += g.size; sh.stats.timeouts++;
   for (let i = 0; i < g.size; i++) sh.stats.stars.push(1);
   s.rep = Math.max(0, s.rep - 1.5);

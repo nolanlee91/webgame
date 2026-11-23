@@ -13,6 +13,7 @@ import { cookNow, makeJar, freshRice } from "./rice.js?v=c1";
 import { enqueue, ownerFree } from "./walker.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { STOCK_IDS, SHIFTS, GRILL } from "../data/economy.js?v=c1";
+import { setPersona, reply } from "./reviews.js?v=c1"; // C: tính cách + trả lời review
 
 const inShift = (f) => (s, a, ev) => (s.shift ? f(s, a, ev) : { err: "no-shift" });
 const noShift = (f) => (s, a, ev) => (s.shift ? { err: "in-shift" } : f(s, a, ev));
@@ -49,6 +50,9 @@ const HANDLERS = {
     return { ok: true };
   },
   seeIntro: (s) => { s.introSeen = true; return { ok: true }; },
+  // C: tính cách cô chủ (màn chào / hỏi một lần / đổi trên bảng trả lời) + trả lời review (trong ca cũng được, khi không có hội thoại)
+  persona: (s, a, ev) => setPersona(s, a.persona, ev),
+  reply: (s, a, ev) => (s.shift?.dialog ? { err: "dialog" } : reply(s, a.id, a.kind, ev)),
   closeSummary: (s) => { if (!s.lastSummary) return { err: "none" }; s.lastSummary.seen = true; return { ok: true }; },
   // ---- Chuẩn bị (ngoài ca) ----
   restock: (s, a, ev) => (s.shift && s.shift.dialog ? { err: "dialog" } : st.restock(s, a.id, ev, { express: !!s.shift })),

@@ -5,6 +5,7 @@
 import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES } from "../data/economy.js?v=c1";
 import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
+import { freshSocial, loadSocial } from "./reviews.js?v=c1"; // C: review / tính cách / Nhật Ký
 
 export const SAVE_VERSION = 1;
 export const MIGRATIONS = {};
@@ -19,6 +20,8 @@ export function createState(seed = 20261120) {
     stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {} },
     regulars: {}, feed: [], nextReviewId: 0, rating: null, consign: null, daily: { consigned: false, borrowed: {} },
     usedDay: [], shift: null, lastSummary: null, bought: {},
+    // --- C: reviews/journal --- (persona, followers, hype, nextGuests, promises, returning, journal, dayLog)
+    ...freshSocial(),
   };
 }
 
@@ -97,6 +100,8 @@ export function loadSave(raw) {
   s.bought = Object.fromEntries(Object.entries(obj(d.bought) ? d.bought : {}).filter(([k]) => STOCK_IDS.includes(k)).map(([k, v]) => [k, arr(v).filter((p) => obj(p) && Number.isInteger(p.day) && Number.isInteger(p.n) && p.n > 0).slice(-20)]));
   s.usedDay = arr(d.usedDay).filter((x) => typeof x === "string").slice(-120);
   s.lastSummary = obj(d.lastSummary) ? { ...d.lastSummary, seen: bool(d.lastSummary.seen) } : null;
+  // --- C: reviews/journal --- (lý do / nguồn / câu trả lời của review, tính cách, người theo dõi, độ hot, Nhật Ký)
+  loadSocial(s, d);
   s.shift = loadShift(d.shift, s);
   if (s.shift && s.shift.day !== s.day) s.shift = null;
   return s;
