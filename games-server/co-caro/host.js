@@ -13,22 +13,26 @@ const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho d�
 const realClock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (t) => clearTimeout(t) };
 const GAME_DIR = path.join(__dirname, "..", "..", "prototype", "games", "co-caro");
 
-function createCoCaroHost(server, opts = {}) {
-  const wsPath = opts.path || "/ws/co-caro";
+function createCoCaroHost(server, opts) {
+  return createRoomHost(server, opts, { id: "co-caro", Room, seats: MAX_PLAYERS });
+}
+
+function createRoomHost(server, opts = {}, game) {
+  const wsPath = opts.path || "/ws/" + game.id;
   const clock = opts.clock || realClock;
   const maxRooms = opts.maxRooms || 200;
   const rooms = new Map();   // code → { room, conns:Set<conn>, idleTimer, ip }
   const sockets = new Set();
   const RATE = { burst: 12, perSec: 5 };
   const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 3 };
-  const trustProxy = opts.trustProxy ?? process.env.COCARO_TRUST_PROXY === "1";
+  const trustProxy = opts.trustProxy ?? process.env[game.trustProxyEnv || "COCARO_TRUST_PROXY"] === "1";
   const ipConns = new Map();
   const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
 
   // logic.js + ai.js là ES module dùng chung với client → nạp bất đồng bộ một lần khi khởi động.
   let L = null, A = null;
   const load = (f) => import(pathToFileURL(path.join(GAME_DIR, f)).href);
-  const ready = Promise.all([opts.logic ? opts.logic : load("logic.js"), opts.ai ? opts.ai : load("ai.js")]).then(([l, a]) => { L = l; A = a; });
+  const ready = (game.load ? game.load() : Promise.all([opts.logic ? opts.logic : load("logic.js"), opts.ai ? opts.ai : load("ai.js")])).then(([l, a]) => { L = l; A = a; });
   ready.catch((e) => console.error("[co-caro] không nạp được logic.js / ai.js:", e));
 
   const newCode = () => {
@@ -44,7 +48,7 @@ function createCoCaroHost(server, opts = {}) {
     if ([...rooms.values()].filter((e) => e.ip === ip).length >= perIp.rooms) return null;
     const code = newCode(); if (!code) return null;
     const entry = { conns: new Set(), idleTimer: null, ip };
-    entry.room = new Room({ code, L, A, clock, timings: opts.timings, size: m.size, rule: m.rule, onChange: () => push(entry) });
+    entry.room = new game.Room({ code, L, A, clock, timings: opts.timings, size: m.size, rule: m.rule, onChange: () => push(entry) });
     rooms.set(code, entry);
     return entry;
   }
@@ -146,7 +150,7 @@ function createCoCaroHost(server, opts = {}) {
     ipConns.set(ip, (ipConns.get(ip) || 0) + 1);
     const conn = { ws, ip, entry: null, token: null, last: null, bucket: RATE.burst, at: clock.now() };
     sockets.add(ws);
-    ws.on("message", (raw) => { try { onMessage(conn, raw); } catch (e) { console.error("[co-caro]", e); reply(conn, { t: "err", code: "server" }); } });
+    ws.on("message", (raw) => { try { onMessage(conn, raw); } catch (e) { console.error(`[${game.id}]`, e); reply(conn, { t: "err", code: "server" }); } });
     ws.on("close", () => {
       sockets.delete(ws);
       const n = (ipConns.get(ip) || 1) - 1; if (n > 0) ipConns.set(ip, n); else ipConns.delete(ip);
@@ -167,7 +171,7 @@ function createCoCaroHost(server, opts = {}) {
     });
   }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
 
-  return { rooms, publicList: () => listPublicRooms(rooms, MAX_PLAYERS), ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
+  return { rooms, publicList: () => listPublicRooms(rooms, game.seats), ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }
 
-module.exports = { createCoCaroHost };
+module.exports = { createCoCaroHost, createRoomHost };

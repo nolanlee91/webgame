@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Ô Ăn Quan · Lụm Kèo</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="game.js"></script>
+</head>
+<body>
+  <header><a href="/homepage/">← Lụm Kèo</a><span>Trò chơi dân gian</span></header>
+  <main>
+    <section id="entry" class="intro">
+      <div>
+        <h1>Ô Ăn Quan</h1>
+        <p>Rải từng viên sỏi, tính đường ăn quân. Đấu 1v1 hoặc chia hai đội 2v2 qua mã phòng.</p>
+        <form id="create">
+          <label>Tên của bạn<input id="name" maxlength="22" autocomplete="nickname" placeholder="Tên hiển thị"></label>
+          <label>Chế độ<select id="mode"><option value="2">1v1 · 2 người</option><option value="4">2v2 · 4 người</option></select></label>
+          <label class="check"><input id="private" type="checkbox"> Phòng kín</label>
+          <button class="primary">Tạo phòng</button>
+        </form>
+        <form id="join">
+          <label>Mã phòng<input id="code" required maxlength="5" pattern="[A-Za-z0-9]{5}" placeholder="5 ký tự" autocapitalize="characters"></label>
+          <button>Vào phòng</button>
+        </form>
+      </div>
+      <img src="/homepage/assets/thumbs/o-an-quan.webp" alt="Bàn Ô Ăn Quan bằng gỗ và sỏi trên sân gạch">
+    </section>
+    <section id="room" hidden>
+      <div class="room-head">
+        <div><h1>Ô Ăn Quan</h1><p id="room-caption"></p></div>
+        <div class="actions"><button id="copy">Chép link mời</button><button id="leave">Rời phòng</button></div>
+      </div>
+      <div class="teams">
+        <article><h2>Đội A <strong id="score0">0</strong></h2><ul id="team0"></ul></article>
+        <article><h2>Đội B <strong id="score1">0</strong></h2><ul id="team1"></ul></article>
+      </div>
+      <p id="status" class="status" role="status"></p>
+      <div id="board" class="board" aria-label="Bàn Ô Ăn Quan"></div>
+      <div class="controls">
+        <div id="directions" class="actions" hidden>
+          <button data-dir="-1">← Rải trái</button><button data-dir="1">Rải phải →</button>
+        </div>
+        <button id="start" class="primary" hidden>Bắt đầu</button>
+        <p id="last"></p>
+      </div>
+    </section>
+    <p id="notice" role="alert"></p>
+    <details>
+      <summary>Luật chơi</summary>
+      <ol>
+        <li>Mỗi đội có 5 ô dân và mỗi ô bắt đầu với 5 viên. Hai đầu bàn có hai quân quan.</li>
+        <li>Đến lượt, chọn một ô dân bên mình và hướng rải. Mỗi ô tiếp theo nhận một viên. Nếu ô kế tiếp là ô dân có quân, bốc ô đó rải tiếp.</li>
+        <li>Gặp một ô trống rồi đến ô có quân thì ăn toàn bộ quân ở ô sau. Có thể ăn liên tiếp theo mẫu đó. Gặp hai ô trống hoặc gặp ngay ô quan có quân sau khi rải thì kết thúc lượt.</li>
+        <li>Nếu cả hàng của đội sắp đi trống, đội đó trừ 5 điểm để rải lại mỗi ô một dân. Hết hai quân quan, mỗi đội thu dân ở hàng mình. Quan tính 10 điểm, dân tính 1 điểm.</li>
+        <li>Trong 2v2, thứ tự là A1 → B1 → A2 → B2. Hai người cùng đội dùng chung hàng ô và điểm.</li>
+      </ol>
+    </details>
+  </main>
+</body>
+</html>

@@ -146,5 +146,10 @@ console.log("Cờ Tỷ Phú online: đường /ws/co-ty-phu");
 gameHosts.set("dat-bom", require("./games-server/dat-bom/host").createDatBomHost(server));
 console.log("Đặt Bom online: đường /ws/dat-bom");
 
+// Một listener upgrade cho mỗi game, cộng đường xử lý URL WebSocket lạ.
+const nextUpgradeCount = server.listenerCount("upgrade") + 1;
+if (server.getMaxListeners() && nextUpgradeCount > server.getMaxListeners()) server.setMaxListeners(nextUpgradeCount);
+gameHosts.set("o-an-quan", require("./games-server/o-an-quan/host").createOAnQuanHost(server));
+
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
 module.exports = server;

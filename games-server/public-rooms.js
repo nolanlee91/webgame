@@ -1,6 +1,7 @@
-function listPublicRooms(rooms, max) {
+function listPublicRooms(rooms, seats) {
   const result = [];
   for (const { room, public: isPublic } of rooms.values()) {
+    const max = typeof seats === "function" ? seats(room) : seats;
     if (!isPublic || room.closed || room.phase !== "lobby" || room.players.length >= max) continue;
     if (!room.players.some((player) => player.connected && !player.bot)) continue;
     result.push({

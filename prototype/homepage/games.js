@@ -5,6 +5,7 @@
 // Game CHƯA có url: thẻ hiện nhãn "Đang cập nhật" + ảnh mờ, bấm vào vẫn mở trang chờ play.html.
 window.GAMES = [
   { id: "co-ca-ngua", name: "Cờ Cá Ngựa",      cat: "tri-tue",  mode: "both", players: "2–4 người", thumb: "assets/thumbs/co-ca-ngua.webp", icon: "dice", hue: 0, badge: "Hot", url: "../games/co-ca-ngua/" },
+  { id: "o-an-quan", name: "Ô Ăn Quan", cat: "tri-tue", mode: "multi", players: "1v1 · 2v2", thumb: "assets/thumbs/o-an-quan.webp", icon: "caro", badge: "Mới", url: "../games/o-an-quan/" },
   { id: "co-caro",   name: "Cờ Caro",          cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-caro.webp",  icon: "caro", badge: "Hot", url: "../games/co-caro/" },
   { id: "ran-san-moi", name: "Rắn Săn Mồi",    cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/ran-san-moi.webp", icon: "snake", hue: 140, url: "../games/ran-san-moi/" },
   { id: "noi-thu",   name: "Nối Thú",          cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/noi-thu.webp",  icon: "paw", badge: "Mới", url: "../games/noi-thu/" },
@@ -40,7 +41,7 @@ window.HERO_SLIDES = [
 ];
 
 // Các game có phòng multiplayer.
-window.DUEL_IDS = ["co-ca-ngua", "co-caro", "dat-bom", "noi-tu", "ma-soi", "ai-la-noi-gian", "co-ty-phu", "co-vua", "co-tuong"];
+window.DUEL_IDS = ["o-an-quan", "co-ca-ngua", "co-caro", "dat-bom", "noi-tu", "ma-soi", "ai-la-noi-gian", "co-ty-phu", "co-vua", "co-tuong"];
 
 // Kệ theo thứ tự hiển thị khi xem "Tất cả".
 // Tab lọc phía trên lưới dùng CHÍNH danh sách kệ này ⇒ tên + số đếm luôn khớp kệ bên dưới.
