@@ -42,10 +42,14 @@ export function dropFlag(s, f) {
   for (const k of Object.keys(s.drama?.flags || {})) if (hit(k)) delete s.drama.flags[k];
   for (const k of Object.keys(s.flags || {})) if (hit(k)) delete s.flags[k];
 }
-/** Xoá cờ Drama hết hạn (gọi lúc sang ngày). */
+/** Cờ trơn của hệ review (agent C) mang giá trị = ngày đặt (s.day): hết hạn sau FLAG_DAYS ngày. */
+export const DAY_STAMPED = ["reply-viral", "reply-phot", "reply-sale", "review-1star-*"];
+/** Xoá cờ Drama hết hạn + cờ trơn đóng dấu ngày đã quá FLAG_DAYS (gọi lúc sang ngày). */
 export function expireFlags(s) {
   const t = today(s);
   for (const [f, until] of Object.entries(s.drama?.flags || {})) if (until < t) delete s.drama.flags[f];
+  const stamped = (f) => DAY_STAMPED.some((p) => (p.endsWith("*") ? f.startsWith(p.slice(0, -1)) : f === p));
+  for (const [f, v] of Object.entries(s.flags || {})) if (typeof v === "number" && stamped(f) && v + FLAG_DAYS < t) delete s.flags[f];
 }
 
 /** Thêm bộ điều chỉnh có hạn (cùng id thì thay). days tính từ hôm nay (1 = còn tới hết ngày mai). */

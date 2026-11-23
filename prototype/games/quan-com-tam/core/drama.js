@@ -24,9 +24,9 @@ export const FX_KEYS = new Set(["money", "rep", "xp", "followers", "hype", "stoc
 export const IF_KEYS = new Set(["minDay", "maxDay", "minLevel", "maxLevel", "minRep", "maxRep", "minMoney", "maxMoney", "minFollowers", "minHype", "flags", "noFlags", "anyFlags",
   "flagMin", "stage", "owns", "notOwns", "chain", "sum", "debtMin",
   "kind", "phase", "fMin", "fMax", "waitingMin", "seatedMin", "freeSeats", "dirtyMin", "coalMax", "coalMin", "smokeMin", "riceCooking", "riceMax", "stockMax",
-  "cleanPlatesMax", "warmMin", "hotMin", "grillMin", "archPresent", "lastServe"]);
+  "cleanPlatesMax", "warmMin", "hotMin", "grillMin", "archPresent", "lastServe", "statMin"]);
 const SHIFT_ONLY = ["kind", "phase", "fMin", "fMax", "waitingMin", "seatedMin", "freeSeats", "dirtyMin", "coalMax", "coalMin", "smokeMin", "riceCooking", "riceMax", "stockMax",
-  "cleanPlatesMax", "warmMin", "hotMin", "grillMin", "archPresent", "lastServe"];
+  "cleanPlatesMax", "warmMin", "hotMin", "grillMin", "archPresent", "lastServe", "statMin"];
 
 const groupOf = (s, gid) => s.shift?.groups.find((g) => g.id === gid) || null;
 const waitingOf = (s) => (s.shift ? s.shift.groups.filter((g) => g.phase === "wait" && !g.takeaway) : []);
@@ -105,6 +105,7 @@ export function meets(ifs = {}, x) {
   if (ifs.warmMin !== undefined && sh.grill.slots.slice(4).filter(Boolean).length < ifs.warmMin) return false;
   if (ifs.hotMin !== undefined && sh.grill.slots.slice(0, 2).filter(Boolean).length < ifs.hotMin) return false;
   if (ifs.grillMin !== undefined && sh.grill.slots.filter(Boolean).length < ifs.grillMin) return false;
+  if (ifs.statMin && !Object.entries(ifs.statMin).every(([k, n]) => (sh.stats?.[k] || 0) >= n)) return false;
   if (ifs.archPresent && ![...x.waiting, ...x.seated].some((g) => hasRole(g, ifs.archPresent))) return false;
   if (ifs.lastServe) {
     const L = x.lastServe, q = ifs.lastServe;
@@ -271,6 +272,10 @@ export function maybeTrigger(s, events) {
       const g = groupOf(s, e.gid);
       if (g) dr.lastServe = { gid: g.id, t: sh.t, mistakes: e.mistakes || [], arch: g.arch, tid: e.tid, phone: ["reviewer", "student", "student2", "office", "tourist"].some((r) => hasRole(g, r)) };
     }
+    if (e.type === "noTea") {
+      const g = groupOf(s, e.gid);
+      if (g && g.phase === "seated") dr.lastServe = { gid: g.id, t: sh.t, mistakes: ["noTea"], arch: g.arch, tid: g.table, phone: ["reviewer", "student", "student2", "office", "tourist"].some((r) => hasRole(g, r)) };
+    }
     if (e.type === "groupDone") {
       const g = groupOf(s, e.gid);
       const w = g?.tag && dr.watch.find((x) => x.tag === g.tag);
@@ -288,6 +293,11 @@ export function maybeTrigger(s, events) {
         }
       }
     }
+  }
+  // bàn bên cạnh dơ lâu (lỗi bàn dơ): ghi một lần mỗi nhóm
+  for (const g of sh.groups) if (g.phase === "seated" && !g.paid && !g.dramaDirty && g.members.some((m) => m.dirty)) {
+    g.dramaDirty = true;
+    dr.lastServe = { gid: g.id, t: sh.t, mistakes: ["dirtyTable"], arch: g.arch, tid: g.table, phone: ["reviewer", "student", "student2", "office", "tourist"].some((r) => hasRole(g, r)) };
   }
   // người phụ tạm (Mẹ, Cô Út…): mỗi 4 giây dọn một bàn dơ hoặc rửa 2 dĩa
   if (dr.helperUntil > sh.t && sh.t - dr.helperAt >= DRAMA.helperEvery) {
@@ -320,6 +330,13 @@ export function endDrama(s, events = []) {
   expireFlags(s); pruneMods(s);
   D.queue = D.queue.filter((q) => q.day + FLAG_DAYS + 5 >= t && EVENT[q.id]);
   D.pending = null;
+  // cờ Drama tự đặt theo ca vừa chốt (hôm qua lỗ, khói cao / cháy nhiều, cơm dư)
+  const S = s.lastSummary;
+  if (S) {
+    if (S.profit < 0) D.flags["lo-hom-qua"] = t;
+    if ((S.smokeMax || 0) >= 70 || (S.burnt || 0) >= 3) D.flags["khoi-cao"] = t + 1;
+    if ((S.riceLeft || 0) >= 3) D.flags["com-du"] = t;
+  }
   if (t < DRAMA.dayFromDay) return;
   const x = buildCtx(s, "day");
   const due = D.queue.some((q) => q.day <= t && EVENT[q.id]?.when === "day");
@@ -368,7 +385,6 @@ export function affordable(s, ch) {
   const fx = ch.fx || {};
   if (fx.money < 0 && (s.money || 0) < -fx.money) return false;
   for (const [id, n] of Object.entries(fx.stock || {})) if (n < 0 && (s.stock?.[id] || 0) < -n) return false;
-  if (fx.plates < 0 && s.shift && s.shift.cleanPlates < -fx.plates) return false;
   if (fx.rice < 0 && s.shift && s.shift.rice.n < -fx.rice) return false;
   const n = ch.need || {};
   if (n.waitingMin && waitingOf(s).length < n.waitingMin) return false;
@@ -376,7 +392,7 @@ export function affordable(s, ch) {
   return true;
 }
 export const isFree = (ch) => !(ch.need && (ch.need.owns || ch.need.waitingMin)) && !((ch.fx?.money || 0) < 0) && !Object.values(ch.fx?.stock || {}).some((n) => n < 0)
-  && !((ch.fx?.plates || 0) < 0) && !((ch.fx?.rice || 0) < 0) && !(ch.need?.flags || ch.need?.minLevel || ch.need?.stage);
+  && !((ch.fx?.rice || 0) < 0) && !(ch.need?.flags || ch.need?.minLevel || ch.need?.stage);
 export const visibleChoices = (s, node) => node.choices.filter((ch) => choiceVisible(s, ch));
 /** Bot / test: id một lựa chọn bấm được ở bước hiện tại (rnd() chọn ngẫu nhiên, không đụng RNG ván). */
 export function pickFree(s, rnd = Math.random) {
