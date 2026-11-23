@@ -810,6 +810,7 @@ export function onStart(s, ev) {
   if (owns(s, "soup-pot") && s.level >= 5) sh.soup = { n: 30 };
   if (owns(s, "electric-blower")) sh.grill.blower = false;
   if (owns(s, "smoke-hood") && s.stage === "quan") sh.grill.hood = true;
+  if (owns(s, "grill-2") && s.stage === "quan" && sh.grill.slots.length < 12) sh.grill.slots.push(...Array(6).fill(null)); // bếp 2: +6 chỗ, chung than
   if (staffToday(s, "bong")) { const P = pointsOf(s); sh.helper = { pos: [...helperHome(P)], path: null, walked: 0, task: null }; setFlag(s, "helper-bong", s.day); }
   if (staffToday(s, "di-nam")) sh.dishwasher = true;
   setFlag(s, "lunch-today", s.plan.includes("trua") ? s.day : 0);

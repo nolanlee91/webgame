@@ -2,7 +2,7 @@
 import { apply } from "../core/apply.js?v=c1";
 import { createState } from "../core/state.js?v=c1";
 import { itemResult, isCooked, zoneOf, freeWarm } from "../core/grill.js?v=c1";
-import { tableJob, groupById } from "../core/tables.js?v=c1";
+import { tableJob, groupById, canSeat } from "../core/tables.js?v=c1";
 import { nextStep, slotOf } from "../core/plate.js?v=c1";
 import { stockoutOptions } from "../core/rescue.js?v=c1";
 import { ownerFree } from "../core/walker.js?v=c1";
@@ -75,7 +75,7 @@ export function botStep(s, skill = "good", rnd = Math.random, events = []) {
   }
   // xếp chỗ
   for (const g of sh.groups.filter((x) => x.phase === "wait")) {
-    const t = sh.tables.find((x) => x.gid === null && x.state !== "dirty" && x.seats >= g.size);
+    const t = sh.tables.find((x) => x.gid === null && x.state !== "dirty" && x.seats >= g.size) || sh.tables.find((x) => canSeat(s, g, x)); // A: ghép bàn
     if (t) A({ type: "seat", gid: g.id, tid: t.id });
   }
   // bếp (khi cô chủ ở bếp)
@@ -94,6 +94,7 @@ export function botStep(s, skill = "good", rnd = Math.random, events = []) {
     });
     if (g.coal < 40 && !g.pending.length) A({ type: "addCoal" });
     if (sh.rice.n <= 2 && !sh.rice.cooking && (s.stock["gao-tam"] || 0) > 0) A({ type: "cookRice" });
+    if (sh.steamer && !sh.steamer.cooking && sh.steamer.done < 2 && (s.stock.cha || 0) > 0) A({ type: "steam" }); // A: bot biết hấp chả (cấp 4+)
     // bày dĩa
     const sl = slotOf(s);
     if (sl.tk === null) {

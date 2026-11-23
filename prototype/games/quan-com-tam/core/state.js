@@ -42,7 +42,7 @@ function loadShift(sh, s) {
     const t = num(sh.t, 0, 3_600_000, 0);
     if (!Array.isArray(sh.groups) || !Array.isArray(sh.tickets) || !Array.isArray(sh.tables) || !Array.isArray(sh.slots) || !obj(sh.grill) || !obj(sh.rice) || !obj(sh.owner) || !obj(sh.stats)) throw 0;
     const g = sh.grill;
-    if (!Array.isArray(g.slots) || g.slots.length !== GRILL.slots) throw 0;
+    if (!Array.isArray(g.slots) || (g.slots.length !== GRILL.slots && g.slots.length !== GRILL.slots * 2)) throw 0; // A: bếp 2 ⇒ 12 chỗ
     g.slots = g.slots.map((it) => (obj(it) && GRILL.side[it.item] && Array.isArray(it.sides) ? { ...it, sides: [num(it.sides[0], 0, GRILL.sideMax, 0), num(it.sides[1], 0, GRILL.sideMax, 0)], fresh: num(it.fresh, 0, 100, 100), warmMs: num(it.warmMs, 0, BIG, 0), said: obj(it.said) ? it.said : {} } : null));
     g.coal = num(g.coal, 0, 100, 0); g.smoke = num(g.smoke, 0, 100, 0); g.fan = false; g.pending = arr(g.pending).filter((p) => obj(p) && Number.isFinite(p.at)).slice(0, 10);
     sh.rice.n = int(sh.rice.n, 0, 40, 0);

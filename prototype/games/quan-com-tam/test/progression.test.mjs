@@ -449,3 +449,35 @@ test("nội dung cơ chế: 8–12 review mỗi kết quả, không emoji, đi�
   for (const t of all) { assert.ok(!EMOJI.test(t), t); assert.ok(!/\{\w+\}/.test(t.replace(/\{(\w+)\}/g, (m, k) => (ctx[k] ?? ctx[k[0].toLowerCase() + k.slice(1)]) !== undefined ? "x" : m)), t); }
   assert.equal(new Set(all).size, all.length, "không trùng câu");
 });
+
+test("hệ số hiện thiết bị là dữ liệu theo sheet: bản đợt 1 vẽ to ⇒ ×0,5; bản vẽ đúng thước (manifest đổi) ⇒ ×1; displayScale trong manifest ưu tiên", async () => {
+  const { makeAtlas } = await import("../render/atlas.js?v=c1");
+  const { readFileSync } = await import("node:fs");
+  const man = JSON.parse(readFileSync(new URL("../data/asset-manifest.json", import.meta.url), "utf8"));
+  const a = makeAtlas(man);
+  assert.equal(a.scaleOf("equip", "rice-cooker-ready"), 0.5);
+  assert.equal(a.scaleOf("tableItems", "tea-glass-full"), 0.5);
+  assert.equal(a.scaleOf("tableItems", "stool-red"), 1);
+  assert.equal(a.scaleOf("grill", "grill-mid"), 1);
+  const redrawn = structuredClone(man);
+  const eq = redrawn.items.find((i) => i.filename === "assets/equipment.webp");
+  eq.productionStatus = "produced-wave-3"; eq.dimensions = [672, 768];
+  assert.equal(makeAtlas(redrawn).scaleOf("equip", "rice-cooker-ready"), 1, "bản vẽ lại đúng thước ⇒ ×1");
+  eq.displayScale = 0.75;
+  assert.equal(makeAtlas(redrawn).scaleOf("equip", "rice-cooker-ready"), 0.75);
+});
+
+test("bếp than thứ hai (cấp 14, quán): 12 chỗ cùng luật vùng, chung than; ca chơi trọn được; đọc lại bản lưu giữa ca", () => {
+  const s = at(14, { stage: "quan", owned: ["grill-2"] });
+  prepDay(s);
+  must(s, { type: "startShift" });
+  assert.equal(s.shift.grill.slots.length, 12);
+  must(s, { type: "placeMeat", slot: 7 });
+  assert.ok(s.shift.grill.slots[7]);
+  must(s, { type: "tick", dt: 3000 });
+  assert.ok(s.shift.grill.slots[7].sides[0] > 0, "chỗ 7 (vùng nóng bếp 2) chín");
+  const back = loadSave(dump(s));
+  assert.equal(back.shift.grill.slots.length, 12);
+  finishShift(s);
+  assert.equal(invariantError(s, null), null);
+});

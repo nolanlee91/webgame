@@ -6,7 +6,7 @@
 // Thêm than: +35 sau 4 giây; thêm khi đang rực ⇒ lửa bùng 3 giây (vùng nóng ×2). Khói: +1/giây quạt, +3/giây khi có miếng ≥ 125, −2/giây khi yên.
 import { GRILL } from "../data/economy.js?v=c1";
 
-export const zoneOf = (i) => GRILL.zones[i] || "mid";
+export const zoneOf = (i) => GRILL.zones[i % GRILL.slots] || "mid"; // A: bếp 2 (chỗ 6–11) cùng luật vùng
 export function freshGrill(coal = 0) {
   return { slots: Array.from({ length: GRILL.slots }, () => null), coal, pending: [], flareUntil: 0, fan: false, smoke: 0, smokeMax: 0, nextId: 1 };
 }

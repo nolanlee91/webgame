@@ -6,6 +6,7 @@ import { icon } from "../render/atlas.js?v=c1";
 import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c1";
 import { ownerFree } from "../core/walker.js?v=c1";
 import { GRILL } from "../data/economy.js?v=c1";
+import { eggState } from "../core/rice.js?v=c1"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
 
 const SIDE_COL = { raw: "var(--m-raw)", half: "var(--m-half)", done: "var(--m-done)", charred: "var(--m-char)", burnt: "var(--m-burnt)" };
 const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy cạnh", burnt: "cháy" };
@@ -14,6 +15,7 @@ const MEAT_NAME = { suon: "Sườn", "suon-non": "Sườn non", ga: "Gà", "lap-
 
 export function createGrillbar(root, atlas, act, { onFan }) {
   root.textContent = "";
+  let base = 0; // A: 0 = bếp 1, 6 = bếp 2 (cấp 14)
   const chipsBox = el("div", "gchips", root);
   const chips = [];
   for (const z of ["hot", "mid", "warm"]) {
@@ -21,7 +23,7 @@ export function createGrillbar(root, atlas, act, { onFan }) {
     el("small", "", zb, ZONE[z][1]);
     const row = el("div", "row", zb);
     for (let i = 0; i < GRILL.slots; i++) if (zoneOf(i) === z) {
-      const b = button(row, "gchip " + z, null, () => act({ type: "grillTap", slot: i }), { "data-slot": i, "data-hint": "grill" });
+      const b = button(row, "gchip " + z, null, () => act({ type: "grillTap", slot: i + base }), { "data-slot": i, "data-hint": "grill" }); // A: base = 6 khi xem bếp 2
       const ring = el("i", "ring", b);
       const ico = el("i", "ico", b);
       const lbl = el("span", "lbl", b);
@@ -44,14 +46,25 @@ export function createGrillbar(root, atlas, act, { onFan }) {
   const platesTxt = el("span", "", plates); const platesSub = el("small", "", plates);
   const mo = button(ctl, "gbtn2", null, () => act({ type: "moHanh" }), { "data-act": "moHanh", "data-desk": "", title: "Làm hũ mỡ hành (8 giây)" });
   const moTxt = el("span", "", mo); const moSub = el("small", "", mo);
+  // A: chảo trứng (cấp 2), xửng hấp chả (cấp 4), quạt máy (cấp 12) — chỉ hiện khi đã mua
+  const egg = button(ctl, "gbtn2", null, () => act({ type: "egg" }), { "data-act": "egg", "data-desk": "", title: "Chiên trứng (E): lòng đào 6–9 giây, lòng vừa 9–13" });
+  const eggTxt = el("span", "", egg); const eggM = el("span", "meter", egg); const eggBar = el("i", "", eggM); const eggSub = el("small", "", egg);
+  const steam = button(ctl, "gbtn2", null, () => act({ type: "steam" }), { "data-act": "steam", "data-desk": "", title: "Hấp khay chả (H): 30 giây, 8 miếng" });
+  const steamTxt = el("span", "", steam); const steamSub = el("small", "", steam);
+  const blow = button(ctl, "gbtn2", null, () => act({ type: "blower", on: !blowOn }), { "data-act": "blower", "data-desk": "", title: "Quạt máy: bếp lên một nấc, than ×1,5, khói ít hơn quạt tay" });
+  let blowOn = false;
+  const g2 = button(ctl, "gbtn2", null, () => { base = base ? 0 : 6; for (const c of chips) c.sig = ""; }, { "data-act": "grill2", title: "Đổi chip giữa bếp 1 và bếp 2 (phím Shift+1..6 cho bếp 2)" });
+  const g2Txt = el("span", "", g2); const g2Sub = el("small", "", g2);
+  el("span", "", blow, "Quạt máy");
 
   function render(s, hint) {
     const sh = s.shift;
     root.hidden = !sh;
     if (!sh) return;
     const g = sh.grill, free = ownerFree(s);
+    if (g.slots.length <= 6) base = 0;
     for (let i = 0; i < chips.length; i++) {
-      const c = chips[i], it = g.slots[i], z = zoneOf(i);
+      const c = chips[i], it = g.slots[i + base], z = zoneOf(i);
       let sig, cls = "gchip " + z, label;
       if (!it) {
         sig = "empty"; label = `${ZONE[z][0]} · bỏ sườn`;
@@ -101,6 +114,37 @@ export function createGrillbar(root, atlas, act, { onFan }) {
     moTxt.textContent = `Mỡ hành ${s.moHanh.n}`;
     moSub.textContent = `Làm hũ (${s.stock["mo-hanh-bo"] || 0} bộ)`;
     mo.classList.toggle("warn", s.moHanh.n <= 2);
+    // A: chảo + xửng + quạt máy
+    egg.hidden = !sh.pan;
+    if (sh.pan) {
+      const es = eggState(sh.pan, sh.t), sec = es ? (sh.t - sh.pan.egg.t0) / 1000 : 0;
+      eggTxt.textContent = es ? `Trứng ${{ raw: "sống", runny: "lòng đào", set: "lòng vừa", hard: "chín kỹ", burnt: "cháy" }[es]}` : "Chảo trống";
+      eggSub.textContent = es ? `${Math.floor(sec)}s · gắp ở dải bày` : `Chiên (${s.stock.trung || 0} quả)`;
+      eggBar.style.width = Math.min(100, (sec / 18) * 100) + "%";
+      eggBar.style.setProperty("--c", es === "runny" ? "#f2c14a" : es === "set" ? "#e0a040" : es === "burnt" ? "#5a3a2a" : es === "hard" ? "#b87a3a" : "#f4f0e0");
+      egg.classList.toggle("on", es === "runny" || es === "set");
+      egg.classList.toggle("warn", es === "hard" || es === "burnt");
+      egg.classList.toggle("hint", hint?.key === "egg");
+      egg.disabled = !free || !!es;
+    }
+    steam.hidden = !sh.steamer;
+    if (sh.steamer) {
+      steamTxt.textContent = `Chả chín ${sh.steamer.done}`;
+      steamSub.textContent = sh.steamer.cooking ? `hấp ${Math.ceil((sh.steamer.cooking.until - sh.t) / 1000)}s` : `Hấp (${s.stock.cha || 0} sống)`;
+      steam.classList.toggle("warn", sh.steamer.done <= 1 && !sh.steamer.cooking);
+      steam.disabled = !free || !!sh.steamer.cooking || (s.stock.cha || 0) <= 0;
+    }
+    g2.hidden = g.slots.length <= 6;
+    if (g.slots.length > 6) {
+      const other = base ? g.slots.slice(0, 6) : g.slots.slice(6);
+      const ready = other.filter((it) => it && (isCooked(it) || it.sides[0] >= 100)).length;
+      g2Txt.textContent = base ? "Đang xem bếp 2" : "Đang xem bếp 1";
+      g2Sub.textContent = `${base ? "Bếp 1" : "Bếp 2"}: ${other.filter(Boolean).length} miếng${ready ? `, ${ready} cần tay` : ""}`;
+      g2.classList.toggle("warn", ready > 0);
+    }
+    blow.hidden = !s.owned?.["electric-blower"];
+    blowOn = !!g.blower;
+    blow.classList.toggle("on", blowOn);
   }
   return { render };
 }

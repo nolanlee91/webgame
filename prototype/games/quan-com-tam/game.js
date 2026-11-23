@@ -16,7 +16,9 @@ import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c1";
 import { itemName } from "./core/rescue.js?v=c1";
 import { MISTAKES } from "./core/score.js?v=c1";
 import { shopSave, browserStorage } from "./save.js?v=c1";
-import { DISHES } from "./data/economy.js?v=c1";
+import { DISHES, LEVELS } from "./data/economy.js?v=c1";
+import { addNewDishes } from "./core/progress.js?v=c1"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c1"; // A: thông báo + lỗi của phần tiến trình M3
 import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c1";
 
 const $ = (s) => document.querySelector(s);
@@ -120,6 +122,7 @@ async function boot() {
     "no-mo-hanh-bo": () => "Hết bộ làm mỡ hành.",
     "owned": () => "Đã có rồi.",
     "plates-max": () => "Chồng dĩa đã tới trần tủ.",
+    ...PU.ERR_EXTRA, // A:
   };
   function act(a, quiet = false) {
     if (a?.type === "startShift") store.snapshotDay(state);
@@ -132,7 +135,7 @@ async function boot() {
     for (const e of r.events) {
       playEvent(e);
       switch (e.type) {
-        case "flip": scene.act("grill", 450); if (e.perfect) { const p = scene.points.grillSlots[e.slot]; scene.burst("sizzle", p[0], p[1] - 10, 1, reduced()); } break;
+        case "flip": scene.act("grill", 450); if (e.perfect) { const p = e.slot < 6 ? scene.points.grillSlots[e.slot] : scene.points.grill2Slots?.[e.slot - 6]; if (p) scene.burst("sizzle", p[0], p[1] - 10, 1, reduced()); } break; // A: bếp 2
         case "placed": scene.act("grill", 400); break;
         case "layer": case "pinned": scene.act("plate", 400); break;
         case "burnt": say("Một miếng sườn cháy đen rồi!", "warn"); break;
@@ -181,7 +184,7 @@ async function boot() {
         case "shiftStarted": setDock("plate"); say(`Mở quán ngày ${e.day}! Khoảng ${e.guests} khách.${e.tutorial ? " Làm theo dải gợi ý màu xanh." : ""}`, "good"); break;
         case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 500); break;
         case "newDay": if (e.expired || Object.keys(e.spoiled || {}).length) say(`Sang ngày mới: bỏ ${e.expired ? e.expired + " miếng sườn ướp cũ" : ""}${Object.keys(e.spoiled || {}).length ? " và hàng tươi quá hạn" : ""}.`, "warn"); break;
-        default: break;
+        default: { const x = PU.toastFor(e); if (x) say(x[0], x[1]); break; } // A:
       }
     }
     if (a.type !== "tick") save(true); else if (r.events.length) save();
@@ -282,9 +285,11 @@ async function boot() {
     if (!state.shift) return;
     if (e.altKey && /^[1-5]$/.test(e.key)) { const t = state.shift.tables[Number(e.key) - 1]; if (t) act({ type: "tableTap", tid: t.id, gid: scene.selected ?? undefined }); e.preventDefault(); return; }
     if (/^[1-6]$/.test(e.key)) { act({ type: "grillTap", slot: Number(e.key) - 1 }); e.preventDefault(); return; }
+    if (e.shiftKey && /^Digit[1-6]$/.test(e.code) && state.shift.grill.slots.length > 6) { act({ type: "grillTap", slot: 5 + Number(e.code.slice(5)) }); e.preventDefault(); return; } // A: bếp 2
     if (key === "c") { act({ type: "addCoal" }); return; }
     if (key === "f") { if (!fanKey) { fanKey = true; act({ type: "fan", on: true }); } e.preventDefault(); return; }
     if (key === "r" && !state.shift.slots[state.shift.sel].tk) { act({ type: "cookRice" }); return; }
+    if (key === "e" && !state.shift.slots[state.shift.sel].tk && state.shift.pan) { act({ type: "egg" }); return; } // A: chiên trứng
     if (key === " ") { act({ type: "autoStep" }); e.preventDefault(); return; }
     if (e.key === "Enter") { if (state.shift.billing) act({ type: "collect" }); else act({ type: "serve" }); e.preventDefault(); return; }
     if (e.key === "Backspace") { act({ type: "undo" }); e.preventDefault(); return; }
@@ -322,6 +327,9 @@ async function boot() {
     sceneToClient(x, y) { const r = $("#scene").getBoundingClientRect(); const [sx, sy] = scene.toScreen(x, y); return [r.left + sx, r.top + sy]; },
     sceneScale: () => scene.scale,
     dishes: DISHES,
+    // A: móc e2e tiến trình: nhảy cấp / thêm tiền (ghi qua bản lưu như thao tác thường)
+    setLevel(n) { state.xp = LEVELS[n - 1] || 0; state.level = n; state.tutorialDone = true; addNewDishes(state); save(true); },
+    addMoney(k) { state.money += Math.max(0, Math.floor(k)); save(true); },
   };
 }
 

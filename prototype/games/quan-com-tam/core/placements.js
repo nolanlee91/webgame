@@ -51,6 +51,7 @@ export function buildPoints(stage, placements = {}) {
   };
   for (const k of ["suon-tray", "charcoal-sack", "plate-stack", "bi-tray", "mo-hanh-pot", "sauce-jar", "chili-jar", "glass-case", "pickle-jar", "cucumber-tray", "box-stack", "cash-tin", "ledger", "rice-cooker", "soup-pot", "steamer", "egg-pan", "tea-cooler", "wash-tub", "water-can"]) out[k] = at(k);
   if (!street) for (const k of ["helper-home", "grill-2", "rice-cooker-2", "electric-blower", "smoke-hood"]) out[k] = at(k);
+  if (!street && out["grill-2"]) { const rel = pts(P["grill-2"]?.slots) || GRILL_SLOTS; out.grill2Slots = rel.slice(0, 6).map((p) => [out["grill-2"][0] + p[0], out["grill-2"][1] + p[1]]); } // A: bếp than thứ hai
   else for (const k of ["awning", "signboard", "lantern-string"]) out[k] = at(k);
   return out;
 }

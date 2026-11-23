@@ -7,6 +7,7 @@ import { paint, placeAt, setSnap } from "./atlas.js?v=c1";
 import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongDist } from "../core/placements.js?v=c1";
 import { itemFrame, heatKey } from "../core/grill.js?v=c1";
 import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c1";
+import { seatSpotsFor, decorAt, isFamous } from "../core/progression.js?v=c1"; // A: bàn ghép, trang trí
 
 const W = 1280, H = 720;
 export const BUBBLE_MS = 3600;
@@ -17,10 +18,9 @@ function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) 
 export const CHAR_H = 288;
 export const charScale = (f) => (f ? Math.max(1, Math.round((CHAR_H / f.h) * 2) / 2) : 1);
 
-/** Thiết bị (equipment.webp) vẽ to trong ô 192 (nồi cơm cao ~132 px) ⇒ hiện ×0,5 cho đúng thước cảnh (nồi ~66 px, ART-DIRECTION §0),
- *  như Tiệm Bánh Mì. Ly trà (table-items) cũng ×0,5; ghế, dĩa đang ăn, bàn, bếp, món trên vỉ hiện ×1. Đều là bội 0,5 ⇒ vẫn nét. */
-export const EQUIP_SCALE = 0.5;
-export const SMALL_ITEM_SCALE = 0.5;
+/** A: hệ số hiện thiết bị / ly trà là dữ liệu theo sheet (data/scene.js SHEET_SCALE → atlas.scaleOf): bản đợt 1 vẽ to ⇒ ×0,5,
+ *  bản Codex vẽ đúng thước sau này ⇒ ×1 tự động. Ghế, dĩa đang ăn, bàn, bếp, món trên vỉ hiện ×1. Đều là bội 0,5 ⇒ vẫn nét. */
+const scaleOf = (atlas, alias, name) => (atlas.scaleOf ? atlas.scaleOf(alias, name) : 1);
 export const JOB_LABEL = { seat: "Mời ngồi", visit: "Châm trà · lấy phiếu", bill: "Tính tiền", clean: "Dọn bàn", rice: "Thêm cơm" };
 
 /** Frame khách đứng / đi. */
@@ -90,11 +90,14 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     layer(stageId === "quan" ? "quanFg" : "streetFg", 200);
     S.counter = el("div", "counter-layer", stage);
     S.grill = el("div", "spr grill", S.counter);
-    S.items = P.grillSlots.map(() => el("div", "spr gitem", S.counter));
+    S.grill2 = P["grill-2"] ? el("div", "spr grill", S.back) : null; // A: bếp than thứ hai (kệ sau)
+    S.items = [...P.grillSlots, ...(P.grill2Slots || [])].map((p, i) => el("div", "spr gitem", i >= 6 ? S.back : S.counter));
     S.eq = {};
-    for (const key of ["rice-cooker", "mo-hanh-pot", "plate-stack", "suon-tray", "pickle-jar", "cucumber-tray", "sauce-jar", "chili-jar", "cash-tin", "box-stack", "egg-pan", "bi-tray", "steamer"]) if (P[key]) S.eq[key] = el("div", "spr", P[key][1] < 380 ? S.back : S.counter);
+    for (const key of ["rice-cooker", "mo-hanh-pot", "plate-stack", "suon-tray", "pickle-jar", "cucumber-tray", "sauce-jar", "chili-jar", "cash-tin", "box-stack", "egg-pan", "bi-tray", "steamer", "soup-pot", "electric-blower", "smoke-hood"]) if (P[key]) S.eq[key] = el("div", "spr", P[key][1] < 380 ? S.back : S.counter); // A: + nồi canh, quạt máy, chụp hút khói
     S.floor = el("div", "floor-layer", stage);
-    for (const key of ["wash-tub", "charcoal-sack"]) if (P[key]) S.eq[key] = el("div", "spr", S.floor);
+    for (const key of ["wash-tub", "charcoal-sack", "water-can"]) if (P[key]) S.eq[key] = el("div", "spr", S.floor);
+    S.decor = new Map(); // A: trang trí (khoá id → phần tử)
+    S.helper = el("div", "spr helper", S.floor); S.helper.hidden = true; // A: phụ bàn Bông
     // bình trà đá: toạ độ đề xuất (ART-DIRECTION) đè ghế trái bàn 1 ⇒ chỉ vẽ khi manifest có toạ độ thật của Codex
     const teaKey = stageId === "street" ? "street-tea-cooler" : "tea-cooler";
     if (P["tea-cooler"] && atlas.placements[teaKey]) S.eq["tea-cooler"] = el("div", "spr", S.floor);
@@ -220,7 +223,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     const tp = P.tables.find((x) => x.id === g.table);
     const seat = tp?.seatSpots[m.idx]?.at || spot;
     if (g.phase === "toTable") { const sp = P.waitSpots[g.spots?.[m.idx]] || spot; const p = along(guestToSeat(P, sp, seat), Math.min(1, (t - g.seat0) / g.walkMs)); return [p[0], p[1], false]; }
-    if (g.phase === "seated") return [seat[0], seat[1], true, tp?.seatSpots[m.idx]?.face === "left"];
+    if (g.phase === "seated") { const sp = seatSpotsFor(s, g)[m.idx] || tp?.seatSpots[m.idx]; return [sp?.at[0] ?? seat[0], sp?.at[1] ?? seat[1], true, sp?.face === "left"]; } // A: bàn ghép
     if (g.phase === "leave") { const p = along(g.outPath, Math.min(1, (t - g.leaveT) / g.walkMs)); return [p[0] + m.idx * 26, p[1], false]; }
     return [spot[0], spot[1], false];
   }
@@ -246,15 +249,17 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     const g = sh?.grill;
     const coalKey = g ? (g.flareUntil > t ? `flare-${Math.floor(t / 120) % 3 + 1}` : g.smoke >= 55 ? `smoke-${Math.floor(t / 250) % 3 + 1}` : heatKey(g, sh.lit)) : (s.kitchen?.coal > 0 ? "mid" : "cold");
     setSpr("grill", S.grill, "grill", `grill-${coalKey}`, P.grill);
+    if (S.grill2) { const on = s.owned?.["grill-2"] && s.stage === "quan"; S.grill2.hidden = !on; if (on) setSpr("grill2", S.grill2, "grill", `grill-${coalKey}`, P["grill-2"]); else last.grill2 = ""; } // A:
     S.items.forEach((e, i) => {
       const it = g?.slots[i];
       if (!it) { if (last["gi" + i] !== "") { last["gi" + i] = ""; e.hidden = true; } return; }
       const name = itemFrame(it);
-      setSpr("gi" + i, e, "grillItems", name, P.grillSlots[i]);
+      setSpr("gi" + i, e, "grillItems", name, i < 6 ? P.grillSlots[i] : P.grill2Slots[i - 6]);
     });
     // ---- đồ trên quầy / sàn ----
     const rice = sh?.rice;
-    const riceName = rice ? (rice.cooking ? `rice-cooker-cooking-${Math.floor(t / 300) % 3 + 1}` : rice.n === 0 ? "rice-cooker-empty" : rice.n <= 3 ? "rice-cooker-low" : "rice-cooker-ready") : s.kitchen?.rice > 0 ? "rice-cooker-ready" : "rice-cooker-empty";
+    const rc = s.stage === "quan" ? "rice-cooker-big" : "rice-cooker"; // A: nồi lớn ở quán
+    const riceName = rice ? (rice.cooking ? `${rc}-cooking-${Math.floor(t / 300) % 3 + 1}` : rice.n === 0 ? `${rc}-empty` : rice.n <= 3 ? `${rc}-low` : `${rc}-ready`) : s.kitchen?.rice > 0 ? `${rc}-ready` : `${rc}-empty`;
     const eqName = {
       "rice-cooker": riceName,
       "mo-hanh-pot": s.moHanh.n <= 0 ? "mo-hanh-pot-empty" : s.moHanh.n <= 5 ? "mo-hanh-pot-low" : "mo-hanh-pot-full",
@@ -267,11 +272,16 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       "egg-pan": s.owned?.["egg-pan"] ? (sh?.pan?.egg ? `egg-pan-fry-${Math.floor(t / 200) % 2 + 1}` : "egg-pan-idle") : null,
       "bi-tray": s.level >= 3 ? "bi-tray" : null,
       steamer: s.owned?.steamer ? (sh?.steamer?.cooking ? `steamer-steam-${Math.floor(t / 300) % 3 + 1}` : "steamer-idle") : null,
+      // A: đồ mua thêm
+      "soup-pot": s.owned?.["soup-pot"] ? (sh?.soup?.n > 0 ? `soup-pot-steam-${Math.floor(t / 400) % 2 + 1}` : "soup-pot-idle") : null,
+      "electric-blower": s.owned?.["electric-blower"] ? (g?.blower ? `electric-blower-on-${Math.floor(t / 120) % 2 + 1}` : "electric-blower-off") : null,
+      "smoke-hood": s.owned?.["smoke-hood"] && s.stage === "quan" ? "smoke-hood" : null,
+      "water-can": s.owned?.["water-can"] ? "water-can" : null,
     };
     for (const [key, e] of Object.entries(S.eq)) {
       const name = eqName[key];
       if (!name) { e.hidden = true; last["eq" + key] = ""; continue; }
-      setSpr("eq" + key, e, "equip", name, P[key], EQUIP_SCALE);
+      setSpr("eq" + key, e, "equip", name, P[key], scaleOf(atlas, "equip", name));
       if (e.parentElement === S.floor) e.style.zIndex = 1000 + P[key][1];
     }
     // ---- bàn ----
@@ -285,11 +295,12 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       live.add(tb.id);
       const n = tableNode(tp);
       const grp = tb.gid !== null && sh ? sh.groups.find((x) => x.id === tb.gid) : null;
+      const off = tb.joinOf ? (tables.find((x) => x.id === tb.joinOf)?.seats || 2) : 0; // A: bàn ghép: người thứ 3–4 ngồi bàn bên cạnh
       const st = tb.state === "dirty" ? "dirty" : tb.state === "wet" ? "wet" : grp || tb.state === "clean" ? "set" : "clean";
       setSpr("tb" + tb.id, n.sprite, "tables", `${tp.seats === 4 ? "table4" : "table2"}-${st}`, tp.at);
       n.sprite.style.zIndex = 1000 + tp.at[1];
       tp.seatSpots.forEach((sp, i) => {
-        const m = grp?.phase === "seated" ? grp.members[i] : null;
+        const m = grp?.phase === "seated" ? grp.members[i + off] : null;
         const stool = n.stools[i];
         if (m) stool.hidden = true;
         else { setSpr(`st${tb.id}${i}`, stool, "tableItems", i % 2 ? "stool-blue" : "stool-red", sp.at); stool.style.zIndex = 1000 + sp.at[1]; stool.classList.toggle("flip", sp.face === "left"); }
@@ -300,7 +311,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
           const name = m.plate.kind === "hop" ? "box-eating" : prog >= 0.95 ? "plate-eating-empty" : prog > 0.5 ? "plate-eating-half" : "plate-eating-full";
           setSpr(`pe${tb.id}${i}`, pe, "tableItems", name, ps); pe.style.zIndex = 1001 + tp.at[1];
         } else { pe.hidden = true; last[`pe${tb.id}${i}`] = ""; }
-        if (m) { const tx = ps[0] + (sp.face === "left" ? 22 : -22); setSpr(`te${tb.id}${i}`, te, "tableItems", `tea-glass-${m.tea}`, [tx, ps[1] - 2], SMALL_ITEM_SCALE); te.style.zIndex = 1002 + tp.at[1]; }
+        if (m) { const tx = ps[0] + (sp.face === "left" ? 22 : -22); setSpr(`te${tb.id}${i}`, te, "tableItems", `tea-glass-${m.tea}`, [tx, ps[1] - 2], scaleOf(atlas, "tableItems", "tea-glass-full")); te.style.zIndex = 1002 + tp.at[1]; }
         else { te.hidden = true; last[`te${tb.id}${i}`] = ""; }
       });
       // nút chạm bàn: hình chữ nhật bao bàn + ghế (SCREENS: chạm bàn, không chạm ghế)
@@ -323,6 +334,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       n.ring.hidden = !showRing;
       if (showRing) { const p = patienceLeft(s, grp); n.ring.style.setProperty("--p", p.toFixed(3)); n.ring.className = "tring" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : ""); }
     }
+    drawHelper(s, t); drawDecor(s); // A:
     for (const [id, n] of tableEls) if (!live.has(id)) { for (const e of [n.sprite, ...n.stools, ...n.plates, ...n.teas, n.btn]) e.remove(); tableEls.delete(id); }
     // ---- khách ----
     const liveG = new Set();
@@ -384,6 +396,35 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     }
     for (const [key, n] of cust) if (!usedCust.has(key)) { n.e.remove(); cust.delete(key); }
     for (const [id, n] of groupUi) if (!liveG.has(id)) { n.bubble.remove(); n.tag.remove(); n.btn.remove(); groupUi.delete(id); if (selGid === id) selGid = null; }
+  }
+  // ---------- A: phụ bàn Bông + trang trí ----------
+  let helperPrev = null, helperFace = 1;
+  function drawHelper(s, t) {
+    const h = s.shift?.helper;
+    S.helper.hidden = !h;
+    if (!h) return;
+    const tk = h.task;
+    const cyc = (seq, n, ms = 140) => atlas.frame("helper", `helper-${seq}-${Math.floor(t / ms) % n + 1}`);
+    const f = tk?.phase === "walk" ? cyc("walk", 4) : tk?.phase === "work" ? (tk.kind === "pour" ? cyc("pour", 2, 300) : cyc("wipe", 4)) : cyc("idle", 2, 600);
+    const sc = charScale(f);
+    if (helperPrev && Math.abs(h.pos[0] - helperPrev[0]) > 0.5) helperFace = h.pos[0] < helperPrev[0] ? -1 : 1;
+    helperPrev = [...h.pos];
+    paint(S.helper, f, sc); placeAt(S.helper, f, h.pos[0], h.pos[1], sc);
+    S.helper.style.zIndex = 1000 + Math.round(h.pos[1]) + 1;
+    S.helper.classList.toggle("flip", helperFace < 0);
+  }
+  function drawDecor(s) {
+    const live = new Set();
+    for (const id of Object.keys(s.decor || {})) {
+      live.add(id);
+      let e = S.decor.get(id);
+      if (!e) { e = el("div", "spr decor", S.floor); e.dataset.decor = id; S.decor.set(id, e); }
+      const at = decorAt(s, id, atlas.placements);
+      setSpr("dc" + id, e, "decor", id, at, scaleOf(atlas, "decor", id));
+      e.style.zIndex = at[1] < 380 ? 50 : 1000 + Math.round(at[1]);
+    }
+    for (const [id, e] of S.decor) if (!live.has(id)) { e.remove(); S.decor.delete(id); delete last["dc" + id]; }
+    root.dataset.famous = isFamous(s) ? "1" : "";
   }
   const rectOf = (e) => { const r0 = root.getBoundingClientRect(), r = e.getBoundingClientRect(); return r.width ? { x0: r.left - r0.left, y0: r.top - r0.top, x1: r.right - r0.left, y1: r.bottom - r0.top } : null; };
   function burst(clipName, x, y, scale = 1, reduced = false) {

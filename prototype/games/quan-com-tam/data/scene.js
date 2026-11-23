@@ -22,6 +22,16 @@ const COUNTER = {
   "cucumber-tray": [645, 414], "box-stack": [672, 414], "cash-tin": [560, 300], ledger: [610, 302], "rice-cooker": [440, 322],
   "soup-pot": [560, 322], steamer: [620, 322], "egg-pan": [680, 324], "tea-cooler": [690, 560], "wash-tub": [90, 456], "water-can": [40, 456],
 };
+/**
+ * A: hệ số hiện trong cảnh theo từng sheet (dữ liệu, không hằng số trong code vẽ). Đợt 1 Codex vẽ thiết bị (nồi cơm cao ~132 px trong ô 192)
+ * và ly trà to gấp đôi thước cảnh ⇒ hiện ×0,5. Luật chỉ áp khi manifest còn ĐÚNG bản đó (dấu vân tay: productionStatus + dimensions);
+ * Codex giao bản vẽ đúng thước (manifest đổi trạng thái / cỡ) ⇒ tự hiện ×1. Item trong manifest có `displayScale` ⇒ dùng số đó (ưu tiên nhất).
+ * frames: chỉ áp cho frame khớp (table-items: ly trà ×0,5, ghế / dĩa đang ăn ×1).
+ */
+export const SHEET_SCALE = {
+  "assets/equipment.webp": { scale: 0.5, match: { productionStatus: "produced-wave-1", dimensions: [1344, 1536] } },
+  "assets/table-items.webp": { scale: 0.5, frames: /^tea-glass-/, match: { productionStatus: "produced-wave-1", dimensions: [672, 192] } },
+};
 /** Toạ độ 6 chỗ trên vỉ, tương đối anchor bếp (ART-DIRECTION §6). */
 export const GRILL_SLOTS = [[-100, -40], [-60, -40], [-20, -40], [20, -40], [60, -44], [100, -44]];
 

@@ -11,6 +11,8 @@ import { billTotal, canAutoBill } from "../core/bill.js?v=c1";
 import { ownerFree } from "../core/walker.js?v=c1";
 import { isCooked } from "../core/grill.js?v=c1";
 import { JOB_LABEL } from "../render/scene.js?v=c1";
+import { missionsBox } from "./progress-ui.js?v=c1"; // A: nhiệm vụ trong ca
+import { eggState } from "../core/rice.js?v=c1"; // A: chảo trứng trong bảng Bếp
 
 const SAUCE = { chan: "chan", chen: "chén riêng", bich: "bịch" };
 
@@ -18,6 +20,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
   railEl.textContent = ""; workEl.textContent = "";
   // ---- ô bày ----
   const wPlate = el("div", "w-plate", workEl);
+  const slotsBar = el("div", "a-slots", wPlate); slotsBar.hidden = true; // A: ô bày đôi (cấp 6)
   const head = el("div", "tk-head", wPlate);
   const row = el("div", "plate-row", wPlate);
   const wrap = el("div", "plate-wrap", row);
@@ -41,7 +44,9 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     coal: button(kp, "btn", "Thêm than", () => act({ type: "addCoal" }), { "data-act": "k-addCoal" }),
     mar: button(kp, "btn", "Ướp gấp sườn", () => act({ type: "marinateNow" }), { "data-act": "k-marinate" }),
     egg: button(kp, "btn", "Chiên trứng", () => act({ type: "egg" }), { "data-act": "k-egg" }),
+    steam: button(kp, "btn", "Hấp chả", () => act({ type: "steam" }), { "data-act": "k-steam" }), // A: xửng hấp chả
   };
+  const renderMissions = missionsBox(workEl); // A:
   const kInfo = el("p", "muted", wKitchen);
 
   let stripSig = "", railSig = "", jobsSig = "", billSig = "", plateSig = "", headSig = "";
@@ -72,7 +77,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     const sh = s.shift;
     const list = sh ? sh.tickets.filter((t) => t.status === "open" || t.status === "pinned" || t.status === "carrying") : [];
     const sel = sh ? slotOf(s).tk : null;
-    const sig = list.map((t) => `${t.id}${t.status}${t.dish}`).join("|") + "#" + sel + "#" + (hint?.key === "pin" ? hint.tk : "");
+    const sig = list.map((t) => `${t.id}${t.status}${t.dish}${t.n ?? ""}`).join("|") + "#" + sel + "#" + (hint?.key === "pin" ? hint.tk : "");
     if (sig !== railSig) {
       railSig = sig;
       railEl.textContent = "";
@@ -80,7 +85,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
       for (const t of list) {
         const b = button(railEl, "slip" + (t.id === sel ? " on" : "") + (t.status === "carrying" ? " carry" : "") + (hint?.key === "pin" && hint.tk === t.id ? " hint" : ""), null, () => act({ type: "pin", tk: t.id }), { "data-tk": t.id });
         b.style.setProperty("--tc", tableColor(t.tid));
-        el("b", "", b, `${tableName(t.tid)} · ${t.name}`);
+        el("b", "", b, t.catering ? `${t.name} ×${t.n}` : `${tableName(t.tid)} · ${t.name}`); // A: phiếu mâm cơm
         el("span", "what", b, (DISHES[t.dish]?.name || "").replace("Cơm ", "C. "));
         const q = el("span", "q", b);
         if (t.nhuCu) el("span", "qchip", q, "như hôm qua");
@@ -101,7 +106,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
 
   function renderBill(s) {
     const b = s.shift.billing, g = groupById(s, b.gid);
-    const sig = JSON.stringify([b.gid, b.tapped, canAutoBill(s)]);
+    const sig = JSON.stringify([b.gid, b.tapped, canAutoBill(s), b.ghiSo?.name || ""]);
     if (sig === billSig) return;
     billSig = sig;
     bill.textContent = "";
@@ -116,6 +121,13 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
       el("span", "", x, l.label); el("b", "", x, fmtK(l.price));
     }
     el("div", "total", bill, "Tổng: " + fmtK(billTotal(b)));
+    if (b.ghiSo) { // A: khách quen xin ghi sổ
+      const gs = el("div", "a-ghiso", bill);
+      el("div", "", gs, `${b.ghiSo.name} xin ghi sổ (${fmtK(b.ghiSo.amount)}). Ăn trước trả sau, có khi quên luôn.`);
+      const ga = el("div", "acts", gs);
+      button(ga, "btn", "Cho ghi sổ", () => act({ type: "ghiSo", accept: true }), { "data-act": "ghiSoYes" });
+      button(ga, "btn", "Xin trả liền", () => act({ type: "ghiSo", accept: false }), { "data-act": "ghiSoNo" });
+    }
     const r = el("div", "acts", bill);
     if (canAutoBill(s)) button(r, "btn", "Tính đúng", () => act({ type: "autoBill" }), { "data-act": "autoBill", title: "Ngày 1–3: tự cộng đúng các món bàn đã dùng" });
     button(r, "btn primary", "Thu tiền", () => act({ type: "collect" }), { "data-act": "collect", disabled: b.tapped.length ? null : "" });
@@ -156,7 +168,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     const sh = s.shift;
     renderRail(s, hint);
     workEl.parentElement.hidden = false;
-    if (!sh) { wPlate.hidden = true; wTables.hidden = true; wKitchen.hidden = true; return; }
+    if (!sh) { wPlate.hidden = true; wTables.hidden = true; wKitchen.hidden = true; renderMissions(s); return; } // A: ẩn hộp nhiệm vụ ngoài ca
     wPlate.hidden = false; wTables.hidden = false; wKitchen.hidden = false;
     // phiếu tính tiền thay ô bày khi đang đứng tính tiền
     const billing = !!sh.billing;
@@ -164,8 +176,9 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     if (billing) { renderBill(s); } else billSig = "";
     const sl = slotOf(s), tkt = sl.tk !== null ? ticketOf(s, sl.tk) : null, p = sl.plate;
     const free = ownerFree(s);
+    renderSlots(s); renderMissions(s); // A:
     if (!billing) {
-      const hsig = tkt ? `${tkt.id}${tkt.dish}${tkt.quirks.join()}` : "none";
+      const hsig = tkt ? `${tkt.id}${tkt.dish}${tkt.quirks.join()}${tkt.n ?? ""}${(sl.batch?.length || 0)}` : "none";
       if (hsig !== headSig) {
         headSig = hsig;
         head.textContent = "";
@@ -177,6 +190,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
           el("div", "", head, `${DISHES[tkt.dish]?.name}${tkt.quirks.length ? " · " + tkt.quirks.map((x) => QUIRKS[x]?.text).join(", ") : ""}${tkt.nhuCu ? " · như hôm qua" : ""}`);
           const tg = targetOf(tkt);
           el("small", "muted", head, `Nước mắm: ${tg.sauce === "any" ? "chan hoặc chén" : SAUCE[tg.sauce] || "—"}${tg.com === 2 ? " · cơm 2 vá" : ""}`);
+          if (tkt.catering) el("div", "a-batch", head, `Mâm cơm: còn ${tkt.n} phần · đang bày ${p ? 1 + (sl.batch?.length || 0) : 0} hộp một lượt (mỗi chạm áp cho cả hàng)`); // A: bày ×N
         } else { head.style.setProperty("--tc", "#555"); el("div", "", head, "Ô bày trống — chạm một phiếu ở trên."); }
       }
       empty.hidden = !!p;
@@ -220,7 +234,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
       tossB.disabled = !p;
       serveB.disabled = !p;
       serveB.classList.toggle("hint", hint?.key === "serve");
-      serveB.textContent = tkt?.takeaway ? "Đưa shipper" : "Giao";
+      serveB.textContent = tkt?.catering ? "Giao mâm" : tkt?.takeaway ? "Đưa shipper" : "Giao"; // A: mâm cơm
     }
     renderJobs(s);
     // bảng bếp (mobile)
@@ -231,7 +245,25 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     kb.coal.textContent = `Thêm than (${s.stock.than || 0} rổ)`; kb.coal.disabled = !free;
     kb.mar.hidden = (s.stock.suon || 0) <= 0;
     kb.egg.hidden = !sh.pan;
+    if (sh.pan) { const es = eggState(sh.pan, sh.t); kb.egg.textContent = es ? `Chảo: trứng ${EGG_TXT[es]} (${Math.floor((sh.t - sh.pan.egg.t0) / 1000)}s)` : `Chiên trứng (${s.stock.trung || 0} quả)`; kb.egg.disabled = !free || !!es; } // A:
+    kb.steam.hidden = !sh.steamer; // A: xửng hấp chả
+    if (sh.steamer) { kb.steam.textContent = sh.steamer.cooking ? `Xửng đang hấp (${Math.ceil((sh.steamer.cooking.until - sh.t) / 1000)}s)` : `Hấp chả (chín ${sh.steamer.done} · sống ${s.stock.cha || 0})`; kb.steam.disabled = !free || !!sh.steamer.cooking || (s.stock.cha || 0) <= 0; }
     kInfo.textContent = `Sườn ướp ${s.stock["suon-uop"] || 0} · gạo tấm ${s.stock["gao-tam"] || 0} · đồ chua ${s.stock["do-chua"] || 0} · dưa leo ${s.stock["dua-leo"] || 0} · nước mắm ${s.stock["nuoc-mam"] || 0} · trà ${s.stock.tra || 0}`;
+  }
+  // A: chọn ô bày khi có ô bày đôi
+  let slotSig = "";
+  function renderSlots(s) {
+    const sh = s.shift;
+    slotsBar.hidden = sh.slots.length < 2;
+    const sig = sh.slots.map((x) => `${x.tk}${x.plate ? 1 : 0}`).join("|") + "#" + sh.sel;
+    if (sig === slotSig || sh.slots.length < 2) return;
+    slotSig = sig;
+    slotsBar.textContent = "";
+    sh.slots.forEach((x, i) => {
+      const t = x.tk !== null ? ticketOf(s, x.tk) : null;
+      button(slotsBar, "btn small" + (i === sh.sel ? " on" : ""), `Ô ${i + 1}${t ? ": " + (t.catering ? "mâm" : tableName(t.tid)) : " trống"}`, () => act({ type: "selectSlot", i }), { "data-slot-sel": i });
+    });
   }
   return { render };
 }
+const EGG_TXT = { raw: "sống", runny: "lòng đào", set: "lòng vừa", hard: "chín kỹ", burnt: "cháy" }; // A:
