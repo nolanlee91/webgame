@@ -176,8 +176,8 @@ export function tick(s, dt, ev = []) {
       else leaveTable(s, g, ev, "closed");
     }
   }
-  maybeTrigger(s, ev); // B: drama (mở sự kiện trong ca, đồng hồ dừng)
   PG.onTick(s, dt, ev, OWNER_TASKS); // A: phụ bàn Bông, Dì Năm, đơn tới hạn, nhiệm vụ, cờ than / khói
+  maybeTrigger(s, ev); // B: drama (cuối nhịp: đọc cờ A vừa đặt, mở sự kiện trong ca, đồng hồ dừng)
   const busy = sh.groups.some((g) => g.phase !== "leave") || sh.schedule.some((g) => !g.done && !sh.closed && g.at < sh.len);
   if (t >= sh.len && !busy && !sh.dialog) return endShift(s, ev);
   return { ok: true };
@@ -218,8 +218,8 @@ export function endShift(s, ev = []) {
   s.stats.bestProfit = Math.max(s.stats.bestProfit, profit);
   if (sh.tutorial) s.tutorialDone = true;
   s.lastSummary = { ...summary, seen: false };
+  PG.afterEnd(s, sh, s.lastSummary, ev); // A: lương nhân viên, nhiệm vụ cuối ca, cơm chiên ngày mai (trước C: lời lỗ ngày đã trừ lương)
   onShiftEnd(s, s.lastSummary, sh, lastOfDay); // C: cộng dồn ngày, lời hứa, độ hot, câu chốt + Nhật Ký
-  PG.afterEnd(s, sh, s.lastSummary, ev); // A: lương nhân viên, nhiệm vụ cuối ca, cơm chiên ngày mai
   s.shift = null;
   if (lastOfDay) { s.dayDone = true; s.between = null; }
   else { s.shiftIdx++; s.between = s.plan[s.shiftIdx]; }
@@ -243,8 +243,8 @@ export function nextDay(s, ev = []) {
   s.usedDay = [];
   if (s.lastSummary) s.lastSummary.seen = true;
   onNewDay(s); // C: cờ persona-flip về 0
-  endDrama(s, ev); // B: drama (hết hạn cờ, sự kiện giữa hai ngày hiện trên Chuẩn bị)
   PG.onNextDay(s, ev); // A: sổ nợ, cơm chiên, thời tiết, cờ ngày
+  endDrama(s, ev); // B: drama, sau A (đọc cờ ngày mới: mưa, sổ nợ), sự kiện giữa hai ngày hiện trên Chuẩn bị
   ev.push({ type: "newDay", day: s.day, expired, jar, spoiled });
   return { ok: true, expired, jar, spoiled };
 }

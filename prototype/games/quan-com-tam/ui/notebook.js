@@ -40,6 +40,7 @@ export function createBook({ open, close, act, state, hooks, focusFirst = () => 
     el("span", "muted small", head, `${s.followers || 0} người theo dõi · đánh giá ${s.rating ? s.rating.toFixed(1).replace(".", ",") : "—"} · độ hot ${String(Math.round((s.hype || 0) * 10) / 10).replace(".", ",")} · danh tiếng ${Math.round(s.rep)}`);
     const tabs = el("div", "tabs", p);
     for (const [id, name] of bookTabs()) button(tabs, "tab" + (tab === id ? " on" : ""), name, () => book(state(), id), { "data-tab": id });
+    { const on = tabs.querySelector(".tab.on"); if (on && tabs.scrollWidth > tabs.clientWidth) requestAnimationFrame(() => { tabs.scrollLeft = Math.max(0, on.offsetLeft - tabs.offsetLeft - 8); }); } // 390 px: 6 tab cuộn ngang, tab đang mở luôn thấy
     const body = el("div", "nb-body", p);
     const ctx = { act, rerender: () => book(state(), tab), close: done, el, button, starText };
     const R = REGISTRY.get(tab);

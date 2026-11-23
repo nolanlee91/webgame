@@ -338,7 +338,11 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     for (const [id, n] of tableEls) if (!live.has(id)) { for (const e of [n.sprite, ...n.stools, ...n.plates, ...n.teas, n.btn]) e.remove(); tableEls.delete(id); }
     // ---- khách ----
     const liveG = new Set();
-    for (const grp of sh?.groups || []) {
+    const gRects = [], bRects = []; // nút nhóm chờ + bong bóng đã đặt trong khung này: nhóm đứng sát cửa không đè nhau (quán 390 px)
+    const hit = (r, list) => list.some((x) => r.x0 < x.x1 && r.x1 > x.x0 && r.y0 < x.y1 && r.y1 > x.y0);
+    // nhóm chờ xếp theo chỗ đứng gần cửa trước, để nhãn của nhóm tới trước giữ chỗ trên đầu, nhóm sau tránh ra
+    const order = (sh?.groups || []).slice().sort((a, b) => (a.phase === "wait" ? a.spot : 99) - (b.phase === "wait" ? b.spot : 99));
+    for (const grp of order) {
       liveG.add(grp.id);
       const gn = groupNode(grp);
       let head = null;
@@ -366,10 +370,22 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
         const [sx, sy] = toScreen(spot[0] - (grp.size > 1 ? 0 : 0), spot[1]);
         const [hx, hy] = toScreen(head.x, head.y);
         const wpx = grp.size > 1 ? 88 : 72, hpx = 44;
-        const left = Math.max(2, Math.min(root.clientWidth - wpx - 2, hx - wpx / 2));
+        let left = Math.max(2, Math.min(root.clientWidth - wpx - 2, hx - wpx / 2));
         let bottom = hy + 22;
         for (const r of tRects) if (r.x0 < left + wpx && r.x1 > left) bottom = Math.min(bottom, r.y0 - 2);
-        gn.btn.style.left = left + "px"; gn.btn.style.top = Math.max(2, bottom - hpx) + "px";
+        let top = Math.max(2, bottom - hpx);
+        if (waiting) {
+          // tránh nút của nhóm chờ khác: lùi sang trái (về phía trong quán), hết chỗ thì xếp tầng lên trên
+          let r = { x0: left, y0: top, x1: left + wpx, y1: top + hpx };
+          for (let i = 0; i < 8 && hit(r, gRects); i++) {
+            const other = gRects.find((x) => r.x0 < x.x1 && r.x1 > x.x0 && r.y0 < x.y1 && r.y1 > x.y0);
+            const nx = other.x0 - wpx - 4;
+            if (nx >= 2) left = nx; else top = Math.max(2, other.y0 - hpx - 4);
+            r = { x0: left, y0: top, x1: left + wpx, y1: top + hpx };
+          }
+          gRects.push(r);
+        }
+        gn.btn.style.left = left + "px"; gn.btn.style.top = top + "px";
         gn.btn.style.width = wpx + "px"; gn.btn.style.height = hpx + "px";
         gn.btn.className = "gbtn" + (p0 => p0 <= 0.35 ? " low" : p0 <= 0.6 ? " mid" : "")(patienceLeft(s, grp));
         gn.btn.classList.toggle("sel", selGid === grp.id);
@@ -389,9 +405,9 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
         if (gn.sayAt !== grp.say.at) { gn.sayAt = grp.say.at; gn.bubble.textContent = grp.say.text; gn.bubble.classList.remove("pop"); void gn.bubble.offsetWidth; gn.bubble.classList.add("pop"); }
         gn.bubble.hidden = false;
         const [hx, hy] = toScreen(head.x, head.y);
-        const keep = waiting ? [rectOf(gn.btn)] : grp.phase === "queue" ? [rectOf(gn.tag)] : [];
+        const keep = [...gRects, ...bRects, ...(grp.phase === "queue" ? [rectOf(gn.tag)] : [])]; // không đè nút nhóm chờ / bong bóng khác
         const r = placeBubble(gn.bubble, hx, hy, head.w * k, keep.filter(Boolean));
-        if (!r) gn.bubble.hidden = true;
+        if (!r) gn.bubble.hidden = true; else bRects.push(r);
       } else gn.bubble.hidden = true;
     }
     for (const [key, n] of cust) if (!usedCust.has(key)) { n.e.remove(); cust.delete(key); }

@@ -176,7 +176,11 @@ async function playDay1(tag, shots) {
 async function replyFlow(tag, shots) {
   check(`${tag}: chốt ngày có câu chốt Nhật Ký`, (await b.ev("(document.querySelector('#sheet .headline')||{}).textContent||''")).length > 10);
   await pressSel('[data-act="openBook"]');
-  check(`${tag}: mở Sổ quản lý (5 tab)`, await waitFor("__game.overlay==='book'") && (await b.ev("document.querySelectorAll('#sheet .tabs .tab').length")) === 5);
+  check(`${tag}: mở Sổ quản lý (6 tab: Review, Nhật ký, Sự kiện, Nhiệm vụ, Huy hiệu, Sổ nợ)`, await waitFor("__game.overlay==='book'") && (await b.ev("[...document.querySelectorAll('#sheet .tabs .tab')].map(e=>e.dataset.tab).join()")) === "reviews,journal,events,missions,badges,debts");
+  // gộp A + B: tab cắm vào Sổ (registerTab) vẽ được, rồi về tab Review
+  for (const t of ["events", "missions", "badges", "debts"]) { await pressSel(`#sheet .tabs [data-tab="${t}"]`); check(`${tag}: tab Sổ "${t}" có nội dung`, (await b.ev("(document.querySelector('#sheet .nb-body')||{}).textContent||''")).length > 10); }
+  if (shots) await b.shot(`${OUT}/${tag}-09b-so-tab-no.png`);
+  await pressSel('#sheet .tabs [data-tab="reviews"]');
   const opts = () => b.ev("[...document.querySelectorAll('#sheet .choices [data-reply]')].map(e=>e.dataset.reply).join(',')");
   const o1 = await opts();
   check(`${tag}: bảng trả lời theo tính cách đang chọn (Lầy lội)`, o1.length > 0 && o1.split(",").every((x) => x.startsWith("lay-")), o1);
@@ -295,12 +299,14 @@ else if (!MOBILE_ONLY) {
   if (!process.env.SKIP_M3) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A:
 }
 
-// ===== mobile 390×844 dpr 3, chạm =====
+// ===== mobile 390×844 dpr 3, chạm ===== (DESKTOP_ONLY=1 bỏ qua; chạy tách hai lần cho vừa giới hạn thời gian)
+if (!process.env.DESKTOP_ONLY) {
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 await playDay1("mobile", true);
 if (!process.env.SKIP_M3) await runM3AMobile({ b, check, S, pressSel, waitFor, sleep, OUT, tag: "mobile" }); // A:
 check("mobile: cảnh hệ số bội 0,5 thiết bị (390@3 ⇒ 1,0, thấy mọi bàn)", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio*2;return Math.abs(k-Math.round(k))<1e-6})()"), String(await b.ev("__game.sceneScale()")));
 check("mobile: thấy đủ mọi bàn trong khung cảnh", await b.ev(`(()=>{const w=document.querySelector('#scene').getBoundingClientRect();return [...document.querySelectorAll('.tbtn-scene')].every(e=>{const r=e.getBoundingClientRect();return r.left>=w.left-2&&r.right<=w.right+2&&r.top>=w.top-2&&r.bottom<=w.bottom+2})})()`));
+}
 const errs = b.errors.filter((e) => !/favicon\.ico/.test(e)); // favicon: chỉ do trang JSON phụ trong bước ghi bản lưu hỏng
 check("0 lỗi console", errs.length === 0, errs.slice(0, 5).join(" | "));
 b.close();

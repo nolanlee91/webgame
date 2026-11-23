@@ -163,4 +163,14 @@ export async function runM3AMobile(ctx) {
   await b.shot(`${OUT}/${tag}-m3-02-quan-trong-ca.png`);
   check(`${tag}: cảnh quán trong ca ở 390 (có Bông)`, (await S("!!s.shift&&s.stage==='quan'&&!!s.shift.helper")) && (await b.ev("!!document.querySelector('.stage .helper:not([hidden])')")));
   check(`${tag}: không tràn ngang`, await b.ev("document.documentElement.scrollWidth<=document.documentElement.clientWidth"));
+  // gộp: nhiều nhóm đứng chờ sát cửa quán ⇒ nhãn "n người" (nút chọn nhóm) không chồng nhau ở 390 px
+  if (await S("!!s.shift")) {
+    await b.ev(`(()=>{const sh=__game.state.shift;let k=0;for(const g of sh.schedule){if(!g.done&&!g.tag&&k<4&&!/shipper/.test(g.arch)){g.at=sh.t+200+k*300;k++}}})()`);
+    for (let i = 0; i < 40 && (await S("s.shift?s.shift.groups.filter(g=>g.phase==='wait').length:0")) < 2; i++) { if (await S("!!(s.shift&&s.shift.dialog)")) break; await b.ev("__game.advance(500)"); }
+    await sleep(250);
+    const n = await S("s.shift?s.shift.groups.filter(g=>g.phase==='wait').length:0");
+    await b.shot(`${OUT}/${tag}-m3-03-cho-cua.png`);
+    const ov = await b.ev(`(()=>{const r=[...document.querySelectorAll('.gbtn:not([hidden])')].map(e=>e.getBoundingClientRect());let bad=0;for(let i=0;i<r.length;i++)for(let j=i+1;j<r.length;j++){const a=r[i],c=r[j];if(a.left<c.right-1&&a.right>c.left+1&&a.top<c.bottom-1&&a.bottom>c.top+1)bad++}return bad})()`);
+    check(`${tag}: ${n} nhóm chờ ở cửa quán, nhãn số người không chồng nhau`, n >= 2 && ov === 0, `nhóm ${n}, chồng ${ov}`);
+  }
 }
