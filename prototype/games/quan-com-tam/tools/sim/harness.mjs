@@ -240,7 +240,7 @@ export class Player {
     const open = sh.tickets.filter((t) => t.status === "open" || t.status === "pinned");
     // nồi cơm: nấu khi sắp hết và còn khách (người ẩu nấu bất kể, cuối ca dư cơm)
     const wantRice = open.length + sh.groups.filter((g) => (g.phase === "seated" || g.phase === "toTable" || g.phase === "wait") && g.orderT === null).reduce((a, g) => a + g.size, 0);
-    if (sh.rice.n <= 3 && !sh.rice.cooking && open.length && (this.p.id === "sloppy" || (wantRice > sh.rice.n && sh.t < sh.len - 35000))) { const r = this.tap({ type: "cookRice" }); if (!r.err) return true; }
+    if (sh.rice.n <= 3 && !sh.rice.cooking && open.length && ((s.stock["gao-tam"] || 0) > 0 || (this.outAt?.["gao-tam"] ?? -1e9) < sh.t - 20000) && (this.p.id === "sloppy" || (wantRice > sh.rice.n && sh.t < sh.len - 35000))) { const r = this.tap({ type: "cookRice" }); if (!r.err) return true; }
     // hấp chả sẵn khi menu có món chả (xửng 30 giây, đừng để phiếu đứng chờ)
     if (sh.steamer && !sh.steamer.cooking && sh.steamer.done < 3 && (s.stock.cha || 0) > 0 && sh.t < sh.len - 20000 && (s.menu || []).some((id) => DISHES[id]?.cha && !DISHES[id]?.vegan)) { const r = this.tap({ type: "steam" }); if (!r.err) return true; }
     if (s.moHanh.n < 2 && (s.stock["mo-hanh-bo"] || 0) > 0 && !sh.owner.queue.some((q) => q.kind === "moHanh")) { const r = this.tap({ type: "moHanh" }); if (!r.err) return true; }
@@ -309,6 +309,8 @@ export class Player {
       if (!t) return false;
       this.wait(this.p.id === "careful" ? 900 : 500); // đọc phiếu
       // bày ×N cho bàn cùng món (khi có ô bày đôi)
+      // mâm cơm / hộp mang về: hộp sắp hết thì gọi Cô Ba giao gấp trước khi bày
+      if ((t.catering || t.takeaway) && (s.stock.hop || 0) < Math.min(4, t.n || 1) && s.money > 90 && this.p.id !== "sloppy") this.tap({ type: "restock", id: "hop" });
       const r = this.tap({ type: "pin", tk: t.id });
       // món có trứng: bắc trứng ngay lúc ghim phiếu (bày cơm, mỡ hành, thịt xong là trứng vừa lòng đào)
       if (!r.err && sh.pan && DISHES[t.dish]?.trung && !sh.pan.egg && (s.stock.trung || 0) > 0) this.tap({ type: "egg" });
@@ -321,7 +323,7 @@ export class Player {
     if (!step) return false;
     // lớp đã bỏ qua (hết hàng, chọn "bỏ qua") ⇒ tự chọn lớp kế tiếp còn thiếu, không bấm lại lớp hết hàng
     const sk = this.skip?.tk === t.id ? this.skip.ids : null;
-    if (sk && sk.has(step)) step = this.nextAfterSkip(t, sk);
+    if (sk && (sk.has(step) || ((step === "egg" || step === "wait-egg") && sk.has("trung")))) step = this.nextAfterSkip(t, sk);
     // thiếu món chính (bì / chả / trứng đã bỏ qua vì hết) ⇒ báo hết món thay vì bưng sai món
     if (sk && ["bi", "cha", "trung"].filter((x) => sk.has(x) && targetOf(t)[x]).length >= 2) { if (sl.plate) this.tap({ type: "discard" }); this.tap({ type: "voidTicket", tk: t.id }); this.skip = null; return true; }
     if (step === "grill") return this.placeAhead();
@@ -354,7 +356,7 @@ export class Player {
     const w = want.find(([id, need]) => need && !sk.has(id));
     if (!w) return "serve";
     if (w[0] === "meat") return nextStep(s);
-    if (w[0] === "trung") { const pan = s.shift.pan; return pan?.egg ? (s.shift.t - pan.egg.t0 >= 6000 ? "trung" : "wait-egg") : "egg"; }
+    if (w[0] === "trung") { const pan = s.shift.pan; return pan?.egg ? (s.shift.t - pan.egg.t0 >= 6000 ? "trung" : "wait-egg") : (s.stock.trung || 0) > 0 ? "egg" : "serve"; }
     return w[0];
   }
   /** Việc ở bàn: giao cho cô chủ (hàng đợi), chỉ khi bếp an toàn theo hồ sơ. */
@@ -410,14 +412,19 @@ export class Player {
       this.log.soIds = this.log.soIds || {}; this.log.soIds[d.id] = (this.log.soIds[d.id] || 0) + 1;
       const opts = stockoutOptions(s).filter((o) => o.ok);
       const side = !["suon-uop", "gao-tam", "than"].includes(d.id);
-      const pref = side ? ["borrow", "dismiss", "consign"] : this.p.id === "sloppy" ? ["consign", "borrow", "marinate", "dismiss", "bread", "ship", "run", "soldOut"] : ["consign", "marinate", "borrow", "ship", "run", "dismiss", "bread", "soldOut"];
+      const pref = d.id === "hop" ? ["borrow", "ship", "run", "consign", "dismiss"] : side ? ["borrow", "dismiss", "consign"] : this.p.id === "sloppy" ? ["consign", "borrow", "marinate", "dismiss", "bread", "ship", "run", "soldOut"] : ["consign", "marinate", "borrow", "ship", "run", "dismiss", "bread", "soldOut"];
       // hội thoại hết hàng mở khi bày một lớp: chọn "bỏ qua" thì nhớ bỏ lớp đó ở dĩa này
       const L = { "do-chua": "doChua", "dua-leo": "duaLeo", "nuoc-mam": "sauce", "nuoc-tuong": "sauce", "mo-hanh-bo": "moHanh", bi: "bi", "bi-chay": "bi", "cha-chay": "cha", cha: "cha", trung: "trung", hop: "hop" }[d.id];
       const tk = slotOf(s).tk;
       const o = pref.map((id) => opts.find((x) => x.id === id)).find(Boolean) || opts[0];
       if (o?.id === "soldOut") this.log.soldOut++;
       this.outAt = { ...(this.outAt || {}), [d.id]: sh.t };
-      if (o?.id === "dismiss" && L && tk !== null) { if (this.skip?.tk !== tk) this.skip = { tk, ids: new Set() }; this.skip.ids.add(L); }
+      if (o?.id === "dismiss" && L && tk !== null) {
+        // mâm cơm / hộp mang về mà hết hộp, không mua được: báo hết món phiếu đó (không bày được)
+        const tt = sh.tickets.find((x) => x.id === tk);
+        if (d.id === "hop" && tt && (tt.catering || sh.cleanPlates <= 0)) { this.act({ type: "stockout", choice: "dismiss" }); if (slotOf(s).plate) this.act({ type: "discard" }); this.act({ type: "voidTicket", tk }); this.skip = null; return; }
+        if (this.skip?.tk !== tk) this.skip = { tk, ids: new Set() }; this.skip.ids.add(L);
+      }
       const r = this.act({ type: "stockout", choice: o?.id || "soldOut" });
       if (r.err) { this.errors.push({ day: s.day, where: "stockout", err: r.err, choice: o?.id }); this.act({ type: "stockout", choice: "soldOut" }); }
       return;
