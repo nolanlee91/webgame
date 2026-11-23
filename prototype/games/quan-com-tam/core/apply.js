@@ -17,7 +17,8 @@ import { setPersona, reply } from "./reviews.js?v=c2"; // C: tính cách + trả
 import { choose as dramaChoose, openEvent } from "./drama.js?v=c2"; // B: drama
 import { aHandlers } from "./progression-actions.js?v=c2"; // A: thao tác tiến trình + kinh tế M3
 import { afterApply as aAfter } from "./progression.js?v=c2"; // A: nhiệm vụ, ghi sổ, câu theo cơ chế sau mỗi action
-import { sHandlers } from "./extras.js?v=c2"; // S: M5 (menu, hội chợ, thử thách, bày ×N, tủ kính, vỉ chay, bếp 2, nợ, trang trí Drama)
+import { sHandlers, HAND as S_HAND, afterApply as sAfter } from "./extras.js?v=c2"; // S: M5 (menu, hội chợ, thử thách, bày ×N, tủ kính, vỉ chay, bếp 2, nợ, trang trí Drama)
+import { batchLayer as aBatchLayer } from "./progression.js?v=c2"; // S: bày ×N dùng chung với mâm cơm
 
 const inShift = (f) => (s, a, ev) => (s.shift ? f(s, a, ev) : { err: "no-shift" });
 const noShift = (f) => (s, a, ev) => (s.shift ? { err: "in-shift" } : f(s, a, ev));
@@ -44,6 +45,7 @@ function outToDialog(s, r, ev) {
 }
 const ownerOnly = (f) => noDialog((s, a, ev) => (ownerFree(s) ? f(s, a, ev) : { err: "owner-busy" }));
 
+let A_H = null; // S: bản của A (để extras.js bọc autoStep / serve)
 const HANDLERS = {
   tick: inShift((s, a, ev) => sh.tick(s, a.dt, ev)),
   startShift: (s, a, ev) => sh.startShift(s, ev),
@@ -66,10 +68,16 @@ const HANDLERS = {
   prepCook: noShift((s, a, ev) => { const r = { n: s.kitchen.rice, size: freshRice().size, cooking: null }; const out = cookNow(s, r, ev); if (out.ok) s.kitchen.rice = r.n; return out; }),
   prepMoHanh: noShift((s, a, ev) => { if (s.moHanh.n >= 10) return { err: "jar-full" }; return makeJar(s, ev); }),
   prepLight: noShift((s, a, ev) => {
-    if (s.kitchen.coal >= GRILL.prepLight.level) return { err: "lit" };
+    // S (M5): bếp 2 (quán, cấp 14) có than riêng: một chạm nhóm cả hai bếp (bếp 1 trước), mỗi bếp 2 rổ
+    const two = !!s.owned?.["grill-2"] && s.stage === "quan";
+    const need1 = s.kitchen.coal < GRILL.prepLight.level, need2 = two && (s.kitchen.coal2 || 0) < GRILL.prepLight.level;
+    if (!need1 && !need2) return { err: "lit" };
     if ((s.stock.than || 0) < GRILL.prepLight.baskets) return { err: "no-than" };
-    s.stock.than -= GRILL.prepLight.baskets; s.kitchen.prepCoal += GRILL.prepLight.baskets; s.kitchen.coal = GRILL.prepLight.level;
-    ev.push({ type: "lit" });
+    for (const k of [need1 && "coal", need2 && "coal2"].filter(Boolean)) {
+      if ((s.stock.than || 0) < GRILL.prepLight.baskets) break;
+      s.stock.than -= GRILL.prepLight.baskets; s.kitchen.prepCoal += GRILL.prepLight.baskets; s.kitchen[k] = GRILL.prepLight.level;
+      ev.push({ type: "lit", grill: k === "coal2" ? 2 : 1 });
+    }
     return { ok: true };
   }),
   buyGear: noShift((s, a, ev) => st.buyGear(s, a.id, ev)),
@@ -87,7 +95,7 @@ const HANDLERS = {
   flip: noDialog((s, a, ev) => sh.flipSlot(s, a.slot, ev)),
   moveWarm: noDialog((s, a, ev) => sh.moveWarm(s, a.slot, ev)),
   discardMeat: noDialog((s, a, ev) => sh.discardMeat(s, a.slot, ev)),
-  addCoal: noDialog((s, a, ev) => sh.addCoalAct(s, ev)),
+  addCoal: noDialog((s, a, ev) => sh.addCoalAct(s, ev, a.grill === 2 ? 2 : 1)), // S: a.grill = 2 ⇒ bếp 2 than riêng
   fan: inShift((s, a, ev) => sh.fanAct(s, !!a.on, ev)),
   cookRice: noDialog((s, a, ev) => sh.cookRiceAct(s, ev)),
   moHanh: noDialog((s, a, ev) => sh.moHanhAct(s, ev)),
@@ -121,9 +129,10 @@ const HANDLERS = {
     if (r.ok && r.task === "marinate") enqueue(s, { kind: "marinate" }, ev);
     return r;
   }),
-  ...aHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep }), // A: M3 (bọc layer/undo/discard/serve/buyGear/prepCook + thao tác mới)
+  ...(A_H = aHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep })), // A: M3 (bọc layer/undo/discard/serve/buyGear/prepCook + thao tác mới)
   ...sHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep }), // S: M5
 };
+S_HAND.autoStep = A_H.autoStep; S_HAND.serve = A_H.serve; S_HAND.batchLayer = aBatchLayer; // S
 export const ACTIONS = Object.keys(HANDLERS);
 
 /** Hàng ký gửi / cứu giữa ca / nhịp ca được vượt sức chứa kho (không bao giờ kẹt vì kho đầy). */
@@ -150,6 +159,7 @@ export function invariantError(s, before, type = "") {
     if (!Number.isInteger(x.cleanPlates) || x.cleanPlates < 0 || !Number.isInteger(x.dirty) || x.dirty < 0) return "plates";
     if (platesInPlay(x) !== s.plates) return "plates-count";
     if (!(x.grill.coal >= 0 && x.grill.coal <= 100)) return "coal";
+    if (x.grill.coal2 !== undefined && !(x.grill.coal2 >= 0 && x.grill.coal2 <= 100)) return "coal2"; // S
     if (!(x.grill.smoke >= 0 && x.grill.smoke <= 100)) return "smoke";
     if (!(x.rice.n >= 0)) return "rice";
     if (!(x.sel >= 0 && x.sel < x.slots.length)) return "slot";
@@ -174,6 +184,7 @@ export function apply(state, action) {
   try { result = HANDLERS[type](draft, action, events); } catch (e) { return { err: "exception", detail: String(e?.stack || e), events: [] }; }
   if (!result || result.err) return { err: result?.err || "bad", detail: result?.detail ?? result, events: [] };
   try { aAfter(draft, action, events, result); } catch (e) { return { err: "exception", detail: String(e?.stack || e), events: [] }; } // A:
+  try { sAfter(draft, action, events, result); } catch (e) { return { err: "exception", detail: String(e?.stack || e), events: [] }; } // S:
   const bad = invariantError(draft, state, type);
   if (bad) return { err: "invariant-" + bad, events: [] };
   for (const k of Object.keys(state)) delete state[k];

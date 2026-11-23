@@ -45,7 +45,7 @@ export function loadA(s, d) {
   const A = freshA();
   if (!obj(d)) return Object.assign(s, A);
   A.debts = arr(d.debts).filter((x) => obj(x) && typeof x.name === "string" && Number.isFinite(x.amount) && x.amount > 0).slice(-60)
-    .map((x) => ({ id: regularId(x.id || x.name), name: x.name.slice(0, 40), amount: clampInt(x.amount, 1, 100000, 1), day: clampInt(x.day, 1, 1e9, s.day) }));
+    .map((x) => ({ id: regularId(x.id || x.name), name: x.name.slice(0, 40), amount: clampInt(x.amount, 1, 100000, 1), day: clampInt(x.day, 1, 1e9, s.day), ...(x.drama === true ? { drama: true } : {}) })); // S: nợ Drama
   A.debtNews = arr(d.debtNews).filter((x) => typeof x === "string").slice(-8);
   A.tabVisits = Object.fromEntries(Object.entries(obj(d.tabVisits) ? d.tabVisits : {}).filter(([, v]) => Number.isInteger(v)).slice(0, 80));
   A.orders = arr(d.orders).filter((o) => obj(o) && DISHES[o.dish] && Number.isInteger(o.n) && o.n > 0).slice(-6)
@@ -471,14 +471,16 @@ const TOGGLE = { bi: "bi", cha: "cha", doChua: "doChua", duaLeo: "duaLeo", ngo: 
 export function batchLayer(s, id, ev, layerFn) {
   const sh = s.shift, slot = sh.slots[sh.sel];
   const t = slot.tk !== null ? ticketById(s, slot.tk) : null;
-  if (!t?.catering) return layerFn(s, id, ev);
+  const tableBatch = !t?.catering && slot.batchTks?.length > 0; // S (M5): bày ×N cho bàn cùng món (core/extras.js batchPin)
+  if (!t?.catering && !tableBatch) return layerFn(s, id, ev);
   if (!slot.plate && (id === "hop" || id === "dia")) {
-    const want = Math.max(1, Math.min(batchMax(s), t.n));
-    const r = layerFn(s, "hop", ev);
+    const kind = t.catering ? "hop" : id;
+    const want = t.catering ? Math.max(1, Math.min(batchMax(s), t.n)) : 1 + slot.batchTks.length;
+    const r = layerFn(s, kind, ev);
     if (r.err) return r;
     const main = slot.plate;
     slot.batch = [];
-    for (let i = 1; i < want; i++) { slot.plate = null; const r2 = layerFn(s, "hop", []); if (r2.err) break; slot.batch.push(slot.plate); }
+    for (let i = 1; i < want; i++) { slot.plate = null; const r2 = layerFn(s, kind, []); if (r2.err) break; if (tableBatch) slot.plate.tk = slot.batchTks[i - 1]; slot.batch.push(slot.plate); }
     slot.plate = main;
     return { ok: true, batch: 1 + slot.batch.length };
   }
@@ -577,7 +579,7 @@ export function addReviewA(s, r) {
 // ---------- sổ nợ (ghi sổ, cấp 6) ----------
 export const debtTotal = (s) => (s.debts || []).reduce((a, d) => a + d.amount, 0);
 export const debtTabs = (s, id) => (s.debts || []).filter((d) => !id || d.id === id).length;
-function syncDebtFlags(s, touched = []) {
+export function syncDebtFlags(s, touched = []) { // S: xuất cho nợ Drama (core/extras.js dramaDebt)
   setFlag(s, "ghiso-open", (s.debts || []).length);
   const ids = new Set([...touched, ...(s.debts || []).map((d) => d.id)]);
   for (const id of ids) setFlag(s, "ghiso-unpaid-" + id, (s.debts || []).filter((d) => d.id === id).reduce((a, d) => a + d.amount, 0));
@@ -657,7 +659,7 @@ export function forgiveDebt(s, id, ev = []) {
 /** Sang ngày: mỗi người nợ 25% trả hết; nợ quá 14 ngày 6% "quên luôn". */
 function debtsNextDay(s, ev) {
   s.debtNews = [];
-  const ids = [...new Set((s.debts || []).map((d) => d.id))];
+  const ids = [...new Set((s.debts || []).filter((d) => !d.drama).map((d) => d.id))]; // S: nợ Drama (Anh Sáu) trả theo chuỗi sự kiện, không tự trả ngẫu nhiên
   for (const id of ids) {
     const list = s.debts.filter((d) => d.id === id);
     const oldest = Math.min(...list.map((d) => d.day));

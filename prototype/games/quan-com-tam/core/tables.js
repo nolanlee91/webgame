@@ -299,7 +299,7 @@ export function deliverPlate(s, task, ev) {
   const m = memberOfTicket(g, task.tk);
   if (!g || !t || !m || t.status === "void") { dropPlate(s, task.plate, ev); return; }
   const plate = task.plate;
-  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), dishOrderBonus: DISHES[t.dish]?.ngo && plate.order.indexOf("trung") > plate.order.indexOf("meat") });
+  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), dishOrderBonus: DISHES[t.dish]?.ngo && plate.order.indexOf("trung") > plate.order.indexOf("meat"), houseSauce: s.fishSauce || 0 }); // S: nước mắm nhà pha
   t.status = "served"; t.plateCom = plate.com; t.servedT = sh.t;
   m.plate = { kind: plate.kind, frames: null }; m.score = res;
   m.eatMs = Math.round((SERVICE.eatMs[0] + next(s) * (SERVICE.eatMs[1] - SERVICE.eatMs[0])) * (ARCHETYPES[m.role]?.eat || 1) * (sh.tutorial ? 0.75 : 1));
@@ -602,7 +602,7 @@ function updateSeated(s, g, dt, ev, smoky) {
 export function serveTakeaway(s, g, t, plate, ev = []) {
   const sh = s.shift, m = memberOfTicket(g, t.id);
   if (!m) return { err: "bad-ticket" };
-  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id) });
+  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), houseSauce: s.fishSauce || 0 }); // S: nước mắm nhà pha
   t.status = "served"; t.plateCom = plate.com; t.servedT = sh.t; t.cost = plateCost(plate.used);
   m.plate = { kind: plate.kind }; m.score = res; m.eaten = true;
   if (plate.kind === "dia") { s.plates--; sh.stats.lostPlates = (sh.stats.lostPlates || 0) + 1; } // shipper mang luôn cái dĩa đi

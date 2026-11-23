@@ -42,7 +42,7 @@ export function judge(plate, ticket) {
   if (!!tg.trung !== !!p.trung) proteinDiff++;
   const wrongDish = meatWrong || proteinDiff >= 2;
   if (wrongDish) mistakes.push("wrongDish");
-  if (tg.vegan && (p.moHanh > 0 || (p.meat && p.meat.item !== "dau-hu") || (p.sauce && p.sauceKind === "nuoc-mam"))) mistakes.push("veganMeat");
+  if (tg.vegan && (p.moHanh > 0 || (p.meat && (p.meat.item !== "dau-hu" || p.meat.tainted)) || (p.sauce && p.sauceKind === "nuoc-mam"))) mistakes.push("veganMeat"); // S: đậu hũ nướng trên chỗ vừa nướng thịt = dính mặn
   // lớp
   const need = [];
   if (tg.com) need.push(p.com >= 1);
@@ -96,7 +96,7 @@ export function timePoints(waitMs, patienceMs) {
   return Math.round(20 - 16 * f);
 }
 /** Chấm phần dĩa lúc dĩa xuống bàn. others = các phiếu đang chờ khác ({ticket, sameTable}). */
-export function scorePlate(plate, ticket, { waitMs = 0, patienceMs = 50000, others = [], dishOrderBonus = false } = {}) {
+export function scorePlate(plate, ticket, { waitMs = 0, patienceMs = 50000, others = [], dishOrderBonus = false, houseSauce = 0 } = {}) {
   let j = judge(plate, ticket);
   let swap = null;
   if (!j.perfect) {
@@ -106,7 +106,9 @@ export function scorePlate(plate, ticket, { waitMs = 0, patienceMs = 50000, othe
   const time = timePoints(waitMs, patienceMs);
   let partial = (swap ? 20 : j.recipe) + (swap ? 0 : j.grill) + time + (dishOrderBonus && !swap ? 3 : 0);
   if (swap) partial = Math.min(partial, 40);
-  return { recipe: j.recipe, grill: j.grill, time, partial: Math.min(88, partial), mistakes: j.mistakes, errors: j.errors, swapTk: swap ? others.find((o) => fits(plate, o.ticket)).ticket.id : null };
+  // S (M5): nước mắm nhà pha (+1 điểm kỳ vọng mỗi bậc) khi dĩa có chan / chén / bịch nước mắm (không áp cho dĩa chay)
+  const sauceBonus = !swap && houseSauce > 0 && plate?.sauce && !targetOf(ticket).vegan ? houseSauce : 0;
+  return { recipe: j.recipe, grill: j.grill, time, sauceBonus, partial: Math.min(88, partial) + sauceBonus, mistakes: j.mistakes, errors: j.errors, swapTk: swap ? others.find((o) => fits(plate, o.ticket)).ticket.id : null };
 }
 /** Điểm phục vụ lúc trả tiền. */
 export function servicePoints({ noTea = false, dirty = false, canhOk = true, billMs = 0, auto = false } = {}) {

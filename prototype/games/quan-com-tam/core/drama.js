@@ -15,6 +15,7 @@ import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, exp
 import { gainXp } from "./progress.js?v=c2";
 import { sendAway } from "./walker.js?v=c2";
 import { addLot } from "./stock.js?v=c2"; // S: lô hàng có hạn
+import { dramaDebt, grantDramaDecor } from "./extras.js?v=c2"; // S: sổ nợ chung, trang trí Drama
 import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c2"; // A: đơn mâm thật, sổ nợ thật
 
 export { freshDrama };
@@ -473,8 +474,8 @@ function applyFx(s, d, fx, events) {
   if (fx.nextGuests) D.nextGuests = Math.max(-4, Math.min(8, (D.nextGuests || 0) + fx.nextGuests));
   if (fx.mod) addMod(s, fx.mod);
   if (fx.own && GEAR[fx.own] && !GEAR[fx.own].repeat) s.owned[fx.own] = true;
-  if (fx.decor) D.decor[fx.decor] = true;
-  if (fx.debt) { const k = fx.debt.who || "khach"; D.debt[k] = Math.max(0, (D.debt[k] || 0) + (fx.debt.k || 0)); if (!D.debt[k]) delete D.debt[k]; if (fx.debt.clear) delete D.debt[k]; }
+  if (fx.decor) { D.decor[fx.decor] = true; grantDramaDecor(s, fx.decor); } // S: đồ Drama tặng thành đồ kéo thả
+  if (fx.debt) dramaDebt(s, fx.debt); // S (M5): nợ Anh Sáu ghi vào sổ nợ thật (s.debts), không còn sổ riêng D.debt
   if (fx.catName && !D.catName) D.catName = pick(s, ["Vàng", "Mỡ Hành", "Sườn", "Than", "Cơm Cháy", "Bì"]);
   if (fx.preorder) {
     const p = fx.preorder;

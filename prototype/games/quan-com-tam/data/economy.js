@@ -89,7 +89,7 @@ export const EXTRAS = {
 export const GRILL = {
   slots: 6,
   zones: ["hot", "hot", "mid", "mid", "warm", "warm"],
-  zoneMul: { hot: 1.5, mid: 1, warm: 0.25 },
+  zoneMul: { hot: 1.5, mid: 1, warm: 0.25, veg: 1 }, // S (M5): veg = vỉ chay riêng (như vùng vừa, chỉ nướng đậu hũ)
   warmSafeMs: 60000,
   heat: [ // nấc than: [mức tối thiểu, hệ số, khoá frame]
     { min: 60, mul: 1.2, key: "high" }, { min: 30, mul: 1, key: "mid" }, { min: 10, mul: 0.6, key: "low" }, { min: 0, mul: 0, key: "ash" },
@@ -103,7 +103,7 @@ export const GRILL = {
   perfect: [100, 114],
   // Cân bằng M3: giây ở vùng chín / cháy cạnh khi than rực (×1,2). Bản M2 vùng nóng chỉ ~0,7 giây chín ⇒ người chơi ẩu cháy gần hết.
   // Cân bằng M5 (bộ mô phỏng): vùng vừa chín 6 giây + cháy cạnh 5 giây (bản M3 4,5 + 3: một chuyến bưng ra bàn xa 4–5 giây là cháy); vùng nóng 3 + 2,5.
-  bandSec: { hot: { done: 3, charred: 2.5 }, mid: { done: 6, charred: 5 } },
+  bandSec: { hot: { done: 3, charred: 2.5 }, mid: { done: 6, charred: 5 }, veg: { done: 6, charred: 5 } },
   freshDecayMs: 3000, dryBelow: 60,
   smoke: { fan: 1, burning: 3, decay: 2, high: 70 },
   prepLight: { baskets: 2, level: 70 },
@@ -173,6 +173,8 @@ export const GEAR = {
   "queue-bench": { name: "Ghế chờ", level: 16, price: 120, quan: true, text: "4 người đứng chờ, kiên nhẫn chờ +10%." },
   "signboard-2": { name: "Bảng hiệu bậc 2", level: 10, price: 200, text: "+0,5 hấp dẫn." },
   "signboard-3": { name: "Bảng hiệu bậc 3", level: 16, price: 500, needs: "signboard-2", text: "+1 hấp dẫn, quán nổi tiếng." },
+  // S (M5): vỉ chay riêng — 2 chỗ chỉ nướng đậu hũ; nướng đậu hũ trên chỗ vừa nướng thịt thì dính mặn (dĩa chay lỗi 13)
+  "veg-grill": { name: "Vỉ nướng chay riêng", level: 11, price: 80, text: "2 chỗ chỉ nướng đậu hũ: dĩa chay không bao giờ dính mặn." },
 };
 /** Thuê theo ca (trả mỗi ca mở khi bật). */
 export const STAFF = {
@@ -194,6 +196,13 @@ export const DECOR = {
   "bird-cage": { name: "Lồng chim", level: 10, price: 70, appeal: 0.25, place: "wall" },
   "banana-plant": { name: "Chuối cảnh", level: 10, price: 55, appeal: 0.5, place: "floor" },
   "award-frame": { name: "Khung giấy khen", level: 99, price: 0, appeal: 0.5, place: "wall", event: true },
+  // S (M5): đồ trang trí Drama tặng (fx.decor) thành đồ kéo thả; art = frame decor.webp dùng tạm tới khi Codex vẽ riêng
+  "la-thu": { name: "Lá thư cảm ơn", level: 99, price: 0, appeal: 0.25, place: "wall", event: true, art: "wall-calendar" },
+  "hoa-giay": { name: "Bó hoa giấy của chị Sáu", level: 99, price: 0, appeal: 0.5, place: "floor", event: true, art: "bougainvillea-pot" },
+  "anh-khai-truong": { name: "Ảnh ngày khai trương", level: 99, price: 0, appeal: 0.5, place: "wall", event: true, art: "award-frame" },
+  "anh-mai": { name: "Ảnh Mai nhắm mắt ăn sườn", level: 99, price: 0, appeal: 0.5, place: "wall", event: true, art: "award-frame" },
+  "meo-vang": { name: "Ổ mèo", level: 99, price: 0, appeal: 0.25, place: "floor", event: true },
+  "ghe-cao": { name: "Ghế nhựa cao", level: 99, price: 0, appeal: 0, place: "floor", event: true, art: "ceramic-jar" },
   "neon-sign": { name: "Biển đèn neon", level: 16, price: 300, appeal: 1, place: "wall", guests: 2 },
 };
 export const DECOR_IDS = Object.keys(DECOR);
@@ -261,6 +270,13 @@ export const HELPER = { speed: 300, pourMs: 900, cleanMs: 2600, washMs: 2000 };
 export const WEATHER = { fromDay: 5, rain: 0.15, street: 0.6, awning: 0.85, quan: 0.85 };
 /** A: ca trưa dồn trong 45 giây giữa ca; shipper ca trưa lấy 1–3 hộp. */
 export const LUNCH = { rush: [0.12, 0.62], shipperBoxes: [1, 3] };
+
+/** S (M5): hội chợ (cấp 18) — "Đêm hội ẩm thực bờ sông": thuê gian, ca tối dài 4 phút, +10 khách đi nhóm 2–4, giá +15%, khách kém kiên nhẫn 10%. */
+export const FAIR = { level: 18, price: 180, every: 4, ms: 240000, guests: 10, priceMul: 1.15, patienceMul: 0.9, group: [2, 4] };
+/** S (M5): ca thử thách (cấp 20, miễn phí, xoay vòng theo ngày): đạt lần đầu thưởng lớn + huy hiệu, lần sau thưởng nhỏ. */
+export const CHALLENGE = { level: 20, firstReward: { money: 150, xp: 60 }, reward: { money: 75, xp: 30 } };
+/** S (M5): tủ kính giữ ấm (glass-case): 6 miếng chín, tươi giảm chậm 40% (1 mỗi 5 giây thay vì 3), không cháy. */
+export const GLASS_CASE = { size: 6, freshDecayMs: 5000 };
 
 /** 20 cấp (GAME-DESIGN §6). */
 export const LEVELS = [0, 30, 55, 125, 270, 445, 655, 1055, 1630, 2355, 2845, 3455, 4110, 5050, 6280, 7575, 9125, 11050, 13295, 16085];
