@@ -294,14 +294,16 @@ test("Nhật Ký: chọn câu chốt theo dữ kiện ngày, câu trả lời n�
   assert.equal(j.day, x.day); assert.ok(j.headline);
   assert.equal(x.lastSummary.headline, j.headline);
   let viral = null;
-  for (let k = 0; k < 12 && !viral; k++) {
+  for (let k = 0; k < 40 && !viral; k++) { // M5: hên xui theo RNG ván (luật M5 đổi thứ tự tung) — thử tới 40 lần
     const r = review(x, { stars: 5, reason: "praise", name: "Bé Su Review", role: "reviewer" });
     must(x, { type: "reply", id: r.id, kind: "lay-trend" });
     if (x.feed.find((y) => y.id === r.id).reply.outcome === "viral") viral = x.feed.find((y) => y.id === r.id).reply.text;
   }
   assert.ok(viral, "có câu trả lời lên mạng");
   assert.equal(x.journal[0].replyCap, "viral");
-  assert.ok(CAPTIONS_REPLY.viral.some((t) => t.split("{")[0] && x.journal[0].headline.startsWith(t.split("{")[0])));
+  // M5: so cả mẫu bắt đầu bằng biến ({plates} dĩa…): đổi mẫu thành regex
+  const re = (t) => new RegExp("^" + t.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{\w+\}/g, ".+") + "$");
+  assert.ok(CAPTIONS_REPLY.viral.some((t) => re(t).test(x.journal[0].headline)), x.journal[0].headline);
   assert.equal(x.journal[0].moments[0].line, viral, "câu trả lời nổi nhất lên đầu khoảnh khắc");
   assert.equal(x.lastSummary.headline, x.journal[0].headline);
   const card = journalCard(x.journal[0], { shopName: "Cơm Tấm Cô Ba", moment: 0 });

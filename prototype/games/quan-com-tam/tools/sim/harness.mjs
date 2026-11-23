@@ -246,7 +246,7 @@ export class Player {
     if (s.moHanh.n < 2 && (s.stock["mo-hanh-bo"] || 0) > 0 && !sh.owner.queue.some((q) => q.kind === "moHanh")) { const r = this.tap({ type: "moHanh" }); if (!r.err) return true; }
     // trứng: chiên khi dĩa đang bày cần trứng (người cẩn thận canh lòng đào)
     const sl = slotOf(s);
-    if (sh.pan && sl.tk !== null && nextStep(s) === "egg") { const r = this.tap({ type: "egg" }); if (!r.err) return true; }
+    if (sh.pan && sl.tk !== null && nextStep(s) === "egg" && (s.stock.trung || 0) > 0 && !(this.skip?.tk === sl.tk && this.skip.ids.has("trung"))) { const r = this.tap({ type: "egg" }); if (!r.err) return true; }
     return false;
   }
   /** Nướng sẵn: phiếu đang chờ + khách đã ngồi chưa gọi (đoán sườn) + đệm theo hồ sơ. */
@@ -487,7 +487,7 @@ export class Player {
         }
       } else { same = 0; lastT = s.shift?.t; }
     }
-    if (s.shift) { this.errors.push({ day, where: "shift-hang", t: s.shift.t }); s.shift = null; return null; }
+    if (s.shift) { this.errors.push({ day, where: "shift-hang", t: s.shift.t, groups: s.shift.groups.map((g) => g.phase + (g.paid ? "P" : "")).join(","), dialog: s.shift.dialog?.kind }); s.shift = null; return null; }
     const sum = s.lastSummary;
     if (sum.challenge?.ok) this.log.challengeWin++;
     this.clock += this.p.summary;

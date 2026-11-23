@@ -233,7 +233,8 @@ export const hoaPack = (id) => { const p = STOCK[id]?.pack; return p ? [p[0] * 2
 /** Đơn đặt trước (cấp 7) / mâm cơm (cấp 10): cọc 30%, trễ ≤ 30 s −10%, trễ hơn / thiếu −30%; đơn tới hạn mà thiếu thì khách lấy phần đã xong, trả 70%. */
 export const PREORDER = { level: 7, cateringLevel: 10, deposit: 0.3, perDay: 2, lateSmall: 30000, lateSmallCut: 0.1, lateBigCut: 0.3, grace: 45000, partialPay: 0.7 };
 /** Sổ nợ (ECONOMY §4.3). */
-export const DEBT = { level: 6, limit: (lvl) => (lvl >= 16 ? 500 : lvl >= 10 ? 300 : 150), perPerson: 5, payChance: 0.25, forgetDays: 14, forgetChance: 0.06, askChance: 0.4 };
+// M5: hạn mức ghi sổ theo giá bán +20% (150 / 300 / 500 ⇒ 200 / 360 / 600)
+export const DEBT = { level: 6, limit: (lvl) => (lvl >= 16 ? 600 : lvl >= 10 ? 360 : 200), perPerson: 5, payChance: 0.25, forgetDays: 14, forgetChance: 0.06, askChance: 0.4 };
 /** Ca khuya kéo dài (cấp 17): ca tối dài thêm, khuya +25% khách. */
 export const LATE = { level: 17, extraMs: 45000, guestMul: 1.25 };
 /** Cơm chiên từ cơm dư (cấp 2, cần chảo): 50% số phần dư, tối đa 6 dĩa. */

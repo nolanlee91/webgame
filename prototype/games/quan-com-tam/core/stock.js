@@ -34,6 +34,8 @@ export function forecast(s) {
   // S (M5): bộ mô phỏng cho thấy người chơi bán được khoảng 75–85% số khách dự báo (còn lại đi ngang / bỏ về); nhập theo đủ 100% thì hao hàng tươi
   return { guests, dishes: Math.ceil(guests * 0.85) + 2, tea: Math.ceil(guests * 2.2), coal: 5 * kinds.length };
 }
+/** S (M5): số hộp các đơn đặt trước / mâm cơm hôm nay còn cần (mâm 8–40 phần đựng hộp). */
+const orderBoxes = (s) => (s.orders || []).filter((o) => o.day === s.day && (o.status === "waiting" || o.status === "open")).reduce((a, o) => a + Math.max(0, o.n - (o.done || 0)), 0);
 /** "Nhập + ướp đủ cho hôm nay": mua theo thứ tự ưu tiên tới khi đủ dự báo hoặc hết tiền / chỗ, rồi ướp sườn cho đủ. */
 export function restockToday(s, ev = []) {
   const f = forecast(s);
@@ -48,7 +50,7 @@ export function restockToday(s, ev = []) {
     ["mo-hanh-bo", (s.moHanh?.n || 0) + (s.stock["mo-hanh-bo"] || 0) * MO_HANH.jar < f.dishes + 2 ? 1 : 0],
     ["tra", Math.max(0, f.tea - (s.stock.tra || 0))],
     // S (M5): hộp theo số khách mang về dự kiến (shipper ca trưa lấy 1–3 hộp); bản cũ chỉ giữ 4 hộp ⇒ hết hộp giữa ca trưa
-    ["hop", Math.max(0, (s.owned?.["takeaway-shelf"] ? Math.ceil(f.guests * 0.3) + 2 : 4) - (s.stock.hop || 0))],
+    ["hop", Math.max(0, (s.owned?.["takeaway-shelf"] ? Math.ceil(f.guests * 0.3) + 2 : 4) + orderBoxes(s) - (s.stock.hop || 0))], // + hộp cho đơn đặt / mâm cơm hôm nay
   ];
   // nguyên liệu riêng của các món trong menu (bì, chả, trứng…): chia đều theo số món
   const menu = (s.menu || ["com-suon"]).filter((id) => DISHES[id] && DISHES[id].level <= s.level);

@@ -178,6 +178,15 @@ export function tick(s, dt, ev = []) {
       else leaveTable(s, g, ev, "closed");
     }
   }
+  // S (M5): chốt chặn không bao giờ kẹt ca — quá giờ đóng + ân hạn + 30 giây mà còn nhóm nào (mọi pha: đang vào, chờ, đang tới bàn, mang về) thì cho về
+  if (t >= sh.len + CLOSE_GRACE_MS + 30000) {
+    for (const g of sh.groups.slice()) {
+      if (g.phase === "leave") continue;
+      if (g.phase === "seated" && !g.paid && g.members.some((m) => m.plate)) { for (const m of g.members) if (m.plate) { m.eaten = true; m.req = null; } autoPay(s, g, ev); }
+      else { g.outcome = g.paid ? "paid" : "closed"; leaveTable(s, g, ev, g.outcome); } // kể cả nhóm đã trả mà chưa đứng dậy (hội thoại tính dư bị bỏ dở)
+    }
+    for (const g of sh.schedule) g.done = true;
+  }
   PG.onTick(s, dt, ev, OWNER_TASKS); // A: phụ bàn Bông, Dì Năm, đơn tới hạn, nhiệm vụ, cờ than / khói
   EX.onTick(s, dt, ev); // S: tủ kính giữ ấm
   maybeTrigger(s, ev); // B: drama (cuối nhịp: đọc cờ A vừa đặt, mở sự kiện trong ca, đồng hồ dừng)
