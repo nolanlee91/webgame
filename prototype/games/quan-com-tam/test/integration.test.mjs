@@ -186,3 +186,36 @@ test("nâng bản lưu v1 → v2: chép nguyên văn .bak-v1 một lần, buzz g
   // bản mới tạo đã là v2
   assert.equal(createState(1).v, 2);
 });
+
+test("chảo đôi (cấp 8): chiên trứng thứ hai khi trứng đầu còn trên chảo, gắp lần lượt; chảo đơn vẫn báo bận", async () => {
+  const { freshRice, startEgg, takeEgg, eggState } = await import("../core/rice.js?v=c2");
+  const s = atLevel(8);
+  s.stock.trung = 5;
+  const one = { egg: null, egg2: null, cap: 1 };
+  assert.ok(startEgg(s, one, 0).ok); assert.equal(startEgg(s, one, 1000).err, "pan-busy");
+  const two = { egg: null, egg2: null, cap: 2 };
+  assert.ok(startEgg(s, two, 0).ok); assert.ok(startEgg(s, two, 3000).ok); assert.equal(startEgg(s, two, 3500).err, "pan-busy");
+  assert.equal(s.stock.trung, 2);
+  assert.equal(takeEgg(two, 7500).state, "runny");
+  assert.equal(eggState(two, 9000), "runny", "trứng thứ hai lên trước chảo");
+  assert.equal(takeEgg(two, 9500).state, "runny");
+  assert.equal(eggState(two, 9500), null);
+  // trong ca: mua chảo đôi ⇒ chảo 2 chỗ
+  s.owned["egg-pan"] = true; s.owned["egg-pan-2"] = true;
+  prepDay(s); must(s, { type: "startShift" });
+  assert.equal(s.shift.pan.cap, 2);
+  assert.ok(freshRice);
+});
+
+test("Nhập + ướp đủ ở vỉa hè cấp 6 (kho 80): chia chỗ theo menu, có đủ bì / chả / trứng thay vì để sườn + gạo + một món chiếm hết", async () => {
+  const { addNewDishes } = await import("../core/progress.js?v=c2");
+  const { stockUsed, capacity } = await import("../core/stock.js?v=c2");
+  const s = atLevel(6, { money: 2000 });
+  for (const id of ["egg-pan", "steamer", "ban-3"]) s.owned[id] = true;
+  addNewDishes(s);
+  for (const k of Object.keys(s.stock)) s.stock[k] = Math.min(s.stock[k], 4);
+  must(s, { type: "restockToday" });
+  for (const k of ["bi", "cha", "trung"]) assert.ok(s.stock[k] >= 8, k + " " + s.stock[k]);
+  assert.ok(s.stock["suon-uop"] >= 12 && s.stock["gao-tam"] >= 20);
+  assert.ok(stockUsed(s) <= capacity(s));
+});

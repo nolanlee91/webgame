@@ -94,7 +94,7 @@ export function startShift(s, ev = []) {
     status: "open", kind, t: 0, len: SHIFTS[kind].len, day: s.day, tutorial, phaseIdx: 0,
     schedule: makeSchedule(s, kind, maxSeats), groups: [], nextGid: 1, tickets: [], nextTk: 1, nextPid: 1,
     tables, slots: [{ tk: null, plate: null }], sel: 0,
-    grill: freshGrill(s.kitchen.coal), rice: freshRice(s.kitchen.rice, s.stage === "quan"), pan: s.owned["egg-pan"] ? { egg: null } : null,
+    grill: freshGrill(s.kitchen.coal), rice: freshRice(s.kitchen.rice, s.stage === "quan"), pan: s.owned["egg-pan"] ? { egg: null, egg2: null, cap: s.owned["egg-pan-2"] ? 2 : 1 } : null, // chảo đôi: 2 trứng
     steamer: s.owned.steamer ? freshSteamer() : null,
     cleanPlates: s.plates, dirty: 0, owner: freshOwner(P), billing: null, dialog: null,
     deliveries: [], closed: false, consignUsed: false, breadUsed: 0, uopFresh: s.uopOld > 0 ? 85 : 100, lowSaid: {}, usedLines: [],

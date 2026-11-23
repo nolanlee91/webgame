@@ -66,11 +66,13 @@ export function eggState(pan, t) {
   if (sec >= EGG.runny) return "runny";
   return "raw";
 }
+/** Chảo đôi (egg-pan-2, cấp 8): chiên trứng thứ hai khi trứng đầu còn trên chảo; gắp lần lượt (trứng chiên trước gắp trước). */
 export function startEgg(s, pan, t, ev = []) {
-  if (pan.egg) return { err: "pan-busy" };
+  const two = (pan.cap || 1) >= 2;
+  if (pan.egg && (!two || pan.egg2)) return { err: "pan-busy" };
   if ((s.stock.trung || 0) <= 0) return { err: "no-trung" };
   s.stock.trung--;
-  pan.egg = { t0: t };
+  if (pan.egg) pan.egg2 = { t0: t }; else pan.egg = { t0: t };
   ev.push({ type: "eggFrying" });
   return { ok: true };
 }
@@ -79,7 +81,7 @@ export function takeEgg(pan, t) {
   const st = eggState(pan, t);
   if (!st) return { err: "no-egg" };
   if (st === "raw") return { err: "egg-raw" };
-  pan.egg = null;
+  pan.egg = pan.egg2 || null; pan.egg2 = null;
   return { ok: true, state: st };
 }
 

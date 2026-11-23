@@ -50,14 +50,21 @@ export function restockToday(s, ev = []) {
   const share = Math.ceil(f.dishes / Math.max(1, menu.length)) + 2;
   const extra = {};
   for (const id of menu) for (const k of Object.keys(dishParts(id))) if (k !== "suon-uop" && k !== "bread" && STOCK[k]) extra[k] = (extra[k] || 0) + share;
-  for (const [k, n] of Object.entries(extra)) want.splice(3, 0, [k, Math.max(0, n - (s.stock[k] || 0))]);
+  want.splice(2, 0, ...Object.entries(extra).map(([k, n]) => [k, Math.max(0, n - (s.stock[k] || 0))])); // món của menu ngay sau sườn + gạo
+  // mua lần lượt từng gói theo vòng (mỗi món cần một gói trước khi món nào được gói thứ hai): kho vỉa hè 80 phần không bị
+  // sườn + gạo + một món phụ chiếm hết trước khi tới bì / chả / trứng của menu
   let spent = 0, bought = 0;
-  for (const [id, need] of want) {
-    let left = need;
-    while (left > 0 && canBuy(s, id)) {
+  const left = new Map(want.filter(([id, need]) => need > 0 && canBuy(s, id)).map(([id, need]) => [id, need]));
+  // kho không đủ chỗ cho mọi thứ: chia chỗ theo tỉ lệ nhu cầu (sườn tính cả phần sẽ ướp) để món nào cũng có phần
+  const capNeed = [...left].filter(([id]) => STOCK[id].cap).reduce((a, [, n]) => a + n, 0);
+  const free = capacity(s) - stockUsed(s);
+  if (capNeed > free && free > 0) for (const [id, n] of left) if (STOCK[id].cap) left.set(id, Math.max(1, Math.round((n * free) / capNeed)));
+  while (left.size) {
+    for (const [id, need] of [...left]) {
       const r = restock(s, id, []);
-      if (r.err) break;
-      spent += packPrice(id); bought++; left -= packSize(id);
+      if (r.err) { left.delete(id); continue; }
+      spent += packPrice(id); bought++;
+      if (need - packSize(id) > 0) left.set(id, need - packSize(id)); else left.delete(id);
     }
   }
   const mar = marinate(s, Math.max(0, f.dishes - (s.stock["suon-uop"] || 0)), []);

@@ -245,7 +245,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     kb.coal.textContent = `Thêm than (${s.stock.than || 0} rổ)`; kb.coal.disabled = !free;
     kb.mar.hidden = (s.stock.suon || 0) <= 0;
     kb.egg.hidden = !sh.pan;
-    if (sh.pan) { const es = eggState(sh.pan, sh.t); kb.egg.textContent = es ? `Chảo: trứng ${EGG_TXT[es]} (${Math.floor((sh.t - sh.pan.egg.t0) / 1000)}s)` : `Chiên trứng (${s.stock.trung || 0} quả)`; kb.egg.disabled = !free || !!es; } // A:
+    if (sh.pan) { const es = eggState(sh.pan, sh.t); kb.egg.textContent = es ? `Chảo: trứng ${EGG_TXT[es]} (${Math.floor((sh.t - sh.pan.egg.t0) / 1000)}s)` : `Chiên trứng (${s.stock.trung || 0} quả)`; kb.egg.disabled = !free || (!!es && ((sh.pan.cap || 1) < 2 || !!sh.pan.egg2)); } // A: chảo đôi chiên thêm 1
     kb.steam.hidden = !sh.steamer; // A: xửng hấp chả
     if (sh.steamer) { kb.steam.textContent = sh.steamer.cooking ? `Xửng đang hấp (${Math.ceil((sh.steamer.cooking.until - sh.t) / 1000)}s)` : `Hấp chả (chín ${sh.steamer.done} · sống ${s.stock.cha || 0})`; kb.steam.disabled = !free || !!sh.steamer.cooking || (s.stock.cha || 0) <= 0; }
     kInfo.textContent = `Sườn ướp ${s.stock["suon-uop"] || 0} · gạo tấm ${s.stock["gao-tam"] || 0} · đồ chua ${s.stock["do-chua"] || 0} · dưa leo ${s.stock["dua-leo"] || 0} · nước mắm ${s.stock["nuoc-mam"] || 0} · trà ${s.stock.tra || 0}`;

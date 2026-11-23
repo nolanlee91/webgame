@@ -119,13 +119,13 @@ export function createGrillbar(root, atlas, act, { onFan }) {
     if (sh.pan) {
       const es = eggState(sh.pan, sh.t), sec = es ? (sh.t - sh.pan.egg.t0) / 1000 : 0;
       eggTxt.textContent = es ? `Trứng ${{ raw: "sống", runny: "lòng đào", set: "lòng vừa", hard: "chín kỹ", burnt: "cháy" }[es]}` : "Chảo trống";
-      eggSub.textContent = es ? `${Math.floor(sec)}s · gắp ở dải bày` : `Chiên (${s.stock.trung || 0} quả)`;
+      eggSub.textContent = es ? `${Math.floor(sec)}s · gắp ở dải bày${sh.pan.egg2 ? " · +1 trứng" : (sh.pan.cap || 1) >= 2 ? " · chiên thêm 1" : ""}` : `Chiên (${s.stock.trung || 0} quả)`;
       eggBar.style.width = Math.min(100, (sec / 18) * 100) + "%";
       eggBar.style.setProperty("--c", es === "runny" ? "#f2c14a" : es === "set" ? "#e0a040" : es === "burnt" ? "#5a3a2a" : es === "hard" ? "#b87a3a" : "#f4f0e0");
       egg.classList.toggle("on", es === "runny" || es === "set");
       egg.classList.toggle("warn", es === "hard" || es === "burnt");
       egg.classList.toggle("hint", hint?.key === "egg");
-      egg.disabled = !free || !!es;
+      egg.disabled = !free || (!!es && ((sh.pan.cap || 1) < 2 || !!sh.pan.egg2)); // chảo đôi: chiên thêm 1
     }
     steam.hidden = !sh.steamer;
     if (sh.steamer) {
