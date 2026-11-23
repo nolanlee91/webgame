@@ -15,6 +15,7 @@ Luật cứng (vi phạm thì dev phải trả lại):
 - Alpha cứng, WebP lossless.
 - Nhân vật trong cảnh: cỡ ô và chiều cao **theo asset-spec của từng game**, vì cảnh gần hay xa thì người to hay nhỏ (Trà Sữa ô 144×192, Bánh Mì ô 216×288). Mọi frame của một vai cao bằng nhau (±8%).
 - **Cảnh và người cùng một thước:** đo cửa (2,1 m) hoặc quầy (khoảng 1 m) trong cảnh, quy ra số px của người 1,65 m, ghi vào `manifest.sceneScale["<cảnh>"].humanHeight`. Script kiểm so chiều cao nhân vật với con số này (PLAYBOOK §1.2b).
+- **Đồ vật cùng thước với người và cảnh:** nồi, ly, hũ, máy vẽ đúng cỡ thật so với người (PLAYBOOK §1.2b), không vẽ to kín ô.
 - Mỗi vai là **cùng một người** trên mọi sheet.
 - Tên frame đúng mẫu trong asset-spec (code tự nhận theo tên).
 - Đồ đặt trên cảnh: ghi `placements.<id>.at` trong manifest (điểm chạm mặt bàn). Đường đi khách ghi `placements.door`, `queueSpots`, `exitPath`.
