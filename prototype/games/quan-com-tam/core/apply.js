@@ -13,6 +13,8 @@ import { cookNow, makeJar, freshRice } from "./rice.js?v=c1";
 import { enqueue, ownerFree } from "./walker.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { STOCK_IDS, SHIFTS, GRILL } from "../data/economy.js?v=c1";
+import { aHandlers } from "./progression-actions.js?v=c1"; // A: thao tác tiến trình + kinh tế M3
+import { afterApply as aAfter } from "./progression.js?v=c1"; // A: nhiệm vụ, ghi sổ, câu theo cơ chế sau mỗi action
 
 const inShift = (f) => (s, a, ev) => (s.shift ? f(s, a, ev) : { err: "no-shift" });
 const noShift = (f) => (s, a, ev) => (s.shift ? { err: "in-shift" } : f(s, a, ev));
@@ -110,6 +112,7 @@ const HANDLERS = {
     if (r.ok && r.task === "marinate") enqueue(s, { kind: "marinate" }, ev);
     return r;
   }),
+  ...aHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep }), // A: M3 (bọc layer/undo/discard/serve/buyGear/prepCook + thao tác mới)
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
@@ -160,6 +163,7 @@ export function apply(state, action) {
   let result;
   try { result = HANDLERS[type](draft, action, events); } catch (e) { return { err: "exception", detail: String(e?.stack || e), events: [] }; }
   if (!result || result.err) return { err: result?.err || "bad", detail: result?.detail ?? result, events: [] };
+  try { aAfter(draft, action, events, result); } catch (e) { return { err: "exception", detail: String(e?.stack || e), events: [] }; } // A:
   const bad = invariantError(draft, state, type);
   if (bad) return { err: "invariant-" + bad, events: [] };
   for (const k of Object.keys(state)) delete state[k];

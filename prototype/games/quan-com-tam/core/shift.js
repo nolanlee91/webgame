@@ -14,6 +14,7 @@ import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTabl
 import { openStockout } from "./rescue.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { expireStock } from "./stock.js?v=c1";
+import * as PG from "./progression.js?v=c1"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
 
 /** Ca hướng dẫn ngày 1: bếp chín chậm hơn để người mới kịp hiểu "hai mặt" (vùng chín rộng hơn theo thời gian). */
 export const TUTORIAL_GRILL = 0.85;
@@ -82,7 +83,7 @@ export function startShift(s, ev = []) {
   const kind = s.plan[s.shiftIdx] || "toi";
   const P = pointsOf(s);
   const tables = availableTables(s).map(freshTable);
-  const maxSeats = Math.max(...tables.map((t) => t.seats));
+  const maxSeats = PG.maxGroupSeats(s, tables); // A: ghép bàn vỉa hè ⇒ nhóm 4
   const tutorial = s.day === 1 && !s.tutorialDone;
   s.shift = {
     status: "open", kind, t: 0, len: SHIFTS[kind].len, day: s.day, tutorial, phaseIdx: 0,
@@ -99,6 +100,7 @@ export function startShift(s, ev = []) {
   };
   if (s.kitchen.coal > 0) s.shift.lit = true;
   ev.push({ type: "shiftStarted", kind, day: s.day, guests: s.shift.schedule.reduce((a, g) => a + g.roles.length, 0), tutorial });
+  PG.onStart(s, ev); // A: lịch khách (mưa, khách thêm, ca trưa dồn), đơn mâm cơm, nhiệm vụ, phụ bàn, nồi canh
   return { ok: true };
 }
 
@@ -162,6 +164,7 @@ export function tick(s, dt, ev = []) {
       else leaveTable(s, g, ev, "closed");
     }
   }
+  PG.onTick(s, dt, ev, OWNER_TASKS); // A: phụ bàn Bông, Dì Năm, đơn tới hạn, nhiệm vụ, cờ than / khói
   const busy = sh.groups.some((g) => g.phase !== "leave") || sh.schedule.some((g) => !g.done && !sh.closed && g.at < sh.len);
   if (t >= sh.len && !busy && !sh.dialog) return endShift(s, ev);
   return { ok: true };
@@ -171,6 +174,7 @@ export function tick(s, dt, ev = []) {
 export function endShift(s, ev = []) {
   const sh = s.shift;
   if (!sh) return { err: "no-shift" };
+  PG.beforeEnd(s, ev, addWaste); // A: dĩa mâm dở thành hao, đơn chưa xong chốt phần đã làm
   const lastOfDay = s.shiftIdx >= s.plan.length - 1;
   // miếng còn trên vỉ: chín thì hao, sống thì cũng hao (đã ướp, không để qua ca)
   for (let i = 0; i < sh.grill.slots.length; i++) { const it = sh.grill.slots[i]; if (it) { addWaste(sh, it.item === "suon" ? "suon-uop" : it.item, 1); sh.grill.slots[i] = null; } }
@@ -201,6 +205,7 @@ export function endShift(s, ev = []) {
   s.stats.bestProfit = Math.max(s.stats.bestProfit, profit);
   if (sh.tutorial) s.tutorialDone = true;
   s.lastSummary = { ...summary, seen: false };
+  PG.afterEnd(s, sh, s.lastSummary, ev); // A: lương nhân viên, nhiệm vụ cuối ca, cơm chiên ngày mai
   s.shift = null;
   if (lastOfDay) { s.dayDone = true; s.between = null; }
   else { s.shiftIdx++; s.between = s.plan[s.shiftIdx]; }
@@ -223,6 +228,7 @@ export function nextDay(s, ev = []) {
   s.daily = { consigned: false, borrowed: {} };
   s.usedDay = [];
   if (s.lastSummary) s.lastSummary.seen = true;
+  PG.onNextDay(s, ev); // A: sổ nợ, cơm chiên, thời tiết, cờ ngày
   ev.push({ type: "newDay", day: s.day, expired, jar, spoiled });
   return { ok: true, expired, jar, spoiled };
 }

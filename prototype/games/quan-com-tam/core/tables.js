@@ -16,6 +16,7 @@ import { scorePlate, servicePoints, finalStars, worstMistake, MISTAKES } from ".
 import { addWaste } from "./plate.js?v=c1";
 import { takeRice } from "./rice.js?v=c1";
 import { gainXp } from "./progress.js?v=c1";
+import * as PG from "./progression.js?v=c1"; // A: bàn quán theo đồ mua, ghép bàn, chỗ chờ, cơm chiên, nồi canh
 
 export const groupById = (s, gid) => s.shift.groups.find((g) => g.id === gid) || null;
 export const tableById = (s, tid) => s.shift.tables.find((t) => t.id === tid) || null;
@@ -31,10 +32,7 @@ const lineCtx = (m) => ({ self: m.self, call: m.call, name: m.name });
 
 /** Bàn đang dùng được: theo cấp (unlock trong manifest) + đồ đã mua (bàn 3, bàn 4 ở vỉa hè). */
 export function availableTables(s) {
-  return pointsOf(s).tables.filter((t) => {
-    if (s.stage === "street") { const gear = TABLE_GEAR[t.id]; return !gear || (s.owned?.[gear] && s.level >= (GEAR[gear]?.level || 1)); }
-    return s.level >= (t.unlock || 1);
-  });
+  return pointsOf(s).tables.filter((t) => PG.tableUnlocked(s, t)); // A: quán: bàn 4 / bàn 5 cần mua
 }
 export const freshTable = (p) => ({ id: p.id, seats: p.seats, state: "clean", gid: null, plates: 0, dirtyT: null, wetUntil: 0 });
 export const tableFree = (t) => t && t.gid === null && t.state !== "dirty";
@@ -50,7 +48,7 @@ export function spawnGroup(s, plan, ev = []) {
   const takeaway = !!A.takeaway;
   const spotList = takeaway ? P.queueSpots : P.waitSpots;
   const used = usedSpots(sh, takeaway ? "queue" : "wait");
-  const cap = takeaway ? spotList.length : Math.min(spotList.length, s.stage === "street" ? SERVICE.waitMax.street : SERVICE.waitMax.quan);
+  const cap = takeaway ? spotList.length : Math.min(spotList.length, PG.waitMax(s)); // A: ghế chờ (cấp 16) ⇒ 4
   const free = [];
   for (let i = 0; i < cap; i++) if (!used.has(i)) free.push(i);
   const size = (plan.roles || [plan.arch]).length;
@@ -77,14 +75,15 @@ export function spawnGroup(s, plan, ev = []) {
 }
 
 // ---------- xếp chỗ ----------
-export function canSeat(s, g, t) { return !!g && g.phase === "wait" && !g.takeaway && tableFree(t) && t.seats >= g.size; }
+export function canSeat(s, g, t) { return !!g && g.phase === "wait" && !g.takeaway && tableFree(t) && (t.seats >= g.size || PG.canJoin(s, g, t)); } // A: ghép bàn
 export function seat(s, gid, tid, ev = []) {
   const sh = s.shift, g = groupById(s, gid), t = tableById(s, tid);
   if (!g || g.phase !== "wait" || g.takeaway) return { err: "not-waiting" };
   if (!t) return { err: "bad-table" };
   if (t.gid !== null) return { err: "table-taken" };
   if (t.state === "dirty") return { err: "table-dirty" };
-  if (t.seats < g.size) return { err: "table-small" };
+  if (t.seats < g.size && !PG.canJoin(s, g, t)) return { err: "table-small" };
+  if (t.seats < g.size) PG.joinTables(s, g, t, ev); // A: ghép bàn bên cạnh
   const P = pointsOf(s), tp = tablePoint(s, tid);
   const from = P.waitSpots[g.spot] || P.entry;
   g.walkMs = (pathLen(guestToSeat(P, from, tp.seatSpots[0].at)) / SERVICE.guestSpeed) * 1000;
@@ -99,7 +98,7 @@ export const firstFit = (s, t) => s.shift.groups.find((g) => canSeat(s, g, t)) |
 /** Việc đang chờ của bàn (chạm bàn = làm việc này). */
 export function tableJob(s, tid) {
   const sh = s.shift, t = tableById(s, tid);
-  if (!t) return null;
+  if (!t || t.joinOf) return null; // A: bàn ghép theo bàn chính
   if (t.state === "dirty" && t.gid === null) return "clean";
   if (t.gid === null) return firstFit(s, t) ? "seat" : null;
   const g = groupById(s, t.gid);
@@ -256,6 +255,7 @@ export function makeTicket(s, g, m, ev = []) {
     dish = dishes.length ? dishes[int(s, dishes.length)] : "com-suon";
     // món mới mở hay được gọi hơn một chút
     if (dishes.length > 1 && next(s) < 0.35) dish = dishes[dishes.length - 1];
+    dish = PG.pickDish(s, dish, dishes); // A: cơm chiên chỉ khi còn phần cơm dư
     quirks = rollQuirks(s, m.role, dish);
   }
   const t = { id: sh.nextTk++, gid: g.id, tid: g.table, mi: m.idx, name: m.name, role: m.role, dish, quirks, takeaway: !!g.takeaway, status: "open", orderT: sh.t, nhuCu };
@@ -289,7 +289,7 @@ export function plateCost(used) {
 }
 /** Phiếu khác đang chờ (để nhận ra bưng nhầm bàn / tráo dĩa). */
 function otherTickets(s, g, tk) {
-  return s.shift.tickets.filter((x) => x.id !== tk && (x.status === "open" || x.status === "pinned")).map((x) => ({ ticket: x, sameTable: x.gid === g.id }));
+  return s.shift.tickets.filter((x) => x.id !== tk && !x.catering && (x.status === "open" || x.status === "pinned")).map((x) => ({ ticket: x, sameTable: x.gid === g.id })); // A: bỏ phiếu mâm cơm
 }
 export function deliverPlate(s, task, ev) {
   const sh = s.shift, g = seatedGroup(s, task.tid);
@@ -413,7 +413,7 @@ export function finalizeGroup(s, g, ev = [], { billMs = 0, auto = false, bonus =
     if (m.noTea) mistakes.push("noTea");
     if (m.dirty) mistakes.push("dirtyTable");
     if (g.overcharged) mistakes.push("wrongBill");
-    const service = servicePoints({ noTea: m.noTea, dirty: m.dirty, canhOk: true, billMs, auto });
+    const service = servicePoints({ noTea: m.noTea, dirty: m.dirty, canhOk: !sh.soup || !!m.canh, billMs, auto }); // A: nồi canh
     const points = Math.min(100, m.score.partial + service);
     const stars = finalStars(points, mistakes, m.score.errors, m.bonus + bonus);
     m.stars = stars; m.points = points; m.mistakesAll = [...new Set(mistakes)];
@@ -458,6 +458,7 @@ export function leaveTable(s, g, ev, outcome) {
   if (t) {
     t.gid = null; t.state = "dirty"; t.dirtyT = sh.t;
     t.plates = g.members.filter((m) => m.plate?.kind === "dia").length;
+    PG.leaveJoined(s, t, sh); // A: bàn ghép cũng dơ
   }
   for (const m of g.members) { const tk = sh.tickets.find((x) => x.id === m.tk); if (tk && (tk.status === "open" || tk.status === "pinned" || tk.status === "carrying")) tk.status = "void"; }
   for (const sl of sh.slots) { const tk = sh.tickets.find((x) => x.id === sl.tk); if (tk && tk.status === "void") sl.tk = sl.plate ? sl.tk : null; }

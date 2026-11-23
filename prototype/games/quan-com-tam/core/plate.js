@@ -33,6 +33,7 @@ export const ticketOf = (s, tk) => s.shift.tickets.find((x) => x.id === tk) || n
 export function targetOf(ticket) {
   const d = DISHES[ticket.dish] || DISHES["com-suon"];
   const q = new Set(ticket.quirks || []);
+  if (d.fried) return { kind: ticket.takeaway ? "hop" : "dia", com: 1, moHanh: 0, hanhPhi: false, meat: null, bi: false, cha: false, trung: "any", doChua: false, duaLeo: true, sauce: null, ngo: false, charred: false, vegan: false, fried: true }; // A: cơm chiên
   return {
     kind: ticket.takeaway ? "hop" : "dia",
     com: d.noRice ? 0 : q.has("themCom") ? 2 : 1,
@@ -100,9 +101,9 @@ export function layer(s, id, ev = []) {
     case "com": {
       if (tg.com === 0 && p.com === 0) return { err: "no-rice-dish" };
       if (p.com >= 2) return { err: "com-max" };
-      const r = takeRice(sh.rice, 1);
+      const r = tg.fried ? { ok: true } : takeRice(sh.rice, 1); // A: cơm chiên dùng cơm dư hôm qua, không lấy nồi
       if (r.err) return r;
-      histPush(p.com); p.com++; use(p, "com");
+      histPush(p.com); p.com++; use(p, tg.fried ? "comChien" : "com");
       break;
     }
     case "moHanh": {

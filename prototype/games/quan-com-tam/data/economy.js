@@ -51,6 +51,8 @@ export const DISHES = {
   "com-suon-non": { name: "Cơm sườn non", level: 10, price: 50, cost: 20, xp: 13, meat: "suon-non" },
   "com-chay": { name: "Cơm chay", level: 11, price: 30, cost: 11.5, xp: 11, meat: "dau-hu", bi: true, cha: true, vegan: true, needs: ["steamer"] },
   "com-lap-xuong-trung": { name: "Cơm lạp xưởng trứng", level: 13, price: 34, cost: 13, xp: 10, meat: "lap-xuong", trung: true, needs: ["egg-pan"] },
+  // A: cơm chiên từ cơm dư hôm trước (FRIED_RICE): không tự vào menu; core/progression.js bật / tắt theo s.friedRice.
+  "com-chien": { name: "Cơm chiên", level: 2, price: 20, cost: 3.5, xp: 5, meat: null, trung: true, fried: true, needs: ["egg-pan"], special: true },
   "banh-mi-suon": { name: "Bánh mì sườn", level: 1, price: 30, cost: 13, xp: 4, meat: "suon", noRice: true, rescue: true, bread: 3 },
 };
 /** Thành phần một dĩa (để tính giá vốn khớp bảng): món nướng → id kho, bì / chả theo chay hay mặn. */
@@ -69,6 +71,7 @@ export function dishParts(id) {
 export function dishCost(id) {
   const d = DISHES[id];
   if (!d) return 0;
+  if (d.fried) return 3.5; // 2 phần cơm dư (đã tính hao hôm trước) + trứng 3 + mỡ 0,5
   let c = d.noRice ? 0 : d.vegan ? BASE_COST_VEGAN : BASE_COST;
   for (const [k, n] of Object.entries(dishParts(id))) c += (k === "bread" ? 1 : STOCK[k]?.cost || 0) * n;
   return Math.round(c * 10) / 10;
@@ -147,9 +150,111 @@ export const GEAR = {
   "takeaway-shelf": { name: "Kệ hộp mang về", level: 4, price: 40, text: "Mở shipper / hộp mang về." },
   "soup-pot": { name: "Nồi canh", level: 5, price: 50, text: "Chén canh miễn phí cho khách ngồi." },
   "ban-4": { name: "Bàn 4 (+2 ghế)", level: 5, price: 110, text: "Vỉa hè 8 chỗ, ghép bàn." },
+  awning: { name: "Mái bạt", level: 6, price: 80, street: true, text: "Ngày mưa chỉ vắng 15% khách thay vì 40%." },
+  "double-slot": { name: "Ô bày đôi + bày ×N", level: 6, price: 90, text: "Hai dĩa song song; bật ×N thì mỗi chạm áp cho cả hàng." },
+  "water-can": { name: "Can nước dự trữ", level: 6, price: 50, text: "Mất nước vẫn rửa được 18 dĩa." },
+  "smoke-hood": { name: "Chụp hút khói", level: 8, price: 180, quan: true, text: "Khói ×0,4, hàng xóm hết kêu." },
+  "egg-pan-2": { name: "Chảo đôi", level: 8, price: 80, needs: "egg-pan", text: "Chiên 2 trứng cùng lúc." },
+  "q-table-4": { name: "Bàn thứ 4 của quán (2 chỗ)", level: 10, price: 160, quan: true, text: "Quán 10 chỗ." },
+  "tray-4": { name: "Khay mâm 4 dĩa", level: 10, price: 70, needs: "double-slot", text: "Bày ×N tới 4 dĩa cho mâm cơm công ty." },
+  "electric-blower": { name: "Quạt máy thổi bếp", level: 12, price: 160, text: "Bật là bếp lên một nấc, than ×1,5, khói ×0,6, không tốn tay." },
+  "rice-cooker-2": { name: "Nồi cơm thứ hai", level: 12, price: 150, text: "Nấu xen kẽ, không bao giờ trống cơm nếu canh đúng." },
+  "q-table-5": { name: "Bàn 5 (4 chỗ)", level: 13, price: 260, quan: true, text: "Quán 14 chỗ." },
+  "dish-cabinet": { name: "Tủ chén", level: 13, price: 120, text: "Chồng dĩa tới 24." },
+  "grill-2": { name: "Bếp than thứ hai", level: 14, price: 520, quan: true, text: "+6 chỗ nướng (phím Shift+1..6)." },
+  fridge: { name: "Tủ mát", level: 14, price: 300, text: "Kho 200, sườn ướp giữ thêm 1 ngày." },
+  "cash-box": { name: "Hộp tính tiền", level: 15, price: 200, text: "Tự cộng phiếu tính tiền." },
+  "queue-bench": { name: "Ghế chờ", level: 16, price: 120, quan: true, text: "4 người đứng chờ, kiên nhẫn chờ +10%." },
+  "signboard-2": { name: "Bảng hiệu bậc 2", level: 10, price: 200, text: "+0,5 hấp dẫn." },
+  "signboard-3": { name: "Bảng hiệu bậc 3", level: 16, price: 500, needs: "signboard-2", text: "+1 hấp dẫn, quán nổi tiếng." },
 };
+/** Thuê theo ca (trả mỗi ca mở khi bật). */
+export const STAFF = {
+  bong: { name: "Phụ bàn Bông", level: 9, price: 40, text: "Tự mời ngồi, châm trà, lấy phiếu, bưng dĩa, dọn + lau bàn. Cô chủ ở lại bếp." },
+  "di-nam": { name: "Dì Năm rửa chén", level: 13, price: 25, text: "Tự rửa 1 dĩa mỗi 2 giây." },
+};
+/** Trang trí (ECONOMY §8): appeal = điểm hấp dẫn. Kéo thả trong quán (cấp 7+); vỉa hè đặt chỗ mặc định. place: wall | floor. */
+export const DECOR = {
+  "bougainvillea-pot": { name: "Chậu hoa giấy", level: 4, price: 40, appeal: 0.5, place: "floor" },
+  "red-lantern": { name: "Đèn lồng đỏ", level: 4, price: 35, appeal: 0.5, place: "wall" },
+  "paper-lantern": { name: "Đèn lồng giấy", level: 4, price: 30, appeal: 0.25, place: "wall" },
+  "fairy-lights": { name: "Dây đèn nhỏ", level: 5, price: 45, appeal: 0.5, place: "wall", guests: 1 },
+  "ceramic-jar": { name: "Hũ sứ", level: 5, price: 35, appeal: 0.25, place: "floor" },
+  "chalk-menu": { name: "Bảng phấn", level: 5, price: 30, appeal: 0.5, place: "floor" },
+  "wall-calendar": { name: "Lịch treo", level: 7, price: 15, appeal: 0.25, place: "wall" },
+  "old-radio": { name: "Radio cũ", level: 8, price: 50, appeal: 0.5, place: "wall" },
+  "wall-fan": { name: "Quạt tường", level: 8, price: 60, appeal: 0, patience: 4, place: "wall" },
+  "old-tv": { name: "TV cũ", level: 9, price: 120, appeal: 0.5, place: "wall" },
+  "bird-cage": { name: "Lồng chim", level: 10, price: 70, appeal: 0.25, place: "wall" },
+  "banana-plant": { name: "Chuối cảnh", level: 10, price: 55, appeal: 0.5, place: "floor" },
+  "award-frame": { name: "Khung giấy khen", level: 99, price: 0, appeal: 0.5, place: "wall", event: true },
+  "neon-sign": { name: "Biển đèn neon", level: 16, price: 300, appeal: 1, place: "wall", guests: 2 },
+};
+export const DECOR_IDS = Object.keys(DECOR);
+export const APPEAL_CAP = (level) => (level >= 19 ? 4 : 3);
+/** Vùng kéo thả trong quan-scene 1280×720 (tường trên, sàn trước). Đồ không đặt sát bàn / lối đi (khoảng cách tối thiểu). */
+export const PLACE_ZONES = { wall: { x: [40, 1240], y: [80, 330] }, floor: { x: [20, 1260], y: [420, 712] } };
+export const SPOT_CLEARANCE = 60;
+/** Chỗ mặc định ở vỉa hè (street-scene không có toạ độ đồ trang trí trong manifest). */
+export const STREET_DECOR_AT = [[90, 640], [1250, 640], [620, 250], [380, 250], [1180, 300], [60, 300], [900, 250], [200, 690], [1030, 690], [470, 690], [760, 250], [1240, 470], [40, 470], [640, 160]];
+
+/** Hạng quán (ECONOMY §11): mỗi bậc +1 khách đi ngang mỗi ca, kiên nhẫn +2%. */
+export const TIERS = [
+  { level: 10, price: 500 }, { level: 11, price: 1000 }, { level: 12, price: 1700 }, { level: 14, price: 2600 },
+  { level: 15, price: 3800 }, { level: 17, price: 5200 }, { level: 19, price: 7000 }, { level: 20, price: 9000 },
+];
+/** Nước mắm nhà pha 3 bậc: mọi dĩa +1k / bậc, +1 điểm kỳ vọng. */
+export const FISH_SAUCE = [{ level: 15, price: 600 }, { level: 17, price: 1400 }, { level: 19, price: 2500 }];
+/** Quảng bá (cấp 11), một lần mỗi ngày trước ca. */
+export const PROMOS = {
+  "to-roi": { name: "Tờ rơi khu trọ", price: 25, guests: { student: 4 }, followers: 0, desc: "+4 sinh viên ca tối." },
+  "check-in": { name: "Check-in tặng trà tắc", price: 20, guests: 2, followers: 20, buzz: 0.5, desc: "+2 khách hôm nay, thêm người theo dõi." },
+  livestream: { name: "Livestream lúc nướng", price: 0, roll: true, desc: "Hên xui: lên mạng, khách ăn ké, hoặc phản tác dụng nếu cháy miếng trên sóng." },
+};
+export const PROMO_UNLOCK = 11;
+/** Nhà cung cấp 2 Chú Hòa (cấp 9): gói gấp đôi rẻ 10%, chỉ giao trước ca. */
+export const HOA = { level: 9, ids: ["gao-tam", "than", "hop", "tui", "suon", "suon-non", "ga", "lap-xuong", "dau-hu", "bi", "bi-chay", "cha", "cha-chay", "trung", "do-chua", "dua-leo", "nuoc-mam", "nuoc-tuong", "tra", "khan-lanh"] };
+export const hoaPack = (id) => { const p = STOCK[id]?.pack; return p ? [p[0] * 2, Math.round(p[1] * 2 * 0.9)] : null; };
+/** Đơn đặt trước (cấp 7) / mâm cơm (cấp 10): cọc 30%, trễ ≤ 30 s −10%, trễ hơn / thiếu −30%; đơn tới hạn mà thiếu thì khách lấy phần đã xong, trả 70%. */
+export const PREORDER = { level: 7, cateringLevel: 10, deposit: 0.3, perDay: 2, lateSmall: 30000, lateSmallCut: 0.1, lateBigCut: 0.3, grace: 45000, partialPay: 0.7 };
+/** Sổ nợ (ECONOMY §4.3). */
+export const DEBT = { level: 6, limit: (lvl) => (lvl >= 16 ? 500 : lvl >= 10 ? 300 : 150), perPerson: 5, payChance: 0.25, forgetDays: 14, forgetChance: 0.06, askChance: 0.4 };
+/** Ca khuya kéo dài (cấp 17): ca tối dài thêm, khuya +25% khách. */
+export const LATE = { level: 17, extraMs: 45000, guestMul: 1.25 };
+/** Cơm chiên từ cơm dư (cấp 2, cần chảo): 50% số phần dư, tối đa 6 dĩa. */
+export const FRIED_RICE = { share: 0.5, max: 6 };
+/** Nhiệm vụ ngày (ECONOMY §9): 3 mục mỗi ca từ cấp 2. */
+export const MISSIONS = [
+  { id: "flips", kind: "flips", n: 4, unlock: 2, text: "Lật đúng lúc {n} lần", reward: { xp: 8, money: 0 } },
+  { id: "no-burnt", kind: "noBurnt", n: 4, unlock: 2, text: "Bán {n} dĩa mà không miếng nào cháy đen", reward: { xp: 10, money: 10 } },
+  { id: "tea", kind: "tea", n: 3, unlock: 2, text: "Châm trà kịp cho {n} bàn (không ai khát)", reward: { xp: 10, money: 0 } },
+  { id: "no-timeout", kind: "noTimeout", n: 5, unlock: 2, text: "Phục vụ {n} khách, không ai bỏ về vì chờ bàn", reward: { xp: 12, money: 12 } },
+  { id: "quirks", kind: "quirks", n: 3, unlock: 2, text: "Giao {n} phiếu có dặn riêng đúng", reward: { xp: 10, money: 0 } },
+  { id: "five", kind: "five", n: 2, unlock: 2, text: "Nhận {n} review 5 sao", reward: { xp: 10, money: 10 } },
+  { id: "runny", kind: "runny", n: 2, unlock: 2, needs: "egg-pan", text: "Làm đúng {n} trứng lòng đào", reward: { xp: 8, money: 6 } },
+  { id: "drama", kind: "drama", n: 1, unlock: 2, text: "Xử lý một tình huống trong ca", reward: { xp: 6, money: 5 } },
+  { id: "clean", kind: "clean", n: 10, unlock: 3, text: "Không để bàn nào dơ quá {n} giây", reward: { xp: 12, money: 10 } },
+  { id: "rice-left", kind: "riceLeft", n: 3, unlock: 3, text: "Cơm dư cuối ca không quá {n} phần", reward: { xp: 10, money: 8 } },
+  { id: "smoke", kind: "smoke", n: 70, unlock: 3, text: "Khói không vượt {n} cả ca", reward: { xp: 10, money: 0 } },
+  { id: "takeaway", kind: "takeaway", n: 2, unlock: 4, needs: "takeaway-shelf", text: "Giao {n} hộp mang về đúng (có bịch nước mắm)", reward: { xp: 10, money: 0 } },
+  { id: "plates", kind: "plates", n: 12, unlock: 4, text: "Bán {n} dĩa trong ca", reward: { xp: 14, money: 12 } },
+  { id: "nhu-cu", kind: "nhuCu", n: 1, unlock: 4, text: "Phục vụ khách quen “như hôm qua” đúng", reward: { xp: 12, money: 0 } },
+  { id: "bill", kind: "bill", n: 2, unlock: 4, text: "Tính tiền tay đúng {n} bàn", reward: { xp: 10, money: 0 } },
+  { id: "table4", kind: "table4", n: 1, unlock: 5, text: "Phục vụ trọn một bàn 3–4 người từ 4 sao", reward: { xp: 14, money: 12 } },
+  { id: "revenue", kind: "revenue", n: 300, unlock: 5, text: "Doanh thu ca đạt {n}k", reward: { xp: 15, money: 18 } },
+  { id: "preorder", kind: "preorder", n: 1, unlock: 7, text: "Giao đơn đặt trước đúng giờ", reward: { xp: 15, money: 18 } },
+];
+export const MISSIONS_PER_DAY = 3;
 /** Bàn vỉa hè mở theo đồ đã mua (s1, s2 có sẵn). */
-export const TABLE_GEAR = { s3: "ban-3", s4: "ban-4" };
+export const TABLE_GEAR = { s3: "ban-3", s4: "ban-4", q4: "q-table-4", q5: "q-table-5" };
+/** A: thuê mặt bằng lên quán (cấp 7): một lần, giữ bản lưu + đồ đã mua; dĩa tối thiểu 16. */
+export const RENT = { level: 7, price: 350, plates: 16 };
+/** A: phụ bàn Bông: tốc độ đi, thời gian châm trà / dọn + lau (tự nhận việc, không cần chạm). Dì Năm rửa 1 dĩa mỗi 2 giây. */
+export const HELPER = { speed: 300, pourMs: 900, cleanMs: 2600, washMs: 2000 };
+/** A: thời tiết: từ ngày 5 mưa 15%; vỉa hè mưa −40% khách (mái bạt −15%), quán −15%. */
+export const WEATHER = { fromDay: 5, rain: 0.15, street: 0.6, awning: 0.85, quan: 0.85 };
+/** A: ca trưa dồn trong 45 giây giữa ca; shipper ca trưa lấy 1–3 hộp. */
+export const LUNCH = { rush: [0.12, 0.62], shipperBoxes: [1, 3] };
 
 /** 20 cấp (GAME-DESIGN §6). */
 export const LEVELS = [0, 30, 55, 125, 270, 445, 655, 1055, 1630, 2355, 2845, 3455, 4110, 5050, 6280, 7575, 9125, 11050, 13295, 16085];

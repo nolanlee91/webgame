@@ -5,6 +5,7 @@
 import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES } from "../data/economy.js?v=c1";
 import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
+import { freshA, loadA } from "./progression.js?v=c1"; // A: khoá tiến trình M3
 
 export const SAVE_VERSION = 1;
 export const MIGRATIONS = {};
@@ -19,6 +20,9 @@ export function createState(seed = 20261120) {
     stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {} },
     regulars: {}, feed: [], nextReviewId: 0, rating: null, consign: null, daily: { consigned: false, borrowed: {} },
     usedDay: [], shift: null, lastSummary: null, bought: {},
+    // --- A: progression --- (sổ nợ, đơn đặt trước / mâm cơm, hạng quán, nước mắm nhà pha, nhân viên theo ngày, quảng bá, trang trí + chỗ đặt,
+    // kỷ niệm vỉa hè, cơm chiên ngày mai, thời tiết, ca khuya kéo dài). Mặc định ở core/progression.js freshA(); đọc bản lưu cũ: loadA().
+    ...freshA(),
   };
 }
 
@@ -97,6 +101,7 @@ export function loadSave(raw) {
   s.bought = Object.fromEntries(Object.entries(obj(d.bought) ? d.bought : {}).filter(([k]) => STOCK_IDS.includes(k)).map(([k, v]) => [k, arr(v).filter((p) => obj(p) && Number.isInteger(p.day) && Number.isInteger(p.n) && p.n > 0).slice(-20)]));
   s.usedDay = arr(d.usedDay).filter((x) => typeof x === "string").slice(-120);
   s.lastSummary = obj(d.lastSummary) ? { ...d.lastSummary, seen: bool(d.lastSummary.seen) } : null;
+  loadA(s, d); // --- A: progression --- (thiếu khoá ⇒ mặc định an toàn)
   s.shift = loadShift(d.shift, s);
   if (s.shift && s.shift.day !== s.day) s.shift = null;
   return s;

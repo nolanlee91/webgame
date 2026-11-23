@@ -11,7 +11,7 @@ export const canAutoBill = (s) => s.day <= AUTO_BILL_DAYS || !!s.owned?.["cash-b
 
 /** Giá một dĩa theo phiếu (đã trừ giảm giá / miễn phí do khiếu nại). */
 export function ticketPrice(t) {
-  const base = DISHES[t.dish]?.price ?? 0;
+  const base = (DISHES[t.dish]?.price ?? 0) + (t.plus || 0); // A: nước mắm nhà pha +1k / bậc
   if (t.free) return 0;
   return Math.round(base * (1 - (t.discount || 0)));
 }
