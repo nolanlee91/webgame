@@ -50,6 +50,7 @@ Tài liệu tham khảo gốc:
 - **Chốt thước khi duyệt concept cảnh, trước khi vẽ nhân vật.** Lấy cửa (2,1 m) hoặc mặt quầy (khoảng 1 m) để quy ra số px của người 1,65 m đứng ở hàng chờ.
 - Ghi số đó vào `manifest.sceneScale["<file cảnh>"].humanHeight`. Asset-spec bật `"checkSceneScale": true` với danh sách `"scenes"`. Script kiểm báo lỗi nếu chiều cao nhân vật lệch quá 10%.
 - Không phóng to nhân vật cũ cho khớp. Phải vẽ lại ở ô mới, cùng độ mịn lưới 2×.
+- **Đồ vật cũng cùng thước** (bài học Quán Cơm Tấm): nồi cơm, ly trà, hũ, máy móc vẽ theo cỡ thật so với người (ví dụ nồi cơm cao khoảng 1/5 người, khoảng 55 px khi người 260 px), không vẽ to kín ô 192. Cơm Tấm đợt 1 vẽ to gấp đôi nên code phải thu ×0,5. Người vẽ soi bằng ảnh ghép đồ đặt cạnh người mẫu trên cảnh.
 
 ### 1.3 Nhất quán nhân vật
 

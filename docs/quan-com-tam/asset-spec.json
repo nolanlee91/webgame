@@ -529,7 +529,6 @@
     },
     {
       "file": "assets/owner-actions-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         320,
@@ -556,7 +555,6 @@
     },
     {
       "file": "assets/plate-layers-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         320,
@@ -593,7 +591,6 @@
     },
     {
       "file": "assets/grill-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         640,
@@ -614,7 +611,6 @@
     },
     {
       "file": "assets/grill-items-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         192,
@@ -633,7 +629,6 @@
     },
     {
       "file": "assets/portraits-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         384,
@@ -650,7 +645,6 @@
     },
     {
       "file": "assets/portrait-expressions-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         384,
@@ -668,7 +662,6 @@
     },
     {
       "file": "assets/drama-portraits-hd.webp",
-      "optional": true,
       "grid": 1,
       "cell": [
         384,
@@ -685,7 +678,6 @@
     },
     {
       "file": "assets/weather-fx.webp",
-      "optional": true,
       "cell": [
         640,
         360
@@ -712,7 +704,6 @@
     },
     {
       "file": "assets/fixtures.webp",
-      "optional": true,
       "cell": [
         384,
         256
@@ -736,7 +727,6 @@
     },
     {
       "file": "assets/decor.webp",
-      "optional": true,
       "cell": [
         128,
         128
@@ -765,7 +755,6 @@
     },
     {
       "file": "assets/journal-card.webp",
-      "optional": true,
       "cell": [
         1080,
         1350
