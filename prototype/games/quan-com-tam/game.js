@@ -17,6 +17,8 @@ import { itemName } from "./core/rescue.js?v=c1";
 import { MISTAKES } from "./core/score.js?v=c1";
 import { shopSave, browserStorage } from "./save.js?v=c1";
 import { DISHES } from "./data/economy.js?v=c1";
+import { setJournalBg } from "./ui/journal.js?v=c1"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c1"; // C: hỏi tính cách một lần
 import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c1";
 
 const $ = (s) => document.querySelector(s);
@@ -30,6 +32,7 @@ async function boot() {
   configureScene(manifest.placements || {});
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
+  if (files.has("assets/journal-card.webp")) setJournalBg("assets/journal-card.webp"); // C:
   const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
   const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
   const replaced = new Set(hdOn.filter(([al]) => !KEEP_BASE.has(al)).map(([al]) => SHEETS[al]));
@@ -67,7 +70,7 @@ async function boot() {
   });
   const grillbar = createGrillbar($("#grillbar"), atlas, (a) => act(a), { onFan: (on) => { if (state.shift && (on || state.shift.grill.fan)) act({ type: "fan", on }, !on); } });
   const column = createColumn($("#rail"), $("#work"), atlas, (a) => act(a), { selectGroup: (gid) => scene.selectGroup(gid), selected: () => scene.selected });
-  const toPrep = (tab) => { store.snapshotDay(state); overlays.prep(state, tab); };
+  const toPrep = (tab) => { if (needPersona(state)) return overlays.personaAsk(state, () => toPrep(tab)); /* C: bản lưu cũ hỏi tính cách một lần */ store.snapshotDay(state); overlays.prep(state, tab); };
   const overlays = createOverlays($("#overlay"), $("#sheet"), atlas, (a) => act(a), {
     state: () => state,
     afterIntro: () => { if (state.shift) { paused = true; overlays.pause(); } else if (state.lastSummary && !state.lastSummary.seen) overlays.summary(state); else toPrep(); },
@@ -77,6 +80,7 @@ async function boot() {
     replayInfo: () => { const i = store.replayInfo(); return i && i.seed === state.seed && i.day <= state.day ? i : null; },
     replay: () => { save(true); if (!store.replayDay()) return false; restarting = true; location.reload(); return true; },
     toast: (t, k) => say(t, k),
+    sceneImage: () => document.querySelector('.stage img[data-layer="quan"], .stage img[data-layer="street"]'), // C: ảnh cảnh cho thẻ Nhật Ký dự phòng
   });
 
   const ERR = {
@@ -162,6 +166,8 @@ async function boot() {
         case "request": say(e.kind === "com" ? "Khách gọi thêm chén cơm (chạm bàn)." : "Khách xin khăn lạnh (chạm bàn).", ""); break;
         case "billCall": say(`${tableName(e.tid)} gọi tính tiền!`, "good"); break;
         case "billOpen": setDock("plate"); break;
+        case "replied": say(`${e.label}: ${e.fx.join(" · ")}`, e.outcome === "phot" || e.outcome === "annoyed" ? "warn" : "good"); break; // C:
+        case "persona": if (e.from) say(`Đổi tính: ${e.switches >= 3 ? "cư dân mạng bắt đầu để ý!" : "lựa chọn trả lời đã đổi theo."}`, e.switches >= 3 ? "warn" : ""); break; // C:
         case "levelUp": say(`Lên cấp ${e.level}!`, "good"); break;
         case "newDish": say(`Món mới vào menu: ${e.name}. Nhớ nhập đủ nguyên liệu!`, "good"); break;
         case "phase": showBanner(e.text); break;

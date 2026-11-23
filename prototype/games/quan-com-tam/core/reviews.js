@@ -57,8 +57,11 @@ export function loadSocial(s, d) {
   const raw = arr(d.feed).filter(obj).slice(0, 40);
   s.feed.forEach((r, i) => {
     const x = raw[i] || {};
-    r.reason = str(x.reason, 20) || reasonOf(r);
+    if (x.takeaway === true) r.takeaway = true;
+    if (x.soldOut === true) r.soldOut = true;
+    if (typeof x.timeout === "string") r.timeout = x.timeout.slice(0, 10);
     r.src = x.src === "mang" ? "mang" : "quan";
+    r.reason = str(x.reason, 20) || reasonOf(r);
     r.reply = loadReply(x.reply);
   });
 }

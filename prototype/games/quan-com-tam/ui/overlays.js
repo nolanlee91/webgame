@@ -8,6 +8,7 @@ import { stockoutOptions, itemName } from "../core/rescue.js?v=c1";
 import { MISTAKES } from "../core/score.js?v=c1";
 import { xpToNext } from "../core/progress.js?v=c1";
 import { groupById } from "../core/tables.js?v=c1";
+import { createBook } from "./notebook.js?v=c1"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];
 
@@ -18,6 +19,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
   const footer = (p) => el("div", "footer", p);
   const focusFirst = () => setTimeout(() => sheet.querySelector(".choice:not(:disabled), .btn.primary, input")?.focus({ preventScroll: true }), 30);
   const state = () => hooks.state();
+  const C = createBook({ open, close, act, state, hooks: { ...hooks, summary: (s) => summary(s) }, focusFirst }); // C:
 
   // ---------- màn chào ----------
   function intro(s) {
@@ -32,9 +34,11 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     el("p", "muted", pane, "Sáu giờ tối, than đã đỏ. Bạn là cô chủ quán cơm tấm vỉa hè: lật sườn cho kịp, bày dĩa đủ lớp, đi bưng ra bàn, châm trà đá, tính tiền và dọn bàn cho khách mới.");
     el("label", "", pane, "Tên quán").style.fontWeight = 800;
     const inp = el("input", "name", pane); inp.id = "shopName"; inp.value = s.shopName; inp.maxLength = 32; inp.autocomplete = "off";
+    C.introPicker(pane, s); // C: chọn tính cách cô chủ
     const f2 = footer(pane);
     button(f2, "btn primary", s.introSeen ? `Tiếp tục ngày ${s.day}` : "Nhóm bếp mở quán", () => {
       act({ type: "setName", name: inp.value || s.shopName });
+      C.commitIntro(); // C:
       act({ type: "seeIntro" });
       close(); hooks.afterIntro();
     }, { id: "introGo" });
@@ -136,6 +140,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     const top = el("div", "rowx", p);
     el("div", "big", top, `${m.profit >= 0 ? "Lời" : "Lỗ"} ${fmtK(Math.abs(m.profit))}`);
     el("div", "", top, `${m.plates} dĩa · ${m.avg ? m.avg.toString().replace(".", ",") + " sao" : "chưa có sao"} · +${m.xp} XP (cấp ${m.level})`);
+    if (m.final && m.headline) el("p", "headline", p, m.headline); // C: câu chốt ngày (Nhật Ký)
     const grid = el("div", "grid2", p);
     const pl = el("div", "pl card", grid);
     const line = (a, b, neg = false, cls = "") => { el("span", cls, pl, a); el("span", (neg ? "neg " : "") + cls, pl, b); };
@@ -160,6 +165,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     if (!m.reviews?.length) el("p", "muted", p, "Chưa có review.");
     const fo = footer(p);
     if (m.final) {
+      C.journalButton(fo, s, m.day); // C: thẻ Nhật Ký Làm Chủ
       if (hooks.replayInfo()) button(fo, "btn", "Chơi lại ngày hôm nay", () => confirm("replay", () => summary(state())), { "data-act": "replay" });
       button(fo, "btn primary", "Ngày tiếp theo", () => { act({ type: "closeSummary" }); const r = act({ type: "nextDay" }); if (!r.err) { close(); hooks.afterSummary(); } }, { "data-act": "nextDay" });
     } else button(fo, "btn primary", "Nghỉ giữa ca", () => { act({ type: "closeSummary" }); close(); prep(state(), "buy"); }, { "data-act": "toBreak" });
@@ -262,22 +268,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     button(fo, "btn primary", "Đóng", () => { close(); hooks.resume(); }, { "data-act": "stockClose" });
     focusFirst();
   }
-  /** Sổ: review, khách quen, thống kê. */
-  function book(s) {
-    const p = open("book");
-    el("h2", "", p, "Sổ quán");
-    const nx = xpToNext(s);
-    el("p", "", p, `Cấp ${s.level}${nx ? ` · ${nx.have}/${nx.need} XP tới cấp sau` : ""} · danh tiếng ${Math.round(s.rep)} · ${s.rating ? s.rating.toFixed(1).replace(".", ",") + " sao" : "chưa có sao"} · đã bán ${s.stats.plates} dĩa.`);
-    el("h3", "", p, "Review");
-    if (!s.feed.length) el("p", "muted", p, "Chưa có review.");
-    for (const rv of s.feed.slice(0, 20)) { const d = el("div", "review", p); el("span", "stars", d, starText(rv.stars) + " "); el("b", "", d, `${rv.name} (ngày ${rv.day}): `); el("span", "", d, rv.line); }
-    const regs = Object.entries(s.regulars || {});
-    el("h3", "", p, "Khách quen");
-    if (!regs.length) el("p", "muted", p, "Phục vụ khách quen hai lần từ 4 sao, họ sẽ gọi “như hôm qua”.");
-    for (const [name, r] of regs) el("p", "", p, `${name}: ${r.visits} lần ghé${r.fav ? ` · như hôm qua: ${DISHES[r.fav.dish]?.name}${r.fav.quirks.length ? " (" + r.fav.quirks.join(", ") + ")" : ""}` : ""}`);
-    const fo = footer(p);
-    button(fo, "btn primary", "Đóng", () => { close(); hooks.resume(); }, { "data-act": "bookClose" });
-    focusFirst();
-  }
-  return { intro, prep, summary, pause, help, confirm, complaint, overcharge, stockout, stock, book, close, get current() { return current; } };
+  /** Sổ quản lý (ui/notebook.js, Agent C): Review · Nhật ký · Sự kiện · Nhiệm vụ · Huy hiệu. */
+  function book(s, tab) { C.book(s, tab); }
+  return { intro, prep, summary, pause, help, confirm, complaint, overcharge, stockout, stock, book, close, journalCard: C.journalCard, personaAsk: C.personaAsk, get current() { return current; } }; // C: journalCard, personaAsk
 }
