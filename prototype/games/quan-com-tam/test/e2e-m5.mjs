@@ -16,7 +16,17 @@ export async function runM5(ctx) {
     await waitFor("__game.overlay==='summary'", 6000);
     if (await at('[data-act="nextDay"]')) await pressSel('[data-act="nextDay"]');
     await waitFor("__game.overlay==='prep'", 6000);
-    if (await b.ev("__game.dramaOpen")) for (let k = 0; k < 4 && (await b.ev("__game.dramaOpen")); k++) { if (await at("#drama .choice:not(:disabled)")) await pressSel("#drama .choice:not(:disabled)"); if (await at('#drama [data-act="eventDone"]')) await pressSel('#drama [data-act="eventDone"]'); }
+    await clearDrama();
+  };
+  // sự kiện Drama giữa hai ngày (Chuẩn bị): chọn lựa chọn bấm được, Tiếp, Xong
+  const clearDrama = async () => {
+    for (let k = 0; k < 8; k++) {
+      await sleep(150);
+      if (!(await b.ev("__game.dramaOpen"))) return;
+      if (await at("#drama .choice:not(:disabled)")) await pressSel("#drama .choice:not(:disabled)");
+      else if (await at('#drama [data-act="eventNext"]')) await pressSel('#drama [data-act="eventNext"]');
+      else if (await at('#drama [data-act="eventDone"]')) await pressSel('#drama [data-act="eventDone"]');
+    }
   };
 
   // ---- ván mới, cấp 11: vỉ chay riêng ----
@@ -65,6 +75,7 @@ export async function runM5(ctx) {
 
   // ---- cấp 18 ở quán: hội chợ ----
   await b.ev("__game.setLevel(18); __game.addMoney(3000)");
+  await clearDrama();
   await pressSel('[data-tab="gear"]');
   if (await at('[data-act="rentQuan"]')) await pressSel('[data-act="rentQuan"]');
   check(`${tag}: M5: lên quán (thuê mặt bằng)`, (await S("s.stage")) === "quan");
@@ -92,6 +103,7 @@ export async function runM5(ctx) {
 
   // ---- cấp 20: thử thách ----
   await b.ev("__game.setLevel(20); __game.addMoney(2000)");
+  await clearDrama();
   await pressSel('[data-tab="fair"]');
   const cid = await S("['mot-bep','khong-chay','trua-khong-phu','toan-mang-ve','mam-40'][s.day%5]");
   await pressSel('[data-act="challenge"]');
