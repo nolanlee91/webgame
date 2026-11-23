@@ -6,7 +6,7 @@ Người chơi giả chơi từng ca bằng **luật thật**: mọi thao tác �
 
 ```sh
 cd prototype/games/quan-com-tam
-node tools/sim/sim.mjs                                   # 3 hồ sơ tới cấp 20 ⇒ report.md + report.json (chạy lần lượt, ~15–25 phút)
+node tools/sim/sim.mjs                                   # 3 hồ sơ tới cấp 20 ⇒ report.md + report.json (chạy lần lượt, ~10–15 phút)
 # chạy song song rồi gộp báo cáo (nhanh hơn):
 node tools/sim/sim.mjs --profile careful --out c.json &
 node tools/sim/sim.mjs --profile average --out a.json &
@@ -14,7 +14,7 @@ node tools/sim/sim.mjs --profile sloppy  --out s.json &
 node tools/sim/report.mjs c.json a.json s.json           # ⇒ report.md (+ before.md nếu có: bảng trước cân bằng M5)
 node tools/sim/fit.mjs 3                                 # dò đường cong XP (in bảng đề xuất cho data/economy.js LEVELS)
 node --test test/sim.test.mjs                            # hồi quy rút gọn (chạy cùng bộ test, ~1–2 phút)
-node --test tools/sim/sim.test.mjs                       # hồi quy đầy đủ tới cấp 20 (~5 phút)
+node --test tools/sim/sim.test.mjs                       # hồi quy đầy đủ tới cấp 20 (~3–4 phút)
 ```
 
 Tuỳ chọn: `--seed N` (mặc định 12345), `--days N`, `--profile careful|average|sloppy|all`, `--out file.json`, `--no-write`. Bọc lệnh dài bằng `timeout 900`.

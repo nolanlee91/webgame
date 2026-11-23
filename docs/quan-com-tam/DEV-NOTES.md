@@ -106,7 +106,7 @@ Cần V / Codex (sau): chỗ vẽ vỉ chay trong cảnh (`placements["veg-grill
 ### Test
 
 - `node --test "test/*.test.mjs"`: 133 test, đạt hết (thêm `test/m5.test.mjs` 17 test, `test/sim.test.mjs` 4 test).
-- `node --test tools/sim/sim.test.mjs`: hồi quy đầy đủ tới cấp 20.
+- `node --test tools/sim/sim.test.mjs`: hồi quy đầy đủ tới cấp 20 (2 test, đạt; ~3,5 phút).
 - E2E (`PORT=8857 node server.js`, `CDP_PORT=9489 PORT=8857 node prototype/games/quan-com-tam/test/e2e.mjs <thư mục>`): thêm `M5_ONLY=1` (vỉ chay bằng nút thật, tắt món, hội chợ, thử thách, huy hiệu). Cả 5 lần chạy tách (`DESK_PART=1`, `DESK_PART=2`, `M3_ONLY=1`, `M5_ONLY=1`, `MOBILE_ONLY=1`) ra "E2E ĐẠT", 0 lỗi console.
 
 ## M3 + M4 gộp (A + B + C, đã làm)
