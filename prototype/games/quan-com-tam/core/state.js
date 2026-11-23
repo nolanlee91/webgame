@@ -7,6 +7,7 @@ import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { freshSocial, loadSocial } from "./reviews.js?v=c1"; // C: review / tính cách / Nhật Ký
 import { freshDrama } from "./flags.js?v=c1"; // B: drama
+import { freshA, loadA } from "./progression.js?v=c1"; // A: khoá tiến trình M3
 
 export const SAVE_VERSION = 1;
 export const MIGRATIONS = {};
@@ -18,13 +19,16 @@ export function createState(seed = 20261120) {
     stock: Object.fromEntries(STOCK_IDS.map((id) => [id, START_STOCK[id] || 0])), uopOld: 0, plates: SERVICE.plates.street, spareSack: 0, owned: {},
     moHanh: { n: 0, day: 1 }, kitchen: { rice: 0, coal: 0, prepCoal: 0 },
     plan: ["toi"], shiftIdx: 0, between: null, dayDone: false, menu: ["com-suon"], menuOff: [],
-    stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {} },
+    stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {}, debtPaid: 0, ordersDone: 0 },
     regulars: {}, feed: [], nextReviewId: 0, rating: null, consign: null, daily: { consigned: false, borrowed: {} },
     usedDay: [], shift: null, lastSummary: null, bought: {},
     // --- C: reviews/journal --- (persona, followers, hype, nextGuests, promises, returning, journal, dayLog)
     ...freshSocial(),
     // --- B: drama --- (cờ trơn dùng chung s.flags, cờ / hàng hẹn / lịch sử Drama, mod có hạn, (người theo dõi / độ hot dùng chung khối C))
     flags: {}, drama: freshDrama(), mods: [],
+    // --- A: progression --- (sổ nợ, đơn đặt trước / mâm cơm, hạng quán, nước mắm nhà pha, nhân viên theo ngày, quảng bá, trang trí + chỗ đặt,
+    // kỷ niệm vỉa hè, cơm chiên ngày mai, thời tiết, ca khuya kéo dài). Mặc định ở core/progression.js freshA(); đọc bản lưu cũ: loadA().
+    ...freshA(),
   };
 }
 
@@ -44,7 +48,7 @@ function loadShift(sh, s) {
     const t = num(sh.t, 0, 3_600_000, 0);
     if (!Array.isArray(sh.groups) || !Array.isArray(sh.tickets) || !Array.isArray(sh.tables) || !Array.isArray(sh.slots) || !obj(sh.grill) || !obj(sh.rice) || !obj(sh.owner) || !obj(sh.stats)) throw 0;
     const g = sh.grill;
-    if (!Array.isArray(g.slots) || g.slots.length !== GRILL.slots) throw 0;
+    if (!Array.isArray(g.slots) || (g.slots.length !== GRILL.slots && g.slots.length !== GRILL.slots * 2)) throw 0; // A: bếp 2 ⇒ 12 chỗ
     g.slots = g.slots.map((it) => (obj(it) && GRILL.side[it.item] && Array.isArray(it.sides) ? { ...it, sides: [num(it.sides[0], 0, GRILL.sideMax, 0), num(it.sides[1], 0, GRILL.sideMax, 0)], fresh: num(it.fresh, 0, 100, 100), warmMs: num(it.warmMs, 0, BIG, 0), said: obj(it.said) ? it.said : {} } : null));
     g.coal = num(g.coal, 0, 100, 0); g.smoke = num(g.smoke, 0, 100, 0); g.fan = false; g.pending = arr(g.pending).filter((p) => obj(p) && Number.isFinite(p.at)).slice(0, 10);
     sh.rice.n = int(sh.rice.n, 0, 40, 0);
@@ -90,7 +94,7 @@ export function loadSave(raw) {
   const menu = arr(d.menu).filter((id) => DISHES[id] && !DISHES[id].rescue);
   s.menu = menu.length ? [...new Set(menu)] : ["com-suon"];
   s.menuOff = arr(d.menuOff).filter((id) => DISHES[id]);
-  if (obj(d.stats)) for (const k of ["plates", "revenue", "shifts", "bestProfit", "spentStock", "spentGear"]) s.stats[k] = num(d.stats[k], -BIG, BIG, 0);
+  if (obj(d.stats)) for (const k of ["plates", "revenue", "shifts", "bestProfit", "spentStock", "spentGear", "debtPaid", "ordersDone"]) s.stats[k] = num(d.stats[k], -BIG, BIG, 0);
   if (obj(d.stats?.reviews)) for (const k of ["1", "2", "3", "4", "5"]) if (Number.isInteger(d.stats.reviews[k])) s.stats.reviews[k] = Math.max(0, d.stats.reviews[k]);
   s.regulars = Object.fromEntries(Object.entries(obj(d.regulars) ? d.regulars : {}).filter(([, r]) => obj(r)).slice(0, 60).map(([k, r]) => [k.slice(0, 40), {
     visits: int(r.visits, 0, BIG, 0), good: int(r.good, 0, BIG, 0), ...(obj(r.fav) && DISHES[r.fav.dish] ? { fav: { dish: r.fav.dish, quirks: arr(r.fav.quirks).filter((q) => QUIRKS[q]) } } : {}) }]));
@@ -117,6 +121,7 @@ export function loadSave(raw) {
       nextGuests: int(D.nextGuests, -4, 8, 0), nextArch: Object.fromEntries(Object.entries(obj(D.nextArch) ? D.nextArch : {}).filter(([k, v]) => ARCHETYPES[k] && Number.isInteger(v))),
       catName: typeof D.catName === "string" ? D.catName.slice(0, 20) : null };
   }
+  loadA(s, d); // --- A: progression --- (thiếu khoá ⇒ mặc định an toàn)
   s.shift = loadShift(d.shift, s);
   if (s.shift && s.shift.day !== s.day) s.shift = null;
   return s;

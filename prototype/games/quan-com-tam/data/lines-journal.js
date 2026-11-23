@@ -78,6 +78,25 @@ export const CAPTIONS = {
     "Quán lên mạng nhẹ nhàng: {followers} người mới theo dõi, {plates} dĩa đã bán.",
     "Có {followers} người mới theo dõi quán. Một nửa hỏi địa chỉ, nửa còn lại hỏi có mỡ hành không.",
   ],
+  // gộp A + B: ngày lên quán (A), ngày giao trọn mâm cơm / đơn đặt (A), ngày có chuyện lớn (Drama, B)
+  moved: [
+    "Ngày {day}: dọn từ vỉa hè vào quán có mái. Bếp than đi theo, cái ghế nhựa đỏ cũng đi theo.",
+    "Có mái che rồi. {plates} dĩa đầu tiên trong quán mới, mưa cũng không sợ nữa.",
+    "Thuê mặt bằng xong, cô chủ đứng nhìn bảng hiệu năm phút rồi mới nhóm than.",
+    "Từ vỉa hè lên quán: {plates} dĩa, lời {profit}k, và một chút nhớ góc cột điện cũ.",
+  ],
+  catering: [
+    "Giao trọn mâm cơm đúng giờ. Bày một lần bốn hộp, tay nhanh hơn cả máy.",
+    "Hôm nay quán nhận đơn lớn và giao kịp. {plates} dĩa, lời {profit}k.",
+    "Mâm cơm công ty đi đúng giờ, khách gọi điện cảm ơn. Bếp than được nghỉ một phút.",
+    "Đơn đặt trước xong xuôi: hộp nào cũng đủ sườn, đủ đồ chua, đủ nước mắm.",
+  ],
+  drama: [
+    "Ngày {day}: chuyện ở quán còn nhiều hơn sườn trên vỉ. Vẫn bán được {plates} dĩa.",
+    "Hôm nay có chuyện để kể. {plates} dĩa, {stars} sao, và một câu chuyện cho Nhật Ký.",
+    "Quán nhỏ mà chuyện không nhỏ. Xử lý xong, lời {profit}k.",
+    "Một ngày nhiều tình huống. Cô chủ vẫn giữ được bếp than và nụ cười.",
+  ],
   promise: [
     "Giữ đúng lời hứa với khách hôm qua. Nói được làm được, cơm tấm cũng vậy.",
     "Hôm nay quán trả được một lời hứa. Nhẹ người hơn cả lúc trả nợ.",

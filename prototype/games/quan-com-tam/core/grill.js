@@ -6,7 +6,7 @@
 // Thêm than: +35 sau 4 giây; thêm khi đang rực ⇒ lửa bùng 3 giây (vùng nóng ×2). Khói: +1/giây quạt, +3/giây khi có miếng ≥ 125, −2/giây khi yên.
 import { GRILL } from "../data/economy.js?v=c1";
 
-export const zoneOf = (i) => GRILL.zones[i] || "mid";
+export const zoneOf = (i) => GRILL.zones[i % GRILL.slots] || "mid"; // A: bếp 2 (chỗ 6–11) cùng luật vùng
 export function freshGrill(coal = 0) {
   return { slots: Array.from({ length: GRILL.slots }, () => null), coal, pending: [], flareUntil: 0, fan: false, smoke: 0, smokeMax: 0, nextId: 1 };
 }
@@ -17,7 +17,7 @@ export function heatIndex(coal) { return GRILL.heat.findIndex((h) => coal >= h.m
 export function heatMul(g) {
   if (g.coal <= 0) return 0;
   const i = heatIndex(g.coal);
-  if (!g.fan) return GRILL.heat[i].mul;
+  if (!g.fan && !g.blower) return GRILL.heat[i].mul; // A: quạt máy cũng +1 nấc
   if (i === 0) return GRILL.blazeMul;
   return GRILL.heat[i - 1].mul;
 }
@@ -150,7 +150,7 @@ export function tickGrill(g, dt, t, ev = [], speed = 1) {
   for (const p of g.pending.filter((x) => x.at <= t)) g.coal = Math.min(GRILL.coalMax, g.coal + p.n);
   g.pending = g.pending.filter((x) => x.at > t);
   const before = g.coal;
-  g.coal = Math.max(0, g.coal - GRILL.burnPerSec * (g.fan ? GRILL.fanBurnMul : 1) * sec);
+  g.coal = Math.max(0, g.coal - GRILL.burnPerSec * (g.fan ? GRILL.fanBurnMul : g.blower ? 1.5 : 1) * sec); // A: quạt máy than ×1,5
   if (before >= 10 && g.coal < 10) ev.push({ type: "coalOut" });
   else if (before >= 25 && g.coal < 25) ev.push({ type: "coalLow" });
   const heat = heatMul(g) * speed;
@@ -176,9 +176,11 @@ export function tickGrill(g, dt, t, ev = [], speed = 1) {
     if (it.sides[0] >= GRILL.nearBurn || it.sides[1] >= GRILL.nearBurn) burning = true;
   }
   const S = GRILL.smoke;
-  if (g.fan) g.smoke += S.fan * sec;
-  if (burning) g.smoke += S.burning * sec;
-  if (!g.fan && !burning) g.smoke -= S.decay * sec;
+  const hood = g.hood ? 0.4 : 1; // A: chụp hút khói ×0,4; quạt máy khói ×0,6
+  if (g.fan) g.smoke += S.fan * sec * hood;
+  else if (g.blower) g.smoke += S.fan * 0.6 * sec * hood;
+  if (burning) g.smoke += S.burning * sec * hood;
+  if (!g.fan && !g.blower && !burning) g.smoke -= S.decay * sec;
   const sb = g.smoke;
   g.smoke = Math.max(0, Math.min(100, g.smoke));
   if (sb >= S.high && g.smokeMax < S.high) ev.push({ type: "smokeHigh" });

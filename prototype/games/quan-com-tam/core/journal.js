@@ -19,12 +19,15 @@ export function captionKind(d) {
   if (d.profit < 0) return "loss";
   if (big(ms, "viral")) return "replyViral";
   if (big(ms, "phot")) return "replyPhot";
+  if (ms.some((m) => m.kind === "moved")) return "moved"; // A: ngày lên quán
   if (ms.some((m) => m.kind === "flip")) return "flip";
   if (ms.some((m) => m.kind === "serious")) return "serious";
   if (d.lost > 1) return "lost";
   if (d.burnt >= 2) return "burnt";
   if (d.oops >= 3) return "oops";
+  if (ms.some((m) => m.kind === "catering-done")) return "catering"; // A: giao trọn mâm cơm / đơn đặt
   if (ms.some((m) => m.kind === "promise")) return "promise";
+  if (ms.some((m) => m.kind === "drama")) return "drama"; // B: chuyện trong ngày (s.drama.moments)
   if ((d.followers || 0) >= 30) return "viral";
   if (d.perfect >= 8 && !d.burnt) return "grill";
   if (d.soldOut > 0) return "soldOut";

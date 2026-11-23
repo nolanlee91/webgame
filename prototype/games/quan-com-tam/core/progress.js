@@ -13,7 +13,7 @@ export function gainXp(s, n, ev = []) {
 export function addNewDishes(s, ev = []) {
   s.menu = Array.isArray(s.menu) ? s.menu : ["com-suon"];
   for (const [id, d] of Object.entries(DISHES)) {
-    if (d.rescue || d.level > s.level || s.menu.includes(id) || (s.menuOff || []).includes(id)) continue;
+    if (d.rescue || d.special || d.level > s.level || s.menu.includes(id) || (s.menuOff || []).includes(id)) continue;
     if ((d.needs || []).some((k) => !s.owned?.[k])) continue;
     s.menu.push(id); ev.push({ type: "newDish", id, name: d.name });
   }

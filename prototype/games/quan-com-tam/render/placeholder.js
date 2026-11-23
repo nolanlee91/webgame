@@ -8,6 +8,7 @@ export const CELL = {
   chars: PERSON, walks: PERSON, reactions: PERSON, actions: PERSON, seated: PERSON, owner: PERSON, helper: PERSON,
   grill: [320, 192, 160, 176], grillItems: [96, 64, 48, 52], plate: [160, 192, 80, 174], equip: [192, 192, 96, 168], tables: [320, 224, 160, 208],
   tableItems: [96, 96, 48, 84], ingr: [64, 64, 32, 32], bills: [96, 48, 48, 24], fx: [96, 96, 48, 48], icons: [48, 48, 24, 42],
+  decor: [128, 128, 64, 120], // A: trang trí (đợt 2) — hình khối dự phòng
   street: [1280, 720, 0, 0], streetFg: [1280, 720, 0, 0], quan: [1280, 720, 0, 0], quanFg: [1280, 720, 0, 0], title: [1280, 720, 0, 0],
 };
 const ROLE = {
@@ -387,6 +388,7 @@ function draw(alias, name) {
       case "bills": return bill(R, E, name);
       case "fx": return fx(R, E, name);
       case "icons": return uiIcon(R, E, name);
+      case "decor": return decorPh(R, E, name); // A:
       case "seated": { const m = name.match(/^(.+)-sit-(eat-\d|wait|call|happy|annoyed)$/); if (!m) return; const [pose, n] = m[2].startsWith("eat") ? ["eat", Number(m[2].slice(-1)) - 1] : [m[2], 0]; return seated(R, E, m[1], pose, n); }
       default: {
         // nhân vật đứng: {vai} / {vai}-walk-n / {vai}-waiting|happy|impatient / {vai}-order-n / {vai}-surprised-n / owner-grill-n …
@@ -401,6 +403,17 @@ function draw(alias, name) {
 }
 
 /** Hàm dự phòng cho makeAtlas: (alias, tên frame) ⇒ frame canvas đúng ô + anchor của asset-spec. */
+/** A: đồ trang trí dự phòng (chậu, đèn lồng, khung treo tường) trên lưới 2×, ô 128 nửa cỡ = 64. */
+function decorPh(R, E, name) {
+  const wall = /lantern|lights|calendar|radio|fan|tv|cage|frame|neon/.test(name);
+  if (/lantern/.test(name)) { R(31, 8, 2, 10, "#5a3a2a"); E(32, 30, 12, 14, name.startsWith("red") ? "#c8342a" : "#efe2c0"); R(26, 44, 12, 4, "#d9a520"); return; }
+  if (/lights/.test(name)) { for (let i = 0; i < 6; i++) E(8 + i * 10, 20 + (i % 2) * 4, 3, 3, ["#f2c14a", "#e0604f", "#7fc08d"][i % 3]); R(4, 18, 56, 1, "#3a2c22"); return; }
+  if (wall) { R(14, 18, 36, 28, /neon/.test(name) ? "#e0559a" : /tv/.test(name) ? "#3a3a40" : "#8e5632"); R(17, 21, 30, 22, /tv/.test(name) ? "#7a9ab0" : "#f4eedd"); return; }
+  E(32, 58, 16, 3, "#1d1510");
+  R(22, 40, 20, 18, /jar/.test(name) ? "#e8ecf0" : "#a4522a");
+  if (/plant|pot/.test(name)) { E(32, 28, 16, 14, /bougainvillea/.test(name) ? "#e0559a" : "#4f8a4a"); E(26, 22, 6, 6, "#6aaa5a"); }
+  if (/menu/.test(name)) { R(18, 20, 28, 30, "#2a3a30"); R(20, 24, 24, 2, "#e8e4d8"); R(20, 30, 18, 2, "#e8e4d8"); }
+}
 export function placeholderFallback() {
   return (alias, name) => {
     if (typeof document === "undefined") return null;

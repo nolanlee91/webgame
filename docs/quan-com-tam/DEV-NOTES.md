@@ -61,6 +61,71 @@ review 1–5 sao (6–10 câu chung + theo vai); câu tới quán, chờ bàn, g
 - Chưa dùng ảnh đợt 2 (`plate-layers-hd`, `grill-items-hd` sẽ tự dùng khi có vì cùng tên frame).
 - Thời gian thực ngày 1 ≈ 4–5 phút; chưa đo người thật.
 
+## M3 · phần A: tiến trình + kinh tế (agent A)
+
+**Code:** `core/progression.js` (luật), `core/progression-actions.js` (thao tác gộp vào `apply`), `data/lines-progress.js` (câu + review theo cơ chế),
+`ui/progress-ui.js` (tab Chuẩn bị, chốt ca, sổ nợ, hộp nhiệm vụ, thông báo). Móc một dòng `// A:` ở `core/apply.js`, `core/shift.js`
+(onStart / onTick / beforeEnd / afterEnd / onNextDay), `core/tables.js`, `core/plate.js`, `core/bill.js`, `core/grill.js`, `core/state.js`,
+`ui/overlays.js`, `ui/column.js`, `ui/grillbar.js`, `render/scene.js`, `render/atlas.js`, `game.js`.
+
+| Cơ chế | Cấp | Ghi chú |
+|---|---:|---|
+| Chảo trứng / xửng hấp chả có UI | 2 / 4 | Thanh Bếp desktop: nút Chảo (trạng thái + thanh giây, sáng khi lòng đào / lòng vừa), nút Xửng (chả chín, giây còn hấp). Mobile: bảng Bếp. Phím `E` chiên trứng khi ô bày trống. |
+| Cơm chiên từ cơm dư | 2 | Cuối ngày: 50% cơm dư (tối đa 6) ⇒ `s.friedRice`; sáng mai món `com-chien` (20k) vào menu, mỗi phiếu giữ một phần; bày không lấy cơm nồi. |
+| Nhiệm vụ ngày | 2 | 3 mục / ca từ `MISSIONS`; thưởng XP + tiền một lần; mục "xử lý tình huống" đếm sự kiện `dramaResolved` / `dramaDone` (agent B phát). |
+| Ca trưa | 5 | Chọn ở tab Ca: chỉ trưa / chỉ tối / cả hai. Khách dồn 12–62% ca, shipper 1–3 hộp, câu + review riêng cho dân văn phòng. |
+| Ghép bàn | 5 | Vỉa hè: nhóm 3–4 ngồi hai bàn 2 cạnh nhau (`joinWith`); bàn ghép `joinOf`, không nhận việc riêng; khách về thì cả hai dơ. |
+| Nồi canh | 5 | Nồi 30 chén / ca, bưng kèm dĩa; hết canh ⇒ mất 3 điểm phục vụ. |
+| Ghi sổ | 6 | Lúc mở phiếu tính tiền, khách quen (vai `regular`, hoặc thợ / tài xế ăn vui ≥ 3 lần) 40% xin ghi sổ ⇒ nút "Cho ghi sổ" / "Xin trả liền" trên phiếu. Hạn mức 150 / 300 / 500k, tối đa 5 lần mỗi người. Sang ngày: mỗi người nợ 25% trả hết (review đã trả), nợ ≥ 14 ngày 6% quên luôn. Sổ: xoá nợ (+1 danh tiếng). Agent B trả nợ qua sự kiện: `payDebt(s, regularId(name), ev)`. |
+| Lên quán | 7 | Tab Đồ nghề / cột phải: "Thuê mặt bằng 350k". `s.stage = "quan"` ⇒ `quan-scene` + `quan-foreground` theo placements không tiền tố của Codex, nồi lớn 20, ≥ 16 dĩa, kho 140, bàn q1–q3 (q4 cấp 10 / q5 cấp 13 phải mua). Giữ đồ + kho; `s.streetMemory` (kỷ niệm vỉa hè). |
+| Đơn đặt trước / mâm cơm công ty | 7 / 10 | Tab Đơn đặt (ở quán): tối đa 2 đơn / ngày, cọc 30%. Phiếu "Mâm cơm ×N" trên thanh phiếu (hộp + bịch nước mắm); **bày ×N**: một chạm lấy 2 hộp (ô bày đôi) / 4 hộp (khay mâm), mỗi lớp áp cho cả hàng. Giao đủ đúng giờ ⇒ trả phần còn lại; trễ ≤ 30 giây −10%, hơn −30%; quá hạn + 45 giây ⇒ khách lấy phần đã xong, trả 70%. |
+| Gà nướng, sườn non, cơm chay, lạp xưởng | 8 / 10 / 11 / 13 | Món + nguyên liệu theo bảng (chưa có chỗ nướng chay riêng). |
+| Phụ bàn Bông | 9 | Thuê theo ngày (40k mỗi ca mở). Tự đi châm trà bàn cạn ly và dọn + lau bàn dơ (không trùng việc cô chủ đã giao); không bao giờ đứng yên khi còn việc (test). |
+| Chú Hòa | 9 | Tab Nhập hàng: gói gấp đôi rẻ 10%, chỉ trước ca. |
+| Hạng quán, nước mắm nhà pha | 10 / 15 | Tab Hạng quán: 8 bậc (+1 khách / ca, kiên nhẫn +2% mỗi bậc); nước mắm 3 bậc (+1k mỗi dĩa, `ticket.plus`). |
+| Quảng bá | 11 | Tờ rơi (+4 sinh viên), check-in (+2 khách), livestream hên xui; 1 lần / ngày. |
+| Quạt máy, nồi cơm thứ hai | 12 | Nút Quạt máy trên Thanh Bếp (+1 nấc, than ×1,5, khói ×0,6); nồi +20 phần. Chụp hút khói (cấp 8, quán): khói ×0,4. |
+| Dì Năm rửa chén | 13 | 25k / ca, rửa 1 dĩa mỗi 2 giây. |
+| Tủ mát, tủ chén, hộp tính tiền | 14 / 13 / 15 | Kho 200, 24 dĩa, tự cộng phiếu (có sẵn từ M2). |
+| Quán nổi tiếng, ghế chờ | 16 | Bảng hiệu bậc 3 ⇒ `isFamous` (+2 khách); ghế chờ: 4 người chờ, kiên nhẫn +10%. |
+| Ca khuya kéo dài | 17 | Tab Ca: bật / tắt; ca tối +45 giây, khuya +25% khách. |
+| Trang trí kéo thả | 4 / 7 | Tab Trang trí: mua; ở quán kéo đồ trên hình quán (đồ treo ở tường, đồ sàn không đè bàn ghế / lối đi / chỗ chờ). Hấp dẫn trần 3 (4 từ cấp 19) ⇒ khách thêm. Hình dự phòng tới khi Codex giao `decor.webp`. |
+| Thời tiết | 5+ | Mưa 15% / ngày: vỉa hè −40% khách (mái bạt −15%), quán −15%. |
+| Chơi lại ngày hôm nay | luôn | Ở Tạm dừng, Chốt ngày và Cách chơi; có xác nhận; bản hiện tại cất ở `….before-replay`. |
+
+**Hệ số hiện thiết bị là dữ liệu:** `data/scene.js` `SHEET_SCALE` (equipment ×0,5; ly trà ×0,5) chỉ áp khi manifest còn đúng bản đợt 1
+(dấu vân tay `productionStatus` + `dimensions`). Codex giao bản vẽ đúng thước ⇒ tự ×1. Muốn ép số khác: ghi `displayScale` trên item trong manifest.
+
+**Khoá trạng thái mới** (`core/state.js` khối `// --- A: progression ---`, mặc định + đọc bản lưu cũ ở `freshA()` / `loadA()`):
+`debts`, `debtNews`, `tabVisits`, `orders`, `offers`, `nextOrder`, `tier`, `fishSauce`, `staff`, `promo`, `followers`, `buzz`, `decor`, `placement`,
+`streetMemory`, `friedRice`, `weather`, `lateShift`. Trong ca: `sh.a`, `sh.missions`, `sh.helper`, `sh.dishwasher`, `sh.soup`, `slot.batch`, `ticket.catering / n / plus`,
+`table.joined / joinOf`, `grill.blower / hood`. Không đổi phiên bản bản lưu.
+
+**Bếp than thứ hai** (cấp 14, quán): +6 chỗ (chỗ 6–11, cùng luật vùng, chung than), vẽ ở `grill-2` (kệ sau); Thanh Bếp có nút đổi chip bếp 1 / bếp 2, phím `Shift+1..6`.
+
+**Test phần A:** `test/progression.test.mjs` (22 test). E2E: `test/e2e-m3a.mjs` (gọi từ `test/e2e.mjs`; `M3_ONLY=1` chỉ chạy phần M3, `SKIP_M3=1` bỏ qua).
+Bot test (`test/helpers.mjs`) biết hấp chả và ghép bàn.
+
+**Còn thiếu (phần A):** chỗ nướng chay riêng; chảo đôi chưa chiên 2 trứng cùng lúc (mua được, chưa có luật); tủ kính giữ ấm chưa có luật;
+"+1 điểm kỳ vọng" của nước mắm nhà pha chưa cộng vào điểm; than riêng cho bếp 2; bày ×N cho bàn 4 người cùng món (mới có cho mâm cơm);
+ở quán, nhãn "n người" của các nhóm đứng chờ sát cửa chồng lên nhau ở 390 px; "Nhập + ướp đủ" ở vỉa hè cấp 5–6 có thể hết chỗ kho 80 trước khi mua chả / bì.
+
+### Cờ dùng chung
+
+Agent A ghi bằng `s.flags = s.flags || {}; s.flags[name] = value;` (agent B đọc qua `core/flags.js`). "Ngày" = số ngày `s.day` lúc ghi; 0 = tắt.
+
+| Cờ | Giá trị | Khi nào |
+|---|---|---|
+| `ghiso-open` | số lần ghi sổ chưa trả (tổng) | Mỗi lần ghi sổ / trả nợ / xoá nợ / quên nợ. |
+| `ghiso-unpaid-<regularId>` | số tiền còn nợ (k), 0 khi hết nợ | Như trên. `regularId` = tên bỏ dấu nối gạch (`Chú Tư` ⇒ `chu-tu`), hàm `regularId(name)`. |
+| `catering-active` | ngày có đơn đặt / mâm cơm đang mở, 0 khi giao xong hết | Mở ca có đơn; giao xong / sang ngày ⇒ 0. |
+| `catering-late` | ngày có đơn trễ | Đơn quá giờ hẹn (lúc trễ và lúc chốt). |
+| `quan-moved` | ngày thuê mặt bằng | Thuê mặt bằng lên quán. |
+| `lunch-today` | ngày có mở ca trưa, 0 nếu không | Mở ca / sang ngày. |
+| `helper-bong` | ngày thuê Bông, 0 nếu không | Thuê / thôi thuê; sang ngày ⇒ 0. |
+| `charcoal-low` | ngày | Than trên bếp xuống dưới 25 trong ca. |
+| `smoke-high` | ngày | Khói ≥ 70 trong lúc đang quạt (tay hoặc quạt máy). |
+| `rain-today` | ngày mưa, 0 khi khô | Tung thời tiết lúc sang ngày / mở ca. |
 ## M4 phần C: review, tính cách cô chủ, Sổ quản lý, Nhật Ký (đã làm)
 
 **Chơi được:**

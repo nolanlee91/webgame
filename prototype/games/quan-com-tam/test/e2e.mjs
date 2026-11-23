@@ -6,6 +6,7 @@
 // → kiểm "không nút nào bị che" (elementFromPoint 5 điểm mỗi nút, cả khi có thông báo và khi có bảng phủ) → chốt ca → sang ngày 2 → tải lại giữ tiến trình.
 // Desktop thêm: tải lại giữa ca giữ dĩa đang bày (không trừ kho hai lần), Chơi lại từ đầu có xác nhận + .backup. Tua thời gian bằng __game.advance. Yêu cầu 0 lỗi console.
 import { launch, sleep } from "./cdp.mjs";
+import { runM3A, runM3AMobile } from "./e2e-m3a.mjs"; // A: M3 tiến trình + kinh tế
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8851;
 const BASE = `http://127.0.0.1:${PORT}/games/quan-com-tam/?seed=777`;
@@ -229,7 +230,8 @@ async function replyFlow(tag, shots) {
 // ===== desktop 1366×768 dpr 1,25, chuột =====
 const MOBILE_ONLY = !!process.env.MOBILE_ONLY;
 await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
-if (!MOBILE_ONLY) {
+if (process.env.M3_ONLY) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A: chỉ chạy phần M3
+else if (!MOBILE_ONLY) {
   await playDay1("desktop", true);
   check("desktop: cảnh hệ số bội 0,5 thiết bị (1366@1,25 ⇒ 1,0)", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio;return Math.abs(k-1)<1e-6})()"), String(await b.ev("__game.sceneScale()")));
   // giữa ca tải lại giữ dĩa đang bày, kho, tiền (không trừ hai lần)
@@ -290,11 +292,13 @@ if (!MOBILE_ONLY) {
   await b.ev("localStorage.setItem('wgp.quancomtam.v1','{hỏng');localStorage.removeItem('wgp.quancomtam.v1.corrupt')");
   await b.nav(BASE);
   check("desktop: bản lưu hỏng được chép sang .corrupt, mở quán mới", (await b.ev("localStorage.getItem('wgp.quancomtam.v1.corrupt')")) === "{hỏng" && (await S("s.day")) === 1);
+  if (!process.env.SKIP_M3) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A:
 }
 
 // ===== mobile 390×844 dpr 3, chạm =====
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 await playDay1("mobile", true);
+if (!process.env.SKIP_M3) await runM3AMobile({ b, check, S, pressSel, waitFor, sleep, OUT, tag: "mobile" }); // A:
 check("mobile: cảnh hệ số bội 0,5 thiết bị (390@3 ⇒ 1,0, thấy mọi bàn)", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio*2;return Math.abs(k-Math.round(k))<1e-6})()"), String(await b.ev("__game.sceneScale()")));
 check("mobile: thấy đủ mọi bàn trong khung cảnh", await b.ev(`(()=>{const w=document.querySelector('#scene').getBoundingClientRect();return [...document.querySelectorAll('.tbtn-scene')].every(e=>{const r=e.getBoundingClientRect();return r.left>=w.left-2&&r.right<=w.right+2&&r.top>=w.top-2&&r.bottom<=w.bottom+2})})()`));
 const errs = b.errors.filter((e) => !/favicon\.ico/.test(e)); // favicon: chỉ do trang JSON phụ trong bước ghi bản lưu hỏng

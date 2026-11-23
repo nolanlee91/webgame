@@ -9,6 +9,9 @@ import { MISTAKES } from "../core/score.js?v=c1";
 import { xpToNext } from "../core/progress.js?v=c1";
 import { groupById } from "../core/tables.js?v=c1";
 import { createBook } from "./notebook.js?v=c1"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
+import * as PU from "./progress-ui.js?v=c1"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
+import { potSize } from "../core/progression.js?v=c1"; // A: cỡ nồi theo giai đoạn
+import "./book-tabs.js?v=c1"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];
 
@@ -53,7 +56,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     el("h2", "", head, `Chuẩn bị ngày ${s.day}${s.between ? " · nghỉ giữa ca" : ""}`);
     el("span", "big", head, fmtK(s.money));
     const tabs = el("div", "tabs", p);
-    const T = [["buy", "Nhập hàng"], ["marinate", "Ướp sườn"], ["first", "Mẻ đầu"], ["menu", "Menu"], ["shift", "Ca"], ["gear", "Đồ nghề"]];
+    const T = PU.tabs(s, [["buy", "Nhập hàng"], ["marinate", "Ướp sườn"], ["first", "Mẻ đầu"], ["menu", "Menu"], ["shift", "Ca"], ["gear", "Đồ nghề"]]); // A: thêm tab M3
     for (const [id, name] of T) button(tabs, "tab" + (id === tab ? " on" : ""), name, () => prep(state(), id), { "data-tab": id });
     const grid = el("div", "grid2", p);
     const main = el("div", "", grid);
@@ -73,9 +76,11 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     if (s.consign?.owed) warn.push(`Còn nợ ký gửi Cô Ba ${s.consign.owed}k (trả dần khi bán).`);
     for (const w of warn) el("p", "", side, "• " + w).style.color = "#9a3a2a";
     if (!warn.length) el("p", "", side, "Sẵn sàng mở quán!").style.color = "#2f5a50";
+    PU.side(side, s, { act, rerender: (t) => prep(state(), t || tab) }); // A: sổ nợ, đơn hôm nay, lên quán
     if (consignAvailable(s)) button(side, "btn small", "Nhận gói ký gửi Cô Ba", () => { act({ type: "consign" }); prep(state(), tab); }, { "data-act": "consign" });
 
-    if (tab === "buy") {
+    if (PU.renders(tab)) PU.render(tab, main, s, { act, rerender: (t) => prep(state(), t || tab), toast: hooks.toast, atlas }); // A: tab M3
+    else if (tab === "buy") {
       button(main, "btn primary", "Nhập + ướp đủ cho hôm nay", () => { act({ type: "restockToday" }); prep(state(), tab); }, { "data-act": "restockToday" });
       el("p", "muted", main, "Cô Ba sạp thịt chợ: sườn, gạo tấm, đồ chua, dưa leo, nước mắm, than, trà, hộp. Hàng tươi có hạn (dưa leo, bì, sườn sống 3 ngày).");
       for (const id of BUY_ORDER) {
@@ -94,7 +99,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     } else if (tab === "first") {
       el("p", "muted", main, "Làm trước khi mở quán, không tính giờ.");
       const rows = [
-        ["prepCook", `Nấu nồi cơm (nồi ${s.kitchen.rice}/12 · gạo ${s.stock["gao-tam"] || 0})`, s.kitchen.rice >= 12 || (s.stock["gao-tam"] || 0) <= 0],
+        ["prepCook", `Nấu nồi cơm (nồi ${s.kitchen.rice}/${potSize(s)} · gạo ${s.stock["gao-tam"] || 0})`, s.kitchen.rice >= potSize(s) || (s.stock["gao-tam"] || 0) <= 0], // A: nồi lớn / nồi thứ hai
         ["prepMoHanh", `Làm hũ mỡ hành (hũ ${s.moHanh.n} phần · ${s.stock["mo-hanh-bo"] || 0} bộ)`, s.moHanh.n >= 10 || (s.stock["mo-hanh-bo"] || 0) <= 0],
         ["prepLight", `Nhóm bếp than (2 rổ, mức than ${GRILL.prepLight.level} · đang ${Math.round(s.kitchen.coal)})`, s.kitchen.coal >= GRILL.prepLight.level || (s.stock.than || 0) < 2],
       ];
@@ -150,6 +155,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     line(`Than (${m.coalBaskets} rổ + nhóm bếp)`, "−" + fmtK(m.coal), true);
     line("Trà đá", "−" + fmtK(m.tea), true);
     line("Phí ca (giữ chỗ + điện)", "−" + fmtK(m.fee), true);
+    if (m.staff) line("Lương phụ việc", "−" + fmtK(m.staff), true); // A:
     line("Lợi nhuận vận hành", fmtK(m.profit), m.profit < 0, "tot");
     const r = el("div", "card", grid);
     el("p", "", r, `Khách bỏ về: ${m.lost}${m.passed ? ` · đi ngang không có chỗ chờ: ${m.passed}` : ""}${m.soldOut ? ` · báo hết món: ${m.soldOut}` : ""}`);
@@ -159,7 +165,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     if (ms.length) el("p", "", r, "Lỗi: " + ms.map(([k, n]) => `${MISTAKES[k]?.name || k} ×${n}`).join(", "));
     if (m.owed) el("p", "muted", r, `Nợ ký gửi Cô Ba còn ${m.owed}k.`);
     el("p", "muted", r, `Tiền trong két: ${fmtK(m.money)}`);
-    if (m.riceLeft) el("p", "muted", r, `Cơm dư ${m.riceLeft} phần thành hao (cơm chiên mở ở M3).`);
+    PU.summary(r, m); // A: nhiệm vụ, ghi sổ, mâm cơm, cơm chiên ngày mai
     el("h3", "", p, "Review nổi bật");
     for (const rv of (m.reviews || []).slice(0, 3)) { const d = el("div", "review", p); el("span", "stars", d, starText(rv.stars) + " "); el("b", "", d, rv.name + ": "); el("span", "", d, rv.line); }
     if (!m.reviews?.length) el("p", "muted", p, "Chưa có review.");
@@ -200,6 +206,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     ];
     for (const [h, t] of C) { const c = el("div", "card", cards); el("h4", "", c, h); el("p", "", c, t); }
     const fo = footer(p);
+    if (hooks.replayInfo()) button(fo, "btn", "Chơi lại ngày hôm nay", () => confirm("replay", () => help(back)), { "data-act": "replay" }); // A:
     button(fo, "btn", "Chơi lại từ đầu", () => confirm("restart", () => help(back)), { "data-act": "restart" });
     button(fo, "btn primary", "Đã hiểu", () => { close(); back ? back() : hooks.resume(); }, { "data-act": "helpClose" });
     focusFirst();

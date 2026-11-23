@@ -25,6 +25,7 @@ export const HD_SHEETS = {
 export const HD_SKIP = new Set([]);
 /** Sheet thường vẫn cần tải dù đã có bản HD (cảnh vẫn vẽ món trên vỉ bằng grill-items thường). */
 export const KEEP_BASE = new Set(["grillItems"]);
+import { SHEET_SCALE } from "../data/scene.js?v=c1"; // A: hệ số hiện theo sheet
 export function makeAtlas(manifest, base = "", { hd = true, fallback = null } = {}) {
   const byFile = new Map();
   for (const it of manifest.items || []) if (it.filename?.startsWith("assets/")) byFile.set(it.filename, it);
@@ -46,7 +47,18 @@ export function makeAtlas(manifest, base = "", { hd = true, fallback = null } = 
   const has = (alias, name) => !!real(alias, name);
   const sheet = (alias) => byFile.get(SHEETS[alias] || alias) || null;
   const placements = manifest.placements || {};
-  return { frame, clip, has, sheet, base, placements };
+  /** A: hệ số hiện của frame trong cảnh (data/scene.js SHEET_SCALE; manifest item.displayScale ưu tiên). */
+  const scaleOf = (alias, name = "") => {
+    const file = SHEETS[alias] || alias, it = byFile.get(file);
+    if (it && Number.isFinite(it.displayScale) && it.displayScale > 0) return it.displayScale;
+    const rule = SHEET_SCALE[file];
+    if (!rule || (rule.frames && !rule.frames.test(name))) return 1;
+    if (!it) return rule.scale; // hình dự phòng vẽ cùng ô đợt 1
+    const m = rule.match || {};
+    const same = (!m.productionStatus || it.productionStatus === m.productionStatus) && (!m.dimensions || (it.dimensions?.[0] === m.dimensions[0] && it.dimensions?.[1] === m.dimensions[1]));
+    return same ? rule.scale : 1;
+  };
+  return { frame, clip, has, sheet, base, placements, scaleOf };
 }
 
 /** Gán sprite vào phần tử (nền CSS, pixel cứng). scale = px hiển thị / px atlas. */

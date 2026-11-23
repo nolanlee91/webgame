@@ -307,6 +307,8 @@ export function onShiftEnd(s, S, sh, lastOfDay) {
   }
   if (L.moments.length > 30) L.moments.splice(0, L.moments.length - 30);
   if (!lastOfDay) return;
+  // B: khoảnh khắc Drama của hôm nay (s.drama.moments) cũng vào Nhật Ký
+  for (const m of (s.drama?.moments || []).filter((x) => x.day === s.day && x.line).slice(0, 3)) if (!L.moments.some((x) => x.line === m.line)) L.moments.push({ kind: "drama", who: m.name || "", line: m.line });
   const avg = L.starsN ? Math.round((L.starsSum / L.starsN) * 10) / 10 : 0;
   // lời hứa (từ câu trả lời xin lỗi): ngày tới hạn trung bình ≥ 4 sao, phục vụ ≥ 2 khách ⇒ danh tiếng +2
   const kept = [];
@@ -326,7 +328,7 @@ export function onShiftEnd(s, S, sh, lastOfDay) {
   S.journalDay = s.day;
 }
 /** Khoảnh khắc lưu vào Nhật Ký (câu trả lời nổi / phốt trước, rồi câu xin lỗi nghiêm túc, lời hứa, review hay / tệ nhất). */
-const RANK = { reply: 1, serious: 2, flip: 2, promise: 3, "promise-miss": 3, best: 4, worst: 5 };
+const RANK = { reply: 1, moved: 1, serious: 2, flip: 2, drama: 3, "catering-done": 3, promise: 3, "promise-miss": 3, "catering-late": 4, best: 4, worst: 5 }; // moved / catering: A, drama: B
 function pickMoments(ms) {
   const big = (m) => m.kind === "reply" && (m.outcome === "viral" || m.outcome === "phot");
   const out = [];

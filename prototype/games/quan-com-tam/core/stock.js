@@ -4,7 +4,7 @@
 import { STOCK, STOCK_IDS, CAPACITY, GEAR, CONSIGN, SERVICE, guestsFor, MO_HANH, DISHES, dishParts, SHELF } from "../data/economy.js?v=c1";
 import { addNewDishes } from "./progress.js?v=c1";
 
-export const capacity = (s) => CAPACITY[s.stage === "quan" ? "quan" : "street"];
+export const capacity = (s) => (s.owned?.fridge && s.stage === "quan" ? 200 : CAPACITY[s.stage === "quan" ? "quan" : "street"]); // A: tủ mát kho 200
 export const stockUsed = (s) => STOCK_IDS.filter((id) => STOCK[id].cap).reduce((a, id) => a + (s.stock[id] || 0), 0);
 export const packPrice = (id, express = false) => (STOCK[id]?.pack ? Math.ceil(STOCK[id].pack[1] * (express ? 1.15 : 1)) : 0);
 export const packSize = (id) => STOCK[id]?.pack?.[0] || 0;

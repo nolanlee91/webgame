@@ -16,6 +16,7 @@ import { levelForXp } from "./progress.js?v=c1";
 import { expireStock } from "./stock.js?v=c1";
 import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c1"; // C: khách nhờ review, Nhật Ký ngày
 import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c1"; // B: drama
+import * as PG from "./progression.js?v=c1"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
 
 /** Ca hướng dẫn ngày 1: bếp chín chậm hơn để người mới kịp hiểu "hai mặt" (vùng chín rộng hơn theo thời gian). */
 export const TUTORIAL_GRILL = 0.85;
@@ -87,7 +88,7 @@ export function startShift(s, ev = []) {
   const kind = s.plan[s.shiftIdx] || "toi";
   const P = pointsOf(s);
   const tables = availableTables(s).map(freshTable);
-  const maxSeats = Math.max(...tables.map((t) => t.seats));
+  const maxSeats = PG.maxGroupSeats(s, tables); // A: ghép bàn vỉa hè ⇒ nhóm 4
   const tutorial = s.day === 1 && !s.tutorialDone;
   s.shift = {
     status: "open", kind, t: 0, len: SHIFTS[kind].len, day: s.day, tutorial, phaseIdx: 0,
@@ -103,9 +104,14 @@ export function startShift(s, ev = []) {
       lost: 0, timeouts: 0, soldOut: 0, passed: 0, groupsServed: 0, takeaway: 0, washed: 0, perfectFlips: 0, flips: 0, burnt: 0, stars: [], mistakes: {}, reviews: 0, xp: 0, maxDirtyMs: 0, smokeMax: 0 },
   };
   if (s.kitchen.coal > 0) s.shift.lit = true;
+  // thứ tự móc lịch khách: lịch gốc → A (mưa bớt khách thường, ca trưa dồn, khách thêm, đơn mâm, nhiệm vụ) → C (khách nhờ review, khách quay lại)
+  // → B (khách dồn / mod / đơn đặt trước của Drama). Bước sau chỉ thêm khách hoặc bớt khách không nhãn, không bỏ nhóm có nhãn của bước trước.
+  const started = { type: "shiftStarted", kind, day: s.day, guests: 0, tutorial };
+  ev.push(started);
+  PG.onStart(s, ev); // A: lịch khách (mưa, khách thêm, ca trưa dồn), đơn mâm cơm, nhiệm vụ, phụ bàn, nồi canh
   onShiftStart(s); // C: khách thêm nhờ đánh giá / độ hot + khách quay lại nhờ câu trả lời
   startDrama(s); // B: drama (khách dồn / mod / đơn đặt trước vào lịch)
-  ev.push({ type: "shiftStarted", kind, day: s.day, guests: s.shift.schedule.reduce((a, g) => a + g.roles.length, 0), tutorial });
+  started.guests = s.shift.schedule.filter((g) => !g.done).reduce((a, g) => a + g.roles.length, 0);
   return { ok: true };
 }
 
@@ -171,6 +177,7 @@ export function tick(s, dt, ev = []) {
     }
   }
   maybeTrigger(s, ev); // B: drama (mở sự kiện trong ca, đồng hồ dừng)
+  PG.onTick(s, dt, ev, OWNER_TASKS); // A: phụ bàn Bông, Dì Năm, đơn tới hạn, nhiệm vụ, cờ than / khói
   const busy = sh.groups.some((g) => g.phase !== "leave") || sh.schedule.some((g) => !g.done && !sh.closed && g.at < sh.len);
   if (t >= sh.len && !busy && !sh.dialog) return endShift(s, ev);
   return { ok: true };
@@ -180,6 +187,7 @@ export function tick(s, dt, ev = []) {
 export function endShift(s, ev = []) {
   const sh = s.shift;
   if (!sh) return { err: "no-shift" };
+  PG.beforeEnd(s, ev, addWaste); // A: dĩa mâm dở thành hao, đơn chưa xong chốt phần đã làm
   const lastOfDay = s.shiftIdx >= s.plan.length - 1;
   // miếng còn trên vỉ: chín thì hao, sống thì cũng hao (đã ướp, không để qua ca)
   for (let i = 0; i < sh.grill.slots.length; i++) { const it = sh.grill.slots[i]; if (it) { addWaste(sh, it.item === "suon" ? "suon-uop" : it.item, 1); sh.grill.slots[i] = null; } }
@@ -211,6 +219,7 @@ export function endShift(s, ev = []) {
   if (sh.tutorial) s.tutorialDone = true;
   s.lastSummary = { ...summary, seen: false };
   onShiftEnd(s, s.lastSummary, sh, lastOfDay); // C: cộng dồn ngày, lời hứa, độ hot, câu chốt + Nhật Ký
+  PG.afterEnd(s, sh, s.lastSummary, ev); // A: lương nhân viên, nhiệm vụ cuối ca, cơm chiên ngày mai
   s.shift = null;
   if (lastOfDay) { s.dayDone = true; s.between = null; }
   else { s.shiftIdx++; s.between = s.plan[s.shiftIdx]; }
@@ -235,6 +244,7 @@ export function nextDay(s, ev = []) {
   if (s.lastSummary) s.lastSummary.seen = true;
   onNewDay(s); // C: cờ persona-flip về 0
   endDrama(s, ev); // B: drama (hết hạn cờ, sự kiện giữa hai ngày hiện trên Chuẩn bị)
+  PG.onNextDay(s, ev); // A: sổ nợ, cơm chiên, thời tiết, cờ ngày
   ev.push({ type: "newDay", day: s.day, expired, jar, spoiled });
   return { ok: true, expired, jar, spoiled };
 }
