@@ -13,6 +13,7 @@ import { next, int, pick, weighted } from "./rng.js?v=c1";
 import { fill } from "./text.js?v=c1";
 import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c1";
 import { gainXp } from "./progress.js?v=c1";
+import { sendAway } from "./walker.js?v=c1";
 
 export { freshDrama };
 export const DRAMA = {
@@ -480,7 +481,7 @@ function applyFx(s, d, fx, events) {
   const t = sh.t;
   if (fx.patience) for (const g of [...waitingOf(s), ...seatedOf(s)]) g.patienceMs = Math.max(5000, g.patienceMs + fx.patience);
   if (fx.whoPatience && who) who.patienceMs = Math.max(5000, who.patienceMs + fx.whoPatience);
-  if (fx.away) sh.owner.away = { until: Math.max(sh.owner.away?.until || 0, t + fx.away), kind: "event" };
+  if (fx.away) sendAway(s, "event", Math.max(fx.away, (sh.owner.away?.until || 0) - t));
   if (fx.coal) sh.grill.coal = Math.max(0, Math.min(100, sh.grill.coal + fx.coal));
   if (fx.smoke) sh.grill.smoke = Math.max(0, Math.min(100, sh.grill.smoke + fx.smoke));
   if (fx.rice) sh.rice.n = Math.max(0, Math.min(40, sh.rice.n + fx.rice));

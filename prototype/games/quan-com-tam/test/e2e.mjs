@@ -9,7 +9,7 @@ import { launch, sleep } from "./cdp.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8851;
 const BASE = `http://127.0.0.1:${PORT}/games/quan-com-tam/?seed=777`;
-const b = await launch(OUT, 9481);
+const b = await launch(OUT, Number(process.env.CDP_PORT) || 9481); // B: cổng CDP đổi được (chạy song song)
 let fails = 0;
 const check = (n, c, d = "") => { const s = (c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : ""); if (!c) fails++; console.log(s); };
 let press = b.click;
@@ -38,9 +38,14 @@ const CONTROLS = ['[data-act="serve"]', '[data-act="undo"]', ".strip .lay", ".gc
 async function clearDialogs() {
   for (let i = 0; i < 4; i++) {
     const d = await S("s.shift&&s.shift.dialog&&s.shift.dialog.kind");
-    if (!d) return;
-    await waitFor("!!document.querySelector('#sheet .choice:not(:disabled)')", 3000);
-    await pressSel("#sheet .choice:not(:disabled)");
+    if (!d) { if (await visible('#drama [data-act="eventDone"]')) await pressSel('#drama [data-act="eventDone"]'); return; }
+    const root = d === "event" ? "#drama" : "#sheet"; // B: drama — hội thoại sự kiện ở lớp #drama
+    await waitFor(`!!document.querySelector('${root} .choice:not(:disabled)')`, 3000);
+    await pressSel(`${root} .choice:not(:disabled)`);
+    for (let k = 0; k < 3 && (await visible('#drama [data-act="eventNext"], #drama [data-act="eventDone"]')); k++) {
+      if (await visible('#drama [data-act="eventNext"]')) { await pressSel('#drama [data-act="eventNext"]'); await pressSel("#drama .choice:not(:disabled)"); }
+      else await pressSel('#drama [data-act="eventDone"]');
+    }
   }
 }
 /** Cô chủ đứng ở bếp và không có miếng nào sắp tới lúc lật / gắp trong `sec` giây (để rời bếp ra bàn). */
@@ -188,7 +193,30 @@ if (!MOBILE_ONLY) {
   const before = await S("JSON.stringify([s.shift.slots[0].plate&&{c:s.shift.slots[0].plate.com,m:s.shift.slots[0].plate.moHanh},s.shift.rice.n,s.moHanh.n,s.money,s.shift.cleanPlates])");
   await b.nav(BASE);
   check("desktop: giữa ca tải lại giữ dĩa đang bày, nồi cơm, hũ mỡ hành, tiền (không trừ hai lần)", (await S("JSON.stringify([s.shift.slots[0].plate&&{c:s.shift.slots[0].plate.com,m:s.shift.slots[0].plate.moHanh},s.shift.rice.n,s.moHanh.n,s.money,s.shift.cleanPlates])")) === before && (await b.ev("__game.overlay")) === "pause", before);
+  // ===== B: Drama — mở sự kiện bằng móc, ca dừng, chân dung, chọn lựa chọn và kiểm hiệu ứng, không nút nào bị che =====
+  await pressSel('[data-act="resume"]');
+  const r1 = await b.ev("JSON.stringify(__game.openEvent('K14'))");
+  check("desktop: Drama: mở sự kiện K14 bằng móc", JSON.parse(r1).ok === true && (await waitFor("__game.dramaOpen&&!document.querySelector('#drama').hidden")), r1);
+  const t0 = await S("s.shift.t"); await sleep(700);
+  check("desktop: Drama: đồng hồ ca dừng khi hội thoại mở", (await S("s.shift.t")) === t0 && (await S("s.shift.dialog.kind")) === "event");
+  check("desktop: Drama: hai chân dung (Cô Út + cô chủ) vẽ qua atlas", await b.ev(`(()=>{const p=[...document.querySelectorAll('#drama .dportrait')];return p.length===2&&p.every(x=>x.dataset.frame||x.querySelector('.ini'))})()`), await b.ev(`[...document.querySelectorAll('#drama .dportrait')].map(x=>x.dataset.frame).join(',')`));
+  const covD = await notCovered(["#drama .choice"]);
+  check("desktop: Drama: không lựa chọn nào bị che", covD.length === 0, covD.slice(0, 3).join(" | "));
+  await b.shot(`${OUT}/desktop-09-drama.png`);
+  const rep0 = await S("s.rep");
+  await pressSel('#drama .choice[data-choice="stool"]');
+  check("desktop: Drama: chọn 'mời ghế đẩu' ⇒ +1 danh tiếng, bảng hậu quả có nút Xong", (await S("s.rep")) === Math.min(100, rep0 + 1) && (await visible('#drama [data-act="eventDone"]')), `${rep0} → ${await S("s.rep")}`);
+  await pressSel('#drama [data-act="eventDone"]');
+  check("desktop: Drama: đóng hội thoại, ca chạy lại", (await S("s.shift.dialog")) === null && (await b.ev("document.querySelector('#drama').hidden")) && (await S("s.drama.history[0].id")) === "K14");
+  await b.ev("__game.openEvent('O11')");
+  await waitFor("__game.dramaOpen");
+  check("desktop: Drama: độc thoại chỉ một chân dung", (await b.ev("document.querySelectorAll('#drama .dportrait').length")) === 1);
+  const pl0 = await S("s.plates");
+  await pressSel('#drama .choice[data-choice="clean"]');
+  check("desktop: Drama: bể dĩa ⇒ quán mất 2 dĩa", (await S("s.plates")) === pl0 - 2, `${pl0} → ${await S("s.plates")}`);
+  await pressSel('#drama [data-act="eventDone"]');
   // chơi lại từ đầu: hỏi xác nhận, cất .backup
+  await b.ev("__game.overlays.pause()");
   await pressSel('[data-act="restart"]');
   check("desktop: Chơi lại từ đầu hỏi xác nhận", await waitFor("__game.overlay==='confirm-restart'"));
   const keyBefore = await b.ev("localStorage.getItem('wgp.quancomtam.v1')");

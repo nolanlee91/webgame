@@ -7,6 +7,7 @@ import { configureScene } from "./core/placements.js?v=c1";
 import { createGrillbar } from "./ui/grillbar.js?v=c1";
 import { createColumn } from "./ui/column.js?v=c1";
 import { createOverlays } from "./ui/overlays.js?v=c1";
+import { createDrama } from "./ui/drama.js?v=c1"; // B: drama
 import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c1";
 import { apply } from "./core/apply.js?v=c1";
 import { hint } from "./core/tutorial.js?v=c1";
@@ -67,7 +68,7 @@ async function boot() {
   });
   const grillbar = createGrillbar($("#grillbar"), atlas, (a) => act(a), { onFan: (on) => { if (state.shift && (on || state.shift.grill.fan)) act({ type: "fan", on }, !on); } });
   const column = createColumn($("#rail"), $("#work"), atlas, (a) => act(a), { selectGroup: (gid) => scene.selectGroup(gid), selected: () => scene.selected });
-  const toPrep = (tab) => { store.snapshotDay(state); overlays.prep(state, tab); };
+  const toPrep = (tab) => { store.snapshotDay(state); overlays.prep(state, tab); if (!state.shift && state.drama?.pending) drama.open(() => overlays.prep(state, tab)); }; // B: drama — sự kiện giữa hai ngày hiện trên Chuẩn bị
   const overlays = createOverlays($("#overlay"), $("#sheet"), atlas, (a) => act(a), {
     state: () => state,
     afterIntro: () => { if (state.shift) { paused = true; overlays.pause(); } else if (state.lastSummary && !state.lastSummary.seen) overlays.summary(state); else toPrep(); },
@@ -79,6 +80,7 @@ async function boot() {
     toast: (t, k) => say(t, k),
   });
 
+  const drama = createDrama(atlas, { act: (a) => act(a), state: () => state }); // B: drama
   const ERR = {
     "owner-busy": () => { const w = ownerBusyWhy(state); return w.why === "away" ? "Cô chủ đang chạy ra chợ, chờ chút!" : w.why === "task" ? `Cô chủ đang ${TASK_NAME[w.kind] || "bận"}${w.tid ? " ở " + tableName(w.tid).toLowerCase() : ""} — xong mới về bếp được.` : "Cô chủ đang đi về bếp…"; },
     "no-ticket": () => "Chạm một phiếu để ghim lên ô bày trước.",
@@ -177,7 +179,7 @@ async function boot() {
         case "voided": say("Đã báo khách hết món.", "warn"); break;
         case "bought": say(`Đã mua ${e.name} (−${e.price}k).`, "good"); break;
         case "lit": say("Đã nhóm bếp than.", "good"); break;
-        case "complaint": case "overcharge": case "stockout": setTimeout(() => openDialog(), reduced() ? 0 : 250); break;
+        case "complaint": case "overcharge": case "stockout": case "drama": setTimeout(() => openDialog(), reduced() ? 0 : 250); break;
         case "shiftStarted": setDock("plate"); say(`Mở quán ngày ${e.day}! Khoảng ${e.guests} khách.${e.tutorial ? " Làm theo dải gợi ý màu xanh." : ""}`, "good"); break;
         case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 500); break;
         case "newDay": if (e.expired || Object.keys(e.spoiled || {}).length) say(`Sang ngày mới: bỏ ${e.expired ? e.expired + " miếng sườn ướp cũ" : ""}${Object.keys(e.spoiled || {}).length ? " và hàng tươi quá hạn" : ""}.`, "warn"); break;
@@ -193,6 +195,7 @@ async function boot() {
     if (d.kind === "complaint") overlays.complaint(state);
     else if (d.kind === "overcharge") overlays.overcharge(state);
     else if (d.kind === "stockout") overlays.stockout(state);
+    else if (d.kind === "event" && !drama.isOpen) drama.open(); // B: drama
   }
   let bannerT = 0;
   /** Đổi nhịp ca ("Cao điểm tới rồi!"): băng chữ 2 giây trong khung cảnh, không dừng ca, cùng chỗ với thông báo (không che bàn / Thanh Bếp). */
@@ -272,7 +275,7 @@ async function boot() {
   let fanKey = false;
   document.addEventListener("keydown", (e) => {
     if (e.target.closest("input, textarea")) return;
-    if (overlays.current) return;
+    if (overlays.current || drama.isOpen) return; // B: drama
     const key = e.key.toLowerCase();
     if (key === "m") { muteBtn.click(); return; }
     if (key === "escape" || key === "p") { $("#pauseBtn").click(); return; }
@@ -322,7 +325,11 @@ async function boot() {
     sceneToClient(x, y) { const r = $("#scene").getBoundingClientRect(); const [sx, sy] = scene.toScreen(x, y); return [r.left + sx, r.top + sy]; },
     sceneScale: () => scene.scale,
     dishes: DISHES,
+    // B: drama — mở thẳng một sự kiện (test / ?event=ID): trong ca mở hội thoại, ngoài ca hiện trên Chuẩn bị
+    openEvent(id) { const r = act({ type: "eventOpen", id }); if (!r.err) { if (state.shift) openDialog(); else drama.open(() => { if (overlays.current === "prep") overlays.prep(state); }); } return r; },
+    get dramaOpen() { return drama.isOpen; },
   };
+  if (params.get("event") && state.introSeen) window.__game.openEvent(params.get("event")); // B: drama
 }
 
 boot().catch((e) => {
