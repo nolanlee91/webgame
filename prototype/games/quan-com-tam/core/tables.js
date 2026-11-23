@@ -67,7 +67,7 @@ export function spawnGroup(s, plan, ev = []) {
   const path = takeaway ? shipperIn(P, spotList[spot]) : guestIn(P, spotList[spot]);
   const g = {
     id: sh.nextGid++, arch: plan.arch, size: members.length, members, takeaway, phase: "enter", t0: sh.t, walkMs: (pathLen(path) / SERVICE.guestSpeed) * 1000,
-    spot, spots, table: null, arriveT: null, seatT: null, orderT: null, firstTeaT: null, billT: null, used: 0, patienceMs: Math.round(A.patience * 1000 * (plan.patienceMul || 1)),
+    spot, spots, table: null, arriveT: null, seatT: null, orderT: null, firstTeaT: null, billT: null, used: 0, patienceMs: Math.round(A.patience * 1000 * (plan.patienceMul || 1) * SERVICE.patienceMul), // S (M5): kiên nhẫn chung
     said: {}, say: plan.line ? { text: plan.line, at: sh.t, who: 0 } : null, tag: plan.tag || null, // C: câu khách quay lại
     paid: false, leaveT: null, outcome: null,
   };

@@ -54,6 +54,7 @@ export class Player {
   }
   act(a) {
     this.log.actions++;
+    if (a.type !== "tick") { this.lastActs = this.lastActs || {}; const k = a.type + (a.choice ? ":" + a.choice : ""); this.lastActs[k] = (this.lastActs[k] || 0) + 1; if (Object.keys(this.lastActs).length > 40) this.lastActs = {}; }
     const r = apply(this.s, a);
     if (r.events) for (const e of r.events) if (e.type === "timeout") { const k = "to:" + e.where; this.log.timeoutWhere = this.log.timeoutWhere || {}; this.log.timeoutWhere[k] = (this.log.timeoutWhere[k] || 0) + 1; }
     if (r.err) {
@@ -347,7 +348,7 @@ export class Player {
   /** Bước kế tiếp khi một số lớp đã bỏ qua (hết hàng). */
   nextAfterSkip(t, sk) {
     const s = this.s, p = slotOf(s).plate, tg = targetOf(t);
-    if (!p) return tg.kind;
+    if (!p) return sk.has("hop") ? (s.shift.cleanPlates > 0 ? "dia" : "serve") : tg.kind; // hết hộp ⇒ đựng dĩa cho shipper
     const want = [["com", p.com < tg.com], ["moHanh", p.moHanh < tg.moHanh], ["hanhPhi", tg.hanhPhi && !p.hanhPhi], ["meat", tg.meat && !p.meat], ["bi", tg.bi && !p.bi], ["cha", tg.cha && !p.cha],
       ["trung", tg.trung && !p.trung], ["doChua", tg.doChua && !p.doChua], ["duaLeo", tg.duaLeo && !p.duaLeo], ["sauce", tg.sauce && p.sauce === null], ["ngo", tg.ngo && !p.ngo]];
     const w = want.find(([id, need]) => need && !sk.has(id));
@@ -411,7 +412,7 @@ export class Player {
       const side = !["suon-uop", "gao-tam", "than"].includes(d.id);
       const pref = side ? ["borrow", "dismiss", "consign"] : this.p.id === "sloppy" ? ["consign", "borrow", "marinate", "dismiss", "bread", "ship", "run", "soldOut"] : ["consign", "marinate", "borrow", "ship", "run", "dismiss", "bread", "soldOut"];
       // hội thoại hết hàng mở khi bày một lớp: chọn "bỏ qua" thì nhớ bỏ lớp đó ở dĩa này
-      const L = { "do-chua": "doChua", "dua-leo": "duaLeo", "nuoc-mam": "sauce", "nuoc-tuong": "sauce", "mo-hanh-bo": "moHanh", bi: "bi", "bi-chay": "bi", "cha-chay": "cha", cha: "cha", trung: "trung" }[d.id];
+      const L = { "do-chua": "doChua", "dua-leo": "duaLeo", "nuoc-mam": "sauce", "nuoc-tuong": "sauce", "mo-hanh-bo": "moHanh", bi: "bi", "bi-chay": "bi", "cha-chay": "cha", cha: "cha", trung: "trung", hop: "hop" }[d.id];
       const tk = slotOf(s).tk;
       const o = pref.map((id) => opts.find((x) => x.id === id)).find(Boolean) || opts[0];
       if (o?.id === "soldOut") this.log.soldOut++;
@@ -477,6 +478,8 @@ export class Player {
       if (s.shift && s.shift.t === lastT) {
         if (++same > 60) {
           this.log.loops = (this.log.loops || 0) + 1; same = 0;
+          const lk = (s.shift.dialog ? s.shift.dialog.kind + ":" + (s.shift.dialog.id || "") : "nodialog") + "|" + Object.entries(this.lastActs || {}).sort((a, b) => b[1] - a[1]).slice(0, 2).map((x) => x[0]).join(",");
+          this.log.loopWhy = this.log.loopWhy || {}; this.log.loopWhy[lk] = (this.log.loopWhy[lk] || 0) + 1; this.lastActs = {};
           if (s.shift.dialog?.kind === "stockout") { const o = stockoutOptions(s).find((x) => x.ok && (x.id === "dismiss" || x.id === "soldOut")); this.act({ type: "stockout", choice: o?.id || "soldOut" }); }
           else if (s.shift.dialog) this.dialogStep();
           this.coolUntil = (s.shift?.t || 0) + 4000;

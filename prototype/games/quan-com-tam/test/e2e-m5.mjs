@@ -44,13 +44,13 @@ export async function runM5(ctx) {
   check(`${tag}: M5: ca có vỉ chay (2 chỗ sau bếp 1)`, await waitFor("!!__game.state.shift") && (await S("s.shift.grill.vegFrom")) === 6 && (await S("s.shift.grill.slots.length")) === 8);
   await installBot();
   // chờ tới khi có phiếu chay, ghim bằng phiếu thật
-  const gotTk = await bot(90000, "s.shift.tickets.some(t=>t.status==='open'&&t.dish==='com-chay')&&!s.shift.dialog");
+  const gotTk = await bot(260000, "s.shift.tickets.some(t=>(t.status==='open'||t.status==='pinned')&&t.dish==='com-chay')&&!s.shift.dialog");
   // dọn vỉ bếp 1 để chắc chạm vào vỉ chay là chỗ trống
   if (gotTk) {
     for (let i = 0; i < 40 && !(await b.ev("__game.ownerFree()")); i++) await b.ev("__game.advance(300)");
-    const tk = await S("s.shift.tickets.find(t=>t.status==='open'&&t.dish==='com-chay').id");
-    await b.ev(`(()=>{const sl=__game.state.shift.slots[__game.state.shift.sel];if(sl.plate)__game.act({type:'discard'});})()`);
-    await pressSel(`.slip[data-tk="${tk}"]`);
+    const tk = await S("(s.shift.tickets.find(t=>(t.status==='open'||t.status==='pinned')&&t.dish==='com-chay')||{}).id");
+    await b.ev(`(()=>{const sl=__game.state.shift.slots[__game.state.shift.sel];if(sl.plate&&sl.tk!==${tk})__game.act({type:'discard'});})()`);
+    if (await at(`.slip[data-tk="${tk}"]`)) await pressSel(`.slip[data-tk="${tk}"]`);
     // xoay Thanh Bếp tới trang vỉ chay
     for (let i = 0; i < 3 && !(await b.ev(`(document.querySelector('[data-act="grill2"]')||{}).textContent?.includes('vỉ chay')`)); i++) await pressSel('[data-act="grill2"]');
     check(`${tag}: M5: Thanh Bếp có trang "Vỉ chay" (2 chip)`, await b.ev(`(()=>{const v=[...document.querySelectorAll('.gchip')].filter(e=>!e.hidden&&!e.closest('[hidden]'));return v.length===2})()`), await b.ev(`[...document.querySelectorAll('.gchip')].filter(e=>!e.hidden).length`));
@@ -114,9 +114,8 @@ export async function runM5(ctx) {
   await shot("05-chot-thu-thach");
   // Sổ · Huy hiệu
   await toNextDay();
-  await b.ev("document.querySelector('#bookBtn, [data-act=\"book\"]')?.click()");
-  if (!(await waitFor("__game.overlay==='book'", 2000))) await b.ev("__game.overlays.book?.(__game.state)");
-  if (await at('[data-tab="badges"]')) await pressSel('[data-tab="badges"]');
+  await b.ev("__game.overlays.book(__game.state, 'badges')");
+  await waitFor(`!!document.querySelector('#sheet [data-tab="badges"].on')`, 3000);
   check(`${tag}: M5: Sổ · Huy hiệu liệt kê 14 huy hiệu (có huy hiệu Chủ Quán)`, await waitFor(`document.querySelectorAll('[data-badge]').length===14`, 3000) && (await S("!!s.badges['chu-quan']")), await b.ev("document.querySelectorAll('[data-badge]').length"));
   await shot("06-huy-hieu");
 }

@@ -42,12 +42,13 @@ export function restockToday(s, ev = []) {
     ["suon", Math.max(0, f.dishes - (s.stock["suon-uop"] || 0) - (s.stock.suon || 0))],
     ["gao-tam", Math.max(0, f.dishes + 3 - rice - (s.stock["gao-tam"] || 0))],
     ["than", Math.max(0, f.coal - (s.stock.than || 0) - (s.spareSack || 0) * 10)],
-    ["do-chua", Math.max(0, f.dishes - (s.stock["do-chua"] || 0))],
-    ["dua-leo", Math.max(0, f.dishes - (s.stock["dua-leo"] || 0))],
-    ["nuoc-mam", Math.max(0, f.dishes - (s.stock["nuoc-mam"] || 0))],
+    ["do-chua", Math.max(0, f.dishes + 3 - (s.stock["do-chua"] || 0))],
+    ["dua-leo", Math.max(0, f.dishes + 3 - (s.stock["dua-leo"] || 0))],
+    ["nuoc-mam", Math.max(0, f.dishes + 3 - (s.stock["nuoc-mam"] || 0))],
     ["mo-hanh-bo", (s.moHanh?.n || 0) + (s.stock["mo-hanh-bo"] || 0) * MO_HANH.jar < f.dishes + 2 ? 1 : 0],
     ["tra", Math.max(0, f.tea - (s.stock.tra || 0))],
-    ["hop", Math.max(0, 4 - (s.stock.hop || 0))],
+    // S (M5): hộp theo số khách mang về dự kiến (shipper ca trưa lấy 1–3 hộp); bản cũ chỉ giữ 4 hộp ⇒ hết hộp giữa ca trưa
+    ["hop", Math.max(0, (s.owned?.["takeaway-shelf"] ? Math.ceil(f.guests * 0.3) + 2 : 4) - (s.stock.hop || 0))],
   ];
   // nguyên liệu riêng của các món trong menu (bì, chả, trứng…): chia đều theo số món
   const menu = (s.menu || ["com-suon"]).filter((id) => DISHES[id] && DISHES[id].level <= s.level);

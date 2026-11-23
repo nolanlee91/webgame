@@ -54,7 +54,8 @@ export function createGrillbar(root, atlas, act, { onFan }) {
   const steamTxt = el("span", "", steam); const steamSub = el("small", "", steam);
   const blow = button(ctl, "gbtn2", null, () => act({ type: "blower", on: !blowOn }), { "data-act": "blower", "data-desk": "", title: "Quạt máy: bếp lên một nấc, than ×1,5, khói ít hơn quạt tay" });
   let blowOn = false;
-  const g2 = button(ctl, "gbtn2", null, () => { base = (base + 6) % pages; for (const c of chips) c.sig = ""; }, { // S: xoay bếp 1 → bếp 2 → vỉ chay "data-act": "grill2", title: "Đổi chip giữa bếp 1 và bếp 2 (phím Shift+1..6 cho bếp 2)" });
+  // S: nút đổi trang chip xoay bếp 1 → bếp 2 → vỉ chay
+  const g2 = button(ctl, "gbtn2", null, () => { base = (base + 6) % pages; for (const c of chips) c.sig = ""; }, { "data-act": "grill2", title: "Đổi chip giữa bếp 1 và bếp 2 (phím Shift+1..6 cho bếp 2)" });
   const g2Txt = el("span", "", g2); const g2Sub = el("small", "", g2);
   el("span", "", blow, "Quạt máy");
 

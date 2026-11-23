@@ -123,7 +123,7 @@ export const SERVICE = {
   pourMs: 600, orderMs: 1500, deliverMs: 600, billMs: 500, clearMs: 1200, wipeMs: 800, wetMs: 1500,
   washPerPlateMs: 1000, washBatch: 6, marinateMs: 10000, khanMs: 400, riceMs: 500,
   teaHalfMs: 20000, noTeaMs: 20000, firstTeaMs: 12000,
-  eatMs: [18000, 30000], billAutoMs: 40000, dirtyNeighborMs: 15000, dirtyWaitDrain: 1.6, seatedPatience: 1.4,
+  eatMs: [18000, 30000], billAutoMs: 40000, dirtyNeighborMs: 15000, dirtyWaitDrain: 1.6, seatedPatience: 1.4, patienceMul: 1.25,
   queueMax: 4, carryMax: 2, toTableMs: 1400,
   plates: { street: 10, quan: 16, cabinet: 24 },
   waitMax: { street: 2, quan: 3, famous: 4 },
