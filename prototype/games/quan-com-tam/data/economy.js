@@ -90,7 +90,7 @@ export const GRILL = {
   slots: 6,
   zones: ["hot", "hot", "mid", "mid", "warm", "warm"],
   zoneMul: { hot: 1.5, mid: 1, warm: 0.25, veg: 1 }, // S (M5): veg = vỉ chay riêng (như vùng vừa, chỉ nướng đậu hũ)
-  warmSafeMs: 60000,
+  warmSafeMs: 75000, // M5: 75 giây (bản cũ 60) — miếng chờ khách gọi món ở vùng ấm hay quá hạn rồi cháy trong lúc cô chủ đi bưng
   heat: [ // nấc than: [mức tối thiểu, hệ số, khoá frame]
     { min: 60, mul: 1.2, key: "high" }, { min: 30, mul: 1, key: "mid" }, { min: 10, mul: 0.6, key: "low" }, { min: 0, mul: 0, key: "ash" },
   ],
@@ -103,7 +103,7 @@ export const GRILL = {
   perfect: [100, 114],
   // Cân bằng M3: giây ở vùng chín / cháy cạnh khi than rực (×1,2). Bản M2 vùng nóng chỉ ~0,7 giây chín ⇒ người chơi ẩu cháy gần hết.
   // Cân bằng M5 (bộ mô phỏng): vùng vừa chín 6 giây + cháy cạnh 5 giây (bản M3 4,5 + 3: một chuyến bưng ra bàn xa 4–5 giây là cháy); vùng nóng 3 + 2,5.
-  bandSec: { hot: { done: 3, charred: 2.5 }, mid: { done: 6, charred: 5 }, veg: { done: 6, charred: 5 } },
+  bandSec: { hot: { done: 3.5, charred: 3.5 }, mid: { done: 6, charred: 5 }, veg: { done: 6, charred: 5 } },
   freshDecayMs: 3000, dryBelow: 60,
   smoke: { fan: 1, burning: 3, decay: 2, high: 70 },
   prepLight: { baskets: 2, level: 70 },
@@ -178,7 +178,7 @@ export const GEAR = {
 };
 /** Thuê theo ca (trả mỗi ca mở khi bật). */
 export const STAFF = {
-  bong: { name: "Phụ bàn Bông", level: 9, price: 40, text: "Tự mời ngồi, châm trà, lấy phiếu, bưng dĩa, dọn + lau bàn. Cô chủ ở lại bếp." },
+  bong: { name: "Phụ bàn Bông", level: 9, price: 35, text: "Tự mời ngồi, châm trà, lấy phiếu, bưng dĩa, dọn + lau bàn. Cô chủ ở lại bếp." },
   "di-nam": { name: "Dì Năm rửa chén", level: 13, price: 25, text: "Tự rửa 1 dĩa mỗi 2 giây." },
 };
 /** Trang trí (ECONOMY §8): appeal = điểm hấp dẫn. Kéo thả trong quán (cấp 7+); vỉa hè đặt chỗ mặc định. place: wall | floor. */
@@ -213,13 +213,14 @@ export const SPOT_CLEARANCE = 60;
 /** Chỗ mặc định ở vỉa hè (street-scene không có toạ độ đồ trang trí trong manifest). */
 export const STREET_DECOR_AT = [[90, 640], [1250, 640], [620, 250], [380, 250], [1180, 300], [60, 300], [900, 250], [200, 690], [1030, 690], [470, 690], [760, 250], [1240, 470], [40, 470], [640, 160]];
 
-/** Hạng quán (ECONOMY §11): mỗi bậc +1 khách đi ngang mỗi ca, kiên nhẫn +2%. */
+/** Hạng quán (ECONOMY §11): mỗi bậc +1 khách đi ngang mỗi ca, kiên nhẫn +2%.
+ *  M5: giá ×0,5 (tổng 15.400k, bản M0 30.800k) — bộ mô phỏng: người cẩn thận lời 250–600k / ngày ở quán, tới cấp 20 mua được 6–7 bậc; người trung bình 1–3 bậc. */
 export const TIERS = [
-  { level: 10, price: 500 }, { level: 11, price: 1000 }, { level: 12, price: 1700 }, { level: 14, price: 2600 },
-  { level: 15, price: 3800 }, { level: 17, price: 5200 }, { level: 19, price: 7000 }, { level: 20, price: 9000 },
+  { level: 10, price: 250 }, { level: 11, price: 500 }, { level: 12, price: 850 }, { level: 14, price: 1300 },
+  { level: 15, price: 1900 }, { level: 17, price: 2600 }, { level: 19, price: 3500 }, { level: 20, price: 4500 },
 ];
-/** Nước mắm nhà pha 3 bậc: mọi dĩa +1k / bậc, +1 điểm kỳ vọng. */
-export const FISH_SAUCE = [{ level: 15, price: 600 }, { level: 17, price: 1400 }, { level: 19, price: 2500 }];
+/** Nước mắm nhà pha 3 bậc: mọi dĩa +1k / bậc, +1 điểm kỳ vọng. M5: giá ×0,5 (300 / 700 / 1.250k). */
+export const FISH_SAUCE = [{ level: 15, price: 300 }, { level: 17, price: 700 }, { level: 19, price: 1250 }];
 /** Quảng bá (cấp 11), một lần mỗi ngày trước ca. */
 export const PROMOS = {
   "to-roi": { name: "Tờ rơi khu trọ", price: 25, guests: { student: 4 }, followers: 0, desc: "+4 sinh viên ca tối." },

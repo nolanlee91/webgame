@@ -3,7 +3,7 @@
 // vỉ chay riêng, bếp 2 than riêng, nợ Anh Sáu chung sổ nợ thật, trang trí Drama tặng thành đồ kéo thả, câu review nước mắm nhà pha.
 // Móc vào lõi bằng các dòng "// S:" ở core/shift.js (onStart / onTick / beforeEnd / afterEnd), core/apply.js, core/grill.js, core/plate.js,
 // core/score.js, core/tables.js, core/bill.js, core/drama.js, core/progression.js, core/state.js.
-import { DISHES, GEAR, DECOR, FAIR, CHALLENGE, GLASS_CASE, GRILL, LATE, TIERS, FISH_SAUCE } from "../data/economy.js?v=c2";
+import { DISHES, GEAR, DECOR, FAIR, CHALLENGE, GLASS_CASE, GRILL, LATE, TIERS, FISH_SAUCE, STAFF } from "../data/economy.js?v=c2";
 import { ARCHETYPES } from "../data/customers.js?v=c2";
 import * as LM from "../data/lines-m5.js?v=c2";
 import { freshLine, fill } from "./text.js?v=c2";
@@ -310,7 +310,7 @@ export function afterEnd(s, sh, sum, ev) {
     sum.fairLine = freshLine(s, LM.FAIR_DONE[k], {});
   }
   if (sh.noStaff) { // thử thách trưa không phụ bàn: hoàn lương ca trưa
-    const back = (sh.noStaff.bong && staffToday(s, "bong") ? 40 : 0) + (sh.noStaff["di-nam"] && staffToday(s, "di-nam") ? 25 : 0);
+    const back = (sh.noStaff.bong && staffToday(s, "bong") ? STAFF.bong.price : 0) + (sh.noStaff["di-nam"] && staffToday(s, "di-nam") ? STAFF["di-nam"].price : 0);
     if (back) { s.money += back; sum.staff = Math.max(0, (sum.staff || 0) - back); sum.profit += back; }
   }
   if (sh.challengeId) {
