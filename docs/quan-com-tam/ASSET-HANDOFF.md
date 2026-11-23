@@ -1,5 +1,28 @@
 # Bàn giao asset · Quán Cơm Tấm
 
+## Âm thanh Quán Cơm Tấm
+
+Asset commit `d59b277` trên `codex/com-tam-audio`. 32 MP3 tổng hợp nguyên bản từ dao động, nhiễu lọc và cộng hưởng, đặt trong `prototype/games/quan-com-tam/assets/audio/`. Các giọng gọi và phản ứng là âm không lời. Tất cả dùng 32 kHz như Tiệm Bánh Mì.
+
+| Nhóm | File MP3 (bỏ đuôi) |
+| --- | --- |
+| Bếp than | `pork-sizzle` sườn xèo, `pork-flip` lật sườn, `charcoal-crackle` than lép bép, `fan-flap` quạt, `charcoal-add` thêm than |
+| Bày dĩa | `rice-ready` nồi cơm cạch, `rice-scoop` xới cơm, `scallion-ladle` múc mỡ hành, `fish-sauce-pour` chan nước mắm |
+| Bàn | `plate-set` đặt dĩa sứ, `iced-tea-pour` rót trà và đá, `table-wipe` lau bàn, `plates-stack` chồng dĩa, `plates-wash` rửa dĩa |
+| Tính tiền | `bill-key` bấm tính tiền, `cash-paper` tiền giấy |
+| Khách | `arrival` khách tới, `voice-call` gọi phục vụ, `voice-happy` vui, `voice-annoyed` bực, `voice-surprised` ngạc nhiên |
+| Sự kiện | `drama`, `viral`, `level-up`, `mission`, `shift-end`, `error` |
+
+| Vòng lặp | Nội dung | Thời lượng giải mã | Kênh và bitrate |
+| --- | --- | ---: | --- |
+| `riverside-night-loop` | Phố ven sông, xe máy xa và tiếng người | 34 giây | Stereo 96 kbps |
+| `charcoal-grill-loop` | Bếp than cháy đều | 9,6 giây | Mono 56 kbps |
+| `prep-music-loop` | Nhạc chuẩn bị, 78 BPM | 49,23 giây | Stereo 112 kbps |
+| `rush-music-loop` | Nhạc cao điểm, 108 BPM | 35,56 giây | Stereo 112 kbps |
+| `busy-dining-loop` | Khách trò chuyện, muỗng đũa và dĩa | 31 giây | Stereo 96 kbps |
+
+27 hiệu ứng mono 56 kbps. Đã giải mã cả 32 file bằng FFmpeg, kiểm codec, thời lượng, kênh, biên độ và điểm nối của 5 vòng lặp. Kiểm ở cấp file, chưa phát thử trong game.
+
 ## Đợt 1 · Nhân vật và đồ
 
 Asset commit `a6f6bcb` trên `codex/com-tam-wave1`, gồm hai cảnh đã duyệt và master local `f07fef9`.
