@@ -1,16 +1,16 @@
 // Thanh Bếp (SCREENS.md): luôn thấy trong ca ở mọi màn trừ hội thoại. 6 chip vỉ (vòng hai nửa: trái = mặt dưới, phải = mặt trên),
 // nút Than + thanh than, nút Quạt (giữ), thanh Khói, viên Cơm (+ Nấu), viên Dĩa sạch (+ Rửa), Mỡ hành. Lật được trong lúc ô bày đang mở.
 // Dựng DOM một lần, mỗi khung chỉ đổi chữ / lớp.
-import { el, button } from "./common.js?v=c2";
-import { icon } from "../render/atlas.js?v=c2";
-import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c2";
-import { ownerFree } from "../core/walker.js?v=c2";
-import { GRILL } from "../data/economy.js?v=c2";
-import { eggState } from "../core/rice.js?v=c2"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
+import { el, button } from "./common.js?v=c3";
+import { icon } from "../render/atlas.js?v=c3";
+import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c3";
+import { ownerFree } from "../core/walker.js?v=c3";
+import { GRILL } from "../data/economy.js?v=c3";
+import { eggState } from "../core/rice.js?v=c3"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
 
 const SIDE_COL = { raw: "var(--m-raw)", half: "var(--m-half)", done: "var(--m-done)", charred: "var(--m-char)", burnt: "var(--m-burnt)" };
 const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy cạnh", burnt: "cháy" };
-const ZONE = { hot: ["N", "Nóng"], mid: ["V", "Vừa"], warm: ["Ấ", "Giữ ấm"] };
+const ZONE = { hot: ["N", "Nóng"], mid: ["V", "Vừa"], warm: ["Ấ", "Giữ ấm"], veg: ["C", "Vỉ chay"] }; // S: vỉ chay riêng
 const MEAT_NAME = { suon: "Sườn", "suon-non": "Sườn non", ga: "Gà", "lap-xuong": "Lạp xưởng", "dau-hu": "Đậu hũ" };
 
 export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = () => false }) {
@@ -31,7 +31,8 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
     }
   }
   const ctl = el("div", "gctl", root);
-  const coal = button(ctl, "gbtn2", null, () => act({ type: "addCoal" }), { "data-act": "addCoal", title: "Thêm một rổ than (C)" });
+  let coalGrill = 1, pages = 6; // S: bếp đang xem có than riêng (bếp 2) / số trang chip (bếp 1, bếp 2, vỉ chay)
+  const coal = button(ctl, "gbtn2", null, () => act({ type: "addCoal", grill: coalGrill }), { "data-act": "addCoal", title: "Thêm một rổ than (C)" });
   const coalTxt = el("span", "", coal, "+Than"); const coalM = el("span", "meter", coal); const coalBar = el("i", "", coalM);
   const fan = button(ctl, "gbtn2", null, null, { "data-act": "fan", title: "Giữ để quạt (F): lửa mạnh hơn, tốn than, sinh khói" });
   el("span", "", fan, "Quạt"); const smokeM = el("span", "meter", fan); const smokeBar = el("i", "", smokeM); smokeBar.style.setProperty("--c", "#b8b0a8");
@@ -53,7 +54,8 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
   const steamTxt = el("span", "", steam); const steamSub = el("small", "", steam);
   const blow = button(ctl, "gbtn2", null, () => act({ type: "blower", on: !blowOn }), { "data-act": "blower", "data-desk": "", title: "Quạt máy: bếp lên một nấc, than ×1,5, khói ít hơn quạt tay" });
   let blowOn = false;
-  const g2 = button(ctl, "gbtn2", null, () => { base = base ? 0 : 6; for (const c of chips) c.sig = ""; }, { "data-act": "grill2", title: "Đổi chip giữa bếp 1 và bếp 2 (phím Shift+1..6 cho bếp 2)" });
+  // S: nút đổi trang chip xoay bếp 1 → bếp 2 → vỉ chay
+  const g2 = button(ctl, "gbtn2", null, () => { base = (base + 6) % pages; for (const c of chips) c.sig = ""; }, { "data-act": "grill2", title: "Đổi chip giữa bếp 1 và bếp 2 (phím Shift+1..6 cho bếp 2)" });
   const g2Txt = el("span", "", g2); const g2Sub = el("small", "", g2);
   el("span", "", blow, "Quạt máy");
   // V: mở / đóng bếp lớn HD (desktop; mobile dùng dock Bếp)
@@ -66,8 +68,11 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
     if (!sh) return;
     const g = sh.grill, free = ownerFree(s);
     if (g.slots.length <= 6) base = 0;
+    pages = Math.ceil(g.slots.length / 6) * 6; if (base >= pages) base = 0; // S
+    coalGrill = g.coal2 !== undefined && base === 6 && (g.vegFrom === undefined || g.vegFrom > 6) ? 2 : 1;
     for (let i = 0; i < chips.length; i++) {
-      const c = chips[i], it = g.slots[i + base], z = zoneOf(i);
+      const c = chips[i], it = g.slots[i + base], z = zoneOf(i + base, g); // S: vỉ chay
+      c.b.hidden = i + base >= g.slots.length; // S: trang vỉ chay chỉ có 2 chỗ
       let sig, cls = "gchip " + z, label;
       if (!it) {
         sig = "empty"; label = `${ZONE[z][0]} · bỏ sườn`;
@@ -92,7 +97,7 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
       if (c.lbl.textContent !== label) c.lbl.textContent = label;
       c.b.setAttribute("aria-label", `Chỗ ${i + 1}, vùng ${ZONE[z][1]}: ${it ? `${MEAT_NAME[it.item]}, mặt dưới ${SIDE_TXT[sideState(it.sides[0])]}, mặt trên ${SIDE_TXT[sideState(it.sides[1])]}` : "trống"}`);
     }
-    const lvl = Math.round(g.coal);
+    const lvl = Math.round(coalGrill === 2 ? g.coal2 : g.coal); // S: bếp 2 than riêng
     coalBar.style.width = lvl + "%";
     coalBar.style.setProperty("--c", lvl >= 60 ? "#ffb14a" : lvl >= 30 ? "#f2622a" : lvl >= 10 ? "#c2361e" : "#5a5450");
     coalTxt.textContent = `+Than (${s.stock.than || 0})`;
@@ -141,7 +146,7 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
     if (g.slots.length > 6) {
       const other = base ? g.slots.slice(0, 6) : g.slots.slice(6);
       const ready = other.filter((it) => it && (isCooked(it) || it.sides[0] >= 100)).length;
-      g2Txt.textContent = base ? "Đang xem bếp 2" : "Đang xem bếp 1";
+      g2Txt.textContent = g.vegFrom !== undefined && base >= g.vegFrom ? "Đang xem vỉ chay" : base ? "Đang xem bếp 2" : "Đang xem bếp 1"; // S
       g2Sub.textContent = `${base ? "Bếp 1" : "Bếp 2"}: ${other.filter(Boolean).length} miếng${ready ? `, ${ready} cần tay` : ""}`;
       g2.classList.toggle("warn", ready > 0);
     }

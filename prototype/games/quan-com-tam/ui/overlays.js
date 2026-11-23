@@ -1,17 +1,18 @@
 // Bảng phủ: màn chào, Chuẩn bị (Nhập hàng · Ướp sườn · Mẻ đầu · Menu · Ca · Dự báo), chốt ca (lời lỗ), nghỉ giữa ca, tạm dừng, cách chơi,
 // xác nhận chơi lại, khiếu nại, tính dư, hết hàng, Kho (nhập gấp trong ca), Sổ (review, khách quen). Ca tạm dừng khi có bảng phủ.
-import { el, button, fmtK, starText, tableName } from "./common.js?v=c2";
-import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c2";
-import { ARCHETYPES } from "../data/customers.js?v=c2";
-import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c2";
-import { stockoutOptions, itemName } from "../core/rescue.js?v=c2";
-import { MISTAKES } from "../core/score.js?v=c2";
-import { xpToNext } from "../core/progress.js?v=c2";
-import { groupById } from "../core/tables.js?v=c2";
-import { createBook } from "./notebook.js?v=c2"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
-import * as PU from "./progress-ui.js?v=c2"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
-import { potSize } from "../core/progression.js?v=c2"; // A: cỡ nồi theo giai đoạn
-import "./book-tabs.js?v=c2"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import { el, button, fmtK, starText, tableName } from "./common.js?v=c3";
+import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c3";
+import { ARCHETYPES } from "../data/customers.js?v=c3";
+import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c3";
+import { stockoutOptions, itemName } from "../core/rescue.js?v=c3";
+import { MISTAKES } from "../core/score.js?v=c3";
+import { xpToNext } from "../core/progress.js?v=c3";
+import { groupById } from "../core/tables.js?v=c3";
+import { createBook } from "./notebook.js?v=c3"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
+import * as PU from "./progress-ui.js?v=c3"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
+import { potSize } from "../core/progression.js?v=c3"; // A: cỡ nồi theo giai đoạn
+import "./book-tabs.js?v=c3"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import * as M5 from "./m5-ui.js?v=c3"; // S: nút bật / tắt món (M5)
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];
 
@@ -101,7 +102,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
       const rows = [
         ["prepCook", `Nấu nồi cơm (nồi ${s.kitchen.rice}/${potSize(s)} · gạo ${s.stock["gao-tam"] || 0})`, s.kitchen.rice >= potSize(s) || (s.stock["gao-tam"] || 0) <= 0], // A: nồi lớn / nồi thứ hai
         ["prepMoHanh", `Làm hũ mỡ hành (hũ ${s.moHanh.n} phần · ${s.stock["mo-hanh-bo"] || 0} bộ)`, s.moHanh.n >= 10 || (s.stock["mo-hanh-bo"] || 0) <= 0],
-        ["prepLight", `Nhóm bếp than (2 rổ, mức than ${GRILL.prepLight.level} · đang ${Math.round(s.kitchen.coal)})`, s.kitchen.coal >= GRILL.prepLight.level || (s.stock.than || 0) < 2],
+        ["prepLight", `Nhóm bếp than (2 rổ, mức than ${GRILL.prepLight.level} · đang ${Math.round(s.kitchen.coal)}${s.owned?.["grill-2"] && s.stage === "quan" ? ` · bếp 2 than riêng ${Math.round(s.kitchen.coal2 || 0)}` : ""})`, (s.kitchen.coal >= GRILL.prepLight.level && !(s.owned?.["grill-2"] && s.stage === "quan" && (s.kitchen.coal2 || 0) < GRILL.prepLight.level)) || (s.stock.than || 0) < 2], // S: bếp 2 than riêng
       ];
       for (const [type, text, dis] of rows) { const r = el("div", "rowx", main); el("div", "nm", r, text); button(r, "btn small", dis ? "Xong" : "Làm", () => { act({ type }); prep(state(), tab); }, { "data-act": type, disabled: dis ? "" : null }); }
     } else if (tab === "menu") {
@@ -111,6 +112,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
         const r = el("div", "rowx", main);
         const l = el("div", "", r); el("div", "nm", l, `${d.name} · ${d.price}k`); el("div", "sub", l, d.level > s.level ? `Mở ở cấp ${d.level}` : (d.needs || []).some((k) => !s.owned[k]) ? `Cần ${d.needs.map((k) => GEAR[k]?.name).join(", ")}` : `Giá vốn ~${d.cost}k`);
         el("span", "", r, s.menu.includes(id) ? "Đang bán" : "—");
+        M5.menuToggle(r, s, id, act, () => prep(state(), tab)); // S: bật / tắt món (M5)
       }
     } else if (tab === "shift") {
       el("p", "", main, "Ca tối 17:30–23:00: tối sớm sinh viên, cao điểm 18:30–20:00, khuya thợ công trình và tài xế.");
@@ -166,6 +168,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     if (m.owed) el("p", "muted", r, `Nợ ký gửi Cô Ba còn ${m.owed}k.`);
     el("p", "muted", r, `Tiền trong két: ${fmtK(m.money)}`);
     PU.summary(r, m); // A: nhiệm vụ, ghi sổ, mâm cơm, cơm chiên ngày mai
+    M5.summary(r, m); // S: hội chợ, thử thách, huy hiệu mới (M5)
     el("h3", "", p, "Review nổi bật");
     for (const rv of (m.reviews || []).slice(0, 3)) { const d = el("div", "review", p); el("span", "stars", d, starText(rv.stars) + " "); el("b", "", d, rv.name + ": "); el("span", "", d, rv.line); }
     if (!m.reviews?.length) el("p", "muted", p, "Chưa có review.");

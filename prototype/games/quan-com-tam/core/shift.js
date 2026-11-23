@@ -1,22 +1,23 @@
 // Một ca (GAME-DESIGN §3): mở quán → nhịp ca (khách tới theo lịch, bếp, nồi cơm, cô chủ đi làm việc, khách ăn) → đóng quán → chốt ca.
 // Thuần. Mọi thay đổi đi qua core/apply.js. Đồng hồ ca dừng khi có hội thoại / bảng phủ (game.js không gửi tick).
 // Ca tối mặc định; ca trưa mở ở cấp 5 (data/economy.js SHIFTS, s.plan). Ngày 1 là ca hướng dẫn: khách thưa, kiên nhẫn dài, có gợi ý từng bước.
-import { SHIFTS, SERVICE, GRILL, STOCK, FEES, CLOSE_GRACE_MS, DISHES, guestsFor, MO_HANH } from "../data/economy.js?v=c2";
-import { ARCHETYPES, ARCH_IDS } from "../data/customers.js?v=c2";
-import { OPS, pool } from "../data/lines.js?v=c2";
-import { next, int, weighted } from "./rng.js?v=c2";
-import { freshLine } from "./text.js?v=c2";
-import { freshGrill, tickGrill, placeItem, flip, moveItem, takeItem, addCoal, setFan, freeWarm, hottestFree, isCooked, itemResult, zoneOf } from "./grill.js?v=c2";
-import { freshRice, startCook, tickRice, makeJar, startEgg, tickSteamer, freshSteamer, loadSteamer } from "./rice.js?v=c2";
-import { slotOf, ticketOf, targetOf, addWaste, bestPiece, pickMeat } from "./plate.js?v=c2";
-import { freshOwner, stepOwner, ownerFree, enqueue, pointsOf } from "./walker.js?v=c2";
-import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTable, autoPay, groupById, serveTakeaway, allServed } from "./tables.js?v=c2";
-import { openStockout } from "./rescue.js?v=c2";
-import { levelForXp } from "./progress.js?v=c2";
-import { expireStock } from "./stock.js?v=c2";
-import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c2"; // C: khách nhờ review, Nhật Ký ngày
-import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c2"; // B: drama
-import * as PG from "./progression.js?v=c2"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
+import { SHIFTS, SERVICE, GRILL, STOCK, FEES, CLOSE_GRACE_MS, DISHES, guestsFor, MO_HANH } from "../data/economy.js?v=c3";
+import { ARCHETYPES, ARCH_IDS } from "../data/customers.js?v=c3";
+import { OPS, pool } from "../data/lines.js?v=c3";
+import { next, int, weighted } from "./rng.js?v=c3";
+import { freshLine } from "./text.js?v=c3";
+import { freshGrill, tickGrill, placeItem, flip, moveItem, takeItem, addCoal, setFan, freeWarm, hottestFree, isCooked, itemResult, zoneOf } from "./grill.js?v=c3";
+import { freshRice, startCook, tickRice, makeJar, startEgg, tickSteamer, freshSteamer, loadSteamer } from "./rice.js?v=c3";
+import { slotOf, ticketOf, targetOf, addWaste, bestPiece, pickMeat } from "./plate.js?v=c3";
+import { freshOwner, stepOwner, ownerFree, enqueue, pointsOf } from "./walker.js?v=c3";
+import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTable, autoPay, groupById, serveTakeaway, allServed } from "./tables.js?v=c3";
+import { openStockout } from "./rescue.js?v=c3";
+import { levelForXp } from "./progress.js?v=c3";
+import { expireStock, addLot } from "./stock.js?v=c3";
+import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c3"; // C: khách nhờ review, Nhật Ký ngày
+import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c3"; // B: drama
+import * as PG from "./progression.js?v=c3"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
+import * as EX from "./extras.js?v=c3"; // S: M5 (hội chợ, thử thách, tủ kính, vỉ chay, bếp 2 than riêng)
 
 /** Ca hướng dẫn ngày 1: bếp chín chậm hơn để người mới kịp hiểu "hai mặt" (vùng chín rộng hơn theo thời gian). */
 export const TUTORIAL_GRILL = 0.85;
@@ -109,6 +110,7 @@ export function startShift(s, ev = []) {
   const started = { type: "shiftStarted", kind, day: s.day, guests: 0, tutorial };
   ev.push(started);
   PG.onStart(s, ev); // A: lịch khách (mưa, khách thêm, ca trưa dồn), đơn mâm cơm, nhiệm vụ, phụ bàn, nồi canh
+  EX.onStart(s, ev); // S: bếp 2 than riêng, vỉ chay, tủ kính, hội chợ, ca thử thách
   onShiftStart(s); // C: khách thêm nhờ đánh giá / độ hot + khách quay lại nhờ câu trả lời
   startDrama(s, {}, ev); // B: drama (khách dồn / mod / đơn đặt trước vào lịch; ở quán đơn nhiều phần thành mâm cơm của A)
   started.guests = s.shift.schedule.filter((g) => !g.done).reduce((a, g) => a + g.roles.length, 0);
@@ -128,7 +130,7 @@ export function tick(s, dt, ev = []) {
   while (sh.phaseIdx + 1 < phases.length && t >= phases[sh.phaseIdx + 1].at * sh.len) { sh.phaseIdx++; ev.push({ type: "phase", text: phases[sh.phaseIdx].text }); }
   // hàng chở tới / chạy chợ về
   for (const d of sh.deliveries.filter((x) => x.at <= t)) {
-    s.stock[d.id] = (s.stock[d.id] || 0) + d.n;
+    s.stock[d.id] = (s.stock[d.id] || 0) + d.n; addLot(s, d.id, d.n); // S: hàng chở tới có hạn
     if (d.id === "suon-uop" && d.fresh) sh.uopFresh = Math.min(sh.uopFresh ?? 100, d.fresh);
     ev.push({ type: "delivered-stock", id: d.id, n: d.n, by: d.by || "run" });
   }
@@ -176,7 +178,17 @@ export function tick(s, dt, ev = []) {
       else leaveTable(s, g, ev, "closed");
     }
   }
+  // S (M5): chốt chặn không bao giờ kẹt ca — quá giờ đóng + ân hạn + 30 giây mà còn nhóm nào (mọi pha: đang vào, chờ, đang tới bàn, mang về) thì cho về
+  if (t >= sh.len + CLOSE_GRACE_MS + 30000) {
+    for (const g of sh.groups.slice()) {
+      if (g.phase === "leave") continue;
+      if (g.phase === "seated" && !g.paid && g.members.some((m) => m.plate)) { for (const m of g.members) if (m.plate) { m.eaten = true; m.req = null; } autoPay(s, g, ev); }
+      else { g.outcome = g.paid ? "paid" : "closed"; leaveTable(s, g, ev, g.outcome); } // kể cả nhóm đã trả mà chưa đứng dậy (hội thoại tính dư bị bỏ dở)
+    }
+    for (const g of sh.schedule) g.done = true;
+  }
   PG.onTick(s, dt, ev, OWNER_TASKS); // A: phụ bàn Bông, Dì Năm, đơn tới hạn, nhiệm vụ, cờ than / khói
+  EX.onTick(s, dt, ev); // S: tủ kính giữ ấm
   maybeTrigger(s, ev); // B: drama (cuối nhịp: đọc cờ A vừa đặt, mở sự kiện trong ca, đồng hồ dừng)
   const busy = sh.groups.some((g) => g.phase !== "leave") || sh.schedule.some((g) => !g.done && !sh.closed && g.at < sh.len);
   if (t >= sh.len && !busy && !sh.dialog) return endShift(s, ev);
@@ -188,15 +200,17 @@ export function endShift(s, ev = []) {
   const sh = s.shift;
   if (!sh) return { err: "no-shift" };
   PG.beforeEnd(s, ev, addWaste); // A: dĩa mâm dở thành hao, đơn chưa xong chốt phần đã làm
+  EX.beforeEnd(s, ev, addWaste); // S: miếng trong tủ kính cuối ca thành hao
   const lastOfDay = s.shiftIdx >= s.plan.length - 1;
   // miếng còn trên vỉ: chín thì hao, sống thì cũng hao (đã ướp, không để qua ca)
   for (let i = 0; i < sh.grill.slots.length; i++) { const it = sh.grill.slots[i]; if (it) { addWaste(sh, it.item === "suon" ? "suon-uop" : it.item, 1); sh.grill.slots[i] = null; } }
   for (const sl of sh.slots) if (sl.plate) { for (const [id, n] of Object.entries(sl.plate.used)) addWaste(sh, id, n, id === "com" ? n * STOCK["gao-tam"].cost : id === "moHanh" ? n * MO_HANH.portionCost : undefined); sl.plate = null; }
-  for (const task of [sh.owner.task, ...sh.owner.queue]) if (task?.plate) for (const [id, n] of Object.entries(task.plate.used)) addWaste(sh, id, n, id === "com" ? n * STOCK["gao-tam"].cost : undefined);
+  for (const task of [sh.owner.task, ...sh.owner.queue]) for (const pl of task ? [task.plate, ...(task.more || []).map((x) => x.plate)] : []) if (pl) for (const [id, n] of Object.entries(pl.used)) addWaste(sh, id, n, id === "com" ? n * STOCK["gao-tam"].cost : undefined);
   let riceLeft = sh.rice.n + (sh.rice.cooking?.add || 0);
   if (lastOfDay && riceLeft > 0) { addWaste(sh, "com", riceLeft, riceLeft * STOCK["gao-tam"].cost); }
   s.kitchen.rice = lastOfDay ? 0 : riceLeft;
   s.kitchen.coal = lastOfDay ? 0 : Math.round(sh.grill.coal);
+  s.kitchen.coal2 = lastOfDay || sh.grill.coal2 === undefined ? 0 : Math.round(sh.grill.coal2); // S: bếp 2 than riêng
   // phí ca trả bằng tiền trong két (không bao giờ âm)
   const fee = FEES[s.stage === "quan" ? "quan" : "street"](s.level);
   const feePaid = Math.min(s.money, fee);
@@ -219,6 +233,7 @@ export function endShift(s, ev = []) {
   if (sh.tutorial) s.tutorialDone = true;
   s.lastSummary = { ...summary, seen: false };
   PG.afterEnd(s, sh, s.lastSummary, ev); // A: lương nhân viên, nhiệm vụ cuối ca, cơm chiên ngày mai (trước C: lời lỗ ngày đã trừ lương)
+  EX.afterEnd(s, sh, s.lastSummary, ev); // S: hội chợ, thử thách, huy hiệu (trước C: Nhật Ký ghi khoảnh khắc huy hiệu)
   onShiftEnd(s, s.lastSummary, sh, lastOfDay); // C: cộng dồn ngày, lời hứa, độ hot, câu chốt + Nhật Ký
   s.shift = null;
   if (lastOfDay) { s.dayDone = true; s.between = null; }
@@ -238,7 +253,7 @@ export function nextDay(s, ev = []) {
   if (s.moHanh.n > 0 && s.day + 1 - s.moHanh.day >= MO_HANH.keepDays) { jar = s.moHanh.n; s.moHanh = { n: 0, day: s.day + 1 }; }
   const spoiled = expireStock(s, s.day + 1);
   s.day++; s.dayDone = false; s.between = null; s.shiftIdx = 0;
-  s.kitchen = { rice: 0, coal: 0, prepCoal: 0 };
+  s.kitchen = { rice: 0, coal: 0, coal2: 0, prepCoal: 0 };
   s.daily = { consigned: false, borrowed: {} };
   s.usedDay = [];
   if (s.lastSummary) s.lastSummary.seen = true;
@@ -257,7 +272,7 @@ export function placeMeat(s, slot, ev = [], item = null) {
   const sl = slotOf(s);
   const tk = sl.tk !== null ? ticketOf(s, sl.tk) : sh.tickets.find((x) => x.status === "open" || x.status === "pinned");
   item = item || (tk && DISHES[tk.dish]?.meat) || "suon";
-  if (slot === null || slot === undefined || slot < 0) slot = hottestFree(sh.grill);
+  if (slot === null || slot === undefined || slot < 0) slot = hottestFree(sh.grill, item); // S: đậu hũ ưu tiên vỉ chay, thịt không lên vỉ chay
   if (slot < 0) return { err: "grill-full" };
   if (sh.grill.slots[slot]) return { err: "slot-busy" };
   const sid = item === "suon" ? "suon-uop" : item;
@@ -280,9 +295,9 @@ export function flipSlot(s, slot, ev = []) {
 export function moveWarm(s, slot, ev = []) {
   const b = busy(s); if (b) return b;
   const g = s.shift.grill;
-  if (zoneOf(slot) === "warm") return { err: "already-warm" };
+  if (zoneOf(slot, g) === "warm") return { err: "already-warm" };
   const to = freeWarm(g);
-  if (to < 0) return { err: "warm-full" };
+  if (to < 0) return EX.toCase(s, slot, ev); // S: vùng ấm đầy ⇒ cất vào tủ kính (nếu có)
   const r = moveItem(g, slot, to);
   if (r.ok) ev.push({ type: "moved", from: slot, to });
   return r;
@@ -310,20 +325,20 @@ export function grillTap(s, slot, ev = []) {
     const sl = slotOf(s), p = sl.plate;
     const tg = sl.tk !== null ? targetOf(ticketOf(s, sl.tk)) : null;
     if (p && tg && tg.meat === it.item && !p.meat && (p.com > 0 || tg.com === 0)) return pickMeat(s, slot, ev);
-    if (zoneOf(slot) !== "warm" && freeWarm(sh.grill) >= 0) return moveWarm(s, slot, ev);
-    if (zoneOf(slot) === "warm") return { err: "cooked-wait", detail: p ? (p.com ? "has-meat" : "need-com") : "no-plate" };
+    if (zoneOf(slot, sh.grill) !== "warm" && (freeWarm(sh.grill) >= 0 || EX.caseRoom(s))) return moveWarm(s, slot, ev); // S: tủ kính
+    if (zoneOf(slot, sh.grill) === "warm") return { err: "cooked-wait", detail: p ? (p.com ? "has-meat" : "need-com") : "no-plate" };
   }
   return flipSlot(s, slot, ev);
 }
-/** Thêm một rổ than. Hết than trong kho: bao dự phòng tự mở; không có thì hội thoại hết than. */
-export function addCoalAct(s, ev = []) {
+/** Thêm một rổ than. Hết than trong kho: bao dự phòng tự mở; không có thì hội thoại hết than. which = 2: bếp 2 (S M5). */
+export function addCoalAct(s, ev = [], which = 1) {
   const sh = s.shift, b = busy(s); if (b) return b;
   if ((s.stock.than || 0) <= 0) {
     if (s.spareSack > 0) { s.spareSack--; s.stock.than = (s.stock.than || 0) + STOCK.than.pack[0]; ev.push({ type: "spareSack" }); }
     else return openStockout(s, "than", ev);
   }
   s.stock.than--; sh.coalUsed++;
-  addCoal(sh.grill, sh.t, ev);
+  addCoal(sh.grill, sh.t, ev, which === 2 && sh.grill.coal2 !== undefined ? 2 : 1);
   sh.lit = true;
   return { ok: true };
 }
@@ -343,12 +358,16 @@ export function cookRiceAct(s, ev = []) {
 export function eggAct(s, ev = []) {
   const b = busy(s); if (b) return b;
   if (!s.shift.pan) return { err: "locked" };
-  return startEgg(s, s.shift.pan, s.shift.t, ev);
+  const r = startEgg(s, s.shift.pan, s.shift.t, ev);
+  if (r.err === "no-trung") return openStockout(s, "trung", ev); // S: hết trứng giữa ca ⇒ hội thoại cứu (trước M5 chỉ báo lỗi, phiếu kẹt ở bước trứng)
+  return r;
 }
 export function steamAct(s, ev = []) {
   const b = busy(s); if (b) return b;
   if (!s.shift.steamer) return { err: "locked" };
-  return loadSteamer(s, s.shift.steamer, s.shift.t, ev);
+  const r = loadSteamer(s, s.shift.steamer, s.shift.t, ev);
+  if (r.err === "no-cha" && !s.shift.steamer.done) return openStockout(s, "cha", ev); // S: hết chả ⇒ hội thoại cứu
+  return r;
 }
 /** Giao dĩa ở ô bày: tại bàn ⇒ cô chủ bưng ra (việc trong hàng đợi); mang về ⇒ đưa shipper ở quầy ngay. */
 export function serve(s, ev = []) {
@@ -363,6 +382,14 @@ export function serve(s, ev = []) {
     const b = busy(s); if (b) return b;
     const plate = sl.plate; sl.plate = null; sl.tk = null;
     return serveTakeaway(s, g, t, plate, ev);
+  }
+  // S (M5): bưng hai dĩa một chuyến (SERVICE.carryMax): dĩa cùng bàn mà chuyến bưng trước chưa đi thì bưng chung
+  const join = sh.owner.queue.find((q) => q.kind === "deliver" && q.tid === t.tid && 1 + (q.more?.length || 0) < SERVICE.carryMax);
+  if (join) {
+    join.more = [...(join.more || []), { tk: t.id, plate: sl.plate }];
+    t.status = "carrying"; sl.plate = null; sl.tk = null;
+    ev.push({ type: "serving", tk: t.id, tid: t.tid, joined: true });
+    return { ok: true };
   }
   const r = enqueue(s, { kind: "deliver", tid: t.tid, tk: t.id, pid: sh.nextPid++, plate: sl.plate, pickup: true }, ev);
   if (r.err) return r;

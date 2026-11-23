@@ -1,10 +1,10 @@
 // Cứu hết hàng giữa ca (GAME-DESIGN §5, ECONOMY §10; khung theo core/rescue.js của Tiệm Bánh Mì).
 // Hội thoại hết hàng luôn có lựa chọn miễn phí (mượn quán bên cạnh, để sau, treo bảng hết món, đổi bánh mì sườn) và gói ký gửi Cô Ba
 // lên đầu khi không đủ tiền. Chạy ra chợ: cô chủ rời quán 12 giây, bếp vẫn chạy. Nhờ Anh Sáu chở: hàng tới sau 20 giây.
-import { STOCK, RESCUE, DISHES } from "../data/economy.js?v=c2";
-import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=c2";
-import { sendAway } from "./walker.js?v=c2";
-import { voidTicket } from "./tables.js?v=c2";
+import { STOCK, RESCUE, DISHES } from "../data/economy.js?v=c3";
+import { packPrice, packSize, consignAvailable, consign, addLot } from "./stock.js?v=c3";
+import { sendAway } from "./walker.js?v=c3";
+import { voidTicket } from "./tables.js?v=c3";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
 export const itemName = (id) => (id === "gao-tam" ? "gạo tấm" : id === "suon-uop" ? "sườn ướp" : lower(STOCK[id]?.name || id));
@@ -64,7 +64,7 @@ export function resolveStockout(s, choice, ev = []) {
       break;
     case "borrow": {
       const n = id === "than" ? RESCUE.borrowThan : id === "gao-tam" ? 6 : RESCUE.borrowN;
-      s.stock[id] = (s.stock[id] || 0) + n;
+      s.stock[id] = (s.stock[id] || 0) + n; addLot(s, id, n); // S
       s.daily.borrowed = { ...(s.daily.borrowed || {}), [id]: n };
       if (id === "suon-uop") sh.uopFresh = Math.min(sh.uopFresh ?? 100, 90);
       ev.push({ type: "borrowed", id, n });

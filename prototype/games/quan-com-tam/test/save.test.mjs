@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { shopSave, KEY, CORRUPT_KEY, BACKUP_KEY, DAY_KEY, REPLAY_BACKUP_KEY } from "../save.js?v=c2";
 import { loadSave, dump, SAVE_VERSION, MIGRATIONS } from "../core/state.js?v=c2";
+import { levelForXp } from "../core/progress.js?v=c2";
 import { apply, must, openWithOrder, home, newGame, prepDay, playDay, seeded } from "./helpers.mjs";
 
 const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }; };
@@ -28,7 +29,7 @@ test("kẹp số khi đọc: tiền âm, cấp sai, kho rác, id lạ ⇒ về m
   const d = JSON.parse(dump(s));
   Object.assign(d, { money: -50, xp: 60, level: 9, rep: 400, stock: { ...d.stock, suon: -3, "gao-tam": 2.7, la: 5 }, owned: { "egg-pan": true, xyz: true }, plan: ["dem"], menu: ["pho"] });
   const r = loadSave(JSON.stringify(d));
-  assert.equal(r.money, 0); assert.equal(r.level, 3); assert.equal(r.rep, 100);
+  assert.equal(r.money, 0); assert.equal(r.level, levelForXp(60)); assert.equal(r.rep, 100); // cấp tính lại từ XP (bảng M5)
   assert.equal(r.stock.suon, 0); assert.equal(r.stock["gao-tam"], 2); assert.equal(r.stock.la, undefined);
   assert.deepEqual(r.owned, { "egg-pan": true }); assert.deepEqual(r.plan, ["toi"]); assert.deepEqual(r.menu, ["com-suon"]);
   assert.equal(loadSave(JSON.stringify({ ...d, v: SAVE_VERSION + 1 })), null);

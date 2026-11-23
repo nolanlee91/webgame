@@ -4,19 +4,24 @@
 // Mỗi mặt 0 → 160: < 60 sống · 60–99 tái · 100–114 chín · 115–129 cháy cạnh · ≥ 130 cháy đen. Kết quả miếng = mặt kém hơn.
 // Than 0–100 cháy −0,5/giây (quạt ×2); nấc than: ≥ 60 rực ×1,2 · 30–59 vừa ×1 · 10–29 yếu ×0,6 · < 10 tàn ×0. Quạt: +1 nấc.
 // Thêm than: +35 sau 4 giây; thêm khi đang rực ⇒ lửa bùng 3 giây (vùng nóng ×2). Khói: +1/giây quạt, +3/giây khi có miếng ≥ 125, −2/giây khi yên.
-import { GRILL } from "../data/economy.js?v=c2";
+import { GRILL } from "../data/economy.js?v=c3";
 
-export const zoneOf = (i) => GRILL.zones[i % GRILL.slots] || "mid"; // A: bếp 2 (chỗ 6–11) cùng luật vùng
+export const zoneOf = (i, g = null) => (g && g.vegFrom != null && i >= g.vegFrom ? "veg" : GRILL.zones[i % GRILL.slots] || "mid"); // A: bếp 2 (chỗ 6–11) cùng luật vùng; S: vỉ chay riêng (g.vegFrom)
+/** S (M5): chỗ thuộc bếp 2 (than riêng g.coal2). Vỉ chay nằm trên bếp 1. */
+export const onGrill2 = (g, i) => i >= GRILL.slots && i < GRILL.slots * 2 && !(g.vegFrom != null && i >= g.vegFrom);
+/** S (M5): chỗ vỉ chay riêng. */
+export const isVegSlot = (g, i) => g.vegFrom != null && i >= g.vegFrom;
 export function freshGrill(coal = 0) {
   return { slots: Array.from({ length: GRILL.slots }, () => null), coal, pending: [], flareUntil: 0, fan: false, smoke: 0, smokeMax: 0, nextId: 1 };
 }
 
 /** Nấc than hiện tại (không tính quạt): index trong GRILL.heat. */
 export function heatIndex(coal) { return GRILL.heat.findIndex((h) => coal >= h.min); }
-/** Hệ số nhiệt của cả bếp (có tính quạt). */
-export function heatMul(g) {
-  if (g.coal <= 0) return 0;
-  const i = heatIndex(g.coal);
+/** Hệ số nhiệt của cả bếp (có tính quạt). which = 2: bếp 2 (than riêng, S M5). */
+export function heatMul(g, which = 1) {
+  const coal = which === 2 && g.coal2 !== undefined ? g.coal2 : g.coal;
+  if (coal <= 0) return 0;
+  const i = heatIndex(coal);
   if (!g.fan && !g.blower) return GRILL.heat[i].mul; // A: quạt máy cũng +1 nấc
   if (i === 0) return GRILL.blazeMul;
   return GRILL.heat[i - 1].mul;
@@ -64,7 +69,9 @@ export function placeItem(g, slot, item, freshMax = 100) {
   if (!(slot >= 0 && slot < g.slots.length)) return { err: "bad-slot" };
   if (g.slots[slot]) return { err: "slot-busy" };
   if (!GRILL.side[item]) return { err: "bad-item" };
+  if (isVegSlot(g, slot) && item !== "dau-hu") return { err: "veg-only" }; // S: vỉ chay chỉ nướng đậu hũ
   const it = { id: g.nextId++, item, sides: [0, 0], fresh: freshMax, freshMax, warmMs: 0, flips: 0, perfect: 0, said: {} };
+  touchSlot(g, slot, it); // S: dính mặn
   g.slots[slot] = it;
   return { ok: true, it };
 }
@@ -87,23 +94,44 @@ export function takeItem(g, slot) {
   g.slots[slot] = null;
   return { ok: true, it };
 }
+/** S (M5): đậu hũ đặt lên chỗ đã nướng thịt trong ca ⇒ dính mặn (it.tainted); thịt đặt lên chỗ nào thì chỗ đó thành chỗ mặn (g.meatSlots). */
+function touchSlot(g, slot, it) {
+  if (it.item === "dau-hu") { if (g.meatSlots?.[slot]) it.tainted = true; }
+  else g.meatSlots = { ...(g.meatSlots || {}), [slot]: true };
+}
 /** Dời miếng sang chỗ khác (thường là sang vùng giữ ấm). */
 export function moveItem(g, from, to) {
   if (!g.slots[from]) return { err: "empty-slot" };
   if (!(to >= 0 && to < g.slots.length) || g.slots[to]) return { err: "slot-busy" };
   const it = g.slots[from];
+  if (isVegSlot(g, to) && it.item !== "dau-hu") return { err: "veg-only" };
   g.slots[from] = null;
-  if (zoneOf(to) !== "warm") it.warmMs = 0;
+  if (zoneOf(to, g) !== "warm") it.warmMs = 0;
+  touchSlot(g, to, it);
   g.slots[to] = it;
   return { ok: true };
 }
 /** Chỗ trống ở vùng giữ ấm (ưu tiên chỗ trái). */
-export const freeWarm = (g) => g.slots.findIndex((x, i) => !x && zoneOf(i) === "warm");
-/** Chỗ trống nóng nhất. */
-export const hottestFree = (g) => g.slots.findIndex((x, i) => !x && zoneOf(i) !== "warm");
+export const freeWarm = (g) => g.slots.findIndex((x, i) => !x && zoneOf(i, g) === "warm");
+/** Chỗ trống nóng nhất. S: thịt không lên vỉ chay; đậu hũ ưu tiên vỉ chay, rồi chỗ chưa nướng thịt. */
+export function hottestFree(g, item = null) {
+  if (item === "dau-hu") {
+    const v = g.slots.findIndex((x, i) => !x && isVegSlot(g, i));
+    if (v >= 0) return v;
+    const clean = g.slots.findIndex((x, i) => !x && zoneOf(i, g) !== "warm" && !g.meatSlots?.[i]);
+    if (clean >= 0) return clean;
+  }
+  return g.slots.findIndex((x, i) => !x && zoneOf(i, g) !== "warm" && !isVegSlot(g, i));
+}
 
-/** Thêm một rổ than (đã trừ kho ở ngoài): +35 sau 4 giây; đang rực thì lửa bùng. */
-export function addCoal(g, t, ev = []) {
+/** Thêm một rổ than (đã trừ kho ở ngoài): +35 sau 4 giây; đang rực thì lửa bùng. which = 2: bếp 2 (S M5, than riêng). */
+export function addCoal(g, t, ev = [], which = 1) {
+  if (which === 2 && g.coal2 !== undefined) {
+    g.pending2 = [...(g.pending2 || []), { at: t + GRILL.coalDelayMs, n: GRILL.addCoal }];
+    if (g.coal2 >= GRILL.flareAt) { g.flareUntil2 = t + GRILL.flareMs; ev.push({ type: "flare", grill: 2 }); }
+    ev.push({ type: "coalAdded", level: g.coal2, grill: 2 });
+    return { ok: true };
+  }
   g.pending.push({ at: t + GRILL.coalDelayMs, n: GRILL.addCoal });
   if (g.coal >= GRILL.flareAt) { g.flareUntil = t + GRILL.flareMs; ev.push({ type: "flare" }); }
   ev.push({ type: "coalAdded", level: g.coal });
@@ -153,14 +181,25 @@ export function tickGrill(g, dt, t, ev = [], speed = 1) {
   g.coal = Math.max(0, g.coal - GRILL.burnPerSec * (g.fan ? GRILL.fanBurnMul : g.blower ? 1.5 : 1) * sec); // A: quạt máy than ×1,5
   if (before >= 10 && g.coal < 10) ev.push({ type: "coalOut" });
   else if (before >= 25 && g.coal < 25) ev.push({ type: "coalLow" });
-  const heat = heatMul(g) * speed;
-  const flare = t < g.flareUntil;
+  // S (M5): bếp 2 than riêng (g.coal2): cháy cùng tốc độ, than mới bén sau 4 giây
+  if (g.coal2 !== undefined) {
+    for (const p of (g.pending2 || []).filter((x) => x.at <= t)) g.coal2 = Math.min(GRILL.coalMax, g.coal2 + p.n);
+    g.pending2 = (g.pending2 || []).filter((x) => x.at > t);
+    const b2 = g.coal2;
+    g.coal2 = Math.max(0, g.coal2 - GRILL.burnPerSec * (g.fan ? GRILL.fanBurnMul : g.blower ? 1.5 : 1) * sec);
+    if (b2 >= 25 && g.coal2 < 25) ev.push({ type: "coalLow", grill: 2 });
+  }
+  const heat1 = heatMul(g) * speed;
+  const heat2 = g.coal2 !== undefined ? heatMul(g, 2) * speed : heat1;
+  const flare = t < g.flareUntil, flare2 = t < (g.flareUntil2 || 0);
   let burning = false;
   for (let i = 0; i < g.slots.length; i++) {
     const it = g.slots[i];
     if (!it) continue;
-    const z = zoneOf(i);
-    const fl = flare && z === "hot" ? GRILL.flareMul : 1;
+    const z = zoneOf(i, g);
+    const two = onGrill2(g, i);
+    const fl = (two ? flare2 : flare) && z === "hot" ? GRILL.flareMul : 1;
+    const heat = two ? heat2 : heat1;
     const rate = (100 / (GRILL.side[it.item] * 1000)) * GRILL.zoneMul[z] * heat * fl;
     const old = it.sides[0];
     let nv = Math.min(GRILL.sideMax, advanceSide(old, rate, dt, z, heat * fl));

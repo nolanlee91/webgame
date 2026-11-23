@@ -9,17 +9,17 @@ import {
   STOCK, SHELF, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, HOA, hoaPack, PREORDER, DEBT, LATE, FRIED_RICE,
   MISSIONS, MISSIONS_PER_DAY, APPEAL_CAP, PLACE_ZONES, SPOT_CLEARANCE, STREET_DECOR_AT, RENT, HELPER, WEATHER, LUNCH, SHIFTS, SERVICE,
   XP_SHARE, RICE, TABLE_GEAR, CAPACITY,
-} from "../data/economy.js?v=c2";
-import { ARCHETYPES } from "../data/customers.js?v=c2";
-import * as LP from "../data/lines-progress.js?v=c2";
-import { FLAG_DAYS } from "./flags.js?v=c2"; // B: hạn cờ Drama
-import { pushReview, dayMoment } from "./reviews.js?v=c2"; // C: một sổ review, khoảnh khắc Nhật Ký
-import { next, int, weighted } from "./rng.js?v=c2";
-import { freshLine, fill } from "./text.js?v=c2";
-import { gainXp, addNewDishes } from "./progress.js?v=c2";
-import { pointsOf } from "./walker.js?v=c2";
-import { ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c2";
-import { stockUsed, capacity } from "./stock.js?v=c2";
+} from "../data/economy.js?v=c3";
+import { ARCHETYPES } from "../data/customers.js?v=c3";
+import * as LP from "../data/lines-progress.js?v=c3";
+import { FLAG_DAYS } from "./flags.js?v=c3"; // B: hạn cờ Drama
+import { pushReview, dayMoment } from "./reviews.js?v=c3"; // C: một sổ review, khoảnh khắc Nhật Ký
+import { next, int, weighted } from "./rng.js?v=c3";
+import { freshLine, fill } from "./text.js?v=c3";
+import { gainXp, addNewDishes } from "./progress.js?v=c3";
+import { pointsOf } from "./walker.js?v=c3";
+import { ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c3";
+import { stockUsed, capacity, addLot } from "./stock.js?v=c3";
 
 const owns = (s, id) => !!s.owned?.[id];
 export const setFlag = (s, name, value) => { s.flags = s.flags || {}; s.flags[name] = value; };
@@ -45,7 +45,7 @@ export function loadA(s, d) {
   const A = freshA();
   if (!obj(d)) return Object.assign(s, A);
   A.debts = arr(d.debts).filter((x) => obj(x) && typeof x.name === "string" && Number.isFinite(x.amount) && x.amount > 0).slice(-60)
-    .map((x) => ({ id: regularId(x.id || x.name), name: x.name.slice(0, 40), amount: clampInt(x.amount, 1, 100000, 1), day: clampInt(x.day, 1, 1e9, s.day) }));
+    .map((x) => ({ id: regularId(x.id || x.name), name: x.name.slice(0, 40), amount: clampInt(x.amount, 1, 100000, 1), day: clampInt(x.day, 1, 1e9, s.day), ...(x.drama === true ? { drama: true } : {}) })); // S: nợ Drama
   A.debtNews = arr(d.debtNews).filter((x) => typeof x === "string").slice(-8);
   A.tabVisits = Object.fromEntries(Object.entries(obj(d.tabVisits) ? d.tabVisits : {}).filter(([, v]) => Number.isInteger(v)).slice(0, 80));
   A.orders = arr(d.orders).filter((o) => obj(o) && DISHES[o.dish] && Number.isInteger(o.n) && o.n > 0).slice(-6)
@@ -156,6 +156,7 @@ export function extraGuests(s, kind) {
     if (s.level >= 12) n += 2;
   }
   if (isFamous(s)) n += 2;
+  if (s.stage === "quan") n += kind === "trua" ? 2 : 3; // S (M5): quán có mái đông hơn vỉa hè (khách cơ bản tăng chậm lại theo cấp)
   const pr = s.promo?.day === s.day ? s.promo : null;
   if (pr?.kind === "check-in") n += PROMOS["check-in"].guests;
   if (pr?.kind === "livestream" && pr.roll === "viral") n += 4;
@@ -241,7 +242,7 @@ export function restockHoa(s, id, ev = []) {
   if (s.money < price) return { err: "money" };
   if (STOCK[id].cap && stockUsed(s) + n > capacity(s)) return { err: "capacity" };
   s.money -= price; s.stock[id] = (s.stock[id] || 0) + n; s.stats.spentStock += price;
-  if (SHELF[id]) { s.bought ||= {}; (s.bought[id] ||= []).push({ day: s.day, n }); }
+  addLot(s, id, n);
   ev.push({ type: "restocked", id, n, price, express: false, by: "hoa" });
   return { ok: true };
 }
@@ -470,14 +471,16 @@ const TOGGLE = { bi: "bi", cha: "cha", doChua: "doChua", duaLeo: "duaLeo", ngo: 
 export function batchLayer(s, id, ev, layerFn) {
   const sh = s.shift, slot = sh.slots[sh.sel];
   const t = slot.tk !== null ? ticketById(s, slot.tk) : null;
-  if (!t?.catering) return layerFn(s, id, ev);
+  const tableBatch = !t?.catering && slot.batchTks?.length > 0; // S (M5): bày ×N cho bàn cùng món (core/extras.js batchPin)
+  if (!t?.catering && !tableBatch) return layerFn(s, id, ev);
   if (!slot.plate && (id === "hop" || id === "dia")) {
-    const want = Math.max(1, Math.min(batchMax(s), t.n));
-    const r = layerFn(s, "hop", ev);
+    const kind = t.catering ? "hop" : id;
+    const want = t.catering ? Math.max(1, Math.min(batchMax(s), t.n)) : 1 + slot.batchTks.length;
+    const r = layerFn(s, kind, ev);
     if (r.err) return r;
     const main = slot.plate;
     slot.batch = [];
-    for (let i = 1; i < want; i++) { slot.plate = null; const r2 = layerFn(s, "hop", []); if (r2.err) break; slot.batch.push(slot.plate); }
+    for (let i = 1; i < want; i++) { slot.plate = null; const r2 = layerFn(s, kind, []); if (r2.err) break; if (tableBatch) slot.plate.tk = slot.batchTks[i - 1]; slot.batch.push(slot.plate); }
     slot.plate = main;
     return { ok: true, batch: 1 + slot.batch.length };
   }
@@ -576,7 +579,7 @@ export function addReviewA(s, r) {
 // ---------- sổ nợ (ghi sổ, cấp 6) ----------
 export const debtTotal = (s) => (s.debts || []).reduce((a, d) => a + d.amount, 0);
 export const debtTabs = (s, id) => (s.debts || []).filter((d) => !id || d.id === id).length;
-function syncDebtFlags(s, touched = []) {
+export function syncDebtFlags(s, touched = []) { // S: xuất cho nợ Drama (core/extras.js dramaDebt)
   setFlag(s, "ghiso-open", (s.debts || []).length);
   const ids = new Set([...touched, ...(s.debts || []).map((d) => d.id)]);
   for (const id of ids) setFlag(s, "ghiso-unpaid-" + id, (s.debts || []).filter((d) => d.id === id).reduce((a, d) => a + d.amount, 0));
@@ -656,7 +659,7 @@ export function forgiveDebt(s, id, ev = []) {
 /** Sang ngày: mỗi người nợ 25% trả hết; nợ quá 14 ngày 6% "quên luôn". */
 function debtsNextDay(s, ev) {
   s.debtNews = [];
-  const ids = [...new Set((s.debts || []).map((d) => d.id))];
+  const ids = [...new Set((s.debts || []).filter((d) => !d.drama).map((d) => d.id))]; // S: nợ Drama (Anh Sáu) trả theo chuỗi sự kiện, không tự trả ngẫu nhiên
   for (const id of ids) {
     const list = s.debts.filter((d) => d.id === id);
     const oldest = Math.min(...list.map((d) => d.day));

@@ -3,11 +3,12 @@
 // → sàn (bàn, ghế, khách ngồi, khách đứng, cô chủ khi ra sàn) sắp theo y chân → lớp UI không phóng (bong bóng, nhãn bàn, nút chạm bàn).
 // Toạ độ từ core/placements.js (manifest placements → dự phòng data/scene.js). Camera: hệ số bội 0,5 thiết bị (PLAYBOOK §2), snap lưới 2 px.
 // Khách ngồi: frame <vai>-sit-* vẽ quay phải; ghế face "left" ⇒ lật ngang quanh anchor (vẫn snap). Bong bóng nền đục, đặt bằng placeBubble.
-import { paint, placeAt, setSnap } from "./atlas.js?v=c2";
-import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongDist } from "../core/placements.js?v=c2";
-import { itemFrame, heatKey, zoneOf, isCooked } from "../core/grill.js?v=c2";
-import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c2";
-import { seatSpotsFor, decorAt, isFamous, rainToday } from "../core/progression.js?v=c2"; // A: bàn ghép, trang trí (V: + mưa)
+import { paint, placeAt, setSnap } from "./atlas.js?v=c3";
+import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongDist } from "../core/placements.js?v=c3";
+import { itemFrame, heatKey, zoneOf, isCooked } from "../core/grill.js?v=c3";
+import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c3";
+import { seatSpotsFor, decorAt, isFamous, rainToday } from "../core/progression.js?v=c3"; // A: bàn ghép, trang trí (V: + mưa)
+import { decorFrame } from "../core/extras.js?v=c3"; // S: frame tạm cho đồ trang trí Drama tặng
 
 const W = 1280, H = 720;
 export const BUBBLE_MS = 3600;
@@ -318,7 +319,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     setSpr("grill", S.grill, "grill", `grill-${coalKey}`, P.grill);
     if (S.grill2) { const on = s.owned?.["grill-2"] && s.stage === "quan"; S.grill2.hidden = !on; if (on) setSpr("grill2", S.grill2, "grill", `grill-${coalKey}`, P["grill-2"]); else last.grill2 = ""; } // A:
     S.items.forEach((e, i) => {
-      const it = g?.slots[i];
+      const it = g?.vegFrom != null && i >= g.vegFrom ? null : g?.slots[i]; // S: vỉ chay riêng chỉ hiện trên Thanh Bếp (chưa có chỗ vẽ trong cảnh)
       if (!it) { if (last["gi" + i] !== "") { last["gi" + i] = ""; e.hidden = true; } return; }
       const name = itemFrame(it);
       setSpr("gi" + i, e, "grillItems", name, i < 6 ? P.grillSlots[i] : P.grill2Slots[i - 6], 1, true); // V: cảnh dùng grill-items thường (HD chỉ ở chip + bếp lớn)
@@ -512,7 +513,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       let e = S.decor.get(id);
       if (!e) { e = el("div", "spr decor", S.floor); e.dataset.decor = id; S.decor.set(id, e); }
       const at = decorAt(s, id, atlas.placements);
-      setSpr("dc" + id, e, "decor", id, at, scaleOf(atlas, "decor", id));
+      setSpr("dc" + id, e, "decor", decorFrame(id), at, scaleOf(atlas, "decor", decorFrame(id))); // S: đồ Drama tặng dùng frame tạm
       e.style.zIndex = at[1] < 380 ? 50 : 1000 + Math.round(at[1]);
     }
     for (const [id, e] of S.decor) if (!live.has(id)) { e.remove(); S.decor.delete(id); delete last["dc" + id]; }

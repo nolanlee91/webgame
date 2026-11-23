@@ -2,14 +2,25 @@
 // Quy tắc đọc: mọi số bị kẹp về miền hợp lệ, id lạ bị bỏ; ca dở dang được giữ nếu cấu trúc hợp lệ, ngược lại bỏ riêng ca (giữ tiền / cấp / kho).
 // MIGRATIONS[v] nâng v → v+1 (v1: bản M2 trên master; v2: gộp M3 + M4).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-vN) một lần trước khi nâng, bản hỏng chép sang KEY.corrupt.
-import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES } from "../data/economy.js?v=c2";
-import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c2";
-import { levelForXp } from "./progress.js?v=c2";
-import { freshSocial, loadSocial } from "./reviews.js?v=c2"; // C: review / tính cách / Nhật Ký
-import { freshDrama } from "./flags.js?v=c2"; // B: drama
-import { freshA, loadA } from "./progression.js?v=c2"; // A: khoá tiến trình M3
+import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES, SHELF, LEVELS, DECOR } from "../data/economy.js?v=c3";
+import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c3";
+import { levelForXp } from "./progress.js?v=c3";
+import { freshSocial, loadSocial } from "./reviews.js?v=c3"; // C: review / tính cách / Nhật Ký
+import { freshDrama } from "./flags.js?v=c3"; // B: drama
+import { freshA, loadA } from "./progression.js?v=c3"; // A: khoá tiến trình M3
+import { freshS, loadS } from "./extras.js?v=c3"; // S: hội chợ, thử thách, huy hiệu (M5)
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
+/** Bảng XP của bản lưu v2 (trước cân bằng M5). Nâng v2 → v3 giữ nguyên cấp và % tiến độ trong cấp. */
+export const LEVELS_V2 = [0, 30, 55, 125, 270, 445, 655, 1055, 1630, 2355, 2845, 3455, 4110, 5050, 6280, 7575, 9125, 11050, 13295, 16085];
+/** Đổi XP từ bảng cũ sang bảng mới: cùng cấp, cùng phần trăm tiến độ trong cấp; quá cấp 20 thì giữ phần dư. */
+export function rescaleXp(xp, from, to) {
+  if (!(xp > 0)) return 0;
+  let L = 1; for (let i = 0; i < from.length; i++) if (xp >= from[i]) L = i + 1;
+  if (L >= from.length) return Math.round(to[to.length - 1] + (xp - from[from.length - 1]));
+  const f = (xp - from[L - 1]) / Math.max(1, from[L] - from[L - 1]);
+  return Math.min(to[L] - 1, Math.round(to[L - 1] + f * (to[L] - to[L - 1])));
+}
 /**
  * v1 → v2 (gộp M3 + M4: A tiến trình, B Drama, C review / Nhật Ký). Khoá mới đều có mặc định an toàn khi đọc; bước nâng chỉ đổi những gì
  * hai nhánh từng ghi khác chỗ: độ hot của A (`buzz`) gộp vào `hype` (C), một sổ người theo dõi (`followers`), cờ dùng chung `s.flags`
@@ -24,6 +35,25 @@ export const MIGRATIONS = {
     if (obj(d.flags)) out.flags = Object.fromEntries(Object.entries(d.flags).filter(([k, v]) => k.length <= 60 && (v === true || (typeof v === "number" && Number.isFinite(v)))));
     return out;
   },
+  /**
+   * v2 → v3 (M5, S): bảng XP mới (giữ cấp + % tiến độ), nợ Anh Sáu của Drama (drama.debt) vào sổ nợ thật (debts, drama: true),
+   * đồ Drama tặng (drama.decor) thành đồ kéo thả (decor; "mai-bat" = có mái bạt). save.js giữ bản v2 nguyên văn ở KEY.bak-v2 một lần.
+   */
+  2: (d) => {
+    const out = { ...d, v: 3 };
+    if (typeof d.xp === "number" && Number.isFinite(d.xp)) out.xp = rescaleXp(d.xp, LEVELS_V2, LEVELS);
+    const D = obj(d.drama) ? d.drama : null;
+    const debts = arr(d.debts).slice();
+    for (const [who, k] of Object.entries(obj(D?.debt) ? D.debt : {})) if (typeof k === "number" && k > 0) debts.push({ id: who, name: who === "anh-sau" ? "Anh Sáu" : who, amount: Math.round(k), day: Number.isInteger(d.day) ? d.day : 1, drama: true });
+    out.debts = debts;
+    if (D) out.drama = { ...D, debt: {} };
+    out.decor = { ...(obj(d.decor) ? d.decor : {}) };
+    for (const id of Object.keys(obj(D?.decor) ? D.decor : {})) {
+      if (DECOR[id]) out.decor[id] = true;
+      else if (id === "mai-bat") out.owned = { ...(obj(d.owned) ? d.owned : {}), awning: true };
+    }
+    return out;
+  },
 };
 
 export function createState(seed = 20261120) {
@@ -31,11 +61,12 @@ export function createState(seed = 20261120) {
     v: SAVE_VERSION, seed: seed >>> 0, rng: seed >>> 0, shopName: "Cơm Tấm Nhà Mình", introSeen: false, tutorialDone: false,
     money: START_MONEY, xp: 0, level: 1, rep: 50, day: 1, stage: "street",
     stock: Object.fromEntries(STOCK_IDS.map((id) => [id, START_STOCK[id] || 0])), uopOld: 0, plates: SERVICE.plates.street, spareSack: 0, owned: {},
-    moHanh: { n: 0, day: 1 }, kitchen: { rice: 0, coal: 0, prepCoal: 0 },
+    moHanh: { n: 0, day: 1 }, kitchen: { rice: 0, coal: 0, coal2: 0, prepCoal: 0 },
     plan: ["toi"], shiftIdx: 0, between: null, dayDone: false, menu: ["com-suon"], menuOff: [],
     stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {}, debtPaid: 0, ordersDone: 0, missions: 0 },
     regulars: {}, feed: [], nextReviewId: 0, rating: null, consign: null, daily: { consigned: false, borrowed: {} },
-    usedDay: [], shift: null, lastSummary: null, bought: {},
+    usedDay: [], shift: null, lastSummary: null,
+    bought: Object.fromEntries(Object.entries(START_STOCK).filter(([id]) => SHELF[id]).map(([id, n]) => [id, [{ day: 1, n }]])), // S: gói học có hạn từ ngày 1
     // --- C: reviews/journal --- (persona, followers, hype, nextGuests, promises, returning, journal, dayLog)
     ...freshSocial(),
     // --- B: drama --- (cờ trơn dùng chung s.flags, cờ / hàng hẹn / lịch sử Drama, mod có hạn, (người theo dõi / độ hot dùng chung khối C))
@@ -43,6 +74,8 @@ export function createState(seed = 20261120) {
     // --- A: progression --- (sổ nợ, đơn đặt trước / mâm cơm, hạng quán, nước mắm nhà pha, nhân viên theo ngày, quảng bá, trang trí + chỗ đặt,
     // kỷ niệm vỉa hè, cơm chiên ngày mai, thời tiết, ca khuya kéo dài). Mặc định ở core/progression.js freshA(); đọc bản lưu cũ: loadA().
     ...freshA(),
+    // --- S: M5 --- (hội chợ, thử thách hôm nay, huy hiệu)
+    ...freshS(),
   };
 }
 
@@ -62,7 +95,12 @@ function loadShift(sh, s) {
     const t = num(sh.t, 0, 3_600_000, 0);
     if (!Array.isArray(sh.groups) || !Array.isArray(sh.tickets) || !Array.isArray(sh.tables) || !Array.isArray(sh.slots) || !obj(sh.grill) || !obj(sh.rice) || !obj(sh.owner) || !obj(sh.stats)) throw 0;
     const g = sh.grill;
-    if (!Array.isArray(g.slots) || (g.slots.length !== GRILL.slots && g.slots.length !== GRILL.slots * 2)) throw 0; // A: bếp 2 ⇒ 12 chỗ
+    const base = g.vegFrom != null ? g.vegFrom : g.slots?.length; // S: vỉ chay riêng (2 chỗ cuối)
+    if (!Array.isArray(g.slots) || (base !== GRILL.slots && base !== GRILL.slots * 2) || (g.vegFrom != null && g.slots.length !== base + 2)) throw 0; // A: bếp 2 ⇒ 12 chỗ
+    if (g.coal2 !== undefined) g.coal2 = num(g.coal2, 0, 100, 0);
+    if (g.coal2 !== undefined) g.pending2 = arr(g.pending2).filter((p) => obj(p) && Number.isFinite(p.at)).slice(0, 10);
+    if (g.meatSlots !== undefined) g.meatSlots = obj(g.meatSlots) ? g.meatSlots : {};
+    if (sh.case !== undefined) sh.case = arr(sh.case).filter((p) => obj(p) && GRILL.side[p.item]).slice(0, 6);
     g.slots = g.slots.map((it) => (obj(it) && GRILL.side[it.item] && Array.isArray(it.sides) ? { ...it, sides: [num(it.sides[0], 0, GRILL.sideMax, 0), num(it.sides[1], 0, GRILL.sideMax, 0)], fresh: num(it.fresh, 0, 100, 100), warmMs: num(it.warmMs, 0, BIG, 0), said: obj(it.said) ? it.said : {} } : null));
     g.coal = num(g.coal, 0, 100, 0); g.smoke = num(g.smoke, 0, 100, 0); g.fan = false; g.pending = arr(g.pending).filter((p) => obj(p) && Number.isFinite(p.at)).slice(0, 10);
     sh.rice.n = int(sh.rice.n, 0, 40, 0);
@@ -99,7 +137,7 @@ export function loadSave(raw) {
   s.spareSack = int(d.spareSack, 0, 50, 0);
   s.owned = Object.fromEntries(Object.entries(obj(d.owned) ? d.owned : {}).filter(([k, v]) => GEAR[k] && v === true));
   s.moHanh = obj(d.moHanh) ? { n: int(d.moHanh.n, 0, 40, 0), day: int(d.moHanh.day, 0, BIG, s.day) } : { n: 0, day: s.day };
-  s.kitchen = obj(d.kitchen) ? { rice: int(d.kitchen.rice, 0, 40, 0), coal: num(d.kitchen.coal, 0, 100, 0), prepCoal: int(d.kitchen.prepCoal, 0, 50, 0) } : s.kitchen;
+  s.kitchen = obj(d.kitchen) ? { rice: int(d.kitchen.rice, 0, 40, 0), coal: num(d.kitchen.coal, 0, 100, 0), coal2: num(d.kitchen.coal2, 0, 100, 0), prepCoal: int(d.kitchen.prepCoal, 0, 50, 0) } : s.kitchen; // S: coal2 = bếp 2
   const plan = arr(d.plan).filter((k) => SHIFTS[k]);
   s.plan = plan.length ? plan.slice(0, 2) : ["toi"];
   s.shiftIdx = int(d.shiftIdx, 0, s.plan.length - 1, 0);
@@ -136,6 +174,7 @@ export function loadSave(raw) {
       catName: typeof D.catName === "string" ? D.catName.slice(0, 20) : null };
   }
   loadA(s, d); // --- A: progression --- (thiếu khoá ⇒ mặc định an toàn)
+  loadS(s, d); // --- S: M5 ---
   s.shift = loadShift(d.shift, s);
   if (s.shift && s.shift.day !== s.day) s.shift = null;
   return s;

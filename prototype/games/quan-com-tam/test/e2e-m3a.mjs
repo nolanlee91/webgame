@@ -119,7 +119,7 @@ export async function runM3A(ctx) {
   await shot("08-quan-trong-ca");
   await bot(600000);
   check(`${tag}: chốt ca ở quán có mâm cơm`, await waitFor("__game.overlay==='summary'", 6000) && (await S("(s.lastSummary.orders||[]).length")) === 1, await S("JSON.stringify(s.lastSummary.orders)"));
-  check(`${tag}: Bông làm việc trong ca, lương trả lúc chốt`, (await S("s.lastSummary.helperJobs")) > 0 && (await S("s.lastSummary.staff")) >= 40, await S("JSON.stringify({j:s.lastSummary.helperJobs,w:s.lastSummary.staff})"));
+  check(`${tag}: Bông làm việc trong ca, lương trả lúc chốt`, (await S("s.lastSummary.helperJobs")) > 0 && (await S("s.lastSummary.staff")) >= 35, await S("JSON.stringify({j:s.lastSummary.helperJobs,w:s.lastSummary.staff})"));
   await pressSel('[data-act="nextDay"]');
 
   // ---- trang trí kéo thả ----

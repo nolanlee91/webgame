@@ -50,13 +50,13 @@
 //   C: reply-viral reply-phot reply-sale persona-flip (số) review-1star-<lý do>
 //
 // ===== Biến trong câu =====  {name} {self} {Self} {call} {Call} (người nói) · {shop} · {day} · {followers} · {debt} (tổng sổ nợ) · {catName} · {n}
-import { EVENTS_KHACH } from "./events-khach.js?v=c2";
-import { EVENTS_VANHANH } from "./events-van-hanh.js?v=c2";
-import { EVENTS_CUNGCAP } from "./events-cung-cap.js?v=c2";
-import { EVENTS_MANG } from "./events-mang.js?v=c2";
-import { EVENTS_DOI } from "./events-doi.js?v=c2";
-import { EVENTS_COCHE } from "./events-co-che.js?v=c2";
-import { EVENTS_REPLY } from "./events-reply.js?v=c2";
+import { EVENTS_KHACH } from "./events-khach.js?v=c3";
+import { EVENTS_VANHANH } from "./events-van-hanh.js?v=c3";
+import { EVENTS_CUNGCAP } from "./events-cung-cap.js?v=c3";
+import { EVENTS_MANG } from "./events-mang.js?v=c3";
+import { EVENTS_DOI } from "./events-doi.js?v=c3";
+import { EVENTS_COCHE } from "./events-co-che.js?v=c3";
+import { EVENTS_REPLY } from "./events-reply.js?v=c3";
 
 export const EVENTS = [...EVENTS_KHACH, ...EVENTS_VANHANH, ...EVENTS_CUNGCAP, ...EVENTS_MANG, ...EVENTS_DOI, ...EVENTS_COCHE, ...EVENTS_REPLY];
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

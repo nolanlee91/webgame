@@ -2,16 +2,16 @@
 // Phiếu tính tiền liệt kê các dòng có thể tính: món đã ăn + phần gọi thêm (dòng thật) và 1–2 dòng "nhiễu" (món bàn không ăn).
 // Người chơi chạm từng dòng để cộng. Thiếu dòng = tính thiếu (mất tiền, không trừ sao). Thừa dòng = tính dư (trần 2 sao + khách phản đối).
 // Ngày 1–3 có nút "Tính đúng" (tự chạm đúng các dòng thật); hộp tính tiền (cấp 15) cũng tự cộng.
-import { DISHES, EXTRAS } from "../data/economy.js?v=c2";
-import { QUIRKS } from "../data/customers.js?v=c2";
-import { next, int } from "./rng.js?v=c2";
+import { DISHES, EXTRAS } from "../data/economy.js?v=c3";
+import { QUIRKS } from "../data/customers.js?v=c3";
+import { next, int } from "./rng.js?v=c3";
 
 export const AUTO_BILL_DAYS = 3;
 export const canAutoBill = (s) => s.day <= AUTO_BILL_DAYS || !!s.owned?.["cash-box"];
 
 /** Giá một dĩa theo phiếu (đã trừ giảm giá / miễn phí do khiếu nại). */
 export function ticketPrice(t) {
-  const base = (DISHES[t.dish]?.price ?? 0) + (t.plus || 0); // A: nước mắm nhà pha +1k / bậc
+  const base = Math.round(((DISHES[t.dish]?.price ?? 0) + (t.plus || 0)) * (t.fairMul || 1)); // A: nước mắm nhà pha +1k / bậc; S: giá hội chợ
   if (t.free) return 0;
   return Math.round(base * (1 - (t.discount || 0)));
 }

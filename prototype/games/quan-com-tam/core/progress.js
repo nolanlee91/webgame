@@ -1,5 +1,5 @@
 // Cấp + XP (GAME-DESIGN §6). Thuần.
-import { LEVELS, DISHES } from "../data/economy.js?v=c2";
+import { LEVELS, DISHES } from "../data/economy.js?v=c3";
 
 export function levelForXp(xp) { let l = 1; for (let i = 0; i < LEVELS.length; i++) if (xp >= LEVELS[i]) l = i + 1; return l; }
 export function xpToNext(s) { const i = s.level; return i >= LEVELS.length ? null : { have: s.xp - LEVELS[i - 1], need: LEVELS[i] - LEVELS[i - 1] }; }

@@ -2,9 +2,9 @@
 // Desktop: bảng nổi trên khung cảnh (nút "Bếp lớn" trên Thanh Bếp). Mobile: đầu vùng làm việc khi dock = Bếp.
 // Hệ số thiết bị trên 1 px file HD là bội 0,5 (PLAYBOOK §2): desktop 1366@1,25 ⇒ 1,0 (512×320 CSS), mobile 390@3 ⇒ 1,5 (320×200 CSS).
 // Chạm miếng = chạm chip (grillTap). Không bắt buộc dùng: mọi việc bếp vẫn làm được trên Thanh Bếp.
-import { paint, dpr } from "../render/atlas.js?v=c2";
-import { zoneOf, sideState, itemResult, isCooked, itemFrame, heatKey } from "../core/grill.js?v=c2";
-import { ownerFree } from "../core/walker.js?v=c2";
+import { paint, dpr } from "../render/atlas.js?v=c3";
+import { zoneOf, sideState, itemResult, isCooked, itemFrame, heatKey } from "../core/grill.js?v=c3";
+import { ownerFree } from "../core/walker.js?v=c3";
 
 // Bố cục tính bằng "nửa px HD" (đơn vị atlas trả cho frame HD): khung 320×200.
 const W = 320, H = 200;

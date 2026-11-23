@@ -2,7 +2,7 @@
 // Nồi: bấm Nấu ⇒ lấy gạo tấm trong kho bù cho đầy nồi, 40 giây sau có cơm; trong lúc nấu không xới được.
 // Mỡ hành: hũ 20 phần, làm 8 giây ở bếp phụ (chủ quán đứng làm) bằng một bộ mỡ heo + hành lá; hũ giữ 2 ngày.
 // Trứng: sống < 6 giây · lòng đào 6–9 · lòng vừa 9–13 · chín kỹ 13–18 · cháy > 18.
-import { RICE, EGG, STEAMER, MO_HANH, STOCK } from "../data/economy.js?v=c2";
+import { RICE, EGG, STEAMER, MO_HANH, STOCK } from "../data/economy.js?v=c3";
 
 export function freshRice(n = 0, big = false) { const R = big ? RICE.big : RICE.small; return { n, size: R.size, ms: R.ms, cooking: null }; }
 /** Bấm Nấu. Trả { ok, add } hoặc lỗi: rice-cooking (đang nấu), rice-full (nồi còn đầy), no-gao (hết gạo tấm). */

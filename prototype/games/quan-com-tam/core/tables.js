@@ -2,22 +2,22 @@
 // → gọi thêm (thêm cơm, khăn lạnh) → gọi tính tiền → trả tiền → về, để lại bàn dơ → dọn + lau → bàn sạch. Dĩa dơ vào thau, rửa mới có dĩa sạch.
 // Mọi việc của cô chủ ở bàn đi qua hàng đợi việc (core/walker.js): tốn thời gian đi + làm, trong lúc đó bếp vẫn chạy.
 // Thuần: không DOM; câu thoại chọn bằng freshLine; số liệu ở data/economy.js (SERVICE) và data/customers.js.
-import { SERVICE, DISHES, EXTRAS, STOCK, GEAR, TABLE_GEAR, XP_SHARE } from "../data/economy.js?v=c2";
-import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c2";
-import { guestIn, guestToSeat, guestOut, shipperIn, shipperOut, pathLen, dist } from "./placements.js?v=c2";
-import { enqueue, pointsOf } from "./walker.js?v=c2";
-import { next, int } from "./rng.js?v=c2";
-import { freshLine } from "./text.js?v=c2";
-import { pool, ORDER, ARRIVE, WAIT_LONG, SEATED_WAIT, TEA_CALL, FOOD_LATE, REQUEST, BILL_CALL, HAPPY, UNHAPPY, TIMEOUT, SOLD_OUT, NHU_CU } from "../data/lines.js?v=c2";
-import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c2";
-import { REVIEWS, TIMEOUT_REVIEW, SOLD_OUT_REVIEW } from "../data/lines-reviews.js?v=c2";
-import { makeBill, settle, ticketPrice } from "./bill.js?v=c2";
-import { scorePlate, servicePoints, finalStars, worstMistake, MISTAKES } from "./score.js?v=c2";
-import { addWaste } from "./plate.js?v=c2";
-import { takeRice } from "./rice.js?v=c2";
-import { gainXp } from "./progress.js?v=c2";
-import { pushReview, reviewPool } from "./reviews.js?v=c2"; // C: sổ review + lý do review
-import * as PG from "./progression.js?v=c2"; // A: bàn quán theo đồ mua, ghép bàn, chỗ chờ, cơm chiên, nồi canh
+import { SERVICE, DISHES, EXTRAS, STOCK, GEAR, TABLE_GEAR, XP_SHARE } from "../data/economy.js?v=c3";
+import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c3";
+import { guestIn, guestToSeat, guestOut, shipperIn, shipperOut, pathLen, dist } from "./placements.js?v=c3";
+import { enqueue, pointsOf } from "./walker.js?v=c3";
+import { next, int } from "./rng.js?v=c3";
+import { freshLine } from "./text.js?v=c3";
+import { pool, ORDER, ARRIVE, WAIT_LONG, SEATED_WAIT, TEA_CALL, FOOD_LATE, REQUEST, BILL_CALL, HAPPY, UNHAPPY, TIMEOUT, SOLD_OUT, NHU_CU } from "../data/lines.js?v=c3";
+import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c3";
+import { REVIEWS, TIMEOUT_REVIEW, SOLD_OUT_REVIEW } from "../data/lines-reviews.js?v=c3";
+import { makeBill, settle, ticketPrice } from "./bill.js?v=c3";
+import { scorePlate, servicePoints, finalStars, worstMistake, MISTAKES } from "./score.js?v=c3";
+import { addWaste } from "./plate.js?v=c3";
+import { takeRice } from "./rice.js?v=c3";
+import { gainXp } from "./progress.js?v=c3";
+import { pushReview, reviewPool } from "./reviews.js?v=c3"; // C: sổ review + lý do review
+import * as PG from "./progression.js?v=c3"; // A: bàn quán theo đồ mua, ghép bàn, chỗ chờ, cơm chiên, nồi canh
 
 export const groupById = (s, gid) => s.shift.groups.find((g) => g.id === gid) || null;
 export const tableById = (s, tid) => s.shift.tables.find((t) => t.id === tid) || null;
@@ -67,7 +67,7 @@ export function spawnGroup(s, plan, ev = []) {
   const path = takeaway ? shipperIn(P, spotList[spot]) : guestIn(P, spotList[spot]);
   const g = {
     id: sh.nextGid++, arch: plan.arch, size: members.length, members, takeaway, phase: "enter", t0: sh.t, walkMs: (pathLen(path) / SERVICE.guestSpeed) * 1000,
-    spot, spots, table: null, arriveT: null, seatT: null, orderT: null, firstTeaT: null, billT: null, used: 0, patienceMs: Math.round(A.patience * 1000 * (plan.patienceMul || 1)),
+    spot, spots, table: null, arriveT: null, seatT: null, orderT: null, firstTeaT: null, billT: null, used: 0, patienceMs: Math.round(A.patience * 1000 * (plan.patienceMul || 1) * SERVICE.patienceMul), // S (M5): kiên nhẫn chung
     said: {}, say: plan.line ? { text: plan.line, at: sh.t, who: 0 } : null, tag: plan.tag || null, // C: câu khách quay lại
     paid: false, leaveT: null, outcome: null,
   };
@@ -148,9 +148,9 @@ export const TASKS = {
   deliver: {
     target: servePt,
     start: (s, task) => (seatedGroup(s, task.tid) ? { ok: true } : { err: "gone" }),
-    drop: (s, task, ev) => dropPlate(s, task.plate, ev),
-    ms: () => SERVICE.deliverMs,
-    done: (s, task, ev) => deliverPlate(s, task, ev),
+    drop: (s, task, ev) => { dropPlate(s, task.plate, ev); for (const x of task.more || []) dropPlate(s, x.plate, ev); },
+    ms: (s, task) => SERVICE.deliverMs * (1 + (task.more?.length || 0)),
+    done: (s, task, ev) => { deliverPlate(s, task, ev); for (const x of task.more || []) deliverPlate(s, { ...task, tk: x.tk, plate: x.plate, more: null }, ev); }, // S: dĩa thứ hai cùng chuyến
   },
   bill: {
     target: servePt,
@@ -299,7 +299,7 @@ export function deliverPlate(s, task, ev) {
   const m = memberOfTicket(g, task.tk);
   if (!g || !t || !m || t.status === "void") { dropPlate(s, task.plate, ev); return; }
   const plate = task.plate;
-  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), dishOrderBonus: DISHES[t.dish]?.ngo && plate.order.indexOf("trung") > plate.order.indexOf("meat") });
+  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), dishOrderBonus: DISHES[t.dish]?.ngo && plate.order.indexOf("trung") > plate.order.indexOf("meat"), houseSauce: s.fishSauce || 0 }); // S: nước mắm nhà pha
   t.status = "served"; t.plateCom = plate.com; t.servedT = sh.t;
   m.plate = { kind: plate.kind, frames: null }; m.score = res;
   m.eatMs = Math.round((SERVICE.eatMs[0] + next(s) * (SERVICE.eatMs[1] - SERVICE.eatMs[0])) * (ARCHETYPES[m.role]?.eat || 1) * (sh.tutorial ? 0.75 : 1));
@@ -554,7 +554,7 @@ function updateSeated(s, g, dt, ev, smoky) {
   const served = allServed(s, g);
   // kiên nhẫn: trước khi lấy phiếu (chưa châm trà sau 12 giây ⇒ ×2) và trong lúc chờ món
   if (!served) {
-    let mul = sh.tutorial ? 0.6 : 1;
+    let mul = (sh.tutorial ? 0.6 : 1) / SERVICE.seatedPatience; // S (M5): khách đã ngồi chờ món kiên nhẫn hơn khách đứng chờ bàn
     if (g.firstTeaT === null && t - g.seatT > 12000) mul *= 2;
     if (smoky?.has(g.table)) mul *= 1.3;
     g.used += dt * mul;
@@ -602,7 +602,7 @@ function updateSeated(s, g, dt, ev, smoky) {
 export function serveTakeaway(s, g, t, plate, ev = []) {
   const sh = s.shift, m = memberOfTicket(g, t.id);
   if (!m) return { err: "bad-ticket" };
-  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id) });
+  const res = scorePlate(plate, t, { waitMs: sh.t - t.orderT, patienceMs: g.patienceMs, others: otherTickets(s, g, t.id), houseSauce: s.fishSauce || 0 }); // S: nước mắm nhà pha
   t.status = "served"; t.plateCom = plate.com; t.servedT = sh.t; t.cost = plateCost(plate.used);
   m.plate = { kind: plate.kind }; m.score = res; m.eaten = true;
   if (plate.kind === "dia") { s.plates--; sh.stats.lostPlates = (sh.stats.lostPlates || 0) + 1; } // shipper mang luôn cái dĩa đi

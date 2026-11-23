@@ -5,16 +5,18 @@
 // (shift.tick không chạy khi có hội thoại). Không chen lúc cô chủ đang bưng dĩa / đi chợ / đang tính tiền: chờ dĩa xuống bàn rồi mới mở.
 // Giữa hai ngày (nextDay): tối đa 1 sự kiện (s.drama.pending), hiện trên bảng Chuẩn bị. Mỗi lựa chọn lưu một khoảnh khắc Nhật Ký
 // (s.drama.moments) + lịch sử (s.drama.history). Chạm trạng thái hệ khác chỉ qua cờ (s.flags) hoặc khoá đọc có optional chaining.
-import { EVENTS, EVENT } from "../data/events.js?v=c2";
-import { NPCS, npcByName } from "../data/npcs.js?v=c2";
-import { ARCHETYPES } from "../data/customers.js?v=c2";
-import { STOCK, GEAR, SHIFTS } from "../data/economy.js?v=c2";
-import { next, int, pick, weighted } from "./rng.js?v=c2";
-import { fill } from "./text.js?v=c2";
-import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c2";
-import { gainXp } from "./progress.js?v=c2";
-import { sendAway } from "./walker.js?v=c2";
-import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c2"; // A: đơn mâm thật, sổ nợ thật
+import { EVENTS, EVENT } from "../data/events.js?v=c3";
+import { NPCS, npcByName } from "../data/npcs.js?v=c3";
+import { ARCHETYPES } from "../data/customers.js?v=c3";
+import { STOCK, GEAR, SHIFTS } from "../data/economy.js?v=c3";
+import { next, int, pick, weighted } from "./rng.js?v=c3";
+import { fill } from "./text.js?v=c3";
+import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c3";
+import { gainXp } from "./progress.js?v=c3";
+import { sendAway } from "./walker.js?v=c3";
+import { addLot } from "./stock.js?v=c3"; // S: lô hàng có hạn
+import { dramaDebt, grantDramaDecor } from "./extras.js?v=c3"; // S: sổ nợ chung, trang trí Drama
+import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c3"; // A: đơn mâm thật, sổ nợ thật
 
 export { freshDrama };
 export const DRAMA = {
@@ -465,15 +467,15 @@ function applyFx(s, d, fx, events) {
   if (fx.followers) s.followers = Math.max(0, (s.followers || 0) + fx.followers);
   if (fx.hype) s.hype = Math.max(0, Math.min(20, (s.hype || 0) + fx.hype));
   if (fx.xp) gainXp(s, fx.xp, events);
-  for (const [id, n] of Object.entries(fx.stock || {})) if (STOCK[id]) s.stock[id] = Math.max(0, (s.stock[id] || 0) + Math.round(n));
+  for (const [id, n] of Object.entries(fx.stock || {})) if (STOCK[id]) { s.stock[id] = Math.max(0, (s.stock[id] || 0) + Math.round(n)); if (n > 0) addLot(s, id, Math.round(n)); } // S: quà hàng có hạn
   const days = fx.flagDays ?? FLAG_DAYS;
   for (const f of fx.flag ? [].concat(fx.flag) : []) D.flags[f] = today(s) + days;
   for (const f of fx.unflag ? [].concat(fx.unflag) : []) dropFlag(s, f);
   if (fx.nextGuests) D.nextGuests = Math.max(-4, Math.min(8, (D.nextGuests || 0) + fx.nextGuests));
   if (fx.mod) addMod(s, fx.mod);
   if (fx.own && GEAR[fx.own] && !GEAR[fx.own].repeat) s.owned[fx.own] = true;
-  if (fx.decor) D.decor[fx.decor] = true;
-  if (fx.debt) { const k = fx.debt.who || "khach"; D.debt[k] = Math.max(0, (D.debt[k] || 0) + (fx.debt.k || 0)); if (!D.debt[k]) delete D.debt[k]; if (fx.debt.clear) delete D.debt[k]; }
+  if (fx.decor) { D.decor[fx.decor] = true; grantDramaDecor(s, fx.decor); } // S: đồ Drama tặng thành đồ kéo thả
+  if (fx.debt) dramaDebt(s, fx.debt); // S (M5): nợ Anh Sáu ghi vào sổ nợ thật (s.debts), không còn sổ riêng D.debt
   if (fx.catName && !D.catName) D.catName = pick(s, ["Vàng", "Mỡ Hành", "Sườn", "Than", "Cơm Cháy", "Bì"]);
   if (fx.preorder) {
     const p = fx.preorder;

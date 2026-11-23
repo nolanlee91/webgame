@@ -2,14 +2,15 @@
 // Tab: Nhập hàng (Cô Ba + Chú Hòa), Đồ nghề (đồ, phụ việc theo ngày, thuê mặt bằng), Trang trí (mua + kéo thả trong quán),
 // Đơn đặt (đơn đặt trước / mâm cơm), Hạng quán (hạng, nước mắm nhà pha, quảng bá), Ca (trưa / tối / cả hai, ca khuya kéo dài).
 // CSS riêng chèn một lần (không sửa index.html).
-import { el, button, fmtK } from "./common.js?v=c2";
-import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c2";
-import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c2";
-import * as PG from "../core/progression.js?v=c2";
-import { icon } from "../render/atlas.js?v=c2"; // V: hình thật của đồ trang trí trên khung kéo thả
+import { el, button, fmtK } from "./common.js?v=c3";
+import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c3";
+import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c3";
+import * as PG from "../core/progression.js?v=c3";
+import { icon } from "../render/atlas.js?v=c3"; // V: hình thật của đồ trang trí trên khung kéo thả
+import * as M5 from "./m5-ui.js?v=c3"; // S: tab Hội chợ · Thử thách (M5)
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui", "suon-non", "ga", "lap-xuong", "dau-hu", "bi-chay", "cha-chay", "nuoc-tuong"];
-const OWN_TABS = new Set(["buy", "gear", "decor", "orders", "rank", "shift"]);
+const OWN_TABS = new Set(["buy", "gear", "decor", "orders", "rank", "shift", "fair"]); // S: fair
 export const renders = (tab) => OWN_TABS.has(tab);
 
 let cssDone = false;
@@ -49,6 +50,7 @@ export function tabs(s, base) {
   if (s.level >= 4) add("decor", "Trang trí", "gear");
   if (PG.ordersOpen(s)) add("orders", "Đơn đặt", "shift");
   if ((s.level >= 10 && s.stage === "quan") || s.level >= PROMO_UNLOCK) add("rank", "Hạng quán", "decor");
+  if (s.level >= 18) add("fair", "Hội chợ · Thử thách", "rank"); // S: M5
   return out;
 }
 
@@ -57,7 +59,7 @@ const ERR = {
   money: "Không đủ tiền.", capacity: "Kho đầy rồi.", locked: "Chưa mở khoá.", owned: "Đã có rồi.", needs: "Cần mua món đi kèm trước.", "needs-quan": "Phải lên quán trước.",
   "not-needed": "Lên quán rồi, không cần nữa.", "preorder-max": "Tối đa 2 đơn mỗi ngày.", "once-per-day": "Mỗi ngày quảng bá một lần.", "day-started": "Ngày đã bắt đầu, mai nhận nha.", max: "Đã tới bậc cuối.", "plates-max": "Chồng dĩa đã tới trần tủ.",
 };
-const errText = (e) => ERR[e] || PG.PLACE_REASON[String(e).replace("place-", "")] || "Không làm được.";
+const errText = (e) => ERR[e] || M5.errText(e) || PG.PLACE_REASON[String(e).replace("place-", "")] || "Không làm được."; // S: lỗi M5
 
 /** Vẽ tab của phần A. ctx = { act, rerender(tab?), toast, atlas }. */
 export function render(tab, main, s, ctx) {
@@ -69,6 +71,7 @@ export function render(tab, main, s, ctx) {
   if (tab === "orders") return ordersTab(main, s, doAct);
   if (tab === "rank") return rankTab(main, s, doAct);
   if (tab === "shift") return shiftTab(main, s, doAct);
+  if (tab === "fair") return M5.fairTab(main, s, doAct); // S: M5
 }
 
 function buyTab(main, s, doAct) {

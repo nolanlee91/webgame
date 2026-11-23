@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, prepDay, playShift, seeded, botStep } from "./helpers.mjs";
 import { shopSave, KEY, backupKey } from "../save.js?v=c2";
-import { loadSave, dump, SAVE_VERSION, createState } from "../core/state.js?v=c2";
+import { loadSave, dump, SAVE_VERSION, createState, LEVELS_V2 } from "../core/state.js?v=c2";
 import { LEVELS } from "../data/economy.js?v=c2";
 import { EVENT } from "../data/events.js?v=c2";
 import * as PG from "../core/progression.js?v=c2";
@@ -161,11 +161,12 @@ test("sự kiện S03 (khách nợ quên trả kèm thư) trả đúng sổ nợ
   assert.ok(EVENT.S03);
 });
 
-test("nâng bản lưu v1 → v2: chép nguyên văn .bak-v1 một lần, buzz gộp vào hype, cờ rác bỏ, tiến trình giữ", () => {
-  assert.equal(SAVE_VERSION, 2);
+test("nâng bản lưu v1 → v2 (→ v3): chép nguyên văn .bak-v1 một lần, buzz gộp vào hype, cờ rác bỏ, tiến trình giữ", () => {
+  assert.equal(SAVE_VERSION, 3); // M5 (S): v3 = bảng XP mới, nợ Drama vào sổ nợ thật
   const s = atLevel(8, { money: 777 });
   const old = JSON.parse(dump(s));
   old.v = 1; old.buzz = 3.5; old.hype = 1; old.flags = { "quan-moved": 4, "rac": "x", "ghiso-open": 2 };
+  old.xp = LEVELS_V2[7] + 10; // bản v1 tính XP theo bảng cũ (M5 đổi bảng, nâng v2 → v3 giữ cấp)
   delete old.drama; delete old.mods;
   const raw = JSON.stringify(old);
   const st = mem(); st.setItem(KEY, raw);
@@ -173,18 +174,18 @@ test("nâng bản lưu v1 → v2: chép nguyên văn .bak-v1 một lần, buzz g
   const r = sv.read(1);
   assert.ok(!r.fresh && !r.corrupt && r.migrated === 1);
   assert.equal(st.getItem(backupKey(1)), raw, "bản sao nguyên văn");
-  assert.equal(r.state.v, 2); assert.equal(r.state.hype, 3.5); assert.equal("buzz" in r.state, false);
+  assert.equal(r.state.v, 3); assert.equal(r.state.hype, 3.5); assert.equal("buzz" in r.state, false);
   assert.deepEqual(r.state.flags, { "quan-moved": 4, "ghiso-open": 2 });
   assert.equal(r.state.money, 777); assert.equal(r.state.level, 8);
   assert.ok(r.state.drama && Array.isArray(r.state.drama.history));
   sv.write(r.state);
-  assert.equal(JSON.parse(st.getItem(KEY)).v, 2);
+  assert.equal(JSON.parse(st.getItem(KEY)).v, 3);
   // bản v1 khác ghi đè lại ⇒ .bak-v1 không bị thay (một lần)
   st.setItem(KEY, JSON.stringify({ ...old, money: 1 }));
   sv.read(1);
   assert.equal(st.getItem(backupKey(1)), raw);
-  // bản mới tạo đã là v2
-  assert.equal(createState(1).v, 2);
+  // bản mới tạo đã là v3
+  assert.equal(createState(1).v, 3);
 });
 
 test("chảo đôi (cấp 8): chiên trứng thứ hai khi trứng đầu còn trên chảo, gắp lần lượt; chảo đơn vẫn báo bận", async () => {

@@ -31,10 +31,10 @@ test("0 đồng, kho trống ⇒ gói ký gửi Cô Ba đủ 10 dĩa (vượt s�
   playShift(s, { rnd: seeded(4) });
 });
 
-test("kho đầy hàng phụ (đồ chua, dưa leo) mà không chỗ cho sườn ⇒ coi như không làm nổi ⇒ được ký gửi", () => {
+test("kho đầy hàng phụ (bì, trứng) mà không chỗ cho sườn ⇒ coi như không làm nổi ⇒ được ký gửi", () => {
   const s = newGame(42);
   for (const k of Object.keys(s.stock)) s.stock[k] = 0;
-  s.stock["do-chua"] = 40; s.stock["dua-leo"] = 40;
+  s.stock.bi = 40; s.stock.trung = 40;
   s.money = 500;
   assert.ok(stockUsed(s) >= capacity(s));
   assert.ok(!canMakeOne(s) && consignAvailable(s));

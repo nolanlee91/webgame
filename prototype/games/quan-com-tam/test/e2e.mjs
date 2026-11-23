@@ -8,6 +8,7 @@
 import { launch, sleep } from "./cdp.mjs";
 import { runM3A, runM3AMobile } from "./e2e-m3a.mjs"; // A: M3 tiến trình + kinh tế
 import { runM5V } from "./e2e-m5v.mjs"; // V: M5 hình + tiếng
+import { runM5 } from "./e2e-m5.mjs"; // S: M5 vỉ chay, hội chợ, thử thách, huy hiệu
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8851;
 const BASE = `http://127.0.0.1:${PORT}/games/quan-com-tam/?seed=777`;
@@ -238,7 +239,8 @@ async function replyFlow(tag, shots) {
 const MOBILE_ONLY = !!process.env.MOBILE_ONLY;
 await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
 const M5V = { b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT }; // V:
-if (process.env.M3_ONLY) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A: chỉ chạy phần M3
+if (process.env.M5_ONLY) await runM5({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // S: chỉ chạy phần M5
+else if (process.env.M3_ONLY) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A: chỉ chạy phần M3
 else if (process.env.M5V_ONLY) { if (!MOBILE_ONLY) await runM5V({ ...M5V, tag: "desktop" }); } // V: chỉ chạy phần M5 hình + tiếng
 else if (!MOBILE_ONLY) {
   // tách cho vừa giới hạn thời gian: DESK_PART=1 chỉ ngày 1 (+ review / Nhật Ký), DESK_PART=2 bỏ ngày 1 (quán mới) rồi chạy phần còn lại
@@ -311,7 +313,7 @@ else if (!MOBILE_ONLY) {
 }
 
 // ===== mobile 390×844 dpr 3, chạm ===== (DESKTOP_ONLY=1 bỏ qua; chạy tách hai lần cho vừa giới hạn thời gian)
-if (!process.env.DESKTOP_ONLY) {
+if (!process.env.DESKTOP_ONLY && !process.env.M5_ONLY) {
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 if (process.env.M5V_ONLY) await runM5V({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "mobile" }); // V:
 else {

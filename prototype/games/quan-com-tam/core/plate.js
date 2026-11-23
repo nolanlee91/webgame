@@ -2,11 +2,11 @@
 // Bước: dĩa / hộp → cơm (1 / 2 vá) → mỡ hành (1 / 2 phần) → món nướng (gắp từ vỉ) → bì → chả → trứng → đồ chua → dưa leo → nước mắm (chan / chén / bịch) → ngò.
 // Luật thứ tự tối thiểu: phải có dĩa / hộp trước; món ăn đặt lên cơm nên phải xới cơm trước (trừ bánh mì sườn). Còn lại bày theo ý.
 // Mỗi lớp trừ kho ngay lúc đặt. Hoàn tác / đổ dĩa: lớp đã bỏ tính hao (trừ dĩa sạch trả lại chồng, miếng sườn trả về vùng giữ ấm nếu còn chỗ).
-import { DISHES, STOCK, MO_HANH } from "../data/economy.js?v=c2";
-import { QUIRKS } from "../data/customers.js?v=c2";
-import { takeRice } from "./rice.js?v=c2";
-import { takeItem, isCooked, itemResult, freeWarm, hottestFree, placeItem, zoneOf } from "./grill.js?v=c2";
-import { takeEgg, eggState } from "./rice.js?v=c2";
+import { DISHES, STOCK, MO_HANH } from "../data/economy.js?v=c3";
+import { QUIRKS } from "../data/customers.js?v=c3";
+import { takeRice } from "./rice.js?v=c3";
+import { takeItem, isCooked, itemResult, freeWarm, hottestFree, placeItem, zoneOf } from "./grill.js?v=c3";
+import { takeEgg, eggState } from "./rice.js?v=c3";
 
 export const LAYER_NAME = {
   dia: "Dĩa", hop: "Hộp", com: "Cơm", moHanh: "Mỡ hành", hanhPhi: "Hành phi", meat: "Món nướng", bi: "Bì", cha: "Chả", trung: "Trứng",
@@ -181,7 +181,7 @@ export function pickMeat(s, gslot, ev = []) {
   const r = takeItem(sh.grill, gslot);
   if (r.err) return r;
   const it = r.it;
-  p.meat = { item: it.item, sides: it.sides.map((v) => Math.round(v)), fresh: Math.round(it.fresh), result: itemResult(it), perfect: it.perfect };
+  p.meat = { item: it.item, sides: it.sides.map((v) => Math.round(v)), fresh: Math.round(it.fresh), result: itemResult(it), perfect: it.perfect, ...(it.tainted ? { tainted: true } : {}) }; // S: đậu hũ dính mặn
   p.hist.push({ id: "meat", prev: null, piece: it });
   if (!p.order.includes("meat")) p.order.push("meat");
   use(p, meatStock(it.item));
@@ -195,7 +195,7 @@ export function bestPiece(s, tg) {
   g.slots.forEach((it, i) => {
     if (!it || !isCooked(it) || (tg.meat && it.item !== tg.meat)) return;
     const r = itemResult(it);
-    let sc = 10 + (zoneOf(i) === "warm" ? 3 : 0) + it.fresh / 100;
+    let sc = 10 + (zoneOf(i, g) === "warm" ? 3 : 0) + it.fresh / 100 - (it.tainted && tg.vegan ? 8 : 0); // S: dĩa chay tránh miếng dính mặn
     if (tg.charred ? r === "charred" : r === "done") sc += 5;
     if (sc > score) { score = sc; best = i; }
   });
@@ -206,10 +206,29 @@ function pickBest(s, ev) {
   const tg = targetOf(ticketOf(s, slot.tk));
   if (!tg.meat) return { err: "no-meat-dish" };
   const i = bestPiece(s, tg);
-  if (i < 0) return { err: "no-meat" };
+  if (i < 0) return caseHas(s, tg) ? pickFromCase(s, tg, ev) : { err: "no-meat" }; // S: tủ kính giữ ấm
   return pickMeat(s, i, ev);
 }
 
+/** S (M5): tủ kính giữ ấm (sh.case) có miếng hợp phiếu không. */
+export const caseHas = (s, tg) => !!tg?.meat && (s.shift?.case || []).some((it) => it.item === tg.meat);
+/** S (M5): gắp miếng từ tủ kính (tươi nhất trước; dĩa chay tránh miếng dính mặn). */
+export function pickFromCase(s, tg, ev = []) {
+  const sh = s.shift, slot = slotOf(s), p = slot.plate;
+  if (!p) return { err: "need-container" };
+  if (tg.com > 0 && p.com === 0) return { err: "need-com" };
+  if (p.meat) return { err: "has-meat" };
+  const list = sh.case.map((it, i) => ({ it, i })).filter((x) => x.it.item === tg.meat).sort((a, b) => (a.it.tainted && tg.vegan ? 1 : 0) - (b.it.tainted && tg.vegan ? 1 : 0) || b.it.fresh - a.it.fresh);
+  if (!list.length) return { err: "no-meat" };
+  const it = list[0].it;
+  sh.case.splice(list[0].i, 1);
+  p.meat = { item: it.item, sides: it.sides.map((v) => Math.round(v)), fresh: Math.round(it.fresh), result: itemResult(it), perfect: it.perfect, ...(it.tainted ? { tainted: true } : {}) };
+  p.hist.push({ id: "meat", prev: null, piece: it, fromCase: true });
+  if (!p.order.includes("meat")) p.order.push("meat");
+  use(p, meatStock(it.item));
+  ev.push({ type: "layer", id: "meat", result: p.meat.result, from: "case" });
+  return { ok: true };
+}
 /** Hoàn tác lớp gần nhất. */
 export function undo(s, ev = []) {
   const sh = s.shift, slot = slotOf(s), p = slot.plate;
@@ -222,8 +241,9 @@ export function undo(s, ev = []) {
     case "com": addWaste(sh, "com", 1, STOCK["gao-tam"].cost); p.com = h.prev; if (p.used.com) p.used.com--; break;
     case "moHanh": addWaste(sh, "moHanh", 1, MO_HANH.portionCost); p.moHanh = h.prev; if (p.used.moHanh) p.used.moHanh--; break;
     case "meat": {
-      const back = freeWarm(sh.grill) >= 0 ? freeWarm(sh.grill) : hottestFree(sh.grill);
-      if (back >= 0 && h.piece) { sh.grill.slots[back] = h.piece; ev.push({ type: "meatBack", slot: back }); }
+      const back = freeWarm(sh.grill) >= 0 ? freeWarm(sh.grill) : hottestFree(sh.grill, h.piece?.item);
+      if (h.fromCase && sh.case && sh.case.length < 6 && h.piece) { sh.case.push(h.piece); ev.push({ type: "meatBack", to: "case" }); } // S: trả về tủ kính
+      else if (back >= 0 && h.piece) { sh.grill.slots[back] = h.piece; ev.push({ type: "meatBack", slot: back }); }
       else addWaste(sh, meatStock(p.meat.item), 1);
       if (p.used[meatStock(p.meat.item)]) p.used[meatStock(p.meat.item)]--;
       p.meat = null; break;
@@ -271,7 +291,7 @@ export function nextStep(s) {
   if (p.moHanh < tg.moHanh) return "moHanh";
   if (tg.hanhPhi && !p.hanhPhi) return "hanhPhi";
   if (tg.meat && !p.meat) {
-    if (bestPiece(s, tg) >= 0) return "meat";
+    if (bestPiece(s, tg) >= 0 || caseHas(s, tg)) return "meat"; // S: tủ kính
     return sh.grill.slots.some((it) => it && it.item === tg.meat && !it.reserved) ? "wait-meat" : "grill";
   }
   if (tg.bi && !p.bi) return "bi";
