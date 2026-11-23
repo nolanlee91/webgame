@@ -81,16 +81,18 @@ Bản gộp ở `claude/qct-int`, chưa push, chưa vào master.
 - chảo đôi;
 - nhập hàng chia chỗ kho.
 
-**E2E:** chạy `PORT=8855 node server.js`, rồi chạy e2e tách ba lần cho mỗi lần dưới 3 phút:
+**E2E:** chạy `PORT=8855 node server.js`, rồi chạy e2e tách bốn lần cho mỗi lần dưới 3 phút:
 
-| Biến môi trường | Phần chạy | Số kiểm |
-|---|---|---:|
-| `DESKTOP_ONLY=1 SKIP_M3=1` | Desktop ngày 1; review, tính cách, Nhật Ký; Drama | 53 |
-| `DESKTOP_ONLY=1 M3_ONLY=1` | Phần M3 của A | 28 |
-| `MOBILE_ONLY=1` | Mobile 390@3 ngày 1, M3 mobile, nhóm chờ cửa quán | 47 |
+| Biến môi trường | Phần chạy | Số kiểm | Thời gian |
+|---|---|---:|---:|
+| `DESKTOP_ONLY=1 DESK_PART=1` | Desktop ngày 1 bằng chạm thật; review, tính cách, 6 tab Sổ, Nhật Ký | 41 | ~2 phút 40 |
+| `DESKTOP_ONLY=1 DESK_PART=2` | Tải lại giữa ca, Drama (K14, O11), chơi lại từ đầu, bản lưu hỏng | 14 | ~10 giây |
+| `DESKTOP_ONLY=1 M3_ONLY=1` | Phần M3 của A (ca trưa, ghi sổ, chơi lại ngày, lên quán, mâm cơm, Bông, trang trí) | 28 | ~20 giây |
+| `MOBILE_ONLY=1` | Mobile 390@3 ngày 1, M3 mobile, nhóm chờ cửa quán | 47 | ~1 phút 20 |
 
-Mỗi lần chạy `CDP_PORT=9485 PORT=8855 node prototype/games/quan-com-tam/test/e2e.mjs <thư mục ảnh>`. Cả ba lần đều ra "E2E ĐẠT", 0 lỗi console.
+Mỗi lần chạy `CDP_PORT=9485 PORT=8855 node prototype/games/quan-com-tam/test/e2e.mjs <thư mục ảnh>`. Cả bốn lần đều ra "E2E ĐẠT", 0 lỗi console.
 Không đặt biến môi trường thì chạy hết một lần, khoảng 4–5 phút.
+Vòng chơi ngày 1 của e2e bỏ qua lỗi "ca đã chốt" khi ca tự chốt giữa hai lệnh, vì đồng hồ ca chạy thật.
 
 **Còn thiếu sau khi gộp:**
 - **Kho vỉa hè cấp 5–6:** 19–21 dĩa cần hơn 80 phần, nên đồ chua / dưa leo (gói 20) hay hụt. Đã có lựa chọn cứu miễn phí. Chủ dự án quyết có tăng sức chứa vỉa hè hoặc đổi cỡ gói không.

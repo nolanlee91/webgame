@@ -84,6 +84,7 @@ async function playDay1(tag, shots) {
   let delivered = 0, flips = 0, perfect = 0, billsAuto = 0, billsManual = 0, cleaned = 0, washed = 0, layersOk = true, firstPlate = true, covered = [], coveredOv = [], hintSeen = new Set(), seatedByTap = 0;
   const shot = async (n) => { if (shots) await b.shot(`${OUT}/${tag}-${n}.png`); };
   for (let guard = 0; guard < 3000 && (await S("!!s.shift")); guard++) {
+    try { // ca tự chốt giữa hai lệnh (đồng hồ ca chạy thật) ⇒ ra khỏi vòng, không coi là lỗi
     await clearDialogs();
     if (!(await S("!!s.shift"))) break;
     const h = await b.ev("JSON.stringify(__game.hint())").then(JSON.parse).catch(() => null);
@@ -147,6 +148,7 @@ async function playDay1(tag, shots) {
     if (free && (await S("s.shift.grill.coal<35&&s.shift.grill.pending.length===0&&s.stock.than>0"))) { await pressSel('[data-act="addCoal"]'); continue; }
     if (process.env.DEBUG && guard % 20 === 0) console.log(guard, LAST.join(' ; '), JSON.stringify(h), await S("JSON.stringify({t:Math.round(s.shift.t/1000),own:s.shift.owner.task&&s.shift.owner.task.kind,q:s.shift.owner.queue.length,slot:s.shift.slots[0].tk,g:s.shift.groups.map(g=>g.phase+':'+g.table),tk:s.shift.tickets.map(t=>t.status)})"), await step());
     await b.ev("__game.advance(600)");
+    } catch (e) { if (await S("!!s.shift").catch(() => true)) throw e; break; }
   }
   check(`${tag}: chơi trọn ngày 1 bằng nút thật`, delivered >= 6, `${delivered} dĩa bưng ra bàn, ${seatedByTap} lần mời ngồi`);
   check(`${tag}: dĩa đổi lớp sau mỗi bước bày (plate-layers)`, layersOk);
@@ -236,8 +238,12 @@ const MOBILE_ONLY = !!process.env.MOBILE_ONLY;
 await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
 if (process.env.M3_ONLY) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A: chỉ chạy phần M3
 else if (!MOBILE_ONLY) {
-  await playDay1("desktop", true);
+  // tách cho vừa giới hạn thời gian: DESK_PART=1 chỉ ngày 1 (+ review / Nhật Ký), DESK_PART=2 bỏ ngày 1 (quán mới) rồi chạy phần còn lại
+  const part = process.env.DESK_PART || "";
+  if (part !== "2") await playDay1("desktop", true);
+  else { await b.send("Page.navigate", { url: "about:blank" }); await sleep(300); await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" }); await b.nav(BASE); await pressSel("#introGo"); await waitFor("__game.overlay==='prep'"); }
   check("desktop: cảnh hệ số bội 0,5 thiết bị (1366@1,25 ⇒ 1,0)", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio;return Math.abs(k-1)<1e-6})()"), String(await b.ev("__game.sceneScale()")));
+  if (part !== "1") {
   // giữa ca tải lại giữ dĩa đang bày, kho, tiền (không trừ hai lần)
   await pressSel('[data-act="restockToday"]');
   await pressSel('[data-tab="first"]');
@@ -296,7 +302,8 @@ else if (!MOBILE_ONLY) {
   await b.ev("localStorage.setItem('wgp.quancomtam.v1','{hỏng');localStorage.removeItem('wgp.quancomtam.v1.corrupt')");
   await b.nav(BASE);
   check("desktop: bản lưu hỏng được chép sang .corrupt, mở quán mới", (await b.ev("localStorage.getItem('wgp.quancomtam.v1.corrupt')")) === "{hỏng" && (await S("s.day")) === 1);
-  if (!process.env.SKIP_M3) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A:
+  }
+  if (!process.env.SKIP_M3 && !part) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A:
 }
 
 // ===== mobile 390×844 dpr 3, chạm ===== (DESKTOP_ONLY=1 bỏ qua; chạy tách hai lần cho vừa giới hạn thời gian)
