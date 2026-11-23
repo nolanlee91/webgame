@@ -2,7 +2,7 @@
 
 **Vị trí và chuẩn:**
 - Game ở `prototype/games/quan-com-tam/` (M1 + M2 lõi, chưa có thẻ trang chủ).
-- Lưu ở `localStorage["wgp.quancomtam.v1"]`.
+- Lưu ở `localStorage["wgp.quancomtam.v1"]`. Khoá giữ nguyên. Từ bản gộp M3 + M4, phiên bản trong bản lưu là `v: 2`; bản v1 được chép nguyên văn sang `….bak-v1` một lần trước khi nâng.
 - Làm trong worktree `.claude/worktrees/quan-com-tam`, branch `claude/quan-com-tam`.
 - Khung code chép từ **Tiệm Bánh Mì** (bản M5), không chép từ Trà Sữa.
 - Chuẩn chung: `docs/tap-lam-chu/PLAYBOOK.md`.
@@ -16,9 +16,94 @@
 | Đợt 1 (Codex) | **Đã giao, đã gộp** (`codex/com-tam-wave1` 4bc6dab) | `check_assets`: 0 lỗi, 11 cảnh báo (đợt 2 tuỳ chọn). Đủ 74 toạ độ + 12 khoá đường đi / bàn. |
 | M1 · Kiến trúc + cảnh + bàn | **Xong (lõi)** | Xem "M1 + M2 lõi" bên dưới. |
 | M2 · Một ca trọn | **Xong (lõi)** | Ngày 1 chơi trọn bằng chạm thật (e2e desktop 1366@1,25 + mobile 390@3). |
-| M3 · Kinh tế + nội dung cơ chế | Chưa bắt đầu | |
-| M4 · Drama + review + Nhật Ký | **Phần C xong** (review, tính cách, Sổ, Nhật Ký) | Xem "M4 phần C". Drama (B) và tiến trình (A) làm song song. |
+| M3 · Kinh tế + nội dung cơ chế | **Xong (gộp, branch `claude/qct-int`)** | Phần A: 20 cấp, ca trưa, ghi sổ, lên quán, đơn đặt / mâm cơm, Bông, nhiệm vụ, trang trí, hạng quán… Xem "M3 + M4 gộp" và "M3 · phần A". |
+| M4 · Drama + review + Nhật Ký | **Xong (gộp, branch `claude/qct-int`)** | Phần B: Drama, 104 sự kiện. Phần C: review, tính cách, Sổ, Nhật Ký. Xem "M3 + M4 gộp". |
 | M5 · Polish + cân bằng | Chưa bắt đầu | |
+
+## M3 + M4 gộp (A + B + C, đã làm)
+
+Ba agent làm song song trên d3db69b:
+- **A**: tiến trình + kinh tế (`claude/qct-a`).
+- **B**: Drama (`claude/qct-b`).
+- **C**: review, tính cách, Sổ, Nhật Ký (`claude/qct-c`).
+
+Bản gộp ở `claude/qct-int`, chưa push, chưa vào master.
+
+**Chơi được:**
+- **Tiến trình:**
+  - 20 cấp, ca trưa từ cấp 5, ghép bàn, nồi canh.
+  - Ghi sổ (cấp 6) có Sổ nợ. Lên quán (cấp 7, 350k).
+  - Đơn đặt trước và mâm cơm công ty, bày ×N.
+  - Phụ bàn Bông, Dì Năm rửa chén, Chú Hòa giao hàng.
+  - Cơm chiên từ cơm dư, nhiệm vụ ngày, quảng bá, hạng quán, nước mắm nhà pha.
+  - Trang trí kéo thả, thời tiết, ca khuya kéo dài, bếp 2, quạt máy, chảo đôi (2 trứng).
+- **Drama:** 104 sự kiện: 58 ở DRAMA.md, 33 sự kiện cơ chế, V08–V10, R01–R10.
+  - Hội thoại trong ca dừng đồng hồ. Sự kiện giữa hai ngày hiện trên bảng Chuẩn bị.
+  - Có chân dung HD, cờ có hạn, mod khách, đơn đặt trước, khoảnh khắc Nhật Ký.
+- **Review và Sổ:**
+  - Review có lý do. Cô chủ trả lời theo 4 tính cách.
+  - Sổ quản lý có 6 tab: Review · Nhật ký · Sự kiện · Nhiệm vụ · Huy hiệu · Sổ nợ.
+  - Thẻ Nhật Ký 1080×1350.
+
+**Quyết định khi gộp:**
+
+| Chỗ chồng | Cách gộp |
+|---|---|
+| `followers` (A, B, C đều thêm) | Một sổ: `s.followers` + `s.hype`, khối C đọc ở `loadSocial`.<br>- A bỏ `followers` / `buzz` khỏi `freshA` / `loadA`.<br>- Quảng bá của A ghi `followers`, cộng `buzz` của gói vào `hype`.<br>- B ghi thẳng `followers` / `hype`.<br>- Review của A (`addReviewA`: mâm cơm, trả nợ) đi qua `pushReview` của C: có lý do, người theo dõi, đánh giá trung bình 20 review. |
+| Đọc `s.flags` | Một bộ đọc: khối B trong `core/state.js`.<br>- Chỉ nhận `true` / số, khoá dài ≤ 60, tối đa 200 cờ.<br>- Dòng đọc cờ trong `loadA` đã bỏ. |
+| Sổ | Giữ Sổ có tab của C (`ui/notebook.js`). Sổ cũ trong `ui/overlays.js` đã bỏ.<br>Tab mới cắm ở `ui/book-tabs.js`:<br>- **Sự kiện**: `s.drama.history` + `s.drama.moments`;<br>- **Nhiệm vụ**: ca đang mở / ca vừa chốt;<br>- **Huy hiệu**: cấp, giai đoạn quán, hạng, cột mốc, khách quen, kỷ niệm vỉa hè;<br>- **Sổ nợ**: `PU.book`, xoá nợ ngoài ca.<br>Ở 390 px hàng tab cuộn ngang và tự cuộn tới tab đang mở. |
+| Bảng chốt ca | Giữ phần của cả hai:<br>- A: lương phụ việc, nhiệm vụ, ghi sổ, mâm cơm, cơm chiên (`PU.summary`);<br>- C: câu chốt, nút "Nhật Ký Làm Chủ", nút "Trả lời review".<br>Nút "Chơi lại ngày hôm nay" chỉ hiện một lần. |
+| Thứ tự móc mở ca | 1. Lịch gốc.<br>2. A `PG.onStart`: mưa, ca trưa dồn, khách thêm, đơn mâm, nhiệm vụ.<br>3. C `onShiftStart`: khách nhờ review, khách quay lại.<br>4. B `startDrama`: khách dồn, mod, đơn đặt.<br>Mưa của A và "bớt khách" của B, C chỉ bớt khách **không nhãn**. Số khách báo lúc mở ca tính sau cùng. |
+| Thứ tự móc khác | - Nhịp ca: A `onTick` trước, B `maybeTrigger` cuối nhịp (đọc cờ A vừa đặt).<br>- Chốt ca: A `afterEnd` trước C `onShiftEnd`, nên lời lỗ ngày trong Nhật Ký đã trừ lương.<br>- Sang ngày: C `onNewDay` → A `onNextDay` (sổ nợ, thời tiết, cờ) → B `endDrama`. |
+| Khách có hẹn | Cửa đầy: khách thường thử 4 lần rồi đi ngang.<br>Khách quay lại (nhãn `back`) và đơn đặt / mâm (`dr:…`, `cat…`) chờ tới khi có chỗ (`keepsTrying`, `core/shift.js`).<br>Đây là gốc lỗi test "khách quay lại đã tới". |
+| Đơn đặt trước | Ở quán từ cấp 7, `fx.preorder` của Drama từ 8 phần trở lên (X03, D06, K07…) thành đơn mâm thật của A (`openDramaOrder`).<br>- Có phiếu "Mâm cơm ×N", bày ×N, giờ hẹn, trễ trừ tiền.<br>- Giao đủ và đạt sao thì có cờ `flagOk`, sự kiện nối tiếp, tip của Drama.<br>Vỉa hè hoặc đơn nhỏ vẫn là nhóm khách `dr:` như cũ.<br>Đơn hẹn ca không mở hôm nay (vd mâm trưa mà chỉ mở ca tối) dồn vào ca cuối ngày. |
+| Ghi sổ | - Sự kiện S03 (`fx.payDebt`) trả sổ nợ thật của khách nợ lâu nhất qua `payDebt(s, id, ev)`. Sổ trống thì vẫn +30k.<br>- `debtMin` và biến `{debt}` cộng cả sổ nợ thật (`debtTotal`).<br>- Nợ của Anh Sáu (chuỗi K03–K05, `s.drama.debt`) vẫn là chuyện riêng của Drama. |
+| Nhật Ký | - Ngày lên quán (`moved`) và ngày giao trọn mâm cơm (`catering-done`) của A vào khoảnh khắc ngày qua `dayMoment`.<br>- Khoảnh khắc Drama hôm nay (`s.drama.moments`) vào Nhật Ký lúc chốt ngày.<br>- Thêm 3 nhóm câu chốt `moved` / `catering` / `drama` (`data/lines-journal.js`). |
+| Bản lưu | `SAVE_VERSION = 2`.<br>- `MIGRATIONS[1]`: gộp `buzz` vào `hype`, lọc cờ rác.<br>- `save.js` chép nguyên văn `….bak-v1` một lần.<br>- Tải lại giữ các khoá thống kê mới (`debtPaid`, `ordersDone`, `missions`) và `feed[].mech`. |
+| Cache | Mọi import và `index.html` dùng `?v=c2`. |
+
+**Sửa nhỏ khi gộp:**
+- **"Nhập + ướp đủ":** mua lần lượt từng gói theo vòng; món của menu (bì, chả, trứng) xếp ngay sau sườn + gạo. Kho thiếu chỗ thì chia chỗ theo tỉ lệ nhu cầu. Kho vỉa hè 80 không còn hết chỗ trước khi tới bì / chả.
+- **Chảo đôi (`egg-pan-2`):** chiên trứng thứ hai khi trứng đầu còn trên chảo, gắp lần lượt.
+- **Quán ở 390 px:** nhãn "n người" của các nhóm chờ sát cửa không còn chồng nhau (lùi sang trái, hết chỗ thì xếp tầng). Bong bóng thoại tránh nút nhóm chờ và bong bóng khác.
+- **Test của A:** ca thử mâm cơm và ca thử cơm chiên tắt Drama trong ca (`drama.max = 0`). Drama có test riêng.
+
+**Test:** `node --test "test/*.test.mjs"` ra 112 test, đạt hết.
+
+`test/integration.test.mjs` (9 test):
+- 10 ngày có hạt qua cấp 7: lên quán, đơn đặt, Drama, trả lời review, Nhật Ký mỗi ngày, tải lại y nguyên;
+- cờ qua tải lại;
+- một sổ người theo dõi;
+- thứ tự móc mở ca;
+- mâm cơm từ Drama;
+- S03 trả nợ;
+- nâng v1 → v2 + `.bak-v1`;
+- chảo đôi;
+- nhập hàng chia chỗ kho.
+
+**E2E:** chạy `PORT=8855 node server.js`, rồi chạy e2e tách ba lần cho mỗi lần dưới 3 phút:
+
+| Biến môi trường | Phần chạy | Số kiểm |
+|---|---|---:|
+| `DESKTOP_ONLY=1 SKIP_M3=1` | Desktop ngày 1; review, tính cách, Nhật Ký; Drama | 53 |
+| `DESKTOP_ONLY=1 M3_ONLY=1` | Phần M3 của A | 28 |
+| `MOBILE_ONLY=1` | Mobile 390@3 ngày 1, M3 mobile, nhóm chờ cửa quán | 47 |
+
+Mỗi lần chạy `CDP_PORT=9485 PORT=8855 node prototype/games/quan-com-tam/test/e2e.mjs <thư mục ảnh>`. Cả ba lần đều ra "E2E ĐẠT", 0 lỗi console.
+Không đặt biến môi trường thì chạy hết một lần, khoảng 4–5 phút.
+
+**Còn thiếu sau khi gộp:**
+- **Kho vỉa hè cấp 5–6:** 19–21 dĩa cần hơn 80 phần, nên đồ chua / dưa leo (gói 20) hay hụt. Đã có lựa chọn cứu miễn phí. Chủ dự án quyết có tăng sức chứa vỉa hè hoặc đổi cỡ gói không.
+- **Phần A còn dở:**
+  - chưa có chỗ nướng chay riêng;
+  - tủ kính giữ ấm chưa có luật;
+  - "+1 điểm kỳ vọng" của nước mắm nhà pha chưa cộng vào điểm;
+  - bếp 2 chưa có than riêng;
+  - bày ×N chưa có cho bàn 4 người cùng món.
+- **Hai sổ nợ:** nợ Anh Sáu của Drama và sổ nợ thật của A vẫn tách. Tab Sổ nợ chỉ hiện sổ thật.
+- **Nhóm chờ ở 390 px:** bong bóng không còn chỗ thì ẩn, không chồng. Chưa đo lúc có 4 nhóm chờ (ghế chờ cấp 16).
+- **Trang trí từ Drama:** `fx.decor` (vd hoa giấy, lá thư) chưa thành đồ kéo thả của A.
+- Chưa dùng ảnh đợt 2. Chưa có thẻ trang chủ.
 
 ## M1 + M2 lõi (đã làm)
 
@@ -99,7 +184,7 @@ review 1–5 sao (6–10 câu chung + theo vai); câu tới quán, chờ bàn, g
 **Khoá trạng thái mới** (`core/state.js` khối `// --- A: progression ---`, mặc định + đọc bản lưu cũ ở `freshA()` / `loadA()`):
 `debts`, `debtNews`, `tabVisits`, `orders`, `offers`, `nextOrder`, `tier`, `fishSauce`, `staff`, `promo`, `followers`, `buzz`, `decor`, `placement`,
 `streetMemory`, `friedRice`, `weather`, `lateShift`. Trong ca: `sh.a`, `sh.missions`, `sh.helper`, `sh.dishwasher`, `sh.soup`, `slot.batch`, `ticket.catering / n / plus`,
-`table.joined / joinOf`, `grill.blower / hood`. Không đổi phiên bản bản lưu.
+`table.joined / joinOf`, `grill.blower / hood`. Bản gộp nâng bản lưu lên v2 (xem "M3 + M4 gộp").
 
 **Bếp than thứ hai** (cấp 14, quán): +6 chỗ (chỗ 6–11, cùng luật vùng, chung than), vẽ ở `grill-2` (kệ sau); Thanh Bếp có nút đổi chip bếp 1 / bếp 2, phím `Shift+1..6`.
 
@@ -184,7 +269,7 @@ Review trong `feed` có thêm `reason`, `src` (`quan` / `mang`), `reply`.
 **Cắm tab vào Sổ (`ui/notebook.js`):**
 
 ```js
-import { registerTab } from "./ui/notebook.js?v=c1";
+import { registerTab } from "./ui/notebook.js?v=c2";
 registerTab("events", "Sự kiện", (body, state, ctx) => { /* vẽ vào body; ctx = { act, rerender, close, el, button, starText } */ });
 ```
 
@@ -243,7 +328,7 @@ Ghi bằng `s.flags[name] = value`. Agent B (`core/flags.js`, sự kiện R01–
   - Ghế có `face: "left"` thì vẽ lật ngang. Lật bằng `scale(-1,1)` quanh anchor x, vẫn snap lưới 2 px.
 - **Thiếu frame thì vẽ hình dự phòng** cùng ô + anchor (`render/placeholder.js`).
   - Khách ngồi chưa có: vẽ dáng `waiting` cắt ngang hông, đặt thấp xuống 50 px.
-- **Mọi import** mang tag `?v=c1` (đổi cùng lúc khi deploy có đổi API).
+- **Mọi import** mang tag `?v=c2` từ bản gộp M3 + M4. Đổi tag cùng lúc khi deploy có đổi API.
 - `CHAR_H = 288` (`render/scene.js`); ô nhân vật 216×288 hiện ×1.
 
 ## Quyết định cần chủ dự án

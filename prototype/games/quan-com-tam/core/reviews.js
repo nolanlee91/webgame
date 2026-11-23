@@ -278,7 +278,7 @@ export function onShiftStart(s) {
   const singles = sched.filter((g) => g.roles.length === 1 && !ARCHETYPES[g.arch]?.takeaway);
   const base = singles.length ? singles : sched.filter((g) => !ARCHETYPES[g.arch]?.takeaway);
   if (k > 0 && base.length) for (let i = 0; i < k; i++) { const e = base[int(s, base.length)]; sched.push({ at: Math.round(sh.len * (0.08 + next(s) * 0.6)), arch: e.arch, roles: [e.arch], patienceMul: 1, tag: "buzz" }); }
-  else if (k < 0) for (let i = 0; i < -k && singles.length > 1; i++) { const e = singles.splice(1 + int(s, singles.length - 1), 1)[0]; sched.splice(sched.indexOf(e), 1); }
+  else if (k < 0) { const plain = singles.filter((g) => !g.tag); for (let i = 0; i < -k && plain.length > 1; i++) { const e = plain.splice(1 + int(s, plain.length - 1), 1)[0]; sched.splice(sched.indexOf(e), 1); } } // chỉ bớt khách thường (không bỏ khách có nhãn của A)
   const due = (s.returning || []).filter((g) => g.day <= s.day && ARCHETYPES[g.arch] && ARCHETYPES[g.arch].unlock <= s.level).slice(0, 3);
   s.returning = (s.returning || []).filter((g) => !due.includes(g));
   due.forEach((g, i) => {
