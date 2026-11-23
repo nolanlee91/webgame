@@ -110,7 +110,7 @@ export function startShift(s, ev = []) {
   ev.push(started);
   PG.onStart(s, ev); // A: lịch khách (mưa, khách thêm, ca trưa dồn), đơn mâm cơm, nhiệm vụ, phụ bàn, nồi canh
   onShiftStart(s); // C: khách thêm nhờ đánh giá / độ hot + khách quay lại nhờ câu trả lời
-  startDrama(s); // B: drama (khách dồn / mod / đơn đặt trước vào lịch)
+  startDrama(s, {}, ev); // B: drama (khách dồn / mod / đơn đặt trước vào lịch; ở quán đơn nhiều phần thành mâm cơm của A)
   started.guests = s.shift.schedule.filter((g) => !g.done).reduce((a, g) => a + g.roles.length, 0);
   return { ok: true };
 }

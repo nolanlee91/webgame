@@ -12,6 +12,7 @@ import {
 } from "../data/economy.js?v=c1";
 import { ARCHETYPES } from "../data/customers.js?v=c1";
 import * as LP from "../data/lines-progress.js?v=c1";
+import { FLAG_DAYS } from "./flags.js?v=c1"; // B: hạn cờ Drama
 import { pushReview, dayMoment } from "./reviews.js?v=c1"; // C: một sổ review, khoảnh khắc Nhật Ký
 import { next, int, weighted } from "./rng.js?v=c1";
 import { freshLine, fill } from "./text.js?v=c1";
@@ -429,6 +430,40 @@ function openOrders(s, sh, ev) {
   }
   if (any) setFlag(s, "catering-active", s.day);
 }
+/**
+ * Gộp B → A: đơn đặt trước của Drama (fx.preorder, vd X03 mâm cơm 40 phần, D06 xưởng, K07 lớp liên hoan) thành đơn mâm thật của A
+ * (phiếu "Mâm cơm ×N", bày ×N, giờ hẹn, trễ trừ tiền) khi quán đã mở đơn đặt (ở quán, cấp 7+). Cọc đã vào két lúc chọn sự kiện.
+ * Giao đủ đạt sao ⇒ cờ / sự kiện nối tiếp / tip của Drama (p.flagOk, p.laterOk, p.tip). Trả true nếu đã nhận thành đơn A.
+ */
+export function openDramaOrder(s, p, ev = []) {
+  const sh = s.shift;
+  if (!sh || !ordersOpen(s) || !(p.n >= 8)) return false;
+  const menu = orderMenu(s);
+  if (!menu.length) return false;
+  const n = Math.min(40, Math.round(p.n));
+  const dish = menu.includes("com-suon") ? "com-suon" : menu[int(s, menu.length)];
+  const total = Math.round(n * orderUnit(s, dish) * (n >= 10 ? 0.93 : 1));
+  const deposit = Math.round(total * PREORDER.deposit);
+  const W = ARCHETYPES[p.arch] ? p.arch : "office";
+  const order = { id: (s.nextOrder = (s.nextOrder || 0) + 1), kind: "catering", name: p.label || "Khách đặt trước", arch: W, label: p.label || "", dish, n, done: 0, total, deposit, day: s.day, shift: sh.kind,
+    dueFrac: Math.min(0.85, Math.max(0.4, (p.at ?? 0.2) + 0.35)), status: "open", drama: { id: p.id, flagOk: p.flagOk || null, laterOk: p.laterOk || null, tip: p.tip || 0, okStars: p.okStars ?? 4 } };
+  order.dueT = Math.round(sh.len * order.dueFrac);
+  s.orders = [...(s.orders || []).filter((x) => x.day >= s.day), order].slice(-6);
+  const t = { id: sh.nextTk++, gid: null, tid: null, mi: 0, name: "Mâm cơm", role: W, dish, quirks: [], takeaway: true, status: "open", orderT: 0, nhuCu: false, catering: order.id, n, line: `${order.name}: ${n} phần ${DISHES[dish].name.toLocaleLowerCase("vi")}` };
+  sh.tickets.push(t);
+  setFlag(s, "catering-active", s.day);
+  ev.push({ type: "orderOpen", id: order.id, n, dueT: order.dueT });
+  return true;
+}
+/** Đơn của Drama giao xong đạt sao ⇒ hậu quả của Drama (cờ còn hạn, sự kiện nối tiếp, tip). Chỉ ghi dữ liệu, không gọi core/drama.js. */
+function dramaOrderDone(s, o, stars, ev) {
+  const W = o.drama;
+  if (!W || stars < W.okStars || !s.drama) return;
+  if (W.tip) { s.money += W.tip; if (s.shift) s.shift.stats.revenue += W.tip; }
+  if (W.flagOk) s.drama.flags[W.flagOk] = Math.max(1, s.day) + FLAG_DAYS + 2;
+  if (W.laterOk?.id) s.drama.queue.push({ id: W.laterOk.id, day: Math.max(1, s.day) + (W.laterOk.days ?? 1), from: "dr:" + W.id });
+  ev.push({ type: "say", text: `${o.label || o.name}: giao trọn, khách hài lòng${W.tip ? ` (+${W.tip}k tip)` : ""}.`, kind: "good" });
+}
 export const isCateringSlot = (s) => { const sl = s.shift?.slots[s.shift.sel]; return !!(sl && sl.tk !== null && ticketById(s, sl.tk)?.catering); };
 const TOGGLE = { bi: "bi", cha: "cha", doChua: "doChua", duaLeo: "duaLeo", ngo: "ngo", hanhPhi: "hanhPhi" };
 /** Bày ×N: mỗi chạm áp cho cả hàng dĩa của mâm (ô bày đôi 2, khay 4). layerFn = plate.layer. */
@@ -527,6 +562,7 @@ function finishOrder(s, o, ev, partial = false) {
   if (!(s.orders || []).some((x) => x.day === s.day && (x.status === "open" || x.status === "waiting"))) setFlag(s, "catering-active", 0);
   sh.a.ordersDone = (sh.a.ordersDone || 0) + (late ? 0 : 1);
   ev.push({ type: "orderDone", id: o.id, kind: o.kind, late, partial, pay, stars, line: freshLine(s, late ? LP.CATERING_PICKUP_LATE : LP.CATERING_PICKUP_ONTIME, { name: o.name, n: o.n }) });
+  dramaOrderDone(s, o, stars, ev); // B: đơn đặt từ sự kiện
   if (!late) { missionBump(s, "preorder", 1, ev); s.stats.ordersDone = (s.stats.ordersDone || 0) + 1; }
   dayMoment(s, { who: "", kind: late ? "catering-late" : "catering-done", line: late ? `${o.name}: ${o.done}/${o.n} phần, giao trễ.` : `Giao trọn ${o.n} phần cho ${o.name}, đúng giờ.` }); // C: Nhật Ký
 }
@@ -600,6 +636,11 @@ export function payDebt(s, id, ev = [], { review = true } = {}) {
   syncDebtFlags(s, [id]);
   ev.push({ type: "debtPaid", id, name, amount });
   return { ok: true, amount };
+}
+/** Khách nợ lâu nhất (sự kiện "khách nợ quên trả kèm thư" của Drama trả đúng người này qua payDebt). */
+export function oldestDebtor(s) {
+  const d = [...(s.debts || [])].sort((a, b) => a.day - b.day)[0];
+  return d ? d.id : null;
 }
 /** Xoá nợ (Sổ): mất tiền, +1 danh tiếng. */
 export function forgiveDebt(s, id, ev = []) {

@@ -14,6 +14,7 @@ import { fill } from "./text.js?v=c1";
 import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c1";
 import { gainXp } from "./progress.js?v=c1";
 import { sendAway } from "./walker.js?v=c1";
+import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c1"; // A: đơn mâm thật, sổ nợ thật
 
 export { freshDrama };
 export const DRAMA = {
@@ -21,7 +22,7 @@ export const DRAMA = {
 };
 export const FX_KEYS = new Set(["money", "rep", "xp", "followers", "hype", "stock", "guests", "arch", "group", "preorder", "nextGuests", "mod", "flag", "flagDays", "unflag",
   "patience", "whoPatience", "away", "coal", "smoke", "rice", "plates", "closeEarly", "pauseGuests", "freeWho", "teaAll", "cleanTables", "wash", "helper", "debt", "own",
-  "decor", "catName", "moment"]);
+  "decor", "catName", "moment", "payDebt"]); // payDebt: A (sổ nợ thật)
 export const IF_KEYS = new Set(["minDay", "maxDay", "minLevel", "maxLevel", "minRep", "maxRep", "minMoney", "maxMoney", "minFollowers", "minHype", "flags", "noFlags", "anyFlags",
   "flagMin", "stage", "owns", "notOwns", "chain", "sum", "debtMin",
   "kind", "phase", "fMin", "fMax", "waitingMin", "seatedMin", "freeSeats", "dirtyMin", "coalMax", "coalMin", "smokeMin", "riceCooking", "riceMax", "stockMax",
@@ -71,7 +72,7 @@ export function meets(ifs = {}, x) {
   if (ifs.stage && (s.stage || "street") !== ifs.stage) return false;
   if (ifs.owns && ![].concat(ifs.owns).some((id) => s.owned?.[id] || s.drama?.decor?.[id])) return false;
   if (ifs.notOwns && (s.owned?.[ifs.notOwns] || s.drama?.decor?.[ifs.notOwns])) return false;
-  if (ifs.debtMin !== undefined && Object.values(s.drama?.debt || {}).reduce((a, b) => a + b, 0) < ifs.debtMin) return false;
+  if (ifs.debtMin !== undefined && Object.values(s.drama?.debt || {}).reduce((a, b) => a + b, 0) + debtTotal(s) < ifs.debtMin) return false; // A: cộng sổ nợ thật
   if (ifs.sum) {
     const S = x.sum, q = ifs.sum;
     if (!S) return false;
@@ -225,7 +226,7 @@ function pushGuest(s, arch, at, extra = {}) {
 const randomArch = (s) => pick(s, ["student", "worker", "office", "driver", "worker2", "nurse"]);
 
 /** Gọi khi mở ca (sau khi s.shift được tạo). Áp khách dồn từ sự kiện giữa hai ca, mod có hạn, đơn đặt trước của hôm nay. */
-export function startDrama(s, { quiet = false } = {}) {
+export function startDrama(s, { quiet = false } = {}, ev = []) {
   const sh = s.shift;
   if (!s.drama) s.drama = freshDrama();
   const D = s.drama;
@@ -248,11 +249,15 @@ export function startDrama(s, { quiet = false } = {}) {
   const pm = modPatience(s);
   if (pm) for (const g of sh.schedule) g.patienceMul = Math.max(0.5, (g.patienceMul || 1) * (1 + pm / 100));
   // đơn đặt trước của hôm nay: thành các nhóm khách có nhãn, giao đủ thì đặt cờ + hẹn
-  for (const p of (D.pre || []).filter((p) => p.day === today(s) && p.kind === sh.kind)) startPre(s, p);
-  D.pre = (D.pre || []).filter((p) => !(p.day === today(s) && p.kind === sh.kind) && p.day >= today(s));
+  // đơn hẹn ca không mở hôm nay (vd mâm trưa mà chỉ mở ca tối) ⇒ dồn vào ca cuối ngày, không mất đơn đã nhận cọc
+  const lastShift = (s.shiftIdx || 0) >= (s.plan?.length || 1) - 1;
+  const due = (p) => p.day === today(s) && (p.kind === sh.kind || (lastShift && !(s.plan || []).includes(p.kind)));
+  for (const p of (D.pre || []).filter(due)) startPre(s, p, ev);
+  D.pre = (D.pre || []).filter((p) => !due(p) && p.day >= today(s));
   sh.schedule.sort((a, b) => a.at - b.at);
 }
-function startPre(s, p) {
+function startPre(s, p, ev = []) {
+  if (openDramaOrder(s, p, ev)) return; // A: ở quán (cấp 7+) đơn nhiều phần thành phiếu mâm cơm thật (bày ×N, giờ hẹn)
   const sh = s.shift, seats = maxSeats(sh);
   const groups = Math.max(1, Math.min(4, Math.ceil(p.n / seats)));
   const tag = `dr:${p.id}`;
@@ -352,7 +357,7 @@ export function endDrama(s, events = []) {
 export const currentEvent = (s) => (s.shift ? (s.shift.dialog?.kind === "event" ? s.shift.dialog : null) : s.drama?.pending || null);
 
 export function textCtx(s, d) {
-  const debt = Object.values(s.drama?.debt || {}).reduce((a, b) => a + b, 0);
+  const debt = Object.values(s.drama?.debt || {}).reduce((a, b) => a + b, 0) + debtTotal(s); // A: cộng sổ nợ thật
   const base = { shop: s.shopName || "quán", day: today(s), followers: s.followers || 0, debt, catName: s.drama?.catName || "Vàng" };
   const g = d.cid !== null && d.cid !== undefined ? groupOf(s, d.cid) : null;
   if (g) { const m = g.members[0]; return { ...base, self: m.self, call: m.call, name: m.name, n: g.size }; }
@@ -437,6 +442,7 @@ export function fxSummary(fx = {}, later = null) {
   if (fx.cleanTables) out.push("Dọn sạch bàn dơ");
   if (fx.wash) out.push(`Rửa ${fx.wash} dĩa`);
   if (fx.helper) out.push(`Có người phụ ${sec(fx.helper)} giây`);
+  if (fx.payDebt) out.push("Gạch một dòng sổ nợ");
   if (fx.debt) out.push(fx.debt.k >= 0 ? `Ghi sổ +${fx.debt.k}k` : `Trả nợ ${-fx.debt.k}k`);
   if (fx.own) out.push(`Có ${GEAR[fx.own]?.name || fx.own}`);
   if (fx.decor) out.push("Thêm đồ trang trí");
@@ -446,6 +452,8 @@ export function fxSummary(fx = {}, later = null) {
 
 function applyFx(s, d, fx, events) {
   const sh = s.shift, D = s.drama;
+  // A: khách trong sổ nợ thật trả nợ (payDebt) thay cho số tiền cố định của sự kiện; sổ trống thì giữ tiền của sự kiện
+  if (fx.payDebt) { const id = oldestDebtor(s); if (id && payDebt(s, id, events).ok) fx = { ...fx, money: 0 }; }
   const who = d.cid !== null && d.cid !== undefined && sh ? groupOf(s, d.cid) : null;
   if (fx.money) {
     const k = Math.round(fx.money);
