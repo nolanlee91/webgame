@@ -1,6 +1,6 @@
 # Economy và tiến trình · Quán Cơm Tấm
 
-Đơn vị **k** = 1.000 đồng ảo. Số liệu dưới đây là bản thiết kế M0.
+Đơn vị **k** = 1.000 đồng ảo. Số liệu dưới đây là bản thiết kế M0; số đã đổi sau bộ mô phỏng M5 ghi ở mục 13 (bảng trong các mục 1–12 đã cập nhật giá bán, kho).
 
 **Bộ mô phỏng M5** sẽ kiểm và chỉnh lại mọi con số ở đây:
 - Thư mục `prototype/games/quan-com-tam/tools/sim/`, chép khung Bánh Mì.
@@ -414,3 +414,67 @@ Các núm chỉnh ưu tiên trong M5:
 - giá bán.
 
 Giữ nguyên tỉ lệ biên giữa các món.
+
+## 13. Cân bằng M5 (bộ mô phỏng `tools/sim/`)
+
+Bộ mô phỏng chơi bằng luật thật, 3 hồ sơ (cẩn thận / trung bình / ẩu), seed 12345. Chi tiết: `prototype/games/quan-com-tam/tools/sim/report.md`. "Trước" = bản bd5b283 (M3 + M4 gộp) với cùng bộ mô phỏng, tối đa 120 ngày (— = không tới); cả ba hồ sơ hết tiền, sống nhờ ký gửi.
+
+### Trước / sau
+
+| Chỉ số | Mục tiêu | Trước M5 (bd5b283) | Sau M5 |
+|---|---|---|---|
+| Cấp 4 (phút, cẩn thận / trung bình / ẩu) | ≈ 10 | 22 / 19 / 16 | 13 / 11 / 10 |
+| Cấp 7 = lên quán (phút) | ≈ 40 | 182 / 91 / 82 | 40 / 44 / 41 |
+| Cấp 10 (phút) | ≈ 120 | — / 427 / — | 111 / 132 / 151 |
+| Cấp 20 (phút) | 600–720 | — / — / — | 531 / 659 / 667 |
+| Ngày thuê mặt bằng lên quán | ngày 6–8 | không / 13 / không | 6 / 9 / 12 |
+| Lời ngày 1 (k) | 100–140 | 58 / 58 / -9 | 147 / 96 / 144 |
+| Lời / ngày cấp 5–6 (k) | 220–280 | -126 / -23 / -92 | 114 / 214 / 231 |
+| Lời / ngày cấp 7–9 (k) | 300–380 | -190 / -198 / -225 | 189 / 173 / 41 |
+| Lời / ngày cấp 10–14 (k) | 450–550 | — / -304 / — | 349 / 143 / 101 |
+| Lời / ngày cấp 15–19 (k) | 650–750 | — / — / — | 442 / 111 / -1 |
+| Dĩa / ngày cấp 10 | 45–60 | — / 2 / — | 23 / 17 / 19 |
+| Dĩa / ngày cấp 20 | 75–95 | — / — / — | 30 / 19 / 16 |
+| Khách bỏ về (% khách) | ≤ 12 / ẩu ≤ 30 | 59% / 52% / 57% | 15% / 19% / 25% |
+| Miếng cháy đen (% miếng ra vỉ) | ≤ 10 / ẩu ≤ 25 | 77% / 75% / 89% | 7% / 26% / 47% |
+| Gói ký gửi đã nhận (lần) | ít | 105 / 65 / 97 | 0 / 0 / 5 |
+| Ngày gần hết tiền (≤ 20k) | 0 | 103 / 87 / 81 | 0 / 0 / 2 |
+| Kẹt (không làm nổi một dĩa, không có ký gửi) | 0 | 0 / 0 / 0 | 0 / 0 / 0 |
+| Cuối lượt chạy: cấp · hạng quán · nước mắm · tiền | cấp 20: 7/8 hạng, còn 4–10 triệu | 8·0/8·0/3·0k / 12·0/8·0/3·0k / 9·0/8·0/3·0k | 20·5/8·3/3·3728k / 20·2/8·1/3·915k / 20·2/8·1/3·694k |
+
+### Số đã đổi và lý do
+
+| Số | Trước | Sau | Lý do (sim) |
+|---|---|---|---|
+| Giá bán mọi món | cơm sườn 32k … đặc biệt 55k | +20% (38k … 65k), giữ thứ tự món | Một mình cô chủ vừa nướng vừa đi bưng chỉ bán 6–9 dĩa một ca; giá cũ thì lời ca gần 0, ai cũng lỗ dần. Giá mới vẫn sát giá cơm tấm Sài Gòn 2026. |
+| Phí ca | vỉa hè 12 + 2·cấp · quán 30 + 3·cấp | vỉa hè 8 + cấp · quán 24 + 2·cấp | Phí cũ ăn gần nửa lãi ca ở cấp 1–6. |
+| Tốc độ đi của cô chủ | 330 px/giây | 400 px/giây | Bản cũ mỗi chuyến ra bàn xa 4–5 giây: hơn nửa ca chỉ để đi bộ. |
+| Châm trà + lấy phiếu · dọn + lau | 2,8 giây · 2,5 giây | 2,1 giây · 2,0 giây | Như trên. |
+| Bưng | một dĩa một chuyến | hai dĩa cùng bàn một chuyến (`carryMax`, có số từ M0 mà chưa dùng); bày ×N bưng cả khay | Bàn 2–4 người đỡ 1–3 chuyến. |
+| Thời gian ăn | 25–40 giây | 18–30 giây | Bàn quay nhanh hơn, cấp 1–4 (nghẽn ghế) bán đủ 8–10 dĩa. |
+| Kiên nhẫn | như bảng khách | ×1,25 mọi khách; khách đã ngồi chờ món thêm ×1,4; bàn dơ làm khách chờ mất kiên nhẫn ×1,6 (bản cũ ×2,5) | Bản cũ một nửa số khách bỏ về (1 sao) dù người chơi chăm. |
+| Vùng chín · cháy cạnh | vùng vừa 4,5 + 3 giây · vùng nóng 2,5 + 1,8 giây | vùng vừa 6 + 5 giây · vùng nóng 3,5 + 3,5 giây | Một chuyến ra bàn ~4 giây là miếng chín thành cháy đen; người ẩu cháy gần hết số miếng. |
+| Giữ ấm an toàn | 60 giây | 75 giây | Miếng chờ khách gọi món ở vùng ấm hay quá hạn rồi cháy trong lúc cô chủ đi bưng. Tủ kính (cấp 3) giữ thêm 6 miếng không cháy. |
+| Hạng quán · nước mắm nhà pha | 30.800k · 4.500k | ×0,5: 15.400k (250 … 4.500k) · 2.250k (300 / 700 / 1.250k) | Lời / ngày ở quán của bot thấp hơn mục tiêu (xem "Còn lệch"): giá cũ thì không hồ sơ nào mua nổi bậc nào. |
+| Lương Bông | 40k / ca | 35k / ca | Bông dọn + châm trà nhưng bot không tăng dĩa tương ứng; lương cũ lỗ ca trưa. |
+| Khách mỗi ca | 9 + 1,6·(cấp − 1) (tối đa +30) | 8 + 0,6·(cấp − 1) (tối đa +12); quán +3 ca tối / +2 ca trưa | Khách thừa so với sức một người thì bỏ về 1 sao, trừ danh tiếng. Cuối game khách thêm đến từ hạng quán, trang trí, quán nổi tiếng, quảng bá. |
+| Dự báo "Nhập + ướp đủ" | 100% khách dự báo | 85% (+2 dĩa); đồ chua / dưa leo / nước mắm +3; hộp theo khách mang về + đơn đặt | Người chơi bán ~75–85% khách dự báo; nhập đủ 100% thì hao hàng tươi. |
+| Gói ký gửi | 1 rổ than | 3 rổ than | Nhóm bếp cần 2 rổ. |
+| Hạn mức ghi sổ | 150 / 300 / 500k | 200 / 360 / 600k | Theo giá mới (bàn 4 người cơm sườn bì chả ≈ 216k). |
+| Bảng XP (20 cấp) | 30, 55, 125, 270, 445, 655, 1.055, 1.630, 2.355 … 16.085 | 40, 75, 110, 200, 315, 445, 660, 980, 1.525 … 9.015 | Dò bằng `tools/sim/fit.mjs` cho người chơi trung bình. Bản lưu cũ nâng v2 → v3 giữ cấp + %. |
+| Sức chứa vỉa hè | đồ chua + dưa leo tính chỗ | không tính (xem "Kho vỉa hè") | |
+
+### Kho vỉa hè cấp 5–6
+
+Chọn **đồ chua + dưa leo không tính sức chứa** (hũ / rổ để dưới quầy, như rau Bánh Mì), giữ kho 80 cho thịt, bì, chả, trứng, gạo.
+- Trước: hai món này (gói 20) chiếm tới 40 / 80 chỗ; "Nhập + ướp đủ" hết chỗ trước khi mua trứng / bì / chả ở cấp 2–6.
+- Không chọn tăng sức chứa vỉa hè (mất mốc "lên quán có kho 140") hay gói nhỏ cho hàng tươi (bấm nhập nhiều lần mà vẫn tốn chỗ).
+- Sau: kho vỉa hè đầy sau khi "Nhập + ướp đủ" ở cấp 5–6: 2/2 / 2/2 / 3/2 ngày (cẩn thận / trung bình / ẩu); đồ chua + dưa leo hết giữa ca cả lượt chạy: 19 / 26 / 53 lần (trước: 34 / 93 / 4).
+
+### Còn lệch
+
+- **Dĩa / ngày ở quán thấp hơn mục tiêu** (cấp 10: 17–23, cấp 20: 16–30, mục tiêu 45–95). Người chơi giả chỉ dùng một ô bày, chờ an toàn trước mỗi chuyến ra bàn, không gom việc như người thật; quán thêm bàn + Bông nhưng bot không tăng dĩa tương ứng. Vì vậy **lời / ngày ở quán** của người trung bình chỉ 110–170k (mục tiêu 300–750k), người cẩn thận 190–440k. Hạng quán + nước mắm đã giảm giá ×0,5 để người cẩn thận vẫn mua 5/8 hạng + 3/3 nước mắm tới cấp 20, người trung bình 2/8 + 1/3: tiền cuối game còn chỗ tiêu ở mọi hồ sơ. Cần đo người thật: nếu người thật bán ≥ 40 dĩa / ngày ở quán thì có thể trả giá hạng quán về gần bản M0.
+- **Cháy đen** người trung bình 26% (mục tiêu ≤ 10%), người ẩu 47% (≤ 25%): bot rời bếp theo lịch việc bàn, không ước lượng được như người nhìn vỉ. Người cẩn thận 7%. Đã nới vùng chín (vừa 6 + 5 giây, nóng 3,5 + 3,5 giây) và giữ ấm 75 giây; nới thêm thì mất cái "căng" của bếp than. Người ẩu vẫn không phá sản (5 lần ký gửi, 2 ngày gần hết tiền trong 65 ngày).
+- **Khách bỏ về** 15% / 19% / 25% (mục tiêu ≤ 12%, người ẩu ≤ 30%): trước M5 là 52–59%.
+- **Người ẩu lên quán muộn** (ngày 12): "mua theo hứng" tiêu tiền vào trang trí trước khi để dành 350k.
+- Người cẩn thận tới cấp 20 nhanh hơn mục tiêu (531 phút) vì ít lỗi hơn; hồ sơ trung bình (seed 12345) đúng 659 phút, seed 777 ra 554 phút.

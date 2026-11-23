@@ -2,7 +2,7 @@
 
 **Vị trí và chuẩn:**
 - Game ở `prototype/games/quan-com-tam/` (M1 + M2 lõi, chưa có thẻ trang chủ).
-- Lưu ở `localStorage["wgp.quancomtam.v1"]`. Khoá giữ nguyên. Từ bản gộp M3 + M4, phiên bản trong bản lưu là `v: 2`; bản v1 được chép nguyên văn sang `….bak-v1` một lần trước khi nâng.
+- Lưu ở `localStorage["wgp.quancomtam.v1"]`. Khoá giữ nguyên. Từ bản gộp M3 + M4, phiên bản trong bản lưu là `v: 2`; từ M5 (S) là `v: 3` (bảng XP mới, giữ cấp + %). Bản cũ được chép nguyên văn sang `….bak-v<cũ>` một lần trước khi nâng.
 - Làm trong worktree `.claude/worktrees/quan-com-tam`, branch `claude/quan-com-tam`.
 - Khung code chép từ **Tiệm Bánh Mì** (bản M5), không chép từ Trà Sữa.
 - Chuẩn chung: `docs/tap-lam-chu/PLAYBOOK.md`.
@@ -18,7 +18,96 @@
 | M2 · Một ca trọn | **Xong (lõi)** | Ngày 1 chơi trọn bằng chạm thật (e2e desktop 1366@1,25 + mobile 390@3). |
 | M3 · Kinh tế + nội dung cơ chế | **Xong (gộp, branch `claude/qct-int`)** | Phần A: 20 cấp, ca trưa, ghi sổ, lên quán, đơn đặt / mâm cơm, Bông, nhiệm vụ, trang trí, hạng quán… Xem "M3 + M4 gộp" và "M3 · phần A". |
 | M4 · Drama + review + Nhật Ký | **Xong (gộp, branch `claude/qct-int`)** | Phần B: Drama, 104 sự kiện. Phần C: review, tính cách, Sổ, Nhật Ký. Xem "M3 + M4 gộp". |
-| M5 · Polish + cân bằng | Chưa bắt đầu | |
+| M5 · Polish + cân bằng | **Phần S xong** (branch `claude/qct5-s`, chưa gộp); phần V (hình + tiếng) làm song song | S: bộ mô phỏng + cân bằng, kho vỉa hè, vỉ chay, tủ kính, nước mắm nhà pha vào điểm, bếp 2 than riêng, bày ×N cho bàn, nợ Drama chung sổ, trang trí Drama, hội chợ, thử thách + 14 huy hiệu, bản lưu v3. Xem "M5 · phần S". |
+
+## M5 · phần S: cân bằng + lối chơi (agent S, branch `claude/qct5-s`)
+
+Làm song song với agent V (hình + tiếng) trên bd5b283. S không đụng `render/`, `ui/`, `game.js`, `index.html`, `data/scene.js` trừ các móc `// S:` tối thiểu (liệt kê dưới). Không đổi tag `?v=`.
+
+### Bộ mô phỏng `tools/sim/`
+
+Chép khung Bánh Mì: `harness.mjs` (người chơi giả), `profiles.mjs` (cẩn thận / trung bình / ẩu), `sim.mjs`, `report.mjs` (gộp kết quả chạy song song), `fit.mjs` (dò bảng XP), `sim.test.mjs` (hồi quy đầy đủ), `README.md`, `report.md`. Hồi quy rút gọn chạy cùng bộ test: `test/sim.test.mjs`.
+- Mọi thao tác qua `core/apply.js`, toạ độ cảnh từ manifest thật. Người chơi giả bấm thật: mời ngồi, châm trà + lấy phiếu, nướng (lật trễ theo hồ sơ, giữ ấm, tủ kính), bày từng lớp (quên lớp / sót dặn theo hồ sơ), bưng, tính tiền tay (chạm nhầm theo hồ sơ), dọn, rửa, nồi cơm, mỡ hành, chảo, xửng; ca trưa + tối từ cấp 5, ghi sổ, lên quán cấp 7, đơn đặt / mâm cơm, Bông / Dì Năm, quảng bá, hạng quán, nước mắm, hội chợ, thử thách, Drama + trả lời review.
+- Báo cáo: mốc cấp theo phút chơi, tiền + lời theo ngày, kẹt, bỏ về, hao, ký gửi, hết hàng giữa ca.
+
+### Lỗi bộ mô phỏng tìm ra (đã sửa)
+
+| Lỗi | Hậu quả | Sửa |
+|---|---|---|
+| Gói học (đồ chua, dưa leo, sườn), gói ký gửi, hàng mượn, hàng chở tới, quà Drama không ghi lô hạn dùng | Hết hạn ngay đêm đầu: ngày 2 mất sạch đồ chua / dưa leo, ký gửi xong hôm sau mất | `addLot()` ở mọi chỗ cộng kho (`core/stock.js`) |
+| Hết trứng / hết chả / hết hộp khi bày chỉ báo lỗi | Phiếu kẹt ở bước trứng / chả / hộp, người chơi không có lối ra trừ "Hết món" | Mở hội thoại hết hàng như món khác (`eggAct`, `steamAct`, `outToDialog`) |
+| "Nhập + ướp đủ" mua than sau món phụ | Ít tiền thì sáng mai không nhóm nổi bếp ⇒ cả ngày không bán được ⇒ lụn bại | Than ngay sau sườn + gạo; ký gửi có 3 rổ than (bản cũ 1, không đủ nhóm bếp); "làm nổi một dĩa" cần 2 rổ đầu ngày |
+| "Nhập + ướp đủ" chỉ giữ 4 hộp | Ca trưa (shipper lấy 1–3 hộp) và mâm cơm hết hộp giữa ca | Hộp theo khách mang về dự kiến + số phần đơn đặt / mâm hôm nay |
+| Tab Menu ghi "tắt món nào thì khách không gọi" nhưng không có nút | Ít tiền không nhập đủ bì / chả / trứng mà khách vẫn gọi ⇒ hết hàng liên tục | Thao tác `toggleDish` + nút "Tắt món / Bán lại" |
+| Có thể kẹt ca (sim: nhóm đã trả tiền mà chưa đứng dậy khi hội thoại tính dư bị bỏ dở; t = 17.500 giây) | Ca không bao giờ chốt | Chốt chặn: quá giờ đóng + 90 + 30 giây thì mọi nhóm còn lại tự trả / về |
+| Bày ×N cho bàn: dĩa thứ 2–4 không được đếm | Lỗi bất biến bảo toàn dĩa | `platesInPlay` đếm `slot.batch` |
+
+### Cân bằng
+
+Bảng trước / sau ở `ECONOMY.md` mục 13 "Cân bằng M5" và cuối `tools/sim/report.md`. Tóm tắt (cẩn thận / trung bình / ẩu, phút chơi):
+
+| Mốc | Mục tiêu | Trước M5 | Sau M5 |
+|---|---|---|---|
+| Cấp 4 | ≈ 10 | 22 / 19 / 16 | 13 / 11 / 10 |
+| Cấp 7 (lên quán) | ≈ 40 | 182 / 91 / 82 | 40 / 44 / 41 |
+| Cấp 10 | ≈ 120 | — / 427 / — | 111 / 132 / 151 |
+| Cấp 20 | 600–720 | không tới (120 ngày) | 531 / 659 / 667 |
+| Bỏ về | ≤ 12% | 59 / 52 / 57% | 15 / 19 / 25% |
+| Ký gửi (lần) | ít | 105 / 65 / 97 | 0 / 0 / 5 |
+| Cuối lượt | còn chỗ tiêu | hết tiền cả ba | 3.728k · 5/8 hạng / 915k · 2/8 / 694k · 2/8 |
+
+Đổi số (data/economy.js, lý do ở ECONOMY §13): giá bán +20%, phí ca nhẹ hơn, cô chủ đi 400 px/giây, châm trà / dọn nhanh hơn, bưng 2 dĩa một chuyến, ăn 18–30 giây, kiên nhẫn ×1,25 (+×1,4 khi đã ngồi), vùng chín rộng hơn, giữ ấm 75 giây, khách / ca tăng chậm hơn, dự báo nhập 85%, ký gửi 3 rổ than, hạn mức ghi sổ 200 / 360 / 600k, hạng quán + nước mắm ×0,5, Bông 35k, bảng XP mới.
+
+### Kho vỉa hè cấp 5–6 (chủ dự án để S chọn)
+
+**Chọn: đồ chua + dưa leo không tính sức chứa** (như rau của Bánh Mì). Lý do (sim):
+- Kho 80 bị gói 20 của đồ chua + dưa leo chiếm tới 40 chỗ: ở cấp 2–6 "Nhập + ướp đủ" hết chỗ trước khi mua trứng / bì / chả ⇒ món mới mở không bán được.
+- Tăng sức chứa vỉa hè làm mất mốc "lên quán có kho lớn"; gói nhỏ hơn cho hàng tươi làm người chơi bấm nhập nhiều lần mà vẫn tốn chỗ.
+- Sau khi bỏ hai món này khỏi sức chứa, kho vỉa hè đầy sau khi nhập 2 / 2 ngày ở cấp 5–6 (người trung bình), nhưng không còn hụt món vì sức chứa: hết giữa ca chủ yếu là hàng không tính chỗ (nước tương, đồ chua). Đồ chua / dưa leo hết giữa ca còn 19 / 26 / 53 (cẩn thận / trung bình / ẩu, cả lượt tới cấp 20; trước M5: 34 / 93 / 4 trong 120 ngày) lần (lựa chọn "mượn" / "bỏ qua" miễn phí).
+
+### Lối chơi còn thiếu (đã làm, `core/extras.js`)
+
+| Khoảng trống | Luật |
+|---|---|
+| Chỗ nướng chay riêng | Đồ nghề "Vỉ nướng chay riêng" (cấp 11, 80k): 2 chỗ sau bếp 1 (`g.vegFrom`, vùng `veg` như vùng vừa) chỉ nướng đậu hũ. Chỗ nào đã nướng thịt trong ca là chỗ mặn (`g.meatSlots`); đậu hũ đặt / dời vào chỗ mặn ⇒ `tainted` ⇒ dĩa chay lỗi 13 (dính mặn, trần 1 sao, xin lỗi nghiêm túc). Đậu hũ tự ưu tiên vỉ chay, rồi chỗ chưa nướng thịt. Thanh Bếp: nút đổi trang xoay bếp 1 → bếp 2 → vỉ chay. |
+| Tủ kính giữ ấm | Có tủ (cấp 3): vùng ấm đầy thì "dời vào vùng ấm" cất vào tủ (`sh.case`, tối đa 6), tươi giảm 1 mỗi 5 giây (vỉ 3 giây), không cháy; bày dĩa lấy miếng tủ khi vỉ không có; hoàn tác trả về tủ; cuối ca còn trong tủ là hao. |
+| "+1 điểm kỳ vọng" nước mắm nhà pha | `scorePlate(..., { houseSauce })`: +1 điểm mỗi bậc khi dĩa có nước mắm (không áp dĩa chay); 20–50% review 4–5 sao đổi sang câu nước mắm nhà pha (10 câu). |
+| Bếp 2 than riêng | `g.coal2` / `pending2` / lửa bùng riêng; chỗ 6–11 nướng theo than bếp 2. "Nhóm bếp" đầu ca nhóm cả hai (4 rổ); `addCoal { grill: 2 }`; nút Than trên Thanh Bếp theo trang đang xem. Bản lưu giữ `kitchen.coal2` giữa ca trưa và ca tối. |
+| Bày ×N cho bàn cùng món | Có ô bày đôi (2) / khay mâm (4): ghim phiếu ⇒ nút "Bày ×N" gom phiếu cùng bàn, cùng món, cùng dặn riêng (món có trứng chiên từng quả nên không gom). Mỗi lớp áp cho cả hàng, bưng một chuyến (khay), mỗi người đúng dĩa của mình. Thêm: bưng hai dĩa cùng bàn một chuyến (`SERVICE.carryMax`, trước đây có số mà chưa dùng). |
+| Nợ Anh Sáu chung sổ nợ | `fx.debt` của Drama ghi vào `s.debts` (`drama: true`): tab Sổ nợ hiện, xoá nợ được, tính vào hạn mức ghi sổ và `{debt}`; không tự trả ngẫu nhiên lúc sang ngày (trả theo chuỗi K03–K05). `s.drama.debt` không còn dùng (bản lưu cũ chuyển sang). |
+| Trang trí Drama tặng | `fx.decor` ⇒ đồ kéo thả (`DECOR`, `event: true`): lá thư, bó hoa giấy, ảnh khai trương, ảnh Mai, ổ mèo, ghế nhựa cao, khung giấy khen, radio; dùng frame `decor.webp` gần giống tới khi có art riêng (`decorFrame`). "Mái bạt" của Drama = có mái bạt. Đồ Drama không bán. |
+| Hội chợ (cấp 18, ở quán) | Tab Chuẩn bị "Hội chợ · Thử thách": thuê gian 180k mỗi 4 ngày ⇒ ca tối thành "Đêm hội ẩm thực bờ sông" 4 phút, +10 khách đi nhóm 2–4, giá +15% (`t.fairMul`), khách kém kiên nhẫn 10%. Câu mở gian 10, câu khách 8, review 10 / 8 / 8 (tuyệt / ổn / tệ), câu chốt 8 / 8 / 8. |
+| Thử thách + huy hiệu (cấp 20) | Lịch 5 ngày xoay vòng, miễn phí: Một bếp, ca khuya · Không cháy miếng nào · Trưa không phụ bàn (hoàn lương) · Ngày toàn mang về · Mâm 40 phần (không cọc). Đạt lần đầu +150k, +60 XP, huy hiệu; lần sau +75k, +30 XP. Mỗi thử thách 8 câu đạt + 8 câu chưa đạt. 14 huy hiệu (9 + 5 thử thách) ở Sổ · Huy hiệu, xét lúc chốt ca và khi mua hạng / nước mắm; huy hiệu mới thành khoảnh khắc Nhật Ký. |
+
+### Bản lưu v3
+
+`SAVE_VERSION = 3`. `MIGRATIONS[2]`:
+- XP đổi sang bảng mới, giữ cấp và % tiến độ trong cấp (`rescaleXp`, bảng cũ `LEVELS_V2`);
+- nợ `drama.debt` vào `debts` (`drama: true`);
+- đồ `drama.decor` thành đồ kéo thả;
+- `save.js` chép nguyên văn bản v2 sang `wgp.quancomtam.v1.bak-v2` một lần trước khi nâng (cơ chế có sẵn).
+
+Khoá mới: `fair { day, count }`, `challenge { id, day }`, `badges { id: ngày }`, `kitchen.coal2`; trong ca `grill.coal2 / pending2 / vegFrom / meatSlots`, `sh.case`, `sh.fair`, `sh.challengeId`, `slot.batchTks`, `task.more`, `ticket.fairMul`.
+
+### Móc ngoài vùng S (đánh dấu `// S:`)
+
+| File | Móc |
+|---|---|
+| `ui/grillbar.js` | Nhãn vùng "Vỉ chay", nút đổi trang xoay bếp 1 / bếp 2 / vỉ chay, ẩn chip thừa, nút Than theo bếp đang xem |
+| `ui/progress-ui.js` | Tab "Hội chợ · Thử thách" (cấp 18+), chữ lỗi M5 |
+| `ui/overlays.js` | Nút "Tắt món / Bán lại" ở tab Menu; dòng hội chợ / thử thách / huy hiệu ở bảng chốt ca; "Nhóm bếp" tính bếp 2 |
+| `ui/book-tabs.js` | Danh sách 14 huy hiệu ở Sổ · Huy hiệu |
+| `ui/column.js` | Nút "Bày ×N" ở đầu cột Dĩa |
+| `render/scene.js` | Đồ Drama dùng frame tạm (`decorFrame`); miếng trên vỉ chay chưa vẽ trong cảnh (chỉ Thanh Bếp) |
+| `ui/m5-ui.js` (mới) | Thẻ hội chợ, lịch thử thách, nút menu, nút bày ×N, huy hiệu, dòng chốt ca |
+
+Cần V / Codex (sau): chỗ vẽ vỉ chay trong cảnh (`placements["veg-grill"]` + 2 `slots`), art riêng cho đồ Drama (lá thư, ổ mèo, ghế cao…), chữ "Tủ kính n/6" trên Thanh Bếp.
+
+### Test
+
+- `node --test "test/*.test.mjs"`: 133 test, đạt hết (thêm `test/m5.test.mjs` 17 test, `test/sim.test.mjs` 4 test).
+- `node --test tools/sim/sim.test.mjs`: hồi quy đầy đủ tới cấp 20.
+- E2E (`PORT=8857 node server.js`, `CDP_PORT=9489 PORT=8857 node prototype/games/quan-com-tam/test/e2e.mjs <thư mục>`): thêm `M5_ONLY=1` (vỉ chay bằng nút thật, tắt món, hội chợ, thử thách, huy hiệu). Cả 5 lần chạy tách (`DESK_PART=1`, `DESK_PART=2`, `M3_ONLY=1`, `M5_ONLY=1`, `MOBILE_ONLY=1`) ra "E2E ĐẠT", 0 lỗi console.
 
 ## M3 + M4 gộp (A + B + C, đã làm)
 
@@ -95,16 +184,11 @@ Không đặt biến môi trường thì chạy hết một lần, khoảng 4–
 Vòng chơi ngày 1 của e2e bỏ qua lỗi "ca đã chốt" khi ca tự chốt giữa hai lệnh, vì đồng hồ ca chạy thật.
 
 **Còn thiếu sau khi gộp:**
-- **Kho vỉa hè cấp 5–6:** 19–21 dĩa cần hơn 80 phần, nên đồ chua / dưa leo (gói 20) hay hụt. Đã có lựa chọn cứu miễn phí. Chủ dự án quyết có tăng sức chứa vỉa hè hoặc đổi cỡ gói không.
-- **Phần A còn dở:**
-  - chưa có chỗ nướng chay riêng;
-  - tủ kính giữ ấm chưa có luật;
-  - "+1 điểm kỳ vọng" của nước mắm nhà pha chưa cộng vào điểm;
-  - bếp 2 chưa có than riêng;
-  - bày ×N chưa có cho bàn 4 người cùng món.
-- **Hai sổ nợ:** nợ Anh Sáu của Drama và sổ nợ thật của A vẫn tách. Tab Sổ nợ chỉ hiện sổ thật.
+- ~~Kho vỉa hè cấp 5–6~~ — M5 (S): đồ chua + dưa leo không tính sức chứa.
+- ~~Phần A còn dở (vỉ chay, tủ kính, nước mắm vào điểm, bếp 2 than riêng, bày ×N cho bàn)~~ — M5 (S) đã làm.
+- ~~Hai sổ nợ~~ — M5 (S): nợ Anh Sáu vào sổ nợ thật.
 - **Nhóm chờ ở 390 px:** bong bóng không còn chỗ thì ẩn, không chồng. Chưa đo lúc có 4 nhóm chờ (ghế chờ cấp 16).
-- **Trang trí từ Drama:** `fx.decor` (vd hoa giấy, lá thư) chưa thành đồ kéo thả của A.
+- ~~Trang trí từ Drama~~ — M5 (S): thành đồ kéo thả.
 - Chưa dùng ảnh đợt 2. Chưa có thẻ trang chủ.
 
 ## M1 + M2 lõi (đã làm)
