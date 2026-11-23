@@ -6967,6 +6967,3502 @@
           "loop": true
         }
       }
+    },
+    {
+      "filename": "assets/portraits-hd.webp",
+      "dimensions": [
+        1536,
+        960
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "owner": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker2": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student2": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "driver": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "nurse": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/portrait-expressions-hd.webp",
+      "dimensions": [
+        1920,
+        3840
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "office-waiting": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-happy": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-sheepish": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-annoyed": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "office-surprised": {
+          "rect": [
+            1536,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-waiting": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-happy": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-sheepish": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-annoyed": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker-surprised": {
+          "rect": [
+            1536,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker2-waiting": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker2-happy": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker2-sheepish": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker2-annoyed": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "worker2-surprised": {
+          "rect": [
+            1536,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-waiting": {
+          "rect": [
+            0,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-happy": {
+          "rect": [
+            384,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-sheepish": {
+          "rect": [
+            768,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-annoyed": {
+          "rect": [
+            1152,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student-surprised": {
+          "rect": [
+            1536,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student2-waiting": {
+          "rect": [
+            0,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student2-happy": {
+          "rect": [
+            384,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student2-sheepish": {
+          "rect": [
+            768,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student2-annoyed": {
+          "rect": [
+            1152,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "student2-surprised": {
+          "rect": [
+            1536,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-waiting": {
+          "rect": [
+            0,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-happy": {
+          "rect": [
+            384,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-sheepish": {
+          "rect": [
+            768,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-annoyed": {
+          "rect": [
+            1152,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "shipper-surprised": {
+          "rect": [
+            1536,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-waiting": {
+          "rect": [
+            0,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-happy": {
+          "rect": [
+            384,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-sheepish": {
+          "rect": [
+            768,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-annoyed": {
+          "rect": [
+            1152,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "regular-surprised": {
+          "rect": [
+            1536,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-waiting": {
+          "rect": [
+            0,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-happy": {
+          "rect": [
+            384,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-sheepish": {
+          "rect": [
+            768,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-annoyed": {
+          "rect": [
+            1152,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "reviewer-surprised": {
+          "rect": [
+            1536,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "driver-waiting": {
+          "rect": [
+            0,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "driver-happy": {
+          "rect": [
+            384,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "driver-sheepish": {
+          "rect": [
+            768,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "driver-annoyed": {
+          "rect": [
+            1152,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "driver-surprised": {
+          "rect": [
+            1536,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "nurse-waiting": {
+          "rect": [
+            0,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "nurse-happy": {
+          "rect": [
+            384,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "nurse-sheepish": {
+          "rect": [
+            768,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "nurse-annoyed": {
+          "rect": [
+            1152,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "nurse-surprised": {
+          "rect": [
+            1536,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-waiting": {
+          "rect": [
+            0,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-happy": {
+          "rect": [
+            384,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-sheepish": {
+          "rect": [
+            768,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-annoyed": {
+          "rect": [
+            1152,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "tourist-surprised": {
+          "rect": [
+            1536,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "owner-neutral": {
+          "rect": [
+            0,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "owner-happy": {
+          "rect": [
+            384,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "owner-concerned": {
+          "rect": [
+            768,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "owner-surprised": {
+          "rect": [
+            1152,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "owner-proud": {
+          "rect": [
+            1536,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/drama-portraits-hd.webp",
+      "dimensions": [
+        1536,
+        3840
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "me-neutral": {
+          "rect": [
+            0,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-happy": {
+          "rect": [
+            384,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-annoyed": {
+          "rect": [
+            768,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "me-surprised": {
+          "rect": [
+            1152,
+            0,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tu-neutral": {
+          "rect": [
+            0,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tu-happy": {
+          "rect": [
+            384,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tu-annoyed": {
+          "rect": [
+            768,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-tu-surprised": {
+          "rect": [
+            1152,
+            320,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-sau-neutral": {
+          "rect": [
+            0,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-sau-happy": {
+          "rect": [
+            384,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-sau-annoyed": {
+          "rect": [
+            768,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-sau-surprised": {
+          "rect": [
+            1152,
+            640,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-ba-neutral": {
+          "rect": [
+            0,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-ba-happy": {
+          "rect": [
+            384,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-ba-annoyed": {
+          "rect": [
+            768,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-ba-surprised": {
+          "rect": [
+            1152,
+            960,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-hoa-neutral": {
+          "rect": [
+            0,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-hoa-happy": {
+          "rect": [
+            384,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-hoa-annoyed": {
+          "rect": [
+            768,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chu-hoa-surprised": {
+          "rect": [
+            1152,
+            1280,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-lan-neutral": {
+          "rect": [
+            0,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-lan-happy": {
+          "rect": [
+            384,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-lan-annoyed": {
+          "rect": [
+            768,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "co-lan-surprised": {
+          "rect": [
+            1152,
+            1600,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-quang-neutral": {
+          "rect": [
+            0,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-quang-happy": {
+          "rect": [
+            384,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-quang-annoyed": {
+          "rect": [
+            768,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-quang-surprised": {
+          "rect": [
+            1152,
+            1920,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bep-vu-neutral": {
+          "rect": [
+            0,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bep-vu-happy": {
+          "rect": [
+            384,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bep-vu-annoyed": {
+          "rect": [
+            768,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bep-vu-surprised": {
+          "rect": [
+            1152,
+            2240,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "mai-an-dem-neutral": {
+          "rect": [
+            0,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "mai-an-dem-happy": {
+          "rect": [
+            384,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "mai-an-dem-annoyed": {
+          "rect": [
+            768,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "mai-an-dem-surprised": {
+          "rect": [
+            1152,
+            2560,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bong-neutral": {
+          "rect": [
+            0,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bong-happy": {
+          "rect": [
+            384,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bong-annoyed": {
+          "rect": [
+            768,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "bong-surprised": {
+          "rect": [
+            1152,
+            2880,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-hung-neutral": {
+          "rect": [
+            0,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-hung-happy": {
+          "rect": [
+            384,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-hung-annoyed": {
+          "rect": [
+            768,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "anh-hung-surprised": {
+          "rect": [
+            1152,
+            3200,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-thu-neutral": {
+          "rect": [
+            0,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-thu-happy": {
+          "rect": [
+            384,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-thu-annoyed": {
+          "rect": [
+            768,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        },
+        "chi-thu-surprised": {
+          "rect": [
+            1152,
+            3520,
+            384,
+            320
+          ],
+          "anchor": [
+            192,
+            308
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/weather-fx.webp",
+      "dimensions": [
+        2560,
+        1080
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "rain-1": {
+          "rect": [
+            0,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-2": {
+          "rect": [
+            640,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-3": {
+          "rect": [
+            1280,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "rain-4": {
+          "rect": [
+            1920,
+            0,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "lightning-1": {
+          "rect": [
+            0,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "lightning-2": {
+          "rect": [
+            640,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "flood-1": {
+          "rect": [
+            1280,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "flood-2": {
+          "rect": [
+            1920,
+            360,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "smoke-1": {
+          "rect": [
+            0,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "smoke-2": {
+          "rect": [
+            640,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "smoke-3": {
+          "rect": [
+            1280,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "power-cut-glow": {
+          "rect": [
+            1920,
+            720,
+            640,
+            360
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha",
+      "animations": {
+        "rain": {
+          "frames": [
+            "rain-1",
+            "rain-2",
+            "rain-3",
+            "rain-4"
+          ],
+          "fps": 9,
+          "loop": true
+        },
+        "lightning": {
+          "frames": [
+            "lightning-1",
+            "lightning-2"
+          ],
+          "fps": 12,
+          "loop": false
+        },
+        "flood": {
+          "frames": [
+            "flood-1",
+            "flood-2"
+          ],
+          "fps": 3,
+          "loop": true
+        },
+        "smoke": {
+          "frames": [
+            "smoke-1",
+            "smoke-2",
+            "smoke-3"
+          ],
+          "fps": 5,
+          "loop": true
+        }
+      }
+    },
+    {
+      "filename": "assets/fixtures.webp",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "glass-case-empty": {
+          "rect": [
+            0,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "glass-case-low": {
+          "rect": [
+            384,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "glass-case-full": {
+          "rect": [
+            768,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "signboard-1": {
+          "rect": [
+            1152,
+            0,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "signboard-2": {
+          "rect": [
+            0,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "signboard-3": {
+          "rect": [
+            384,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "awning-street": {
+          "rect": [
+            768,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "lantern-string": {
+          "rect": [
+            1152,
+            256,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "menu-board": {
+          "rect": [
+            0,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "takeaway-shelf": {
+          "rect": [
+            384,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "helper-station": {
+          "rect": [
+            768,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "wash-station": {
+          "rect": [
+            1152,
+            512,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        },
+        "queue-bench": {
+          "rect": [
+            0,
+            768,
+            384,
+            256
+          ],
+          "anchor": [
+            192,
+            240
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/decor.webp",
+      "dimensions": [
+        896,
+        256
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "bougainvillea-pot": {
+          "rect": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "red-lantern": {
+          "rect": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "paper-lantern": {
+          "rect": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "fairy-lights": {
+          "rect": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "ceramic-jar": {
+          "rect": [
+            512,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "chalk-menu": {
+          "rect": [
+            640,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "wall-calendar": {
+          "rect": [
+            768,
+            0,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "old-radio": {
+          "rect": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "wall-fan": {
+          "rect": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "old-tv": {
+          "rect": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "bird-cage": {
+          "rect": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "banana-plant": {
+          "rect": [
+            512,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "award-frame": {
+          "rect": [
+            640,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        },
+        "neon-sign": {
+          "rect": [
+            768,
+            128,
+            128,
+            128
+          ],
+          "anchor": [
+            64,
+            120
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/owner-actions-hd.webp",
+      "dimensions": [
+        1280,
+        2240
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "idle-1": {
+          "rect": [
+            0,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "idle-2": {
+          "rect": [
+            320,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "grill-1": {
+          "rect": [
+            640,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "grill-2": {
+          "rect": [
+            960,
+            0,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "grill-3": {
+          "rect": [
+            0,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "grill-4": {
+          "rect": [
+            320,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fan-1": {
+          "rect": [
+            640,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fan-2": {
+          "rect": [
+            960,
+            320,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fan-3": {
+          "rect": [
+            0,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "fan-4": {
+          "rect": [
+            320,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "plate-1": {
+          "rect": [
+            640,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "plate-2": {
+          "rect": [
+            960,
+            640,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "plate-3": {
+          "rect": [
+            0,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "plate-4": {
+          "rect": [
+            320,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "pour-1": {
+          "rect": [
+            640,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "pour-2": {
+          "rect": [
+            960,
+            960,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "pour-3": {
+          "rect": [
+            0,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "pour-4": {
+          "rect": [
+            320,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "box-1": {
+          "rect": [
+            640,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "box-2": {
+          "rect": [
+            960,
+            1280,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "box-3": {
+          "rect": [
+            0,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "box-4": {
+          "rect": [
+            320,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "bill-1": {
+          "rect": [
+            640,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "bill-2": {
+          "rect": [
+            960,
+            1600,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "bill-3": {
+          "rect": [
+            0,
+            1920,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        },
+        "bill-4": {
+          "rect": [
+            320,
+            1920,
+            320,
+            320
+          ],
+          "anchor": [
+            160,
+            316
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha",
+      "animations": {
+        "idle": {
+          "frames": [
+            "idle-1",
+            "idle-2"
+          ],
+          "fps": 3,
+          "loop": true
+        },
+        "grill": {
+          "frames": [
+            "grill-1",
+            "grill-2",
+            "grill-3",
+            "grill-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "fan": {
+          "frames": [
+            "fan-1",
+            "fan-2",
+            "fan-3",
+            "fan-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "plate": {
+          "frames": [
+            "plate-1",
+            "plate-2",
+            "plate-3",
+            "plate-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "pour": {
+          "frames": [
+            "pour-1",
+            "pour-2",
+            "pour-3",
+            "pour-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "box": {
+          "frames": [
+            "box-1",
+            "box-2",
+            "box-3",
+            "box-4"
+          ],
+          "fps": 8,
+          "loop": false
+        },
+        "bill": {
+          "frames": [
+            "bill-1",
+            "bill-2",
+            "bill-3",
+            "bill-4"
+          ],
+          "fps": 8,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/plate-layers-hd.webp",
+      "dimensions": [
+        2240,
+        1920
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "plate-dia": {
+          "rect": [
+            0,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "plate-dia-dirty": {
+          "rect": [
+            320,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "box-open": {
+          "rect": [
+            640,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "box-closed": {
+          "rect": [
+            960,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "box-bag": {
+          "rect": [
+            1280,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "com": {
+          "rect": [
+            1600,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "com-them": {
+          "rect": [
+            1920,
+            0,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "mo-hanh": {
+          "rect": [
+            0,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "hanh-phi": {
+          "rect": [
+            320,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "suon-half": {
+          "rect": [
+            640,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "suon-done": {
+          "rect": [
+            960,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "suon-charred": {
+          "rect": [
+            1280,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "suon-burnt": {
+          "rect": [
+            1600,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "suon-non-done": {
+          "rect": [
+            1920,
+            384,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "suon-non-charred": {
+          "rect": [
+            0,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ga-done": {
+          "rect": [
+            320,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ga-charred": {
+          "rect": [
+            640,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "lap-xuong": {
+          "rect": [
+            960,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "dau-hu": {
+          "rect": [
+            1280,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "bi": {
+          "rect": [
+            1600,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "bi-chay": {
+          "rect": [
+            1920,
+            768,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "cha": {
+          "rect": [
+            0,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "cha-chay": {
+          "rect": [
+            320,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "trung-runny": {
+          "rect": [
+            640,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "trung-set": {
+          "rect": [
+            960,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "trung-hard": {
+          "rect": [
+            1280,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "do-chua": {
+          "rect": [
+            1600,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "dua-leo": {
+          "rect": [
+            1920,
+            1152,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ca-chua": {
+          "rect": [
+            0,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "nuoc-mam-chan": {
+          "rect": [
+            320,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "chen-nuoc-mam": {
+          "rect": [
+            640,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "bich-nuoc-mam": {
+          "rect": [
+            960,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ot": {
+          "rect": [
+            1280,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "chen-canh": {
+          "rect": [
+            1600,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        },
+        "ngo-rac": {
+          "rect": [
+            1920,
+            1536,
+            320,
+            384
+          ],
+          "anchor": [
+            160,
+            348
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/grill-items-hd.webp",
+      "dimensions": [
+        1536,
+        640
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "suon-raw": {
+          "rect": [
+            0,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-half": {
+          "rect": [
+            192,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-done": {
+          "rect": [
+            384,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-charred": {
+          "rect": [
+            576,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-burnt": {
+          "rect": [
+            768,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-raw": {
+          "rect": [
+            960,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-half": {
+          "rect": [
+            1152,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-done": {
+          "rect": [
+            1344,
+            0,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-charred": {
+          "rect": [
+            0,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-burnt": {
+          "rect": [
+            192,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-raw": {
+          "rect": [
+            384,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-half": {
+          "rect": [
+            576,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-done": {
+          "rect": [
+            768,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-charred": {
+          "rect": [
+            960,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-burnt": {
+          "rect": [
+            1152,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-raw": {
+          "rect": [
+            1344,
+            128,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-half": {
+          "rect": [
+            0,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-done": {
+          "rect": [
+            192,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-charred": {
+          "rect": [
+            384,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-burnt": {
+          "rect": [
+            576,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-raw": {
+          "rect": [
+            768,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-half": {
+          "rect": [
+            960,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-done": {
+          "rect": [
+            1152,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-charred": {
+          "rect": [
+            1344,
+            256,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-burnt": {
+          "rect": [
+            0,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-flip-1": {
+          "rect": [
+            192,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-flip-2": {
+          "rect": [
+            384,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-flip-1": {
+          "rect": [
+            576,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "suon-non-flip-2": {
+          "rect": [
+            768,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-flip-1": {
+          "rect": [
+            960,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "ga-flip-2": {
+          "rect": [
+            1152,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-flip-1": {
+          "rect": [
+            1344,
+            384,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "lap-xuong-flip-2": {
+          "rect": [
+            0,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-flip-1": {
+          "rect": [
+            192,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "dau-hu-flip-2": {
+          "rect": [
+            384,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "egg-raw": {
+          "rect": [
+            576,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "egg-runny": {
+          "rect": [
+            768,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "egg-set": {
+          "rect": [
+            960,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "egg-hard": {
+          "rect": [
+            1152,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        },
+        "egg-burnt": {
+          "rect": [
+            1344,
+            512,
+            192,
+            128
+          ],
+          "anchor": [
+            96,
+            104
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha"
+    },
+    {
+      "filename": "assets/grill-hd.webp",
+      "dimensions": [
+        1920,
+        960
+      ],
+      "pixelScale": 1,
+      "frames": {
+        "grill-hd-cold": {
+          "rect": [
+            0,
+            0,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        },
+        "grill-hd-low": {
+          "rect": [
+            640,
+            0,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        },
+        "grill-hd-mid": {
+          "rect": [
+            1280,
+            0,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        },
+        "grill-hd-high": {
+          "rect": [
+            0,
+            320,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        },
+        "grill-hd-ash": {
+          "rect": [
+            640,
+            320,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        },
+        "grill-hd-flare-1": {
+          "rect": [
+            1280,
+            320,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        },
+        "grill-hd-flare-2": {
+          "rect": [
+            0,
+            640,
+            640,
+            320
+          ],
+          "anchor": [
+            320,
+            304
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "hard alpha",
+      "animations": {
+        "grill-hd-flare": {
+          "frames": [
+            "grill-hd-flare-1",
+            "grill-hd-flare-2"
+          ],
+          "fps": 8,
+          "loop": false
+        }
+      }
+    },
+    {
+      "filename": "assets/journal-card.webp",
+      "dimensions": [
+        1080,
+        1350
+      ],
+      "pixelScale": 2,
+      "frames": {
+        "journal-card": {
+          "rect": [
+            0,
+            0,
+            1080,
+            1350
+          ],
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "category": "sprite",
+      "productionStatus": "produced-wave-2",
+      "transparency": "opaque",
+      "safeAreas": {
+        "header": [
+          70,
+          45,
+          940,
+          175
+        ],
+        "scene": [
+          60,
+          252,
+          960,
+          640
+        ],
+        "footer": [
+          70,
+          922,
+          940,
+          355
+        ]
+      }
     }
   ],
   "placements": {
@@ -7096,8 +10592,8 @@
     },
     "glass-case": {
       "at": [
-        583,
-        395
+        584,
+        400
       ],
       "surface": "prep-counter"
     },
@@ -7264,8 +10760,8 @@
     },
     "signboard": {
       "at": [
-        518,
-        128
+        874,
+        172
       ],
       "surface": "wall"
     },
@@ -7278,43 +10774,43 @@
     },
     "takeaway-shelf": {
       "at": [
-        173,
-        362
+        170,
+        352
       ],
       "surface": "wall"
     },
     "helper-station": {
       "at": [
-        684,
-        541
+        648,
+        530
       ],
       "surface": "behind-counter"
     },
     "wash-station": {
       "at": [
-        111,
-        538
+        103,
+        535
       ],
       "surface": "behind-counter"
     },
     "queue-bench": {
       "at": [
-        1060,
-        469
+        938,
+        463
       ],
       "surface": "floor"
     },
     "lantern-string": {
       "at": [
-        853,
-        130
+        886,
+        117
       ],
       "surface": "ceiling"
     },
     "street-glass-case": {
       "at": [
-        583,
-        395
+        584,
+        400
       ],
       "surface": "prep-counter"
     },
@@ -7481,8 +10977,8 @@
     },
     "red-lantern": {
       "at": [
-        532,
-        196
+        581,
+        180
       ],
       "surface": "ceiling"
     },
@@ -7502,8 +10998,8 @@
     },
     "ceramic-jar": {
       "at": [
-        937,
-        466
+        814,
+        457
       ],
       "surface": "floor"
     },
@@ -7551,22 +11047,22 @@
     },
     "banana-plant": {
       "at": [
-        952,
-        463
+        776,
+        460
       ],
       "surface": "floor"
     },
     "award-frame": {
       "at": [
-        795,
-        286
+        812,
+        258
       ],
       "surface": "wall"
     },
     "neon-sign": {
       "at": [
-        919,
-        151
+        909,
+        181
       ],
       "surface": "wall"
     },
@@ -8076,7 +11572,35 @@
         ],
         "joinWith": "s3"
       }
-    ]
+    ],
+    "signboard-1": {
+      "at": [
+        874,
+        172
+      ],
+      "surface": "wall"
+    },
+    "signboard-2": {
+      "at": [
+        874,
+        172
+      ],
+      "surface": "wall"
+    },
+    "signboard-3": {
+      "at": [
+        874,
+        172
+      ],
+      "surface": "wall"
+    },
+    "awning-street": {
+      "at": [
+        361,
+        176
+      ],
+      "surface": "wall"
+    }
   },
   "sceneScale": {
     "assets/street-scene.webp": {
