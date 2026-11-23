@@ -6,7 +6,7 @@
 export async function runM5(ctx) {
   const { b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag, shots = true } = ctx;
   const shot = async (n) => { if (shots) await b.shot(`${OUT}/${tag}-m5-${n}.png`); };
-  const installBot = () => b.ev(`(async()=>{const h=await import('./test/helpers.mjs?v=c2');window.__bot=(ms,cond)=>{const s=()=>__game.state;const r=h.seeded(23);for(let t=0;t<ms&&s().shift;t+=200){if(cond&&cond(s()))return true;h.botStep(s(),'good',r);if(!s().shift)break;if(cond&&cond(s()))return true;if(!s().shift.dialog)__game.act({type:'tick',dt:200},true)}const ov=__game.overlay;if(ov&&!['prep','summary','pause','intro'].includes(ov)&&!(s().shift&&s().shift.dialog))__game.overlays.close();return cond?cond(s()):!s().shift};return true})()`);
+  const installBot = () => b.ev(`(async()=>{const h=await import('./test/helpers.mjs?v=c3');window.__bot=(ms,cond)=>{const s=()=>__game.state;const r=h.seeded(23);for(let t=0;t<ms&&s().shift;t+=200){if(cond&&cond(s()))return true;h.botStep(s(),'good',r);if(!s().shift)break;if(cond&&cond(s()))return true;if(!s().shift.dialog)__game.act({type:'tick',dt:200},true)}const ov=__game.overlay;if(ov&&!['prep','summary','pause','intro'].includes(ov)&&!(s().shift&&s().shift.dialog))__game.overlays.close();return cond?cond(s()):!s().shift};return true})()`);
   const bot = (ms, cond = null) => b.ev(`window.__bot(${ms}, ${cond ? `(s)=>(${cond})` : "null"})`);
   const firstBatch = async () => { await pressSel('[data-tab="first"]'); for (const a of ["prepCook", "prepMoHanh", "prepLight"]) if (await at(`[data-act="${a}"]`)) await pressSel(`[data-act="${a}"]`); };
   const toNextDay = async () => {
