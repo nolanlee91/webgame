@@ -69,3 +69,17 @@ export function summary(box, m) {
   }
   for (const b of m.badges || []) el("p", "", box, `Huy hiệu mới: ${b.name}.`).dataset.badge = b.id;
 }
+
+/** Chữ ký vẽ lại của nút bày ×N (cột Dĩa). */
+export const batchSig = (s, sl) => `${sl.batchTks?.length || 0}:${sl.plate ? 1 : 0}:${sl.tk !== null && !sl.plate ? EX.batchCandidates(s, sl.tk).length : 0}`;
+/** Nút "Bày ×N" ở đầu cột Dĩa: phiếu cùng bàn, cùng món, cùng dặn riêng ⇒ một lượt bày nhiều dĩa, bưng một chuyến (ô bày đôi 2, khay mâm 4). */
+export function batchButton(head, s, sl, tkt, act) {
+  if (sl.batchTks?.length) {
+    const d = el("div", "a-batch", head, `Bày ×${1 + sl.batchTks.length}: mỗi chạm áp cho ${1 + sl.batchTks.length} dĩa cùng món, bưng một chuyến.`);
+    if (!sl.plate) button(d, "btn small", "Bày từng dĩa", () => act({ type: "batchPin", on: false }), { "data-act": "batchOff" });
+    return;
+  }
+  if (sl.plate || tkt.takeaway) return;
+  const n = EX.batchCandidates(s, tkt.id).length;
+  if (n) button(head, "btn small", `Bày ×${n + 1} (${n + 1} dĩa cùng món, cùng bàn)`, () => act({ type: "batchPin", on: true }), { "data-act": "batchPin" });
+}

@@ -30,8 +30,8 @@ Giá một **phần** (một dĩa dùng một phần). Cột "Kho" cho biết ng
 | `cha` | Chả trứng (sống, phải hấp) | 4 | khay 8 · 32k | 16 · 58k | 3 ngày (đã hấp: trong ca) | ✓ |
 | `cha-chay` | Chả chay (hấp chung xửng) | 2 | 8 · 16k | 16 · 29k | 3 ngày | ✓ |
 | `trung` | Trứng gà | 3 | vỉ 10 · 30k | 20 · 54k | 10 ngày | ✓ |
-| `do-chua` | Đồ chua (cà rốt, củ cải) | 1 | hũ 20 · 20k | 40 · 36k | 5 ngày | ✓ |
-| `dua-leo` | Dưa leo + cà chua | 1 | 20 · 20k | 40 · 36k | 3 ngày | ✓ |
+| `do-chua` | Đồ chua (cà rốt, củ cải) | 1 | hũ 20 · 20k | 40 · 36k | 5 ngày | — (M5) |
+| `dua-leo` | Dưa leo + cà chua | 1 | 20 · 20k | 40 · 36k | 3 ngày | — (M5) |
 | `mo-heo` + `hanh-la` | Bộ làm mỡ hành (1 hũ = 20 phần) | 0,5 | bộ 10k | bộ đôi 18k | hũ đã làm: 2 ngày | — |
 | `nuoc-mam` | Nước mắm pha (chén hoặc bịch) | 1 | can 30 phần · 30k | 60 · 54k | 14 ngày | — |
 | `nuoc-tuong` | Nước tương chay + hành phi | 0,5 | chai 30 · 15k | 60 · 27k | 14 ngày | — |
@@ -61,18 +61,18 @@ Ghi chú:
 
 | # | Món | Cấp | Thành phần ngoài phần nền | Giá vốn | Bán | Lãi gộp | Biên | XP 4–5 sao | Trạm cần |
 |---:|---|---:|---|---:|---:|---:|---:|---:|---|
-| 1 | Cơm sườn | 1 | sườn | 15 | 32 | 17 | 53% | 8 | Bếp |
-| 2 | Cơm sườn trứng | 2 | sườn, trứng ốp la | 18 | 38 | 20 | 53% | 9 | Bếp, chảo |
-| 3 | Cơm sườn bì | 3 | sườn, bì | 18 | 37 | 19 | 51% | 9 | Bếp |
-| 4 | Cơm sườn bì chả | 4 | sườn, bì, chả | 22 | 45 | 23 | 51% | 10 | Bếp, xửng |
-| 5 | Cơm bì chả | 5 | bì, chả | 12 | 26 | 14 | 54% | 7 | Xửng (không cần bếp) |
-| 6 | Cơm tấm đặc biệt | 6 | sườn, bì, chả, trứng, ngò | 25 | 55 | 30 | 55% | 13 | Bếp, chảo, xửng |
-| 7 | Cơm gà nướng | 8 | gà | 17 | 40 | 23 | 58% | 11 | Bếp (12 s một mặt) |
-| 8 | Cơm sườn non | 10 | sườn non | 20 | 50 | 30 | 60% | 13 | Bếp (14 s một mặt) |
-| 9 | Cơm chay | 11 | đậu hũ nướng, bì chay, chả chay | 11,5 | 30 | 18,5 | 62% | 11 | Chỗ nướng chay riêng (2 chỗ phải bếp 1 dán nhãn chay), xửng |
-| 10 | Cơm lạp xưởng trứng | 13 | lạp xưởng, trứng | 13 | 34 | 21 | 62% | 10 | Bếp (lăn 2 lần), chảo |
-| — | Cơm chiên (từ cơm dư hôm trước) | 2 | 2 phần cơm dư + trứng | 3,5 | 20 | 16,5 | — | 5 | Chảo |
-| — | Bánh mì sườn (cứu khi hết cơm) | 1 | ổ bánh 3k + sườn | 13 | 30 | 17 | 57% | 4 | Bếp; tối đa 3 ổ / ca; khách sành trừ kỳ vọng |
+| 1 | Cơm sườn | 1 | sườn | 15 | 38 | 23 | 61% | 8 | Bếp |
+| 2 | Cơm sườn trứng | 2 | sườn, trứng ốp la | 18 | 45 | 27 | 60% | 9 | Bếp, chảo |
+| 3 | Cơm sườn bì | 3 | sườn, bì | 18 | 44 | 26 | 59% | 9 | Bếp |
+| 4 | Cơm sườn bì chả | 4 | sườn, bì, chả | 22 | 54 | 32 | 59% | 10 | Bếp, xửng |
+| 5 | Cơm bì chả | 5 | bì, chả | 12 | 32 | 20 | 63% | 7 | Xửng (không cần bếp) |
+| 6 | Cơm tấm đặc biệt | 6 | sườn, bì, chả, trứng, ngò | 25 | 65 | 40 | 62% | 13 | Bếp, chảo, xửng |
+| 7 | Cơm gà nướng | 8 | gà | 17 | 48 | 31 | 65% | 11 | Bếp (12 s một mặt) |
+| 8 | Cơm sườn non | 10 | sườn non | 20 | 60 | 40 | 67% | 13 | Bếp (14 s một mặt) |
+| 9 | Cơm chay | 11 | đậu hũ nướng, bì chay, chả chay | 11,5 | 36 | 24,5 | 68% | 11 | Vỉ nướng chay riêng (cấp 11, 80k, 2 chỗ chỉ nướng đậu hũ; không có thì đậu hũ trên chỗ vừa nướng thịt bị dính mặn), xửng |
+| 10 | Cơm lạp xưởng trứng | 13 | lạp xưởng, trứng | 13 | 40 | 27 | 68% | 10 | Bếp (lăn 2 lần), chảo |
+| — | Cơm chiên (từ cơm dư hôm trước) | 2 | 2 phần cơm dư + trứng | 3,5 | 24 | 20,5 | — | 5 | Chảo |
+| — | Bánh mì sườn (cứu khi hết cơm) | 1 | ổ bánh 3k + sườn | 13 | 35 | 22 | 63% | 4 | Bếp; tối đa 3 ổ / ca; khách sành trừ kỳ vọng |
 | 11 | Dĩa mang tên quán | 19 | Người chơi chọn tối đa 5 món mặn | theo món | giá vốn ×1,6 – ×2,4 | | | 14 | Giá càng cao khách càng khó tính |
 
 **Gọi thêm:**

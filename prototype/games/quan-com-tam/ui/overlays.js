@@ -102,7 +102,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
       const rows = [
         ["prepCook", `Nấu nồi cơm (nồi ${s.kitchen.rice}/${potSize(s)} · gạo ${s.stock["gao-tam"] || 0})`, s.kitchen.rice >= potSize(s) || (s.stock["gao-tam"] || 0) <= 0], // A: nồi lớn / nồi thứ hai
         ["prepMoHanh", `Làm hũ mỡ hành (hũ ${s.moHanh.n} phần · ${s.stock["mo-hanh-bo"] || 0} bộ)`, s.moHanh.n >= 10 || (s.stock["mo-hanh-bo"] || 0) <= 0],
-        ["prepLight", `Nhóm bếp than (2 rổ, mức than ${GRILL.prepLight.level} · đang ${Math.round(s.kitchen.coal)})`, s.kitchen.coal >= GRILL.prepLight.level || (s.stock.than || 0) < 2],
+        ["prepLight", `Nhóm bếp than (2 rổ, mức than ${GRILL.prepLight.level} · đang ${Math.round(s.kitchen.coal)}${s.owned?.["grill-2"] && s.stage === "quan" ? ` · bếp 2 than riêng ${Math.round(s.kitchen.coal2 || 0)}` : ""})`, (s.kitchen.coal >= GRILL.prepLight.level && !(s.owned?.["grill-2"] && s.stage === "quan" && (s.kitchen.coal2 || 0) < GRILL.prepLight.level)) || (s.stock.than || 0) < 2], // S: bếp 2 than riêng
       ];
       for (const [type, text, dis] of rows) { const r = el("div", "rowx", main); el("div", "nm", r, text); button(r, "btn small", dis ? "Xong" : "Làm", () => { act({ type }); prep(state(), tab); }, { "data-act": type, disabled: dis ? "" : null }); }
     } else if (tab === "menu") {
