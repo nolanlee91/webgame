@@ -9,6 +9,7 @@ import { ownerFree } from "../core/walker.js?v=c1";
 import { canAutoBill } from "../core/bill.js?v=c1";
 import { GRILL } from "../data/economy.js?v=c1";
 import { heatMul } from "../core/grill.js?v=c1";
+import { pickFree } from "../core/drama.js?v=c1"; // B: drama
 
 /** Giây tới lúc miếng cần tay (mặt dưới chạm 100 nếu chưa chín, chạm 128 nếu đã chín) — bot chăm không rời bếp khi sắp tới lúc. */
 export function grillSafeSec(s) {
@@ -63,7 +64,7 @@ export function botStep(s, skill = "good", rnd = Math.random, events = []) {
       const pref = ["consign", "marinate", "borrow", "ship", "run", "bread", "dismiss", "soldOut"];
       const o = pref.map((id) => opts.find((x) => x.id === id)).find(Boolean) || opts[0];
       A({ type: "stockout", choice: o.id });
-    }
+    } else if (d.kind === "event") A({ type: "event", choice: pickFree(s, rnd) }); // B: drama — bot chọn một lựa chọn bấm được
     return n;
   }
   // tính tiền

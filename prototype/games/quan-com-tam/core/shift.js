@@ -14,6 +14,7 @@ import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTabl
 import { openStockout } from "./rescue.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { expireStock } from "./stock.js?v=c1";
+import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c1"; // B: drama
 
 /** Ca hướng dẫn ngày 1: bếp chín chậm hơn để người mới kịp hiểu "hai mặt" (vùng chín rộng hơn theo thời gian). */
 export const TUTORIAL_GRILL = 0.85;
@@ -98,6 +99,7 @@ export function startShift(s, ev = []) {
       lost: 0, timeouts: 0, soldOut: 0, passed: 0, groupsServed: 0, takeaway: 0, washed: 0, perfectFlips: 0, flips: 0, burnt: 0, stars: [], mistakes: {}, reviews: 0, xp: 0, maxDirtyMs: 0, smokeMax: 0 },
   };
   if (s.kitchen.coal > 0) s.shift.lit = true;
+  startDrama(s); // B: drama (khách dồn / mod / đơn đặt trước vào lịch)
   ev.push({ type: "shiftStarted", kind, day: s.day, guests: s.shift.schedule.reduce((a, g) => a + g.roles.length, 0), tutorial });
   return { ok: true };
 }
@@ -162,6 +164,7 @@ export function tick(s, dt, ev = []) {
       else leaveTable(s, g, ev, "closed");
     }
   }
+  maybeTrigger(s, ev); // B: drama (mở sự kiện trong ca, đồng hồ dừng)
   const busy = sh.groups.some((g) => g.phase !== "leave") || sh.schedule.some((g) => !g.done && !sh.closed && g.at < sh.len);
   if (t >= sh.len && !busy && !sh.dialog) return endShift(s, ev);
   return { ok: true };
@@ -223,6 +226,7 @@ export function nextDay(s, ev = []) {
   s.daily = { consigned: false, borrowed: {} };
   s.usedDay = [];
   if (s.lastSummary) s.lastSummary.seen = true;
+  endDrama(s, ev); // B: drama (hết hạn cờ, sự kiện giữa hai ngày hiện trên Chuẩn bị)
   ev.push({ type: "newDay", day: s.day, expired, jar, spoiled });
   return { ok: true, expired, jar, spoiled };
 }

@@ -5,6 +5,7 @@
 import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES } from "../data/economy.js?v=c1";
 import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
+import { freshDrama } from "./flags.js?v=c1"; // B: drama
 
 export const SAVE_VERSION = 1;
 export const MIGRATIONS = {};
@@ -19,6 +20,8 @@ export function createState(seed = 20261120) {
     stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {} },
     regulars: {}, feed: [], nextReviewId: 0, rating: null, consign: null, daily: { consigned: false, borrowed: {} },
     usedDay: [], shift: null, lastSummary: null, bought: {},
+    // --- B: drama --- (cờ trơn dùng chung s.flags, cờ / hàng hẹn / lịch sử Drama, mod có hạn, người theo dõi, độ hot)
+    flags: {}, drama: freshDrama(), mods: [], followers: 0, hype: 0,
   };
 }
 
@@ -97,6 +100,19 @@ export function loadSave(raw) {
   s.bought = Object.fromEntries(Object.entries(obj(d.bought) ? d.bought : {}).filter(([k]) => STOCK_IDS.includes(k)).map(([k, v]) => [k, arr(v).filter((p) => obj(p) && Number.isInteger(p.day) && Number.isInteger(p.n) && p.n > 0).slice(-20)]));
   s.usedDay = arr(d.usedDay).filter((x) => typeof x === "string").slice(-120);
   s.lastSummary = obj(d.lastSummary) ? { ...d.lastSummary, seen: bool(d.lastSummary.seen) } : null;
+  // --- B: drama ---
+  s.flags = Object.fromEntries(Object.entries(obj(d.flags) ? d.flags : {}).filter(([k, v]) => k.length <= 60 && (v === true || (typeof v === "number" && Number.isFinite(v)))).slice(0, 200));
+  s.mods = arr(d.mods).filter((m) => obj(m) && typeof m.id === "string" && Number.isInteger(m.until)).slice(0, 30);
+  s.followers = int(d.followers, 0, BIG, 0); s.hype = num(d.hype, 0, 20, 0);
+  if (obj(d.drama)) {
+    const D = d.drama, F = freshDrama(), ints = (o) => Object.fromEntries(Object.entries(obj(o) ? o : {}).filter(([k, v]) => k.length <= 60 && Number.isInteger(v)).slice(0, 300));
+    s.drama = { ...F, flags: ints(D.flags), seen: ints(D.seen), debt: ints(D.debt), decor: Object.fromEntries(Object.entries(obj(D.decor) ? D.decor : {}).filter(([, v]) => v === true).slice(0, 40)),
+      queue: arr(D.queue).filter((q) => obj(q) && typeof q.id === "string" && Number.isInteger(q.day)).slice(0, 40), history: arr(D.history).filter(obj).slice(0, 40),
+      moments: arr(D.moments).filter(obj).slice(0, 30), recent: arr(D.recent).filter((x) => typeof x === "string").slice(-6), pre: arr(D.pre).filter((p) => obj(p) && Number.isInteger(p.day) && p.n > 0).slice(0, 10),
+      pending: obj(D.pending) && D.pending.kind === "event" && typeof D.pending.id === "string" ? D.pending : null,
+      nextGuests: int(D.nextGuests, -4, 8, 0), nextArch: Object.fromEntries(Object.entries(obj(D.nextArch) ? D.nextArch : {}).filter(([k, v]) => ARCHETYPES[k] && Number.isInteger(v))),
+      catName: typeof D.catName === "string" ? D.catName.slice(0, 20) : null };
+  }
   s.shift = loadShift(d.shift, s);
   if (s.shift && s.shift.day !== s.day) s.shift = null;
   return s;

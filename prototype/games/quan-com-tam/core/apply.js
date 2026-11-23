@@ -13,6 +13,7 @@ import { cookNow, makeJar, freshRice } from "./rice.js?v=c1";
 import { enqueue, ownerFree } from "./walker.js?v=c1";
 import { levelForXp } from "./progress.js?v=c1";
 import { STOCK_IDS, SHIFTS, GRILL } from "../data/economy.js?v=c1";
+import { choose as dramaChoose, openEvent } from "./drama.js?v=c1"; // B: drama
 
 const inShift = (f) => (s, a, ev) => (s.shift ? f(s, a, ev) : { err: "no-shift" });
 const noShift = (f) => (s, a, ev) => (s.shift ? { err: "in-shift" } : f(s, a, ev));
@@ -105,6 +106,8 @@ const HANDLERS = {
   // ---- Hội thoại ----
   complaint: inShift((s, a, ev) => tb.resolveComplaint(s, a.choice, ev)),
   overcharge: inShift((s, a, ev) => tb.resolveOvercharge(s, a.choice, ev)),
+  event: (s, a, ev) => dramaChoose(s, a.choice, ev), // B: drama — chọn trong hội thoại sự kiện (trong ca hoặc trên Chuẩn bị)
+  eventOpen: (s, a) => openEvent(s, a.id), // B: drama — mở thẳng (test, ?event=ID)
   stockout: inShift((s, a, ev) => {
     const r = resolveStockout(s, a.choice, ev);
     if (r.ok && r.task === "marinate") enqueue(s, { kind: "marinate" }, ev);
@@ -114,7 +117,7 @@ const HANDLERS = {
 export const ACTIONS = Object.keys(HANDLERS);
 
 /** Hàng ký gửi / cứu giữa ca / nhịp ca được vượt sức chứa kho (không bao giờ kẹt vì kho đầy). */
-const OVER_CAP_OK = new Set(["consign", "stockout", "tick", "startShift", "nextDay"]);
+const OVER_CAP_OK = new Set(["consign", "stockout", "tick", "startShift", "nextDay", "event"]); // B: "event" (quà hàng từ sự kiện)
 /** Số dĩa đang có mặt ở mọi nơi trong ca. */
 export function platesInPlay(sh) {
   let n = sh.cleanPlates + sh.dirty;
