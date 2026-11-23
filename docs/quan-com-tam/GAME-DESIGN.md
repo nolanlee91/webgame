@@ -316,30 +316,30 @@ Số khách mỗi ca:
 
 ## 6. Bảng 20 cấp
 
-XP tích luỹ lấy theo đường cong Bánh Mì sau cân bằng M5 (đã khớp mục tiêu thời gian); bộ mô phỏng M5 của game này sẽ dò lại.
+XP tích luỹ dò bằng bộ mô phỏng M5 (`tools/sim/fit.mjs`, người chơi trung bình): cấp 4 ≈ 10 phút, 7 ≈ 40 phút, 10 ≈ 2 giờ, 20 ≈ 11 giờ. Bảng M0 (theo Bánh Mì) ở `core/state.js` `LEVELS_V2`; bản lưu cũ nâng giữ cấp + %.
 
 | Cấp | XP | Mở khoá | Giai đoạn |
 |---:|---:|---|---|
 | 1 | 0 | Quán vỉa hè, bếp than 1 (6 chỗ, 3 vùng), nồi cơm 12, 10 dĩa, **2 bàn × 2 chỗ**, **cơm sườn**, trà đá, ca tối, ký gửi, "Tính đúng" | Vỉa hè |
-| 2 | 30 | **Trứng ốp la** (chảo), cơm sườn trứng, phiếu "trứng lòng đào", nhiệm vụ ngày, cơm chiên từ cơm dư | Vỉa hè |
-| 3 | 55 | **Bì** + **cơm sườn bì**, phiếu "không bì", **bàn 3**, tủ kính giữ ấm 6 miếng | Vỉa hè |
-| 4 | 125 | **Chả trứng hấp** (xửng) + sườn bì chả, **hộp mang về** (shipper), trang trí | Vỉa hè |
-| 5 | 270 | **Ca trưa** (dân văn phòng), **cơm bì chả** (không cần bếp), **nồi canh**, **bàn 4**, ghép bàn | Vỉa hè |
-| 6 | 445 | **Dĩa đặc biệt**, bày ×N + ô bày đôi, **sổ nợ** chính thức, mái bạt (mưa chỉ −15% khách) | Vỉa hè |
-| 7 | 655 | **Lên quán**: thuê mặt bằng 350k, `quan-scene`, 3 bàn (2 bàn 2 + 1 bàn 4), nồi cơm lớn 20, 16 dĩa, **đơn đặt trước**, kho lớn, phí ca tăng | Quán |
-| 8 | 1.055 | **Gà nướng**, chụp hút khói, chảo đôi, khách du lịch, reviewer thường hơn | Quán |
-| 9 | 1.630 | **Phụ bàn Bông**, **nhà cung cấp 2** (Chú Hòa) | Quán |
-| 10 | 2.355 | **Sườn non** (nướng lâu), **bàn thứ 4** của quán (2 chỗ, góc trước quầy), **mâm cơm công ty**, **hạng quán** bậc 1 | Quán |
-| 11 | 2.845 | **Cơm chay** (đậu hũ nướng, bì chay, chả chay, hành phi, chỗ nướng chay riêng), **quảng bá** | Quán |
-| 12 | 3.455 | **Quạt máy** thổi bếp, **nồi cơm thứ hai**, ca khuya đông hơn (+2 khách) | Quán |
-| 13 | 4.110 | **Lạp xưởng** + cơm lạp xưởng trứng, **bàn 5** (bàn 4 chỗ thứ hai), **Dì Năm rửa chén**, tủ chén 24 dĩa | Quán |
-| 14 | 5.050 | **Bếp than thứ hai** (12 chỗ), tủ mát (thịt ướp giữ thêm 1 ngày) | Quán |
-| 15 | 6.280 | **Nước mắm nhà pha** (3 bậc: +giá, +sao), **hộp tính tiền** (tự cộng phiếu) | Quán |
-| 16 | 7.575 | **Quán nổi tiếng**: bảng hiệu bậc 3, đèn lồng, ghế chờ (4 người chờ), +khách đi ngang, reviewer xếp hàng | Nổi tiếng |
-| 17 | 9.125 | Bông lên tay (2 việc liên tiếp), **ca khuya kéo dài** tới 0:30 (tuỳ chọn, +25% khách khuya) | Nổi tiếng |
-| 18 | 11.050 | **Đêm hội ẩm thực bờ sông** (hội chợ) | Nổi tiếng |
-| 19 | 13.295 | **Dĩa mang tên quán** (đặt tên, chọn tối đa 5 món, giá tự chọn trong khung), trần trang trí +4 | Nổi tiếng |
-| 20 | 16.085 | Huy hiệu Chủ Quán, lịch thử thách, hạng quán bậc cuối | Nổi tiếng |
+| 2 | 40 | **Trứng ốp la** (chảo), cơm sườn trứng, phiếu "trứng lòng đào", nhiệm vụ ngày, cơm chiên từ cơm dư | Vỉa hè |
+| 3 | 75 | **Bì** + **cơm sườn bì**, phiếu "không bì", **bàn 3**, tủ kính giữ ấm 6 miếng | Vỉa hè |
+| 4 | 110 | **Chả trứng hấp** (xửng) + sườn bì chả, **hộp mang về** (shipper), trang trí | Vỉa hè |
+| 5 | 200 | **Ca trưa** (dân văn phòng), **cơm bì chả** (không cần bếp), **nồi canh**, **bàn 4**, ghép bàn | Vỉa hè |
+| 6 | 315 | **Dĩa đặc biệt**, bày ×N + ô bày đôi, **sổ nợ** chính thức, mái bạt (mưa chỉ −15% khách) | Vỉa hè |
+| 7 | 445 | **Lên quán**: thuê mặt bằng 350k, `quan-scene`, 3 bàn (2 bàn 2 + 1 bàn 4), nồi cơm lớn 20, 16 dĩa, **đơn đặt trước**, kho lớn, phí ca tăng | Quán |
+| 8 | 660 | **Gà nướng**, chụp hút khói, chảo đôi, khách du lịch, reviewer thường hơn | Quán |
+| 9 | 980 | **Phụ bàn Bông**, **nhà cung cấp 2** (Chú Hòa) | Quán |
+| 10 | 1.525 | **Sườn non** (nướng lâu), **bàn thứ 4** của quán (2 chỗ, góc trước quầy), **mâm cơm công ty**, **hạng quán** bậc 1 | Quán |
+| 11 | 1.935 | **Cơm chay** (đậu hũ nướng, bì chay, chả chay, hành phi, chỗ nướng chay riêng), **quảng bá** | Quán |
+| 12 | 2.425 | **Quạt máy** thổi bếp, **nồi cơm thứ hai**, ca khuya đông hơn (+2 khách) | Quán |
+| 13 | 2.910 | **Lạp xưởng** + cơm lạp xưởng trứng, **bàn 5** (bàn 4 chỗ thứ hai), **Dì Năm rửa chén**, tủ chén 24 dĩa | Quán |
+| 14 | 3.375 | **Bếp than thứ hai** (12 chỗ), tủ mát (thịt ướp giữ thêm 1 ngày) | Quán |
+| 15 | 3.930 | **Nước mắm nhà pha** (3 bậc: +giá, +sao), **hộp tính tiền** (tự cộng phiếu) | Quán |
+| 16 | 4.745 | **Quán nổi tiếng**: bảng hiệu bậc 3, đèn lồng, ghế chờ (4 người chờ), +khách đi ngang, reviewer xếp hàng | Nổi tiếng |
+| 17 | 5.505 | Bông lên tay (2 việc liên tiếp), **ca khuya kéo dài** tới 0:30 (tuỳ chọn, +25% khách khuya) | Nổi tiếng |
+| 18 | 6.455 | **Đêm hội ẩm thực bờ sông** (hội chợ) | Nổi tiếng |
+| 19 | 7.590 | **Dĩa mang tên quán** (đặt tên, chọn tối đa 5 món, giá tự chọn trong khung), trần trang trí +4 | Nổi tiếng |
+| 20 | 9.015 | Huy hiệu Chủ Quán, lịch thử thách, hạng quán bậc cuối | Nổi tiếng |
 
 Mở khoá là quyền mua và dùng, không trừ tiền tự động. Riêng cấp 7 có hỏi: "Thuê mặt bằng ngay hay bán vỉa hè thêm?".
 - Ở lại vỉa hè được; nhiệm vụ và giá vẫn tính đúng.
