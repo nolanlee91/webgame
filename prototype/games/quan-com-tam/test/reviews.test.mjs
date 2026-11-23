@@ -11,6 +11,7 @@ import { PERSONAS, PERSONA_IDS, REPLY_OPTIONS, REPLY_LINES, OUTCOME_LABEL, COMEB
 import { CAPTIONS } from "../data/lines-journal.js?v=c1";
 import * as M4 from "../data/lines-reviews-m4.js?v=c1";
 import { freshLine, fill } from "../core/text.js?v=c1";
+import { pickFree } from "../core/drama.js?v=c1";
 
 const review = (s, o = {}) => pushReview(s, { name: "Chú Tư", role: "worker", stars: 2, line: "Câu review.", mistake: null, dish: "com-suon", ...o });
 const ROLES = ["office", "worker", "student", "regular", "driver", "nurse", "reviewer", "tourist", "worker2", "student2"];
@@ -55,6 +56,7 @@ test("ca thật: mọi review có lý do; khách ca sau tăng theo đánh giá +
   prepDay(s);
   const before = s.rng;
   must(s, { type: "startShift" });
+  if (s.shift.drama) s.shift.drama.max = 0; // ca thử chỉ kiểm khách quay lại: tắt Drama trong ca (phần B kiểm riêng)
   const sched = s.shift.schedule;
   assert.ok(sched.filter((g) => g.tag === "buzz").length === 5, "5 khách thêm nhờ review");
   const back = sched.find((g) => g.tag === "back");
@@ -62,7 +64,11 @@ test("ca thật: mọi review có lý do; khách ca sau tăng theo đánh giá +
   assert.deepEqual(s.returning, []);
   assert.notEqual(s.rng, before);
   // chạy tới khi khách quay lại vào quán: giữ tên + câu quay lại
-  for (let t = 0; t < 200000 && !s.shift.groups.some((g) => g.tag === "back"); t += 200) { if (s.shift.dialog) break; must(s, { type: "tick", dt: 200 }); }
+  // hội thoại Drama (phần B) có thể mở giữa ca ⇒ chọn một lựa chọn bấm được rồi chạy tiếp; hội thoại khác thì dừng
+  for (let t = 0; t < 200000 && !s.shift.groups.some((g) => g.tag === "back"); t += 200) {
+    if (s.shift.dialog) { if (s.shift.dialog.kind === "event") { must(s, { type: "event", choice: pickFree(s, () => 0) }); continue; } break; }
+    must(s, { type: "tick", dt: 200 });
+  }
   const g = s.shift.groups.find((x) => x.tag === "back");
   assert.ok(g, "khách quay lại đã tới");
   assert.equal(g.members[0].name, "Chị Thảo");
