@@ -111,6 +111,37 @@ export function addCoal(g, t, ev = []) {
 }
 export function setFan(g, on) { g.fan = !!on; return { ok: true }; }
 
+/**
+ * Cân bằng M3: vùng chín (100–114) và cháy cạnh (115–129) kéo dài theo GIÂY mỗi vùng (GRILL.bandSec), không theo tốc độ nướng của món.
+ * Ở than rực (×1,2), vùng nóng chín được ~2,5 giây, vừa ~4,5 giây; quạt / lửa bùng / than yếu co giãn theo nhiệt. Trước 100 nướng như cũ.
+ * Tốc độ trong dải = min(tốc độ thường, 15 / giây_dải × nhiệt / 1,2) ⇒ không bao giờ nhanh hơn ngoài dải (vùng giữ ấm vẫn chậm).
+ */
+export function bandRate(z, band, heat) {
+  const sec = GRILL.bandSec?.[z]?.[band];
+  if (!sec) return Infinity;
+  return ((GRILL.charMin - GRILL.doneMin) / (sec * 1000)) * (heat / GRILL.heat[0].mul);
+}
+export function advanceSide(v, rate, dt, z, heat) {
+  let left = dt;
+  for (let guard = 0; guard < 4 && left > 0; guard++) {
+    const band = v >= GRILL.burntMin ? null : v >= GRILL.charMin ? "charred" : v >= GRILL.doneMin ? "done" : null;
+    const r = band ? Math.min(rate, bandRate(z, band, heat)) : rate;
+    if (!(r > 0)) return v;
+    const edge = v < GRILL.doneMin ? GRILL.doneMin : v < GRILL.charMin ? GRILL.charMin : v < GRILL.burntMin ? GRILL.burntMin : Infinity;
+    const need = (edge - v) / r;
+    if (need >= left) return v + r * left;
+    v = edge; left -= need;
+  }
+  return v;
+}
+/** Giây miếng ở trong vùng chín / cháy cạnh (test + gợi ý): theo vùng, nhiệt hiện tại. */
+export function windowSec(g, z, band = "done", item = "suon") {
+  const heat = heatMul(g);
+  const normal = (100 / (GRILL.side[item] * 1000)) * GRILL.zoneMul[z] * heat;
+  const r = Math.min(normal, bandRate(z, band, heat));
+  return r > 0 ? (GRILL.charMin - GRILL.doneMin) / r / 1000 : Infinity;
+}
+
 /** Một nhịp bếp: than cháy, than mới bén, nướng mặt dưới, giữ ấm, khói. */
 /** speed: hệ số chung (ca hướng dẫn ngày 1 nướng chậm hơn: 0,7). */
 export function tickGrill(g, dt, t, ev = [], speed = 1) {
@@ -129,9 +160,10 @@ export function tickGrill(g, dt, t, ev = [], speed = 1) {
     const it = g.slots[i];
     if (!it) continue;
     const z = zoneOf(i);
-    const rate = (100 / (GRILL.side[it.item] * 1000)) * GRILL.zoneMul[z] * heat * (flare && z === "hot" ? GRILL.flareMul : 1);
+    const fl = flare && z === "hot" ? GRILL.flareMul : 1;
+    const rate = (100 / (GRILL.side[it.item] * 1000)) * GRILL.zoneMul[z] * heat * fl;
     const old = it.sides[0];
-    let nv = Math.min(GRILL.sideMax, old + rate * dt);
+    let nv = Math.min(GRILL.sideMax, advanceSide(old, rate, dt, z, heat * fl));
     if (z === "warm") {
       it.warmMs += dt;
       if (it.warmMs < GRILL.warmSafeMs) nv = Math.min(nv, Math.max(old, GRILL.perfect[1]));

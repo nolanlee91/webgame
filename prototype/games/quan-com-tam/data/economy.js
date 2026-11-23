@@ -97,6 +97,8 @@ export const GRILL = {
   side: { suon: 9, "suon-non": 14, ga: 12, "lap-xuong": 5, "dau-hu": 6 },
   halfMin: 60, doneMin: 100, charMin: 115, burntMin: 130, sideMax: 160, nearBurn: 125,
   perfect: [100, 114],
+  // Cân bằng M3: giây ở vùng chín / cháy cạnh khi than rực (×1,2). Bản M2 vùng nóng chỉ ~0,7 giây chín ⇒ người chơi ẩu cháy gần hết.
+  bandSec: { hot: { done: 2.5, charred: 1.8 }, mid: { done: 4.5, charred: 3 } },
   freshDecayMs: 3000, dryBelow: 60,
   smoke: { fan: 1, burning: 3, decay: 2, high: 70 },
   prepLight: { baskets: 2, level: 70 },
