@@ -18,7 +18,33 @@
 | M2 · Một ca trọn | **Xong (lõi)** | Ngày 1 chơi trọn bằng chạm thật (e2e desktop 1366@1,25 + mobile 390@3). |
 | M3 · Kinh tế + nội dung cơ chế | **Xong (gộp, branch `claude/qct-int`)** | Phần A: 20 cấp, ca trưa, ghi sổ, lên quán, đơn đặt / mâm cơm, Bông, nhiệm vụ, trang trí, hạng quán… Xem "M3 + M4 gộp" và "M3 · phần A". |
 | M4 · Drama + review + Nhật Ký | **Xong (gộp, branch `claude/qct-int`)** | Phần B: Drama, 104 sự kiện. Phần C: review, tính cách, Sổ, Nhật Ký. Xem "M3 + M4 gộp". |
-| M5 · Polish + cân bằng | Chưa bắt đầu | |
+| M5 · Polish + cân bằng | Phần V (hình + tiếng) xong; phần S (cân bằng) song song | Xem "M5 phần V". |
+
+## M5 phần V: hình + tiếng (đã làm)
+
+**Ảnh đợt 2 (đều qua atlas, sheet lớn ở `LAZY_SHEETS`, khung đầu không chờ):**
+
+| Sheet | Dùng ở đâu |
+|---|---|
+| `grill-hd` + `grill-items-hd` | Bếp lớn (`ui/bigrill.js`): desktop nút **Bếp lớn** trên Thanh Bếp (bảng nổi trên cảnh, hệ số thiết bị 1,0); mobile đầu dock **Bếp** (1,5). Chạm miếng = `grillTap`. Chip Thanh Bếp cũng dùng món HD; cảnh vẫn vẽ món bằng `grill-items` thường (`atlas.frameLo`). |
+| `owner-actions-hd` | Sau bếp lớn (idle / grill / fan, nháy theo sự kiện) và sau dĩa HD ở ô bày (desktop; idle, bill khi đang tính tiền). |
+| `plate-layers-hd` | Ô bày (cùng tên frame, tự qua `HD_SHEETS`). |
+| `portraits-hd`, `portrait-expressions-hd`, `drama-portraits-hd` | Hội thoại Drama: 12 NPC có chân dung riêng ⇒ `drama/<npc>-<mood>`; khách vai ⇒ `faces/<vai>-<biểu cảm>`; cô chủ ⇒ `faces/owner-*`. Icon HD làm tròn theo lưới 1× (`crispHd`). |
+| `fixtures` | Vật dụng ×1 theo placements: tủ kính (đã mua; trống / ít / đầy theo miếng chín ở vùng giữ ấm), bảng hiệu bậc 1–3, mái bạt (vỉa hè), kệ mang về, dây đèn + bảng menu (quán), quầy Bông / chỗ rửa Dì Năm (khi thuê), ghế chờ. |
+| `decor` | Trang trí ×1 trong cảnh (không có luật ×0,5) và hình thật trên khung kéo thả ở tab Trang trí. |
+| `weather-fx` | Mưa (`rain-today`; trong quán chỉ thấy qua cửa sổ + cửa, sau khách), nước ngập vỉa hè (đậm hơn khi có O04), chớp (ngày mưa, ~12 giây một lần), khói dày (khói bếp ≥ 55 hoặc SM1, đậm theo khói), cúp điện (O02: tối + quầng đèn bình 20 giây). |
+| `journal-card` | Nền thẻ Nhật Ký (đã có từ M4, nay có file thật). |
+
+**Âm thanh (`ui/sfx.js`):** 32 file Codex. Vòng lặp: phố đêm (chuẩn bị + ca), nhạc chuẩn bị / cao điểm, bếp than (chỉ khi bếp đang nhóm), quán đông (≥ 3 bàn có khách); hội thoại hạ âm. Nút Tiếng 3 trạng thái (bật hết → chỉ hiệu ứng → tắt bằng `wgp.muted`). Tải sau thao tác đầu (cả `pointerup` / `touchend`: trên cảm ứng `pointerdown` chưa tính là thao tác), file lỗi không thử lại. Giữ quạt: tiếng phạch theo nhịp. Bảng sự kiện → tiếng: `soundsFor` (test `test/sound.test.mjs`).
+
+**Sửa hình:**
+- Bàn 4: ghế sau cùng bên dời vào phía bàn + lùi lên (`seatDisplay`), đầu không bị người ghế trước che. Ghế trống vẽ cùng chỗ.
+- Nhóm chờ ở quán xếp hàng dọc tường sau, cách 90 px (`waitDisplay`); có chỗ thứ 4 cạnh ghế chờ (móc `// V:` ở `core/placements.js`, dự phòng `data/scene.js`).
+- Bong bóng đặt sau khi mọi nhãn nhóm chờ có chỗ, tránh cả nhãn bàn. Nhãn bàn ngắn ở khung hẹp ("Lấy phiếu").
+- Thông báo trùng câu thì thay, không xếp hai dòng giống nhau.
+- Giảm chuyển động: mưa đứng một khung, không chớp, cô chủ cận cảnh đứng yên (cùng luật CSS cũ).
+
+**Test:** `test/sound.test.mjs` (4). E2E `test/e2e-m5v.mjs` (gọi từ `e2e.mjs`, `M5V_ONLY=1` chỉ chạy phần này, `SKIP_M5V=1` bỏ qua): âm thanh trước / sau thao tác đầu (gián điệp AudioContext), nút 3 trạng thái, vòng lặp theo cảnh, mưa vỉa hè / quán, khói, quán đông 5 bàn + 4 nhóm chờ không chồng vùng đầu (quét alpha thật), nhãn + bong bóng không chồng, fixtures / decor ×1, bếp lớn HD + chạm lật, dĩa HD, chân dung HD, giảm chuyển động.
 
 ## M3 + M4 gộp (A + B + C, đã làm)
 

@@ -5,9 +5,9 @@
 // Khách ngồi: frame <vai>-sit-* vẽ quay phải; ghế face "left" ⇒ lật ngang quanh anchor (vẫn snap). Bong bóng nền đục, đặt bằng placeBubble.
 import { paint, placeAt, setSnap } from "./atlas.js?v=c2";
 import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongDist } from "../core/placements.js?v=c2";
-import { itemFrame, heatKey } from "../core/grill.js?v=c2";
+import { itemFrame, heatKey, zoneOf, isCooked } from "../core/grill.js?v=c2";
 import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c2";
-import { seatSpotsFor, decorAt, isFamous } from "../core/progression.js?v=c2"; // A: bàn ghép, trang trí
+import { seatSpotsFor, decorAt, isFamous, rainToday } from "../core/progression.js?v=c2"; // A: bàn ghép, trang trí (V: + mưa)
 
 const W = 1280, H = 720;
 export const BUBBLE_MS = 3600;
@@ -22,6 +22,14 @@ export const charScale = (f) => (f ? Math.max(1, Math.round((CHAR_H / f.h) * 2) 
  *  bản Codex vẽ đúng thước sau này ⇒ ×1 tự động. Ghế, dĩa đang ăn, bàn, bếp, món trên vỉ hiện ×1. Đều là bội 0,5 ⇒ vẫn nét. */
 const scaleOf = (atlas, alias, name) => (atlas.scaleOf ? atlas.scaleOf(alias, name) : 1);
 export const JOB_LABEL = { seat: "Mời ngồi", visit: "Châm trà · lấy phiếu", bill: "Tính tiền", clean: "Dọn bàn", rice: "Thêm cơm" };
+/** V: nhãn bàn ngắn cho khung cảnh hẹp (390 px: nút bàn chỉ ~90 px, nhãn dài đè nhãn bàn bên cạnh). */
+const JOB_SHORT = { visit: "Lấy phiếu" };
+/** V: vật dụng quán (fixtures.webp) → lớp vẽ. Toạ độ: manifest placements (street- cho vỉa hè), không có toạ độ thì không vẽ. */
+const FIXTURES = [["lantern-string", "back"], ["menu-board", "back"], ["signboard", "back"], ["awning", "back"], ["takeaway-shelf", "back"],
+  ["helper-station", "behind"], ["wash-station", "behind"], ["glass-case", "counter"], ["queue-bench", "floor"]];
+/** V: khung trời nhìn được từ trong quán (quan-scene: cửa sổ trái, cửa sau phải) — mưa chỉ rơi trong hai khung này. */
+const QUAN_SKY = ["inset(118px 1010px 352px 44px)", "inset(118px 56px 268px 1030px)"];
+const WX_CLIP = { rain: ["rain-1", "rain-2", "rain-3", "rain-4"], flood: ["flood-1", "flood-2"], smoke: ["smoke-1", "smoke-2", "smoke-3"], bolt: ["lightning-1", "lightning-2"] };
 
 /** Frame khách đứng / đi. */
 export function standFrame(atlas, role, g, t, k = 0) {
@@ -46,6 +54,26 @@ export function seatFrame(atlas, s, g, m, t) {
   return atlas.frame("seated", `${role}-sit-${pose}`) || atlas.frame("reactions", `${role}-waiting`) || atlas.frame("chars", role);
 }
 const overlap = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+/** V: chỗ ngồi hiển thị. Bàn 4: hai ghế cùng bên (so le) trong manifest chỉ cách nhau ~5 px ngang, ~26 px dọc ⇒ người ngồi sau bị người
+ *  ngồi trước che kín đầu. Người ngồi ghế sau dời vào phía bàn + lùi lên (sau mép bàn), đầu lộ trên vai người trước. Ghế trống vẽ cùng chỗ. */
+export const SEAT_BACK = [60, -42];
+export function seatDisplay(tp, i) {
+  const sp = tp?.seatSpots?.[i];
+  if (!sp) return null;
+  if (tp.seats !== 4) return [sp.at[0], sp.at[1]];
+  const mate = tp.seatSpots.find((o, j) => j !== i && o.face === sp.face && Math.abs(o.at[0] - sp.at[0]) < 90);
+  if (!mate || mate.at[1] <= sp.at[1]) return [sp.at[0], sp.at[1]];
+  const dir = sp.face === "left" ? -1 : 1;
+  return [sp.at[0] + dir * SEAT_BACK[0], sp.at[1] + SEAT_BACK[1]];
+}
+/** V: hàng chờ hiển thị: từ cửa lùi dọc tường sau, cách nhau 90 px cảnh (người đứng rộng ~106 px: đầu người sau không bị người trước che),
+ *  so le 6 px. i = chỗ chờ (core); người không có chỗ (nhóm đông dồn vào) nối tiếp phía sau. */
+export const QUEUE_GAP = 90;
+export function waitDisplay(P, i) {
+  const first = P.waitSpots[0] || P.entry;
+  if (P.stage !== "quan") { const sp = P.waitSpots[i]; if (sp) return [sp[0], sp[1]]; return [first[0] - i * QUEUE_GAP, first[1] + (i % 2) * 8]; }
+  return [Math.round(first[0] + 12 - i * QUEUE_GAP), first[1] - 2 + (i % 2) * 6];
+}
 
 export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] }) {
   root.textContent = "";
@@ -62,8 +90,15 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
   let actName = "idle", actUntil = 0, ownerFace = 1, ownerPrev = null;
 
   const put = (parent, alias, name, at, scale = 1, cls = "spr") => { const e = el("div", cls, parent); const f = atlas.frame(alias, name); paint(e, f, scale); placeAt(e, f, at[0], at[1], scale); e.hidden = !f; return e; };
-  const setSpr = (key, e, alias, name, at, scale = 1) => { const sig = name + "@" + at[0] + "," + at[1]; if (last[key] === sig) return; last[key] = sig; const f = atlas.frame(alias, name); paint(e, f, scale); placeAt(e, f, at[0], at[1], scale); e.hidden = !f; };
+  const setSpr = (key, e, alias, name, at, scale = 1, lo = false) => { const sig = name + "@" + at[0] + "," + at[1]; if (last[key] === sig) return; last[key] = sig; const f = lo && atlas.frameLo ? atlas.frameLo(alias, name) : atlas.frame(alias, name); paint(e, f, scale); placeAt(e, f, at[0], at[1], scale); e.hidden = !f; }; // V: lo = bản thường (cảnh lưới 2×, không lấy HD)
 
+  /** V: toạ độ vật dụng: vỉa hè đọc "street-<id>", quán đọc "<id>" (manifest placements). */
+  function fixAt(stageId, id) {
+    const pl = atlas.placements || {};
+    const v = stageId === "street" ? pl["street-" + id] : (id === "awning" ? null : pl[id]);
+    const at = Array.isArray(v) ? v : v?.at;
+    return Array.isArray(at) && typeof at[0] === "number" ? [at[0], at[1]] : null;
+  }
   function build(stageId) {
     mode = stageId;
     for (const n of cust.values()) n.e.remove();
@@ -101,6 +136,33 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     // bình trà đá: toạ độ đề xuất (ART-DIRECTION) đè ghế trái bàn 1 ⇒ chỉ vẽ khi manifest có toạ độ thật của Codex
     const teaKey = stageId === "street" ? "street-tea-cooler" : "tea-cooler";
     if (P["tea-cooler"] && atlas.placements[teaKey]) S.eq["tea-cooler"] = el("div", "spr", S.floor);
+    // V: vật dụng quán (fixtures.webp, đợt 2, hiện ×1): tường / trần sau cô chủ, sau quầy, trên quầy, sàn (sắp theo y)
+    S.fix = {};
+    for (const [id, layerName] of FIXTURES) {
+      const at = fixAt(stageId, id);
+      if (!at) continue;
+      const parent = layerName === "counter" ? S.counter : layerName === "floor" ? S.floor : layerName === "behind" ? stage : S.back;
+      const e = el("div", "spr fixture", parent);
+      e.dataset.fixture = id; e.hidden = true;
+      if (layerName === "behind") e.style.zIndex = 90; // sau cô chủ (100), sau lớp che quầy (200)
+      if (layerName === "floor") e.style.zIndex = 1000 + Math.round(at[1]) - 2;
+      S.fix[id] = { e, at };
+    }
+    // V: thời tiết (weather-fx.webp 640×360 lưới 2× ⇒ hiện ×2 phủ cảnh): mưa ngoài trời trên mọi thứ; trong quán chỉ thấy mưa qua cửa sổ + cửa
+    // (sau khách); nước ngập vỉa hè; khói dày trên bếp; cúp điện: tối + quầng đèn bình; chớp: loé trắng (+ tia sét ngoài trời).
+    S.wxBack = el("div", "weather weather-back", stage);
+    S.wx = el("div", "weather", stage);
+    const wxEl = (cls, parent, clip) => { const e = el("div", "spr " + cls, parent); e.hidden = true; if (clip) e.style.clipPath = clip; return e; };
+    S.wxEls = {
+      rain: stageId === "quan" ? QUAN_SKY.map((c) => wxEl("wx-rain", S.wxBack, c)) : [wxEl("wx-rain", S.wx)],
+      flood: stageId === "street" ? wxEl("wx-flood", S.wx) : null,
+      smoke: wxEl("wx-smoke", S.wx),
+      dark: el("div", "wx-dark", S.wx),
+      glow: wxEl("wx-glow", S.wx),
+      bolt: stageId === "street" ? wxEl("wx-bolt", S.wx) : null,
+      flash: el("div", "wx-flash", S.wx),
+    };
+    S.wxEls.dark.hidden = true; S.wxEls.flash.hidden = true;
     S.fx = el("div", "fx", stage);
     root.dataset.mode = stageId;
     for (const key of Object.keys(last)) delete last[key];
@@ -209,7 +271,6 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
   /** Vị trí từng người trong nhóm (toạ độ cảnh). */
   function memberPos(s, g, m, t) {
     const sh = s.shift;
-    const spread = (i) => [-i * 34, i * 8];
     if (g.takeaway) {
       const spot = P.queueSpots[g.spot] || P.queueSpots[0];
       if (g.phase === "enter") return [...along(shipperIn(P, spot), ease(Math.min(1, (t - g.t0) / g.walkMs))), false];
@@ -217,13 +278,19 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       return [spot[0], spot[1], false];
     }
     const spot = P.waitSpots[g.spot] || P.entry;
-    const off = spread(m.idx);
-    if (g.phase === "enter") { const sp = P.waitSpots[g.spots?.[m.idx]] || spot; const p = along(guestIn(P, sp), ease(Math.min(1, Math.max(0, (t - g.t0 - m.idx * 260) / g.walkMs)))); return [p[0], p[1], false]; }
-    if (g.phase === "wait") { const sp = P.waitSpots[g.spots?.[m.idx]] ; return sp ? [sp[0], sp[1], false] : [spot[0] - m.idx * 30, spot[1] + m.idx * 10, false]; }
+    // V: chỗ đứng hiển thị theo hàng chờ (waitDisplay); người không có chỗ riêng xếp nối sau cùng
+    const slotOf = () => { const k = g.spots?.[m.idx]; return Number.isInteger(k) ? k : P.waitSpots.length + m.idx; };
+    if (g.phase === "enter") { const sp = waitDisplay(P, slotOf()); const p = along(guestIn(P, sp), ease(Math.min(1, Math.max(0, (t - g.t0 - m.idx * 260) / g.walkMs)))); return [p[0], p[1], false]; }
+    if (g.phase === "wait") { const sp = waitDisplay(P, slotOf()); return [sp[0], sp[1], false]; }
     const tp = P.tables.find((x) => x.id === g.table);
-    const seat = tp?.seatSpots[m.idx]?.at || spot;
-    if (g.phase === "toTable") { const sp = P.waitSpots[g.spots?.[m.idx]] || spot; const p = along(guestToSeat(P, sp, seat), Math.min(1, (t - g.seat0) / g.walkMs)); return [p[0], p[1], false]; }
-    if (g.phase === "seated") { const sp = seatSpotsFor(s, g)[m.idx] || tp?.seatSpots[m.idx]; return [sp?.at[0] ?? seat[0], sp?.at[1] ?? seat[1], true, sp?.face === "left"]; } // A: bàn ghép
+    const seat = seatDisplay(tp, m.idx) || spot;
+    if (g.phase === "toTable") { const sp = waitDisplay(P, slotOf()); const p = along(guestToSeat(P, sp, seat), Math.min(1, (t - g.seat0) / g.walkMs)); return [p[0], p[1], false]; }
+    if (g.phase === "seated") { // A: bàn ghép (V: + chỗ ngồi hiển thị bàn 4)
+      const list = seatSpotsFor(s, g), sp = list[m.idx] || tp?.seatSpots[m.idx];
+      const owner = sp && P.tables.find((x) => x.seatSpots.includes(sp));
+      const at = owner ? seatDisplay(owner, owner.seatSpots.indexOf(sp)) : sp?.at || seat;
+      return [at[0], at[1], true, sp?.face === "left"];
+    }
     if (g.phase === "leave") { const p = along(g.outPath, Math.min(1, (t - g.leaveT) / g.walkMs)); return [p[0] + m.idx * 26, p[1], false]; }
     return [spot[0], spot[1], false];
   }
@@ -254,7 +321,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       const it = g?.slots[i];
       if (!it) { if (last["gi" + i] !== "") { last["gi" + i] = ""; e.hidden = true; } return; }
       const name = itemFrame(it);
-      setSpr("gi" + i, e, "grillItems", name, i < 6 ? P.grillSlots[i] : P.grill2Slots[i - 6]);
+      setSpr("gi" + i, e, "grillItems", name, i < 6 ? P.grillSlots[i] : P.grill2Slots[i - 6], 1, true); // V: cảnh dùng grill-items thường (HD chỉ ở chip + bếp lớn)
     });
     // ---- đồ trên quầy / sàn ----
     const rice = sh?.rice;
@@ -303,7 +370,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
         const m = grp?.phase === "seated" ? grp.members[i + off] : null;
         const stool = n.stools[i];
         if (m) stool.hidden = true;
-        else { setSpr(`st${tb.id}${i}`, stool, "tableItems", i % 2 ? "stool-blue" : "stool-red", sp.at); stool.style.zIndex = 1000 + sp.at[1]; stool.classList.toggle("flip", sp.face === "left"); }
+        else { const sat = seatDisplay(tp, i); setSpr(`st${tb.id}${i}`, stool, "tableItems", i % 2 ? "stool-blue" : "stool-red", sat); stool.style.zIndex = 1000 + sat[1]; stool.classList.toggle("flip", sp.face === "left"); } // V: chỗ ghế hiển thị
         const pe = n.plates[i], te = n.teas[i];
         const ps = tp.plateSpots[i] || [tp.at[0], tp.at[1] - 120];
         if (m?.plate) {
@@ -319,10 +386,11 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       const [bx0, by0] = toScreen(Math.min(...xs) - 38, tp.at[1] - 180), [bx1, by1] = toScreen(Math.max(...xs) + 38, tp.at[1] + 24);
       const b = n.btn;
       tRects.push({ x0: bx0, y0: by0, x1: bx1, y1: by1 });
+      n.badgeAt = { x0: (bx0 + bx1) / 2 - 60, y0: by0, x1: (bx0 + bx1) / 2 + 60, y1: by0 + 22 }; // V: chỗ nhãn bàn (bong bóng tránh)
       b.style.left = bx0 + "px"; b.style.top = by0 + "px"; b.style.width = bx1 - bx0 + "px"; b.style.height = by1 - by0 + "px";
       const job = sh ? tableJob(s, tb.id) : null;
       const selFit = selGid !== null && sh?.groups.find((x) => x.id === selGid && x.phase === "wait" && tb.gid === null && tb.state !== "dirty" && tb.seats >= x.size);
-      const label = selFit ? "Ngồi đây" : job ? JOB_LABEL[job] : grp ? (grp.paid ? "" : allServed(s, grp) ? "Đang ăn" : grp.orderT ? "Chờ món" : "") : tb.state === "dirty" ? "Bàn dơ" : "";
+      const label = selFit ? "Ngồi đây" : job ? (root.clientWidth < 560 && JOB_SHORT[job]) || JOB_LABEL[job] : grp ? (grp.paid ? "" : allServed(s, grp) ? "Đang ăn" : grp.orderT ? "Chờ món" : "") : tb.state === "dirty" ? "Bàn dơ" : "";
       if (n.badge.textContent !== label) n.badge.textContent = label;
       n.badge.hidden = !label || !sh;
       b.dataset.job = job || "";
@@ -335,10 +403,14 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       if (showRing) { const p = patienceLeft(s, grp); n.ring.style.setProperty("--p", p.toFixed(3)); n.ring.className = "tring" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : ""); }
     }
     drawHelper(s, t); drawDecor(s); // A:
+    drawFixtures(s); drawWeather(s, opts.reduced); // V:
     for (const [id, n] of tableEls) if (!live.has(id)) { for (const e of [n.sprite, ...n.stools, ...n.plates, ...n.teas, n.btn]) e.remove(); tableEls.delete(id); }
     // ---- khách ----
     const liveG = new Set();
     const gRects = [], bRects = []; // nút nhóm chờ + bong bóng đã đặt trong khung này: nhóm đứng sát cửa không đè nhau (quán 390 px)
+    const tagRects = [], bubbleJobs = []; // V:
+    let badgeRects = null; // chỉ đo khi có bong bóng cần đặt
+    const badges = () => (badgeRects ??= [...tableEls.values()].filter((n) => !n.badge.hidden && n.badgeAt).map((n) => { const w = n.badge.offsetWidth || 120; const c = (n.badgeAt.x0 + n.badgeAt.x1) / 2; return { x0: c - w / 2 - 2, y0: n.badgeAt.y0, x1: c + w / 2 + 2, y1: n.badgeAt.y0 + (n.badge.offsetHeight || 18) + 4 }; }));
     const hit = (r, list) => list.some((x) => r.x0 < x.x1 && r.x1 > x.x0 && r.y0 < x.y1 && r.y1 > x.y0);
     // nhóm chờ xếp theo chỗ đứng gần cửa trước, để nhãn của nhóm tới trước giữ chỗ trên đầu, nhóm sau tránh ra
     const order = (sh?.groups || []).slice().sort((a, b) => (a.phase === "wait" ? a.spot : 99) - (b.phase === "wait" ? b.spot : 99));
@@ -357,6 +429,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
         cn.e.style.zIndex = 1000 + Math.round(y) + (sit ? 0 : 1);
         cn.e.classList.toggle("flip", !!flip || (grp.phase === "leave" && !grp.takeaway));
         cn.e.classList.toggle("sel", selGid === grp.id);
+        cn.e.dataset.key = key; cn.e.dataset.phase = grp.phase; // V: cho e2e (chồng vùng đầu)
         const a = grp.phase === "leave" ? Math.max(0, 1 - Math.max(0, (t - grp.leaveT) / grp.walkMs - 0.85) / 0.15) : 1;
         cn.e.style.opacity = a;
         if (m.idx === (grp.say?.who ?? 0) || head === null) head = { x, y: y - (f ? f.ay * cs : 250) + (sit ? 4 : 0), w: (f ? f.w * cs * 0.4 : 90) };
@@ -399,17 +472,20 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
         gn.tag.style.left = hx + "px"; gn.tag.style.top = hy - 4 + "px";
       }
       if (selGid === grp.id && !waiting) selGid = null;
-      // bong bóng thoại (nền đục, không mờ dần)
+      // bong bóng thoại (nền đục, không mờ dần) — V: đặt sau khi mọi nhãn nhóm chờ đã có chỗ (nhãn nhóm sau không bị bong bóng nhóm trước đè)
       const show = grp.say && t - grp.say.at < BUBBLE_MS && grp.phase !== "leave" || (grp.say && grp.phase === "leave" && t - grp.say.at < 1600);
-      if (show && head) {
+      if (show && head) bubbleJobs.push(() => {
         if (gn.sayAt !== grp.say.at) { gn.sayAt = grp.say.at; gn.bubble.textContent = grp.say.text; gn.bubble.classList.remove("pop"); void gn.bubble.offsetWidth; gn.bubble.classList.add("pop"); }
         gn.bubble.hidden = false;
         const [hx, hy] = toScreen(head.x, head.y);
-        const keep = [...gRects, ...bRects, ...(grp.phase === "queue" ? [rectOf(gn.tag)] : [])]; // không đè nút nhóm chờ / bong bóng khác
+        const keep = [...gRects, ...bRects, ...tagRects, ...badges()]; // không đè nút nhóm chờ / nhãn hộp mang về / nhãn bàn / bong bóng khác
         const r = placeBubble(gn.bubble, hx, hy, head.w * k, keep.filter(Boolean));
         if (!r) gn.bubble.hidden = true; else bRects.push(r);
-      } else gn.bubble.hidden = true;
+      });
+      else gn.bubble.hidden = true;
+      if (grp.phase === "queue") tagRects.push(rectOf(gn.tag));
     }
+    for (const job of bubbleJobs) job();
     for (const [key, n] of cust) if (!usedCust.has(key)) { n.e.remove(); cust.delete(key); }
     for (const [id, n] of groupUi) if (!liveG.has(id)) { n.bubble.remove(); n.tag.remove(); n.btn.remove(); groupUi.delete(id); if (selGid === id) selGid = null; }
   }
@@ -441,6 +517,65 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     }
     for (const [id, e] of S.decor) if (!live.has(id)) { e.remove(); S.decor.delete(id); delete last["dc" + id]; }
     root.dataset.famous = isFamous(s) ? "1" : "";
+  }
+  // ---------- V: vật dụng quán + thời tiết ----------
+  function fixtureFrame(s, id) {
+    const sh = s.shift, own = (k) => !!s.owned?.[k], quan = s.stage === "quan";
+    switch (id) {
+      case "glass-case": {
+        if (!own("glass-case")) return null;
+        const warm = sh ? sh.grill.slots.filter((it, i) => it && zoneOf(i) === "warm" && isCooked(it)).length : 0;
+        return warm >= 2 ? "glass-case-full" : warm === 1 || !sh ? "glass-case-low" : "glass-case-empty";
+      }
+      case "signboard": return own("signboard-3") ? "signboard-3" : own("signboard-2") ? "signboard-2" : "signboard-1";
+      case "awning": return !quan && own("awning") ? "awning-street" : null;
+      case "takeaway-shelf": return own("takeaway-shelf") ? "takeaway-shelf" : null;
+      case "lantern-string": case "menu-board": return quan ? id : null;
+      case "helper-station": return quan && (sh ? !!sh.helper : s.staff?.bong === s.day) ? id : null;
+      case "wash-station": return quan && (sh ? !!sh.dishwasher : s.staff?.["di-nam"] === s.day) ? id : null;
+      case "queue-bench": return quan && own("queue-bench") ? id : null;
+      default: return null;
+    }
+  }
+  function drawFixtures(s) {
+    for (const [id, n] of Object.entries(S.fix || {})) {
+      const name = fixtureFrame(s, id);
+      if (!name || !atlas.has("fixtures", name)) { if (!n.e.hidden) { n.e.hidden = true; last["fix" + id] = ""; } continue; }
+      setSpr("fix" + id, n.e, "fixtures", name, n.at, scaleOf(atlas, "fixtures", name));
+    }
+  }
+  let powerUntil = -1, boltAt = -1;
+  const wxFrame = (e, name) => { if (e.dataset.f === name) { e.hidden = false; return; } const f = atlas.frame("weather", name); e.dataset.f = f ? name : ""; paint(e, f, 2); if (f) { e.style.left = "0px"; e.style.top = "0px"; } e.hidden = !f; };
+  const hide = (e) => { if (e && !e.hidden) e.hidden = true; };
+  function drawWeather(s, reduced) {
+    const E = S.wxEls; if (!E) return;
+    const sh = s.shift, now = performance.now(), t = sh ? sh.t : now;
+    const has = atlas.has("weather", "rain-1");
+    const rain = has && rainToday(s);
+    const dlg = sh?.dialog?.kind === "event" ? sh.dialog.id : null;
+    const today = (id) => dlg === id || (s.drama?.history || []).some((h) => h.id === id && h.day === s.day);
+    const cyc = (k, fps) => WX_CLIP[k][reduced ? 0 : Math.floor(now / (1000 / fps)) % WX_CLIP[k].length];
+    for (const e of E.rain) { if (rain) wxFrame(e, cyc("rain", 9)); else hide(e); }
+    const flood = rain && !!E.flood;
+    if (flood) { wxFrame(E.flood, cyc("flood", 3)); E.flood.style.opacity = today("O04") ? ".85" : ".55"; } else hide(E.flood);
+    // khói dày: khói bếp >= 55 (cùng ngưỡng bếp đổi hình khói) hoặc sự kiện khói mù; đậm dần theo khói
+    const smoke = sh ? sh.grill.smoke : 0, smokeOn = has && (smoke >= 55 || dlg === "SM1");
+    if (smokeOn) { wxFrame(E.smoke, cyc("smoke", 5)); E.smoke.style.opacity = String(Math.min(1, 0.45 + Math.max(0, smoke - 55) / 70)); } else hide(E.smoke);
+    // cúp điện (O02): khi hội thoại mở + 20 giây ca sau đó
+    if (sh && dlg === "O02") powerUntil = sh.t + 20000;
+    if (!sh) powerUntil = -1;
+    const power = has && !!sh && t < powerUntil;
+    E.dark.hidden = !power;
+    if (power) wxFrame(E.glow, "power-cut-glow"); else hide(E.glow);
+    // chớp: ngày mưa, mỗi khoảng 12 giây một lần ở thời điểm lệch ngẫu nhiên (không có khi giảm chuyển động)
+    let flash = false;
+    if (rain && !reduced) {
+      const slot = Math.floor(now / 12000), seed = Math.abs((Math.sin(slot * 91.7) * 43758.5453) % 1), at0 = slot * 12000 + seed * 9000;
+      if (now >= at0 && now < at0 + 220) { flash = true; boltAt = at0; }
+    }
+    E.flash.hidden = !flash;
+    if (E.bolt) { if (flash) wxFrame(E.bolt, WX_CLIP.bolt[now - boltAt < 110 ? 0 : 1]); else hide(E.bolt); }
+    S.wx.dataset.rain = rain ? "1" : ""; S.wx.dataset.smoke = smokeOn ? "1" : ""; S.wx.dataset.power = power ? "1" : "";
   }
   const rectOf = (e) => { const r0 = root.getBoundingClientRect(), r = e.getBoundingClientRect(); return r.width ? { x0: r.left - r0.left, y0: r.top - r0.top, x1: r.right - r0.left, y1: r.bottom - r0.top } : null; };
   function burst(clipName, x, y, scale = 1, reduced = false) {

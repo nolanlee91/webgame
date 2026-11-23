@@ -49,6 +49,7 @@ export function buildPoints(stage, placements = {}) {
     aisle: pts(street ? P.streetAisle : P.aisle) || FB.aisle,
     tables: loadTables(street ? P.streetTables : P.tables, FB.tables),
   };
+  if (!street && out.waitSpots.length < 4) { const qb = pt(P["queue-bench"]); out.waitSpots = [...out.waitSpots, qb ? [qb[0] + 24, qb[1] + 6] : [962, 469]]; } // V: chỗ chờ thứ 4 cạnh ghế chờ (cấp 16 waitMax 4; manifest chỉ có 3)
   for (const k of ["suon-tray", "charcoal-sack", "plate-stack", "bi-tray", "mo-hanh-pot", "sauce-jar", "chili-jar", "glass-case", "pickle-jar", "cucumber-tray", "box-stack", "cash-tin", "ledger", "rice-cooker", "soup-pot", "steamer", "egg-pan", "tea-cooler", "wash-tub", "water-can"]) out[k] = at(k);
   if (!street) for (const k of ["helper-home", "grill-2", "rice-cooker-2", "electric-blower", "smoke-hood"]) out[k] = at(k);
   if (!street && out["grill-2"]) { const rel = pts(P["grill-2"]?.slots) || GRILL_SLOTS; out.grill2Slots = rel.slice(0, 6).map((p) => [out["grill-2"][0] + p[0], out["grill-2"][1] + p[1]]); } // A: bếp than thứ hai

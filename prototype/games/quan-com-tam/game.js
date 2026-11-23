@@ -8,6 +8,7 @@ import { createGrillbar } from "./ui/grillbar.js?v=c2";
 import { createColumn } from "./ui/column.js?v=c2";
 import { createOverlays } from "./ui/overlays.js?v=c2";
 import { createDrama } from "./ui/drama.js?v=c2"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c2"; // V: bếp lớn HD
 import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c2";
 import { apply } from "./core/apply.js?v=c2";
 import { hint } from "./core/tutorial.js?v=c2";
@@ -71,7 +72,10 @@ async function boot() {
     onGroup: (gid) => { scene.selectGroup(scene.selected === gid ? null : gid); },
     avoid: avoidRects,
   });
-  const grillbar = createGrillbar($("#grillbar"), atlas, (a) => act(a), { onFan: (on) => { if (state.shift && (on || state.shift.grill.fan)) act({ type: "fan", on }, !on); } });
+  let bigOpen = false; // V: bếp lớn (desktop bảng nổi trên cảnh; mobile ở dock Bếp)
+  const grillbar = createGrillbar($("#grillbar"), atlas, (a) => act(a), { onFan: (on) => { if (state.shift && (on || state.shift.grill.fan)) act({ type: "fan", on }, !on); }, onBig: () => { bigOpen = !bigOpen; }, isBig: () => bigOpen });
+  const big = createBigGrill(atlas, (a) => act(a), { onClose: () => { bigOpen = false; if (narrow.matches) setDock("plate"); } });
+  const BIG_PULSE = { flip: "grill", placed: "grill", moved: "grill", teaPoured: "pour", billOpen: "bill", paid: "bill" };
   const column = createColumn($("#rail"), $("#work"), atlas, (a) => act(a), { selectGroup: (gid) => scene.selectGroup(gid), selected: () => scene.selected });
   const toPrep = (tab) => { if (needPersona(state)) return overlays.personaAsk(state, () => toPrep(tab)); /* C: bản lưu cũ hỏi tính cách một lần */ store.snapshotDay(state); overlays.prep(state, tab); if (!state.shift && state.drama?.pending) drama.open(() => overlays.prep(state, tab)); /* B: sự kiện giữa hai ngày hiện trên Chuẩn bị */ };
   const overlays = createOverlays($("#overlay"), $("#sheet"), atlas, (a) => act(a), {
@@ -140,6 +144,7 @@ async function boot() {
     }
     for (const e of r.events) {
       playEvent(e);
+      if (BIG_PULSE[e.type]) big.pulse(BIG_PULSE[e.type]); else if (e.type === "layer") big.pulse(e.id === "hop" ? "box" : "plate"); // V: cô chủ cận cảnh
       switch (e.type) {
         case "flip": scene.act("grill", 450); if (e.perfect) { const p = e.slot < 6 ? scene.points.grillSlots[e.slot] : scene.points.grill2Slots?.[e.slot - 6]; if (p) scene.burst("sizzle", p[0], p[1] - 10, 1, reduced()); } break; // A: bếp 2
         case "placed": scene.act("grill", 400); break;
@@ -232,10 +237,21 @@ async function boot() {
     if (dirty && performance.now() - lastSave > 2500) save(true);
     const sh = state.shift;
     const mode = paused || overlays.current && !sh ? (sh ? "quiet" : "prep") : sh?.dialog ? "dialog" : running() ? "service" : !sh ? "prep" : "quiet";
-    setSoundScene(mode, mode === "service" && sh.grill.slots.some(Boolean));
+    // V: vòng lặp bếp than chỉ khi bếp đang nhóm (trong ca: sh.lit + còn than; chuẩn bị: đã nhóm mẻ đầu), quán đông khi ≥ 3 bàn có khách
+    const lit = sh ? !!sh.lit && sh.grill.coal > 0 : (state.kitchen?.coal || 0) > 0;
+    setSoundScene(mode, { grill: lit && mode !== "quiet", busy: !!sh && sh.groups.filter((g) => g.phase === "seated").length >= 3 });
+    if (mode === "service" && sh.grill.fan) play("fan-flap"); // giữ quạt: tiếng phạch phạch theo nhịp (khoảng nghỉ trong sfx.js)
     const hn = sh?.tutorial ? hint(state) : null;
     scene.update(state, { reduced: reduced(), hintTable: hn?.tid, hintSeat: hn?.key === "seat" });
     grillbar.render(state, hn);
+    { // V: bếp lớn — mobile: đầu vùng làm việc dock Bếp; desktop: bảng nổi trên cảnh khi bật (ẩn khi có hội thoại / bảng phủ)
+      const host = narrow.matches ? document.querySelector("#work .w-kitchen") : $("#world");
+      if (host && big.el.parentElement !== host) host.prepend(big.el);
+      const want = !!sh && (narrow.matches ? $("#col").dataset.dock === "kitchen" : bigOpen && !sh.dialog && !overlays.current && !drama.isOpen);
+      if (big.open !== want) big.show(want, narrow.matches ? 1.5 : 1);
+      if (want) { big.setBase(grillbar.base || 0); big.render(state, { reduced: reduced() }); }
+      if (!sh) bigOpen = false;
+    }
     column.render(state, hn);
     hud();
     hintbar.hidden = !hn;
@@ -261,6 +277,8 @@ async function boot() {
   const MODE_LABEL = { all: "Tiếng: bật", sfx: "Tiếng: hiệu ứng", off: "Tiếng: tắt" };
   const syncMute = () => { const m = soundMode(); muteBtn.dataset.mode = m; muteBtn.setAttribute("aria-pressed", m === "off" ? "true" : "false"); muteBtn.textContent = MODE_LABEL[m]; muteBtn.title = MODE_LABEL[m] + " (M)"; };
   document.addEventListener("pointerdown", () => unlockSound(), { passive: true, capture: true });
+  // V: chạm (cảm ứng) chỉ được tính là thao tác người dùng ở lúc nhấc tay ⇒ mở khoá cả ở pointerup / touchend (ctx đang treo thì resume lại)
+  for (const t of ["pointerup", "touchend"]) document.addEventListener(t, () => unlockSound(), { passive: true, capture: true });
   document.addEventListener("keydown", () => unlockSound(), true);
   muteBtn.addEventListener("click", () => { if (cycleSoundMode() !== "off") unlockSound(); syncMute(); });
   addEventListener("storage", (event) => { if (event.key === MUTE_KEY || event.key === MUSIC_KEY || event.key === null) { syncMute(); syncSound(); } });

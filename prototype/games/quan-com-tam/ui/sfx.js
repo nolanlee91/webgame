@@ -1,59 +1,88 @@
 // Âm thanh Quán Cơm Tấm — cùng API và cách làm như Tiệm Bánh Mì (ui/sfx.js của Bánh Mì).
-// - Chưa có bộ tiếng của Codex: AVAILABLE rỗng ⇒ không tải byte nào, không phát gì, không lỗi console (im lặng an toàn).
-//   Khi Codex giao assets/audio/*.mp3 thì thêm tên file vào AVAILABLE (đúng tên ở SFX / LOOPS), không phải sửa chỗ khác.
-// - Chỉ tạo AudioContext sau thao tác người chơi (unlockSound gọi từ pointerdown / keydown).
-// - wgp.muted (dùng chung Lụm Kèo) là công tắc tổng; qct.music = "0" tắt riêng nhạc.
+// - Bộ tiếng gốc của Codex (codex/com-tam-audio, d59b277): 32 MP3 trong assets/audio/, danh sách ở docs/quan-com-tam/ASSET-HANDOFF.md.
+// - Chỉ tạo AudioContext sau thao tác người chơi (unlockSound gọi từ pointerdown / keydown). Trước đó không tải byte nào.
+// - wgp.muted (dùng chung Lụm Kèo) là công tắc tổng; qct.music = "0" tắt riêng nhạc (nút 3 trạng thái: bật hết / chỉ hiệu ứng / tắt).
+// - Hiệu ứng tải lần đầu phát (WARM tải sẵn sau thao tác đầu); vòng lặp tải khi cảnh cần. File thiếu / lỗi: im lặng, ghi vào failed, không thử lại.
+// - Vòng lặp: phố đêm ven sông (chuẩn bị + trong ca), bếp than (chỉ khi bếp đang nhóm), nhạc chuẩn bị / nhạc cao điểm, quán đông (≥ 3 bàn có khách).
 // - Bảng ánh xạ sự kiện → tiếng (soundsFor) thuần, test được bằng Node.
 export const MUTE_KEY = "wgp.muted";
 export const MUSIC_KEY = "qct.music";
 
-/** Hiệu ứng một lần: tên file (không đuôi) → âm lượng. Tên dự kiến cho bộ tiếng Codex (xèo, than nổ, chén dĩa…). */
+/** Hiệu ứng một lần: tên file (không đuôi, đúng tên Codex giao) → âm lượng. */
 export const SFX = {
-  sizzle: .32, flip: .30, "charcoal-add": .30, "fan-whoosh": .26, flare: .32, burnt: .32, "rice-ready": .32, "rice-cook": .28,
-  "plate-clink": .30, "layer-place": .28, "sauce-pour": .28, "tea-pour": .29, "table-wipe": .28, "dish-wash": .30, "dish-stack": .28,
-  cashbox: .31, arrival: .30, "voice-happy": .31, "voice-annoyed": .31, "voice-surprised": .31,
-  complaint: .33, "level-up": .30, "shift-end": .33, error: .30,
+  "pork-sizzle": .30, "pork-flip": .30, "charcoal-crackle": .26, "fan-flap": .24, "charcoal-add": .30,
+  "rice-ready": .30, "rice-scoop": .27, "scallion-ladle": .27, "fish-sauce-pour": .27,
+  "plate-set": .29, "iced-tea-pour": .28, "table-wipe": .27, "plates-stack": .28, "plates-wash": .28,
+  "bill-key": .26, "cash-paper": .30,
+  arrival: .29, "voice-call": .30, "voice-happy": .30, "voice-annoyed": .30, "voice-surprised": .30,
+  drama: .33, viral: .31, "level-up": .30, mission: .30, "shift-end": .32, error: .28,
 };
-/** Vòng lặp: music = nhạc (tắt được riêng), còn lại là âm phố / bếp. */
+/** Vòng lặp: music = nhạc (tắt được riêng), còn lại là âm phố / bếp / quán (đi theo hiệu ứng). duck = âm lượng khi hội thoại mở. */
 export const LOOPS = {
   "prep-music-loop": { gain: .15, music: true },
-  "rush-music-loop": { gain: .16, duck: .06, music: true },
-  "night-street-loop": { gain: .14, duck: .06 },
-  "grill-loop": { gain: .09 },
+  "rush-music-loop": { gain: .15, duck: .05, music: true },
+  "riverside-night-loop": { gain: .13, duck: .06 },
+  "charcoal-grill-loop": { gain: .10 },
+  "busy-dining-loop": { gain: .10, duck: .04 },
 };
-/** File có thật trong assets/audio/. Chưa có bộ tiếng ⇒ rỗng (im lặng an toàn). */
-export const AVAILABLE = new Set([]);
-/** Tải sẵn ngay sau thao tác đầu tiên. */
-export const WARM = ["sizzle", "flip", "plate-clink", "cashbox", "arrival", "error"];
-const GAP = { sizzle: 250, flip: 150, "layer-place": 120, arrival: 500, error: 400, cashbox: 160, burnt: 900, flare: 900, "tea-pour": 300, complaint: 1200 };
-const VOICE_GAP = 1600;
+/** File có thật trong assets/audio/ (32 file). Tên không có ở đây thì không tải, không phát. */
+export const AVAILABLE = new Set([...Object.keys(SFX), ...Object.keys(LOOPS)]);
+/** Tải sẵn ngay sau thao tác đầu tiên (mỗi file vài KB). */
+export const WARM = ["pork-sizzle", "pork-flip", "plate-set", "rice-scoop", "cash-paper", "arrival", "error"];
+// Khoảng nghỉ tối thiểu giữa hai lần phát cùng tên (ms): bấm / sự kiện dồn dập không thành tràng tiếng.
+const GAP = { "pork-sizzle": 260, "pork-flip": 150, "charcoal-crackle": 900, "fan-flap": 380, "charcoal-add": 300, "rice-ready": 500, "rice-scoop": 150,
+  "scallion-ladle": 200, "fish-sauce-pour": 300, "plate-set": 120, "iced-tea-pour": 450, "table-wipe": 450, "plates-stack": 300, "plates-wash": 900,
+  "bill-key": 110, "cash-paper": 220, arrival: 500, error: 400, drama: 1200, viral: 1200, mission: 600, "level-up": 800 };
+const VOICE_GAP = 1600; // giọng không lời dùng chung một khoảng nghỉ: khách không "nói" chồng lên nhau
 
 // ---------- ánh xạ sự kiện → tiếng (thuần) ----------
+const LAYER = { dia: "plate-set", hop: "plate-set", com: "rice-scoop", moHanh: "scallion-ladle", hanhPhi: "scallion-ladle", sauce: "fish-sauce-pour", meat: "pork-flip" };
+const REPLY = { viral: [["viral"]], phot: [["drama"], ["voice-surprised", .25]], annoyed: [["voice-annoyed"]], back: [["voice-happy"]] };
 /** Sự kiện từ apply() → danh sách [tên, trễ giây]. Sự kiện không có trong bảng thì im. */
 export function soundsFor(e) {
   switch (e?.type) {
-    case "flip": return e.perfect ? [["flip"], ["sizzle", .05]] : [["flip"]];
-    case "placed": return [["sizzle"]];
-    case "sideDone": return [["sizzle"]];
-    case "burnt": return [["burnt"]];
+    // bếp than
+    case "flip": return e.perfect ? [["pork-flip"], ["pork-sizzle", .05]] : [["pork-flip"]];
+    case "placed": case "eggFrying": return [["pork-sizzle"]];
+    case "sideDone": return e.both ? [["pork-sizzle"]] : [];
+    case "nearBurn": case "flare": return [["charcoal-crackle"]];
+    case "burnt": return [["charcoal-crackle"], ["error", .15]];
     case "coalAdded": return [["charcoal-add"]];
-    case "flare": return [["flare"]];
-    case "fan": return [["fan-whoosh"]];
-    case "riceCooking": return [["rice-cook"]];
+    case "lit": return [["charcoal-add"], ["charcoal-crackle", .35]];
+    case "fan": case "blower": return [["fan-flap"]];
+    case "coalOut": return [["error"]];
+    // nồi cơm, bày dĩa
+    case "riceCooking": return [["rice-ready"]];
     case "riceReady": return e.prep ? [] : [["rice-ready"]];
-    case "layer": return e.id === "dia" || e.id === "hop" ? [["plate-clink"]] : e.id === "sauce" ? [["sauce-pour"]] : [["layer-place"]];
-    case "teaPoured": return [["tea-pour"]];
-    case "cleaned": return [["table-wipe"]];
-    case "washed": return [["dish-wash"]];
-    case "delivered": return e.mistakes?.length ? [["dish-stack"], ["voice-annoyed", .3]] : [["dish-stack"]];
+    case "chaReady": return [["rice-ready"]];
+    case "moHanhReady": return [["scallion-ladle"]];
+    case "layer": return [[LAYER[e.id] || "rice-scoop"]];
+    case "discarded": return [["plates-stack"]];
+    case "plateDropped": return [["plates-stack"], ["error", .1]];
+    // bàn
+    case "teaPoured": return [["iced-tea-pour"]];
+    case "extraServed": return [[e.kind === "com" ? "rice-scoop" : "plate-set"]];
+    case "cleaned": return e.plates > 0 ? [["plates-stack"], ["table-wipe", .2]] : [["table-wipe"]];
+    case "washed": return [["plates-wash"]];
+    case "delivered": return e.mistakes?.length ? [["plate-set"], ["voice-annoyed", .3]] : [["plate-set"]];
+    case "billOpen": case "ghiSo": return [["bill-key"]];
+    case "paid": case "debtPaid": return [["bill-key"], ["cash-paper", .12]];
+    // khách
     case "arrive": return [["arrival"]];
-    case "paid": return [["cashbox"]];
+    case "request": case "billCall": case "noTea": return [["voice-call"]];
     case "groupDone": return e.stars >= 4 ? [["voice-happy", .2]] : e.stars <= 2 ? [["voice-annoyed", .2]] : [];
-    case "complaint": case "overcharge": return [["voice-surprised"], ["complaint", .2]];
-    case "timeout": return [["voice-annoyed"]];
-    case "levelUp": return [["level-up"]];
+    case "timeout": case "orderLate": return [["voice-annoyed"]];
+    case "complaint": case "overcharge": return [["voice-surprised"], ["drama", .2]];
+    // sự kiện, tiến trình
+    case "drama": return [["drama"], ["voice-surprised", .2]];
+    case "dramaResolved": return [[e.rolled === "lose" ? "voice-annoyed" : e.rolled === "win" ? "viral" : "mission"]];
+    case "missionDone": case "orderDone": case "newDish": return [["mission"]];
+    case "levelUp": case "rented": case "tier": return [["level-up"]];
+    case "promoted": return [[e.roll === "flop" ? "voice-annoyed" : e.roll === "viral" || !e.roll ? "viral" : "mission"]];
+    case "replied": return REPLY[e.outcome] || [];
     case "stockout": return [["error"]];
-    case "restocked": case "restockedToday": case "bought": return [["cashbox"]];
+    case "restocked": case "restockedToday": case "bought": case "consigned": case "staff": return [["cash-paper"]];
+    case "decorPlaced": return [["plate-set"]];
     case "shiftEnded": return [["shift-end"]];
     default: return [];
   }
@@ -83,11 +112,11 @@ const files = new URL("../assets/audio/", import.meta.url);
 const exists = (name) => AVAILABLE.has(name);
 const decoded = new Map(); // tên → Promise<AudioBuffer|null>
 const raw = new Map(); // nhạc: byte MP3 giữ lại để giải mã lại sau khi nhả PCM
-const failed = new Set(); // file lỗi: không thử lại liên tục (tránh lặp lỗi mạng trong console)
+const failed = new Set(); // file lỗi: không thử lại (tránh lặp lỗi mạng trong console)
 const loops = new Map(); // tên → { node, gain }
 const effects = new Set();
 const recent = new Map();
-let ctx = null, master = null, scene = "quiet", boiling = false, wanted = new Map();
+let ctx = null, master = null, scene = "quiet", grillOn = false, busy = false, wanted = new Map();
 const stats = { started: 0, loopsStarted: 0, failed };
 
 function bytes(name) {
@@ -130,6 +159,15 @@ let resuming = false;
 function afterResume() { resuming = false; if (ctx.state === "running") refresh(); }
 function resume() { if (resuming) return; resuming = true; ctx.resume().then(afterResume, () => { resuming = false; }); }
 
+/** Vòng lặp cần cho cảnh hiện tại: tên → âm lượng (thuần, test được). */
+export function loopsFor(mode, { grill = false, busy: crowd = false, music = true } = {}) {
+  const next = new Map(), duck = mode === "dialog";
+  const want = (n) => { const L = LOOPS[n]; if (L.music && !music) return; const g = duck ? L.duck ?? 0 : L.gain; if (g) next.set(n, g); };
+  if (mode === "prep") { want("prep-music-loop"); want("riverside-night-loop"); if (grill) want("charcoal-grill-loop"); }
+  if (mode === "service" || duck) { want("rush-music-loop"); want("riverside-night-loop"); if (grill) want("charcoal-grill-loop"); if (crowd) want("busy-dining-loop"); }
+  return next;
+}
+
 function refresh() {
   if (!ctx) return;
   const on = audible();
@@ -138,14 +176,10 @@ function refresh() {
     for (const v of effects) { try { v.stop(); } catch {} }
     effects.clear();
   }
-  const next = new Map();
+  let next = new Map();
   if (on && ctx.state === "running") {
-    const music = musicOn(), duck = scene === "dialog";
-    const want = (n) => { const L = LOOPS[n]; if (!L.music || music) next.set(n, duck ? L.duck ?? 0 : L.gain); };
-    if (scene === "prep") { want("prep-music-loop"); want("night-street-loop"); }
-    if (scene === "service" || duck) { want("rush-music-loop"); want("night-street-loop"); if (boiling && !duck) want("grill-loop"); }
-    for (const n of [...next.keys()]) if (!exists(n)) next.delete(n);
-    for (const [n, g] of next) if (!g) next.delete(n);
+    next = loopsFor(scene, { grill: grillOn, busy, music: musicOn() });
+    for (const n of [...next.keys()]) if (!exists(n) || failed.has(n)) next.delete(n);
   }
   wanted = next;
   for (const [name, L] of loops) {
@@ -173,17 +207,19 @@ function refresh() {
   else if (on && ctx.state !== "running" && ctx.state !== "closed") resume();
 }
 
-/** mode: "prep" | "service" | "dialog" (hạ âm) | "quiet" (tạm dừng / bảng phủ). Gọi mỗi khung hình được, không đổi thì bỏ qua. */
-export function setSoundScene(mode, hasBatch = false) {
-  if (scene === mode && boiling === hasBatch) return;
-  scene = mode; boiling = hasBatch;
+/** mode: "prep" | "service" | "dialog" (hạ âm) | "quiet" (tạm dừng / bảng phủ). opts: { grill: bếp đang nhóm, busy: ≥ 3 bàn có khách }
+ *  (boolean cũ = grill). Gọi mỗi khung hình được, không đổi thì bỏ qua. */
+export function setSoundScene(mode, opts = {}) {
+  const g = typeof opts === "boolean" ? opts : !!opts.grill, b = typeof opts === "object" && !!opts.busy;
+  if (scene === mode && grillOn === g && busy === b) return;
+  scene = mode; grillOn = g; busy = b;
   refresh();
 }
 export function syncSound() { refresh(); }
 
-/** API chung cho mọi luồng (kể cả luồng hết hàng giữa ca): sfx.play("stock"), play("error")… Tên lạ thì im. */
+/** API chung cho mọi luồng: sfx.play("cash-paper"), play("error")… Tên lạ thì im. */
 export function play(name, delay = 0) {
-  if (!ctx || !audible() || !Object.hasOwn(SFX, name) || !exists(name)) return false;
+  if (!ctx || !audible() || !Object.hasOwn(SFX, name) || !exists(name) || failed.has(name)) return false;
   const now = performance.now();
   const voice = name.startsWith("voice-");
   const key = voice ? "voice" : name;
@@ -204,4 +240,4 @@ export function play(name, delay = 0) {
 export function playEvent(e) { for (const [n, d] of soundsFor(e)) play(n, d || 0); }
 
 /** Cho test / gỡ lỗi. */
-export function soundDebug() { return { ctx: ctx ? ctx.state : null, scene, loops: [...loops.keys()], started: stats.started, loopsStarted: stats.loopsStarted, failed: [...failed] }; }
+export function soundDebug() { return { ctx: ctx ? ctx.state : null, scene, grill: grillOn, busy, loops: [...loops.keys()], started: stats.started, loopsStarted: stats.loopsStarted, failed: [...failed] }; }

@@ -6,6 +6,7 @@ import { el, button, fmtK } from "./common.js?v=c2";
 import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c2";
 import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c2";
 import * as PG from "../core/progression.js?v=c2";
+import { icon } from "../render/atlas.js?v=c2"; // V: hình thật của đồ trang trí trên khung kéo thả
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui", "suon-non", "ga", "lap-xuong", "dau-hu", "bi-chay", "cha-chay", "nuoc-tuong"];
 const OWN_TABS = new Set(["buy", "gear", "decor", "orders", "rank", "shift"]);
@@ -23,6 +24,9 @@ function css() {
   .a-drag { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #3a2c22 center / cover no-repeat; touch-action: none; margin: 8px 0; box-shadow: 0 0 0 2px var(--cream3); }
   .a-drag .zone { position: absolute; border: 2px dashed rgba(255, 240, 200, .45); border-radius: 8px; pointer-events: none; }
   .a-drag .pin { position: absolute; transform: translate(-50%, -100%); min-width: 44px; min-height: 44px; padding: 2px 6px; border-radius: 10px; border: 0; background: #ffe7b0; color: #3a2416; font: 800 11px/1.1 inherit; box-shadow: 0 2px 0 rgba(0,0,0,.35); cursor: grab; touch-action: none; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .a-drag .pin.has-spr, .a-drag .pin.wall.has-spr { background: rgba(255, 240, 200, .18); padding: 0; box-shadow: 0 0 0 1.5px rgba(255, 240, 200, .55) inset; } /* V: */
+  .a-drag .pin.has-spr .ico { display: block; image-rendering: pixelated; pointer-events: none; }
+  .a-drag .pin.has-spr small { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; background: rgba(255, 250, 240, .95); color: #3a2416; border-radius: 7px; padding: 0 5px; font-size: 10px; pointer-events: none; }
   .a-drag .pin.wall { background: #f6c0a8; } .a-drag .pin.drag { cursor: grabbing; outline: 3px solid var(--amber); z-index: 5; } .a-drag .pin.bad { outline: 3px solid #c8342a; }
   .a-tag { display: inline-block; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 0 6px; background: var(--cream2); margin-left: 4px; }
   .a-tag.good { background: #cfe9d6; color: #1e5a33; } .a-tag.warn { background: var(--ember-l); color: #7a2a22; }
@@ -124,6 +128,12 @@ function decorTab(main, s, ctx, doAct) {
       const at = PG.decorAt(s, id, ctx.atlas?.placements || {});
       const pin = button(box, "pin" + (D.place === "wall" ? " wall" : ""), D.name, null, { "data-decor": id, "aria-label": `${D.name}: kéo để đổi chỗ` });
       pin.style.left = (at[0] / 12.8) + "%"; pin.style.top = (at[1] / 7.2) + "%";
+      if (ctx.atlas?.has?.("decor", id)) { // V: đồ thật (decor.webp, ô 128 cảnh) thu theo khung kéo thả; tên nhỏ dưới chân
+        const k = (box.clientWidth || 640) / 1280;
+        pin.textContent = ""; pin.classList.add("has-spr");
+        pin.appendChild(icon(ctx.atlas, ["decor", id], Math.max(44, Math.round(128 * k)), "ico"));
+        el("small", "", pin, D.name);
+      }
       dragPin(pin, box, (x, y) => { const r = ctx.act({ type: "placeDecor", id, x, y }); if (r.err) { ctx.toast(errText(r.err), "warn"); return false; } ctx.toast(`Đã đặt ${D.name}.`, "good"); return true; });
     }
   }

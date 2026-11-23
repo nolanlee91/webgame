@@ -19,6 +19,7 @@ export const fmtK = (n) => `${Math.round(n * 10) / 10}k`.replace(".", ",");
 /** Thông báo trong khung cảnh (tối đa 2 cái, tự tắt). */
 export function toast(root, text, kind = "") {
   if (!root || !text) return;
+  for (const x of root.children) if (x.textContent === text) { x.remove(); break; } // V: cùng câu đang hiện ⇒ thay, không xếp chồng hai dòng giống nhau
   const t = el("div", "toast" + (kind ? " " + kind : ""), root, text);
   while (root.children.length > 2) root.firstChild.remove();
   t.dataset.t = Date.now();

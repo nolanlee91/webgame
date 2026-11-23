@@ -60,6 +60,26 @@
     .spr.owner { z-index: 100; }
     .spr.cust.sel { filter: drop-shadow(0 0 2px #fff6d6) drop-shadow(0 0 6px rgba(255, 220, 140, .95)); }
     .fx { position: absolute; inset: 0; pointer-events: none; z-index: 5000; }
+    /* V: thời tiết (weather-fx ×2 phủ cảnh) + vật dụng quán */
+    .weather { position: absolute; inset: 0; pointer-events: none; z-index: 4000; }
+    .weather.weather-back { z-index: 5; }
+    .weather .spr { left: 0; top: 0; }
+    .wx-dark { position: absolute; inset: 0; background: rgba(8, 8, 30, .55); }
+    .wx-flash { position: absolute; inset: 0; background: rgba(236, 242, 255, .32); }
+    /* V: bếp lớn HD (grill-hd + grill-items-hd + owner-actions-hd) */
+    .bigrill { position: absolute; left: 8px; bottom: 8px; z-index: 9; background: linear-gradient(#2b2238, #1d1726); border-radius: 14px; padding: 6px 8px 8px; box-shadow: 0 0 0 2px var(--cream3), 0 8px 24px rgba(0, 0, 0, .45); color: var(--cream); }
+    .bigrill[hidden] { display: none; }
+    .bg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12.5px; }
+    .bg-head .bg-info { flex: 1; opacity: .85; font-weight: 600; }
+    .bg-close { min-height: 32px; border: 0; border-radius: 9px; padding: 2px 10px; background: var(--cream); color: var(--ink); font-weight: 800; cursor: pointer; }
+    .bg-stage { position: relative; overflow: hidden; border-radius: 10px; background: radial-gradient(120% 90% at 50% 100%, #6a3a22 0%, #3a2430 55%, #241a2c 100%); }
+    .bg-stage .spr { image-rendering: pixelated; }
+    .bg-slot { position: absolute; border: 0; background: transparent; border-radius: 12px; cursor: pointer; padding: 0; display: flex; align-items: flex-end; justify-content: center; touch-action: manipulation; }
+    .bg-slot span { background: rgba(255, 250, 240, .94); color: var(--ink); border-radius: 7px; padding: 0 5px; font-size: 11px; font-weight: 800; line-height: 1.5; margin-bottom: -2px; }
+    .bg-slot span:empty { display: none; }
+    .bg-slot.ready { box-shadow: 0 0 0 3px #ffd36a inset; }
+    .bg-slot.danger { box-shadow: 0 0 0 3px #ff5a3c inset; }
+    .bg-slot.locked { cursor: default; opacity: .8; }
     .scene-ui { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
     .tbtn-scene { position: absolute; pointer-events: auto; background: transparent; border: 0; border-radius: 14px; padding: 0; cursor: pointer; touch-action: manipulation; }
     .tbtn-scene:hover, .tbtn-scene:focus-visible { box-shadow: 0 0 0 2px rgba(255, 242, 220, .55) inset; }
@@ -255,6 +275,8 @@
       .col[data-dock="tables"] .w-plate, .col[data-dock="kitchen"] .w-plate { display: none; }
       .col:not([data-dock="tables"]) .w-tables { display: none; }
       .col:not([data-dock="kitchen"]) .w-kitchen { display: none; }
+      .w-kitchen .bigrill { position: static; margin: 0 auto 8px; width: max-content; max-width: 100%; box-shadow: 0 0 0 2px var(--cream3); }
+      .w-kitchen .bg-close { display: none; }
       .plate-row { display: flex; gap: 6px; align-items: flex-start; }
       .plate-row .plate-wrap { flex: none; width: 150px; min-height: 150px; }
       .plate-row .strip { flex: 1; grid-template-columns: repeat(3, 1fr); }
@@ -271,7 +293,7 @@
       .nb-grid { grid-template-columns: 1fr; } .nb-list { max-height: 34vh; } .persona-cards { grid-template-columns: 1fr 1fr; } /* C: */
       .help-cards { grid-template-columns: 1fr; }
       .bubble { max-width: 170px; font-size: 11.5px; padding: 4px 8px; }
-      .tbadge { font-size: 9.5px; padding: 0 5px; }
+      .tbadge { font-size: 9.5px; padding: 0 5px; max-width: calc(100% - 4px); overflow: hidden; text-overflow: ellipsis; } /* V: không tràn sang nhãn bàn bên cạnh */
       /* cảnh chỉ cao 240: gợi ý + thông báo mỗi thứ một dòng, ở vùng trời (không che khách, bàn) */
       .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .toasts { top: 3px; left: 3px; right: 3px; }

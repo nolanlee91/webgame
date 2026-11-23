@@ -52,6 +52,24 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
   let stripSig = "", railSig = "", jobsSig = "", billSig = "", plateSig = "", headSig = "";
   const layBtns = new Map();
 
+  // V: cô chủ cận cảnh (owner-actions-hd) đứng sau dĩa HD ở ô bày (SCREENS: "phía sau dĩa HD"); desktop, khi có sheet
+  const ownerEl = el("div", "spr plate-owner"); ownerEl.setAttribute("aria-hidden", "true");
+  const wide = matchMedia("(min-width: 761px)");
+  let plateScale = 0, ownerSig = "";
+  function drawOwner(s) {
+    const show = wide.matches && plateScale > 0 && !view.hidden && atlas.has?.("ownerhd", "idle-1");
+    ownerEl.hidden = !show;
+    if (!show) return;
+    const sh = s.shift, now = performance.now();
+    const seq = sh?.billing ? ["bill", 4, 5] : ["idle", 2, 3];
+    const name = `${seq[0]}-${Math.floor(now / (1000 / seq[2])) % seq[1] + 1}`;
+    const sig = name + "@" + plateScale;
+    if (sig === ownerSig) return;
+    ownerSig = sig;
+    const f = atlas.frame("ownerhd", name);
+    paint(ownerEl, f, plateScale);
+    if (f) { ownerEl.style.left = (80 - f.ax) * plateScale + "px"; ownerEl.style.top = (150 - f.ay) * plateScale + "px"; }
+  }
   function drawPlate(p) {
     const frames = plateFrames(p);
     const w = Math.max(100, Math.min(wrap.clientWidth || 256, 256)) - 8;
@@ -61,6 +79,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     if (sig === plateSig) return;
     plateSig = sig;
     view.textContent = "";
+    view.appendChild(ownerEl); plateScale = scale; ownerSig = ""; // V: sau các lớp dĩa
     view.style.width = 160 * scale + "px"; view.style.height = 192 * scale + "px";
     for (const name of frames) {
       const f = atlas.frame("plate", name);
@@ -195,7 +214,8 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
       }
       empty.hidden = !!p;
       view.hidden = !p;
-      if (p) drawPlate(p); else if (plateSig) { plateSig = ""; view.textContent = ""; }
+      if (p) drawPlate(p); else if (plateSig) { plateSig = ""; view.textContent = ""; plateScale = 0; }
+      drawOwner(s); // V:
       // dải lớp
       const ids = layerStrip(s);
       if (ids.join() !== stripSig) {

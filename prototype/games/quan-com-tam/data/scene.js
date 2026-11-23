@@ -49,7 +49,7 @@ export const QUAN = {
   ...COUNTER,
   "helper-home": [700, 600], "grill-2": [210, 326], "rice-cooker-2": [500, 322], "electric-blower": [372, 414], "smoke-hood": [235, 290],
   entry: [1245, 440],
-  waitSpots: [[1200, 462], [1150, 458], [1100, 455]],
+  waitSpots: [[1200, 462], [1150, 458], [1100, 455], [1040, 452]], // V: chỗ thứ 4 (ghế chờ cấp 16)
   queueSpots: [[160, 700], [290, 712], [60, 690]],
   exitPath: [[1245, 610], [1245, 440]],
   aisle: [[690, 545], [700, 610], [1245, 610]],

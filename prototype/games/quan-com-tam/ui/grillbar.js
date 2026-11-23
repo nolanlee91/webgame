@@ -13,7 +13,7 @@ const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy c
 const ZONE = { hot: ["N", "Nóng"], mid: ["V", "Vừa"], warm: ["Ấ", "Giữ ấm"] };
 const MEAT_NAME = { suon: "Sườn", "suon-non": "Sườn non", ga: "Gà", "lap-xuong": "Lạp xưởng", "dau-hu": "Đậu hũ" };
 
-export function createGrillbar(root, atlas, act, { onFan }) {
+export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = () => false }) {
   root.textContent = "";
   let base = 0; // A: 0 = bếp 1, 6 = bếp 2 (cấp 14)
   const chipsBox = el("div", "gchips", root);
@@ -56,6 +56,9 @@ export function createGrillbar(root, atlas, act, { onFan }) {
   const g2 = button(ctl, "gbtn2", null, () => { base = base ? 0 : 6; for (const c of chips) c.sig = ""; }, { "data-act": "grill2", title: "Đổi chip giữa bếp 1 và bếp 2 (phím Shift+1..6 cho bếp 2)" });
   const g2Txt = el("span", "", g2); const g2Sub = el("small", "", g2);
   el("span", "", blow, "Quạt máy");
+  // V: mở / đóng bếp lớn HD (desktop; mobile dùng dock Bếp)
+  const big = onBig ? button(ctl, "gbtn2", null, () => onBig(), { "data-act": "bigGrill", "data-desk": "", title: "Bếp lớn: bếp than cận cảnh, chạm miếng để lật / gắp" }) : null;
+  if (big) el("span", "", big, "Bếp lớn");
 
   function render(s, hint) {
     const sh = s.shift;
@@ -142,9 +145,10 @@ export function createGrillbar(root, atlas, act, { onFan }) {
       g2Sub.textContent = `${base ? "Bếp 1" : "Bếp 2"}: ${other.filter(Boolean).length} miếng${ready ? `, ${ready} cần tay` : ""}`;
       g2.classList.toggle("warn", ready > 0);
     }
+    if (big) big.classList.toggle("on", !!isBig()); // V:
     blow.hidden = !s.owned?.["electric-blower"];
     blowOn = !!g.blower;
     blow.classList.toggle("on", blowOn);
   }
-  return { render };
+  return { render, get base() { return base; } }; // V: base = bếp đang xem (bếp lớn đi theo)
 }
