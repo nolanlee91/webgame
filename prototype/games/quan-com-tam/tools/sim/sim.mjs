@@ -49,7 +49,9 @@ if (isMain) {
   const ids = which === "all" ? PROFILE_IDS : [which];
   const seed = Number(arg("seed", 12345));
   const days = Number(arg("days", 200));
-  const results = ids.map((id) => runSim(id, { days, seed }));
+  const results = ids.map((id) => ({ ...runSim(id, { days, seed }), seed }));
+  const out = arg("out", null);
+  if (out) { writeFileSync(out, JSON.stringify(results.length === 1 ? results[0] : results)); }
   for (const r of results) {
     const t = checkTargets(r);
     const g = r.log;
@@ -57,7 +59,7 @@ if (isMain) {
       ` | ngày ${r.final.day}, ${r.final.minutes} ph, tiền ${r.final.money}k, hạng ${r.final.tier}/8, mắm ${r.final.fishSauce}/3, còn đồ ${r.final.gearLeft}k, lên quán ngày ${r.final.quanDay}, ký gửi ${g.consign}, hết hàng ${g.stockouts}, kẹt ${g.stuck.length}, bỏ về ${g.walkouts}/${g.guests}, lỗi ${r.errors.length}`);
     if (r.errors.length) console.log("  lỗi:", JSON.stringify(r.errors.slice(0, 4)));
   }
-  if (!process.argv.includes("--no-write")) {
+  if (!process.argv.includes("--no-write") && !out) {
     const dir = dirname(fileURLToPath(import.meta.url));
     writeFileSync(join(dir, "report.md"), renderReport(results, { seed, targets: TARGETS, levels: LEVELS, check: checkTargets }));
     writeFileSync(join(dir, "report.json"), JSON.stringify(results.map((r) => ({ ...r, log: { ...r.log, rejectTypes: undefined }, money: r.money.filter((_, i) => i % 5 === 0) })), null, 1));

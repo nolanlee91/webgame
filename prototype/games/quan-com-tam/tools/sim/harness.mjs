@@ -9,13 +9,13 @@ import { configureScene } from "../../core/placements.js?v=c2";
 // toạ độ cảnh thật (manifest của Codex), như game.js lúc mở
 try { configureScene(JSON.parse(readFileSync(new URL("../../data/asset-manifest.json", import.meta.url), "utf8")).placements || {}); } catch { /* dự phòng data/scene.js */ }
 import { createState } from "../../core/state.js?v=c2";
-import { itemResult, isCooked, zoneOf, freeWarm, heatMul } from "../../core/grill.js?v=c2";
+import { itemResult, isCooked, zoneOf, freeWarm, heatMul, onGrill2, isVegSlot } from "../../core/grill.js?v=c2";
 import { tableJob, groupById, canSeat, patienceLeft } from "../../core/tables.js?v=c2";
 import { nextStep, slotOf, targetOf, bestPiece } from "../../core/plate.js?v=c2";
 import { stockoutOptions } from "../../core/rescue.js?v=c2";
 import { ownerFree, walkMs, pointsOf } from "../../core/walker.js?v=c2";
 import { canAutoBill } from "../../core/bill.js?v=c2";
-import { canMakeOne, consignAvailable, forecast } from "../../core/stock.js?v=c2";
+import { canMakeOne, consignAvailable, forecast, stockUsed, capacity } from "../../core/stock.js?v=c2";
 import { currentEvent, pickFree } from "../../core/drama.js?v=c2";
 import { replyOptions } from "../../core/reviews.js?v=c2";
 import { orderOffers, gearBlock, staffToday } from "../../core/progression.js?v=c2";
@@ -165,6 +165,9 @@ export class Player {
       const offers = orderOffers(s);
       for (let i = 0; i < Math.min(this.p.accept, offers.length); i++) if (!this.act({ type: "acceptOrder", idx: i }).err) this.log.orders++;
       this.act({ type: "restockToday" });
+      // kho đầy sau khi nhập (đo cho quyết định sức chứa vỉa hè): còn dưới 6 chỗ
+      if (stockUsed(s) >= capacity(s) - 6) { this.log.capFull = (this.log.capFull || 0) + 1; if (s.stage === "street" && s.level >= 5) this.log.capFullStreet56 = (this.log.capFullStreet56 || 0) + 1; }
+      if (s.stage === "street" && s.level >= 5 && s.level <= 6) this.log.street56Days = (this.log.street56Days || 0) + 1;
       this.manageMenu();
       this.clock += this.p.prep;
     } else this.clock += this.p.between;
@@ -190,9 +193,9 @@ export class Player {
     let min = Infinity;
     g.slots.forEach((it, i) => {
       if (!it) return;
-      const z = zoneOf(i);
+      const z = zoneOf(i, g);
       if (z === "warm" && it.warmMs < GRILL.warmSafeMs - 8000) return;
-      const rate = (100 / GRILL.side[it.item]) * GRILL.zoneMul[z] * Math.max(0.6, heatMul(g)) * (z === "hot" ? 1.2 : 1);
+      const rate = (100 / GRILL.side[it.item]) * GRILL.zoneMul[z] * Math.max(0.6, heatMul(g, onGrill2(g, i) ? 2 : 1)) * (z === "hot" ? 1.2 : 1);
       const b = it.sides[0];
       // miếng chín hai mặt ngoài vùng ấm mà vùng ấm đã đầy: không tránh được, không giữ chân cô chủ
       if (b >= 100 && (z === "warm" || freeWarm(g) < 0)) return;
@@ -217,16 +220,17 @@ export class Player {
       const res = itemResult(it);
       if (res === "burnt") { this.log.burnt++; this.tap({ type: "discardMeat", slot: i }); return true; }
       const key = `${s.day}:${sh.kind}:${it.id}:${it.flips}`;
-      if (it.sides[0] >= 100 && zoneOf(i) !== "warm") {
+      if (it.sides[0] >= 100 && zoneOf(i, g) !== "warm") {
         if (!this.notice.has(key)) { const [a, z] = this.p.react; this.notice.set(key, sh.t + (a + this.r() * (z - a)) * 1000); }
         if (sh.t < this.notice.get(key)) continue;
         if (it.sides[1] < 100) { this.tap({ type: "flip", slot: i }); return true; }
         if (freeWarm(g) >= 0) { this.tap({ type: "moveWarm", slot: i }); return true; }
       }
       // giữ ấm quá lâu (khô / sắp cháy): người cẩn thận ưu tiên dùng, nếu không ai cần thì bỏ
-      if (zoneOf(i) === "warm" && it.warmMs > GRILL.warmSafeMs - 1500 && this.p.id === "careful") { this.tap({ type: "discardMeat", slot: i }); return true; }
+      if (zoneOf(i, g) === "warm" && it.warmMs > GRILL.warmSafeMs - 1500 && this.p.id === "careful") { this.tap({ type: "discardMeat", slot: i }); return true; }
     }
     if (g.coal < 40 && !g.pending.length && (s.stock.than || 0) + (s.spareSack || 0) > 0) { this.tap({ type: "addCoal" }); return true; }
+    if (g.coal2 !== undefined && g.coal2 < 40 && !(g.pending2 || []).length && (s.stock.than || 0) > 0 && (sh.t < sh.len - 30000) && this.p.id !== "sloppy") { this.tap({ type: "addCoal", grill: 2 }); return true; }
     if (g.coal < 12 && !g.pending.length && (this.outAt?.than ?? -1e9) < sh.t - 20000 && !sh.deliveries.some((d) => d.id === "than")) { this.tap({ type: "addCoal" }); return true; } // hết than: hội thoại cứu
     return false;
   }
@@ -256,7 +260,7 @@ export class Player {
     const late = sh.t > sh.len - 30000;
     const coming = sh.groups.filter((x) => (x.phase === "seated" || x.phase === "toTable") && x.orderT === null).reduce((a, x) => a + x.size, 0);
     const cookedNow = g.slots.filter((it) => it && isCooked(it)).length;
-    const warmN = g.slots.filter((_, i) => zoneOf(i) === "warm").length;
+    const warmN = g.slots.filter((_, i) => zoneOf(i, g) === "warm").length;
     const buf = late || cookedNow >= warmN ? 0 : Math.min(this.p.ahead, coming, warmN - cookedNow);
     if (buf) need.suon = (need.suon || 0) + buf;
     for (const [item, n] of Object.entries(need)) {
@@ -266,17 +270,19 @@ export class Player {
       const plated = sh.slots.filter((x) => x.plate?.meat?.item === item).length;
       if (on + plated >= n || on >= 6) continue;
       // không nướng quá số chỗ giữ ấm: miếng chín thừa mà vùng ấm đầy thì cháy
-      const warmSlots = g.slots.filter((_, i) => zoneOf(i) === "warm").length;
+      const warmSlots = g.slots.filter((_, i) => zoneOf(i, g) === "warm").length;
       const tickets = n - (item === "suon" ? buf : 0);
       if (g.slots.filter(Boolean).length >= tickets + warmSlots) continue;
       // người cẩn thận / trung bình: số miếng trên bếp ≤ chỗ giữ ấm + 1 (miếng chín thừa ngoài vùng ấm sẽ cháy trong lúc bày dĩa khác)
       if (this.p.leaveSafe && g.slots.filter(Boolean).length >= warmSlots + 1) return false;
       // người cẩn thận / trung bình không giữ quá nhiều miếng đang nướng (không kịp lật khi phải ra bàn)
-      const cooking = g.slots.filter((it, i) => it && zoneOf(i) !== "warm" && !isCooked(it)).length;
+      const cooking = g.slots.filter((it, i) => it && zoneOf(i, g) !== "warm" && !isCooked(it)).length;
       if (this.p.leaveSafe && cooking >= (this.p.id === "careful" ? 3 : 4)) return false;
-      const free = g.slots.map((x, i) => (!x && zoneOf(i) !== "warm" ? i : -1)).filter((i) => i >= 0);
-      if (!free.length) return false;
-      const pref = this.p.zone === "mid" ? free.find((i) => zoneOf(i) === "mid") ?? free[0] : free.find((i) => zoneOf(i) === "hot") ?? free[0];
+      const free = g.slots.map((x, i) => (!x && zoneOf(i, g) !== "warm" && !isVegSlot(g, i) ? i : -1)).filter((i) => i >= 0);
+      if (!free.length && item !== "dau-hu") return false;
+      // đậu hũ: để game chọn (vỉ chay riêng, rồi chỗ chưa nướng thịt) — người ẩu bỏ đại chỗ nóng nhất
+      const pref = item === "dau-hu" && this.p.id !== "sloppy" ? -1 : this.p.zone === "mid" ? free.find((i) => zoneOf(i, g) === "mid") ?? free[0] : free.find((i) => zoneOf(i, g) === "hot") ?? free[0];
+      if (pref === undefined) return false;
       const r = this.tap({ type: "placeMeat", slot: pref, item });
       if (!r.err) { this.log.placed++; return true; }
       return false;
@@ -400,6 +406,7 @@ export class Player {
     if (d.kind === "overcharge") { this.act({ type: "overcharge", choice: this.p.id === "careful" ? "refundTea" : "refund" }); return; }
     if (d.kind === "stockout") {
       this.log.stockouts++;
+      this.log.soIds = this.log.soIds || {}; this.log.soIds[d.id] = (this.log.soIds[d.id] || 0) + 1;
       const opts = stockoutOptions(s).filter((o) => o.ok);
       const side = !["suon-uop", "gao-tam", "than"].includes(d.id);
       const pref = side ? ["borrow", "dismiss", "consign"] : this.p.id === "sloppy" ? ["consign", "borrow", "marinate", "dismiss", "bread", "ship", "run", "soldOut"] : ["consign", "marinate", "borrow", "ship", "run", "dismiss", "bread", "soldOut"];

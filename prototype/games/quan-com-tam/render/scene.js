@@ -8,6 +8,7 @@ import { scenePoints, along, guestIn, guestToSeat, shipperIn, ownerRoute, alongD
 import { itemFrame, heatKey } from "../core/grill.js?v=c2";
 import { patienceLeft, tableJob, availableTables, allServed } from "../core/tables.js?v=c2";
 import { seatSpotsFor, decorAt, isFamous } from "../core/progression.js?v=c2"; // A: bàn ghép, trang trí
+import { decorFrame } from "../core/extras.js?v=c2"; // S: frame tạm cho đồ trang trí Drama tặng
 
 const W = 1280, H = 720;
 export const BUBBLE_MS = 3600;
@@ -251,7 +252,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
     setSpr("grill", S.grill, "grill", `grill-${coalKey}`, P.grill);
     if (S.grill2) { const on = s.owned?.["grill-2"] && s.stage === "quan"; S.grill2.hidden = !on; if (on) setSpr("grill2", S.grill2, "grill", `grill-${coalKey}`, P["grill-2"]); else last.grill2 = ""; } // A:
     S.items.forEach((e, i) => {
-      const it = g?.slots[i];
+      const it = g?.vegFrom != null && i >= g.vegFrom ? null : g?.slots[i]; // S: vỉ chay riêng chỉ hiện trên Thanh Bếp (chưa có chỗ vẽ trong cảnh)
       if (!it) { if (last["gi" + i] !== "") { last["gi" + i] = ""; e.hidden = true; } return; }
       const name = itemFrame(it);
       setSpr("gi" + i, e, "grillItems", name, i < 6 ? P.grillSlots[i] : P.grill2Slots[i - 6]);
@@ -436,7 +437,7 @@ export function createScene(root, atlas, { onTable, onGroup, avoid = () => [] })
       let e = S.decor.get(id);
       if (!e) { e = el("div", "spr decor", S.floor); e.dataset.decor = id; S.decor.set(id, e); }
       const at = decorAt(s, id, atlas.placements);
-      setSpr("dc" + id, e, "decor", id, at, scaleOf(atlas, "decor", id));
+      setSpr("dc" + id, e, "decor", decorFrame(id), at, scaleOf(atlas, "decor", decorFrame(id))); // S: đồ Drama tặng dùng frame tạm
       e.style.zIndex = at[1] < 380 ? 50 : 1000 + Math.round(at[1]);
     }
     for (const [id, e] of S.decor) if (!live.has(id)) { e.remove(); S.decor.delete(id); delete last["dc" + id]; }

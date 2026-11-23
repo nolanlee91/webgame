@@ -140,7 +140,7 @@ const OVER_CAP_OK = new Set(["consign", "stockout", "tick", "startShift", "nextD
 /** Số dĩa đang có mặt ở mọi nơi trong ca. */
 export function platesInPlay(sh) {
   let n = sh.cleanPlates + sh.dirty;
-  for (const sl of sh.slots) if (sl.plate?.kind === "dia") n++;
+  for (const sl of sh.slots) { if (sl.plate?.kind === "dia") n++; for (const p of sl.batch || []) if (p?.kind === "dia") n++; } // S: bày ×N cho bàn dùng dĩa
   for (const t of [sh.owner.task, ...sh.owner.queue]) { if (t?.plate?.kind === "dia") n++; for (const x of t?.more || []) if (x.plate?.kind === "dia") n++; } // S: bưng 2 dĩa
   for (const g of sh.groups) if (g.table && (g.phase === "seated" || g.phase === "toTable")) for (const m of g.members) if (m.plate?.kind === "dia") n++;
   for (const t of sh.tables) n += t.plates || 0;

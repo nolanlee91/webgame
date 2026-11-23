@@ -12,6 +12,7 @@ import { createBook } from "./notebook.js?v=c2"; // C: Sổ quản lý, tính c�
 import * as PU from "./progress-ui.js?v=c2"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
 import { potSize } from "../core/progression.js?v=c2"; // A: cỡ nồi theo giai đoạn
 import "./book-tabs.js?v=c2"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import * as M5 from "./m5-ui.js?v=c2"; // S: nút bật / tắt món (M5)
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];
 
@@ -111,6 +112,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
         const r = el("div", "rowx", main);
         const l = el("div", "", r); el("div", "nm", l, `${d.name} · ${d.price}k`); el("div", "sub", l, d.level > s.level ? `Mở ở cấp ${d.level}` : (d.needs || []).some((k) => !s.owned[k]) ? `Cần ${d.needs.map((k) => GEAR[k]?.name).join(", ")}` : `Giá vốn ~${d.cost}k`);
         el("span", "", r, s.menu.includes(id) ? "Đang bán" : "—");
+        M5.menuToggle(r, s, id, act, () => prep(state(), tab)); // S: bật / tắt món (M5)
       }
     } else if (tab === "shift") {
       el("p", "", main, "Ca tối 17:30–23:00: tối sớm sinh viên, cao điểm 18:30–20:00, khuya thợ công trình và tài xế.");
@@ -166,6 +168,7 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     if (m.owed) el("p", "muted", r, `Nợ ký gửi Cô Ba còn ${m.owed}k.`);
     el("p", "muted", r, `Tiền trong két: ${fmtK(m.money)}`);
     PU.summary(r, m); // A: nhiệm vụ, ghi sổ, mâm cơm, cơm chiên ngày mai
+    M5.summary(r, m); // S: hội chợ, thử thách, huy hiệu mới (M5)
     el("h3", "", p, "Review nổi bật");
     for (const rv of (m.reviews || []).slice(0, 3)) { const d = el("div", "review", p); el("span", "stars", d, starText(rv.stars) + " "); el("b", "", d, rv.name + ": "); el("span", "", d, rv.line); }
     if (!m.reviews?.length) el("p", "muted", p, "Chưa có review.");

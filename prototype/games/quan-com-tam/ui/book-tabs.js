@@ -8,6 +8,7 @@ import { xpToNext } from "../core/progress.js?v=c2";
 import { DISHES, DEBT, TIERS } from "../data/economy.js?v=c2";
 import * as PG from "../core/progression.js?v=c2";
 import * as PU from "./progress-ui.js?v=c2";
+import * as M5 from "./m5-ui.js?v=c2"; // S: huy hiệu (M5)
 
 registerTab("events", "Sự kiện", (body, s, { el }) => {
   const hist = s.drama?.history || [];
@@ -56,6 +57,7 @@ registerTab("badges", "Huy hiệu", (body, s, { el }) => {
   if (!regs.length) el("p", "muted", body, "Phục vụ khách quen hai lần từ 4 sao, họ sẽ gọi như hôm qua.");
   for (const [name, r] of regs) el("p", "", body, `${name}: ${r.visits} lần ghé${r.fav ? ` · như hôm qua: ${DISHES[r.fav.dish]?.name || r.fav.dish}` : ""}`);
   if (s.streetMemory) { el("h3", "", body, "Kỷ niệm vỉa hè"); el("p", "", body, s.streetMemory.line); }
+  M5.badges(body, s, { el }); // S: 14 huy hiệu (M5)
 });
 
 registerTab("debts", "Sổ nợ", (body, s, { act, rerender, el }) => {
