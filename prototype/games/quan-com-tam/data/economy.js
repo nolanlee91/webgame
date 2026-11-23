@@ -279,8 +279,9 @@ export const CHALLENGE = { level: 20, firstReward: { money: 150, xp: 60 }, rewar
 /** S (M5): tủ kính giữ ấm (glass-case): 6 miếng chín, tươi giảm chậm 40% (1 mỗi 5 giây thay vì 3), không cháy. */
 export const GLASS_CASE = { size: 6, freshDecayMs: 5000 };
 
-/** 20 cấp (GAME-DESIGN §6). */
-export const LEVELS = [0, 30, 55, 125, 270, 445, 655, 1055, 1630, 2355, 2845, 3455, 4110, 5050, 6280, 7575, 9125, 11050, 13295, 16085];
+/** 20 cấp (GAME-DESIGN §6). M5 (S): dò bằng tools/sim/fit.mjs cho người chơi trung bình (cấp 4 ≈ 10 phút, 7 ≈ 40, 10 ≈ 2 giờ, 20 ≈ 11 giờ).
+ *  Bảng cũ (v2) ở core/state.js LEVELS_V2; bản lưu cũ nâng v2 → v3 giữ cấp + % tiến độ. */
+export const LEVELS = [0, 40, 75, 110, 200, 315, 445, 660, 980, 1525, 1935, 2425, 2910, 3375, 3930, 4745, 5505, 6455, 7590, 9015];
 
 /** Mốc sao theo điểm 0–100. */
 export const STAR_CUTS = [0, 40, 55, 70, 85];
