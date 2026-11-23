@@ -2,7 +2,7 @@
 // Quy tắc đọc: mọi số bị kẹp về miền hợp lệ, id lạ bị bỏ; ca dở dang được giữ nếu cấu trúc hợp lệ, ngược lại bỏ riêng ca (giữ tiền / cấp / kho).
 // MIGRATIONS[v] nâng v → v+1 (v1: bản M2 trên master; v2: gộp M3 + M4).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-vN) một lần trước khi nâng, bản hỏng chép sang KEY.corrupt.
-import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES } from "../data/economy.js?v=c2";
+import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES, SHELF } from "../data/economy.js?v=c2";
 import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c2";
 import { levelForXp } from "./progress.js?v=c2";
 import { freshSocial, loadSocial } from "./reviews.js?v=c2"; // C: review / tính cách / Nhật Ký
@@ -35,7 +35,8 @@ export function createState(seed = 20261120) {
     plan: ["toi"], shiftIdx: 0, between: null, dayDone: false, menu: ["com-suon"], menuOff: [],
     stats: { plates: 0, revenue: 0, shifts: 0, bestProfit: 0, spentStock: 0, spentGear: 0, reviews: {}, debtPaid: 0, ordersDone: 0, missions: 0 },
     regulars: {}, feed: [], nextReviewId: 0, rating: null, consign: null, daily: { consigned: false, borrowed: {} },
-    usedDay: [], shift: null, lastSummary: null, bought: {},
+    usedDay: [], shift: null, lastSummary: null,
+    bought: Object.fromEntries(Object.entries(START_STOCK).filter(([id]) => SHELF[id]).map(([id, n]) => [id, [{ day: 1, n }]])), // S: gói học có hạn từ ngày 1
     // --- C: reviews/journal --- (persona, followers, hype, nextGuests, promises, returning, journal, dayLog)
     ...freshSocial(),
     // --- B: drama --- (cờ trơn dùng chung s.flags, cờ / hàng hẹn / lịch sử Drama, mod có hạn, (người theo dõi / độ hot dùng chung khối C))

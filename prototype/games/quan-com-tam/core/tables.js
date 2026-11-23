@@ -148,9 +148,9 @@ export const TASKS = {
   deliver: {
     target: servePt,
     start: (s, task) => (seatedGroup(s, task.tid) ? { ok: true } : { err: "gone" }),
-    drop: (s, task, ev) => dropPlate(s, task.plate, ev),
-    ms: () => SERVICE.deliverMs,
-    done: (s, task, ev) => deliverPlate(s, task, ev),
+    drop: (s, task, ev) => { dropPlate(s, task.plate, ev); for (const x of task.more || []) dropPlate(s, x.plate, ev); },
+    ms: (s, task) => SERVICE.deliverMs * (1 + (task.more?.length || 0)),
+    done: (s, task, ev) => { deliverPlate(s, task, ev); for (const x of task.more || []) deliverPlate(s, { ...task, tk: x.tk, plate: x.plate, more: null }, ev); }, // S: dĩa thứ hai cùng chuyến
   },
   bill: {
     target: servePt,
@@ -554,7 +554,7 @@ function updateSeated(s, g, dt, ev, smoky) {
   const served = allServed(s, g);
   // kiên nhẫn: trước khi lấy phiếu (chưa châm trà sau 12 giây ⇒ ×2) và trong lúc chờ món
   if (!served) {
-    let mul = sh.tutorial ? 0.6 : 1;
+    let mul = (sh.tutorial ? 0.6 : 1) / SERVICE.seatedPatience; // S (M5): khách đã ngồi chờ món kiên nhẫn hơn khách đứng chờ bàn
     if (g.firstTeaT === null && t - g.seatT > 12000) mul *= 2;
     if (smoky?.has(g.table)) mul *= 1.3;
     g.used += dt * mul;

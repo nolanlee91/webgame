@@ -14,6 +14,7 @@ import { fill } from "./text.js?v=c2";
 import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c2";
 import { gainXp } from "./progress.js?v=c2";
 import { sendAway } from "./walker.js?v=c2";
+import { addLot } from "./stock.js?v=c2"; // S: lô hàng có hạn
 import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c2"; // A: đơn mâm thật, sổ nợ thật
 
 export { freshDrama };
@@ -465,7 +466,7 @@ function applyFx(s, d, fx, events) {
   if (fx.followers) s.followers = Math.max(0, (s.followers || 0) + fx.followers);
   if (fx.hype) s.hype = Math.max(0, Math.min(20, (s.hype || 0) + fx.hype));
   if (fx.xp) gainXp(s, fx.xp, events);
-  for (const [id, n] of Object.entries(fx.stock || {})) if (STOCK[id]) s.stock[id] = Math.max(0, (s.stock[id] || 0) + Math.round(n));
+  for (const [id, n] of Object.entries(fx.stock || {})) if (STOCK[id]) { s.stock[id] = Math.max(0, (s.stock[id] || 0) + Math.round(n)); if (n > 0) addLot(s, id, Math.round(n)); } // S: quà hàng có hạn
   const days = fx.flagDays ?? FLAG_DAYS;
   for (const f of fx.flag ? [].concat(fx.flag) : []) D.flags[f] = today(s) + days;
   for (const f of fx.unflag ? [].concat(fx.unflag) : []) dropFlag(s, f);

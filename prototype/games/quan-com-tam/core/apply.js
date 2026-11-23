@@ -17,6 +17,7 @@ import { setPersona, reply } from "./reviews.js?v=c2"; // C: tính cách + trả
 import { choose as dramaChoose, openEvent } from "./drama.js?v=c2"; // B: drama
 import { aHandlers } from "./progression-actions.js?v=c2"; // A: thao tác tiến trình + kinh tế M3
 import { afterApply as aAfter } from "./progression.js?v=c2"; // A: nhiệm vụ, ghi sổ, câu theo cơ chế sau mỗi action
+import { sHandlers } from "./extras.js?v=c2"; // S: M5 (menu, hội chợ, thử thách, bày ×N, tủ kính, vỉ chay, bếp 2, nợ, trang trí Drama)
 
 const inShift = (f) => (s, a, ev) => (s.shift ? f(s, a, ev) : { err: "no-shift" });
 const noShift = (f) => (s, a, ev) => (s.shift ? { err: "in-shift" } : f(s, a, ev));
@@ -38,6 +39,7 @@ function outToDialog(s, r, ev) {
   if (r.err === "rice-empty" && (s.stock["gao-tam"] || 0) <= 0) return openStockout(s, "gao-tam", ev);
   if (r.err === "mo-hanh-empty" && (s.stock["mo-hanh-bo"] || 0) <= 0) return openStockout(s, "mo-hanh-bo", ev);
   if (r.err === "no-plates" && sh.platesNone(s) && (s.stock.hop || 0) <= 0) return openStockout(s, "hop", ev);
+  if (r.err === "no-hop") return openStockout(s, "hop", ev); // S (M5): hết hộp khi bày hộp mang về ⇒ hội thoại cứu (trước đây phiếu shipper kẹt ở bước hộp)
   return r;
 }
 const ownerOnly = (f) => noDialog((s, a, ev) => (ownerFree(s) ? f(s, a, ev) : { err: "owner-busy" }));
@@ -120,6 +122,7 @@ const HANDLERS = {
     return r;
   }),
   ...aHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep }), // A: M3 (bọc layer/undo/discard/serve/buyGear/prepCook + thao tác mới)
+  ...sHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep }), // S: M5
 };
 export const ACTIONS = Object.keys(HANDLERS);
 
@@ -129,7 +132,7 @@ const OVER_CAP_OK = new Set(["consign", "stockout", "tick", "startShift", "nextD
 export function platesInPlay(sh) {
   let n = sh.cleanPlates + sh.dirty;
   for (const sl of sh.slots) if (sl.plate?.kind === "dia") n++;
-  for (const t of [sh.owner.task, ...sh.owner.queue]) if (t?.plate?.kind === "dia") n++;
+  for (const t of [sh.owner.task, ...sh.owner.queue]) { if (t?.plate?.kind === "dia") n++; for (const x of t?.more || []) if (x.plate?.kind === "dia") n++; } // S: bưng 2 dĩa
   for (const g of sh.groups) if (g.table && (g.phase === "seated" || g.phase === "toTable")) for (const m of g.members) if (m.plate?.kind === "dia") n++;
   for (const t of sh.tables) n += t.plates || 0;
   return n;

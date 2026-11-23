@@ -6,7 +6,7 @@ import { apply, must, openWithOrder, home, cookedPiece, until, newGame, prepDay 
 import { scenePoints, ownerRoute, pathLen } from "../core/placements.js?v=c2";
 import { walkMs } from "../core/walker.js?v=c2";
 import { canAutoBill, makeBill, settle, realLines } from "../core/bill.js?v=c2";
-import { SERVICE } from "../data/economy.js?v=c2";
+import { SERVICE, DISHES } from "../data/economy.js?v=c2";
 
 /** Bày + giao đúng phiếu, chờ dĩa xuống bàn. */
 function serveTicket(s, t) {
@@ -136,7 +136,7 @@ test("realLines: món đã ăn + thêm cơm dặn lúc gọi + chén cơm / khă
   s.shift = { tickets: [{ id: 1, dish: "com-suon", status: "served", quirks: ["themCom"], plateCom: 2 }] };
   const g = { members: [{ idx: 0, name: "Tèo", tk: 1, extras: { com: 1, khan: 2 } }] };
   const L = realLines(s, g);
-  assert.equal(L.reduce((a, l) => a + l.price, 0), 32 + 4 + 4 + 2 * 2);
+  assert.equal(L.reduce((a, l) => a + l.price, 0), DISHES["com-suon"].price + 4 + 4 + 2 * 2);
   s.shift.t = 0; g.id = 1; g.table = "s1";
   const b = makeBill(s, g);
   assert.ok(b.lines.length > L.length);

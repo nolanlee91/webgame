@@ -315,7 +315,7 @@ test("cơm chiên (cấp 2, có chảo): cơm dư cuối ngày ⇒ 50% (tối đ
   assert.notEqual(PG.pickDish(s, "com-chien", dishes), "com-chien");
   const tg = targetOf({ dish: "com-chien", quirks: [], takeaway: false });
   assert.equal(tg.moHanh, 0); assert.equal(tg.meat, null); assert.equal(tg.trung, "any"); assert.ok(tg.fried);
-  assert.equal(DISHES["com-chien"].price, 20);
+  assert.equal(DISHES["com-chien"].price, 24); // M5: giá bán +20% (bộ mô phỏng)
 });
 
 test("nhiệm vụ ngày (cấp 2): 3 mục mỗi ca, thưởng một lần; nhiệm vụ cuối ca xét lúc chốt", () => {

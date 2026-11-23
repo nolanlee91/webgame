@@ -39,10 +39,10 @@ test("lật đổi mặt; lật đúng lúc (100–114) được tính tay nư�
   run(g, 9200, 9200);
   assert.equal(itemResult(g.slots[2]), "done");
   assert.ok(isCooked(g.slots[2]));
-  // để lâu ⇒ cháy cạnh rồi cháy đen
-  run(g, 6000, 18400);
+  // để lâu ⇒ cháy cạnh rồi cháy đen (M5: vùng vừa chín 6 giây + cháy cạnh 5 giây)
+  run(g, 8000, 18400);
   assert.equal(itemResult(g.slots[2]), "charred");
-  run(g, 4000, 24400);
+  run(g, 6000, 26400);
   assert.equal(itemResult(g.slots[2]), "burnt");
 });
 
@@ -130,8 +130,8 @@ test("cân bằng: vùng vừa rộng rãi (≥ 4 giây), cháy cạnh vẫn đ�
   assert.ok(timeIn("mid", 80) >= 4, "vừa, than rực");
   assert.ok(timeIn("mid", 45) >= 4.5, "vừa, than vừa");
   const ch = timeIn("hot", 80, "charred"), cm = timeIn("mid", 80, "charred");
-  assert.ok(ch >= 1.2 && ch < 2.5, `cháy cạnh nóng ${ch}`);
-  assert.ok(cm >= 2 && cm < 4, `cháy cạnh vừa ${cm}`);
+  assert.ok(ch >= 1.2 && ch < 3.5, `cháy cạnh nóng ${ch}`); // M5: 2,5 giây (bộ mô phỏng: một chuyến ra bàn ~4 giây)
+  assert.ok(cm >= 2 && cm < 6, `cháy cạnh vừa ${cm}`);
 });
 test("cân bằng: trước 100 vẫn nướng đúng tốc độ món (vùng nóng vẫn nhanh hơn vùng vừa); quạt + lửa bùng co dải lại", () => {
   const g = freshGrill(80);

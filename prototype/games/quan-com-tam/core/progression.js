@@ -19,7 +19,7 @@ import { freshLine, fill } from "./text.js?v=c2";
 import { gainXp, addNewDishes } from "./progress.js?v=c2";
 import { pointsOf } from "./walker.js?v=c2";
 import { ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c2";
-import { stockUsed, capacity } from "./stock.js?v=c2";
+import { stockUsed, capacity, addLot } from "./stock.js?v=c2";
 
 const owns = (s, id) => !!s.owned?.[id];
 export const setFlag = (s, name, value) => { s.flags = s.flags || {}; s.flags[name] = value; };
@@ -156,6 +156,7 @@ export function extraGuests(s, kind) {
     if (s.level >= 12) n += 2;
   }
   if (isFamous(s)) n += 2;
+  if (s.stage === "quan") n += kind === "trua" ? 2 : 3; // S (M5): quán có mái đông hơn vỉa hè (khách cơ bản tăng chậm lại theo cấp)
   const pr = s.promo?.day === s.day ? s.promo : null;
   if (pr?.kind === "check-in") n += PROMOS["check-in"].guests;
   if (pr?.kind === "livestream" && pr.roll === "viral") n += 4;
@@ -241,7 +242,7 @@ export function restockHoa(s, id, ev = []) {
   if (s.money < price) return { err: "money" };
   if (STOCK[id].cap && stockUsed(s) + n > capacity(s)) return { err: "capacity" };
   s.money -= price; s.stock[id] = (s.stock[id] || 0) + n; s.stats.spentStock += price;
-  if (SHELF[id]) { s.bought ||= {}; (s.bought[id] ||= []).push({ day: s.day, n }); }
+  addLot(s, id, n);
   ev.push({ type: "restocked", id, n, price, express: false, by: "hoa" });
   return { ok: true };
 }

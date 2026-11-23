@@ -13,7 +13,7 @@ import { freshOwner, stepOwner, ownerFree, enqueue, pointsOf } from "./walker.js
 import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTable, autoPay, groupById, serveTakeaway, allServed } from "./tables.js?v=c2";
 import { openStockout } from "./rescue.js?v=c2";
 import { levelForXp } from "./progress.js?v=c2";
-import { expireStock } from "./stock.js?v=c2";
+import { expireStock, addLot } from "./stock.js?v=c2";
 import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c2"; // C: khách nhờ review, Nhật Ký ngày
 import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c2"; // B: drama
 import * as PG from "./progression.js?v=c2"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
@@ -128,7 +128,7 @@ export function tick(s, dt, ev = []) {
   while (sh.phaseIdx + 1 < phases.length && t >= phases[sh.phaseIdx + 1].at * sh.len) { sh.phaseIdx++; ev.push({ type: "phase", text: phases[sh.phaseIdx].text }); }
   // hàng chở tới / chạy chợ về
   for (const d of sh.deliveries.filter((x) => x.at <= t)) {
-    s.stock[d.id] = (s.stock[d.id] || 0) + d.n;
+    s.stock[d.id] = (s.stock[d.id] || 0) + d.n; addLot(s, d.id, d.n); // S: hàng chở tới có hạn
     if (d.id === "suon-uop" && d.fresh) sh.uopFresh = Math.min(sh.uopFresh ?? 100, d.fresh);
     ev.push({ type: "delivered-stock", id: d.id, n: d.n, by: d.by || "run" });
   }
@@ -192,7 +192,7 @@ export function endShift(s, ev = []) {
   // miếng còn trên vỉ: chín thì hao, sống thì cũng hao (đã ướp, không để qua ca)
   for (let i = 0; i < sh.grill.slots.length; i++) { const it = sh.grill.slots[i]; if (it) { addWaste(sh, it.item === "suon" ? "suon-uop" : it.item, 1); sh.grill.slots[i] = null; } }
   for (const sl of sh.slots) if (sl.plate) { for (const [id, n] of Object.entries(sl.plate.used)) addWaste(sh, id, n, id === "com" ? n * STOCK["gao-tam"].cost : id === "moHanh" ? n * MO_HANH.portionCost : undefined); sl.plate = null; }
-  for (const task of [sh.owner.task, ...sh.owner.queue]) if (task?.plate) for (const [id, n] of Object.entries(task.plate.used)) addWaste(sh, id, n, id === "com" ? n * STOCK["gao-tam"].cost : undefined);
+  for (const task of [sh.owner.task, ...sh.owner.queue]) for (const pl of task ? [task.plate, ...(task.more || []).map((x) => x.plate)] : []) if (pl) for (const [id, n] of Object.entries(pl.used)) addWaste(sh, id, n, id === "com" ? n * STOCK["gao-tam"].cost : undefined);
   let riceLeft = sh.rice.n + (sh.rice.cooking?.add || 0);
   if (lastOfDay && riceLeft > 0) { addWaste(sh, "com", riceLeft, riceLeft * STOCK["gao-tam"].cost); }
   s.kitchen.rice = lastOfDay ? 0 : riceLeft;
@@ -343,12 +343,16 @@ export function cookRiceAct(s, ev = []) {
 export function eggAct(s, ev = []) {
   const b = busy(s); if (b) return b;
   if (!s.shift.pan) return { err: "locked" };
-  return startEgg(s, s.shift.pan, s.shift.t, ev);
+  const r = startEgg(s, s.shift.pan, s.shift.t, ev);
+  if (r.err === "no-trung") return openStockout(s, "trung", ev); // S: hết trứng giữa ca ⇒ hội thoại cứu (trước M5 chỉ báo lỗi, phiếu kẹt ở bước trứng)
+  return r;
 }
 export function steamAct(s, ev = []) {
   const b = busy(s); if (b) return b;
   if (!s.shift.steamer) return { err: "locked" };
-  return loadSteamer(s, s.shift.steamer, s.shift.t, ev);
+  const r = loadSteamer(s, s.shift.steamer, s.shift.t, ev);
+  if (r.err === "no-cha" && !s.shift.steamer.done) return openStockout(s, "cha", ev); // S: hết chả ⇒ hội thoại cứu
+  return r;
 }
 /** Giao dĩa ở ô bày: tại bàn ⇒ cô chủ bưng ra (việc trong hàng đợi); mang về ⇒ đưa shipper ở quầy ngay. */
 export function serve(s, ev = []) {
@@ -363,6 +367,14 @@ export function serve(s, ev = []) {
     const b = busy(s); if (b) return b;
     const plate = sl.plate; sl.plate = null; sl.tk = null;
     return serveTakeaway(s, g, t, plate, ev);
+  }
+  // S (M5): bưng hai dĩa một chuyến (SERVICE.carryMax): dĩa cùng bàn mà chuyến bưng trước chưa đi thì bưng chung
+  const join = sh.owner.queue.find((q) => q.kind === "deliver" && q.tid === t.tid && 1 + (q.more?.length || 0) < SERVICE.carryMax);
+  if (join) {
+    join.more = [...(join.more || []), { tk: t.id, plate: sl.plate }];
+    t.status = "carrying"; sl.plate = null; sl.tk = null;
+    ev.push({ type: "serving", tk: t.id, tid: t.tid, joined: true });
+    return { ok: true };
   }
   const r = enqueue(s, { kind: "deliver", tid: t.tid, tk: t.id, pid: sh.nextPid++, plate: sl.plate, pickup: true }, ev);
   if (r.err) return r;
