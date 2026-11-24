@@ -83,6 +83,33 @@ for (const serviceKey of ["sb_secret_SERVICEKEY_DO_NOT_LEAK", "eyJhbGciOiJIUzI1N
   });
 }
 
+test("Supabase: đổi tên ⇒ upsert profiles + PATCH daily_scores đúng user và ngày, không lộ service key", async () => {
+  const serviceKey = "sb_secret_SERVICEKEY_DO_NOT_LEAK";
+  const fake = await fakeSupabase({ serviceKey });
+  const env = { SUPABASE_URL: fake.base, SUPABASE_ANON_KEY: ANON, SUPABASE_SERVICE_ROLE_KEY: serviceKey, RAILWAY_ENVIRONMENT: "production" };
+  const api = createAccountApi({ env, now: () => NOW, log: () => {} });
+  const s = await apiServer(api);
+  const call = async (method, path, token, body) => {
+    const res = await fetch(s.base + path, { method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify(body) });
+    const text = await res.text(); assert.ok(!text.includes(serviceKey)); return { status: res.status, json: JSON.parse(text) };
+  };
+  try {
+    await call("POST", `/api/daily/do-vui-nhanh/${DAY}`, "tok-alice-123456", { name: "Alice", proof: quizProof(DAY) });
+    await call("POST", `/api/daily/do-vui-nhanh/${DAY}`, "tok-bob-12345678", { name: "Bob", proof: quizProof(DAY) });
+    const r = await call("POST", "/api/daily/name", "tok-alice-123456", { name: "Alice Mới" });
+    assert.equal(r.status, 200, JSON.stringify(r.json));
+    assert.deepEqual([r.json.name, r.json.changed], ["Alice Mới", 1]);
+    const patch = fake.log.find((e) => e.method === "PATCH");
+    assert.ok(patch, "có PATCH");
+    assert.equal(patch.path, "/rest/v1/daily_scores");
+    assert.ok(patch.query.includes(`user_id=eq.${USERS["tok-alice-123456"]}`) && patch.query.includes(`day=eq.${DAY}`), patch.query);
+    assert.deepEqual(patch.body, { name: "Alice Mới" });
+    assert.equal(patch.headers.apikey, serviceKey); assert.equal(patch.headers.authorization, undefined);
+    assert.deepEqual(fake.tables.daily_scores.map((x) => x.name).sort(), ["Alice Mới", "Bob"]);
+    assert.equal(fake.tables.profiles.find((p) => p.id === USERS["tok-alice-123456"]).name, "Alice Mới");
+  } finally { await s.close(); await fake.close(); }
+});
+
 test("Supabase lỗi ⇒ 502 'upstream', log không chứa key", async () => {
   const serviceKey = "sb_secret_FAILKEY_DO_NOT_LEAK";
   const fake = await fakeSupabase({ serviceKey, failRest: true });

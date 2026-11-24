@@ -60,7 +60,7 @@ export async function fakeSupabase({ serviceKey, anonKey, users = {}, failRest =
     const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : undefined;
     const u = new URL(req.url, "http://x");
     log.push({ method: req.method, path: u.pathname, query: u.search, headers: { ...req.headers }, body });
-    const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-expose-headers": "content-range" };
+    const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "GET, POST, PATCH, OPTIONS", "access-control-expose-headers": "content-range" };
     const out = (status, data, headers = {}) => { res.writeHead(status, { "content-type": "application/json", ...cors, ...headers }); res.end(data === undefined ? "" : JSON.stringify(data)); };
     if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
     if (u.pathname === "/auth/v1/signup" && req.method === "POST") { // signInAnonymously() của supabase-js
@@ -93,6 +93,13 @@ export async function fakeSupabase({ serviceKey, anonKey, users = {}, failRest =
         t.push(r); inserted.push(r);
       }
       return prefer.includes("return=representation") ? out(201, inserted) : out(201);
+    }
+    const match = (r) => { for (const [k, v] of u.searchParams) { if (["select", "order", "limit", "on_conflict"].includes(k)) continue;
+      const op = v.slice(0, v.indexOf(".")), val = v.slice(v.indexOf(".") + 1);
+      if (!(op === "eq" ? String(r[k]) === val : op === "gt" ? Number(r[k]) > Number(val) : false)) return false; } return true; };
+    if (req.method === "PATCH") {
+      const hit = t.filter(match); for (const r of hit) Object.assign(r, body);
+      return prefer.includes("return=representation") ? out(200, hit) : out(204);
     }
     let rows = t.slice();
     for (const [k, v] of u.searchParams) {

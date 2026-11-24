@@ -60,7 +60,7 @@ function loadRanks() {
   const want = day;
   const go = async () => {
     try {
-      const A = await import("../games/_shared/account.js?v=board1");
+      const A = await import("../games/_shared/account.js?v=board2");
       if ((await A.mode()) === "off") return;
       const r = await A.getMyRanks(want);
       if (want !== day || !r || !r.ranks) return;

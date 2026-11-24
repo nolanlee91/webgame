@@ -1,7 +1,7 @@
 // "Bảng xếp hạng hôm nay" trong bảng kết quả Thử thách (daily-ui.js nạp lười file này sau khi hiện kết quả).
 // Tự gửi kết quả lên máy chủ (hỏi tên hiển thị MỘT lần, bỏ qua được ⇒ "Người chơi"), rồi hiện top 10 + hạng của mình
 // + "M người đã chơi". Mọi lỗi chỉ hiện một dòng nhỏ — không bao giờ chặn nút Khoe kết quả hay kết quả cục bộ.
-import * as A from "./account.js?v=board1";
+import * as A from "./account.js?v=board2";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const fmtN = (n) => Number(n || 0).toLocaleString("vi-VN");
@@ -58,6 +58,9 @@ export async function mountBoard(box, { game, day, result }) {
     if (data.me) {
       const you = el("p", "dly-lb__you"); you.id = "dlyLbMe";
       you.append("Bạn hạng ", el("b", null, `#${data.me.rank}`), ` / ${fmtN(data.total)}`);
+      const rn = el("button", "dly-btn dly-lb__rename", "Đổi tên"); rn.type = "button"; rn.id = "dlyLbRename";
+      rn.addEventListener("click", () => rename(data.me.name));
+      you.append(" ", rn);
       box.append(you);
     }
     return "board";
@@ -84,23 +87,45 @@ export async function mountBoard(box, { game, day, result }) {
     }
   }
 
-  function ask() {
-    set("ask");
+  /** Ô nhập tên dùng chung cho lần hỏi đầu và nút "Đổi tên". */
+  function nameForm({ label, hint, value, okText, skipText, onOk, onSkip }) {
     box.replaceChildren(head());
     const f = el("form", "dly-name"); f.id = "dlyNameForm"; f.noValidate = true;
-    const lab = el("label", "dly-name__lab", "Tên của bạn trên bảng xếp hạng"); lab.htmlFor = "dlyName";
+    const lab = el("label", "dly-name__lab", label); lab.htmlFor = "dlyName";
     const rowEl = el("div", "dly-name__row");
     const inp = el("input", "dly-name__inp"); inp.id = "dlyName"; inp.type = "text"; inp.maxLength = 16; inp.autocomplete = "nickname";
-    inp.placeholder = A.DEFAULT_NAME; inp.value = A.getName(); inp.setAttribute("enterkeyhint", "done");
+    inp.placeholder = A.DEFAULT_NAME; inp.value = value; inp.setAttribute("enterkeyhint", "done");
     inp.addEventListener("keydown", (e) => e.stopPropagation()); // gõ tên không được thành phím tắt của game (M = tắt tiếng, W/A/S/D…)
-    const ok = el("button", "dly-btn dly-name__ok", "Lưu"); ok.type = "submit"; ok.id = "dlyNameOk";
-    const skip = el("button", "dly-btn dly-name__skip", "Bỏ qua"); skip.type = "button"; skip.id = "dlyNameSkip";
+    const ok = el("button", "dly-btn dly-name__ok", okText); ok.type = "submit"; ok.id = "dlyNameOk";
+    const skip = el("button", "dly-btn dly-name__skip", skipText); skip.type = "button"; skip.id = "dlyNameSkip";
     rowEl.append(inp, ok, skip);
-    f.append(lab, rowEl, el("small", "dly-name__hint", "2–16 ký tự. Chỉ hỏi một lần."));
+    f.append(lab, rowEl, el("small", "dly-name__hint", hint));
     box.append(f);
+    f.addEventListener("submit", (ev) => { ev.preventDefault(); onOk(inp.value); });
+    skip.addEventListener("click", () => onSkip());
+    return inp;
+  }
+
+  function rename(current) {
+    set("rename");
+    const inp = nameForm({ label: "Tên mới trên bảng xếp hạng", hint: "2–16 ký tự. Bảng hôm nay đổi theo ngay.", value: current || A.getName(),
+      okText: "Lưu", skipText: "Huỷ",
+      onOk: async (v) => {
+        loading("Đang đổi tên…");
+        try { await A.renameMe(v); return view(); }
+        catch (e) { set("error", { error: e.code }); msg("Chưa đổi được tên, thử lại sau.", () => rename(current)); }
+      },
+      onSkip: () => view() });
+    inp.focus(); inp.select();
+  }
+
+  function ask() {
+    set("ask");
     return new Promise((resolve) => {
-      f.addEventListener("submit", (ev) => { ev.preventDefault(); A.setName(inp.value); resolve(send()); });
-      skip.addEventListener("click", () => { A.setName(""); resolve(send()); });
+      nameForm({ label: "Tên của bạn trên bảng xếp hạng", hint: "2–16 ký tự. Đổi được sau ở dòng hạng của bạn.", value: A.getName(),
+        okText: "Lưu", skipText: "Bỏ qua",
+        onOk: (v) => { A.setName(v); resolve(send()); },
+        onSkip: () => { A.setName(""); resolve(send()); } });
     });
   }
 

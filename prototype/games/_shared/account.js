@@ -138,6 +138,12 @@ export async function submitDaily(game, day, { name, proof }) {
   if (r && r.name) { const st = load(); st.name = r.name; save(st); }
   return r;
 }
+/** Đổi tên hiển thị (profile + tên trên bảng hôm nay). Trả về tên đã làm sạch. */
+export async function renameMe(name) {
+  const r = await api("/api/daily/name", { method: "POST", body: { name: String(name || "") } });
+  const st = load(); st.name = r.name; st.asked = true; save(st);
+  return r.name;
+}
 /** Bảng của (game, day): { top, total, me? } */
 export function getBoard(game, day, { limit = 10, create = false } = {}) {
   return api(`/api/daily/${encodeURIComponent(game)}/${day | 0}?limit=${limit | 0}`, { create });

@@ -53,6 +53,7 @@ const CSS = `
 .dly-lb__msg.is-wait::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;background:currentColor;animation:dlyBlink 1s steps(2) infinite}
 @keyframes dlyBlink{50%{opacity:0}}
 .dly-lb__retry{min-height:34px;padding:6px 12px;font-size:12px;margin:4px 0 0 4px}
+.dly-lb__rename{min-height:30px;padding:4px 10px;font-size:11px;margin-left:6px;vertical-align:1px}
 .dly-name{display:grid;gap:6px}
 .dly-name__lab{font:700 13px/1.3 "Be Vietnam Pro",system-ui;color:var(--ink,#f4ead2)}
 .dly-name__row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -147,7 +148,7 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
   // Bảng xếp hạng: nạp lười, lỗi gì cũng chỉ ẩn phần này (kết quả + nút Khoe vẫn dùng được).
   const lb = ov.querySelector("#dlyLb");
   if (board) {
-    import("./daily-board.js?v=board1")
+    import("./daily-board.js?v=board2")
       .then((m) => m.mountBoard(lb, { game, day, result }))
       .then((st) => { window.__dailyBoardState = st; })
       .catch(() => { lb.hidden = true; window.__dailyBoardState = "failed"; });

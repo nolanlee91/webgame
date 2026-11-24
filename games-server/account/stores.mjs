@@ -36,6 +36,8 @@ export function memoryStore({ now = () => Date.now(), keepDays = 3 } = {}) {
       return { inserted: true };
     },
     async setProfile(userId, name) { profiles.set(userId, { name, at: now() }); },
+    /** Đổi tên hiển thị trên bảng của NGÀY day (các ngày cũ giữ tên lúc chơi). Trả về số dòng đổi. */
+    async rename(userId, day, name) { let n = 0; for (const [k, b] of boards) if (+k.split("|")[1] === day && b.has(userId)) { b.get(userId).name = name; n++; } return n; },
     async getProfile(userId) { return profiles.get(userId) || null; },
     async top(game, day, limit) { const all = sorted(game, day); return { rows: all.slice(0, limit).map(pub), total: all.length }; },
     async mine(game, day, userId) { return pub(board(game, day).get(userId)) || null; },
@@ -95,6 +97,13 @@ export function supabaseStore({ url, serviceKey, fetch = globalThis.fetch, timeo
         method: "POST", prefer: "resolution=merge-duplicates,return=minimal",
         body: [{ id: userId, name, updated_at: new Date().toISOString() }],
       });
+    },
+    async rename(userId, day, name) {
+      const res = await call("rename daily_scores", `/daily_scores?user_id=eq.${enc(userId)}&day=eq.${enc(day)}`, {
+        method: "PATCH", prefer: "return=representation", body: { name },
+      });
+      const rows = await json(res);
+      return Array.isArray(rows) ? rows.length : 0;
     },
     async getProfile(userId) {
       const rows = await json(await call("select profiles", `/profiles?select=name&id=eq.${enc(userId)}&limit=1`));

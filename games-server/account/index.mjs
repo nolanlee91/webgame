@@ -168,6 +168,22 @@ export function createAccountApi(opts = {}) {
         }
         return send(res, 200, { day, ranks });
       }
+      if (p === "/api/daily/name") {
+        // Đổi tên hiển thị: lưu profile + sửa tên trên bảng hôm nay (ngày cũ giữ tên lúc chơi)
+        if (req.method !== "POST") return send(res, 405, { error: "method" }, { Allow: "POST" });
+        if (!postOk(ip)) return send(res, 429, { error: "rate" }, { "Retry-After": "60" });
+        let body;
+        try { body = await readBody(req); } catch (e) { return send(res, e.status === 413 ? 413 : 400, { error: e.status === 413 ? "too_big" : "body" }); }
+        const userId = await userOf(req);
+        if (!userId) return send(res, 401, { error: "auth" });
+        if (!body || typeof body !== "object" || typeof body.name !== "string") return send(res, 400, { error: "body" });
+        const name = cleanName(body.name);
+        const day = D.dayNumber(now());
+        await store.setProfile(userId, name);
+        const changed = await store.rename(userId, day, name);
+        if (changed) for (const g of Object.keys(D.GAMES)) invalidate(g, day);
+        return send(res, 200, { ok: true, name, changed });
+      }
       const m = GAME_RE.exec(p);
       if (!m || !D.GAMES[m[1]]) return send(res, 404, { error: "game" });
       const game = m[1], day = Number(m[2]);

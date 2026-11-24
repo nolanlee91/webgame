@@ -1,6 +1,6 @@
 // 2048 — phần hiển thị + điều khiển. Ô số là phần tử DOM (trượt bằng transform), luật nằm ở logic.js.
 import * as L from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=board1";
+import * as UI from "../_shared/daily-ui.js?v=board2";
 
 const D = UI.D;
 const DAILY_ID = "2048";

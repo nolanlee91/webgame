@@ -154,6 +154,38 @@ test("từ chối: không danh tính, bằng chứng sai / sửa điểm, sai ng
   } finally { await s.close(); }
 });
 
+test("đổi tên: cần danh tính, làm sạch + lọc tục, đổi trên bảng hôm nay ngay (bỏ qua cache), ngày cũ giữ tên cũ", async () => {
+  const { api, clock } = setup();
+  const s = await apiServer(api);
+  try {
+    const post = (user, body) => req(s.base, "POST", `/api/daily/do-vui-nhanh/${DAY}`, { user, body });
+    assert.equal((await post("userrename1", { name: "Tên Cũ", proof: quizProof(DAY) })).status, 200);
+    assert.equal((await post("userrename2", { name: "Người Khác", proof: quizProof(DAY, [true, false, true, true, true]) })).status, 200);
+    // xem bảng một lần để bảng vào cache 15 s
+    assert.equal((await req(s.base, "GET", `/api/daily/do-vui-nhanh/${DAY}`)).json.top[0].name, "Tên Cũ");
+    assert.equal((await req(s.base, "POST", "/api/daily/name", { body: { name: "Ai Đó" } })).status, 401, "không danh tính");
+    assert.equal((await req(s.base, "POST", "/api/daily/name", { user: "userrename1", body: {} })).status, 400, "thiếu name");
+    assert.equal((await req(s.base, "GET", "/api/daily/name", { user: "userrename1" })).status, 405);
+    const r = await req(s.base, "POST", "/api/daily/name", { user: "userrename1", body: { name: "   Tên   Mới  " } });
+    assert.equal(r.status, 200, JSON.stringify(r.json));
+    assert.deepEqual([r.json.name, r.json.changed], ["Tên Mới", 1]);
+    const b = await req(s.base, "GET", `/api/daily/do-vui-nhanh/${DAY}`, { user: "userrename1" });
+    assert.equal(b.json.top[0].name, "Tên Mới", "bảng hôm nay đổi ngay dù đang có cache");
+    assert.equal(b.json.me.name, "Tên Mới");
+    assert.equal(b.json.top[1].name, "Người Khác", "không đổi tên người khác");
+    // tên tục ⇒ "Người chơi"
+    const bad = await req(s.base, "POST", "/api/daily/name", { user: "userrename1", body: { name: "đụ má" } });
+    assert.equal(bad.json.name, DEFAULT_NAME);
+    // sang ngày mai: đổi tên không sửa bảng hôm qua
+    clock.advance(24 * 3600 * 1000);
+    const next = await req(s.base, "POST", "/api/daily/name", { user: "userrename1", body: { name: "Tên Ngày Sau" } });
+    assert.deepEqual([next.json.name, next.json.changed], ["Tên Ngày Sau", 0]);
+    clock.advance(20 * 1000);
+    const old = await req(s.base, "GET", `/api/daily/do-vui-nhanh/${DAY}`);
+    assert.equal(old.json.top[0].name, DEFAULT_NAME, "bảng ngày cũ giữ tên lúc đó");
+  } finally { await s.close(); }
+});
+
 test("giới hạn 20 POST / phút / IP", async () => {
   const { api, clock } = setup();
   const s = await apiServer(api);
