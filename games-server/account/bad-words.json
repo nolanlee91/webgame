@@ -1,0 +1,7 @@
+{
+  "_note": "Lọc tên hiển thị trên bảng xếp hạng (names.mjs). exact: so nguyên từ (chữ thường, GIỮ dấu tiếng Việt) để không chặn nhầm 'các', 'lớn', 'bưởi'. ascii: so nguyên từ sau khi bỏ dấu. contains: chuỗi con của tên đã bỏ dấu + bỏ khoảng trắng/ký hiệu. Trúng ⇒ tên thành 'Người chơi'.",
+  "exact": ["lồn", "cặc", "buồi", "địt", "đụ", "đéo", "đĩ", "cứt", "đm", "đmm", "đcm", "đkm", "vãi lồn", "óc chó"],
+  "ascii": ["dm", "dmm", "dcm", "dkm", "dmcs", "vcl", "vkl", "vl", "cl", "clm", "cmm", "djt", "dit", "loz", "l0z", "cak", "cax", "cc", "occho",
+    "fuck", "fck", "fuk", "shit", "bitch", "dick", "cunt", "pussy", "asshole", "nigger", "nigga", "whore", "slut", "porn", "sex", "xxx"],
+  "contains": ["fuck", "shit", "bitch", "cunt", "nigg", "asshole", "whore", "ditme", "ditcon", "ditmia", "dume", "duma", "dmm", "dcm", "dkm", "vcl", "vkl", "occho", "concho", "lozz"]
+}

@@ -1,6 +1,6 @@
 // Đố Vui Nhanh — giao diện (DOM), đồng hồ, phím/chạm, âm thanh, hiệu ứng hạt pixel, lưu kỷ lục. Luật + chấm điểm nằm trong logic.js.
 import { CATS, MODES, ROUND_LEN, QUESTIONS, newRound, current, answer, fifty, next, rank, rng } from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=daily1";
+import * as UI from "../_shared/daily-ui.js?v=board1";
 
 const D = UI.D;
 const DAILY_ID = "do-vui-nhanh";
@@ -247,7 +247,9 @@ export function mount(root, ctx = {}) {
   function finishDaily() {
     const marks = s.answers.map((a) => a.ok);
     const ms = s.answers.reduce((p, a) => p + (a.ms || 0), 0);
-    D.record(DAILY_ID, daily.day, { marks, ms: Math.round(ms), score: s.score });
+    // proof: lựa chọn + thời gian từng câu ⇒ máy chủ chấm lại theo câu hỏi của ngày (Bảng xếp hạng hôm nay)
+    const proof = { answers: s.answers.map((a) => ({ pick: a.pick, ms: Math.round(a.ms) })) };
+    D.record(DAILY_ID, daily.day, { marks, ms: Math.round(ms), score: s.score, proof });
     sfx.play(s.correct >= Math.ceil(total() / 2) ? "thang" : "thua", 0.8);
     if (s.correct === total()) setTimeout(() => confetti(), 150);
     sdk.reportScore?.(s.score);

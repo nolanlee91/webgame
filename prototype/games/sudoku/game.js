@@ -1,6 +1,6 @@
 // Sudoku — phần hiển thị + điều khiển. Luật chơi, sinh đề, lưu/nạp nằm ở logic.js.
 import * as L from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=daily1";
+import * as UI from "../_shared/daily-ui.js?v=board1";
 
 const D = UI.D;
 const DAILY_ID = "sudoku";
@@ -291,7 +291,8 @@ export function mount(root, ctx = {}) {
   function onDailyWin() {
     const t = Math.max(1, Math.floor(s.time));
     const hints = L.HINTS - s.hintsLeft;
-    const r = { time: t, mistakes: s.mistakes, hints };
+    // proof: lưới đã giải + ô gợi ý + thời gian ⇒ máy chủ kiểm lại với đề của ngày trước khi ghi lên Bảng xếp hạng hôm nay
+    const r = { time: t, mistakes: s.mistakes, hints, proof: { cells: s.cells.join(""), hinted: s.hinted.join(""), time: t, mistakes: s.mistakes, hints } };
     D.record(DAILY_ID, daily.day, r);
     const pts = L.score(s);
     sdk.reportScore && sdk.reportScore(pts);

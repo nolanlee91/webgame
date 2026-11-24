@@ -1,9 +1,10 @@
 // 2048 — phần hiển thị + điều khiển. Ô số là phần tử DOM (trượt bằng transform), luật nằm ở logic.js.
 import * as L from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=daily1";
+import * as UI from "../_shared/daily-ui.js?v=board1";
 
 const D = UI.D;
 const DAILY_ID = "2048";
+const MOVE_LETTER = { left: "L", right: "R", up: "U", down: "D" };
 
 const SAVE_KEY = "wgp.2048.v1";
 const ANIM = 100; // ms trượt
@@ -86,12 +87,14 @@ export function mount(root, ctx = {}) {
   let G = { n: 4, cs: 80, gp: 10, st: 90, bw: 370, px: 3 };
   // Thử thách hôm nay (?daily=1): bàn 4×4, chuỗi ô sinh cố định theo ngày (cùng nước đi ⇒ cùng kết quả),
   // tối đa 150 nước, không hoàn tác. Chơi 1 lần rồi khoá. Không đụng bản lưu thường.
-  const daily = ctx.daily ? { day: D.dayNumber(), seed: 0, limit: D.GAMES["2048"].moveLimit, panel: null, done: false } : null;
+  // log: chuỗi nước đi "LRUD…" từ đầu ván — bằng chứng gửi lên Bảng xếp hạng hôm nay (máy chủ phát lại để tính điểm).
+  // null = ván tiếp từ bản lưu cũ không có log ⇒ không gửi lên bảng được.
+  const daily = ctx.daily ? { day: D.dayNumber(), seed: 0, limit: D.GAMES["2048"].moveLimit, panel: null, done: false, log: "" } : null;
   if (daily) daily.seed = D.seedFor(DAILY_ID, daily.day);
 
   // ---------- Lưu ----------
   function persist() {
-    if (daily) { if (s && !daily.done && s.status === "playing") D.saveProgress(DAILY_ID, daily.day, L.serialize(s)); return; }
+    if (daily) { if (s && !daily.done && s.status === "playing") D.saveProgress(DAILY_ID, daily.day, { ...L.serialize(s), log: daily.log }); return; }
     try {
       if (s) {
         save.size = s.size;
@@ -234,6 +237,7 @@ export function mount(root, ctx = {}) {
       board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake");
       return false;
     }
+    if (daily && daily.log != null) daily.log += MOVE_LETTER[dir];
     sfx.unlock();
     for (const m of r.moves) { const e = els.get(m.id); if (e) { place(e, m.to); if (r.merges.some((g) => g.from.includes(m.id))) e.classList.add("dying"); } }
     pending = { r, timer: setTimeout(() => { const p = pending; pending = null; if (p) finalize(p.r); }, ANIM) };
@@ -353,6 +357,7 @@ export function mount(root, ctx = {}) {
     daily.done = true;
     clearTimeout(endTimer);
     const r = { maxTile: s.maxTile, score: s.score, moves: s.moves, time: Math.round(s.time), board: L.serialize(s).cells };
+    if (daily.log != null && daily.log.length === s.moves) r.proof = { moves: daily.log };
     D.record(DAILY_ID, daily.day, r);
     sdk.gameOver && sdk.gameOver({ score: s.score, maxTile: s.maxTile, size: s.size, moves: s.moves, time: Math.round(s.time), result: "daily", daily: daily.day });
     setTimeout(() => board.classList.add("dead"), ANIM + 120);
@@ -382,7 +387,8 @@ export function mount(root, ctx = {}) {
       const prog = D.loadProgress(DAILY_ID, daily.day);
       g = prog && prog.size === 4 ? L.deserialize(prog) : null;
       if (g && g.status === "won") L.keepGoing(g);
-      if (!g || g.status !== "playing") g = L.newGame({ size: 4, seed: daily.seed });
+      daily.log = g && typeof prog.log === "string" && /^[LRUD]*$/.test(prog.log) && prog.log.length === g.moves ? prog.log : null;
+      if (!g || g.status !== "playing") { g = L.newGame({ size: 4, seed: daily.seed }); daily.log = ""; }
     }
     s = g; s.undoLeft = 0; s.history = [];
     hide(ov.menu); hide(ov.win); hide(ov.end); hide(ov.confirm);
@@ -560,7 +566,7 @@ export function mount(root, ctx = {}) {
   return {
     get state() { return s; },
     get layout() { return G; },
-    get daily() { return daily ? { day: daily.day, seed: daily.seed, limit: daily.limit, done: daily.done } : null; },
+    get daily() { return daily ? { day: daily.day, seed: daily.seed, limit: daily.limit, done: daily.done, log: daily.log } : null; },
     sfx,
     move: doMove, undo: doUndo, start, showMenu,
     resync() { syncAll(); hud(); }, // dùng cho test: vẽ lại sau khi sửa bàn trực tiếp
