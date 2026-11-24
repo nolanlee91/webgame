@@ -24,7 +24,7 @@ PASS phím M tắt tiếng (lưu chung wgp.muted)
 PASS nút âm thanh bật lại
 PASS tải lại trang → màn đầu có "▶ Chơi tiếp" (ván 1, 2 nước, máy Vừa) — Ván 1 đang dở · 2 nước · điểm 6 – 21 (máy Vừa)
 PASS Chơi tiếp → đúng bàn, đúng điểm, đúng lượt
-PASS desktop: đánh với máy bằng chuột tới hết ván → có kết quả, tổng điểm 70 — người thắng 1 sau 12 nước, điểm 6–64
+PASS desktop: đánh với máy bằng chuột tới hết ván → có kết quả, tổng điểm 70 — người thắng 1 sau 12 nước, điểm 11–59
 PASS desktop: suốt ván, mọi điểm bấm (ô + mũi tên) đều trúng bàn, không bị che — bị che 0
 PASS bảng kết quả: tiêu đề, điểm hai đội, tỉ số các ván, nút Ván tiếp
 PASS âm thanh: tải được file + có tiếng "tách" khi sỏi rơi, tiếng ăn quân, tiếng kết ván — 7 file
@@ -42,18 +42,18 @@ PASS mobile: bàn gọn trong màn, không tràn
 PASS mobile: chạm ô → 2 mũi tên trên bàn, cách nhau đủ xa cho ngón cái, không bị che — cách 76px
 PASS mobile: chạm mũi tên → rải, có nút Tua / Bỏ qua
 PASS mobile: nút "Tua ×4" bật
-PASS mobile: đánh với máy Khó bằng chạm tới hết ván → có kết quả — người thắng 1 sau 14 nước
+PASS mobile: đánh với máy Khó bằng chạm tới hết ván → có kết quả — người thắng 1 sau 16 nước
 PASS mobile: suốt ván mọi điểm chạm trúng bàn, không bị che — bị che 0
 PASS mobile: bảng kết quả gọn trong màn
 PASS điện thoại ngang: bàn nằm ngang, gọn, không tràn
-PASS online: tạo phòng → phòng chờ có mã 5 ký tự, luật quan non, chủ phòng chọn được luật — GECK3
+PASS online: tạo phòng → phòng chờ có mã 5 ký tự, luật quan non, chủ phòng chọn được luật — 6GWGE
 PASS online: người thứ 2 vào → nút Bắt đầu mở
 PASS online: vào ván, quan non bật, tới lượt bạn, có ô chat
 PASS online: nước của bạn tới máy chủ, máy kia nhận đúng
 PASS online: nước của đối thủ → hoạt cảnh rải trên máy mình
 PASS online: tin nhắn của đối thủ hiện trong khung chat
 PASS online: đối thủ rời giữa ván → về phòng chờ, báo có người rời
-PASS online 2v2: phòng chờ 4 ghế (Đội A1, B1, A2, B2), Bắt đầu khoá tới khi đủ 4; danh sách phòng công khai ghi 1/4 — {"game":"o-an-quan","code":"GXGEZ","host":"Tí Sỏi","have":1,"max":4} GXGEZ
+PASS online 2v2: phòng chờ 4 ghế (Đội A1, B1, A2, B2), Bắt đầu khoá tới khi đủ 4; danh sách phòng công khai ghi 1/4 — {"game":"o-an-quan","code":"T5QTG","host":"Tí Sỏi","have":1,"max":4} T5QTG
 PASS không có lỗi JS / console
 
 57/57 đạt

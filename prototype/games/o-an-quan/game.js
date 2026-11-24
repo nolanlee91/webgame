@@ -464,8 +464,8 @@ export function mount(root, ctx = {}) {
         return;
       }
     }
+    // cùng seq (chỉ đổi chat / kết nối / hạn giờ): giữ nguyên ván đang hiển thị, không cắt ngang hoạt cảnh
     if (v.seq !== prev.seq) { board.skip(); s = next; board.show(s); if (isOver(s) && ui.ovEnd.hidden) endTimer = setTimeout(showEnd, 300); }
-    else s = { ...next };
     hud();
   }
   function leaveRoom() {
