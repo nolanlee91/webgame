@@ -27,13 +27,20 @@ export function scoreFor(msUsed, limit, streak, mult = 1) {
  * Ván mới. cat: "all" hoặc id chủ đề. recent: chỉ số câu đã gặp gần đây (ưu tiên câu chưa gặp, vẫn đủ 10 câu khi bộ hết).
  * Mỗi câu trong ván: { id, cat, q, opts[4], correct (vị trí đáp án đúng sau khi xáo), note }.
  */
-export function newRound({ seed = 1, cat = "all", mode = "normal", recent = [] } = {}) {
+export function newRound({ seed = 1, cat = "all", mode = "normal", recent = [], ids = null } = {}) {
   const r = rng(seed), m = MODES[mode] || MODES.normal;
-  const pool = QUESTIONS.map((q, id) => ({ ...q, id })).filter((q) => cat === "all" || q.cat === cat);
-  const seen = new Set(recent);
-  const fresh = shuffle(pool.filter((q) => !seen.has(q.id)), r), old = shuffle(pool.filter((q) => seen.has(q.id)), r);
-  let picks = [...fresh, ...old].slice(0, ROUND_LEN);
-  if (cat === "all") { // trộn đều chủ đề: không để 3 câu cùng chủ đề liền nhau nếu đổi chỗ được
+  const fixed = Array.isArray(ids) && ids.length > 0;
+  let picks;
+  if (fixed) { // thử thách hôm nay: đúng các câu đã chọn sẵn, giữ thứ tự
+    picks = ids.filter((id) => Number.isInteger(id) && QUESTIONS[id]).map((id) => ({ ...QUESTIONS[id], id }));
+    cat = "all";
+  } else {
+    const pool = QUESTIONS.map((q, id) => ({ ...q, id })).filter((q) => cat === "all" || q.cat === cat);
+    const seen = new Set(recent);
+    const fresh = shuffle(pool.filter((q) => !seen.has(q.id)), r), old = shuffle(pool.filter((q) => seen.has(q.id)), r);
+    picks = [...fresh, ...old].slice(0, ROUND_LEN);
+  }
+  if (cat === "all" && !fixed) { // trộn đều chủ đề: không để 3 câu cùng chủ đề liền nhau nếu đổi chỗ được
     for (let i = 2; i < picks.length; i++) {
       if (picks[i].cat === picks[i - 1].cat && picks[i].cat === picks[i - 2].cat) {
         const j = picks.findIndex((p, k) => k > i && p.cat !== picks[i].cat);

@@ -1,5 +1,9 @@
 // Sudoku — phần hiển thị + điều khiển. Luật chơi, sinh đề, lưu/nạp nằm ở logic.js.
-import * as L from "./logic.js";
+import * as L from "./logic.js?v=daily1";
+import * as UI from "../_shared/daily-ui.js?v=daily1";
+
+const D = UI.D;
+const DAILY_ID = "sudoku";
 
 const SAVE_KEY = "wgp.sudoku.v1";
 
@@ -65,6 +69,9 @@ export function mount(root, ctx = {}) {
   let diff = save.diff, s = null, sel = 40, notesMode = false, destroyed = false, viewOnly = true;
   let seedBase = ctx.seed ?? (Date.now() & 0xffffff), games = 0;
   const G = { cs: 40 };
+  // Thử thách hôm nay (?daily=1): một đề "Vừa" cố định theo ngày, chơi 1 lần rồi khoá. Không đụng bản lưu thường.
+  const daily = ctx.daily ? { day: D.dayNumber(), seed: 0, panel: null } : null;
+  if (daily) daily.seed = D.seedFor(DAILY_ID, daily.day);
 
   // ---------- Dựng lưới 9 khối × 9 ô ----------
   const cellEls = new Array(81);
@@ -91,6 +98,7 @@ export function mount(root, ctx = {}) {
   // ---------- Lưu ----------
   function persist() {
     if (destroyed) return;
+    if (daily) { if (s && !viewOnly && s.status === "playing") D.saveProgress(DAILY_ID, daily.day, L.serialize(s)); return; }
     try {
       save.diff = diff;
       if (s && !viewOnly) {
@@ -265,6 +273,7 @@ export function mount(root, ctx = {}) {
   // ---------- Thắng ----------
   let winTimer = 0;
   function onWin() {
+    if (daily) return onDailyWin();
     const prev = save.best[s.diff] || 0;
     const t = Math.max(1, Math.floor(s.time));
     const isRecord = !prev || t < prev;
@@ -278,6 +287,45 @@ export function mount(root, ctx = {}) {
     persist();
     clearTimeout(winTimer);
     winTimer = setTimeout(() => { sfx.play("thang", 0.8); showWin(isRecord, prev, pts); }, 900);
+  }
+  function onDailyWin() {
+    const t = Math.max(1, Math.floor(s.time));
+    const hints = L.HINTS - s.hintsLeft;
+    const r = { time: t, mistakes: s.mistakes, hints };
+    D.record(DAILY_ID, daily.day, r);
+    const pts = L.score(s);
+    sdk.reportScore && sdk.reportScore(pts);
+    sdk.gameOver && sdk.gameOver({ result: "solved", daily: daily.day, diff: s.diff, time: t, mistakes: s.mistakes, hints, score: pts });
+    board.classList.remove("win"); void board.offsetWidth; board.classList.add("win");
+    viewOnly = true;
+    clearTimeout(winTimer);
+    winTimer = setTimeout(() => { sfx.play("thang", 0.8); showDaily(); }, 900);
+  }
+  function showDaily() {
+    const res = D.getResult(DAILY_ID, daily.day);
+    const perfect = res && res.mistakes === 0 && res.hints === 0;
+    if (daily.panel) daily.panel.destroy();
+    daily.panel = UI.panel({ game: DAILY_ID, day: daily.day, result: res, title: perfect ? "Hoàn hảo!" : "Giải xong!" });
+    render();
+  }
+  function startDaily() {
+    UI.badge(daily.day);
+    for (const id of ["newBtn"]) $(id).hidden = true;
+    for (const id of ["menuBtn", "menuBtn2"]) { $(id).title = "Chơi thường"; $(id).setAttribute("aria-label", "Về chế độ chơi thường"); }
+    $("menuBtn").textContent = "☰ Chơi thường";
+    const fresh = L.newGame({ diff: "vua", seed: daily.seed });
+    if (D.isDone(DAILY_ID, daily.day)) {
+      s = fresh; s.cells = s.solution.slice(); s.status = "won"; viewOnly = true;
+      show(null); render(); showDaily();
+      return;
+    }
+    const prog = D.loadProgress(DAILY_ID, daily.day);
+    const g = prog && prog.seed === daily.seed && prog.diff === "vua" ? L.deserialize(prog) : null;
+    s = g && g.status === "playing" ? g : fresh;
+    viewOnly = false; notesMode = false;
+    sel = s.cells.findIndex((v) => v === 0); if (sel < 0) sel = 40;
+    show(null); render(); persist();
+    stage.focus({ preventScroll: true });
   }
   function showWin(isRecord, prev, pts) {
     const D = L.DIFFS[s.diff];
@@ -318,6 +366,7 @@ export function mount(root, ctx = {}) {
     }
   }
   function showMenu() {
+    if (daily) { persist(); location.href = "./"; return; }
     if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     persist();
     clearTimeout(winTimer);
@@ -351,6 +400,7 @@ export function mount(root, ctx = {}) {
     stage.focus({ preventScroll: true });
   }
   function askNew() {
+    if (daily) return;
     if (!s || viewOnly || s.status !== "playing" || s.moves === 0) { start(true); return; }
     show("confirm");
     $("noNewBtn").focus({ preventScroll: true });
@@ -412,7 +462,7 @@ export function mount(root, ctx = {}) {
     if (k === "m" || k === "M") { toggleMute(); e.preventDefault(); return; }
     if (k === "Escape") {
       if (!ov.confirm.hidden) { show(null); stage.focus({ preventScroll: true }); }
-      else if (ov.menu.hidden) showMenu();
+      else if (ov.menu.hidden && !daily) showMenu();
       e.preventDefault(); return;
     }
     if (anyOverlay()) return;
@@ -451,13 +501,19 @@ export function mount(root, ctx = {}) {
   // ---------- Khởi động ----------
   showMute();
   layout();
-  showMenu();
+  if (daily) startDaily();
+  else {
+    showMenu();
+    const dl = $("dailyLink");
+    if (dl) { const n = D.dayNumber(); dl.textContent = D.isDone(DAILY_ID, n) ? `★ Thử thách #${n} · đã xong ✓` : `★ Thử thách hôm nay #${n}`; }
+  }
 
   return {
     get state() { return s; },
     get sel() { return sel; },
     get notesMode() { return notesMode; },
     get layout() { return { ...G }; },
+    get daily() { return daily ? { day: daily.day, seed: daily.seed } : null; },
     sfx,
     select, input, erase: doErase, hint: doHint, undo: doUndo, toggleNotes, start, showMenu,
     setDiff(d) { if (L.DIFFS[d]) { diff = d; renderMenu(); } },
