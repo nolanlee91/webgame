@@ -1,7 +1,7 @@
 // Bot giải tự động: đi hết một vụ CHỈ qua apply(), đọc mọi chữ hiện ra như người chơi (nhặt từ khoá khi đọc tới),
 // lời giải suy ra từ dữ liệu vụ (break.clue, deduction.answer, finale.steps.answer, bonus.answer). Không gợi ý, không đưa sai ⇒ phải ra 3★.
 // Dùng ở test (mọi vụ trong data/cases) và e2e (biết bước kế tiếp nên bấm gì).
-import { createRun, apply, textOf, hotspotsAt, topicsOf, locList, talkable } from "./engine.js?v=t2";
+import { createRun, apply, textOf, hotspotsAt, topicsOf, locList, talkable } from "./engine.js?v=t3";
 
 /** Bước kế tiếp nên làm (null = hết việc điều tra, sang bảng / vạch mặt). */
 export function nextAction(c, s) {

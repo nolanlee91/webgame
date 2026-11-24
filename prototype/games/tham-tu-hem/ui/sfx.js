@@ -23,7 +23,7 @@ export const LOOPS = {
 /** Màn ⇒ vòng lặp đang phát. */
 export const SCENES = {
   title: ["amb-rain-alley"], map: ["music-map", "amb-rain-alley"], office: ["amb-office"], scene: ["music-investigate"],
-  talk: ["music-interrogate"], finale: ["music-finale"], result: ["music-solved"],
+  talk: ["music-interrogate"], finale: ["music-finale"], result: ["music-solved"], season: ["music-map"],
 };
 
 const ls = (k) => { try { return localStorage.getItem(k); } catch { return null; } };

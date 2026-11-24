@@ -1,7 +1,7 @@
 # Thám Tử Hẻm: ghi chú dev
 
 Hợp đồng chung (vòng chơi, dàn nhân vật, 6 vụ, định dạng vụ): `docs/tham-tu-hem/DESIGN.md`. Asset: `docs/tham-tu-hem/asset-spec.json`.
-Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t2`** cho mọi import và `<script src>`.
+Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t3`** cho mọi import và `<script src>`.
 
 ## 1. Kiến trúc
 

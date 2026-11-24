@@ -1,5 +1,7 @@
 // Bộ kiểm dữ liệu vụ án (thuần, không DOM). Dùng ở test, tools/check-case.mjs và (tuỳ chọn) lúc nạp vụ.
 // Kiểm 3 thứ: tham chiếu đúng, đi được tới cuối (mô phỏng người chơi vét hết), đủ lượng nội dung (DESIGN.md §4).
+import { CASES } from "../data/cases/index.js?v=t3";
+export const CASE_IDS = new Set(CASES.map((x) => x.id));
 
 export const CAST = ["me", "teo", "batu", "chuba", "narr"];
 export const KINDS = ["ai", "luc", "o", "vat", "cach", "vi", "khac"];
@@ -97,6 +99,9 @@ export function validateCase(c) {
   for (const [pid, p] of Object.entries(people)) {
     if (!p.name) err(`people.${pid}: thiếu name`);
     checkText(`people.${pid}.bio`, p.bio);
+    // chân dung dùng lại từ vụ khác: sheet = id vụ có trong danh mục (data/cases/index.js)
+    if (p.sheet != null && (typeof p.sheet !== "string" || !CASE_IDS.has(p.sheet))) err(`people.${pid}.sheet: "${p.sheet}" không phải id vụ trong data/cases/index.js`);
+    else if (p.sheet === c.id) warn(`people.${pid}.sheet trỏ về chính vụ này (thừa, bỏ đi được)`);
   }
   for (const [lid, L] of Object.entries(locs)) {
     if (!L.name) err(`locations.${lid}: thiếu name`);
