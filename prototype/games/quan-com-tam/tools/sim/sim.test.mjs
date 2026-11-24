@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { runSim, TARGETS } from "./sim.mjs";
-import { TIERS, FISH_SAUCE } from "../../data/economy.js?v=c3";
+import { TIERS, FISH_SAUCE } from "../../data/economy.js?v=c4";
 
 test("hồi quy cân bằng (người chơi trung bình): cấp 4 / 7 / 10 / 20 trong khoảng mục tiêu, lên quán, tiền cuối game còn chỗ tiêu", () => {
   const r = runSim("average", { days: 220, seed: 12345 });

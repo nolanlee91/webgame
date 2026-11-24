@@ -9,17 +9,17 @@ import {
   STOCK, SHELF, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, HOA, hoaPack, PREORDER, DEBT, LATE, FRIED_RICE,
   MISSIONS, MISSIONS_PER_DAY, APPEAL_CAP, PLACE_ZONES, SPOT_CLEARANCE, STREET_DECOR_AT, RENT, HELPER, WEATHER, LUNCH, SHIFTS, SERVICE,
   XP_SHARE, RICE, TABLE_GEAR, CAPACITY,
-} from "../data/economy.js?v=c3";
-import { ARCHETYPES } from "../data/customers.js?v=c3";
-import * as LP from "../data/lines-progress.js?v=c3";
-import { FLAG_DAYS } from "./flags.js?v=c3"; // B: hạn cờ Drama
-import { pushReview, dayMoment } from "./reviews.js?v=c3"; // C: một sổ review, khoảnh khắc Nhật Ký
-import { next, int, weighted } from "./rng.js?v=c3";
-import { freshLine, fill } from "./text.js?v=c3";
-import { gainXp, addNewDishes } from "./progress.js?v=c3";
-import { pointsOf } from "./walker.js?v=c3";
-import { ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c3";
-import { stockUsed, capacity, addLot } from "./stock.js?v=c3";
+} from "../data/economy.js?v=c4";
+import { ARCHETYPES } from "../data/customers.js?v=c4";
+import * as LP from "../data/lines-progress.js?v=c4";
+import { FLAG_DAYS } from "./flags.js?v=c4"; // B: hạn cờ Drama
+import { pushReview, dayMoment } from "./reviews.js?v=c4"; // C: một sổ review, khoảnh khắc Nhật Ký
+import { next, int, weighted } from "./rng.js?v=c4";
+import { freshLine, fill } from "./text.js?v=c4";
+import { gainXp, addNewDishes } from "./progress.js?v=c4";
+import { pointsOf } from "./walker.js?v=c4";
+import { ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c4";
+import { stockUsed, capacity, addLot } from "./stock.js?v=c4";
 
 const owns = (s, id) => !!s.owned?.[id];
 export const setFlag = (s, name, value) => { s.flags = s.flags || {}; s.flags[name] = value; };

@@ -1,7 +1,7 @@
 // Chọn tính cách cô chủ (data/lines-reply.js PERSONAS): thẻ lớn ở màn chào / hỏi một lần ở Chuẩn bị (bản lưu cũ),
 // hàng nút gọn trên bảng trả lời review (đổi ngay, lựa chọn trả lời đổi theo). Chép ui/persona.js của Tiệm Bánh Mì.
-import { PERSONAS, PERSONA_IDS } from "../data/lines-reply.js?v=c3";
-import { el } from "./common.js?v=c3";
+import { PERSONAS, PERSONA_IDS } from "../data/lines-reply.js?v=c4";
+import { el } from "./common.js?v=c4";
 
 /** Thẻ chọn tính cách. onPick(id) khi bấm; selected = id đang chọn. */
 export function personaCards(parent, selected, onPick) {

@@ -1,9 +1,9 @@
 // Phân tích kết quả mô phỏng: mục tiêu §3, nguồn thu, khựng, vòng lặp lời vô hạn, lợi nhuận chuỗi A/B/C,
 // dò đường cong XP hợp mục tiêu, và gợi ý chỉnh số (KHÔNG áp dụng — chỉ đề xuất).
 import { CROP, CROPS, ITEM, RECIPE, ANIMAL, MARKET, xpNeed } from "./harness.mjs";
-import { ORDER_TYPES } from "../../data/orders.js?v=m8";
-import { WATER_FACTOR, plotCost } from "../../core/plots.js?v=m8";
-import { BUILDING, BUILDINGS } from "../../data/buildings.js?v=m8";
+import { ORDER_TYPES } from "../../data/orders.js?v=m9";
+import { WATER_FACTOR, plotCost } from "../../core/plots.js?v=m9";
+import { BUILDING, BUILDINGS } from "../../data/buildings.js?v=m9";
 import { runBugChecks } from "./bugs.mjs";
 
 /** §3: thời gian CHƠI (phút) mong muốn tới cấp. Cấp 20: 10–12 giờ ⇒ lấy 11 giờ làm điểm giữa. */

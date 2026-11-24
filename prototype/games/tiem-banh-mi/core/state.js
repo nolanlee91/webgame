@@ -3,20 +3,20 @@
 // MIGRATIONS[v] nâng v → v+1. v1 → v2 (M3 + M4): thêm tính cách chủ tiệm, người theo dõi / độ hot, Drama, Nhật Ký, bánh hôm qua, bộ điều chỉnh,
 // trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, đơn đặt trước, quảng bá, phụ việc, hội chợ, thử thách, thời tiết (mặc định an toàn).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-v1) một lần trước khi nâng.
-import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b3";
-import { ARCHETYPES } from "../data/customers.js?v=b3";
-import { QUIRKS } from "../data/quirks.js?v=b3";
-import { levelForXp } from "./shift.js?v=b3";
-import { floatValue } from "./money.js?v=b3";
-import { freshDrama } from "./flags.js?v=b3";
-import { EVENT } from "../data/events.js?v=b3";
-import { NPCS } from "../data/npcs.js?v=b3";
-import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b3";
-import { PERSONAS } from "../data/lines-reply.js?v=b3";
-import { loadContracts } from "./contracts.js?v=b3";
-import { loadCook } from "./cook.js?v=b3";
-import { loadLots } from "./expiry.js?v=b3";
-import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b3";
+import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b4";
+import { ARCHETYPES } from "../data/customers.js?v=b4";
+import { QUIRKS } from "../data/quirks.js?v=b4";
+import { levelForXp } from "./shift.js?v=b4";
+import { floatValue } from "./money.js?v=b4";
+import { freshDrama } from "./flags.js?v=b4";
+import { EVENT } from "../data/events.js?v=b4";
+import { NPCS } from "../data/npcs.js?v=b4";
+import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b4";
+import { PERSONAS } from "../data/lines-reply.js?v=b4";
+import { loadContracts } from "./contracts.js?v=b4";
+import { loadCook } from "./cook.js?v=b4";
+import { loadLots } from "./expiry.js?v=b4";
+import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b4";
 
 export const SAVE_VERSION = 3;
 /** v2 → v3 (M5): hợp đồng định kỳ, lô hàng theo ngày (hạn dùng), số lần hội chợ, thử thách theo lịch, huy hiệu theo id.
@@ -253,7 +253,7 @@ function loadShift(sh, s) {
       stats: { served: S("served"), loaves: S("loaves"), revenue: S("revenue"), cogs: S("cogs"), batches: S("batches"), burntBatches: S("burntBatches"), goldenPulls: S("goldenPulls"), toasts: S("toasts"),
         lost: S("lost"), timeouts: S("timeouts"), stars: arr(stats.stars).filter((x) => Number.isInteger(x) && x >= 1 && x <= 5).slice(0, 200), changeRight: S("changeRight"), changeWrong: S("changeWrong"),
         changeLoss: S("changeLoss"), restockSpent: S("restockSpent"), rescueSpent: S("rescueSpent"), xp: S("xp"), consignRepaid: S("consignRepaid"), owed: S("owed"),
-        multi: S("multi"), preorders: S("preorders"), preLate: S("preLate"), staleSold: S("staleSold"), burntMeat: S("burntMeat"), boDuong: S("boDuong"), eventCash: num(stats.eventCash, -BIG, BIG, 0), missionCash: S("missionCash"), lostSang: S("lostSang"),
+        multi: S("multi"), preorders: S("preorders"), preLate: S("preLate"), staleSold: S("staleSold"), burntMeat: S("burntMeat"), boDuong: S("boDuong"), eventCash: num(stats.eventCash, -BIG, BIG, 0), missionCash: S("missionCash"), lostSang: S("lostSang"), levelUps: arr(stats.levelUps).filter(Number.isInteger).slice(0, 20),
         mistakes: Object.fromEntries(Object.entries(obj(stats.mistakes) ? stats.mistakes : {}).filter(([, v]) => Number.isInteger(v) && v >= 0)) },
     };
     if (out.dialog?.kind === "nochange" && !customers.some((c) => c.id === out.dialog.cid && c.phase === "pay")) out.dialog = null;

@@ -1,52 +1,71 @@
 // HUD, viên Lò / Gas, dải phiếu, thông báo, và các bảng phủ: chào, Chuẩn bị ca (nhập hàng, tiền lẻ, mẻ đầu, dự báo), Cách chơi,
 // Tạm dừng (Chơi lại từ đầu có xác nhận + backup), Chốt ca (lời lỗ), khiếu nại, hết hàng, hết tiền lẻ.
-import { icon } from "../render/atlas.js?v=b3";
-import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b3";
-import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b3";
-import { floatValue, sumBills } from "../core/money.js?v=b3";
-import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b3";
-import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b3";
-import { orderText, loafName, menuAt } from "../core/order.js?v=b3";
-import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b3";
-import { MISTAKES } from "../data/lines-mistakes.js?v=b3";
-import { PHASES } from "../data/shift.js?v=b3";
-import { quirkChips } from "./bench.js?v=b3";
-import { personaCards } from "./persona.js?v=b3";
-import { buildEvent } from "./drama.js?v=b3";
-import { buildNotebook } from "./notebook.js?v=b3";
-import { drawJournal, download, share } from "./journal.js?v=b3";
-import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b3";
-import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b3";
-import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b3";
-import { expiringOn } from "../core/expiry.js?v=b3";
-import { maiOpen, MAI } from "../core/stock.js?v=b3";
-import { currentEvent } from "../core/drama.js?v=b3";
-import { PERSONAS } from "../data/lines-reply.js?v=b3";
-import { STALE } from "../data/lines-m3.js?v=b3";
-import { FILLINGS, NAMES } from "../data/economy.js?v=b3";
+import { icon } from "../render/atlas.js?v=b4";
+import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b4";
+import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b4";
+import { floatValue, sumBills } from "../core/money.js?v=b4";
+import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b4";
+import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b4";
+import { orderText, loafName, menuAt } from "../core/order.js?v=b4";
+import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b4";
+import { MISTAKES } from "../data/lines-mistakes.js?v=b4";
+import { PHASES } from "../data/shift.js?v=b4";
+import { quirkChips } from "./bench.js?v=b4";
+import { personaCards } from "./persona.js?v=b4";
+import { buildEvent } from "./drama.js?v=b4";
+import { buildNotebook } from "./notebook.js?v=b4";
+import { drawJournal, download, share } from "./journal.js?v=b4";
+import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b4";
+import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b4";
+import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b4";
+import { expiringOn } from "../core/expiry.js?v=b4";
+import { maiOpen, MAI } from "../core/stock.js?v=b4";
+import { currentEvent } from "../core/drama.js?v=b4";
+import { PERSONAS } from "../data/lines-reply.js?v=b4";
+import { STALE } from "../data/lines-m3.js?v=b4";
+import { FILLINGS, NAMES } from "../data/economy.js?v=b4";
 import { shareResult } from "../../_shared/share.js?v=s1";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
 const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;
 export function summaryShare(S) {
-  const p = S.profit;
+  const p = S.profit, lvUp = Array.isArray(S.levelUps) && S.levelUps.length ? Math.max(...S.levelUps) : 0;
   const title = p > 0 ? `Ngày ${S.day} lời ${vnd(p)}` : p < 0 ? `Ngày ${S.day} lỗ ${vnd(p)}` : `Ngày ${S.day} huề vốn`;
   const lines = [`Doanh thu: ${vnd(S.revenue)}`, `Ổ bán: ${S.loaves} (${S.served} khách)`];
   if (S.avg) lines.push(`Sao trung bình: ${String(S.avg).replace(".", ",")}★`);
-  lines.push(`Cấp tiệm: ${S.level}`);
+  lines.push(lvUp ? `Lên cấp: ${lvUp}!` : `Cấp tiệm: ${S.level}`);
   const tagline = p < 0 ? (S.burntBatches ? "Lò hơi nóng tính, bánh hơi đen, ví hơi mỏng. Mai gỡ!" : "Bán bánh mì mà lỗ, coi như phát cơm từ thiện.")
     : p === 0 ? "Huề vốn: nướng cả ngày lấy mùi bơ thơm làm lời."
+    : lvUp ? `Lên cấp ${lvUp}, sắp thành tiệm bánh mì có tiếng cả phố.`
     : p >= Math.max(150, S.revenue * 0.4) ? "Giòn rụm, lời đậm, hàng xóm bắt đầu ganh tị." : "Có lời là vui rồi, mai nướng thêm mẻ nữa!";
   return { game: "tiem-banh-mi", title, lines, tagline, accent: "#f7c96d" };
 }
 
+/** Khoe ngay lúc lên cấp giữa ca (nút "Khoe" trên thông báo): số thật của tiệm lúc đó. */
+export function levelUpShare(state, level = state.level) {
+  const lines = [`Tiệm: ${state.shopName}`, `Ngày: ${state.day}`, `Danh tiếng: ${Math.round(state.rep)}`];
+  if (state.followers) lines.push(`Người theo dõi: ${state.followers}`);
+  const tagline = level >= 16 ? "Cả phố xếp hàng, lò than chạy không kịp nghỉ." : level >= 8 ? "Từ xe đẩy đầu hẻm lên tiệm có tiếng, ai mà cản nổi!"
+    : "Ổ bánh giòn rụm, chủ tiệm lên tay thấy rõ.";
+  return { game: "tiem-banh-mi", title: `Lên cấp ${level}!`, lines, tagline, accent: "#f7c96d" };
+}
+
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 export const fmtK = (k) => (Math.round(k * 10) / 10).toLocaleString("vi-VN") + "k";
-export function toast(box, text, kind = "") {
+/** Thông báo. `action` = { label, act, onClick }: thêm nút nhỏ (vd "Khoe" lúc lên cấp) — thông báo ở lâu hơn (7 giây) để kịp bấm,
+ *  luôn nằm dưới cùng (thông báo mới chen lên trên nó) và không bị đẩy ra trước các thông báo thường. */
+export function toast(box, text, kind = "", action = null) {
   const t = h("div", "toast " + kind, text);
-  box.appendChild(t);
-  while (box.children.length > 3) box.firstChild.remove();
-  setTimeout(() => t.remove(), 3600);
+  if (action) {
+    t.classList.add("has-act");
+    const b = h("button", "toast-act", action.label); b.type = "button"; if (action.act) b.dataset.act = action.act;
+    b.addEventListener("click", (e) => { e.stopPropagation(); t.remove(); action.onClick(); });
+    t.appendChild(b);
+  }
+  const keep = !action && box.querySelector(".toast.has-act");
+  if (keep) box.insertBefore(t, keep); else box.appendChild(t);
+  while (box.children.length > 3) (box.querySelector(".toast:not(.has-act)") || box.firstChild).remove();
+  setTimeout(() => t.remove(), action ? 7000 : 3600);
 }
 
 // ---------- HUD + viên Lò / Gas ----------
@@ -518,6 +537,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       if (S.followersDelta) right.appendChild(h("p", "", `Người theo dõi ${S.followersDelta > 0 ? "+" : ""}${S.followersDelta}`));
       if (S.expiredK) right.appendChild(h("p", "", `Hết hạn bỏ đi: ${fmtK(S.expiredK)} (${Object.entries(S.expired || {}).map(([id, n]) => `${STOCK[id]?.name || id} ${n}`).join(", ")}). Nhập vừa đủ theo dự báo để đỡ hao.`));
       if (S.fair) right.appendChild(h("p", "", `Ca hội chợ: giá +15%, +${FAIR.guests} khách.`));
+      if (S.levelUps?.length) { const p = h("p", "card-note gold", `Lên cấp ${S.levelUps.join(", ")} trong ca!`); p.dataset.card = "levelUp"; right.appendChild(p); }
       if (S.challenge) { const p = h("p", "card-note" + (S.challenge.ok ? " gold" : "")); p.dataset.card = "challengeResult"; p.textContent = `Thử thách “${S.challenge.name}”: ${S.challenge.ok ? `ĐẠT · +${S.challenge.money}k, +${S.challenge.xp} XP` : "chưa đạt"}. ${S.challenge.line}`; right.appendChild(p); }
       for (const bg of S.badges || []) { const p = h("p", "card-note gold"); p.dataset.card = "badge"; p.textContent = `Huy hiệu mới: ${bg.name}. ${bg.line}`; right.appendChild(p); }
       const dm = (S.moments || []).filter((m) => m.kind === "drama").slice(-2);

@@ -3,18 +3,18 @@
 // công trình Milestone 4 bị từ chối, save v5 + sao lưu.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m8";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m8";
-import { capacity } from "../core/inventory.js?v=m8";
-import { extraSlots } from "../core/workshop.js?v=m8";
-import { inMilestone } from "../core/construct.js?v=m8";
-import { mapLayout } from "../core/levels-map.js?v=m8";
-import { BUILDING } from "../data/buildings.js?v=m8";
-import { CROP } from "../data/crops.js?v=m8";
-import { TUTORIAL } from "../data/quests.js?v=m8";
-import { CURRENT_MILESTONE, LEVELS } from "../data/levels.js?v=m8";
-import { WAREHOUSE } from "../data/warehouse.js?v=m8";
-import { farmSave, KEY, V4_KEY, V4_BACKUP_KEY } from "../save.js?v=m8";
+import { apply } from "../core/apply.js?v=m9";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m9";
+import { capacity } from "../core/inventory.js?v=m9";
+import { extraSlots } from "../core/workshop.js?v=m9";
+import { inMilestone } from "../core/construct.js?v=m9";
+import { mapLayout } from "../core/levels-map.js?v=m9";
+import { BUILDING } from "../data/buildings.js?v=m9";
+import { CROP } from "../data/crops.js?v=m9";
+import { TUTORIAL } from "../data/quests.js?v=m9";
+import { CURRENT_MILESTONE, LEVELS } from "../data/levels.js?v=m9";
+import { WAREHOUSE } from "../data/warehouse.js?v=m9";
+import { farmSave, KEY, V4_KEY, V4_BACKUP_KEY } from "../save.js?v=m9";
 
 const T = 3_000_000, MIN = 60_000;
 const act = (s, a, t = T) => { const r = apply(s, a, t); if (r.err) throw new Error(`${a.type}: ${r.err}`); return r; };

@@ -1,18 +1,18 @@
 // Cứu giữa ca (mô phỏng core/stockout.js + ui/stockout.js của Trà Sữa): hết nguyên liệu, hết bánh, hết gas, hết tiền lẻ.
 // Không bao giờ kẹt: mỗi hội thoại luôn có lựa chọn miễn phí (mượn Cậu Hưng / Cô Sáu, chờ lò, khách đổi món, cho nợ, đóng cửa sớm)
 // và gói ký gửi Bà Tư lên đầu khi không đủ tiền cho lựa chọn trả tiền. Thuần, đổi trạng thái chỉ qua apply().
-import { STOCK, STOCK_IDS, RESCUE, VEG } from "../data/economy.js?v=b3";
-import { ARCHETYPES } from "../data/customers.js?v=b3";
-import { RESCUE_SAY, NOCHANGE, OUT_LINES } from "../data/lines-ops.js?v=b3";
-import { addLot } from "./expiry.js?v=b3";
-import { takePartial } from "./partial.js?v=b3";
-import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=b3";
-import { spend, receive, greedyBills } from "./money.js?v=b3";
-import { newLoaf } from "./oven.js?v=b3";
-import { next, pick } from "./rng.js?v=b3";
-import { freshLine } from "./text.js?v=b3";
-import { board, emptyBoard, wasteLoaf } from "./board.js?v=b3";
-import { engineFlag } from "./flags.js?v=b3";
+import { STOCK, STOCK_IDS, RESCUE, VEG } from "../data/economy.js?v=b4";
+import { ARCHETYPES } from "../data/customers.js?v=b4";
+import { RESCUE_SAY, NOCHANGE, OUT_LINES } from "../data/lines-ops.js?v=b4";
+import { addLot } from "./expiry.js?v=b4";
+import { takePartial } from "./partial.js?v=b4";
+import { packPrice, packSize, consignAvailable, consign } from "./stock.js?v=b4";
+import { spend, receive, greedyBills } from "./money.js?v=b4";
+import { newLoaf } from "./oven.js?v=b4";
+import { next, pick } from "./rng.js?v=b4";
+import { freshLine } from "./text.js?v=b4";
+import { board, emptyBoard, wasteLoaf } from "./board.js?v=b4";
+import { engineFlag } from "./flags.js?v=b4";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
 export const itemName = (id) => (id === "banh" ? "bánh" : id === "que" ? "bánh mì que" : lower(STOCK[id]?.name || id));

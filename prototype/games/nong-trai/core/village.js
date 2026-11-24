@@ -23,8 +23,8 @@
 import {
   VILLAGE_LEVEL, CHAIN_LEVEL, BOARD_SIZE, FRIEND_LEVELS, FRIEND_POINTS, TALK_COOLDOWN_MS, FRIEND_MAX,
   VILLAGERS, VILLAGER, PROGRESSION, REPEATABLE, REPEATABLE_BY_ID, TRUCK,
-} from "../data/village.js?v=m8";
-import { TUTORIAL } from "../data/quests.js?v=m8";
+} from "../data/village.js?v=m9";
+import { TUTORIAL } from "../data/quests.js?v=m9";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", CLAIMED: "quest-claimed", INCOMPLETE: "quest-incomplete", GIVE: "give-stock", FULL: "full",
