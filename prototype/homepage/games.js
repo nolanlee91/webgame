@@ -8,6 +8,7 @@ window.GAMES = [
   { id: "o-an-quan", name: "Ô Ăn Quan", cat: "tri-tue", mode: "both", players: "1–4 người", thumb: "assets/thumbs/o-an-quan.webp", icon: "caro", badge: "Mới", url: "../games/o-an-quan/" },
   { id: "co-caro",   name: "Cờ Caro",          cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-caro.webp",  icon: "caro", badge: "Hot", url: "../games/co-caro/" },
   { id: "ran-san-moi", name: "Rắn Săn Mồi",    cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/ran-san-moi.webp", icon: "snake", hue: 140, url: "../games/ran-san-moi/" },
+  { id: "tham-tu-hem", name: "Thám Tử Hẻm", cat: "giai-do", mode: "solo", players: "1 người", thumb: "assets/thumbs/tham-tu-hem.webp", icon: "search", hue: 40, badge: "Mới", url: "../games/tham-tu-hem/" },
   { id: "noi-thu",   name: "Nối Thú",          cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/noi-thu.webp",  icon: "paw", badge: "Mới", url: "../games/noi-thu/" },
   { id: "dao-vang",  name: "Đào Vàng",         cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dao-vang.webp", icon: "gold", badge: "Hot", url: "../games/dao-vang/" },
   { id: "noi-tu",    name: "Nối Từ",           cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/noi-tu.webp",   icon: "word", badge: "Mới", url: "../games/noi-tu/" },
