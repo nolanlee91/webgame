@@ -74,7 +74,7 @@
       color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); position: relative; user-select: none; touch-action: manipulation; text-align: center; }
     .btn:hover { background: #30281f; }
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
-    .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn:not(:disabled):active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
     .btn img { width: 18px; height: 18px; image-rendering: pixelated; }
     .btn--icon { padding: 8px 12px; min-width: 44px; }
@@ -123,7 +123,7 @@
     .up .pips i { width: 14px; height: 10px; background: #3a3128; box-shadow: 0 0 0 2px var(--line); }
     .up .pips i.on { background: var(--teal-l); box-shadow: 0 0 0 2px var(--line), inset 0 -2px 0 var(--teal); }
     .up .btn { min-height: 40px; padding: 6px 10px; font-size: 13px; width: 100%; box-shadow: var(--bevel), var(--border); }
-    .up .btn:active { transform: translate(2px, 2px); }
+    .up .btn:not(:disabled):active { transform: translate(2px, 2px); }
     .up.bought { animation: pop .35s steps(3); }
     @keyframes pop { 50% { transform: scale(1.06); } }
     .actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }

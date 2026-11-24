@@ -103,6 +103,6 @@ test("community.js trên trang chủ mặc định rỗng (không hiện nút)",
   const vm = await import("node:vm");
   const ctx = { window: {} };
   vm.runInNewContext(readFileSync(new URL("../../../homepage/community.js", import.meta.url), "utf8"), ctx);
-  assert.deepEqual(Object.keys(ctx.window.COMMUNITY).sort(), ["contactEmail", "facebookGroup", "facebookPage", "tiktok", "zalo"]);
+  assert.deepEqual(Object.keys(ctx.window.COMMUNITY).sort(), ["contactEmail", "facebookGroup", "facebookPage", "tiktok", "zalo"]); // contactEmail: trang Quyền riêng tư
   assert.deepEqual(communityLinks(ctx.window.COMMUNITY), []);
 });
