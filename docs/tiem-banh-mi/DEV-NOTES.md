@@ -11,7 +11,7 @@ Game ở `prototype/games/tiem-banh-mi/` (M1–M5 xong, chờ chủ dự án duy
 | M2 · Một ca trọn | **Xong (lõi), chờ duyệt** | Lò (mẻ, 5 mức vỏ, rút, cháy, gas), tủ kính nguội dần, lò than nướng lại, ráp 9 bước có thứ tự + hoàn tác, 10 biến thể phiếu, ổ ba chục, "như cũ", đơn nhiều ổ, chấm 0–100 + sao, 11 kiểu lỗi, khiếu nại (làm lại / giảm / tặng), thối tiền bằng quỹ lẻ (Thối đúng ngày 1–3), hết lẻ, hết hàng / hết bánh / hết gas có cứu, ký gửi, ba buổi, ngày 1 hướng dẫn, chốt ca lời lỗ, mẻ đầu ngày. 66 unit test + e2e desktop/mobile ĐẠT. |
 | M3 · Kinh tế + nội dung cơ chế | **Xong (lõi), chờ duyệt** | Sửa M1 (bong bóng, HUD / thông báo mobile, khung cảnh, tủ kính, chơi lại ngày, bánh hôm qua); món theo trạm, mua đồ / trang trí / bảng hiệu, lên tiệm cấp 7, đơn đặt trước, ráp ×N, thớt đôi / ba, Bé Na, nhiệm vụ, Chị Mai, quảng bá, kéo thả trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, bánh mì que, thời tiết, hội chợ + thử thách (tối thiểu). Xem mục "M3 + M4". |
 | M4 · Drama + review + Nhật Ký | **Xong (lõi), chờ duyệt** | 96 sự kiện (59 DRAMA.md + 27 cơ chế + R01–R10), review lưu sổ + người theo dõi / độ hot, trả lời theo 4 tính cách đổi ngay trên review, Sổ 6 tab, thẻ Nhật Ký trên journal-card. Asset đợt 2 đã gộp (`ca6cc4b`). |
-| M5 · Polish + cân bằng (sim) | **Xong, chờ duyệt** | Mobile không che nút (dock giữ chỗ, thông báo trong khung cảnh, bong bóng đục + tránh HUD), hàng chờ theo `placements` (đầu hàng gần chủ tiệm, vào / ra qua cửa), hội chợ + 5 thử thách + 14 huy hiệu, hợp đồng định kỳ K02 / X05, chảo / chảo đôi / bếp than nướng mẻ thịt, hạn dùng nguyên liệu, bánh mì nướng bơ đường 10k, 6 sự kiện cơ chế mới, âm thanh thật (28 MP3 Codex), bộ mô phỏng 3 hồ sơ + cân bằng, bản lưu v3 (`?v=b3`). Xem mục "M5". |
+| M5 · Polish + cân bằng (sim) | **Xong, chờ duyệt** | Mobile không che nút (dock giữ chỗ, thông báo trong khung cảnh, bong bóng đục + tránh HUD), hàng chờ theo `placements` (đầu hàng gần chủ tiệm, vào / ra qua cửa), hội chợ + 5 thử thách + 14 huy hiệu, hợp đồng định kỳ K02 / X05, chảo / chảo đôi / bếp than nướng mẻ thịt, hạn dùng nguyên liệu, bánh mì nướng bơ đường 10k, 6 sự kiện cơ chế mới, âm thanh thật (28 MP3 Codex), bộ mô phỏng 3 hồ sơ + cân bằng, bản lưu v3 (`?v=b3`; nay `?v=b4` từ lúc thêm khoe lên cấp). Xem mục "M5". |
 
 ## Kiến trúc (M1 + M2)
 
@@ -85,7 +85,7 @@ Lệch so với M0 (ghi để sim M5 dò lại): đồ chua / dưa leo / rau kh�
 - `node --test "test/*.test.mjs"`: 100 test (thêm `drama.test.mjs` 8, `m3.test.mjs` 16, `m4.test.mjs` 10; test cũ chạy với Drama bật). Test "mọi lựa chọn giải quyết được" dựng trạng thái thoả điều kiện cho từng sự kiện, đi mọi đường goto, thử cả nhánh thắng / thua.
 - E2E: `test/e2e.mjs` + `test/e2e-m34.mjs` (thuê tiệm, đơn đặt, Drama, đổi tính cách + trả lời, thẻ Nhật Ký, chơi lại ngày) ở 1366@1,25 và 390@3.
 
-## M5 (bản lưu v3, tag `?v=b3`)
+## M5 (bản lưu v3, tag `?v=b3`, nay `?v=b4`)
 
 ### Sửa bố cục / cảnh
 - **Mobile 390×844:** vùng cuộn là `.app` (từ đầu trang tới mép trên dock) ⇒ dock 5 nút giữ chỗ riêng, không phần tử nào trôi xuống dưới dock (trước: dock che dải bước ráp). Thanh Hoàn tác / Đổ ổ / Giao dính đáy vùng cuộn. Thông báo nằm ở đáy khung cảnh (trong `#world`), nâng lên khi có dải gợi ý ngày 1 (trước: nổi ở đáy màn hình, che Hoàn tác / Giao). Khi có bảng phủ: thông báo ở dải 52 px trên cùng, bảng chừa chỗ (không đè tab / nút bảng). Dock bật lại khi mở ca (trước: mờ suốt ca).
