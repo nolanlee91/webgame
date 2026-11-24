@@ -8,9 +8,9 @@ python -I tools/asset-check/check_assets.py docs/tham-tu-hem/asset-spec.json --p
 
 Phải ra "0 lỗi — ĐẠT", ghi vào ASSET-HANDOFF.md.
 
-Có 6 chân dung phụ, 28 điểm soi thêm và 116 icon vật chứng.
+Có 4 chân dung phụ, 28 điểm soi thêm và 116 icon vật chứng.
 
-1. **Chân dung phụ** (chilan, chihen, khoi, hong, basau, chitho): thêm vào sheet chân dung của vụ, ô 256, 4 biểu cảm như các vai khác.
+1. **Chân dung phụ** (chilan, chihen, basau, chitho): thêm vào sheet chân dung của vụ, ô 256, 4 biểu cảm như các vai khác.
 2. **Điểm soi thêm:**
    - Đồ vật đã có trong cảnh thì chỉ ghi `manifest.hotspots`.
    - Chưa có thì vẽ thêm vào cảnh, giữ lưới 2× và giữ nguyên đồ vật cũ.
@@ -104,7 +104,7 @@ Có 6 chân dung phụ, 28 điểm soi thêm và 116 icon vật chứng.
 | `vet-cao-ong-nuoc` | Vết cào trên ống nước | Ống nước nối sân thượng nhà chị Na với nhà bà Sáu chi chít vết cào: vết mới còn trắng, vết cũ bạc màu đã hai tuần. Khớp nối mắc lông xám ngắn, dày. |
 | `ao-choang-bmd` | Áo choàng "BMĐ" | Áo choàng đen may từ bao gối cũ, sơn trắng ba chữ "BMĐ", sơn còn mới. Kèm mặt nạ bìa cứng hình đầu mèo đen. Phơi trên sân thượng nhà Tôm. |
 
-**Chân dung thêm vào `portraits-meo-mat-tich.webp`:** `khoi` (Bác sĩ Khôi: Bác sĩ thú y. 33 tuổi, áo blouse xanh, nói năng từ tốn như đọc đơn thuốc. Phòng khám nhỏ đầu chợ, khách quen nhất là mèo Bơ.); `hong` (Cô Hồng: Chủ Hồng Hot Shop (đối thủ). 35 tuổi, kính râm cả trong nhà, móng tay đính đá. Shop đối diện, cũng bán đồ cho thú cưng, có mèo Ba Tư trắng "Công Chúa Miu" làm mẫu. Follow thua Bơ một con số không.); `basau` (Bà Sáu: Bà nội của Tôm. 70 tuổi, cầm cây chổi lông gà như cầm lệnh bài. Nội quy nhà bà dán khắp cửa.)
+**Chân dung thêm vào `portraits-meo-mat-tich.webp`:** `basau` (Bà Sáu: Bà nội của Tôm. 70 tuổi, cầm cây chổi lông gà như cầm lệnh bài. Nội quy nhà bà dán khắp cửa.)
 
 **Điểm soi thêm (ghi manifest.hotspots):**
 - `shop` · `lich-quay`: Bảng lịch quay (rect gợi ý [470,60,170,130])

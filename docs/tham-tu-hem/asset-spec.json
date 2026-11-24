@@ -321,7 +321,7 @@
     256
    ],
    "frames": [
-    "{china,tom,bacsy,cohong,anhship,khoi,hong,basau}-{neutral,nervous,angry,shock}"
+    "{china,tom,bacsy,cohong,anhship,basau}-{neutral,nervous,angry,shock}"
    ],
    "wave": 4,
    "allowEdge": true

@@ -35,8 +35,8 @@ export default {
     ["me", "Chị báo công an chưa?", "neutral"],
     ["china", "Tụi nó dặn không được báo. Nên tui báo thám tử. Thám tử đâu phải công an đâu đúng không?", "nervous"],
     ["me", "Tối qua những ai lui tới gần Bơ?", "neutral"],
-    ["china", "Thằng [[tom|Tôm]] nhà kế bên, ngày nào cũng qua ngó Bơ. [[khoi|Bác sĩ Khôi]] phòng khám thú y đầu chợ, chiều qua mới khám cho Bơ.", "neutral"],
-    ["china", "[[hong|Cô Hồng]] shop đối diện, cũng nuôi mèo làm mẫu, ghét tui ra mặt. Với [[den|anh Đen]] shipper, tối qua mới giao thùng pate.", "neutral"],
+    ["china", "Thằng [[tom|Tôm]] nhà kế bên, ngày nào cũng qua ngó Bơ. [[bacsy|Bác sĩ Khôi]] phòng khám thú y đầu chợ, chiều qua mới khám cho Bơ.", "neutral"],
+    ["china", "[[cohong|Cô Hồng]] shop đối diện, cũng nuôi mèo làm mẫu, ghét tui ra mặt. Với [[den|anh Đen]] shipper, tối qua mới giao thùng pate.", "neutral"],
     ["teo", "Em chốt luôn: cô Hồng. Shop đối thủ, ganh follow, kính râm. Đeo kính râm buổi tối là có tật.", "smug"],
     ["me", "Tèo, sáng nay cô ấy còn chưa xuất hiện.", "neutral"],
     ["batu", "(ló đầu vô cửa, quạt phành phạch) Na ơi bà Tư đăng bài rồi nha, cả chợ đang đi tìm! Thám tử nhận vụ chưa?", "happy"],
@@ -74,13 +74,13 @@ export default {
       bio: "12 tuổi, áo siêu nhân bạc màu, tự xưng \"Siêu Nhân Mèo\". Mê mèo hơn mê bánh tráng trộn. Ở với bà nội, nhà có mèo mướp tên Mướp.",
       suspect: true,
     },
-    khoi: {
+    bacsy: {
       name: "Bác sĩ Khôi",
       role: "Bác sĩ thú y",
       bio: "33 tuổi, áo blouse xanh, nói năng từ tốn như đọc đơn thuốc. Phòng khám nhỏ đầu chợ, khách quen nhất là mèo Bơ.",
       suspect: true,
     },
-    hong: {
+    cohong: {
       name: "Cô Hồng",
       role: "Chủ Hồng Hot Shop (đối thủ)",
       bio: "35 tuổi, kính râm cả trong nhà, móng tay đính đá. Shop đối diện, cũng bán đồ cho thú cưng, có mèo Ba Tư trắng \"Công Chúa Miu\" làm mẫu. Follow thua Bơ một con số không.",
@@ -213,7 +213,7 @@ export default {
       start: true,
       intro: [
         ["narr", "Phòng khám nhỏ đầu chợ, mùi thuốc sát trùng trộn mùi pate. Một con chó cỏ nằm ngủ ngay cửa, không thèm ngẩng lên."],
-        ["khoi", "Chào anh. Tôi nghe chuyện của Bơ rồi. Anh cứ xem, phòng khám không có gì phải giấu.", "neutral"],
+        ["bacsy", "Chào anh. Tôi nghe chuyện của Bơ rồi. Anh cứ xem, phòng khám không có gì phải giấu.", "neutral"],
         ["teo", "Người nói \"không có gì phải giấu\" là người có cả kho để giấu. Em coi phim nhiều rồi.", "smug"],
       ],
       hotspots: [
@@ -483,8 +483,8 @@ export default {
 
   words: {
     tom: { text: "Tôm", kind: "ai" },
-    khoi: { text: "bác sĩ Khôi", kind: "ai" },
-    hong: { text: "cô Hồng", kind: "ai" },
+    bacsy: { text: "bác sĩ Khôi", kind: "ai" },
+    cohong: { text: "cô Hồng", kind: "ai" },
     den: { text: "anh Đen", kind: "ai" },
     china: { text: "chị Na", kind: "ai" },
 
@@ -669,24 +669,24 @@ export default {
       },
     ],
 
-    khoi: [
+    bacsy: [
       {
         id: "gioi-thieu",
         topic: "Anh khám cho Bơ lâu chưa?",
         lines: [
-          ["khoi", "Từ lúc Bơ ba tháng tuổi. Giờ Bơ ba tuổi, 300 nghìn người theo dõi, và vẫn ghét tôi như ngày đầu.", "neutral"],
-          ["khoi", "Tôi đã nhiều lần khuyên chị Na: mèo không phải người mẫu. Mèo cần ngủ.", "neutral"],
+          ["bacsy", "Từ lúc Bơ ba tháng tuổi. Giờ Bơ ba tuổi, 300 nghìn người theo dõi, và vẫn ghét tôi như ngày đầu.", "neutral"],
+          ["bacsy", "Tôi đã nhiều lần khuyên chị Na: mèo không phải người mẫu. Mèo cần ngủ.", "neutral"],
           ["teo", "Bác sĩ nói chuyện như đọc toa thuốc. Em nghe xong muốn đi ngủ liền.", "smug"],
         ],
-        gives: { words: ["khoi"] },
+        gives: { words: ["bacsy"] },
       },
       {
         id: "chieu-qua",
         topic: "Lông xám trong lồng nhốt",
         needs: "seen:vetclinic.long-nhot",
         lines: [
-          ["khoi", "Không. Cả tuần nay Bơ không tới phòng khám.", "neutral"],
-          ["khoi", "Và cái lồng anh vừa soi, cả tuần nay không nhốt con mèo nào. Lông đó là... lông cũ.", "nervous"],
+          ["bacsy", "Không. Cả tuần nay Bơ không tới phòng khám.", "neutral"],
+          ["bacsy", "Và cái lồng anh vừa soi, cả tuần nay không nhốt con mèo nào. Lông đó là... lông cũ.", "nervous"],
           ["teo", "Lông cũ mà còn mềm mượt, bác sĩ xài dầu xả gì cho lông vậy?", "smug"],
         ],
         gives: { stmts: ["khoi-khong-gap"] },
@@ -695,8 +695,8 @@ export default {
         id: "nhan-tin",
         topic: "Anh có nhắn tin cho chị Na không?",
         lines: [
-          ["khoi", "Có. Tối qua đọc bài của bà Tư, tôi nhắn hỏi thăm. Anh cứ xem.", "neutral"],
-          ["khoi", "Tôi viết tin nhắn như viết đơn thuốc. Đủ dấu chấm. Đủ dấu phẩy. Thiếu dấu là sai liều.", "neutral"],
+          ["bacsy", "Có. Tối qua đọc bài của bà Tư, tôi nhắn hỏi thăm. Anh cứ xem.", "neutral"],
+          ["bacsy", "Tôi viết tin nhắn như viết đơn thuốc. Đủ dấu chấm. Đủ dấu phẩy. Thiếu dấu là sai liều.", "neutral"],
         ],
         gives: { clues: ["tin-khoi"] },
       },
@@ -705,9 +705,9 @@ export default {
         topic: "Hộp thuốc an thần biến mất",
         needs: "seen:vetclinic.tu-thuoc",
         lines: [
-          ["khoi", "Hộp đó... không phải thuốc của mèo.", "nervous"],
-          ["khoi", "Là trà hoa cúc. Của tôi. Tôi dán nhãn \"AN THẦN\" để nhân viên khỏi pha uống.", "nervous"],
-          ["khoi", "Sáng nay hết nên tôi bỏ vỏ hộp rồi. Mua lại thì phải chiều.", "neutral"],
+          ["bacsy", "Hộp đó... không phải thuốc của mèo.", "nervous"],
+          ["bacsy", "Là trà hoa cúc. Của tôi. Tôi dán nhãn \"AN THẦN\" để nhân viên khỏi pha uống.", "nervous"],
+          ["bacsy", "Sáng nay hết nên tôi bỏ vỏ hộp rồi. Mua lại thì phải chiều.", "neutral"],
           ["teo", "Bác sĩ uống trà an thần trước ca khám. Ca nào mà căng dữ vậy ta.", "smug"],
         ],
       },
@@ -716,9 +716,9 @@ export default {
         topic: "Sức khoẻ của Bơ",
         needs: "broke:khoi-khong-gap",
         lines: [
-          ["khoi", "Bơ không bệnh. Bơ mệt. Rụng lông vì stress, thâm mắt vì ngủ ít. Tôi dặn chị Na ba lần rồi.", "neutral"],
-          ["khoi", "Mà Bơ là mèo đực ba tuổi, chưa triệt sản. Tuổi này mèo đực hay đi xa, nhất là khi gần nhà có mèo cái.", "neutral"],
-          ["khoi", "Mèo Anh lông ngắn nhìn lười vậy chứ leo trèo giỏi lắm. Muốn đi đâu là đi tới.", "neutral"],
+          ["bacsy", "Bơ không bệnh. Bơ mệt. Rụng lông vì stress, thâm mắt vì ngủ ít. Tôi dặn chị Na ba lần rồi.", "neutral"],
+          ["bacsy", "Mà Bơ là mèo đực ba tuổi, chưa triệt sản. Tuổi này mèo đực hay đi xa, nhất là khi gần nhà có mèo cái.", "neutral"],
+          ["bacsy", "Mèo Anh lông ngắn nhìn lười vậy chứ leo trèo giỏi lắm. Muốn đi đâu là đi tới.", "neutral"],
         ],
       },
       {
@@ -726,32 +726,32 @@ export default {
         topic: "Mướp nhà bé Tôm",
         needs: "clue:so-kham",
         lines: [
-          ["khoi", "Bé Tôm ôm Mướp tới, đổ cả heo đất ra bàn đếm xu. Bé hỏi Mướp có bị tương tư không.", "neutral"],
-          ["khoi", "Tôi nói Mướp khoẻ. Mùa này mèo cái hay ngồi đợi, có anh mèo nào qua thăm là chuyện thường.", "neutral"],
-          ["khoi", "Bé hỏi tiếp: \"Nếu anh mèo đó là mèo nổi tiếng thì sao ạ?\". Tôi tưởng bé đọc truyện tranh.", "neutral"],
+          ["bacsy", "Bé Tôm ôm Mướp tới, đổ cả heo đất ra bàn đếm xu. Bé hỏi Mướp có bị tương tư không.", "neutral"],
+          ["bacsy", "Tôi nói Mướp khoẻ. Mùa này mèo cái hay ngồi đợi, có anh mèo nào qua thăm là chuyện thường.", "neutral"],
+          ["bacsy", "Bé hỏi tiếp: \"Nếu anh mèo đó là mèo nổi tiếng thì sao ạ?\". Tôi tưởng bé đọc truyện tranh.", "neutral"],
           ["teo", "Mèo nổi tiếng yêu mèo hẻm. Phim truyền hình tám giờ tối là đây.", "happy"],
         ],
       },
     ],
 
-    hong: [
+    cohong: [
       {
         id: "gioi-thieu",
         topic: "Chị là ai?",
         lines: [
-          ["hong", "Hồng. Hồng Hot Shop. Đồ thú cưng cao cấp, hàng tuyển, không bán đại trà như ai kia.", "smug"],
-          ["hong", "Mèo của tui là Công Chúa Miu, Ba Tư trắng thuần chủng. 30 nghìn follow, toàn follow chất lượng.", "smug"],
+          ["cohong", "Hồng. Hồng Hot Shop. Đồ thú cưng cao cấp, hàng tuyển, không bán đại trà như ai kia.", "smug"],
+          ["cohong", "Mèo của tui là Công Chúa Miu, Ba Tư trắng thuần chủng. 30 nghìn follow, toàn follow chất lượng.", "smug"],
           ["teo", "30 nghìn so với 300 nghìn. Thiếu một con số không thôi mà chị.", "smug"],
-          ["hong", "Em đếm follow hay đếm tiền vậy?", "angry"],
+          ["cohong", "Em đếm follow hay đếm tiền vậy?", "angry"],
         ],
-        gives: { words: ["hong"] },
+        gives: { words: ["cohong"] },
       },
       {
         id: "ve-bo",
         topic: "Chị nghĩ sao về Bơ?",
         lines: [
-          ["hong", "Nghĩ gì? Tui không thèm nghĩ. Tui chưa từng coi clip con mèo đó.", "smug"],
-          ["hong", "Mèo mập, mặt tròn, suốt ngày ngồi như cục bột. Có gì đâu mà coi.", "smug"],
+          ["cohong", "Nghĩ gì? Tui không thèm nghĩ. Tui chưa từng coi clip con mèo đó.", "smug"],
+          ["cohong", "Mèo mập, mặt tròn, suốt ngày ngồi như cục bột. Có gì đâu mà coi.", "smug"],
           ["teo", "Chưa từng coi mà tả kỹ ghê.", "smug"],
         ],
         gives: { stmts: ["hong-khong-quan-tam"] },
@@ -760,18 +760,18 @@ export default {
         id: "binh-luan",
         topic: "Bình luận \"coi chừng mất mèo\"",
         lines: [
-          ["hong", "Tui nói vậy là có ý tốt. Mèo nổi quá thì người ta để ý. Tui cũng dặn mình y vậy.", "neutral"],
-          ["hong", "Sao? Tui viết bình luận là tui bắt cóc hả? Vậy bà Tư đăng bài là bà Tư bắt hả?", "angry"],
+          ["cohong", "Tui nói vậy là có ý tốt. Mèo nổi quá thì người ta để ý. Tui cũng dặn mình y vậy.", "neutral"],
+          ["cohong", "Sao? Tui viết bình luận là tui bắt cóc hả? Vậy bà Tư đăng bài là bà Tư bắt hả?", "angry"],
           ["teo", "Hay chị [[ganh-follow|ganh tị lượt follow]]? Ánh mắt sau kính râm của chị nói lên tất cả.", "smug"],
-          ["hong", "Kính râm che ánh mắt mà em. Đó là lý do người ta đeo.", "angry"],
+          ["cohong", "Kính râm che ánh mắt mà em. Đó là lý do người ta đeo.", "angry"],
         ],
       },
       {
         id: "toi-qua",
         topic: "Tối qua chị ở đâu?",
         lines: [
-          ["hong", "Live bán hàng từ 8 giờ tới 10 giờ, trong shop, trước mặt hai nghìn người. Muốn coi lại thì vô kênh tui.", "neutral"],
-          ["hong", "Tay tui cầm hàng, miệng tui chốt đơn. Tay đâu mà bắt mèo, tay đâu mà nhắn tin đòi chuộc.", "smug"],
+          ["cohong", "Live bán hàng từ 8 giờ tới 10 giờ, trong shop, trước mặt hai nghìn người. Muốn coi lại thì vô kênh tui.", "neutral"],
+          ["cohong", "Tay tui cầm hàng, miệng tui chốt đơn. Tay đâu mà bắt mèo, tay đâu mà nhắn tin đòi chuộc.", "smug"],
         ],
       },
       {
@@ -779,11 +779,11 @@ export default {
         topic: "Hai cái áo TEAM BƠ",
         needs: "broke:hong-khong-quan-tam",
         lines: [
-          ["hong", "Thì... Công Chúa Miu thích. Không phải tui.", "nervous"],
-          ["hong", "Thôi được. Tui coi hết clip của Bơ. Coi lúc 11 giờ đêm, sau khi live xong, coi tới ngủ quên.", "nervous"],
-          ["hong", "Tui có nick phụ tên \"Mèo Mập Là Chân Ái\" để thả tim. Không bình luận, sợ lộ.", "nervous"],
+          ["cohong", "Thì... Công Chúa Miu thích. Không phải tui.", "nervous"],
+          ["cohong", "Thôi được. Tui coi hết clip của Bơ. Coi lúc 11 giờ đêm, sau khi live xong, coi tới ngủ quên.", "nervous"],
+          ["cohong", "Tui có nick phụ tên \"Mèo Mập Là Chân Ái\" để thả tim. Không bình luận, sợ lộ.", "nervous"],
           ["teo", "Đối thủ ban ngày, [[fan-bi-mat|fan bí mật]] ban đêm. Chị sống hai mặt ghê.", "shock"],
-          ["hong", "Mà Bơ mất thiệt tui cũng lo. Không có Bơ, tui đâu có ai để ganh.", "nervous"],
+          ["cohong", "Mà Bơ mất thiệt tui cũng lo. Không có Bơ, tui đâu có ai để ganh.", "nervous"],
         ],
       },
     ],
@@ -866,31 +866,31 @@ export default {
       },
     },
     "hong-khong-quan-tam": {
-      by: "hong",
+      by: "cohong",
       text: "Tui chưa từng coi clip con mèo đó. Không thèm quan tâm.",
       break: {
         clue: "don-hang-hong",
         lines: [
           ["me", "Đơn hàng ở shop chị Na: người nhận H. Hồng, số máy Hồng Hot Shop. Hai áo \"TEAM BƠ\" size S, một móc khoá Bơ. Ghi chú \"gói kín, đừng ghi tên shop\".", "neutral"],
-          ["hong", "...Trời ơi. Tui dặn gói kín rồi mà!", "shock"],
-          ["hong", "Đừng nói với ai nha. Nói ra tui mất hết uy tín đối thủ.", "nervous"],
+          ["cohong", "...Trời ơi. Tui dặn gói kín rồi mà!", "shock"],
+          ["cohong", "Đừng nói với ai nha. Nói ra tui mất hết uy tín đối thủ.", "nervous"],
           ["teo", "Uy tín đối thủ là cái gì vậy chị?", "neutral"],
-          ["hong", "Là cái tui xây ba năm, em vừa đạp sập trong ba giây đó.", "angry"],
+          ["cohong", "Là cái tui xây ba năm, em vừa đạp sập trong ba giây đó.", "angry"],
         ],
         gives: { flags: ["hong-fan-ngam"] },
       },
     },
     "khoi-khong-gap": {
-      by: "khoi",
+      by: "bacsy",
       text: "Cả tuần nay tôi không gặp Bơ. Cái lồng đó không nhốt con mèo nào.",
       break: {
         clue: "so-kham",
         lines: [
           ["me", "Sổ khám của anh: chiều qua 15 giờ, Bơ tái khám. \"Dụ bé vào lồng bằng pate, khám qua song lồng\". Chữ anh viết.", "neutral"],
-          ["khoi", "...", "shock"],
-          ["khoi", "Được rồi. Tôi sợ mèo.", "nervous"],
-          ["khoi", "Hồi lớp ba bị mèo nhà nội cào. Tôi học thú y để vượt qua nỗi sợ. Mười năm rồi, chưa vượt qua.", "nervous"],
-          ["khoi", "Chó, heo, thỏ, rùa, tôi khám hết. Mèo thì tôi dụ vô lồng, đeo găng, khám qua song sắt. Tôi giấu vì sợ mất khách.", "nervous"],
+          ["bacsy", "...", "shock"],
+          ["bacsy", "Được rồi. Tôi sợ mèo.", "nervous"],
+          ["bacsy", "Hồi lớp ba bị mèo nhà nội cào. Tôi học thú y để vượt qua nỗi sợ. Mười năm rồi, chưa vượt qua.", "nervous"],
+          ["bacsy", "Chó, heo, thỏ, rùa, tôi khám hết. Mèo thì tôi dụ vô lồng, đeo găng, khám qua song sắt. Tôi giấu vì sợ mất khách.", "nervous"],
           ["teo", "Bác sĩ thú y sợ mèo. Giống thợ lặn sợ nước. Em thương bác sĩ.", "neutral"],
         ],
         gives: { words: ["15h"], flags: ["khoi-so-meo"] },
@@ -935,30 +935,30 @@ export default {
         ["tom", "Thì... em hay ngó qua mà.", "nervous"],
       ],
     },
-    khoi: {
+    bacsy: {
       "long-xam-long": [
-        ["khoi", "Lông đó... rụng nhiều thật. Rụng vì stress. Tôi đã nói với chị Na rồi.", "nervous"],
+        ["bacsy", "Lông đó... rụng nhiều thật. Rụng vì stress. Tôi đã nói với chị Na rồi.", "nervous"],
         ["teo", "Bác sĩ chưa trả lời câu hỏi mà đã trả lời câu khác.", "smug"],
       ],
       "lich-quay": [
-        ["khoi", "Mười clip một ngày, mười lăm tiếng dưới đèn. Tôi khuyên ba lần, chị Na gật ba lần, rồi quay tiếp.", "angry"],
-        ["khoi", "Nếu tôi là Bơ, tôi cũng bỏ nhà đi.", "neutral"],
+        ["bacsy", "Mười clip một ngày, mười lăm tiếng dưới đèn. Tôi khuyên ba lần, chị Na gật ba lần, rồi quay tiếp.", "angry"],
+        ["bacsy", "Nếu tôi là Bơ, tôi cũng bỏ nhà đi.", "neutral"],
       ],
       "tin-chuoc": [
-        ["khoi", "\"Fải\". \"Ko\". Người viết hoặc còn nhỏ, hoặc gõ vội. Kẻ bắt cóc thật thì ít ai ký tên bằng dấu chân.", "neutral"],
-        ["khoi", "Và người lớn ai lại dừng nhắn đúng 9 giờ tối.", "neutral"],
+        ["bacsy", "\"Fải\". \"Ko\". Người viết hoặc còn nhỏ, hoặc gõ vội. Kẻ bắt cóc thật thì ít ai ký tên bằng dấu chân.", "neutral"],
+        ["bacsy", "Và người lớn ai lại dừng nhắn đúng 9 giờ tối.", "neutral"],
       ],
     },
-    hong: {
+    cohong: {
       "binh-luan-tom": [
-        ["hong", "482 bình luận. Thằng nhỏ này chung thuỷ hơn mấy khách sỉ của tui.", "neutral"],
+        ["cohong", "482 bình luận. Thằng nhỏ này chung thuỷ hơn mấy khách sỉ của tui.", "neutral"],
       ],
       "lich-quay": [
-        ["hong", "Mười clip một ngày? Tui cho Miu quay ba clip một tuần mà Miu còn giận tui.", "shock"],
-        ["hong", "Thôi, bà Na này hết thuốc chữa.", "smug"],
+        ["cohong", "Mười clip một ngày? Tui cho Miu quay ba clip một tuần mà Miu còn giận tui.", "shock"],
+        ["cohong", "Thôi, bà Na này hết thuốc chữa.", "smug"],
       ],
       "tin-chuoc": [
-        ["hong", "\"Fải\"? \"Ko\"? Tui bán hàng online mười năm, gõ sai chính tả là mất khách. Tui viết như vậy chắc tui đóng shop.", "angry"],
+        ["cohong", "\"Fải\"? \"Ko\"? Tui bán hàng online mười năm, gõ sai chính tả là mất khách. Tui viết như vậy chắc tui đóng shop.", "angry"],
       ],
     },
     anhship: {
@@ -992,15 +992,15 @@ export default {
       [["tom", "Cái này đâu có liên quan. Anh làm thám tử bao lâu rồi anh?", "smug"], ["teo", "Bị con nít hỏi xoáy rồi sếp.", "nervous"]],
       [["tom", "(nhìn lên trời huýt sáo) ...Em hổng biết gì hết trơn.", "nervous"]],
     ],
-    khoi: [
-      [["khoi", "Chẩn đoán sai rồi anh. Triệu chứng không khớp bệnh.", "neutral"]],
-      [["khoi", "Cái này không chứng minh được gì. Giống như đo nhiệt độ bằng tay, cảm tính lắm.", "neutral"]],
-      [["khoi", "Anh để tôi uống miếng trà hoa cúc... à, hết rồi.", "nervous"]],
+    bacsy: [
+      [["bacsy", "Chẩn đoán sai rồi anh. Triệu chứng không khớp bệnh.", "neutral"]],
+      [["bacsy", "Cái này không chứng minh được gì. Giống như đo nhiệt độ bằng tay, cảm tính lắm.", "neutral"]],
+      [["bacsy", "Anh để tôi uống miếng trà hoa cúc... à, hết rồi.", "nervous"]],
     ],
-    hong: [
-      [["hong", "Em đưa cái gì vậy? Hàng lỗi thì tui không nhận, hoàn hàng đi.", "angry"]],
-      [["hong", "Sai. Tui chốt đơn mười năm, tui nhìn là biết khách bom hàng.", "smug"]],
-      [["hong", "Thám tử gì mà đưa chứng cứ như livestream xả kho, cái gì cũng đưa ra.", "angry"], ["teo", "Sếp bị cà khịa rồi.", "nervous"]],
+    cohong: [
+      [["cohong", "Em đưa cái gì vậy? Hàng lỗi thì tui không nhận, hoàn hàng đi.", "angry"]],
+      [["cohong", "Sai. Tui chốt đơn mười năm, tui nhìn là biết khách bom hàng.", "smug"]],
+      [["cohong", "Thám tử gì mà đưa chứng cứ như livestream xả kho, cái gì cũng đưa ra.", "angry"], ["teo", "Sếp bị cà khịa rồi.", "nervous"]],
     ],
     anhship: [
       [["anhship", "Không liên quan. Tui còn mười hai đơn chưa giao.", "angry"]],
@@ -1108,7 +1108,7 @@ export default {
           ["me", "Em không đi ngủ. Em nộp máy. Câu dọa bỏ dở vì Siêu Nhân Mèo sợ mất một ngày máy tính bảng.", "neutral"],
           ["teo", "Băng đảng khét tiếng nhất hẻm, bị bà nội giới nghiêm!", "shock"],
         ],
-        wrong: [["tom", "Hì. Anh đoán hổng ra đâu.", "smug"], ["khoi", "Anh để ý giờ gửi tin xem.", "neutral"]],
+        wrong: [["tom", "Hì. Anh đoán hổng ra đâu.", "smug"], ["bacsy", "Anh để ý giờ gửi tin xem.", "neutral"]],
       },
       {
         claim: [
@@ -1119,7 +1119,7 @@ export default {
         hint: "Mướp 2,8 kg, Bơ 5,2 kg. Bồn cát cạnh chuồng có mấy cỡ dấu chân?",
         right: [
           ["me", "Bồn cát cạnh chuồng: hai cỡ dấu chân. Một cỡ lún sâu, rộng gấp rưỡi. Của một con mèo 5,2 kg.", "neutral"],
-          ["khoi", "Mướp 2,8 kg. Tôi cân bằng tay của tôi... qua song lồng.", "neutral"],
+          ["bacsy", "Mướp 2,8 kg. Tôi cân bằng tay của tôi... qua song lồng.", "neutral"],
           ["narr", "Trong chuồng: \"mèooo\". Chị Na đứng sững lại."],
           ["china", "Giọng đó... Bơ! Là giọng Bơ đòi ăn!", "shock"],
         ],
@@ -1139,7 +1139,7 @@ export default {
           ["tom", "...", "nervous"],
           ["narr", "Tôm buông hai tay xuống. Cái mặt nạ bìa cứng trên dây phơi lắc lư trong gió."],
         ],
-        wrong: [["tom", "Đó, anh hết bằng chứng rồi!", "smug"], ["hong", "Thám tử ơi, đưa cái gì có chữ ấy!", "neutral"]],
+        wrong: [["tom", "Đó, anh hết bằng chứng rồi!", "smug"], ["cohong", "Thám tử ơi, đưa cái gì có chữ ấy!", "neutral"]],
       },
     ],
     confess: [
@@ -1157,7 +1157,7 @@ export default {
     epilogue: [
       ["narr", "Chăn được kéo ra. Trong chuồng, một con mèo xám mập nằm ngửa bụng ngủ khò, bên cạnh là một cô mèo mướp nhỏ xíu đang liếm lông cho nó."],
       ["china", "Bơ ơi! ...Ủa, Bơ ngủ ngáy kìa. Hai năm nay tui chưa từng nghe Bơ ngáy.", "shock"],
-      ["khoi", "Vì hai năm nay chị chưa từng để Bơ ngủ đủ.", "neutral"],
+      ["bacsy", "Vì hai năm nay chị chưa từng để Bơ ngủ đủ.", "neutral"],
       ["china", "...", "nervous"],
       ["china", "Từ tuần sau, lịch quay của Bơ: ba clip một tuần. Chủ Nhật nghỉ. Không đèn sau 6 giờ tối.", "nervous"],
       ["china", "Và mỗi tối Bơ được qua thăm Mướp. Tui đi sửa ô thông gió cho đàng hoàng, gắn thêm cái cầu thang mèo.", "neutral"],
@@ -1166,11 +1166,11 @@ export default {
       ["basau", "Trễ một phút mất một ngày.", "angry"],
       ["china", "Mà Tôm nè. Chị thuê em làm trợ lý chăm Bơ. Trả lương bằng pate. Cho Bơ với Mướp.", "neutral"],
       ["tom", "Thiệt hả chị?! Siêu Nhân Mèo nhận việc!", "happy"],
-      ["hong", "Thôi tui về. Mà... bà Na, cái đơn áo TEAM BƠ, giao luôn giùm tui. Gói kín.", "nervous"],
+      ["cohong", "Thôi tui về. Mà... bà Na, cái đơn áo TEAM BƠ, giao luôn giùm tui. Gói kín.", "nervous"],
       ["anhship", "Để tui giao. Miễn phí. Cho tui chụp một tấm với Bơ gửi con gái.", "neutral"],
-      ["khoi", "Tiện đây tôi khám luôn cho Mướp... qua song lồng.", "neutral"],
+      ["bacsy", "Tiện đây tôi khám luôn cho Mướp... qua song lồng.", "neutral"],
       ["narr", "Một tuần sau, bác sĩ Khôi gọi điện, giọng run run vì vừa khám xong một con mèo mà không bị cào."],
-      ["khoi", "Chị Na. Mướp có bầu. Ba tuần. Hoàng thượng sắp có hoàng tử.", "shock"],
+      ["bacsy", "Chị Na. Mướp có bầu. Ba tuần. Hoàng thượng sắp có hoàng tử.", "shock"],
       ["teo", "Sếp ơi! Clip \"Hoàng thượng sắp làm cha\" lên xu hướng rồi! Chị Na đăng một clip duy nhất trong tuần mà hai triệu view!", "happy"],
       ["batu", "Bà Tư đã đăng: \"VỤ BẮT CÓC CÓ GIỜ GIỚI NGHIÊM: hoàng thượng đi tìm tình yêu\". Ba ngàn like rồi!", "happy"],
     ],
