@@ -106,7 +106,7 @@ for (const view of ["d", "m"]) {
   } catch (e) { check(`${T} kịch bản`, false, e.message); }
 }
 // 404 của file vụ chưa viết là lỗi mạng (không phải lỗi JS) ⇒ bỏ qua; mọi lỗi khác đều tính
-const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t8/.test(e));
+const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t9/.test(e));
 const net404 = b.errors.filter((e) => /404/.test(e));
 check("0 lỗi console (ngoài 404 file vụ chưa viết)", !errs.length, errs.slice(0, 5).join(" | "));
 console.log(`(404 file vụ chưa viết: ${net404.length} dòng)`);

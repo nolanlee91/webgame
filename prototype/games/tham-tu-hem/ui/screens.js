@@ -1,11 +1,11 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
-import { h, icon, toast } from "./dom.js?v=t8";
-import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t8";
-import { renderText } from "./dialog.js?v=t8";
-import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t8";
-import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t8";
-import { pickEvidence, clueCard } from "./panels.js?v=t8";
-import { play as sfx } from "./sfx.js?v=t8";
+import { h, icon, toast } from "./dom.js?v=t9";
+import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t9";
+import { renderText } from "./dialog.js?v=t9";
+import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t9";
+import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t9";
+import { pickEvidence, clueCard } from "./panels.js?v=t9";
+import { play as sfx } from "./sfx.js?v=t9";
 import { shareResult } from "../../_shared/share.js?v=s1";
 
 const after = [];

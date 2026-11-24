@@ -2,15 +2,15 @@
 // hạng tiệm + pate nhà làm (chỗ tiêu tiền cuối game), quảng bá, phụ việc Bé Na, hội chợ, thử thách, ổ mang tên tiệm, bánh hôm qua,
 // thời tiết, đơn đặt trước (Chuẩn bị ca + sự kiện), kéo thả trang trí. Thuần; mọi thao tác qua core/apply.js.
 import { EQUIPMENT, DECOR, SIGNBOARDS, APPEAL_CAP, PLACE_ZONES, SPOT_CLEARANCE, PATH_CLEARANCE, RANKS, HOUSE_PATE, HOUSE_LOAF, PROMOS, PROMO_UNLOCK,
-  RENT, HELPER, PREORDER, FAIR, CHALLENGE, RECIPE_NEEDS } from "../data/equipment.js?v=b4";
-import { RECIPE, STOCK, SPREADS, FILLINGS, LEVEL_USE, BASE_COST, OVENS } from "../data/economy.js?v=b4";
-import { ARCHETYPES } from "../data/customers.js?v=b4";
-import { RENT_LINES, RANK_LINES, UPGRADE_LINES, CART_MEMORY, STALE } from "../data/lines-m3.js?v=b4";
-import { next, int, pick } from "./rng.js?v=b4";
-import { fill, freshLine } from "./text.js?v=b4";
-import { spend } from "./money.js?v=b4";
-import { makeItem, menuFor } from "./order.js?v=b4";
-import { engineFlag, today, addMod } from "./flags.js?v=b4";
+  RENT, HELPER, PREORDER, FAIR, CHALLENGE, RECIPE_NEEDS } from "../data/equipment.js?v=b5";
+import { RECIPE, STOCK, SPREADS, FILLINGS, LEVEL_USE, BASE_COST, OVENS } from "../data/economy.js?v=b5";
+import { ARCHETYPES } from "../data/customers.js?v=b5";
+import { RENT_LINES, RANK_LINES, UPGRADE_LINES, CART_MEMORY, STALE } from "../data/lines-m3.js?v=b5";
+import { next, int, pick } from "./rng.js?v=b5";
+import { fill, freshLine } from "./text.js?v=b5";
+import { spend } from "./money.js?v=b5";
+import { makeItem, menuFor } from "./order.js?v=b5";
+import { engineFlag, today, addMod } from "./flags.js?v=b5";
 
 const owns = (s, id) => !!s.owned?.[id];
 export const stageOf = (s) => (s.level >= 16 && s.shop ? "famous" : s.shop ? "shop" : "cart");
@@ -186,7 +186,7 @@ export function rentFair(s, ev) {
 }
 /** Độ dài ca hôm nay (ms ca): hội chợ 4,5 phút, ngày thường 4 phút. */
 export const shiftLenFor = (s) => (fairToday(s) ? FAIR.ms : 240000);
-export { CHALLENGES, CHALLENGE_BY_ID, challengeToday, challengeWeek, activeChallenge, setChallenge, judgeChallenge, challengeMods } from "./challenge.js?v=b4";
+export { CHALLENGES, CHALLENGE_BY_ID, challengeToday, challengeWeek, activeChallenge, setChallenge, judgeChallenge, challengeMods } from "./challenge.js?v=b5";
 
 // ---------- bánh hôm qua ----------
 export const STALE_CRISP = 30, STALE_MAX = 70, STALE_PRICE = 10;

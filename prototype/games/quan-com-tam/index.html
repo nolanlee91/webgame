@@ -56,6 +56,7 @@
     .chip.warn { background: var(--ember-l); }
     .tools { margin-left: auto; display: flex; gap: 6px; }
     .tbtn { min-height: 32px; min-width: 44px; padding: 4px 10px; border-radius: 10px; border: 1px solid rgba(255, 242, 220, .18); background: rgba(255, 242, 220, .08); cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap; }
+    #muteBtn { position: relative; z-index: 51; } /* nổi trên lớp phủ (.overlay z 50): tắt tiếng được cả lúc Chuẩn bị ca / Tạm dừng / Chốt ca, kể cả trên điện thoại không có phím M */
     .tbtn:hover { background: rgba(255, 242, 220, .16); }
     .tbtn:disabled { opacity: .45; cursor: default; }
 
@@ -197,6 +198,10 @@
     .btn.danger { background: var(--ember-l); color: #7a2a22; }
     .btn.small { min-height: 36px; padding: 4px 10px; font-size: 12.5px; }
     .btn:disabled { opacity: .45; cursor: default; }
+    /* Bấm ⇒ lún (cùng kiểu _shared/feedback.js; game không nạp feedback.js để khỏi tiếng "tách" chồng tiếng game). Dùng translate/scale, không đụng transform. */
+    :where(button, [role="button"], .btn):not(:disabled):not([aria-disabled="true"]) { transition: translate .07s ease-out, scale .07s ease-out, filter .07s ease-out; }
+    :where(button, [role="button"], .btn):not(:disabled):not([aria-disabled="true"]):active { translate: 0 2px; scale: .97; filter: brightness(.88); }
+    @media (prefers-reduced-motion: reduce) { :where(button, [role="button"], .btn):active { translate: none; scale: none; } }
     .btn.hint { box-shadow: 0 0 0 3px var(--amber), 0 3px 0 var(--indigo); }
     .jobs { display: flex; flex-direction: column; gap: 5px; }
     .jobs h3 { margin: 4px 0 0; font-size: 12px; color: var(--cream3); font-weight: 800; }
@@ -366,6 +371,6 @@
   </nav>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="bootError" hidden></div>
-  <script type="module" src="game.js?v=c4"></script>
+  <script type="module" src="game.js?v=c5"></script>
 </body>
 </html>

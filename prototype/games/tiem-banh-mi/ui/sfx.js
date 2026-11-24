@@ -67,7 +67,8 @@ export function soundsFor(e) {
     case "fair": case "promoted": case "viral": return [["viral"]];
     case "timeout": case "preorderFail": return [["voice-annoyed"]];
     case "consigned": case "exchanged": return [["change-count"]];
-    case "bought": case "restocked": case "restockedToday": return [["cashbox"]];
+    case "bought": case "restocked": case "restockedToday": case "pateUp": return [["cashbox"]];
+    case "helper": return e.on ? [["cashbox"]] : [];
     case "stockout": case "noGas": return [["error"]];
     case "shiftEnded": return [["shift-end"]];
     case "replied": return REPLY[e.outcome] || [];

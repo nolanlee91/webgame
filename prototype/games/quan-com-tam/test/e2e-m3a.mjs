@@ -6,7 +6,7 @@
 export async function runM3A(ctx) {
   const { b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag, shots = true } = ctx;
   const shot = async (n) => { if (shots) await b.shot(`${OUT}/${tag}-m3-${n}.png`); };
-  const installBot = () => b.ev(`(async()=>{const h=await import('./test/helpers.mjs?v=c4');window.__bot=(ms,cond)=>{const s=()=>__game.state;const r=h.seeded(17);for(let t=0;t<ms&&s().shift;t+=200){if(cond&&cond(s()))return true;h.botStep(s(),'good',r);if(!s().shift)break;if(cond&&cond(s()))return true;if(!s().shift.dialog)__game.act({type:'tick',dt:200},true)}const ov=__game.overlay;if(ov&&!['prep','summary','pause','intro'].includes(ov)&&!(s().shift&&s().shift.dialog))__game.overlays.close();return cond?cond(s()):!s().shift};return true})()`);
+  const installBot = () => b.ev(`(async()=>{const h=await import('./test/helpers.mjs?v=c5');window.__bot=(ms,cond)=>{const s=()=>__game.state;const r=h.seeded(17);for(let t=0;t<ms&&s().shift;t+=200){if(cond&&cond(s()))return true;h.botStep(s(),'good',r);if(!s().shift)break;if(cond&&cond(s()))return true;if(!s().shift.dialog)__game.act({type:'tick',dt:200},true)}const ov=__game.overlay;if(ov&&!['prep','summary','pause','intro'].includes(ov)&&!(s().shift&&s().shift.dialog))__game.overlays.close();return cond?cond(s()):!s().shift};return true})()`);
   const bot = (ms, cond = null) => b.ev(`window.__bot(${ms}, ${cond ? `(s)=>(${cond})` : "null"})`);
 
   // ---- ván mới, cấp 6 ----
@@ -158,7 +158,7 @@ export async function runM3AMobile(ctx) {
   for (const a of ["prepCook", "prepMoHanh", "prepLight"]) await b.ev(`(()=>{const e=document.querySelector('[data-act="${a}"]');if(e&&!e.disabled)e.click()})()`);
   await pressSel("#openShop");
   await waitFor("!!__game.state.shift");
-  await b.ev(`(async()=>{const h=await import('./test/helpers.mjs?v=c4');const r=h.seeded(3);for(let t=0;t<70000&&__game.state.shift;t+=200){h.botStep(__game.state,'good',r);if(__game.state.shift&&!__game.state.shift.dialog)__game.act({type:'tick',dt:200},true)}})()`);
+  await b.ev(`(async()=>{const h=await import('./test/helpers.mjs?v=c5');const r=h.seeded(3);for(let t=0;t<70000&&__game.state.shift;t+=200){h.botStep(__game.state,'good',r);if(__game.state.shift&&!__game.state.shift.dialog)__game.act({type:'tick',dt:200},true)}})()`);
   await sleep(300);
   await b.shot(`${OUT}/${tag}-m3-02-quan-trong-ca.png`);
   check(`${tag}: cảnh quán trong ca ở 390 (có Bông)`, (await S("!!s.shift&&s.stage==='quan'&&!!s.shift.helper")) && (await b.ev("!!document.querySelector('.stage .helper:not([hidden])')")));

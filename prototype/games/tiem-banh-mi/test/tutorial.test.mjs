@@ -79,6 +79,9 @@ test("âm thanh: 28 file Codex khớp bảng tên; mọi sự kiện chỉ gọi
   assert.deepEqual(soundsFor({ type: "step", step: "slice" }), [["bread-slice"]]);
   assert.equal(soundsFor({ type: "served", price: 16, stars: 5 }).length, 2);
   assert.deepEqual(soundsFor({ type: "unknown" }), []);
+  assert.deepEqual(soundsFor({ type: "pateUp", tier: 1, price: 120 }), [["cashbox"]]); // nâng pate nhà làm = mua đồ
+  assert.deepEqual(soundsFor({ type: "helper", on: true }), [["cashbox"]]);
+  assert.deepEqual(soundsFor({ type: "helper", on: false }), []);
   assert.equal(play("cashbox"), false); // chưa có AudioContext (chưa thao tác) ⇒ không phát, không tải
   assert.equal(MUTE_KEY, "wgp.muted");
 });

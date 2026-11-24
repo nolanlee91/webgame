@@ -49,3 +49,9 @@ test("âm thanh: chưa có thao tác ⇒ không AudioContext, play() không phá
   assert.equal(play("khong-co"), false);
   assert.equal(soundDebug().ctx, null);
 });
+
+test("âm thanh: huy hiệu / hội chợ / nước mắm nhà pha có tiếng (cùng bảng Bánh Mì)", () => {
+  assert.deepEqual(soundsFor({ type: "badge" }), [["level-up"]]);
+  assert.deepEqual(soundsFor({ type: "fair" }), [["viral"]]);
+  assert.deepEqual(soundsFor({ type: "fishSauce", tier: 1, price: 80 }), [["cash-paper"]]);
+});

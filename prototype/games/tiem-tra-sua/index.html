@@ -150,7 +150,7 @@
     .brew { scroll-padding-bottom: 76px; } /* phần tử được cuộn tới không nằm dưới thanh hành động dính đáy */
     .brew-top { display: flex; flex-direction: column; gap: 10px; }
     .tbtn .sm { display: none; }
-    #muteBtn { position: relative; }
+    #muteBtn { position: relative; z-index: 51; } /* nổi trên lớp phủ (.overlay z 50): tắt tiếng được cả lúc Chuẩn bị ca / Tạm dừng / Chốt ca, kể cả trên điện thoại không có phím M */
     #muteBtn[data-mode="sfx"]::after { content: "♪"; position: absolute; right: 3px; bottom: 1px; font-size: 12px; line-height: 1; opacity: .9; text-decoration: line-through; text-decoration-thickness: 2px; }
     .brew.closed .station, .brew.closed .steps { opacity: .55; }
     .ticket { position: relative; background: #fffaf0; border-radius: 12px; padding: 10px 12px 10px; box-shadow: 0 0 0 1.5px var(--cream3) inset; min-height: 70px; }
@@ -229,8 +229,8 @@
     #serveBtn { flex: 1; }
     #serveBtn.ready { background: var(--amber); color: #3b2209; box-shadow: 0 3px 0 #a86a1d; animation: pulse 1.2s infinite; }
 
-    .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(12, 17, 25, .58); overflow-y: auto; }
-    .sheet { width: 100%; max-width: 780px; max-height: calc(100svh - 32px); overflow-y: auto; background: var(--cream); color: var(--ink); border-radius: 22px; padding: 20px 22px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+    .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 56px 16px 16px; background: rgba(12, 17, 25, .58); overflow-y: auto; } /* chừa dải trên cùng: nút Tiếng (nổi trên lớp phủ) không đè bảng */
+    .sheet { width: 100%; max-width: 780px; max-height: calc(100svh - 72px); overflow-y: auto; background: var(--cream); color: var(--ink); border-radius: 22px; padding: 20px 22px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
       animation: sheetIn .28s ease-out; }
     @keyframes sheetIn { from { opacity: 0; translate: 0 14px; } }
     .sheet h2 { margin: 0 0 4px; font-size: 22px; font-weight: 800; outline: none; }
