@@ -6854,6 +6854,50 @@
      ]
     }
    }
+  },
+  {
+   "filename": "assets/title-art-hd.webp",
+   "dimensions": [
+    1920,
+    1080
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "title-art-hd": {
+     "rect": [
+      0,
+      0,
+      1920,
+      1080
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/hem-map-2-hd.webp",
+   "dimensions": [
+    1920,
+    1080
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "hem-map-2-hd": {
+     "rect": [
+      0,
+      0,
+      1920,
+      1080
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
   }
  ],
  "hotspots": {
