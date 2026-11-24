@@ -33,7 +33,7 @@ function createRoomHost(server, opts = {}, game) {
   let L = null, A = null;
   const load = (f) => import(pathToFileURL(path.join(GAME_DIR, f)).href);
   const ready = (game.load ? game.load() : Promise.all([opts.logic ? opts.logic : load("logic.js"), opts.ai ? opts.ai : load("ai.js")])).then(([l, a]) => { L = l; A = a; });
-  ready.catch((e) => console.error("[co-caro] không nạp được logic.js / ai.js:", e));
+  ready.catch((e) => console.error(`[${game.id}] không nạp được logic.js / ai.js:`, e));
 
   const newCode = () => {
     for (let k = 0; k < 50; k++) {

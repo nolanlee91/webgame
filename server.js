@@ -149,7 +149,9 @@ console.log("Đặt Bom online: đường /ws/dat-bom");
 // Một listener upgrade cho mỗi game, cộng đường xử lý URL WebSocket lạ.
 const nextUpgradeCount = server.listenerCount("upgrade") + 1;
 if (server.getMaxListeners() && nextUpgradeCount > server.getMaxListeners()) server.setMaxListeners(nextUpgradeCount);
+// Ô Ăn Quan online (phòng 1v1 / 2v2 + chat, máy chủ kiểm tra từng nước bằng logic.js dùng chung) — luôn chạy.
 gameHosts.set("o-an-quan", require("./games-server/o-an-quan/host").createOAnQuanHost(server));
+console.log("Ô Ăn Quan online: đường /ws/o-an-quan");
 
 if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
 module.exports = server;
