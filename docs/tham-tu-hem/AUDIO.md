@@ -35,3 +35,12 @@ Tất cả âm thanh được tổng hợp riêng bằng NumPy và SciPy. Hiệu
 | `music-interrogate.mp3` | 61.277 | Vòng lặp |
 | `music-finale.mp3` | 60.000 | Vòng lặp |
 | `music-solved.mp3` | 65.455 | Vòng lặp |
+
+## Mùa 2 · Chợ Hẻm
+
+| File | Thời lượng | Âm lượng tích hợp | Nội dung |
+|---|---:|---:|---|
+| `music-map-2.mp3` | 74,483 s | −19,4 LUFS | Jazz noir không lời, swing 116 BPM với tiếng đàn nguyệt, kèn, mõ và phách tổng hợp. |
+| `amb-market.mp3` | 72,000 s | −22,4 LUFS | Chợ đêm với giọng rao, tiếng người, xe máy, chén bát và loa xa. Tiếng giọng tổng hợp không có lời rõ. |
+
+Hai vòng lặp tổng hợp riêng bằng NumPy và SciPy, MP3 stereo 32 kHz 96 kbps. Tín hiệu nền chạy theo chu kỳ, các sự kiện vượt điểm cuối được ráp về đầu vòng. Thời lượng và LUFS đo trên MP3 đã xuất bằng FFmpeg.

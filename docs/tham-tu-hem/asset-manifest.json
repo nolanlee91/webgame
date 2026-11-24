@@ -3633,7 +3633,7 @@
    "filename": "assets/portraits-ve-so.webp",
    "dimensions": [
     1024,
-    1280
+    1792
    ],
    "pixelScale": 1,
    "frames": {
@@ -3869,6 +3869,102 @@
      "rect": [
       768,
       1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chilan-neutral": {
+     "rect": [
+      0,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chilan-nervous": {
+     "rect": [
+      256,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chilan-angry": {
+     "rect": [
+      512,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chilan-shock": {
+     "rect": [
+      768,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chihen-neutral": {
+     "rect": [
+      0,
+      1536,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chihen-nervous": {
+     "rect": [
+      256,
+      1536,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chihen-angry": {
+     "rect": [
+      512,
+      1536,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chihen-shock": {
+     "rect": [
+      768,
+      1536,
       256,
       256
      ],
@@ -4217,7 +4313,7 @@
    "filename": "assets/portraits-meo-mat-tich.webp",
    "dimensions": [
     1024,
-    1280
+    1536
    ],
    "pixelScale": 1,
    "frames": {
@@ -4460,6 +4556,54 @@
       128,
       256
      ]
+    },
+    "basau-neutral": {
+     "rect": [
+      0,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "basau-nervous": {
+     "rect": [
+      256,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "basau-angry": {
+     "rect": [
+      512,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "basau-shock": {
+     "rect": [
+      768,
+      1280,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
     }
    }
   },
@@ -4657,7 +4801,7 @@
    "filename": "assets/portraits-ma-nha-13.webp",
    "dimensions": [
     1024,
-    1024
+    1280
    ],
    "pixelScale": 1,
    "frames": {
@@ -4845,6 +4989,54 @@
      "rect": [
       768,
       768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chitho-neutral": {
+     "rect": [
+      0,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chitho-nervous": {
+     "rect": [
+      256,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chitho-angry": {
+     "rect": [
+      512,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chitho-shock": {
+     "rect": [
+      768,
+      1024,
       256,
       256
      ],
@@ -5207,6 +5399,1458 @@
      "anchor": [
       0,
       0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/clues-ve-so.webp",
+   "dimensions": [
+    480,
+    384
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "danh-sach-cho": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chuyen-xe-app": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "anh-nhan-xe": {
+     "rect": [
+      192,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ly-tra-da": {
+     "rect": [
+      288,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "tien-uot": {
+     "rect": [
+      384,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "lich-hen": {
+     "rect": [
+      0,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "giay-bao-no": {
+     "rect": [
+      96,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "manh-ve-yen": {
+     "rect": [
+      192,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ket-qua-xs": {
+     "rect": [
+      288,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "log-may-do": {
+     "rect": [
+      384,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "clip-0811": {
+     "rect": [
+      0,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "clip-0905": {
+     "rect": [
+      96,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ve-e-cat-goc": {
+     "rect": [
+      192,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-phat-ve": {
+     "rect": [
+      288,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ve-vinh-long": {
+     "rect": [
+      384,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "goc-ve-rach": {
+     "rect": [
+      0,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ve-ba-chin": {
+     "rect": [
+      96,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/clues-karaoke.webp",
+   "dimensions": [
+    480,
+    384
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "log-laptop": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-muon-mic": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "danh-sach-bai": {
+     "rect": [
+      192,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "cau-dao-gat-tay": {
+     "rect": [
+      288,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-dien": {
+     "rect": [
+      384,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "kenh-mic-2": {
+     "rect": [
+      0,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "kim-sa-chot": {
+     "rect": [
+      96,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ao-vang-rach": {
+     "rect": [
+      192,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "moc-du-phong": {
+     "rect": [
+      288,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "mic-2-thung-bia": {
+     "rect": [
+      384,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "micro-kim-sa": {
+     "rect": [
+      0,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "den-led-ngoc": {
+     "rect": [
+      96,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "den-pin-ong-nam": {
+     "rect": [
+      192,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "non-la-kim-tuyen": {
+     "rect": [
+      288,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "clip-livestream": {
+     "rect": [
+      384,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "clip-nam-ngoai": {
+     "rect": [
+      0,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "tem-tu-lanh": {
+     "rect": [
+      96,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/clues-meo-mat-tich.webp",
+   "dimensions": [
+    480,
+    384
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "tin-chuoc": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chen-day": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-ban-le": {
+     "rect": [
+      192,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "don-hang-hong": {
+     "rect": [
+      288,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "lich-quay": {
+     "rect": [
+      384,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "o-thong-gio": {
+     "rect": [
+      0,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-kham": {
+     "rect": [
+      96,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "long-xam-long": {
+     "rect": [
+      192,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "hop-an-than": {
+     "rect": [
+      288,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "tin-khoi": {
+     "rect": [
+      384,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "tin-den": {
+     "rect": [
+      0,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "long-thung-hang": {
+     "rect": [
+      96,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "anh-giao-hang": {
+     "rect": [
+      192,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "binh-luan-tom": {
+     "rect": [
+      288,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "noi-quy": {
+     "rect": [
+      384,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chuong-to": {
+     "rect": [
+      0,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "dau-chan-to": {
+     "rect": [
+      96,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "lon-pate": {
+     "rect": [
+      192,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "vet-cao-ong-nuoc": {
+     "rect": [
+      288,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ao-choang-bmd": {
+     "rect": [
+      384,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/clues-tat-nien.webp",
+   "dimensions": [
+    480,
+    384
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "so-do-ghe": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "the-ten": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "hop-salad-thieu-nia": {
+     "rect": [
+      192,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "thung-nong": {
+     "rect": [
+      288,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "log-ket": {
+     "rect": [
+      384,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "camera-mai": {
+     "rect": [
+      0,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "video-phat-bieu": {
+     "rect": [
+      96,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-dat-ban": {
+     "rect": [
+      192,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "nhap-phat-bieu": {
+     "rect": [
+      288,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "banh-kem-phong": {
+     "rect": [
+      384,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "order-goi": {
+     "rect": [
+      0,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "anh-checkin": {
+     "rect": [
+      96,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "anh-nang-ly": {
+     "rect": [
+      192,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "clip-khoa": {
+     "rect": [
+      288,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "selfie-vy": {
+     "rect": [
+      384,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "buoc-chan": {
+     "rect": [
+      0,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "lich-su-giai": {
+     "rect": [
+      96,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "day-doi": {
+     "rect": [
+      192,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "tui-phong-bi": {
+     "rect": [
+      288,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/clues-ma-nha-13.webp",
+   "dimensions": [
+    480,
+    480
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "bong-den-moi": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "cong-to-cat": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "hien-tuong-23h": {
+     "rect": [
+      192,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ong-tuong": {
+     "rect": [
+      288,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ve-xe-onghai": {
+     "rect": [
+      384,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "o-meo-con": {
+     "rect": [
+      0,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "vet-bac-ha-guong": {
+     "rect": [
+      96,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "nhang-tu-se": {
+     "rect": [
+      192,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "day-dien-moi": {
+     "rect": [
+      288,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "o-cam-hen-gio": {
+     "rect": [
+      384,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ac-quy-kich-dien": {
+     "rect": [
+      0,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "loa-qua-tang": {
+     "rect": [
+      96,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chen-to-roi": {
+     "rect": [
+      192,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "tai-hien-ma": {
+     "rect": [
+      288,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "gio-lua-ghe": {
+     "rect": [
+      384,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "bang-rao-ban": {
+     "rect": [
+      0,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ban-do-khoanh": {
+     "rect": [
+      96,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "hop-dong-dat-coc": {
+     "rect": [
+      192,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "lich-hen-quan": {
+     "rect": [
+      288,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "thung-qua-tang": {
+     "rect": [
+      384,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chia-khoa-13": {
+     "rect": [
+      0,
+      384,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "clip-san-ma": {
+     "rect": [
+      96,
+      384,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chuyen-khoan-dat": {
+     "rect": [
+      192,
+      384,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/clues-tham-tu-gia.webp",
+   "dimensions": [
+    480,
+    384
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "ho-so-mat": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "cua-khong-pha": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "dau-son-kinh": {
+     "rect": [
+      192,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "giay-nho-teo": {
+     "rect": [
+      288,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "lich-su-may-tinh": {
+     "rect": [
+      384,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "soi-chi-be": {
+     "rect": [
+      0,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "manh-vai-be": {
+     "rect": [
+      96,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "bo-dem-may": {
+     "rect": [
+      192,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "the-treo-chia": {
+     "rect": [
+      288,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "so-in-khoa": {
+     "rect": [
+      384,
+      96,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "danh-thiep-pro": {
+     "rect": [
+      0,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "bang-ghim-gia": {
+     "rect": [
+      96,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "live-lap": {
+     "rect": [
+      192,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "mang-to-rach": {
+     "rect": [
+      288,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "chia-47b-moi": {
+     "rect": [
+      384,
+      192,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "ho-so-goc": {
+     "rect": [
+      0,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "vlog-sap-khoa": {
+     "rect": [
+      96,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "anh-ly-23h17": {
+     "rect": [
+      192,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "bai-boi-nho": {
+     "rect": [
+      288,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "binh-luan-teo": {
+     "rect": [
+      384,
+      288,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
      ]
     }
    }
@@ -6003,10 +7647,10 @@
   },
   "assets/scenes/ve-so/garage.webp": {
    "xe-dang-sua": [
-    316,
-    168,
-    314,
-    202
+    320,
+    268,
+    308,
+    102
    ],
    "thung-do-nghe": [
     712,
@@ -6031,6 +7675,18 @@
     144,
     126,
     130
+   ],
+   "yen-xe-wave": [
+    328,
+    230,
+    136,
+    38
+   ],
+   "radio-cu": [
+    238,
+    136,
+    56,
+    52
    ]
   },
   "assets/scenes/ve-so/lottery.webp": {
@@ -6063,6 +7719,12 @@
     332,
     114,
     126
+   ],
+   "ban-tho-than-tai": [
+    148,
+    370,
+    104,
+    106
    ]
   },
   "assets/scenes/ve-so/market.webp": {
@@ -6095,6 +7757,12 @@
     98,
     138,
     156
+   ],
+   "loa-cho": [
+    778,
+    44,
+    74,
+    72
    ]
   },
   "assets/scenes/karaoke/stage.webp": {
@@ -6127,6 +7795,18 @@
     144,
     124,
     280
+   ],
+   "livestream": [
+    242,
+    430,
+    88,
+    94
+   ],
+   "ban-giam-khao": [
+    560,
+    424,
+    126,
+    100
    ]
   },
   "assets/scenes/karaoke/fusebox.webp": {
@@ -6159,6 +7839,12 @@
     420,
     486,
     92
+   ],
+   "goc-sau-tu": [
+    768,
+    330,
+    76,
+    78
    ]
   },
   "assets/scenes/karaoke/backalley.webp": {
@@ -6185,6 +7871,18 @@
     252,
     340,
     210
+   ],
+   "cua-sau-nha-nam": [
+    724,
+    64,
+    174,
+    188
+   ],
+   "noi-che": [
+    508,
+    330,
+    88,
+    98
    ]
   },
   "assets/scenes/meo-mat-tich/shop.webp": {
@@ -6217,6 +7915,18 @@
     304,
     132,
     154
+   ],
+   "lich-quay": [
+    292,
+    108,
+    98,
+    82
+   ],
+   "cau-thang": [
+    712,
+    140,
+    76,
+    98
    ]
   },
   "assets/scenes/meo-mat-tich/vetclinic.webp": {
@@ -6243,6 +7953,12 @@
     92,
     152,
     216
+   ],
+   "poster-meo": [
+    144,
+    92,
+    94,
+    114
    ]
   },
   "assets/scenes/meo-mat-tich/rooftop2.webp": {
@@ -6275,6 +7991,12 @@
     38,
     118,
     348
+   ],
+   "noi-quy": [
+    90,
+    194,
+    94,
+    94
    ]
   },
   "assets/scenes/tat-nien/banquet.webp": {
@@ -6288,7 +8010,7 @@
     430,
     290,
     100,
-    90
+    68
    ],
    "ban-sep": [
     182,
@@ -6307,6 +8029,18 @@
     194,
     180,
     286
+   ],
+   "so-do-cho-ngoi": [
+    24,
+    62,
+    126,
+    124
+   ],
+   "day-thung": [
+    442,
+    358,
+    78,
+    48
    ]
   },
   "assets/scenes/tat-nien/office2.webp": {
@@ -6333,6 +8067,12 @@
     122,
     134,
     98
+   ],
+   "bang-nhan-vien": [
+    626,
+    30,
+    104,
+    88
    ]
   },
   "assets/scenes/tat-nien/kitchen3.webp": {
@@ -6355,16 +8095,22 @@
     162
    ],
    "tu-dong": [
-    800,
+    802,
     102,
-    160,
-    380
+    158,
+    290
    ],
    "bang-order": [
     334,
     172,
     226,
     88
+   ],
+   "ngan-duoi-tu-dong": [
+    802,
+    392,
+    158,
+    90
    ]
   },
   "assets/scenes/ma-nha-13/hauntedhouse.webp": {
@@ -6397,6 +8143,18 @@
     66,
     178,
     308
+   ],
+   "hop-cau-dao": [
+    162,
+    110,
+    70,
+    76
+   ],
+   "cho-nua-dem": [
+    356,
+    414,
+    120,
+    94
    ]
   },
   "assets/scenes/ma-nha-13/attic.webp": {
@@ -6410,7 +8168,7 @@
     94,
     192,
     64,
-    96
+    58
    ],
    "ruong-go": [
     78,
@@ -6422,13 +8180,25 @@
     704,
     140,
     222,
-    208
+    124
    ],
    "day-dien-moi": [
     192,
     130,
     510,
     36
+   ],
+   "thi-nghiem-hen-gio": [
+    96,
+    250,
+    58,
+    42
+   ],
+   "thi-nghiem-cua-so": [
+    704,
+    264,
+    222,
+    84
    ]
   },
   "assets/scenes/ma-nha-13/realestate.webp": {
@@ -6455,6 +8225,18 @@
     82,
     222,
     262
+   ],
+   "thung-qua-tang": [
+    530,
+    430,
+    102,
+    84
+   ],
+   "moc-chia": [
+    698,
+    374,
+    48,
+    36
    ]
   },
   "assets/scenes/tham-tu-gia/office-night.webp": {
@@ -6462,7 +8244,7 @@
     16,
     162,
     192,
-    258
+    210
    ],
    "cua-kinh": [
     744,
@@ -6487,6 +8269,18 @@
     396,
     130,
     82
+   ],
+   "gam-tu": [
+    34,
+    372,
+    164,
+    50
+   ],
+   "khung-anh": [
+    378,
+    44,
+    92,
+    76
    ]
   },
   "assets/scenes/tham-tu-gia/locksmith.webp": {
@@ -6513,6 +8307,18 @@
     376,
     310,
     132
+   ],
+   "hu-chia-cu": [
+    804,
+    206,
+    68,
+    96
+   ],
+   "bang-gia-sap": [
+    728,
+    70,
+    104,
+    80
    ]
   },
   "assets/scenes/tham-tu-gia/studio.webp": {
@@ -6545,6 +8351,12 @@
     362,
     190,
     110
+   ],
+   "laptop-dung-clip": [
+    304,
+    346,
+    180,
+    104
    ]
   },
   "assets/scenes/hem-map-2.webp": {

@@ -48,3 +48,16 @@ Vẽ mới góc tủ điện ngoài trời và bếp tiệc công nghiệp. Sử
 
 Bộ kiểm: 0 lỗi, 8 cảnh báo từ mùa 1 — ĐẠT.
 
+
+## Đợt 5 · Mùa 2
+
+- Thêm 4 chân dung phụ, mỗi vai 4 biểu cảm. Đã soi ảnh ở cỡ 128 px.
+- Thêm 28 điểm soi theo WAVE5. Đã soi các vùng trên cảnh và kiểm mọi cặp vùng trong từng cảnh sửa có diện tích giao bằng 0. Các điểm soi chi tiết trên yên xe, tủ đông, cửa sổ và ổ hẹn giờ có vùng riêng.
+- Thêm 116 icon vật chứng trên 6 sheet, ô 96×96, lưới 2×. Đã bỏ các mẩu rời cạnh `clip-nam-ngoai` và `vlog-sap-khoa`.
+- Hai bản manifest khớp byte. Test Node đạt 41/41.
+
+```text
+0 lỗi, 8 cảnh báo — ĐẠT, giao được.
+```
+
+Tám cảnh báo là các icon mùa 1 đã soi và ghi ở đợt 3. Đợt 5 hết cảnh báo mới.
