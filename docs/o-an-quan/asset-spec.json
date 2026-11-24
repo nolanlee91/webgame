@@ -1,0 +1,77 @@
+{
+ "_doc": "Hợp đồng asset Ô Ăn Quan. Kiểm: python -I tools/asset-check/check_assets.py docs/o-an-quan/asset-spec.json --preview <thư mục tạm>. Luật chung: AGENTS.md + docs/art-bible-v5.md §0.1 (Detailed HD Pixel Art). Mẫu màu/chất liệu: prototype/homepage/assets/thumbs/o-an-quan.webp (đã có). Bàn nhìn thẳng từ trên xuống hơi nghiêng (top-down 3/4 rất nhẹ) để đếm sỏi dễ. Code đặt sỏi theo placements nên các ô phải đúng toạ độ ghi trong manifest.",
+ "game": "o-an-quan",
+ "root": "prototype/games/o-an-quan",
+ "manifest": "../../../docs/o-an-quan/asset-manifest.json",
+ "scene": [
+  1200,
+  480
+ ],
+ "defaults": {
+  "grid": 2,
+  "hardAlpha": true
+ },
+ "sheets": [
+  {
+   "file": "assets/yard-bg.webp",
+   "wave": 1,
+   "_note": "Nền 1280×720: sân gạch tàu đỏ dưới gốc cây, nắng chiều vàng, bóng lá. Mảng giữa (khoảng 1200×480) phẳng, ít chi tiết để đặt bàn lên."
+  },
+  {
+   "file": "assets/board.webp",
+   "wave": 1,
+   "_note": "Bàn Ô Ăn Quan 1200×480 (alpha): kẻ phấn trắng trên nền gạch HOẶC tấm gỗ khắc ô. 10 ô dân vuông (2 hàng × 5) + 2 ô quan hình bán nguyệt ở hai đầu. KHÔNG vẽ sỏi trên bàn (code đặt sỏi). Ghi tâm mỗi ô vào placements pit-0..pit-11 (pit-0 = quan trái, pit-1..5 = hàng dưới trái→phải, pit-6 = quan phải, pit-7..11 = hàng trên phải→trái) kèm 'r' = bán kính vùng đặt sỏi (px)."
+  },
+  {
+   "file": "assets/stones.webp",
+   "cell": [
+    32,
+    32
+   ],
+   "frames": [
+    "dan-{1..8}"
+   ],
+   "wave": 1,
+   "_note": "Sỏi dân: 8 biến thể viên sỏi/hạt nhỏ (đá cuội xám, nâu, kem), mỗi viên ~14–18 px, có bóng cứng 2 px dưới chân, căn giữa ô."
+  },
+  {
+   "file": "assets/quan.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "quan-{left,right}"
+   ],
+   "wave": 1,
+   "_note": "Quân quan: viên đá to (~60–70 px) nổi bật hơn hẳn sỏi dân, hai màu khác nhau (trái ngọc lam, phải đỏ son) để biết quan nào còn."
+  },
+  {
+   "file": "assets/hand.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "hand-{hold,drop}"
+   ],
+   "wave": 1,
+   "optional": true,
+   "_note": "Bàn tay rải sỏi (nắm sỏi / thả một viên) bay theo đường rải. Tuỳ chọn."
+  }
+ ],
+ "placements": [
+  "pit-0",
+  "pit-1",
+  "pit-2",
+  "pit-3",
+  "pit-4",
+  "pit-5",
+  "pit-6",
+  "pit-7",
+  "pit-8",
+  "pit-9",
+  "pit-10",
+  "pit-11"
+ ]
+}
