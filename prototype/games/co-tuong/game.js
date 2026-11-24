@@ -336,7 +336,7 @@ export function mount(root, ctx = {}) {
       return { 1: room.players[seatOfSide(RED)]?.name || "Đỏ", 2: room.players[seatOfSide(BLACK)]?.name || "Đen" };
     }
     const mode = s?.mode ?? opts.mode;
-    if (mode === "ai") return { 1: "Bạn", 2: "Máy" + ((s?.aiLevel ?? opts.aiLevel) === "normal" ? " (thường)" : " (dễ)") };
+    if (mode === "ai") return { 1: "Bạn", 2: "Máy" }; // mức máy ghi riêng ở thẻ khoe; tên dài bị cắt "Máy (…" trên điện thoại
     return { 1: "Người 1", 2: "Người 2" };
   }
   const scores = () => (online() ? { 1: room.score[seatOfSide(RED)], 2: room.score[seatOfSide(BLACK)], draw: room.draws } : s ? s.score : { 1: 0, 2: 0, draw: 0 });
