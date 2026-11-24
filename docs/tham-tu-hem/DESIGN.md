@@ -268,6 +268,7 @@ export default {
 - `finale.steps[].hint`: câu gợi ý của Tèo riêng cho bước vạch mặt đó (không có thì dùng câu chung).
 - `teoRescue: [[line…], …]`: các bộ thoại Tèo can khi hết uy tín (không có thì dùng bộ chung).
 - Bộ kiểm **cảnh báo** (không phải lỗi) khi có từ khoá trong `words` không bao giờ nhặt được.
+- `people.<pid>.sheet: "<id vụ cũ>"` (mùa 2): chân dung lấy frame `<pid>-<mood>` từ `assets/portraits-<id vụ cũ>.webp` thay vì sheet của vụ này. `pid` phải trùng tên frame ở sheet cũ (ví dụ `ongnam` của `mat-wifi`). Bộ kiểm báo lỗi nếu `sheet` không phải id vụ trong `data/cases/index.js`. Dàn nhân vật chung (`teo`, `batu`, `chuba`, `me`) không cần ghi, vẫn lấy từ `portraits-cast.webp`.
 
 Cách engine đọc dữ liệu: gợi ý = gợi ý đầu tiên trong mảng có `needs` đạt (xếp gợi ý giai đoạn cuối lên đầu, gợi ý không `needs` ở cuối). Mọi người trong `people` đã mở đều thẩm vấn và đưa vật chứng được (nghi phạm xếp trước). Địa điểm có `needs` tự mở khi đạt; `gives.locs` mở ngay.
 

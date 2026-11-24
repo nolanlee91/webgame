@@ -1,29 +1,29 @@
 # Thám Tử Hẻm: ghi chú dev
 
 Hợp đồng chung (vòng chơi, dàn nhân vật, 6 vụ, định dạng vụ): `docs/tham-tu-hem/DESIGN.md`. Asset: `docs/tham-tu-hem/asset-spec.json`.
-Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t2`** cho mọi import và `<script src>`.
+Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t3`** cho mọi import và `<script src>`.
 
 ## 1. Kiến trúc
 
 ```
-data/cases/index.js     danh mục 6 vụ (thứ tự mở khoá) — coordinator giữ
+data/cases/index.js     danh mục 12 vụ (thứ tự mở khoá, `season: 2` cho vụ 7–12) — coordinator giữ
 data/cases/<id>.js      dữ liệu từng vụ (agent viết vụ) — nạp ĐỘNG, thiếu file ⇒ thẻ "Sắp ra mắt"
 data/asset-manifest.json  bản chép docs/tham-tu-hem/asset-manifest.json (server chỉ phục vụ prototype/)
 core/validate.js        bộ kiểm vụ (tham chiếu, đi được tới cuối, lượng nội dung) + evalNeeds / wordsIn / lineOf
 core/engine.js          luật một vụ: createRun, apply(c, s, action) = cửa DUY NHẤT đổi state (bản nháp + kiểm bất biến), ★, gợi ý, sanitizeRun
 core/text.js            tách [[từ khoá]], RNG có hạt trong state, pickFrom (không lặp liên tiếp)
-core/progress.js        hồ sơ người chơi: tên, vụ đã phá, danh tiếng, hạng, MIGRATIONS bản lưu
+core/progress.js        hồ sơ người chơi: tên, vụ đã phá, danh tiếng, hạng, mùa (SEASONS, seasonUnlocked, pickSeason), MIGRATIONS bản lưu
 core/solver.js          bot giải tự động (nextAction / solve) — dùng ở test và e2e-bot
 save.js                 adapter localStorage `wgp.tham-tu-hem.v1` (+ .bak-vN, .corrupt, .backup)
 game.js                 nối mọi thứ: manifest → bản lưu → danh mục vụ → màn; app.act() = apply ⇒ hiệu ứng ⇒ thoại ⇒ vẽ lại
 ui/dom.js               h(), icon pixel 16×16 (SVG crispEdges), toast, hộp xác nhận / lựa chọn
 ui/art.js               manifest → chân dung / cảnh / toạ độ điểm soi; vẽ thay bằng canvas khi chưa có ảnh; crisp
 ui/dialog.js            thoại visual novel (gõ chữ dần, bấm qua, Tua, thẻ vật chứng / lời khai trong thoại)
-ui/screens.js           màn nền: mở game, bản đồ, văn phòng + bài đăng nhóm, hiện trường, vạch mặt, kết vụ
+ui/screens.js           màn nền: mở game, bản đồ (tab 2 mùa), màn chuyển mùa 2, văn phòng + bài đăng nhóm, hiện trường, vạch mặt, kết vụ
 ui/panels.js            bảng phủ: thẩm vấn, sổ tay, bảng suy luận, chọn vật chứng
 ui/fx.js                tem mực (MÂU THUẪN! / BỂ! / TRẬT! / VẠCH MẶT! / ĐÃ KHỚP), rung màn, kính lúp nứt
 ui/sfx.js               âm thanh: bộ mp3 riêng, nhạc + nền theo màn (mục 4)
-test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs (Chrome headless qua cdp.mjs)
+test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs, e2e-season.mjs (Chrome headless qua cdp.mjs)
 ```
 
 ### Engine (core/engine.js)
@@ -37,16 +37,17 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs (Chrome 
 - Chốt bảng: cả bảng một lần, chỉ báo **số** chỗ sai.
 - ★: phạt = uy tín mất + chốt sai + số gợi ý MỚI + 2 × lần Tèo can. ≤ 2 ⇒ 3★, ≤ 5 ⇒ 2★, còn lại 1★; có Tèo can thì tối đa 2★.
 - Gợi ý Tèo: gợi ý đầu tiên (theo thứ tự mảng) có `needs` đạt, bỏ gợi ý có `done` đạt, bỏ gợi ý có `stmt:x` mà mọi lời khai đó đã bể; ưu tiên câu chưa nói. Hỏi lại câu đã nói không bị phạt. Lúc vạch mặt dùng `finale.steps[].hint`.
-- Danh tiếng (core/progress.js): (50 + 50 × độ khó) × 60/80/100% theo ★, + 20 mỗi câu hỏi phụ đúng. Phá lại chỉ cộng phần vượt kỷ lục cũ của vụ. Hạng: tập sự 0 · hẻm 120 · phường 350 · quận 650 · Huyền thoại Hẻm 47 1000.
+- Danh tiếng (core/progress.js): (50 + 50 × độ khó) × 60/80/100% theo ★, + 20 mỗi câu hỏi phụ đúng. Phá lại chỉ cộng phần vượt kỷ lục cũ của vụ. Hạng: tập sự 0 · hẻm 120 · phường 350 · quận 650 · Huyền thoại Hẻm 47 1000 · Thám tử Chợ Hẻm 1300 · Thám tử thành phố 1600 · Huyền thoại Sài Gòn 1950 (= đúng 12 vụ 3★, chưa tính câu hỏi phụ; mùa 1 tối đa 1260 nên người chơi cũ không nhảy hạng khi cập nhật).
 - Ghi kết quả khi rời màn kết vụ (câu hỏi phụ trả lời trước đó được cộng). Đóng trang ở màn kết ⇒ lần mở sau tự ghi.
 
 ### Trường tuỳ chọn engine thêm vào định dạng vụ (DESIGN §4, bộ kiểm có kiểm)
 
-`needs` phủ định `"!x:y"`, `stmts.<id>.break.also`, `hints[].done`, `finale.steps[].hint`, `teoRescue`. Bộ kiểm cảnh báo từ khoá không bao giờ nhặt được.
+`needs` phủ định `"!x:y"`, `stmts.<id>.break.also`, `hints[].done`, `finale.steps[].hint`, `teoRescue`, `people.<pid>.sheet` (mùa 2, phải là id vụ trong danh mục). Bộ kiểm cảnh báo từ khoá không bao giờ nhặt được.
 
 ### Bản lưu
 
-- `wgp.tham-tu-hem.v1` = `{ v, name, rep, solved: {id: {stars, rep, times, last}}, runs: {id: state vụ đang dở} }`.
+- `wgp.tham-tu-hem.v1` = `{ v, name, rep, solved: {id: {stars, rep, times, last}}, runs: {id: state vụ đang dở}, flags: {s2intro} }`.
+- `flags` (mùa 2) là trường **tuỳ chọn**, nên vẫn `v: 1`, không thêm MIGRATIONS: bản cũ không có thì đọc ra `{}`; code cũ đọc bản mới thì bỏ qua trường này, không coi là hỏng. Nâng `v` sẽ làm code cũ (cache, rollback) coi bản lưu là "phiên bản tương lai" ⇒ hồ sơ mới, nên chỉ nâng khi đổi nghĩa trường cũ.
 - `MIGRATIONS[0]` nâng bản v0 (thử nghiệm, không có `v`) lên v1. Nâng thì chép thô sang `.bak-v0` một lần. Bản hỏng chép sang `.corrupt`, không xoá.
 - Tiến độ từng vụ đọc qua `sanitizeRun` (bỏ id không còn trong file vụ, kẹp số), nên người viết sửa vụ không làm vỡ bản lưu.
 - **Chơi lại vụ** (khi mở vụ đang dở, hoặc nút ở màn kết): có xác nhận, chỉ xoá tiến độ dở của vụ đó. **Xoá tiến độ** (màn mở → Cách chơi): có xác nhận, cất `.backup` rồi xoá, khoá ghi tới khi tải lại.
@@ -58,10 +59,22 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs (Chrome 
 - Tem riêng của game (không chép game thương mại nào): bấm vạch ⇒ tem đỏ "MÂU THUẪN!" + rung màn, rồi "BỂ!" (đỏ) hoặc "TRẬT!" (xám, kính lúp nứt).
 - Crisp (PLAYBOOK §2): cảnh 960×540 hiện với px thiết bị / px file là bội 0,5 (`crispScale`). Điện thoại: cảnh cao ~48% màn, kéo ngang. Chân dung HD 1×: bội 128 px thiết bị (ảnh đại diện nhỏ thì lọc mượt).
 - Toạ độ điểm soi: `manifest.hotspots["assets/scenes/<case>/<scene>.webp"][id]` → `rect` trong vụ → tự xếp lưới.
-- Chân dung: frame `<pid>-<mood>` tìm ở `portraits-<case>.webp`, rồi `portraits-cast.webp`, rồi bất kỳ sheet chân dung (khách mời vụ 6). Thiếu mood ⇒ neutral. Thiếu hết ⇒ chân dung pixel vẽ bằng canvas (màu theo người, chữ cái đầu, biểu cảm theo mood).
+- Chân dung: frame `<pid>-<mood>` tìm ở `portraits-<people.pid.sheet>.webp` (nếu có), rồi `portraits-<case>.webp`, rồi `portraits-cast.webp`, rồi bất kỳ sheet chân dung (khách mời vụ 6). Thiếu mood ⇒ neutral. Thiếu hết ⇒ chân dung pixel vẽ bằng canvas (màu theo người, chữ cái đầu, biểu cảm theo mood).
 - Chưa có cảnh ⇒ cảnh vẽ thay (tường / sàn dither, đèn, khối đồ vật ở vị trí điểm soi đang hiện) và luôn bật nhãn điểm soi.
 - Phím: Space/Enter qua thoại, N sổ tay, B bảng suy luận, M tắt tiếng, Esc đóng bảng phủ.
 - Móc test: `?case=__mini` thêm vụ mẫu (chỉ localhost hoặc `?dev=1`), `?fast=1` hiện chữ ngay, `window.__game`.
+
+## 1b. Mùa 2 (vụ 7–12, "Chợ Hẻm")
+
+- **Danh mục**: `data/cases/index.js` ghi `season: 2`. Vụ không ghi `season` thuộc mùa 1. Thứ tự mở khoá vẫn là một chuỗi: Vụ 7 mở khi phá Vụ 6.
+- **Tab bản đồ** (`SEASONS` trong core/progress.js): "Mùa 1 · Hẻm 47" (`hem-map.webp`) / "Mùa 2 · Chợ Hẻm" (`hem-map-2.webp`). Chấm vụ đọc `manifest.hotspots["assets/scenes/hem-map-2.webp"][caseId]`, chưa có thì dùng `DEFAULT_PINS` trong screens.js. Chưa có ảnh thì vẽ thay khu chợ (`placeholderScene(…, "map2")`: đường lớn, dãy sạp mái bạt sọc, lối gạch, sân khấu, nhà số 13).
+- **Khoá**: mùa mở khi vụ đầu của mùa đã mở khoá (`seasonUnlocked`). Tab khoá có ổ khoá + tooltip "Phá xong Vụ 6 để mở Chợ Hẻm"; bấm thì hiện toast đó và ở lại mùa 1.
+- **Tab tự chọn** (`pickSeason`): mùa của vụ mới nhất đang dở (phase `play`/`finale`), không có thì mùa của vụ mới nhất đã mở khoá. Chọn tay giữ trong phiên. Rời một vụ thì về tab của vụ đó; riêng lúc vừa mở mùa 2 mà chưa xem màn chuyển thì tự chọn (ra màn chuyển).
+- **Màn chuyển** (screen `season`, lần đầu bản đồ ra mùa 2): thoại Tèo + bà Tư (`SEASON2_INTRO`), rồi điện thoại có bài đăng nhóm của bà Tư (`SEASON2_POST`), nút "Ra Chợ Hẻm" ghi `profile.flags.s2intro = 1`.
+- **Nạp lười**: mùa còn khoá thì không nạp file vụ (status `pending`, thẻ "Khoá"), nên người chơi mùa 1 không phải tải hay gặp 404 các vụ chưa ra. Phá Vụ 6 xong rời màn kết ⇒ `refreshCatalog` nạp file vụ mùa 2 rồi vẽ lại. Mùa đã mở mà file vụ chưa có (404) ⇒ "Sắp ra mắt", không lỗi JS (dòng 404 mạng của trình duyệt vẫn có, e2e bỏ qua đúng đường `data/cases/*.js?v=t3`).
+- **Chân dung dùng lại**: `people.<pid>.sheet: "<id vụ cũ>"` ⇒ `registerSheets(c)` lúc nạp vụ, `portraitFrame` ưu tiên `portraits-<sheet>.webp`.
+- **Asset đợt 4** (Codex): `assets/scenes/hem-map-2.webp` + `manifest.hotspots` cho 6 chấm, cảnh `assets/scenes/<vụ>/<cảnh>.webp`, `portraits-<vụ>.webp`, `clues-<vụ>.webp`. Có file là game tự dùng, không cần sửa code.
+- **Kiểm**: `test/season.test.mjs` (tab, mở khoá, tab tự chọn, hạng, bản lưu cũ, `sheet`); `test/e2e-season.mjs` (tiêm bản lưu đã phá Vụ 6 ⇒ màn chuyển ⇒ tab mùa 2 ở 1366×768 và 390×844, elementFromPoint, ảnh); `e2e-bot.mjs` chạy mọi vụ có file kể cả mùa 2, vụ chưa có file thì SKIP.
 
 ## 2. Thêm một vụ
 
@@ -77,7 +90,8 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs (Chrome 
 cd prototype/games/tham-tu-hem && npm test
 PORT=8871 node server.js
 PORT=8871 node prototype/games/tham-tu-hem/test/e2e.mjs <thư mục ảnh>        # vụ mẫu, desktop 1366×768 dpr 1,25 + mobile 390×844 dpr 3
-PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh>    # mọi vụ thật qua giao diện (VIEW=mob cho điện thoại)
+PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh>    # mọi vụ có file (cả mùa 2) qua giao diện (VIEW=mob cho điện thoại)
+PORT=8871 node prototype/games/tham-tu-hem/test/e2e-season.mjs <thư mục ảnh> # tab mùa, khoá mùa 2, màn chuyển, "Sắp ra mắt" (desktop + điện thoại)
 ```
 
 ## 4. Asset + âm thanh (đợt 3 đã giao)

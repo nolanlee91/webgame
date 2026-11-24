@@ -1,18 +1,18 @@
 // Nối mọi thứ: manifest → bản lưu → danh mục vụ (nạp động, thiếu file ⇒ "Sắp ra mắt") → màn hình.
 // Trạng thái vụ chỉ đổi qua apply() (core/engine.js). Giao diện đọc state + sự kiện để chạy hiệu ứng, âm thanh, thoại.
-import { CASES } from "./data/cases/index.js?v=t2";
-import { validateCase } from "./core/validate.js?v=t2";
-import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t2";
-import { recordSolve, displayName, unlocked as isUnlocked } from "./core/progress.js?v=t2";
-import { plain } from "./core/text.js?v=t2";
-import { makeSave, browserStorage } from "./save.js?v=t2";
-import { setManifest } from "./ui/art.js?v=t2";
-import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t2";
-import { createDialog } from "./ui/dialog.js?v=t2";
-import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t2";
-import * as S from "./ui/screens.js?v=t2";
-import * as P from "./ui/panels.js?v=t2";
-import { stamp, shake, crackLens } from "./ui/fx.js?v=t2";
+import { CASES } from "./data/cases/index.js?v=t3";
+import { validateCase } from "./core/validate.js?v=t3";
+import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t3";
+import { recordSolve, displayName, unlocked as isUnlocked, SEASONS, seasonOf, seasonUnlocked, pickSeason } from "./core/progress.js?v=t3";
+import { plain } from "./core/text.js?v=t3";
+import { makeSave, browserStorage } from "./save.js?v=t3";
+import { setManifest, registerSheets } from "./ui/art.js?v=t3";
+import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t3";
+import { createDialog } from "./ui/dialog.js?v=t3";
+import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t3";
+import * as S from "./ui/screens.js?v=t3";
+import * as P from "./ui/panels.js?v=t3";
+import { stamp, shake, crackLens } from "./ui/fx.js?v=t3";
 
 const params = new URLSearchParams(location.search);
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -81,7 +81,14 @@ const app = {
     sfx("door-bell");
   },
   /** Kết vụ đã ghi ⇒ về bản đồ. */
-  leaveCase(to = "map") { finalizeNow(); G.c = null; G.s = null; app.show(to); },
+  leaveCase(to = "map") {
+    const prev = G.c ? seasonOf(G.cat.find((x) => x.id === G.c.id)) : null;
+    finalizeNow(); G.c = null; G.s = null;
+    G.ui.season = app.seasonOpen(2) && !G.profile.flags.s2intro ? null : prev;
+    app.show(to);
+  },
+  /** Xong màn chuyển mùa 2 ⇒ ghi cờ, về bản đồ tab mùa 2. */
+  seasonIntroDone() { G.profile.flags.s2intro = 1; store.write(G.profile); G.ui.season = 2; G.ui.s2phone = false; app.show("map"); },
   async replayCase() {
     const id = G.c.id;
     if (!(await confirmBox("Chơi lại vụ?", "Tiến độ đang dở của vụ này sẽ bị xoá. Vụ đã phá vẫn giữ ★ và danh tiếng.", "Chơi lại", "Thôi", true))) return;
@@ -106,6 +113,18 @@ const app = {
   },
   setName(n) { G.profile.name = n; if (!G.profile.created) G.profile.created = 1; store.write(G.profile); },
   isUnlocked: (i) => isUnlocked(G.profile, G.cat, i),
+  // ---------- mùa (tab bản đồ) ----------
+  real: () => G.cat.filter((x) => !x.dev),
+  /** Tab đang xem: chọn tay trong phiên, không thì tự chọn (vụ đang dở / vụ mới nhất đã mở). */
+  season: () => (G.ui.season && app.seasonOpen(G.ui.season) ? G.ui.season : pickSeason(G.profile, app.real())),
+  seasonOpen: (n) => seasonUnlocked(G.profile, app.real(), n),
+  pickSeason(n) {
+    const S0 = SEASONS.find((x) => x.no === n);
+    if (!S0) return;
+    if (!app.seasonOpen(n)) { toast(S0.lockMsg || "Chưa mở", "bad"); return; }
+    if (G.ui.season === n && G.screen === "map") return;
+    G.ui.season = n; sfx("map-select"); app.show("map");
+  },
   plain: (t) => plain(t, G.c?.words || {}),
 };
 
@@ -144,10 +163,12 @@ function renderBar() {
   b.append(tools);
 }
 function renderAll() {
+  // lần đầu mở bản đồ mùa 2 (tự chọn hoặc bấm tab) ⇒ màn chuyển ngắn
+  if (G.screen === "map" && app.season() === 2 && !G.profile.flags.s2intro) G.screen = "season";
   renderBar();
   const sc = clear(screenEl());
   sc.dataset.screen = G.screen;
-  const fn = { title: S.title, map: S.map, office: S.office, scene: S.scene, finale: S.finale, result: S.result }[G.screen];
+  const fn = { title: S.title, map: S.map, office: S.office, scene: S.scene, finale: S.finale, result: S.result, season: seasonScreen }[G.screen];
   sc.append(fn(app));
   const ov = clear(ovEl());
   for (const o of G.overlays) {
@@ -156,9 +177,26 @@ function renderAll() {
   }
   ov.hidden = !G.overlays.length;
   document.body.classList.toggle("ov-open", !!G.overlays.length);
-  setScene(G.screen === "scene" && app.top === "talk" ? "talk" : G.screen);
+  setScene(G.screen === "scene" && app.top === "talk" ? "talk" : G.screen === "map" && app.season() === 2 ? "map2" : G.screen);
   S.afterRender?.(app);
   P.refreshBadges(app);
+}
+function seasonScreen(app) {
+  const el = S.seasonIntro(app, () => app.seasonIntroDone());
+  const ph = el.querySelector(".season-phone");
+  if (!G.ui.s2phone) {
+    ph.hidden = true;
+    if (!G.ui.s2playing) {
+      G.ui.s2playing = true;
+      setTimeout(async () => {
+        await app.dialog.play(S.SEASON2_INTRO);
+        G.ui.s2playing = false;
+        if (G.screen !== "season") return;
+        G.ui.s2phone = true; sfx("zalo-ping"); renderAll();
+      }, 0);
+    }
+  }
+  return el;
 }
 function toggleOverlay(name) {
   if (!G.c || !(G.screen === "scene" || G.screen === "finale")) return;
@@ -192,22 +230,25 @@ addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if 
 
 // ---------- khởi động ----------
 async function loadCase(entry) {
-  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t2" : `./data/cases/${entry.id}.js?v=t2`;
+  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t3" : `./data/cases/${entry.id}.js?v=t3`;
   try {
     const c = (await import(url)).default;
     const v = validateCase(c);
     if (v.errors.length && !entry.dev) { console.warn(`Vụ ${entry.id} chưa đạt bộ kiểm:`, v.errors.slice(0, 5)); return { ...entry, c: null, status: "broken" }; }
+    registerSheets(c);
     return { ...entry, c, status: "ok", title: c.title || entry.title, no: c.no ?? entry.no, tagline: c.tagline || "" };
   } catch { return { ...entry, c: null, status: "soon" }; }
 }
 async function boot() {
-  try { setManifest(await (await fetch("data/asset-manifest.json?v=t2")).json()); } catch { setManifest(null); }
+  try { setManifest(await (await fetch("data/asset-manifest.json?v=t3")).json()); } catch { setManifest(null); }
   const r = store.read();
   G.profile = r.profile;
   if (r.corrupt) setTimeout(() => toast("Bản lưu bị hỏng nên đã mở hồ sơ mới (bản cũ vẫn được cất trong máy).", "bad"), 400);
   const list = [...CASES];
   if (DEV_CASE === "__mini") list.unshift({ id: "mini", no: 0, title: "Vụ mẫu", difficulty: 0, dev: true });
-  G.cat = await Promise.all(list.map(loadCase));
+  // mùa còn khoá thì chưa nạp file vụ (status "pending"): người chơi mùa 1 không phải tải / gặp 404 các vụ chưa ra
+  const realList = list.filter((x) => !x.dev);
+  G.cat = await Promise.all(list.map((e) => (e.dev || seasonUnlocked(G.profile, realList, seasonOf(e)) ? loadCase(e) : { ...e, c: null, status: "pending" })));
   G.cat.forEach((e, i) => { e.open = e.dev || isUnlocked(G.profile, G.cat.filter((x) => !x.dev), G.cat.filter((x) => !x.dev).indexOf(e)); });
   // vụ đã xong nhưng chưa ghi (đóng trang ở màn kết) ⇒ ghi bây giờ
   for (const e of G.cat) {
@@ -216,12 +257,21 @@ async function boot() {
   }
   store.write(G.profile);
   app.dialog = createDialog(document.body, { caseId: () => G.c?.id || "", name: app.name, words: app.words, read: app.read, textOf: app.textOf, card: (it) => P.dialogCard(app, it), fast: () => params.get("fast") === "1" });
-  app.refreshCatalog = () => { const real = G.cat.filter((x) => !x.dev); G.cat.forEach((e) => { e.open = e.dev || isUnlocked(G.profile, real, real.indexOf(e)); }); };
+  app.refreshCatalog = () => {
+    const real = app.real();
+    G.cat.forEach((e) => { e.open = e.dev || isUnlocked(G.profile, real, real.indexOf(e)); });
+    // mùa vừa mở khoá ⇒ nạp file vụ của mùa đó rồi vẽ lại
+    const todo = G.cat.filter((e) => e.status === "pending" && seasonUnlocked(G.profile, real, seasonOf(e)));
+    if (todo.length) Promise.all(todo.map((e) => { e.status = "loading"; return loadCase(e); })).then((done) => {
+      for (const d of done) { const i = G.cat.findIndex((x) => x.id === d.id); if (i >= 0) G.cat[i] = { ...d, open: G.cat[i].open }; }
+      app.refreshCatalog(); if (!app.dialog?.open) renderAll();
+    });
+  };
   app.show("title");
   $("#app").classList.add("ready");
   window.__game = {
     get state() { return G.s; }, get profile() { return G.profile; }, get screen() { return G.screen; }, get overlay() { return app.top; },
-    get dialogOpen() { return !!app.dialog.open; }, get caseData() { return G.c; }, catalog: () => G.cat.map((e) => ({ id: e.id, status: e.status, open: e.open })),
+    get dialogOpen() { return !!app.dialog.open; }, get caseData() { return G.c; }, catalog: () => G.cat.map((e) => ({ id: e.id, status: e.status, open: e.open, season: seasonOf(e) })), get season() { return app.season(); },
     store, app, sound: soundDebug,
   };
 }

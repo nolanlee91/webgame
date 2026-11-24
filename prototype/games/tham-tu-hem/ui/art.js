@@ -1,7 +1,7 @@
 // Hình: đọc data/asset-manifest.json (bản chép của docs/tham-tu-hem/asset-manifest.json — test kiểm khớp).
 // Có frame / file thật thì dùng, không có thì vẽ thay bằng canvas (cảnh tối có hoạ tiết, chân dung pixel chữ cái đầu) — game luôn chơi trọn được.
 // Crisp (PLAYBOOK §2): hệ số hiển thị = px thiết bị / px file luôn là bội 0,5. Cảnh lưới 2× (960×540), chân dung HD lưới 1× (ô 256).
-import { h } from "./dom.js?v=t2";
+import { h } from "./dom.js?v=t3";
 
 export const SCENE_W = 960, SCENE_H = 540, CELL = 256;
 let M = { items: [], hotspots: {} };
@@ -59,11 +59,19 @@ export function lookOf(pid) {
 export const accentOf = (pid) => lookOf(pid).shirt;
 
 // ---------- chân dung ----------
-/** Frame thật: ưu tiên sheet của vụ, rồi sheet chung, rồi bất kỳ sheet chân dung nào (nhân vật khách mời vụ sau). Mood thiếu ⇒ neutral. */
+// Chân dung dùng lại từ vụ khác: people.<pid>.sheet = "<id vụ cũ>" ⇒ lấy frame từ portraits-<id vụ cũ>.webp. Đăng ký lúc nạp vụ.
+const sheetOf = new Map(); // "caseId|pid" ⇒ id vụ có sheet
+export function registerSheets(c) {
+  if (!c?.id || !c.people) return;
+  for (const [pid, p] of Object.entries(c.people)) if (p && typeof p.sheet === "string" && p.sheet) sheetOf.set(c.id + "|" + pid, p.sheet);
+}
+export const portraitSheet = (pid, caseId = "") => sheetOf.get(caseId + "|" + pid) || caseId;
+/** Frame thật: ưu tiên sheet ghi trong people.<pid>.sheet (không có thì sheet của vụ), rồi sheet chung (cast), rồi bất kỳ sheet chân dung nào. Mood thiếu ⇒ neutral. */
 export function portraitFrame(pid, mood = "neutral", caseId = "") {
+  const own = `assets/portraits-${portraitSheet(pid, caseId)}.webp`, cur = `assets/portraits-${caseId}.webp`;
   for (const name of [`${pid}-${mood}`, `${pid}-neutral`]) {
     const list = frameIndex.get(name); if (!list) continue;
-    const pick = list.find((x) => x.it.filename === `assets/portraits-${caseId}.webp`) || list.find((x) => x.it.filename === "assets/portraits-cast.webp") || list[0];
+    const pick = list.find((x) => x.it.filename === own) || list.find((x) => x.it.filename === cur) || list.find((x) => x.it.filename === "assets/portraits-cast.webp") || list[0];
     return { url: pick.it.filename, sw: pick.it.dimensions[0], sh: pick.it.dimensions[1], x: pick.f.rect[0], y: pick.f.rect[1], w: pick.f.rect[2], h: pick.f.rect[3] };
   }
   return null;
@@ -168,7 +176,7 @@ export function placeholderScene(seedKey, rects = [], kind = "scene") {
   const g = cv.getContext("2d"), n = hash(seedKey), P = PALS[n % PALS.length];
   const px = (c, x, y, w = 1, hh = 1) => { g.fillStyle = c; g.fillRect(x, y, w, hh); };
   const dither = (c, x0, y0, w, hh, every = 2) => { for (let y = y0; y < y0 + hh; y++) for (let x = x0 + (y % 2); x < x0 + w; x += every) px(c, x, y); };
-  if (kind === "title" || kind === "map") return drawSpecial(cv, g, px, dither, kind, key);
+  if (kind === "title" || kind === "map" || kind === "map2") return drawSpecial(cv, g, px, dither, kind, key);
   const horizon = 170;
   px(P.wall, 0, 0, 480, horizon); dither(P.wall2, 0, 0, 480, 60, 2); dither(P.wall2, 0, 60, 480, 40, 4);
   for (let x = 0; x < 480; x += 32) px("rgba(0,0,0,.18)", x, 0, 1, horizon); // khe tường
@@ -226,7 +234,8 @@ function drawSpecial(cv, g, px, dither, kind, key) {
     }
     // mưa
     for (let i = 0; i < 160; i++) { const x = (i * 97) % 480, y = (i * 53) % 260; px("rgba(159,211,230,.45)", x, y, 1, 4); }
-  } else {
+  } else if (kind === "map2") drawMarket(g, px, dither);
+  else {
     px("#2e3a2c", 0, 0, 480, 270); dither("#283326", 0, 0, 480, 270, 3);
     for (const y of [60, 140, 210]) { px("#0a0807", 0, y - 1, 480, 14); px("#b9ad93", 0, y, 480, 12); dither("#a39780", 0, y, 480, 12, 3); }
     for (const x of [90, 240, 390]) { px("#0a0807", x - 1, 0, 14, 270); px("#b9ad93", x, 0, 12, 270); }
@@ -242,6 +251,41 @@ function drawSpecial(cv, g, px, dither, kind, key) {
   const url = cv.toDataURL(); sceneCache.set(key, url); return url;
 }
 
+/** Bản đồ mùa 2 vẽ thay (480×270, hiện ×2): khu chợ nhìn từ trên xuống — đường lớn trên cùng, dãy sạp mái bạt sọc, lối đi lát gạch, sân khấu, nhà hoang. */
+function drawMarket(g, px, dither) {
+  px("#3a3324", 0, 0, 480, 270); dither("#332c1f", 0, 0, 480, 270, 3);
+  // đường lớn đầu hẻm + vạch kẻ
+  px("#0a0807", 0, 0, 480, 46); px("#2a2f38", 0, 0, 480, 44); dither("#252a32", 0, 0, 480, 44, 3);
+  for (let x = 6; x < 480; x += 28) px("#e9e1c8", x, 21, 14, 2);
+  px("#0a0807", 0, 44, 480, 2); px("#8a8270", 0, 46, 480, 4);
+  // lối đi lát gạch (dọc + ngang)
+  const paths = [[0, 128, 480, 16], [0, 210, 480, 14], [150, 50, 16, 220], [318, 50, 16, 220]];
+  for (const [x, y, w, hh] of paths) { px("#0a0807", x - 1, y - 1, w + 2, hh + 2); px("#b9ad93", x, y, w, hh); for (let yy = y; yy < y + hh; yy += 4) for (let xx = x + ((yy / 4) % 2) * 3; xx < x + w; xx += 6) px("#a39780", xx, yy, 1, 3); }
+  // dãy sạp mái bạt sọc
+  const AW = [["#c8382e", "#efe2c0"], ["#2f8f7f", "#e9e1c8"], ["#3a5a9a", "#e9e1c8"], ["#c9a03a", "#5a3a08"], ["#9a5ac8", "#efe2c0"], ["#e07f3a", "#fff1d8"]];
+  let i = 0;
+  for (const [y0, y1] of [[56, 122], [150, 204], [230, 266]]) for (const [x0, x1] of [[8, 144], [172, 312], [340, 474]]) {
+    const [a, b] = AW[i++ % AW.length];
+    px("#0a0807", x0 - 1, y0 - 1, x1 - x0 + 2, y1 - y0 + 2);
+    const cols = Math.max(1, Math.round((x1 - x0) / 34)), step = Math.floor((x1 - x0 - 2) / cols);
+    for (let k = 0; k < cols; k++) {
+      const sx = x0 + 2 + k * step, sw = step - 4;
+      px("#0a0807", sx - 1, y0 + 1, sw + 2, y1 - y0 - 2);
+      for (let s = 0; s < sw; s += 6) px(s % 12 ? b : a, sx + s, y0 + 2, Math.min(6, sw - s), y1 - y0 - 4);
+      px("rgba(0,0,0,.28)", sx, y1 - 6, sw, 3); px("rgba(255,255,255,.18)", sx, y0 + 2, sw, 2);
+    }
+  }
+  // đèn dây (bóng vàng) dọc lối đi ngang
+  for (let x = 4; x < 480; x += 12) { px("#0a0807", x, 126, 3, 3); px("#ffc94a", x + 1, 127, 1, 1); }
+  for (let x = 8; x < 480; x += 12) { px("#0a0807", x, 208, 3, 3); px("#ffe9a8", x + 1, 209, 1, 1); }
+  // sân khấu karaoke (giữa) + nhà hoang số 13 (góc dưới phải, tối)
+  px("#0a0807", 196, 152, 92, 50); px("#5a1410", 198, 154, 88, 46); px("#c8382e", 198, 154, 88, 4); dither("#3a0c08", 198, 160, 88, 40, 3);
+  pixelText(g, "♪", 242, 178, 14, "#ffe9a8");
+  px("#0a0807", 400, 230, 66, 38); px("#2a2530", 402, 232, 62, 36); dither("#1a161e", 402, 232, 62, 36, 2); pixelText(g, "13", 433, 249, 12, "#9fd3e6");
+  // biển chợ
+  px("#0a0807", 186, 4, 108, 26); px("#5a1410", 188, 6, 104, 22); px("#c8382e", 188, 6, 104, 3); pixelText(g, "CHỢ HẺM", 240, 18, 12, "#ffe9a8");
+}
+
 /** Toạ độ điểm soi (px cảnh 960×540): manifest.hotspots[file][id] → rect trong dữ liệu vụ → tự xếp lưới theo thứ tự trong danh sách đầy đủ. */
 export function hotspotRect(file, h, index, total) {
   const m = M.hotspots?.[file]?.[h.id];
@@ -252,7 +296,8 @@ export function hotspotRect(file, h, index, total) {
   const w = Math.min(190, cw - 40), hh = Math.min(130, ch - 30);
   return { r: [Math.round(col * cw + (cw - w) / 2), Math.round(100 + row * ch + (ch - hh) / 2), Math.round(w), Math.round(hh)], src: "grid" };
 }
-export const mapPin = (caseId) => M.hotspots?.["assets/scenes/hem-map.webp"]?.[caseId] || null;
+/** Chấm vụ trên bản đồ: manifest.hotspots[<file bản đồ>][caseId] (mùa 1 hem-map.webp, mùa 2 hem-map-2.webp). */
+export const mapPin = (caseId, file = "assets/scenes/hem-map.webp") => M.hotspots?.[file]?.[caseId] || null;
 
 // ---------- icon vật chứng ----------
 /** Frame icon vật chứng (ưu tiên sheet của vụ). */
