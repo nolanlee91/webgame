@@ -1,16 +1,17 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m6";
-import { browserStorage, farmSave } from "./save.js?v=m6";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m6";
-import { createMarketScene } from "./ui/scene-market.js?v=m6";
-import { loadSprites, playFx, frame as spriteFrame } from "./ui/sprites.js?v=m6";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite } from "./ui/farm-map.js?v=m6";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m6";
-import { createVillageScene } from "./ui/scene-village.js?v=m6";
-import { createTruck } from "./ui/truck.js?v=m6";
+import * as L from "./logic.js?v=m7";
+import { browserStorage, farmSave } from "./save.js?v=m7";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m7";
+import { createMarketScene } from "./ui/scene-market.js?v=m7";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m7";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m7";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m7";
+import { createVillageScene } from "./ui/scene-village.js?v=m7";
+import { createTruck } from "./ui/truck.js?v=m7";
 
 const MUTE_KEY = "wgp.muted";
+const CEL_KEY = "wgp.nongtrai.cards"; // m7: thẻ chúc mừng đã xem (khoá riêng, không thuộc bản lưu)
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
 const STAGE_SCALE = { seed: 0.4, sprout: 0.55, grow: 0.7, mature: 0.85, ready: 1 }; // cây chưa có atlas: vẽ icon theo cỡ
 const ATLAS_CELL = 80, ICON_CELL = 64;
@@ -176,6 +177,23 @@ export function mount(root, ctx = {}) {
   let mode = "seed", pick = L.FIELD_CROPS[0].id, cursor = 12, confirmAt = -1, confirmT = 0, toastT = 0, tickTimer = 0, secTimer = 0;
   let cancelArm = null, cancelT = 0, rewardTimer = 0, scene = "farm", lastFinished = 0, workshop = null, market = null, animals = null, village = null, truck = null;
   let buildMode = false, cardFor = null, decorFor = null, ghPick = "mia";
+  // m7 — thẻ chúc mừng công trình: sổ "đã xem" ở khoá RIÊNG (không đổi bản lưu v7). Công trình / máy có level > level đã xem ⇒ thẻ chờ hiện
+  // (kể cả xây xong lúc tắt game). Chỉ ghi "đã xem" khi người chơi đóng thẻ ⇒ tắt trang giữa chừng thì lần sau thẻ vẫn hiện.
+  const CEL_BUILDINGS = L.BUILDINGS.filter((b) => ["build", "expansion", "prebuilt"].includes(b.kind)).map((b) => b.id);
+  const CEL_MACHINES = L.MACHINES_NOW.filter((m) => !m.withWorkshop).map((m) => m.id); // Bếp sên đi kèm Xưởng ⇒ nằm trong thẻ Xưởng
+  const machineLv = (id, t) => { const m = s.production?.machines?.[id]; return m && t >= m.readyAt ? m.level : 0; };
+  function readSeen() {
+    try { const o = JSON.parse(storage?.getItem(CEL_KEY) || "null"); if (o && o.v === 1 && o.b && o.m) return { v: 1, b: { ...o.b }, m: { ...o.m }, tip: { ...(o.tip || {}) } }; } catch {}
+    return null;
+  }
+  function writeSeen() { try { storage?.setItem(CEL_KEY, JSON.stringify(seen)); } catch {} }
+  let seen = readSeen();
+  if (!seen) { // lần đầu có bản m7: coi mọi thứ đang có là đã xem (người chơi cũ không bị dồn thẻ)
+    const t = now();
+    seen = { v: 1, b: Object.fromEntries(CEL_BUILDINGS.map((id) => [id, L.levelOf(s, id, t)])), m: Object.fromEntries(CEL_MACHINES.map((id) => [id, machineLv(id, t)])), tip: {} };
+    writeSeen();
+  }
+  let celCur = null, celHold = 0, celFocus = null, celReady = false; // celReady: DOM thẻ đã gom (render() có thể chạy sớm hơn)
 
   // ---------- dựng DOM ----------
   const cells = s.plots.map((_, i) => {
@@ -330,7 +348,7 @@ export function mount(root, ctx = {}) {
           msgs.push(`Danh hiệu mới: “${e.title}” — +${fmtNum(e.reward.coins)} xu` + [...Object.entries(e.reward.items), ...Object.entries(e.reward.decor)].map(([id, q]) => `, ${q} ${L.ITEM[id].name}`).join("") + "."); break;
         case "orderNew": if (origin.tick) { pulse(ui.board); pulse(ui.orderTool); } break;
         case "orderExpired": msgs.push("Đơn đặc biệt của Anh Út đã hết hạn."); break;
-        case "warehouseUpgraded": sound = ["thang", 0.7]; pulse(ui.storeStat); msgs.push(`Nhà kho đã nâng lên ${e.cap} chỗ!`); break;
+        case "warehouseUpgraded": pulse(ui.storeStat); break; // m7: thẻ "Nhà kho lên cấp …" hiện trước → sau
         case "farmUpgraded": sound = ["thang", 0.6]; msgs.push(`Đã mở ${e.name.toLowerCase()}!`); break;
         case "gift": sound = ["qua-man", 0.6]; msgs.push("Chị Ba tặng bạn 3 hạt cà rốt — trồng lại từ đầu nhé!"); break;
         case "questDone": pulse(ui.quest); sound ??= ["trung-kim-cuong", 0.6, 1.2]; break;
@@ -343,27 +361,17 @@ export function mount(root, ctx = {}) {
         }
         case "upgradeStarted": sound = ["thang", 0.75]; fxOn(fmap.el(e.id), ["lap-lanh"], e.cost ? `−${fmtNum(e.cost)} xu` : null, "#ffe9a8", 96);
           if (!e.instant) msgs.push(`Đang nâng ${e.name} lên cấp ${e.level} — xong sau ${fmtLeft(e.readyAt - now())}. Trong lúc nâng vẫn dùng được.`); break;
-        case "buildingDone": {
-          sound = ["qua-man", 0.8]; const el = fmap.el(e.id);
+        case "buildingDone": { // m7: thẻ chúc mừng (pumpCards) kể công dụng + kêu "qua-man" ⇒ ở đây chỉ còn hiệu ứng trên bản đồ, không toast trùng
+          const el = fmap.el(e.id);
           fxOn(el, ["khoi-xay-dung", "lap-lanh"], null, null, 96); pulse(el);
-          const DONE = {
-            xuong: "Xưởng chế biến đã xây xong! Chạm vào Xưởng để chế biến — Bếp sên đã sẵn sàng.",
-            "nha-kho": "Nhà kho đã xây xong! Nâng kho trong chế độ Xây hoặc ở bảng Kho để thêm chỗ.",
-            "nha-kinh": "Nhà kính xong! Chạm vào để trồng mía — 6 ô, không cần tưới.",
-            "dat-phia-dong": "Khu đất phía Đông đã mở: +9 ô ruộng! Kéo bản đồ sang phải để gieo.",
-          };
-          msgs.push(e.upgraded ? (e.id === "nha-kho" ? null : e.id === "hang-rao" ? "Hàng rào đá đã xây xong — quanh ruộng gọn gàng hẳn!" : e.id === "nha" ? `Nhà lên bậc ★${e.level - 1}: “${L.FAME_TITLES[e.level - 1]}” — đơn hàng +${Math.round(L.BUILDING.nha.levels[e.level - 1].effect.orderBonus * 100)} % xu!`
-            : `${e.name} lên cấp ${e.level}!` + (e.id === "xuong" ? " Mọi máy thêm 1 ô hàng chờ." : e.id === "nha-kinh" ? " Nhà kính có 9 ô." : ""))
-            : DONE[e.id] || `${e.name} đã xây xong!`);
-          if (e.id === "dat-phia-dong") setTimeout(() => fmap.scrollToX(L.EAST_FIELD.x + L.EAST_FIELD.w / 2, true), 120);
           break;
         }
         case "decorPlaced": sound = ["qua-man", 0.6, 1.15]; setTimeout(() => fxOn(fmap.slotEl(e.slot), ["lap-lanh"]), 30); msgs.push(`Đã đặt ${e.name} lên bản đồ.`); break;
         case "decorRemoved": sound = ["buoc-nhay", 0.5, 0.9]; fxOn(origin.slot ? fmap.slotEl(origin.slot) : null, ["lap-lanh"]); msgs.push(`Đã cất ${e.name} vào túi trang trí.`); break;
         case "machineBuildStarted": sound = ["thang", 0.7]; fxOn(origin.el, ["khoi-xay-dung"], `−${fmtNum(e.cost)} xu`, "#ffe9a8");
           msgs.push(`Đang lắp ${L.MACHINE[e.machine].name} — xong sau ${fmtLeft(e.readyAt - now())}.`); break;
-        case "machineUpgraded": sound = ["thang", 0.7]; fxOn(origin.el, ["lap-lanh"]); msgs.push(`${L.MACHINE[e.machine].name} lên cấp ${e.level}: ${e.slots} ô hàng chờ.`); break;
-        case "workshopUpgraded": sound = ["thang", 0.8]; fxOn(origin.el, ["lap-lanh"]); msgs.push(`Xưởng lên cấp ${e.level}: mọi máy thêm ${e.extraSlots} ô hàng chờ!`); break;
+        case "machineUpgraded": sound = ["thang", 0.7]; fxOn(origin.el, ["lap-lanh"]); break; // m7: thẻ chúc mừng thay toast
+        case "workshopUpgraded": sound = ["thang", 0.8]; fxOn(origin.el, ["lap-lanh"]); break;
         case "jobQueued": sound ??= ["buoc-nhay", 0.6, 0.85];
           msgs.push(`${L.MACHINE[e.machine].name}: ${e.startAt > now() ? "xếp hàng" : "bắt đầu"} ${L.RECIPE[e.recipe].name} — xong sau ${fmtLeft(e.endAt - now())}.`); break;
         case "jobCollected": {
@@ -476,13 +484,14 @@ export function mount(root, ctx = {}) {
     // Nhà kho là công trình (Milestone 3): xây ở cấp 3 trên bản đồ, nâng = startUpgrade nha-kho
     const tw = now(), whLv = L.levelOf(s, "nha-kho", tw), nx = whLv >= 1 ? L.nextStep(s, "nha-kho", tw) : null;
     if (whLv < 1) {
-      html += s.level >= 3 ? `<div class="wh-up"><p><b>Đang dùng kho tạm ${cap} chỗ.</b> Xây Nhà kho trên bản đồ (60 xu, xây ngay) để mở các mốc nâng sức chứa.</p>` +
+      const b0 = L.BUILDING["nha-kho"].levels[0];
+      html += s.level >= b0.unlock ? `<div class="wh-up"><p><b>Đang dùng kho tạm ${cap} chỗ.</b> Xây Nhà kho trên bản đồ (${fmtNum(b0.cost)} xu, xây ngay) để mở các mốc nâng: lần đầu lên ${L.WAREHOUSE[1].cap} chỗ.</p>` +
         `<button class="btn btn--teal" type="button" id="whBuild" data-act="whBuild" data-key="wh-build">Xây Nhà kho</button></div>`
-        : `<p class="wh-up">Kho tạm ${cap} chỗ. Nhà kho xây được từ cấp 3.</p>`;
+        : `<p class="wh-up">Kho tạm ${cap} chỗ. Nhà kho xây được từ cấp ${b0.unlock}.</p>`;
     } else if (nx) {
       const mats = Object.entries(nx.materials);
       const okLevel = s.level >= nx.unlock, okCoins = s.coins >= nx.cost, okMats = mats.every(([m, q]) => L.have(s, m) >= q);
-      html += `<div class="wh-up"><p><b>Nâng kho lên ${L.WAREHOUSE[nx.level - 1].cap} chỗ</b> · ${fmtNum(nx.cost)} xu` +
+      html += `<div class="wh-up"><p><b>Nâng kho: ${L.WAREHOUSE[whLv - 1].cap} → ${L.WAREHOUSE[nx.level - 1].cap} chỗ</b> · ${fmtNum(nx.cost)} xu` +
         (mats.length ? ` · ${mats.map(([m, q]) => `${iconHtml(m, "it--sm")}${L.have(s, m)}/${q} ${esc(L.ITEM[m].name)}`).join(" · ")}` : "") +
         (okLevel ? "" : ` · <span class="need">cần cấp ${nx.unlock}</span>`) + `</p>` +
         `<button class="btn btn--teal" type="button" id="whUpgrade" data-act="whUpgrade" data-key="wh-up"${okLevel && okCoins && okMats ? "" : " disabled"}>Nâng kho</button></div>`;
@@ -744,26 +753,11 @@ export function mount(root, ctx = {}) {
     }
     openBuildCard(id);
   }
-  /** Mô tả hiệu ứng của mốc xây / nâng (lên level `to`). */
-  function effectText(id, to) {
-    switch (id) {
-      case "nha-kho": return to === 1 ? `Nhà kho trên bản đồ (${L.WAREHOUSE[0].cap} chỗ) + mở các mốc nâng sức chứa` : `Sức chứa kho ${L.WAREHOUSE[to - 2].cap} → <b>${L.WAREHOUSE[to - 1].cap} chỗ</b>`;
-      case "xuong": return to === 1 ? "Mở Xưởng chế biến, tặng kèm <b>Bếp sên</b>: mứt dâu, sốt cà chua, nước ép cà rốt. Cối xay (cấp 5) và Lò bánh (cấp 8) lắp thêm bên trong" : "+1 ô hàng chờ cho <b>mọi máy</b> trong Xưởng";
-      case "nha-kinh": return to === 1 ? "6 ô Nhà kính: trồng <b>mía</b> (chỉ trồng được ở đây), cây trong nhà kính <b>không cần tưới</b>" : "Thêm 3 ô Nhà kính (tổng 9 ô)";
-      case "dat-phia-dong": return "+9 ô ruộng phía Đông và 1 lô xây — bản đồ mở rộng sang phải";
-      case "sap-cho": return "Sạp nhỏ thành quầy chợ hoàn chỉnh (trang trí bản đồ)";
-      case "nha": { // Milestone 5: bậc Nhà = danh tiếng nông trại
-        const ef = L.BUILDING.nha.levels[to - 1]?.effect || {};
-        return to <= 1 ? `Danh hiệu <b>“${L.FAME_TITLES[0]}”</b>. Nâng Nhà từ cấp ${L.BUILDING.nha.levels[1].unlock} để có danh hiệu mới và đơn hàng trả thêm xu`
-          : `Danh hiệu <b>“${L.FAME_TITLES[to - 1]}”</b> · mọi đơn hàng <b>+${Math.round(ef.orderBonus * 100)} % xu</b> (bậc ★${to - 1}/${L.FAME_TITLES.length - 1})`;
-      }
-      case "hang-rao": return to <= 1 ? `Hàng rào gỗ quanh ruộng. Từ cấp ${L.BUILDING["hang-rao"].levels[1].unlock} nâng lên <b>hàng rào đá</b>` : "Hàng rào gỗ thành <b>hàng rào đá</b> chắc chắn (trang trí, xong ngay)";
-      case "coi-xay-gio": return "Lắp Cối xay trong Xưởng (thức ăn gia súc, bột gạo) — cối xay gió quay cánh trên bản đồ";
-      case "chuong-ga": return to === 1 ? "Nuôi tối đa <b>6 gà</b> (60 xu / con): cho ăn 1 bao thức ăn gia súc ⇒ 1 trứng sau 4 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng gà chứa <b>${L.BUILDING[id].levels[to - 1].effect.chickenCap} gà</b>`;
-      case "chuong-bo": return to === 1 ? "Nuôi tối đa <b>4 bò sữa</b> (180 xu / con): cho ăn 2 bao thức ăn ⇒ 1 sữa sau 8 phút. Chạm chuồng để vào Khu chăn nuôi" : `Chuồng bò chứa <b>${L.BUILDING[id].levels[to - 1].effect.cowCap} bò</b>`;
-      default: return "";
-    }
-  }
+  /** m7: "→ sau" in đậm trong dòng "Kho: 60 → 90 chỗ". */
+  const gainHtml = (g) => { const k = g.indexOf(" → "); return k < 0 ? esc(g) : `${esc(g.slice(0, k))} → <b>${esc(g.slice(k + 3))}</b>`; };
+  /** m7: dòng "Dùng để …" + "Bạn được …" (data/building-info.js) cho thẻ xây / nâng. */
+  const aboutHtml = (a, label = "Bạn được:") => !a ? "" : `<li class="bc-about"><b>Dùng để:</b> ${esc(a.use)}</li>` +
+    `<li class="bc-about"><b>${label}</b><ul class="bc-gain">${a.gain.map((g) => `<li>${gainHtml(g)}</li>`).join("")}</ul></li>`;
   function openBuildCard(id) {
     cardFor = id;
     renderBuildCard(now());
@@ -785,27 +779,27 @@ export function mount(root, ctx = {}) {
     const picHtml = picCss ? `<span class="bc-pic" style="${picCss}" aria-hidden="true"></span>` : pic?.sheet === "garden" ? `<img class="bc-pic${pic.filter ? " spr--" + pic.filter : ""}" src="assets/garden/${pic.id}.webp" alt="">` : "";
     let rows = "";
     const lvTxt = def.levels.length > 1 && it.level >= 1 ? ` · cấp ${it.level}/${def.levels.length}` : "";
-    if (!inMs) rows += `<li>${effectText(id, 1)}. Cần cấp ${def.levels[0].unlock}.</li>`;
+    if (!inMs) rows += aboutHtml(L.about(id, 1, 0)) + `<li class="miss">Cần cấp ${def.levels[0].unlock}.</li>`;
     else if (machine) {
-      rows += `<li>${effectText(id, 1)}</li>`;
+      rows += aboutHtml(L.about(id, 1, 0));
       if (status === "locked") rows += `<li class="miss">Mở ở cấp ${it.unlockLevel}</li>`;
-      else if (status === "available") rows += `<li>${L.workshopState(s, t) === "done" ? "Vào Xưởng, chạm ô Cối xay để lắp (250 xu)." : `<span class="miss">Cần xây Xưởng chế biến trước.</span>`}</li>`;
+      else if (status === "available") rows += `<li>${L.workshopState(s, t) === "done" ? `Vào Xưởng, chạm ô Cối xay để lắp (${fmtNum(L.MACHINE["coi-xay"].buildCost)} xu).` : `<span class="miss">Cần xây Xưởng chế biến trước.</span>`}</li>`;
       else if (status === "building") rows += `<li>Đang lắp — xong sau <b>${fmtLeft(it.remainingMs)}</b></li>`;
     } else if (status === "building") {
       const u = it.upgrading, prog = u ? u.progress : it.progress, left = u ? u.remainingMs : it.remainingMs;
+      rows += aboutHtml(L.about(id, u ? u.toLevel : 1, u ? u.toLevel - 1 : 0), "Xong sẽ được:");
       rows += `<li>${u ? `Nâng lên cấp ${u.toLevel}` : "Đang xây"} — còn <b>${fmtLeft(left)}</b>. Tắt máy vẫn xây tiếp.</li><li><div class="bc-bar"><i style="width:${Math.round(prog * 100)}%"></i></div></li>`;
     } else if (step) {
       const okCoins = s.coins >= step.cost;
+      rows += aboutHtml(L.about(id, toLv, it.level)); // m7: công dụng trước giá; nâng cấp ⇒ "Kho: 60 → 90 chỗ"
       rows += `<li>Giá: ${iconHtml("dong-xu", "it--sm")}<b class="${okCoins ? "ok" : "miss"}">${fmtNum(step.cost)} xu</b> (bạn có ${fmtNum(s.coins)})</li>`;
       for (const [m, q] of Object.entries(step.materials)) {
         const have = L.have(s, m);
         rows += `<li>${iconHtml(m, "it--sm")}${esc(L.ITEM[m].name)}: <b class="${have >= q ? "ok" : "miss"}">${have}/${q}</b></li>`;
       }
       rows += `<li>Thời gian: <b>${step.ms ? fmtLeft(step.ms) + "</b> — tắt máy vẫn xây tiếp" : "xây ngay</b>"}</li>`;
-      if (id === "nha") rows += `<li>Hiện tại: ${effectText(id, Math.max(1, it.level))}</li>`;
-      rows += `<li>${id === "nha" ? "Bậc tiếp: " : ""}${effectText(id, toLv)}</li>`;
       if (s.level < step.unlock) rows += `<li class="miss">${isUp ? "Nâng" : "Xây"} được từ cấp ${step.unlock} (bạn đang cấp ${s.level})</li>`;
-    } else rows += `<li>${it.level >= def.levels.length && def.levels.length > 1 ? "Đã nâng tối đa." : "Đã xây xong."} ${effectText(id, Math.max(1, it.level))}</li>`;
+    } else rows += `<li>${it.level >= def.levels.length && def.levels.length > 1 ? "Đã nâng tối đa." : "Đã xây xong."}</li>` + aboutHtml(L.about(id, Math.max(1, it.level), 0), "Bạn đang có:");
     const statusTxt = !inMs ? (s.level >= def.levels[0].unlock ? "Khoá · sắp có" : `Khoá · Cấp ${def.levels[0].unlock}`) : status === "locked" ? `Khoá · Cấp ${it.unlockLevel}` : STATUS_TEXT[status];
     const html = `<div class="bc-head">${picHtml}<div><span class="bc-status" data-s="${status}">${statusTxt}</span><small>${lvTxt}</small></div></div><ul>${rows}</ul>`;
     ui.buildTitle.textContent = title;
@@ -898,6 +892,134 @@ export function mount(root, ctx = {}) {
   });
   ui.ghClose.onclick = () => { ui.ovGh.hidden = true; fmap.el("nha-kinh")?.focus({ preventScroll: true }); };
 
+  // ---------- m7: thẻ chúc mừng khi xây / nâng xong + thẻ "Kho đầy" (một lần) ----------
+  const cel = { ov: $("ovCelebrate"), card: $("ovCelebrate").querySelector(".cel-card"), stage: $("celStage"), pic: $("celPic"), ribbon: $("celRibbon"),
+    title: $("celTitle"), body: $("celBody"), go: $("celGo"), later: $("celLater"), more: $("celMore") };
+  /** Hình công trình cỡ hiển thị = bội 0,5 px thiết bị (PLAYBOOK §2), không quá ~150 px CSS. */
+  function picHtml(sp, max = 150) {
+    sp = sp && resolveSprite(sp);
+    if (!sp) return `<span class="cel-pic cel-pic--field" aria-hidden="true"></span>`;
+    const dpr = window.devicePixelRatio || 1;
+    const fit = (w, h) => { const k = Math.max(0.5, Math.floor((max * dpr) / Math.max(w, h) / 0.5) * 0.5) / dpr; return [Math.round(w * k), Math.round(h * k)]; };
+    if (sp.sheet === "garden") {
+      const [w0, h0] = GARDEN[sp.id] || [192, 192], [w, h] = fit(w0, h0);
+      return `<img class="cel-pic${sp.filter ? " spr--" + sp.filter : ""}" src="assets/garden/${sp.id}.webp" alt="" style="width:${w}px;height:${h}px">`;
+    }
+    const css = spriteCss(sp.sheet, sp.id), sh = spriteSheet(sp.sheet), f = spriteFrame(sp.sheet, sp.id);
+    if (!css || !f) return `<span class="cel-pic cel-pic--field" aria-hidden="true"></span>`;
+    const [w, h] = fit(sh?.frameWidth || f.width, sh?.frameHeight || f.height);
+    return `<span class="cel-pic" style="${css};width:${w}px;height:${h}px" aria-hidden="true"></span>`;
+  }
+  /** Thẻ đang chờ (thứ tự: công trình → máy → mẹo kho đầy). Level đã xem cao hơn thật (bản lưu bị thay) ⇒ hạ xuống cho khớp, không thẻ. */
+  function pendingCards(t) {
+    const out = [];
+    let dirty = false;
+    for (const id of CEL_BUILDINGS) {
+      if (!L.inMilestone(id)) continue;
+      const lv = L.levelOf(s, id, t), was = seen.b[id] ?? (L.BUILDING[id].kind === "prebuilt" ? 1 : 0);
+      if (lv > was) out.push({ kind: "building", id, to: lv, from: was });
+      else if (lv < was) { seen.b[id] = lv; dirty = true; }
+    }
+    for (const id of CEL_MACHINES) {
+      const lv = machineLv(id, t), was = seen.m[id] ?? 0;
+      if (lv > was) out.push({ kind: "machine", id, to: lv, from: was });
+      else if (lv < was) { seen.m[id] = lv; dirty = true; }
+    }
+    if (!seen.tip.overflow && L.overflowCount(s) > 0) out.push({ kind: "tip", id: "overflow" });
+    if (dirty) writeSeen();
+    return out;
+  }
+  /** Hiện thẻ kế tiếp nếu rảnh: không đè bảng khác (Cách chơi / thẻ xây / Sổ…) — thẻ chờ tới khi các bảng đó đóng. */
+  function pumpCards() {
+    if (!celReady || celCur || document.hidden) return;
+    if (performance.now() < celHold) return;
+    if (document.querySelector(".ov:not([hidden]):not(#ovCelebrate)")) return;
+    const list = pendingCards(now());
+    if (list.length) showCard(list[0], list.length - 1);
+  }
+  function showCard(c, more) {
+    celCur = c;
+    const t = now();
+    let a, sp, ribbon;
+    if (c.kind === "tip") {
+      a = { title: "Kho đầy rồi!", tip: true };
+      sp = L.levelOf(s, "nha-kho", t) >= 1 ? L.BUILDING["nha-kho"].levels[Math.max(0, L.levelOf(s, "nha-kho", t) - 1)].sprite : L.BUILDING["nha-kho"].levels[0].sprite;
+      ribbon = "Mẹo nhỏ";
+    } else if (c.kind === "machine") {
+      a = L.about(c.id, c.to, c.from, "machine");
+      const def = L.MACHINE[c.id], big = c.id === "lo-banh" && c.to >= 2;
+      sp = { sheet: big ? "machines-2" : def.sheet || "machines", id: `${big ? "lo-banh-2" : def.sprite}-idle` };
+      ribbon = c.from ? "Lên cấp!" : "Lắp xong!";
+    } else {
+      a = L.about(c.id, c.to, c.from);
+      sp = c.id === "dat-phia-dong" ? null : L.BUILDING[c.id].levels[c.to - 1]?.sprite;
+      ribbon = c.from ? "Lên cấp!" : c.id === "dat-phia-dong" ? "Mở đất!" : "Xây xong!";
+    }
+    cel.ribbon.textContent = ribbon;
+    cel.title.textContent = a.title;
+    c.sp = sp; cel.pic.innerHTML = picHtml(sp);
+    cel.body.innerHTML = a.tip
+      ? `<p class="cel-use">Hàng mới vào <b>giỏ tràn</b> (tối đa ${L.OVERFLOW_MAX}). Bán bớt, giao đơn hoặc nâng kho để có thêm chỗ.</p>` +
+        `<p class="cel-next"><b>Làm gì tiếp:</b> Mở Nhà kho, bấm “Bán nhanh giỏ tràn” hoặc nâng kho.</p>`
+      : `<p class="cel-use"><b>Dùng để:</b> ${esc(a.use)}</p><p class="cel-h">Bạn được:</p>` +
+        `<ul class="cel-gain">${a.gain.map((g) => `<li>${gainHtml(g)}</li>`).join("")}</ul><p class="cel-next"><b>Làm gì tiếp:</b> ${esc(a.next)}</p>`;
+    cel.go.textContent = a.tip ? "Mở Nhà kho" : "Vào xem ngay";
+    cel.more.hidden = !more; cel.more.textContent = more ? `Còn ${more} thẻ nữa` : "";
+    cel.card.dataset.kind = c.kind; cel.card.dataset.id = c.id;
+    // pháo giấy pixel: vài ô vuông màu rơi xuống (CSS steps), mỗi lần hiện đổi chỗ
+    const conf = cel.stage.querySelector(".cel-confetti");
+    conf.innerHTML = Array.from({ length: 14 }, (_, k) => `<i style="--x:${4 + ((k * 37) % 92)}%;--d:${(k % 7) * 70}ms;--c:${["#ffc94a", "#7fd47f", "#4aa8e0", "#e0483d", "#ffe9a8"][k % 5]}"></i>`).join("");
+    celFocus = document.activeElement;
+    cel.ov.hidden = false;
+    cel.card.classList.remove("cel-in"); void cel.card.offsetWidth; cel.card.classList.add("cel-in");
+    cel.card.scrollTop = 0;
+    cel.go.focus({ preventScroll: true });
+    sfx.play(a.tip ? "trung-da" : "qua-man", a.tip ? 0.5 : 0.85, a.tip ? 1.2 : 1);
+    setTimeout(() => { if (!cel.ov.hidden) playFx(cel.stage, "lap-lanh", cel.stage.clientWidth / 2, cel.stage.clientHeight / 2, 96); }, 180);
+  }
+  /** Đóng thẻ (cả hai nút): ghi "đã xem" rồi mới làm việc tiếp; thẻ sau chờ ~0,8 s để người chơi kịp nhìn chỗ vừa mở. */
+  function closeCard(goTo) {
+    const c = celCur;
+    if (!c) return;
+    if (c.kind === "tip") seen.tip.overflow = 1;
+    else if (c.kind === "machine") seen.m[c.id] = Math.max(seen.m[c.id] || 0, c.to);
+    else seen.b[c.id] = Math.max(seen.b[c.id] || 0, c.to);
+    writeSeen();
+    cel.ov.hidden = true; celCur = null;
+    celHold = pendingCards(now()).length ? performance.now() + 800 : 0; // còn thẻ dồn ⇒ nghỉ chút; thao tác mới của người chơi thì thẻ hiện ngay
+    sfx.play("buoc-nhay", 0.35, goTo ? 1.2 : 0.9);
+    if (goTo) celGoTo(c);
+    else if (celFocus?.isConnected && celFocus.offsetParent) celFocus.focus({ preventScroll: true });
+    celFocus = null;
+  }
+  /** "Vào xem ngay": cảnh / bảng của công trình nếu có; không có ⇒ cuộn bản đồ tới, viền vàng nhấp nháy + mũi tên. */
+  function celGoTo(c) {
+    if (buildMode) setBuildMode(false, true);
+    if (c.kind === "tip") { if (scene !== "farm") goScene("farm", true); openPanel("stock"); ui.warehouse.scrollIntoView({ block: "nearest" }); return; }
+    if (c.kind === "machine") {
+      goScene("workshop");
+      const el = ui.wsRoot.querySelector(`.mach[data-m="${c.id}"]`);
+      if (el) { el.scrollIntoView({ block: "nearest", inline: "center" }); spot(el); }
+      return;
+    }
+    const e = enterOf(c.id);
+    if (e) { if (scene !== "farm") goScene("farm", true); e.go(); return; }
+    if (scene !== "farm") goScene("farm", true);
+    const east = c.id === "dat-phia-dong", def = L.BUILDING[c.id];
+    fmap.scrollToX(east ? L.EAST_FIELD.x + L.EAST_FIELD.w / 2 : def.x, true);
+    ui.farm.scrollIntoView({ block: "nearest" });
+    spot(east ? ui.fieldEast : fmap.el(c.id));
+  }
+  function spot(el) {
+    if (!el) return;
+    el.classList.remove("spot"); void el.offsetWidth; el.classList.add("spot");
+    clearTimeout(el._spotT); el._spotT = setTimeout(() => el.classList.remove("spot"), 4200);
+  }
+  cel.go.onclick = () => closeCard(true);
+  cel.later.onclick = () => closeCard(false);
+  cel.ov.addEventListener("click", (e) => { if (e.target === cel.ov) closeCard(false); });
+  celReady = true;
+
   // ---------- Milestone 6: Sổ sưu tập + Phiên chợ (nút Chợ) ----------
   function renderFairNav(t) {
     const f = L.activeFair(s, t);
@@ -983,7 +1105,7 @@ export function mount(root, ctx = {}) {
   Object.defineProperty(m4ctx, "s", { get: () => s }); // spread chép giá trị getter ⇒ đặt lại getter để luôn đọc trạng thái mới
   animals = createAnimalsScene(m4ctx); village = createVillageScene(m4ctx);
   truck = createTruck(ui.truckLane, { now, lastDeliveryAt: () => s.lastDeliveryAt, level: () => s.level });
-  loadSprites().then(() => { fmap.invalidate(); render(); });
+  loadSprites().then(() => { fmap.invalidate(); render(); if (celCur) cel.pic.innerHTML = picHtml(celCur.sp); }); // thẻ hiện trước khi sprite nạp ⇒ vẽ lại hình
 
   function render() {
     renderHud();
@@ -998,6 +1120,7 @@ export function mount(root, ctx = {}) {
     renderBook();
     renderQuest();
     renderField(now());
+    pumpCards();
   }
   /** Mỗi giây: đồng hồ trên phiếu đơn; luật đồng bộ theo thời gian (lấp đơn, hết hạn, lưới an toàn) khi cần. */
   function second() {
@@ -1015,6 +1138,7 @@ export function mount(root, ctx = {}) {
       if (done.length) { toast(done.join(" · ") + (scene === "workshop" ? " — chạm ô để nhận!" : " — vào Xưởng để nhận!"), 3200); sfx.play("trung-kim-cuong", 0.35, 1.3); pulse(ui.lot); pulse(ui.wsTool); }
     }
     lastFinished = fin;
+    pumpCards();
     if (L.needsSync(s, t)) mutate(() => { const r = L.apply(s, { type: "tick" }, now()); if (r.ok && r.events.length) { persist(); feedback(r.events, { tick: true }); render(); } });
   }
 
@@ -1128,6 +1252,12 @@ export function mount(root, ctx = {}) {
   ui.help.addEventListener("click", () => showHelp(true));
   ui.helpOk.addEventListener("click", () => showHelp(false));
   function onKey(e) {
+    if (celCur) { // m7: thẻ chúc mừng — Enter = Vào xem ngay (trừ khi đang ở nút Để sau), Esc = Để sau, Tab quanh 2 nút
+      if (e.key === "Escape") { e.preventDefault(); closeCard(false); }
+      else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); closeCard(document.activeElement !== cel.later); }
+      else if (e.key === "Tab") { e.preventDefault(); (document.activeElement === cel.go ? cel.later : cel.go).focus(); }
+      return;
+    }
     if (!ui.ovHelp.hidden) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); showHelp(false); } return; }
     if (!ui.ovBuild.hidden) { if (e.key === "Escape") { e.preventDefault(); closeBuild(); } return; }
     if (!ui.ovDecor.hidden) { if (e.key === "Escape") { e.preventDefault(); closeDecor(); } return; }
@@ -1184,7 +1314,6 @@ export function mount(root, ctx = {}) {
   mutate(() => {
     const r = L.apply(s, { type: "tick" }, now());
     const newOrders = r.ok ? r.events.filter((e) => e.type === "orderNew").length : 0;
-    const built = r.ok ? [...new Set(r.events.filter((e) => e.type === "buildingDone").map((e) => e.name))] : [];
     if (r.ok && r.events.length) { persist(); render(); }
     if (r.ok) feedback(r.events.filter((e) => e.type === "gift" || e.type === "levelUp"));
     const hashScene = Object.keys(HASH).find((k) => HASH[k] === location.hash);
@@ -1195,8 +1324,8 @@ export function mount(root, ctx = {}) {
     else if (migrated && first.from === "v4") toast("Nông trại đã cập nhật: chế độ Xây (nút búa) — Nhà kho, Nhà kính, Khu đất phía Đông và trang trí trên bản đồ. Tiến trình và kho đã nâng vẫn giữ nguyên!", 5600);
     else if (migrated && first.from === "v3") toast("Nông trại đã cập nhật: có Xưởng chế biến (từ cấp 4) và Khu chợ với giá đổi theo giờ. Tiến trình cũ vẫn giữ nguyên!", 5200);
     else if (migrated) toast("Nông trại đã được nâng cấp: có Bảng đơn, Nhà kho có sức chứa và nhiệm vụ của Chị Ba. Tiến trình cũ vẫn giữ nguyên!", 5200);
-    else if (away || newOrders || awayJobs || built.length || awayGoods.length) {
-      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, awayGoods.length && `${awayGoods.join(", ")} chờ thu ở chuồng`, built.length && `${built.join(", ")} đã xây xong`, newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
+    else if (away || newOrders || awayJobs || awayGoods.length) { // công trình xây xong lúc vắng: thẻ chúc mừng riêng (m7), không nhắc lại ở đây
+      const parts = [away && `${away} ô đã chín`, awayJobs && `Xưởng xong ${awayJobs} mẻ`, awayGoods.length && `${awayGoods.join(", ")} chờ thu ở chuồng`, newOrders && `${newOrders} đơn mới trên bảng`].filter(Boolean);
       toast(`Trong lúc bạn vắng: ${parts.join(" · ")}.` + (away ? ' Bấm "Thu hết" để gom!' : ""), 4200);
     }
   });
@@ -1217,6 +1346,13 @@ export function mount(root, ctx = {}) {
     get mode() { return mode; },
     get scene() { return scene; },
     goScene,
+    /** m7: thẻ chúc mừng — xem thẻ đang hiện / đang chờ; dismissAll() đóng hết và ghi đã xem (test cũ không bị thẻ che nút). */
+    cards: {
+      get current() { return celCur ? { ...celCur } : null; },
+      pending: () => pendingCards(now()),
+      get hold() { return Math.max(0, Math.round(celHold - performance.now())); },
+      dismissAll() { if (celCur) closeCard(false); for (const c of pendingCards(now())) { celCur = c; closeCard(false); } celHold = 0; },
+    },
     get sfx() { return { log: sfx.log.slice() }; },
     now,
     render,

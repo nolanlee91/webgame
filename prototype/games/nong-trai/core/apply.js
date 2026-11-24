@@ -7,18 +7,18 @@
 // Milestone 3: xây dựng (startBuild, startUpgrade — thay cho upgradeWarehouse cũ; buildWorkshop / upgradeWorkshop giữ làm tên
 // gọi tắt cho Xưởng), trang trí (placeDecor, removeDecor). Sức chứa kho, ô Nhà kính / phía Đông suy ra từ công trình (core/construct.js).
 // Milestone 4: chăn nuôi + làng (core/m4-handlers.js — handler, sync bảng nhiệm vụ làng, track sau quests.track, bất biến đàn).
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m6";
-import * as plots from "./plots.js?v=m6";
-import * as orders from "./orders.js?v=m6";
-import * as eco from "./economy.js?v=m6";
-import * as quests from "./quests.js?v=m6";
-import * as ws from "./workshop.js?v=m6";
-import * as build from "./construct.js?v=m6";
-import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m6";
-import { addXp } from "./progression.js?v=m6";
-import { effects, isBuilt } from "./build.js?v=m6";
-import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m6";
-import * as book from "./collection.js?v=m6";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m7";
+import * as plots from "./plots.js?v=m7";
+import * as orders from "./orders.js?v=m7";
+import * as eco from "./economy.js?v=m7";
+import * as quests from "./quests.js?v=m7";
+import * as ws from "./workshop.js?v=m7";
+import * as build from "./construct.js?v=m7";
+import { settleOverflow, used, capacity, overflowCount, bag, wallet } from "./inventory.js?v=m7";
+import { addXp } from "./progression.js?v=m7";
+import { effects, isBuilt } from "./build.js?v=m7";
+import { bindM4, m4Sync, m4Track, m4InvariantError, m4Ctx } from "./m4-handlers.js?v=m7";
+import * as book from "./collection.js?v=m7";
 // Milestone 6: Sổ sưu tập (core/collection.js — ghi sổ bằng so kho trước / sau mỗi action, nhận mốc claimBook), Phiên chợ (giá bán
 // trong core/fair.js, dùng ở economy.sell / workshop.marketSell), đơn đặc biệt thứ hai (core/orders.js special2).
 

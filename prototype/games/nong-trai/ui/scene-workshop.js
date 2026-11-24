@@ -1,7 +1,7 @@
 // Cảnh Xưởng chế biến (DESIGN-2.0 §1 khu 2): nội thất gỗ (tường + sàn từ workshop.webp), máy đứng dọc tường (machines.webp,
 // khung idle / chạy theo manifest), dưới mỗi máy là khay hàng chờ (ui-kit hang-cho-*), bảng công thức (ui-kit the-cong-thuc)
 // trượt lên khi chạm máy. Mọi thay đổi đi qua ctx.exec(action) ⇒ apply(). Chỉ hiển thị + điều khiển.
-import { loadSprites, draw, machineFrame, playFx } from "./sprites.js?v=m6";
+import { loadSprites, draw, machineFrame, playFx } from "./sprites.js?v=m7";
 
 const MACHINE_ERR = {
   inputs: "Thiếu nguyên liệu", "queue-full": "Hàng chờ đầy", building: "Máy đang xây", locked: "Chưa đủ cấp",
@@ -95,7 +95,9 @@ export function createWorkshopScene(ctx) {
     } else if (state === "available") {
       const ok = s.coins >= def.buildCost;
       q = `<li class="q-note">Bản vẽ ${esc(def.name)} · xây ${fmtClock(def.buildMs)}</li>`;
-      foot = `<button class="btn btn--teal btn--sm" type="button" data-act="build" data-m="${def.id}" data-key="b-${def.id}"${ok ? "" : " disabled"}>Xây · ${fmtNum(def.buildCost)} xu</button>` +
+      const a = L.about(def.id, 1, 0, "machine"); // m7: "Dùng để / Bạn được" trước khi bấm Xây
+      foot = (a ? `<small class="mach-use"><b>Dùng để:</b> ${esc(a.use.replace(/^Làm /, "làm "))} <b>Bạn được:</b> ${esc(a.gain[0])}</small>` : "") +
+        `<button class="btn btn--teal btn--sm" type="button" data-act="build" data-m="${def.id}" data-key="b-${def.id}"${ok ? "" : " disabled"}>Xây · ${fmtNum(def.buildCost)} xu</button>` +
         (ok ? "" : `<small class="need">Cần ${fmtNum(def.buildCost)} xu</small>`);
     } else if (state === "building") {
       q = `<li class="q-note">Đang xây… còn ${until(s.production.machines[def.id].readyAt)}</li>`;
@@ -109,7 +111,7 @@ export function createWorkshopScene(ctx) {
       if (m.finished > 1) foot += `<button class="btn btn--primary btn--sm" type="button" data-act="collectAll" data-m="${def.id}" data-key="ca-${def.id}">Nhận hết (${m.finished})</button>`;
       if (up) {
         const ok = s.coins >= up.cost;
-        foot += `<button class="btn btn--sm" type="button" data-act="upgrade" data-m="${def.id}" data-key="u-${def.id}"${ok ? "" : " disabled"} title="Nâng máy: ${up.slots} ô hàng chờ">Nâng · ${fmtNum(up.cost)} xu (+1 ô)</button>`;
+        foot += `<button class="btn btn--sm" type="button" data-act="upgrade" data-m="${def.id}" data-key="u-${def.id}"${ok ? "" : " disabled"} title="Nâng máy: món chờ làm cùng lúc ${m.slots} → ${m.slots - raw.slots + up.slots}">Nâng · ${fmtNum(up.cost)} xu (${m.slots} → ${m.slots - raw.slots + up.slots} ô)</button>`;
       } else foot += `<small class="mach-max">Máy tối đa ${m.slots} ô</small>`;
     }
     setHtml(b.queue, q);
