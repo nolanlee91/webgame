@@ -174,8 +174,8 @@
     .folder .btn--primary { color: #2c1b05; }
 
     /* điện thoại giả (bài đăng nhóm) */
-    .phone-wrap { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(10,8,7,.62); z-index: 5; }
-    .phone { width: min(380px, 100%); height: min(700px, 100%); display: flex; flex-direction: column; background: #e9e4da; color: #1d1a16; box-shadow: 0 0 0 8px #0a0807, 0 0 0 11px #3a332a, 10px 12px 0 11px var(--shadow); }
+    .phone-wrap { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); place-items: center; padding: 20px 12px; background: rgba(10,8,7,.62); z-index: 5; }
+    .phone { width: min(380px, 100%); height: min(700px, 100%); max-height: 100%; min-height: 0; display: flex; flex-direction: column; background: #e9e4da; color: #1d1a16; box-shadow: 0 0 0 8px #0a0807, 0 0 0 11px #3a332a, 10px 12px 0 11px var(--shadow); }
     .phone-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; background: #2f8f7f; color: #effff9; font-size: 12px; font-weight: 700; }
     .phone-top b { font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .phone-feed { flex: 1; overflow: auto; padding: 10px; display: grid; gap: 10px; align-content: start; }
@@ -276,7 +276,7 @@
     .tab small { font-size: 11px; padding: 0 5px; background: rgba(244,234,210,.1); }
     .tab.on { color: #effff9; background: var(--teal); box-shadow: inset 0 3px 0 var(--teal-l), inset 0 -3px 0 var(--teal-d), inset -3px 0 0 var(--line); }
     .tab:focus-visible { outline: 2px dashed var(--gold); outline-offset: -5px; }
-    .nb-body { flex: 1; min-height: 0; overflow: auto; padding: 14px 12px; }
+    .nb-body { flex: 1; min-height: 0; overflow: auto; padding: 14px 12px; scroll-padding-bottom: 96px; }
     .nb-split { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
     .nb-detail { position: sticky; top: 0; padding: 16px; color: var(--paper-ink); background: var(--paper); box-shadow: var(--border), var(--drop); margin: 3px 7px 7px 3px; display: grid; gap: 6px; justify-items: start; }
     .nb-detail h3 { margin: 0; font: 800 19px "Be Vietnam Pro"; }
@@ -450,8 +450,9 @@
       .people { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
       .map-body { grid-template-columns: 1fr; }
       .map-wrap { display: grid; justify-items: center; }
-      .talk-body { grid-template-columns: 1fr; gap: 10px; padding: 10px; }
-      .talk-left { flex-direction: row; flex-wrap: wrap; max-width: none; align-items: flex-start; }
+      .talk-body { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+      .talk-left { flex: none; flex-direction: row; flex-wrap: wrap; align-content: flex-start; max-width: none; align-items: flex-start; }
+      .talk-right { flex: none; }
       .talk-left .nameplate { flex: 1; align-self: auto; }
       .talk-left .bio { flex-basis: 100%; }
       .nb-split { grid-template-columns: 1fr; }
@@ -470,6 +471,7 @@
       .bar { gap: 6px; padding: 0 4px; }
       .bar h1 { font-size: 14px; }
       .bar.in-case h1 { display: none; }
+      #toasts { top: calc(var(--barH) + 70px); left: 12px; right: 12px; width: auto; justify-items: center; }
       .cred { padding: 3px 4px; gap: 0; }
       .cred .lens { width: 18px; height: 18px; } .cred .lens .ico { width: 16px; height: 16px; }
       .btn--icon { padding: 6px 7px; margin: 2px 3px 4px 2px; min-height: 38px; min-width: 38px; }

@@ -37,6 +37,7 @@ for (const id of ids) {
   await b.send("Storage.clearDataForOrigin", { origin: ORIGIN, storageTypes: "local_storage" });
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
   // mở khoá: coi như đã phá các vụ trước
+  await b.ev("__game.store.wipe()"); // khoá ghi để pagehide không đè bản lưu tiêm vào
   await b.ev(`(()=>{const solved={};${JSON.stringify(CASES.slice(0, idx).map((c) => c.id))}.forEach(i=>solved[i]={stars:3,rep:100,times:1,last:3});localStorage.setItem('wgp.tham-tu-hem.v1',JSON.stringify({v:1,name:'Bot',rep:100*${idx},solved,runs:{}}))})()`);
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
   const next = () => b.ev(`import("./core/solver.js?v=t1").then(m=>JSON.stringify(m.nextAction(__game.caseData,__game.state)))`).then(JSON.parse);

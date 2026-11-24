@@ -144,7 +144,9 @@ export function notebook(app) {
 // ---------- bảng suy luận ----------
 export function board(app) {
   const { c, s, ui } = app.G;
-  const slotSel = ui.slot && c.deduction.find((d) => d.id === ui.slot.ded)?.blanks?.[ui.slot.blank] ? ui.slot : null;
+  let slotSel = ui.slot && c.deduction.find((d) => d.id === ui.slot.ded)?.blanks?.[ui.slot.blank] ? ui.slot : null;
+  // chưa chọn chỗ nào ⇒ tự chọn chỗ trống đầu tiên (khay chỉ hiện từ khoá đúng loại, đỡ rối khi bảng nhiều chỗ)
+  if (!slotSel && !ui.chip && !s.solved) for (const d of c.deduction) { const b = Object.keys(d.blanks).find((k) => !s.board[d.id][k]); if (b) { slotSel = ui.slot = { ded: d.id, blank: b }; break; } }
   const fill = (ded, blank, word) => app.act({ type: "fill", ded, blank, word }, { quiet: false }).then((r) => { if (!r.error) { ui.slot = null; ui.chip = null; } app.refresh(); });
   const notes = c.deduction.map((d, di) => {
     const parts = String(d.text).split(/(\{\w+\})/g).map((part) => {
