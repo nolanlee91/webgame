@@ -47,6 +47,7 @@
     .round { margin-left: auto; font: 800 13px "Be Vietnam Pro"; color: var(--gold); background: var(--panel2); padding: 4px 10px; box-shadow: var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; }
     .iconbtn { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; background: var(--panel2); box-shadow: var(--bevel), var(--border); font-size: 16px; }
     .iconbtn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
+    .iconbtn:active { transform: translate(2px, 2px); box-shadow: var(--border); }
 
     /* Bố cục: desktop = 2 thẻ người chơi trái + bàn + 2 thẻ phải (HUD 4 góc). Mobile = 4 thẻ gọn trên, bàn dưới. */
     .wrap { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; padding: 14px 16px 18px; display: grid; gap: 14px 18px;
@@ -139,6 +140,7 @@
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
     .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; }
+    .btn[disabled]:active { transform: none; box-shadow: var(--border); } /* nút tắt không lún */
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }
     .btn--primary:hover { background: linear-gradient(#fff3c9 0 3px, #ffd466 3px); }
     .btn--teal { color: #f4ffe9; background: linear-gradient(var(--teal-l) 0 3px, var(--teal) 3px); --b: var(--teal-d); }
@@ -343,7 +345,7 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=leave1"></script>
+  <script type="module" src="game.js?v=snd1"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

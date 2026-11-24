@@ -34,6 +34,7 @@
 .px-btn.icon { width: 40px; min-height: 40px; padding: 0; }
 .px-btn.icon img { width: 24px; height: 24px; image-rendering: pixelated; }
 .px-btn[disabled] { cursor: not-allowed; filter: grayscale(1) brightness(.6); transform: none; }
+.px-btn[disabled]:active { transform: none; box-shadow: var(--px-bevel), var(--px-border), var(--px-drop); } /* nút tắt không lún */
 .px-btn.seg { min-height: 36px; padding: 6px 12px; font-size: 13px; }
 .px-btn.seg[aria-pressed="true"] { color: #2c1b05; background: var(--px-ink); --b: #5a3a08; }
 .px-link { color: var(--px-soft); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }

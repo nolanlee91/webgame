@@ -3,7 +3,7 @@
 //   • cho tạo phòng / nhập mã phòng / chọn "Chơi với máy" (đấu với 1–3 máy, không cần mạng),
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi).
-import { mount } from "./game.js?v=leave1";
+import { mount } from "./game.js?v=snd1";
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
 const SEAT_KEY = "wgp.co-ca-ngua.seat";
@@ -30,10 +30,10 @@ const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ 
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=leave1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=snd1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
   }
   if (!document.querySelector("link[data-cn-online]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=leave1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=snd1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
   }
 }
 const icon = (n) => `<img class="px-ic" src="${new URL("assets/icon-" + n + ".png", import.meta.url).href}" alt="" draggable="false">`;
