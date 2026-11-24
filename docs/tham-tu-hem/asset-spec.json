@@ -102,23 +102,19 @@
     "{vy,khoa,phong,hang,dat}-{neutral,nervous,angry,shock}"
    ],
    "wave": 2,
-   "allowEdge": true,
-   "optional": true
+   "allowEdge": true
   },
   {
    "file": "assets/scenes/tra-sua-van-phong/pantry.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/tra-sua-van-phong/openoffice.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/tra-sua-van-phong/serverroom.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/portraits-mat-wifi.webp",
@@ -131,23 +127,19 @@
     "{ongnam,loc,cout,ti}-{neutral,nervous,angry,shock}"
    ],
    "wave": 2,
-   "allowEdge": true,
-   "optional": true
+   "allowEdge": true
   },
   {
    "file": "assets/scenes/mat-wifi/cablepole.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/mat-wifi/cafe.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/mat-wifi/namhouse.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/portraits-dam-cuoi-toang.webp",
@@ -160,23 +152,19 @@
     "{bemit,mc,exdau,quayphim,mechong,codau,chure}-{neutral,nervous,angry,shock}"
    ],
    "wave": 2,
-   "allowEdge": true,
-   "optional": true
+   "allowEdge": true
   },
   {
    "file": "assets/scenes/dam-cuoi-toang/tent.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/dam-cuoi-toang/soundbooth.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/dam-cuoi-toang/backstage.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/portraits-nhan-dam-hoi.webp",
@@ -189,23 +177,19 @@
     "{ongnoi,diba,anhhung,chiloan,beti}-{neutral,nervous,angry,shock}"
    ],
    "wave": 2,
-   "allowEdge": true,
-   "optional": true
+   "allowEdge": true
   },
   {
    "file": "assets/scenes/nhan-dam-hoi/livingroom.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/nhan-dam-hoi/kitchen2.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   },
   {
    "file": "assets/scenes/nhan-dam-hoi/pawnshop.webp",
-   "wave": 2,
-   "optional": true
+   "wave": 2
   }
  ],
  "hotspots": {
