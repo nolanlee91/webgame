@@ -41,3 +41,10 @@ Commit asset đợt 3: ae69436.
 Tám cảnh báo thuộc icon vật chứng mùa 1 đã được soi và ghi ở đợt 3. Đợt 4 có 0 cảnh báo mới.
 Bản đồ đã có ảnh và dữ liệu điểm bấm. Màn bản đồ trên nhánh gốc hiện vẫn đọc bản đồ mùa 1.
 Commit asset đợt 4: `4f9f5c9`.
+
+### Sửa cảnh mùa 2
+
+Vẽ mới góc tủ điện ngoài trời và bếp tiệc công nghiệp. Sửa giải đặc biệt thành 230479 và băng rôn thành Giọng Ca Vàng Hẻm 47. Đã cập nhật vùng soi và đồng bộ manifest.
+
+Bộ kiểm: 0 lỗi, 8 cảnh báo từ mùa 1 — ĐẠT.
+
