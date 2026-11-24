@@ -74,3 +74,5 @@ Commit sửa cảnh: 2e24a93. Commit ảnh và âm thanh đợt 5: f781fcd.
 ```
 
 Các cảnh báo thuộc icon cũ của mùa 1, không có cảnh báo mới.
+
+Commit ảnh đợt 6: 383cd7c.
