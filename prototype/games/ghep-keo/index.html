@@ -84,7 +84,7 @@
       color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); position: relative; user-select: none; touch-action: manipulation; text-align: center; }
     .btn:hover { background: #30281f; }
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
-    .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn:not(:disabled):active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
     .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
     .btn--icon { padding: 8px 12px; }

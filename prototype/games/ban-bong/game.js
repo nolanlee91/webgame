@@ -691,6 +691,7 @@ export function mount(root, ctx = {}) {
     board.querySelectorAll(".banner").forEach((e) => e.remove());
     hide(ov.menu); hide(ov.win); hide(ov.lose);
     hud(); persist();
+    sfx.play("qua-man", 0.5); // vào ván có tiếng như Ghép Kẹo
     stage.focus({ preventScroll: true });
     return s;
   }

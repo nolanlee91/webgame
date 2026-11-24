@@ -59,7 +59,7 @@
       color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); }
     .btn:hover { background: #30281f; }
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
-    .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn:not(:disabled):active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }
     .btn--primary { color: #2c1b05; background: linear-gradient(var(--gold-l) 0 3px, var(--gold) 3px); --b: var(--gold-d); }

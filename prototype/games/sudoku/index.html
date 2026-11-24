@@ -75,7 +75,7 @@
       color: var(--ink); background: var(--panel2); --b: #6d6150; box-shadow: var(--bevel), var(--border), var(--drop); position: relative; user-select: none; touch-action: manipulation; text-align: center; white-space: nowrap; }
     .btn:hover { background: #30281f; }
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
-    .btn:active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn:not(:disabled):active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
     .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
     .btn--icon { padding: 8px 12px; }
@@ -162,7 +162,7 @@
       background: var(--teal-d); color: var(--teal-l); box-shadow: 0 0 0 3px var(--line); }
     .best { margin-top: 12px; font-size: 13px; color: var(--soft); }
     .daily-link { display: inline-block; margin-top: 12px; padding: 6px 12px; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--gold); text-decoration: none; box-shadow: 0 0 0 3px #4a4036; }
-    .daily-link:hover { background: var(--panel2); } .daily-link:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
+    .daily-link:hover { background: var(--panel2); } .daily-link:active { transform: translate(3px, 3px); background: var(--panel2); } .daily-link:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
     .badge { width: 72px; height: 72px; margin: 4px auto 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 5px; background: #5a4632; box-shadow: 0 0 0 3px var(--line), var(--drop); }
     .badge i { background: var(--paper); font: 800 13px/1 "Be Vietnam Pro"; color: var(--ink-d); display: grid; place-items: center; font-style: normal; }
     .badge i.g { background: var(--gold); }

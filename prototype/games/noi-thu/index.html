@@ -74,7 +74,7 @@
     .tools .btn:hover { background: #42614d; }
     .tools .btn[disabled] { opacity: .55; }
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
-    .btn:active, .btn.is-down { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
+    .btn:not(:disabled):active, .btn.is-down { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
     .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; }
     .btn[disabled]:active { transform: none; }
     .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
