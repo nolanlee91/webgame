@@ -1,0 +1,188 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createRun, apply, invariants, nextHint, scoreOf, sanitizeRun, hotspotsAt, topicsOf, textOf, MAX_CRED } from "../core/engine.js";
+import { segments, plain, pickFrom } from "../core/text.js";
+import mini from "./fixtures/mini-case.js";
+
+const run = (s, ...acts) => { for (const a of acts) { const r = apply(mini, s, a); assert.equal(r.error, null, JSON.stringify(a) + " ⇒ " + r.error); s = r.s; } return s; };
+const start = () => run(createRun(mini, 5), { type: "intro" });
+
+test("tạo vụ: địa điểm start, người start, bảng trống, bất biến sạch", () => {
+  const s = createRun(mini, 1);
+  assert.deepEqual(s.locs, ["xe"]);
+  assert.deepEqual(s.people.sort(), ["an", "binh", "chu"]);
+  assert.deepEqual(s.board, { ai: { a: null } });
+  assert.equal(s.cred, MAX_CRED);
+  assert.deepEqual(invariants(mini, s), []);
+});
+
+test("intro ⇒ vào địa điểm đầu, hiện lời dẫn một lần", () => {
+  const r = apply(mini, createRun(mini, 1), { type: "intro" });
+  assert.equal(r.s.phase, "play");
+  assert.equal(r.show[0].who, "narr");
+  const again = apply(mini, r.s, { type: "go", loc: "xe" });
+  assert.equal(again.show.length, 0);
+});
+
+test("hành động sai không đổi state (trả nguyên bản cũ + error)", () => {
+  const s = start();
+  for (const a of [{ type: "go", loc: "khong-co" }, { type: "examine", id: "tui" }, { type: "ask", pid: "an", topic: "x" }, { type: "contradict", stmt: "an-khong-an", clue: "muong" }, { type: "commit" }, { type: "accuse" }, { type: "rebut", clue: "muong" }, { type: "bay" }]) {
+    const r = apply(mini, s, a);
+    assert.ok(r.error, JSON.stringify(a));
+    assert.equal(r.s, s);
+  }
+});
+
+test("soi điểm: lần đầu nhặt vật chứng + hiện thẻ, lần sau chỉ thoại; điểm có điều kiện ẩn tới khi có lời khai", () => {
+  let s = start();
+  assert.deepEqual(hotspotsAt(mini, s).map((h) => h.id), ["hu-pate", "ghe"]);
+  const r = apply(mini, s, { type: "examine", id: "hu-pate" });
+  assert.deepEqual(r.s.clues, ["muong"]);
+  assert.deepEqual(r.show.map((x) => x.t), ["line", "clue"]);
+  assert.ok(r.ev.some((e) => e.type === "clue"));
+  const r2 = apply(mini, r.s, { type: "examine", id: "hu-pate" });
+  assert.deepEqual(r2.show.map((x) => x.t), ["line"]);
+  s = run(r.s, { type: "ask", pid: "an", topic: "pate" });
+  assert.ok(hotspotsAt(mini, s).some((h) => h.id === "tui"));
+  assert.equal(topicsOf(mini, s, "an")[0].asked, true);
+});
+
+test("nhặt từ khoá khi chữ được đọc (read), không nhặt từ lạ", () => {
+  let s = start();
+  const r = apply(mini, s, { type: "read", text: "Muỗng dính [[pate]] và [[khong-co]]" });
+  assert.deepEqual(r.s.words, ["pate"]);
+  assert.deepEqual(r.ev, [{ type: "word", id: "pate" }]);
+  assert.equal(apply(mini, r.s, { type: "read", text: "[[pate]]" }).ev.length, 0);
+  assert.equal(textOf(mini, { t: "clue", id: "muong" }), mini.clues.muong.desc);
+});
+
+test("vạch mâu thuẫn: sai mất uy tín + câu đáp; đúng thì bể + gives", () => {
+  let s = run(start(), { type: "examine", id: "hu-pate" }, { type: "ask", pid: "an", topic: "pate" });
+  const w = apply(mini, s, { type: "contradict", stmt: "an-khong-an", clue: "muong" });
+  assert.equal(w.s.cred, 4);
+  assert.equal(w.s.credLost, 1);
+  assert.equal(w.show[0].who, "an");
+  s = run(w.s, { type: "examine", id: "tui" });
+  const ok = apply(mini, s, { type: "contradict", stmt: "an-khong-an", clue: "muong-an" });
+  assert.deepEqual(ok.s.broke, ["an-khong-an"]);
+  assert.ok(ok.s.flags.includes("an-nhan"));
+  assert.equal(ok.s.cred, 4);
+  assert.ok(apply(mini, ok.s, { type: "contradict", stmt: "an-khong-an", clue: "muong-an" }).error, "bể rồi không bể lại");
+});
+
+test("hết uy tín: Tèo can, hồi về 1, đếm lần can, tối đa 2★", () => {
+  let s = run(start(), { type: "examine", id: "hu-pate" }, { type: "ask", pid: "an", topic: "pate" });
+  for (let i = 0; i < 5; i++) s = run(s, { type: "contradict", stmt: "an-khong-an", clue: "muong" });
+  assert.equal(s.cred, 1);
+  assert.equal(s.rescues, 1);
+  assert.equal(s.credLost, 5);
+  assert.ok(scoreOf(s).stars <= 2);
+});
+
+test("đưa vật chứng cho người: câu riêng nếu có, không thì câu chung; không mất uy tín", () => {
+  const s = run(start(), { type: "examine", id: "hu-pate" });
+  const r = apply(mini, s, { type: "present", pid: "binh", clue: "muong" });
+  assert.match(r.show[0].text, /ăn chay/);
+  const r2 = apply(mini, s, { type: "present", pid: "an", clue: "muong" });
+  assert.equal(r2.show[0].who, "an");
+  assert.equal(r2.s.cred, 5);
+});
+
+test("bảng suy luận: điền đúng loại, chốt chỉ báo số chỗ sai, đúng thì mở vạch mặt", () => {
+  let s = run(start(), { type: "read", text: "[[an]] [[binh]] [[pate]]" });
+  assert.ok(apply(mini, s, { type: "fill", ded: "ai", blank: "a", word: "pate" }).error, "sai loại");
+  assert.ok(apply(mini, s, { type: "commit" }).error, "chưa điền đủ");
+  s = run(s, { type: "fill", ded: "ai", blank: "a", word: "binh" });
+  const w = apply(mini, s, { type: "commit" });
+  assert.deepEqual(w.ev, [{ type: "boardWrong", n: 1 }]);
+  assert.equal(w.s.wrongBoard, 1);
+  s = run(w.s, { type: "fill", ded: "ai", blank: "a", word: "an" }, { type: "commit" });
+  assert.equal(s.solved, true);
+  assert.ok(apply(mini, s, { type: "fill", ded: "ai", blank: "a", word: "binh" }).error, "đã chốt thì khoá");
+});
+
+test("vạch mặt: đưa sai mất uy tín + nhắc lại câu chối; đúng hết thì kết vụ + ★", () => {
+  let s = run(start(), { type: "examine", id: "hu-pate" }, { type: "ask", pid: "an", topic: "pate" }, { type: "examine", id: "tui" }, { type: "read", text: "[[an]]" }, { type: "fill", ded: "ai", blank: "a", word: "an" }, { type: "commit" }, { type: "accuse" });
+  assert.equal(s.phase, "finale");
+  const w = apply(mini, s, { type: "rebut", clue: "muong" });
+  assert.equal(w.s.cred, 4);
+  assert.equal(w.s.fin.step, 0);
+  s = run(w.s, { type: "rebut", clue: "muong-an" });
+  assert.equal(s.phase, "done");
+  assert.deepEqual(s.result.stars, 3); // phạt 1
+  s = run(s, { type: "bonus", id: "b1", choice: 0 });
+  assert.equal(s.bonus.b1, 0);
+  assert.ok(apply(mini, s, { type: "bonus", id: "b1", choice: 1 }).error);
+});
+
+test("gợi ý Tèo: chọn gợi ý đầu tiên có điều kiện đạt, ưu tiên câu chưa nói; `done` loại gợi ý đã xong; tính phạt theo gợi ý mới", () => {
+  let s = start();
+  assert.equal(nextHint(mini, s).text, "Hỏi An xem.");
+  s = run(s, { type: "hint" }, { type: "hint" });
+  assert.equal(s.hints.length, 1);
+  s = run(s, { type: "ask", pid: "an", topic: "pate" });
+  assert.match(nextHint(mini, s).text, /soi lại xe/);
+  const c = structuredClone(mini);
+  c.hints[0].done = "clue:muong-an";
+  s = run(s, { type: "examine", id: "tui" });
+  assert.equal(nextHint(c, s).text, "Hỏi An xem.");
+  // suy ra "đã xong": gợi ý về lời khai đã bể thì bỏ qua
+  const c2 = structuredClone(mini);
+  c2.hints[0].needs = "stmt:an-khong-an";
+  assert.match(nextHint(c2, s).text, /soi lại xe/);
+  s = run(s, { type: "contradict", stmt: "an-khong-an", clue: "muong-an" });
+  assert.equal(nextHint(c2, s).text, "Hỏi An xem.");
+});
+
+test("needs phủ định ẩn điểm soi khi điều kiện đã đạt; break.also cũng bể được", () => {
+  const c = structuredClone(mini);
+  c.locations.xe.hotspots[1].needs = "!stmt:an-khong-an";
+  c.stmts["an-khong-an"].break.also = ["muong"];
+  const ap = (s, a) => { const r = apply(c, s, a); assert.equal(r.error, null); return r.s; };
+  let s = ap(createRun(c, 2), { type: "intro" });
+  assert.ok(hotspotsAt(c, s).some((h) => h.id === "ghe"));
+  s = ap(ap(s, { type: "examine", id: "hu-pate" }), { type: "ask", pid: "an", topic: "pate" });
+  assert.ok(!hotspotsAt(c, s).some((h) => h.id === "ghe"));
+  s = ap(s, { type: "contradict", stmt: "an-khong-an", clue: "muong" });
+  assert.deepEqual(s.broke, ["an-khong-an"]);
+  assert.equal(s.cred, 5);
+});
+
+test("★ theo điểm phạt", () => {
+  const base = { credLost: 0, wrongBoard: 0, hints: [], rescues: 0 };
+  assert.equal(scoreOf(base).stars, 3);
+  assert.equal(scoreOf({ ...base, credLost: 2 }).stars, 3);
+  assert.equal(scoreOf({ ...base, credLost: 2, wrongBoard: 1 }).stars, 2);
+  assert.equal(scoreOf({ ...base, credLost: 3, hints: [1, 2, 3] }).stars, 1);
+  assert.equal(scoreOf({ ...base, rescues: 1 }).stars, 2);
+});
+
+test("pickFrom không lặp liên tiếp và tất định theo hạt", () => {
+  const s = { rng: 9, pick: {} };
+  let last = null;
+  for (let i = 0; i < 200; i++) { const x = pickFrom(s, "k", [1, 2, 3]); assert.notEqual(x, last); last = x; }
+  const a = { rng: 3, pick: {} }, b = { rng: 3, pick: {} };
+  assert.deepEqual([1, 2, 3, 4].map(() => pickFrom(a, "x", "abcd")), [1, 2, 3, 4].map(() => pickFrom(b, "x", "abcd")));
+});
+
+test("segments: [[id]] và [[id|chữ khác]], từ lạ hiện thô", () => {
+  const W = { pate: { text: "pate" } };
+  assert.deepEqual(segments("Mất [[pate]] và [[pate|bơ gan]] với [[la]]", W), [
+    { t: "text", v: "Mất " }, { t: "word", id: "pate", v: "pate" }, { t: "text", v: " và " }, { t: "word", id: "pate", v: "bơ gan" }, { t: "text", v: " với " }, { t: "text", v: "la" },
+  ]);
+  assert.equal(plain("[[pate|bơ]]!", W), "bơ!");
+});
+
+test("sanitizeRun: giữ tiến độ hợp lệ, bỏ id lạ, kẹp uy tín, bản hỏng ⇒ null", () => {
+  let s = run(start(), { type: "examine", id: "hu-pate" }, { type: "ask", pid: "an", topic: "pate" });
+  const raw = JSON.parse(JSON.stringify(s));
+  raw.clues.push("da-xoa"); raw.cred = 99; raw.words.push("la");
+  const t = sanitizeRun(mini, raw);
+  assert.deepEqual(t.clues, ["muong"]);
+  assert.equal(t.cred, 5);
+  assert.deepEqual(t.stmts, ["an-khong-an"]);
+  assert.equal(sanitizeRun(mini, { id: "khac" }), null);
+  assert.equal(sanitizeRun(mini, null), null);
+  const f = sanitizeRun(mini, { ...raw, phase: "finale", solved: true });
+  assert.equal(f.phase, "play", "chưa điền bảng thì không ở vạch mặt");
+});

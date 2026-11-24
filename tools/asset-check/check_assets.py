@@ -167,6 +167,18 @@ def main():
     for key in spec.get("paths", []):
         if key not in pl: err(f"[placements] thiếu '{key}' (đường đi khách: door / queueSpots / exitPath)")
 
+    # Điểm soi / vùng bấm trên cảnh: spec.hotspots = {"<file cảnh>": [id…]}, manifest.hotspots["<file cảnh>"][id] = [x, y, w, h] (px của file cảnh)
+    hs = manifest.get("hotspots", {})
+    for scene, ids in (spec.get("hotspots") or {}).items():
+        if not (root / scene).exists(): continue  # thiếu file cảnh đã báo ở trên
+        sw, sh_ = Image.open(root / scene).size
+        got = hs.get(scene) or {}
+        for hid in ids:
+            r = got.get(hid)
+            if not r: err(f"[hotspots] {scene}: thiếu vùng '{hid}' (manifest.hotspots['{scene}']['{hid}'] = [x, y, w, h] ôm sát đồ vật)"); continue
+            if len(r) != 4 or r[2] < 24 or r[3] < 24: err(f"[hotspots] {scene} '{hid}' {r}: cần [x, y, w, h], mỗi chiều ≥ 24 px để bấm được trên điện thoại")
+            elif r[0] < 0 or r[1] < 0 or r[0] + r[2] > sw or r[1] + r[3] > sh_: err(f"[hotspots] {scene} '{hid}' {r} ra ngoài ảnh {sw}×{sh_}")
+
     if preview and lineup:
         preview.mkdir(parents=True, exist_ok=True)
         bg_file = spec.get("previewBackground")
