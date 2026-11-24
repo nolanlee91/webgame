@@ -4,8 +4,8 @@
 //   show: hàng đợi hiển thị theo thứ tự — {t:"line",who,text,mood} | {t:"clue",id} | {t:"stmt",id} | {t:"loc",id} | {t:"person",id}
 //         Giao diện phát lần lượt; mỗi mục HIỆN RA thì gửi {type:"read", text} để nhặt [[từ khoá]] (DESIGN §4: nhặt khi đọc tới).
 //   ev:   sự kiện cho âm thanh / hiệu ứng — word, clue, stmt, break, wrong, rescue, boardWrong, boardSolved, stepRight, stepWrong, done, hint, bonus…
-import { evalNeeds, wordsIn } from "./validate.js?v=t2";
-import { norm, pickFrom } from "./text.js?v=t2";
+import { evalNeeds, wordsIn } from "./validate.js?v=t4";
+import { norm, pickFrom } from "./text.js?v=t4";
 
 export const RUN_VERSION = 1;
 export const MAX_CRED = 5;

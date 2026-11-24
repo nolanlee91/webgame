@@ -1,5 +1,5 @@
 {
- "_doc": "Hợp đồng asset Thám Tử Hẻm. Kiểm: python -I tools/asset-check/check_assets.py docs/tham-tu-hem/asset-spec.json --preview <thư mục tạm>. Mô tả nhân vật, cảnh và đồ vật: docs/tham-tu-hem/DESIGN.md §2–§3 (BẮT BUỘC đọc). Luật chung: AGENTS.md + docs/tap-lam-chu/PLAYBOOK.md §1–§2 + docs/art-bible-v5.md §0.1 (Detailed HD Pixel Art, ánh vàng hổ phách + bóng navy/teal). Cảnh 960×540 lưới 2× (480×270 điểm vẽ). Chân dung HD lưới 1×, ô 256×256, cùng một người trên mọi biểu cảm. Mỗi đồ vật trong DESIGN §3 phải VẼ RÕ trong cảnh và ghi manifest.hotspots['<file cảnh>']['<id>'] = [x,y,w,h] ôm sát đồ vật (≥ 24 px mỗi chiều, nên ≥ 48). Đợt 1 = chung + vụ 1–2; đợt 2 = vụ 3–6 (đang 'optional', bỏ khi giao). Icon vật chứng là đợt 3, dev gửi danh sách sau.",
+ "_doc": "Hợp đồng asset Thám Tử Hẻm. Kiểm: python -I tools/asset-check/check_assets.py docs/tham-tu-hem/asset-spec.json --preview <thư mục tạm>. Mô tả nhân vật, cảnh và đồ vật: docs/tham-tu-hem/DESIGN.md §2–§3 (BẮT BUỘC đọc). Luật chung: AGENTS.md + docs/tap-lam-chu/PLAYBOOK.md §1–§2 + docs/art-bible-v5.md §0.1 (Detailed HD Pixel Art, ánh vàng hổ phách + bóng navy/teal). Cảnh 960×540 lưới 2× (480×270 điểm vẽ). Chân dung HD lưới 1×, ô 256×256, cùng một người trên mọi biểu cảm. Mỗi đồ vật trong DESIGN §3 phải VẼ RÕ trong cảnh và ghi manifest.hotspots['<file cảnh>']['<id>'] = [x,y,w,h] ôm sát đồ vật (≥ 24 px mỗi chiều, nên ≥ 48). Đợt 1 = chung + vụ 1–2; đợt 2 = vụ 3–6 (đang 'optional', bỏ khi giao). Icon vật chứng là đợt 3, dev gửi danh sách sau. Đợt 4 = mùa 2 (vụ 7–12): DESIGN.md §3b. Đợt 5 = icon vật chứng mùa 2 + chân dung phụ + điểm soi thêm: docs/tham-tu-hem/WAVE5.md.",
  "game": "tham-tu-hem",
  "root": "prototype/games/tham-tu-hem",
  "manifest": "../../../docs/tham-tu-hem/asset-manifest.json",
@@ -262,6 +262,233 @@
    ],
    "wave": 3,
    "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/portraits-ve-so.webp",
+   "grid": 1,
+   "cell": [
+    256,
+    256
+   ],
+   "frames": [
+    "{ongchin,bachin,mai,luc,chutu,chilan,chihen}-{neutral,nervous,angry,shock}"
+   ],
+   "wave": 4,
+   "allowEdge": true
+  },
+  {
+   "file": "assets/scenes/ve-so/market.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/ve-so/garage.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/ve-so/lottery.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/portraits-karaoke.webp",
+   "grid": 1,
+   "cell": [
+    256,
+    256
+   ],
+   "frames": [
+    "{cothu,anhtung,beo,cosau}-{neutral,nervous,angry,shock}"
+   ],
+   "wave": 4,
+   "allowEdge": true
+  },
+  {
+   "file": "assets/scenes/karaoke/stage.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/karaoke/fusebox.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/karaoke/backalley.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/portraits-meo-mat-tich.webp",
+   "grid": 1,
+   "cell": [
+    256,
+    256
+   ],
+   "frames": [
+    "{china,tom,bacsy,cohong,anhship,basau}-{neutral,nervous,angry,shock}"
+   ],
+   "wave": 4,
+   "allowEdge": true
+  },
+  {
+   "file": "assets/scenes/meo-mat-tich/shop.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/meo-mat-tich/vetclinic.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/meo-mat-tich/rooftop2.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/portraits-tat-nien.webp",
+   "grid": 1,
+   "cell": [
+    256,
+    256
+   ],
+   "frames": [
+    "{quanly}-{neutral,nervous,angry,shock}"
+   ],
+   "wave": 4,
+   "allowEdge": true
+  },
+  {
+   "file": "assets/scenes/tat-nien/banquet.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/tat-nien/office2.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/tat-nien/kitchen3.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/portraits-ma-nha-13.webp",
+   "grid": 1,
+   "cell": [
+    256,
+    256
+   ],
+   "frames": [
+    "{quan,bado,nhomyt,onghai,chitho}-{neutral,nervous,angry,shock}"
+   ],
+   "wave": 4,
+   "allowEdge": true
+  },
+  {
+   "file": "assets/scenes/ma-nha-13/hauntedhouse.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/ma-nha-13/attic.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/ma-nha-13/realestate.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/portraits-tham-tu-gia.webp",
+   "grid": 1,
+   "cell": [
+    256,
+    256
+   ],
+   "frames": [
+    "{pro,ly,bao,bacuc}-{neutral,nervous,angry,shock}"
+   ],
+   "wave": 4,
+   "allowEdge": true
+  },
+  {
+   "file": "assets/scenes/tham-tu-gia/office-night.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/tham-tu-gia/locksmith.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/tham-tu-gia/studio.webp",
+   "wave": 4
+  },
+  {
+   "file": "assets/scenes/hem-map-2.webp",
+   "wave": 4,
+   "_note": "Bản đồ mùa 2 'Chợ Hẻm 47' 960×540 nhìn từ trên xuống, cùng phong cách hem-map: khu chợ, đường lớn, tiệm sửa xe, đại lý vé số, sân khấu karaoke giữa hẻm, shop online, nhà hàng, nhà hoang số 13, sạp thợ khoá. Chấm 6 vụ ghi manifest.hotspots theo id vụ."
+  },
+  {
+   "file": "assets/clues-ve-so.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{danh-sach-cho,chuyen-xe-app,anh-nhan-xe,ly-tra-da,tien-uot,lich-hen,giay-bao-no,manh-ve-yen,ket-qua-xs,log-may-do,clip-0811,clip-0905,ve-e-cat-goc,so-phat-ve,ve-vinh-long,goc-ve-rach,ve-ba-chin}"
+   ],
+   "wave": 5,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-karaoke.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{log-laptop,so-muon-mic,danh-sach-bai,cau-dao-gat-tay,so-dien,kenh-mic-2,kim-sa-chot,ao-vang-rach,moc-du-phong,mic-2-thung-bia,micro-kim-sa,den-led-ngoc,den-pin-ong-nam,non-la-kim-tuyen,clip-livestream,clip-nam-ngoai,tem-tu-lanh}"
+   ],
+   "wave": 5,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-meo-mat-tich.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{tin-chuoc,chen-day,so-ban-le,don-hang-hong,lich-quay,o-thong-gio,so-kham,long-xam-long,hop-an-than,tin-khoi,tin-den,long-thung-hang,anh-giao-hang,binh-luan-tom,noi-quy,chuong-to,dau-chan-to,lon-pate,vet-cao-ong-nuoc,ao-choang-bmd}"
+   ],
+   "wave": 5,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-tat-nien.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{so-do-ghe,the-ten,hop-salad-thieu-nia,thung-nong,log-ket,camera-mai,video-phat-bieu,so-dat-ban,nhap-phat-bieu,banh-kem-phong,order-goi,anh-checkin,anh-nang-ly,clip-khoa,selfie-vy,buoc-chan,lich-su-giai,day-doi,tui-phong-bi}"
+   ],
+   "wave": 5,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-ma-nha-13.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{bong-den-moi,cong-to-cat,hien-tuong-23h,ong-tuong,ve-xe-onghai,o-meo-con,vet-bac-ha-guong,nhang-tu-se,day-dien-moi,o-cam-hen-gio,ac-quy-kich-dien,loa-qua-tang,chen-to-roi,tai-hien-ma,gio-lua-ghe,bang-rao-ban,ban-do-khoanh,hop-dong-dat-coc,lich-hen-quan,thung-qua-tang,chia-khoa-13,clip-san-ma,chuyen-khoan-dat}"
+   ],
+   "wave": 5,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-tham-tu-gia.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{ho-so-mat,cua-khong-pha,dau-son-kinh,giay-nho-teo,lich-su-may-tinh,soi-chi-be,manh-vai-be,bo-dem-may,the-treo-chia,so-in-khoa,danh-thiep-pro,bang-ghim-gia,live-lap,mang-to-rach,chia-47b-moi,ho-so-goc,vlog-sap-khoa,anh-ly-23h17,bai-boi-nho,binh-luan-teo}"
+   ],
+   "wave": 5,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
   }
  ],
  "hotspots": {
@@ -427,6 +654,163 @@
    "camera-tiem",
    "meo-than-tai",
    "bang-lai-suat"
+  ],
+  "assets/scenes/ve-so/market.webp": [
+   "sap-ca",
+   "can-dia",
+   "ro-rau",
+   "xe-day-hang",
+   "bang-gia",
+   "loa-cho"
+  ],
+  "assets/scenes/ve-so/garage.webp": [
+   "xe-dang-sua",
+   "thung-do-nghe",
+   "binh-hoi",
+   "ghe-cho",
+   "lich-hen",
+   "yen-xe-wave",
+   "radio-cu"
+  ],
+  "assets/scenes/ve-so/lottery.webp": [
+   "quay-ve-so",
+   "bang-ket-qua",
+   "may-do-so",
+   "camera-dai-ly",
+   "thung-ve-cu",
+   "ban-tho-than-tai"
+  ],
+  "assets/scenes/karaoke/stage.webp": [
+   "man-hinh-loi",
+   "micro-cay",
+   "dan-loa",
+   "bang-ten-thi-sinh",
+   "tu-lanh-giai-thuong",
+   "livestream",
+   "ban-giam-khao"
+  ],
+  "assets/scenes/karaoke/fusebox.webp": [
+   "tu-dien",
+   "cau-dao",
+   "so-dien",
+   "den-pin-rot",
+   "day-dien-noi",
+   "goc-sau-tu"
+  ],
+  "assets/scenes/karaoke/backalley.webp": [
+   "ban-trang-diem",
+   "thung-bia",
+   "ao-kim-sa-du-phong",
+   "xe-ba-gac",
+   "cua-sau-nha-nam",
+   "noi-che"
+  ],
+  "assets/scenes/meo-mat-tich/shop.webp": [
+   "den-quay",
+   "ke-hang",
+   "nha-cay-meo",
+   "chen-an",
+   "thung-carton",
+   "lich-quay",
+   "cau-thang"
+  ],
+  "assets/scenes/meo-mat-tich/vetclinic.webp": [
+   "ban-kham",
+   "so-kham-benh",
+   "long-nhot",
+   "tu-thuoc",
+   "poster-meo"
+  ],
+  "assets/scenes/meo-mat-tich/rooftop2.webp": [
+   "chuong-meo-tu-che",
+   "day-phoi-do",
+   "bon-cat",
+   "hop-pate-rong",
+   "ong-nuoc",
+   "noi-quy"
+  ],
+  "assets/scenes/tat-nien/banquet.webp": [
+   "san-khau-tiec",
+   "thung-boc-tham",
+   "ban-sep",
+   "ban-team",
+   "cay-mai",
+   "so-do-cho-ngoi",
+   "day-thung"
+  ],
+  "assets/scenes/tat-nien/office2.webp": [
+   "ket-sat",
+   "man-hinh-camera-2",
+   "so-dat-ban",
+   "moc-chia-khoa",
+   "bang-nhan-vien"
+  ],
+  "assets/scenes/tat-nien/kitchen3.webp": [
+   "noi-lau",
+   "xe-day-mon",
+   "thung-rac-bep",
+   "tu-dong",
+   "bang-order",
+   "ngan-duoi-tu-dong"
+  ],
+  "assets/scenes/ma-nha-13/hauntedhouse.webp": [
+   "ban-tho-cu",
+   "guong-vo",
+   "den-chap-chon",
+   "ghe-dua",
+   "tuong-am",
+   "hop-cau-dao",
+   "cho-nua-dem"
+  ],
+  "assets/scenes/ma-nha-13/attic.webp": [
+   "loa-giau",
+   "o-cam-hen-gio",
+   "ruong-go",
+   "cua-so-gac",
+   "day-dien-moi",
+   "thi-nghiem-hen-gio",
+   "thi-nghiem-cua-so"
+  ],
+  "assets/scenes/ma-nha-13/realestate.webp": [
+   "ban-moi-gioi",
+   "ban-do-quy-hoach",
+   "tu-ho-so",
+   "bang-rao-ban",
+   "thung-qua-tang",
+   "moc-chia"
+  ],
+  "assets/scenes/tham-tu-gia/office-night.webp": [
+   "tu-ho-so-mo",
+   "cua-kinh",
+   "ban-lam-viec",
+   "may-tinh",
+   "meo-van-phong",
+   "gam-tu",
+   "khung-anh"
+  ],
+  "assets/scenes/tham-tu-gia/locksmith.webp": [
+   "may-cat-khoa",
+   "bang-chia-phoi",
+   "so-in-khoa",
+   "ghe-nhua-sap",
+   "hu-chia-cu",
+   "bang-gia-sap"
+  ],
+  "assets/scenes/tham-tu-gia/studio.webp": [
+   "ring-light-pro",
+   "bang-ghim-gia",
+   "dien-thoai-livestream",
+   "tu-quan-ao",
+   "ho-so-danh-cap",
+   "laptop-dung-clip"
+  ],
+  "assets/scenes/hem-map-2.webp": [
+   "ve-so",
+   "karaoke",
+   "meo-mat-tich",
+   "tat-nien",
+   "ma-nha-13",
+   "tham-tu-gia"
   ]
  },
  "_moods": "neutral = bình thường; nervous = đổ mồ hôi, mắt láo liên; angry = cau mày, nghiến răng; shock = 'bể', mắt trợn, miệng há, có thể kèm giọt mồ hôi lớn; happy = cười; smug = cười đểu. Biểu cảm phải đọc được ở cỡ 128 px.",

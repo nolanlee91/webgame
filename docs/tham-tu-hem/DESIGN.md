@@ -126,6 +126,107 @@ Nhẫn gia truyền biến mất ngay trong lễ đám hỏi ở căn nhà lớn
   - `kitchen2`, bếp nhà lớn: `banh-kem`, `lo-nuong`, `tu-lanh-lon`, `thot-go`, `hop-dung-cu`.
   - `pawnshop`, tiệm cầm đồ đầu chợ: `quay-cam-do`, `so-cam-do`, `tu-kinh`, `camera-tiem`.
 
+## 3b. Mùa 2: "Chợ Hẻm 47" (vụ 7–12)
+
+Mở sau khi phá xong Vụ 6. Bản đồ mùa 2 là `assets/scenes/hem-map-2.webp`, vẽ khu chợ và đường lớn đầu hẻm, có 6 chấm vụ ghi trong `manifest.hotspots`. Màn bản đồ có 2 tab: "Mùa 1 · Hẻm 47" và "Mùa 2 · Chợ Hẻm".
+
+Luật như mùa 1, với hai điểm riêng:
+- Người viết vụ được dùng lại nhân vật mùa 1 làm nghi phạm hoặc nhân vật phụ. Ghi `sheet: "<id vụ cũ>"` trong `people.<pid>` để lấy chân dung có sẵn.
+- Mỗi vụ phải có ít nhất 1 cơ chế suy luận **mới**, chưa dùng ở mùa 1, nêu trong từng vụ dưới đây. Cơ chế được dựng bằng các trường có sẵn: điểm soi, `needs`, lời khai, bảng suy luận, `finale.steps`.
+
+### Vụ 7: "Tờ Vé Số Bốc Hơi" (`ve-so`, độ khó 2)
+Ông Chín tin chắc mình trúng độc đắc 2 tỉ, nhưng tờ vé số biến mất trong buổi sáng chạy việc vặt khắp chợ.
+- Cơ chế mới: **dựng lại lộ trình** buổi sáng. Có 5–6 điểm ghé, mỗi điểm một mốc giờ; vé mất giữa hai điểm nào. Bảng suy luận có câu xếp mốc giờ.
+- Nghi phạm:
+  - `ongchin`: người mất vé (client). Khoảng 65 tuổi, áo sơ mi cũ, kính lão, nón kết.
+  - `bachin`: bà Chín, vợ ông. Hay càm ràm, đeo túi vải đi chợ. Nghi phạm chính, vì ghét ông mê số.
+  - `mai`: cô bán vé số dạo, nón lá, xấp vé kẹp trên bảng.
+  - `luc`: anh xe ôm công nghệ, áo khoác xanh, nón bảo hiểm.
+  - `chutu`: chú Tư sửa xe, tay dính dầu, cờ lê.
+- Thủ phạm: **luc**. Vé rớt trên yên xe ôm. Lực dò số thấy trúng, liền giữ lại và nói dối là không thấy gì.
+  - Cú lật: Lực chưa dám lãnh vì góc vé bị rách mất số seri. Thật ra góc rách đó nằm trong túi áo ông Chín từ đầu.
+- Cảnh và đồ vật:
+  - `market`, sạp chợ: `sap-ca`, `can-dia`, `ro-rau`, `xe-day-hang`, `bang-gia`.
+  - `garage`, tiệm sửa xe chú Tư: `xe-dang-sua`, `thung-do-nghe`, `binh-hoi`, `ghe-cho`, `lich-hen`.
+  - `lottery`, đại lý vé số: `quay-ve-so`, `bang-ket-qua`, `may-do-so`, `camera-dai-ly`, `thung-ve-cu`.
+
+### Vụ 8: "Đêm Karaoke Cúp Điện" (`karaoke`, độ khó 2)
+Chung kết "Giọng Ca Vàng Hẻm 47", giải nhất là cái tủ lạnh. Cầu dao bị cúp đúng phần thi của người hát hay nhất, rồi lại lộ chuyện quán quân năm ngoái hát nhép.
+- Cơ chế mới: **bảng điện và âm thanh**. Đối chiếu nhật ký cầu dao, danh sách bài và đồng hồ để biết ai đứng gần tủ điện lúc 21:14.
+- Nghi phạm:
+  - `cothu`: cô Thu, quán quân năm ngoái. Áo kim sa, tóc uốn.
+  - `anhtung`: anh Tùng, chủ dàn karaoke kiêm MC. Áo hoa, dây chuyền.
+  - `beo`: thằng Béo, thí sinh hát hay nhất, sinh viên, áo thun ban nhạc.
+  - `cosau`: cô Sáu, trưởng ban giám khảo tự phong, quạt xếp.
+  - `ongnam`: dùng lại từ Vụ 4 (`sheet: "mat-wifi"`). Ông ghét ồn nên bị nghi.
+- Thủ phạm: **cothu**. Micro của cô hỏng, sắp lộ chuyện hát nhép, nên cô cúp cầu dao để cuộc thi phải hoãn.
+- Cảnh và đồ vật:
+  - `stage`, sân khấu giữa hẻm: `man-hinh-loi`, `micro-cay`, `dan-loa`, `bang-ten-thi-sinh`, `tu-lanh-giai-thuong`.
+  - `fusebox`, góc tủ điện: `tu-dien`, `cau-dao`, `so-dien`, `den-pin-rot`, `day-dien-noi`.
+  - `backalley`, hậu trường sau rạp: `ban-trang-diem`, `thung-bia`, `ao-kim-sa-du-phong`, `xe-ba-gac`.
+
+### Vụ 9: "Hoàng Thượng Mất Tích" (`meo-mat-tich`, độ khó 2)
+Mèo Anh lông ngắn "Bơ", ngôi sao TikTok 300 nghìn follow của chị Na shop online, biến mất. Ngay sau đó chị nhận tin nhắn đòi chuộc 5 triệu.
+- Cơ chế mới: **phân tích tin nhắn**. So lỗi chính tả, emoji và giờ gửi của tin đòi chuộc với tin nhắn của từng nghi phạm.
+- Nghi phạm:
+  - `china`: chị Na, chủ mèo (client). Váy hoa, điện thoại 3 camera.
+  - `tom`: thằng Tôm, 12 tuổi, cháu hàng xóm. Mê mèo, áo siêu nhân.
+  - `bacsy`: anh Khôi, bác sĩ thú y, áo blouse xanh.
+  - `cohong`: cô Hồng shop đối thủ, cũng nuôi mèo làm mẫu. Kính râm.
+  - `anhship`: anh Đen shipper, thùng hàng sau xe.
+- Thủ phạm: **tom**. Tôm giấu Bơ ở nhà để "cho Bơ nghỉ diễn" vì thấy chị Na bắt mèo quay 10 clip một ngày, rồi viết tin chuộc cho giống thật.
+  - Cú lật: Bơ trốn sang nhà Tôm từ trước, vì mê mèo cái của nhà Tôm.
+  - Không ai bị thương. Kết vụ: chị Na giảm lịch quay.
+- Cảnh và đồ vật:
+  - `shop`, shop online kiêm phòng quay: `den-quay`, `ke-hang`, `nha-cay-meo`, `chen-an`, `thung-carton`.
+  - `vetclinic`, phòng khám thú y: `ban-kham`, `so-kham-benh`, `long-nhot`, `tu-thuoc`.
+  - `rooftop2`, sân thượng nhà Tôm: `chuong-meo-tu-che`, `day-phoi-do`, `bon-cat`, `hop-pate-rong`, `ong-nuoc`.
+
+### Vụ 10: "Phong Bì Tất Niên" (`tat-nien`, độ khó 3)
+Tiệc tất niên công ty Cà Khịa Media ở nhà hàng. Quỹ bốc thăm 50 triệu trong két biến mất 30 phút trước giờ bốc thăm.
+- Cơ chế mới: **sơ đồ chỗ ngồi**. Xếp lại ai ngồi đâu, ai rời bàn lúc nào, theo ảnh check-in và hoá đơn gọi món.
+- Nghi phạm (dùng lại Vụ 3, `sheet: "tra-sua-van-phong"`): `vy`, `khoa`, `phong`, `hang`, `dat`. Thêm người mới:
+  - `quanly`: anh Lâm, quản lý nhà hàng. Vest đen, bộ đàm.
+- Thủ phạm: **hang**. Chị giấu phong bì để vạch trần chuyện năm nào sếp Đạt cũng gài giải đặc biệt cho cháu mình.
+  - Cú lật: sếp gian lận bốc thăm. "Kẻ trộm" là người muốn công bằng, nhưng làm sai cách.
+- Cảnh và đồ vật:
+  - `banquet`, sảnh tiệc: `san-khau-tiec`, `thung-boc-tham`, `ban-sep`, `ban-team`, `cay-mai`.
+  - `office2`, phòng quản lý nhà hàng: `ket-sat`, `man-hinh-camera-2`, `so-dat-ban`, `moc-chia-khoa`.
+  - `kitchen3`, bếp nhà hàng: `noi-lau`, `xe-day-mon`, `thung-rac-bep`, `tu-dong`, `bang-order`.
+
+### Vụ 11: "Con Ma Nhà Số 13" (`ma-nha-13`, độ khó 3)
+Đêm nào căn nhà bỏ hoang cuối hẻm cũng có tiếng khóc và đèn chập chờn. Giá nhà cả hẻm rớt, đã có 3 nhà rao bán.
+- Cơ chế mới: **thí nghiệm tại chỗ**. Bật/tắt thiết bị, mở cửa sổ để tái hiện "hiện tượng ma", bằng các điểm soi có `needs` theo thứ tự.
+- Nghi phạm:
+  - `quan`: anh Quân, môi giới nhà đất. Sơ mi trắng, cặp da, cười nhiều.
+  - `bado`: bà Diệu, thầy cúng, áo dài nâu, chuỗi hạt.
+  - `nhomyt`: Đạt "Săn Ma TV", YouTuber, đèn đội đầu, gậy selfie.
+  - `onghai`: ông Hai, chủ cũ căn nhà, đang sống ở quê, nón lá.
+  - `beti`: dùng lại từ Vụ 6 (`sheet: "nhan-dam-hoi"`). Bé Ti nghịch, lén vào chơi.
+- Thủ phạm: **quan**. Anh dựng ma bằng loa bluetooth giấu trong tường và bóng đèn hẹn giờ, để mua rẻ cả dãy nhà.
+  - Cú lật: Đạt "Săn Ma TV" biết chuyện từ đầu, được trả tiền để quay clip.
+- Cảnh và đồ vật:
+  - `hauntedhouse`, phòng khách nhà hoang: `ban-tho-cu`, `guong-vo`, `den-chap-chon`, `ghe-dua`, `tuong-am`.
+  - `attic`, gác xép: `loa-giau`, `o-cam-hen-gio`, `ruong-go`, `cua-so-gac`, `day-dien-moi`.
+  - `realestate`, văn phòng nhà đất đầu chợ: `ban-moi-gioi`, `ban-do-quy-hoach`, `tu-ho-so`, `bang-rao-ban`.
+
+### Vụ 12: "Thám Tử Giả Mạo" (`tham-tu-gia`, độ khó 3, cuối mùa 2)
+Trên TikTok nổi lên "Thám Tử Pro" phá án siêu tốc nhưng toàn bắt nhầm. Đúng lúc đó văn phòng Thám Tử Hẻm bị đột nhập, hồ sơ vụ cũ biến mất, và nhóm "Hẻm 47 Hóng Biến" tràn ngập bài bôi nhọ.
+- Cơ chế mới: **thám tử đối đầu**. Ở vài bước vạch mặt, Thám Tử Pro đưa ra kết luận sai và người chơi phản bác bằng vật chứng. Dùng `finale.steps` cho lượt phản bác.
+- Nghi phạm:
+  - `pro`: Hiếu "Thám Tử Pro". Áo măng tô, kính râm, ring light.
+  - `ly`: chị Ly, phóng viên trang "Hóng 24h", micro cầm tay.
+  - `bao`: anh Bảo, thợ khoá đầu hẻm, chùm chìa khoá.
+  - `bacuc`: bà Cúc, chủ nhà cho thuê văn phòng. Đang muốn đòi tăng giá thuê.
+  - Tèo (cast `teo`) vô tình làm lộ chìa khoá.
+- Thủ phạm: **pro**. Hiếu lấy được bản sao chìa khoá rồi lấy hồ sơ cũ để "phá lại" các vụ trên mạng. Chìa do thợ khoá Bảo in theo chiếc Tèo đưa nhờ in dự phòng, Bảo không biết mình bị lợi dụng.
+  - Cú lật: Hiếu nghe lén được lúc Tèo nhờ in chìa.
+  - Kết mùa: Tèo nhận lỗi, cả hẻm bênh văn phòng. Hiếu xin học việc.
+- Cảnh và đồ vật:
+  - `office-night`, văn phòng thám tử ban đêm bị lục tung: `tu-ho-so-mo`, `cua-kinh`, `ban-lam-viec`, `may-tinh`, `meo-van-phong`.
+  - `locksmith`, sạp thợ khoá: `may-cat-khoa`, `bang-chia-phoi`, `so-in-khoa`, `ghe-nhua-sap`.
+  - `studio`, phòng livestream của Thám Tử Pro: `ring-light-pro`, `bang-ghim-gia`, `dien-thoai-livestream`, `tu-quan-ao`, `ho-so-danh-cap`.
+
 ## 4. Định dạng dữ liệu vụ án (data/cases/<id>.js)
 
 Mỗi vụ là một ES module `export default {…}`. Bộ kiểm `node prototype/games/tham-tu-hem/tools/check-case.mjs <file>` phải ra **ĐẠT**. Bộ kiểm xem lỗi tham chiếu, tính đi được tới cuối bằng mô phỏng và lượng nội dung tối thiểu. Mẫu nhỏ: `prototype/games/tham-tu-hem/test/fixtures/mini-case.js`.
@@ -167,6 +268,7 @@ export default {
 - `finale.steps[].hint`: câu gợi ý của Tèo riêng cho bước vạch mặt đó (không có thì dùng câu chung).
 - `teoRescue: [[line…], …]`: các bộ thoại Tèo can khi hết uy tín (không có thì dùng bộ chung).
 - Bộ kiểm **cảnh báo** (không phải lỗi) khi có từ khoá trong `words` không bao giờ nhặt được.
+- `people.<pid>.sheet: "<id vụ cũ>"` (mùa 2): chân dung lấy frame `<pid>-<mood>` từ `assets/portraits-<id vụ cũ>.webp` thay vì sheet của vụ này. `pid` phải trùng tên frame ở sheet cũ (ví dụ `ongnam` của `mat-wifi`). Bộ kiểm báo lỗi nếu `sheet` không phải id vụ trong `data/cases/index.js`. Dàn nhân vật chung (`teo`, `batu`, `chuba`, `me`) không cần ghi, vẫn lấy từ `portraits-cast.webp`.
 
 Cách engine đọc dữ liệu: gợi ý = gợi ý đầu tiên trong mảng có `needs` đạt (xếp gợi ý giai đoạn cuối lên đầu, gợi ý không `needs` ở cuối). Mọi người trong `people` đã mở đều thẩm vấn và đưa vật chứng được (nghi phạm xếp trước). Địa điểm có `needs` tự mở khi đạt; `gives.locs` mở ngay.
 

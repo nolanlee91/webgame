@@ -1,11 +1,11 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
-import { h, icon, toast } from "./dom.js?v=t2";
-import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t2";
-import { renderText } from "./dialog.js?v=t2";
-import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t2";
-import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep } from "../core/progress.js?v=t2";
-import { pickEvidence, clueCard } from "./panels.js?v=t2";
-import { play as sfx } from "./sfx.js?v=t2";
+import { h, icon, toast } from "./dom.js?v=t4";
+import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t4";
+import { renderText } from "./dialog.js?v=t4";
+import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t4";
+import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t4";
+import { pickEvidence, clueCard } from "./panels.js?v=t4";
+import { play as sfx } from "./sfx.js?v=t4";
 
 const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */
@@ -49,15 +49,20 @@ export function title(app) {
           hasRun ? h("button.btn.btn--danger.btn--sm#wipeBtn", { type: "button", onclick: () => app.wipeAll() }, "Xoá tiến độ") : null))));
 }
 
-// ---------- bản đồ ----------
-const DEFAULT_PINS = { "noi-thit-kho": [150, 120], "chien-ke": [420, 110], "tra-sua-van-phong": [740, 120], "mat-wifi": [170, 380], "dam-cuoi-toang": [480, 390], "nhan-dam-hoi": [790, 380], mini: [470, 250] };
+// ---------- bản đồ (2 mùa: tab "Mùa 1 · Hẻm 47" / "Mùa 2 · Chợ Hẻm") ----------
+const DEFAULT_PINS = {
+  "noi-thit-kho": [150, 120], "chien-ke": [420, 110], "tra-sua-van-phong": [740, 120], "mat-wifi": [170, 380], "dam-cuoi-toang": [480, 390], "nhan-dam-hoi": [790, 380], mini: [470, 250],
+  // mùa 2 trên bản đồ chợ vẽ thay (khớp drawMarket): sạp, sân khấu, nhà hoang số 13
+  "ve-so": [150, 160], "karaoke": [484, 330], "meo-mat-tich": [810, 160], "tat-nien": [150, 330], "ma-nha-13": [866, 470], "tham-tu-gia": [484, 160],
+};
 export function map(app) {
   const G = app.G, p = G.profile, r = rankOf(p.rep);
+  const season = app.season(), S0 = SEASONS.find((x) => x.no === season) || SEASONS[0];
   const cards = h("div.case-list");
   const pins = [];
-  G.cat.forEach((e) => {
+  G.cat.filter((e) => seasonOf(e) === season).forEach((e) => {
     const solved = p.solved[e.id], run = p.runs[e.id];
-    const state = !e.c ? (e.status === "broken" ? "fix" : "soon") : !e.open ? "lock" : solved ? "done" : run && run.phase !== "intro" ? "wip" : "new";
+    const state = !e.c ? (e.status === "broken" ? "fix" : e.status === "pending" || e.status === "loading" ? "lock" : "soon") : !e.open ? "lock" : solved ? "done" : run && run.phase !== "intro" ? "wip" : "new";
     const label = { soon: "Sắp ra mắt", fix: "Đang sửa", lock: "Khoá", done: "Đã phá", wip: "Đang điều tra", new: "Mới" }[state];
     const can = state !== "soon" && state !== "lock" && state !== "fix";
     cards.append(h("button.case-card.st-" + state, { type: "button", data: { case: e.id }, disabled: !can, onclick: () => { sfx("map-select"); app.openCase(e.id); }, "aria-label": `Hồ sơ số ${e.no}: ${e.title}. ${label}` },
@@ -68,23 +73,66 @@ export function map(app) {
         h("span.diff", { title: "Độ khó" }, "Độ khó ", Array.from({ length: 3 }, (_, i) => h("i" + (i < e.difficulty ? ".on" : "")))),
         state === "done" ? stars(solved.stars) : h("span.badge.b-" + state, state === "lock" ? icon("lock", 16) : null, label)),
       state === "done" ? h("span.mini-stamp", "ĐÃ PHÁ") : null));
-    const at = mapPin(e.id); const pt = at ? [at[0] + at[2] / 2, at[1] + at[3] / 2] : DEFAULT_PINS[e.id] || [480, 270];
+    const at = mapPin(e.id, S0.map); const pt = at ? [at[0] + at[2] / 2, at[1] + at[3] / 2] : DEFAULT_PINS[e.id] || [480, 270];
     pins.push({ e, pt, state, can });
   });
+  // tab mùa (mùa khoá: tooltip + bấm thì báo cách mở)
+  const tabs = h("div.season-tabs", { role: "tablist", "aria-label": "Chọn mùa" }, SEASONS.map((x) => {
+    const open = app.seasonOpen(x.no), on = x.no === season;
+    return h("button.season-tab" + (on ? ".on" : "") + (open ? "" : ".locked"), { type: "button", role: "tab", data: { season: String(x.no) }, "aria-selected": on ? "true" : "false", "aria-disabled": open ? null : "true",
+      title: open ? x.tab : x.lockMsg, onclick: () => app.pickSeason(x.no) },
+      open ? null : icon("lock", 16), h("span", x.tab));
+  }));
   // bản đồ (desktop: lớn bên trái; mobile: dải trên cùng)
-  const W = narrow() ? innerWidth - 32 : innerWidth - 420, H = narrow() ? 220 : innerHeight - 52 - 120;
+  const W = narrow() ? innerWidth - 32 : innerWidth - 420, H = narrow() ? 220 : innerHeight - 52 - 170;
   const { k, crisp } = crispScale(SCENE_W, SCENE_H, W, H);
   const mapBox = h("div.map-box" + (crisp ? "" : ".smooth"), { style: { width: SCENE_W * k + "px", height: SCENE_H * k + "px" } },
-    h("img.map-img", { src: hasFile("assets/scenes/hem-map.webp") ? "assets/scenes/hem-map.webp" : placeholderScene("hem-map", [], "map"), alt: "Bản đồ Hẻm 47", draggable: "false" }),
+    h("img.map-img", { src: hasFile(S0.map) ? S0.map : placeholderScene(season === 1 ? "hem-map" : "hem-map-" + season, [], season === 1 ? "map" : "map2"), alt: S0.title, draggable: "false" }),
     pins.map(({ e, pt, state, can }) => h("button.map-pin.st-" + state, { type: "button", tabindex: "-1", disabled: !can, title: e.title, style: { left: pt[0] * k + "px", top: pt[1] * k + "px" }, onclick: () => app.openCase(e.id) }, icon(state === "lock" || state === "soon" ? "lock" : "pin", 16), h("span", e.no))));
-  return h("section.map-screen",
+  return h("section.map-screen.season-" + season,
     h("div.map-head",
       h("div.det-card", h("div.det-ava", portraitEl("me", "smug", "", 56, displayName(p))),
         h("div.det-info", h("small", r.name), h("b", displayName(p)),
           h("div.rep-bar", { title: r.next ? `Còn ${r.toNext} danh tiếng để lên ${r.next.name}` : "Hạng cao nhất" }, h("i", { style: { width: Math.round(r.pct * 100) + "%" } })),
           h("span.rep-txt", `${p.rep} danh tiếng` + (r.next ? ` · còn ${r.toNext} lên ${r.next.name}` : "")))),
       h("button.btn.btn--sm#renameBtn", { type: "button", onclick: () => app.show("title") }, "Đổi tên")),
-    h("div.map-body", h("div.map-wrap", h("h2.sec", "Bản đồ Hẻm 47"), mapBox), h("div.case-col", h("h2.sec", "Hồ sơ vụ án"), cards)));
+    tabs,
+    h("div.map-body", h("div.map-wrap", h("h2.sec", S0.title), mapBox), h("div.case-col", h("h2.sec", "Hồ sơ vụ án"), cards)));
+}
+
+// ---------- màn chuyển mùa 2 (lần đầu mở Chợ Hẻm): Tèo + bà Tư báo tin, bà Tư đăng bài nhóm ----------
+export const SEASON2_INTRO = [
+  ["teo", "Sếp ơi sếp! Hết vụ đám hỏi chưa kịp thở thì ngoài “Chợ Hẻm” lại có biến rồi!", "shock"],
+  ["batu", "Thiệt đó cưng. Chợ đầu hẻm mấy bữa nay ồn ào dữ lắm: mất vé số, cúp điện, mèo mất tích… đủ thứ hết trơn.", "smug"],
+  ["batu", "Để bà đăng bài lên nhóm, bà con biết văn phòng mình nhận vụ ngoài chợ luôn.", "happy"],
+  ["me", "Được. Hẻm 47 xong rồi thì ra chợ. Tèo, lấy áo mưa với cây đèn pin.", "smug"],
+];
+export const SEASON2_POST = {
+  by: "batu", group: "Hẻm 47 Hóng Biến", likes: 347,
+  text: "📢 THÔNG BÁO: Văn phòng Thám Tử Hẻm phá xong 6 vụ trong hẻm rồi nha bà con! Giờ mở rộng ra CHỢ HẺM đầu đường. Ai mất đồ, bị oan, nghi có ma… nhắn văn phòng liền. Bà Tư bảo kê uy tín!",
+  comments: [
+    { by: "Ông Chín", text: "Có nhận tìm vé số hông bà Tư? Gấp lắm!!!" },
+    { by: "Anh Tùng Karaoke", text: "Tối nay chung kết Giọng Ca Vàng, mời thám tử ghé coi nha 🎤" },
+    { by: "Chị Na Shop", text: "Ai thấy bé Bơ nhà em không ạ 😭" },
+  ],
+};
+export function seasonIntro(app, onDone) {
+  const P0 = SEASON2_POST, W = innerWidth, H = innerHeight - 52;
+  return h("section.season-intro",
+    h("div.title-bg", coverImg("assets/scenes/hem-map-2.webp", placeholderScene("hem-map-2", [], "map2"), W, H)),
+    h("div.title-shade"),
+    h("div.season-title", h("small", "Mùa 2"), h("b", "Chợ Hẻm 47"), h("span", "Hẻm 47 xong rồi, giờ ra chợ")),
+    h("div.phone-wrap.season-phone", { role: "dialog", "aria-label": "Bài đăng nhóm " + P0.group },
+      h("div.phone",
+        h("div.phone-top", h("span", "9:41"), h("b", P0.group), h("span", "4G")),
+        h("div.phone-feed",
+          h("div.season-banner", h("small", "Mùa 2"), h("b", "Chợ Hẻm 47"), h("span", "6 vụ mới đang chờ")),
+          h("article.post",
+            h("header", portraitEl("batu", "happy", "", 36, "Bà Tư Hóng", "ava"), h("div", h("b", "Bà Tư Hóng"), h("small", "Quản trị viên · vừa xong"))),
+            h("p.post-text", P0.text),
+            h("div.post-acts", h("span", icon("heart", 16), ` ${P0.likes}`), h("span.cmt-n", icon("chat", 16), ` ${P0.comments.length} bình luận`)),
+            h("ul.comments", P0.comments.map((m) => h("li", h("b", m.by), " ", m.text))))),
+        h("div.phone-foot", h("span"), h("button.btn.btn--primary.btn--sm#season2Go", { type: "button", onclick: onDone }, "Ra Chợ Hẻm")))));
 }
 
 // ---------- văn phòng nhận hồ sơ ----------

@@ -26,3 +26,40 @@ python -I tools/asset-check/check_assets.py docs/tham-tu-hem/asset-spec.json --p
 
 Đã soi các cảnh báo còn lại trên icon `noi-sach`, `hinh-chien-than`, `vet-lua`, `bun-xe-dap`, `hoa-don-vy`, `keo-cat-chi`, `bang-ron` và `sac-rgb`. Các cảnh báo đến từ các cụm pixel nhỏ, chi tiết ở rìa hình và vật phụ như vệt hạt lúa, ống hút hoặc dây.
 Commit asset đợt 3: ae69436.
+
+## Đợt 4 · Chợ Hẻm 47
+
+- Bản đồ mùa 2 và 18 cảnh hiện trường, WebP lossless 960×540, lưới 2×.
+- 6 sheet chân dung với 23 vai mới × 4 biểu cảm, ô 256×256, lưới 1× và alpha cứng. Số vai lấy theo hợp đồng đợt 4. Các vai dùng lại tiếp tục trỏ tới sheet mùa 1.
+- 85 điểm soi và 6 chấm bản đồ. Đã mở ảnh có khung để rà vật thể, kiểm mọi cặp hình chữ nhật trong mỗi ảnh có diện tích giao bằng 0. Các khung rộng và cao ít nhất 24 px trong file.
+- Đã soi biểu cảm và nhận diện nhân vật trên ảnh xem trước. Hai bản manifest trùng nhau. Test asset của game đạt 3/3.
+
+```text
+0 lỗi, 8 cảnh báo — ĐẠT, giao được.
+```
+
+Tám cảnh báo thuộc icon vật chứng mùa 1 đã được soi và ghi ở đợt 3. Đợt 4 có 0 cảnh báo mới.
+Bản đồ đã có ảnh và dữ liệu điểm bấm. Màn bản đồ trên nhánh gốc hiện vẫn đọc bản đồ mùa 1.
+Commit asset đợt 4: `4f9f5c9`.
+
+### Sửa cảnh mùa 2
+
+Vẽ mới góc tủ điện ngoài trời và bếp tiệc công nghiệp. Sửa giải đặc biệt thành 230479 và băng rôn thành Giọng Ca Vàng Hẻm 47. Đã cập nhật vùng soi và đồng bộ manifest.
+
+Bộ kiểm: 0 lỗi, 8 cảnh báo từ mùa 1 — ĐẠT.
+
+
+## Đợt 5 · Mùa 2
+
+- Thêm 4 chân dung phụ, mỗi vai 4 biểu cảm. Đã soi ảnh ở cỡ 128 px.
+- Thêm 28 điểm soi theo WAVE5. Đã soi các vùng trên cảnh và kiểm mọi cặp vùng trong từng cảnh sửa có diện tích giao bằng 0. Các điểm soi chi tiết trên yên xe, tủ đông, cửa sổ và ổ hẹn giờ có vùng riêng.
+- Thêm 116 icon vật chứng trên 6 sheet, ô 96×96, lưới 2×. Đã bỏ các mẩu rời cạnh `clip-nam-ngoai` và `vlog-sap-khoa`.
+- Hai bản manifest khớp byte. Test Node đạt 41/41.
+
+```text
+0 lỗi, 8 cảnh báo — ĐẠT, giao được.
+```
+
+Tám cảnh báo là các icon mùa 1 đã soi và ghi ở đợt 3. Đợt 5 hết cảnh báo mới.
+
+Commit sửa cảnh: 2e24a93. Commit ảnh và âm thanh đợt 5: f781fcd.
