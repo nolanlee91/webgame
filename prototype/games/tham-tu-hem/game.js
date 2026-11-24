@@ -177,7 +177,7 @@ function renderAll() {
   }
   ov.hidden = !G.overlays.length;
   document.body.classList.toggle("ov-open", !!G.overlays.length);
-  setScene(G.screen === "scene" && app.top === "talk" ? "talk" : G.screen);
+  setScene(G.screen === "scene" && app.top === "talk" ? "talk" : G.screen === "map" && app.season() === 2 ? "map2" : G.screen);
   S.afterRender?.(app);
   P.refreshBadges(app);
 }

@@ -19,11 +19,14 @@ export const LOOPS = {
   "music-map": { gain: 0.32, music: true }, "music-investigate": { gain: 0.28, music: true }, "music-interrogate": { gain: 0.3, music: true },
   "music-finale": { gain: 0.32, music: true }, "music-solved": { gain: 0.32, music: true },
   "amb-rain-alley": { gain: 0.22 }, "amb-office": { gain: 0.25 },
+  // Mùa 2 (Chợ Hẻm): tuỳ chọn, chưa có file thì phát bản dự phòng của mùa 1.
+  "music-map-2": { gain: 0.32, music: true, fallback: "music-map" }, "amb-market": { gain: 0.2, fallback: "amb-rain-alley" },
 };
 /** Màn ⇒ vòng lặp đang phát. */
 export const SCENES = {
   title: ["amb-rain-alley"], map: ["music-map", "amb-rain-alley"], office: ["amb-office"], scene: ["music-investigate"],
-  talk: ["music-interrogate"], finale: ["music-finale"], result: ["music-solved"], season: ["music-map"],
+  talk: ["music-interrogate"], finale: ["music-finale"], result: ["music-solved"], season: ["music-map-2"],
+  map2: ["music-map-2", "amb-market"],
 };
 
 const ls = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -68,14 +71,16 @@ function fade(a, to, ms, done) {
   }, 40);
 }
 export function setScene(name) { want = SCENES[name] || []; sync(); }
+const missing = new Set(); // vòng lặp tuỳ chọn không tải được ⇒ dùng fallback
+const resolve = (n) => (missing.has(n) && LOOPS[n].fallback ? resolve(LOOPS[n].fallback) : n);
 function sync() {
-  const on = new Set(unlocked && !muted() ? want.filter((n) => !LOOPS[n].music || musicOn()) : []);
+  const on = new Set(unlocked && !muted() ? want.map(resolve).filter((n) => !LOOPS[n].music || musicOn()) : []);
   for (const [n, a] of loops) if (!on.has(n)) { fade(a, 0, 500, () => { a.pause(); loops.delete(n); }); }
   for (const n of on) {
     let a = loops.get(n);
     if (a && !a.paused) { fade(a, LOOPS[n].gain, 300); continue; }
     a = new Audio(BASE + n + ".mp3"); a.loop = true; a.volume = 0;
-    a.addEventListener("error", () => loops.delete(n), { once: true });
+    a.addEventListener("error", () => { loops.delete(n); if (LOOPS[n].fallback) { missing.add(n); sync(); } }, { once: true });
     loops.set(n, a);
     a.play().then(() => fade(a, LOOPS[n].gain, 700)).catch(() => {});
   }

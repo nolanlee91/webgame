@@ -18,6 +18,15 @@ Có 4 chân dung phụ, 28 điểm soi thêm và 116 icon vật chứng.
    - Đừng để các ô chồng lên nhau nhiều.
 3. **Icon vật chứng:** mỗi vụ một sheet `assets/clues-<vụ>.webp`, ô 96×96 lưới 2×, tên frame là id vật chứng. Vẽ đúng cột **Mô tả**. Chữ trên giấy hoặc màn hình chỉ cần gợi hình, trừ con số lớn.
 
+4. **Âm thanh mùa 2** (làm sau ảnh). Thả mp3 vào `prototype/games/tham-tu-hem/assets/audio/`, ghi thêm vào `docs/tham-tu-hem/AUDIO.md`:
+
+| Tên file | Dùng khi |
+|---|---|
+| `music-map-2.mp3` | Nhạc bản đồ "Chợ Hẻm" và màn chuyển sang mùa 2. Vòng lặp liền mạch 60–120 s, không lời. Tông chợ đêm nhộn nhịp, vui: cùng chất trinh thám hài jazz noir pha nhạc cụ Việt như `music-map`, nhưng nhanh và rộn hơn (thêm mõ, phách, đàn nguyệt, kèn), để nghe là biết đang ở mùa khác. |
+| `amb-market.mp3` | Tiếng nền chợ đêm, vòng lặp 60–90 s: tiếng rao xa ("ai bánh mì nóng đây"…), xe máy chạy ngang, tiếng người, chén bát, loa phường văng vẳng. Không câu nào rõ chữ, nhỏ và đều (khoảng −22 LUFS) để không lấn nhạc. |
+
+Code đã sẵn: có file thì bản đồ mùa 2 tự phát, chưa có thì dùng lại nhạc mùa 1.
+
 ## Danh sách theo vụ
 
 ### Vụ 7: Tờ Vé Số Bốc Hơi (`assets/clues-ve-so.webp`)
