@@ -61,3 +61,5 @@ Bộ kiểm: 0 lỗi, 8 cảnh báo từ mùa 1 — ĐẠT.
 ```
 
 Tám cảnh báo là các icon mùa 1 đã soi và ghi ở đợt 3. Đợt 5 hết cảnh báo mới.
+
+Commit sửa cảnh: 2e24a93. Commit ảnh và âm thanh đợt 5: f781fcd.
