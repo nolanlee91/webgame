@@ -63,3 +63,14 @@ Bộ kiểm: 0 lỗi, 8 cảnh báo từ mùa 1 — ĐẠT.
 Tám cảnh báo là các icon mùa 1 đã soi và ghi ở đợt 3. Đợt 5 hết cảnh báo mới.
 
 Commit sửa cảnh: 2e24a93. Commit ảnh và âm thanh đợt 5: f781fcd.
+
+## Đợt 6 · Ảnh nền HD trên máy tính
+
+- `title-art-hd.webp` và `scenes/hem-map-2-hd.webp`: ảnh vẽ lại theo bố cục gốc, 1920×1080 với 960×540 điểm vẽ, WebP lossless.
+- Đã soi khoảng tối bên trái ảnh mở game, nhân vật, biển HẺM 47 và sáu mốc trên bản đồ. Hai bản manifest khớp byte. Test asset Node đạt 3/3.
+
+```text
+0 lỗi, 8 cảnh báo — ĐẠT, giao được.
+```
+
+Các cảnh báo thuộc icon cũ của mùa 1, không có cảnh báo mới.
