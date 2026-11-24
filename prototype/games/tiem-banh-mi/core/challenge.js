@@ -1,9 +1,9 @@
 // Milestone 5 (chép khung Trà Sữa core/challenge.js): lịch ca thử thách (cấp 20, tuỳ chọn) và huy hiệu. Thuần.
 // Mỗi ngày lịch treo tường có một thử thách (xoay vòng 5 loại theo số ngày, GAME-DESIGN §5). Nhận trước ca, miễn phí, bỏ được trước khi mở hàng.
 // Đạt mục tiêu ⇒ thưởng tiền + XP (lần đầu nhiều hơn), lần đầu có huy hiệu riêng. Huy hiệu xét lúc chốt ca và khi mua hạng tiệm (s.badges = { id: ngày nhận }).
-import { CHALLENGE } from "../data/equipment.js?v=b4";
-import { CHALLENGE_TEXT, BADGE_LINES } from "../data/lines-m5.js?v=b4";
-import { fill, freshLine } from "./text.js?v=b4";
+import { CHALLENGE } from "../data/equipment.js?v=b5";
+import { CHALLENGE_TEXT, BADGE_LINES } from "../data/lines-m5.js?v=b5";
+import { fill, freshLine } from "./text.js?v=b5";
 
 /** mods: guests (+khách buổi sáng), patienceMul, slots (ép số ngăn lò), tourist (tỉ lệ khách Tây), manual (không phụ việc / không "Thối đúng" / không hộp đếm tiền gợi ý).
  *  goal(S) ⇒ đạt hay không (S = bảng chốt ca). */

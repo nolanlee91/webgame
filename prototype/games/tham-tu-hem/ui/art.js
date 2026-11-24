@@ -1,7 +1,7 @@
 // Hình: đọc data/asset-manifest.json (bản chép của docs/tham-tu-hem/asset-manifest.json — test kiểm khớp).
 // Có frame / file thật thì dùng, không có thì vẽ thay bằng canvas (cảnh tối có hoạ tiết, chân dung pixel chữ cái đầu) — game luôn chơi trọn được.
 // Crisp (PLAYBOOK §2): hệ số hiển thị = px thiết bị / px file luôn là bội 0,5. Cảnh lưới 2× (960×540), chân dung HD lưới 1× (ô 256).
-import { h } from "./dom.js?v=t8";
+import { h } from "./dom.js?v=t9";
 
 export const SCENE_W = 960, SCENE_H = 540, CELL = 256;
 let M = { items: [], hotspots: {} };

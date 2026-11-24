@@ -1,29 +1,29 @@
 // HUD, viên Lò / Gas, dải phiếu, thông báo, và các bảng phủ: chào, Chuẩn bị ca (nhập hàng, tiền lẻ, mẻ đầu, dự báo), Cách chơi,
 // Tạm dừng (Chơi lại từ đầu có xác nhận + backup), Chốt ca (lời lỗ), khiếu nại, hết hàng, hết tiền lẻ.
-import { icon } from "../render/atlas.js?v=b4";
-import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b4";
-import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b4";
-import { floatValue, sumBills } from "../core/money.js?v=b4";
-import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b4";
-import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b4";
-import { orderText, loafName, menuAt } from "../core/order.js?v=b4";
-import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b4";
-import { MISTAKES } from "../data/lines-mistakes.js?v=b4";
-import { PHASES } from "../data/shift.js?v=b4";
-import { quirkChips } from "./bench.js?v=b4";
-import { personaCards } from "./persona.js?v=b4";
-import { buildEvent } from "./drama.js?v=b4";
-import { buildNotebook } from "./notebook.js?v=b4";
-import { drawJournal, download, share } from "./journal.js?v=b4";
-import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b4";
-import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b4";
-import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b4";
-import { expiringOn } from "../core/expiry.js?v=b4";
-import { maiOpen, MAI } from "../core/stock.js?v=b4";
-import { currentEvent } from "../core/drama.js?v=b4";
-import { PERSONAS } from "../data/lines-reply.js?v=b4";
-import { STALE } from "../data/lines-m3.js?v=b4";
-import { FILLINGS, NAMES } from "../data/economy.js?v=b4";
+import { icon } from "../render/atlas.js?v=b5";
+import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b5";
+import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b5";
+import { floatValue, sumBills } from "../core/money.js?v=b5";
+import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b5";
+import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b5";
+import { orderText, loafName, menuAt } from "../core/order.js?v=b5";
+import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b5";
+import { MISTAKES } from "../data/lines-mistakes.js?v=b5";
+import { PHASES } from "../data/shift.js?v=b5";
+import { quirkChips } from "./bench.js?v=b5";
+import { personaCards } from "./persona.js?v=b5";
+import { buildEvent } from "./drama.js?v=b5";
+import { buildNotebook } from "./notebook.js?v=b5";
+import { drawJournal, download, share } from "./journal.js?v=b5";
+import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b5";
+import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b5";
+import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b5";
+import { expiringOn } from "../core/expiry.js?v=b5";
+import { maiOpen, MAI } from "../core/stock.js?v=b5";
+import { currentEvent } from "../core/drama.js?v=b5";
+import { PERSONAS } from "../data/lines-reply.js?v=b5";
+import { STALE } from "../data/lines-m3.js?v=b5";
+import { FILLINGS, NAMES } from "../data/economy.js?v=b5";
 import { shareResult } from "../../_shared/share.js?v=s1";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".

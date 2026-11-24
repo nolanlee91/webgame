@@ -1,6 +1,6 @@
 // Điền biến vào câu thoại. {Call} = viết hoa chữ đầu của {call}.
 // freshLine: mọi pool câu chọn qua đây — nhớ 120 câu gần nhất (một ca Cơm Tấm nói ~60–120 câu: gọi món, gọi trà, tính tiền, review) (trong ca ở sh.usedLines, giữa hai ca ở s.usedDay), ưu tiên câu chưa dùng.
-import { pick } from "./rng.js?v=c4";
+import { pick } from "./rng.js?v=c5";
 
 const cap = (v) => (v ? v[0].toLocaleUpperCase("vi") + v.slice(1) : v);
 export function fill(tpl, ctx = {}) {

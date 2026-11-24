@@ -77,11 +77,12 @@ export function soundsFor(e) {
     case "drama": return [["drama"], ["voice-surprised", .2]];
     case "dramaResolved": return [[e.rolled === "lose" ? "voice-annoyed" : e.rolled === "win" ? "viral" : "mission"]];
     case "missionDone": case "orderDone": case "newDish": return [["mission"]];
-    case "levelUp": case "rented": case "tier": return [["level-up"]];
+    case "levelUp": case "rented": case "tier": case "badge": return [["level-up"]];
+    case "fair": return [["viral"]];
     case "promoted": return [[e.roll === "flop" ? "voice-annoyed" : e.roll === "viral" || !e.roll ? "viral" : "mission"]];
     case "replied": return REPLY[e.outcome] || [];
     case "stockout": return [["error"]];
-    case "restocked": case "restockedToday": case "bought": case "consigned": case "staff": return [["cash-paper"]];
+    case "restocked": case "restockedToday": case "bought": case "consigned": case "staff": case "fishSauce": return [["cash-paper"]];
     case "decorPlaced": return [["plate-set"]];
     case "shiftEnded": return [["shift-end"]];
     default: return [];

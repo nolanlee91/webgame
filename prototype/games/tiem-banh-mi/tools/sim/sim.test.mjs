@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { runSim, TARGETS } from "./sim.mjs";
 import { Player } from "./harness.mjs";
 import { PROFILES, PROFILE_IDS } from "./profiles.mjs";
-import { RANKS, HOUSE_PATE } from "../../data/equipment.js?v=b4";
+import { RANKS, HOUSE_PATE } from "../../data/equipment.js?v=b5";
 
 test("tất định: cùng seed ⇒ cùng kết quả", () => {
   const a = runSim("sloppy", { days: 3, seed: 5 }), b = runSim("sloppy", { days: 3, seed: 5 });

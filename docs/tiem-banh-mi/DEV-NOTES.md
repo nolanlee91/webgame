@@ -239,3 +239,16 @@ Cùng luật như đợt 1; chạy check_assets đến 0 lỗi, dán kết quả
 ## Kiểm hợp đồng (M0)
 
 `python -I tools/asset-check/check_assets.py docs/tiem-banh-mi/asset-spec.json` chạy được, đọc manifest qua đường dẫn `../../../docs/tiem-banh-mi/asset-manifest.json`, báo 62 lỗi đúng dự kiến khi chưa có art: 20 file bắt buộc chưa có + 36 toạ độ đặt + 6 đường đi; 6 cảnh báo cho sheet HD / thời tiết (tuỳ chọn về mặt script nhưng vẫn phải vẽ). Mọi mẫu tên frame mở rộng đúng, không trùng tên trong cùng sheet (512 frame).
+
+## Audit âm thanh + nút lún (11/2026, `?v=b5`)
+- Nút bấm chưa lún (game không nạp `feedback.js`): thêm luật `:active` chung trong `index.html` cùng kiểu feedback.js (`translate: 0 2px; scale: .97; filter: brightness(.88)`, bỏ qua nút tắt / `aria-disabled`).
+- Nút **Tiếng** bị lớp phủ (`.overlay` z 50) che lúc Chào / Chuẩn bị ca / Tạm dừng / Chốt ca ⇒ trên điện thoại không tắt được nhạc chuẩn bị ca. Nay `#muteBtn` nổi z 51 (lớp phủ đã chừa dải 52 px trên cùng).
+- `soundsFor`: `pateUp` (nâng pate nhà làm) và `helper` bật (thuê phụ bán) ⇒ `cashbox` (theo bảng "mua đồ ⇒ cashbox").
+
+## Cần Codex — âm thanh (từ audit 11/2026)
+Cùng chuẩn bộ hiện có (MP3 mono 56 kbps, 32 kHz, tự tổng hợp, 0,3–1 giây), thả vào `prototype/games/tiem-banh-mi/assets/audio/`:
+
+| File | Dùng cho | Mô tả |
+|---|---|---|
+| `discard.mp3` | sự kiện `discarded` (bỏ ổ hỏng / làm lại) | ổ bánh giấy rơi vào thùng: tiếng "bụp" giấy + nắp thùng nhựa khẽ |
+| `decorate.mp3` | sự kiện `placed` (đặt đồ trang trí) | đặt món đồ gỗ / nhựa nhẹ lên kệ, kèm một tiếng "ting" nhỏ |

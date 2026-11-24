@@ -46,7 +46,7 @@ for (const id of ids) {
   await b.ev("__game.store.wipe()"); // khoá ghi để pagehide không đè bản lưu tiêm vào
   await b.ev(`(()=>{const solved={};${JSON.stringify(CASES.slice(0, idx).map((c) => c.id))}.forEach(i=>solved[i]={stars:3,rep:100,times:1,last:3});localStorage.setItem('wgp.tham-tu-hem.v1',JSON.stringify({v:1,name:'Bot',rep:100*${idx},solved,runs:{},flags:{s2intro:1}}))})()`);
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
-  const next = () => b.ev(`import("./core/solver.js?v=t8").then(m=>JSON.stringify(m.nextAction(__game.caseData,__game.state)))`).then(JSON.parse);
+  const next = () => b.ev(`import("./core/solver.js?v=t9").then(m=>JSON.stringify(m.nextAction(__game.caseData,__game.state)))`).then(JSON.parse);
   try {
     await press("#startBtn");
     const season = CASES[idx]?.season || 1;
@@ -78,7 +78,7 @@ for (const id of ids) {
     check(`${id}: giải trọn qua giao diện ra 3★`, await b.ev("!!__game.state&&__game.state.phase==='done'&&__game.state.result.stars===3"), JSON.stringify(await b.ev("__game.state&&{ph:__game.state.phase,r:__game.state.result}")));
   } catch (e) { check(`${id}: kịch bản`, false, e.message); }
 }
-const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t8/.test(e));
+const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t9/.test(e));
 check("0 lỗi console", !errs.length, errs.slice(0, 5).join(" | "));
 b.close();
 console.log(fails ? `${fails} FAIL` : "E2E-BOT ĐẠT");

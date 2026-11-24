@@ -38,7 +38,9 @@ export function setMusic(on) { lsSet(MUSIC_KEY, on ? "1" : "0"); sync(); }
 
 let unlocked = false, want = [], blipI = 0, lastBlip = 0;
 const cache = new Map(), last = {}, loops = new Map();
-export function unlockSound() { if (unlocked) return; unlocked = true; sync(); }
+// Cảm ứng: pointerdown (touchstart) chưa tính là thao tác ⇒ play() bị chặn (NotAllowedError), vòng lặp nằm im ở trạng thái paused.
+// Gọi lại ở pointerup / touchend: còn vòng lặp nào paused thì sync() tạo lại.
+export function unlockSound() { if (unlocked && ![...loops.values()].some((a) => a.paused)) return; unlocked = true; sync(); }
 function base(name) {
   if (cache.has(name)) return cache.get(name);
   const a = new Audio(); a.preload = "auto"; a.src = BASE + name + ".mp3";
@@ -75,7 +77,7 @@ const missing = new Set(); // vòng lặp tuỳ chọn không tải được ⇒
 const resolve = (n) => (missing.has(n) && LOOPS[n].fallback ? resolve(LOOPS[n].fallback) : n);
 function sync() {
   const on = new Set(unlocked && !muted() ? want.map(resolve).filter((n) => !LOOPS[n].music || musicOn()) : []);
-  for (const [n, a] of loops) if (!on.has(n)) { fade(a, 0, 500, () => { a.pause(); loops.delete(n); }); }
+  for (const [n, a] of loops) if (!on.has(n)) { fade(a, 0, 500, () => { a.pause(); if (loops.get(n) === a) loops.delete(n); }); }
   for (const n of on) {
     let a = loops.get(n);
     if (a && !a.paused) { fade(a, LOOPS[n].gain, 300); continue; }

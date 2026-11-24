@@ -572,3 +572,17 @@ Cùng luật như đợt 1. Chạy check_assets đến 0 lỗi, soi ảnh, dán 
   - 12 khoá đường đi / bàn.
 - 11 cảnh báo cho sheet đợt 2 (tuỳ chọn về mặt script nhưng vẫn phải vẽ).
 - Mọi mẫu tên frame mở rộng đúng, không trùng tên trong cùng sheet (777 frame).
+
+## Audit âm thanh + nút lún (11/2026, `?v=c5`)
+- Nút bấm chưa lún (game không nạp `feedback.js`): thêm luật `:active` chung trong `index.html` cùng kiểu feedback.js (`translate: 0 2px; scale: .97; filter: brightness(.88)`, bỏ qua nút tắt / `aria-disabled`).
+- Nút **Tiếng** bị lớp phủ (`.overlay` z 50) che lúc Chào / Chuẩn bị / Tạm dừng / Chốt ca ⇒ trên điện thoại không tắt được nhạc chuẩn bị. Nay `#muteBtn` nổi z 51 (lớp phủ đã chừa dải trên cùng).
+- `soundsFor`: `badge` ⇒ `level-up`, `fair` (thuê gian hội chợ) ⇒ `viral`, `fishSauce` (nâng nước mắm nhà pha) ⇒ `cash-paper` (cùng bảng Bánh Mì). Test `test/sound.test.mjs`.
+- Còn im (chưa có tiếng hợp): mời ngồi (`seated`), ướp sườn (`marinated`), nấu nồi cơm ở bảng Chuẩn bị (`riceReady` có `prep` ⇒ im có chủ ý).
+
+## Cần Codex — âm thanh (từ audit 11/2026)
+Cùng chuẩn bộ hiện có (MP3 mono, 32 kHz, tự tổng hợp, 0,3–1 giây), thả vào `prototype/games/quan-com-tam/assets/audio/`:
+
+| File | Dùng cho | Mô tả |
+|---|---|---|
+| `chair-scrape.mp3` | sự kiện `seated` (mời nhóm khách ngồi) | kéo ghế nhựa đỏ trên nền gạch, ngắn, khô |
+| `marinate.mp3` | sự kiện `marinated` (ướp sườn ở bảng Chuẩn bị) | trộn sườn trong thau nhôm: tiếng thịt ướt "lép nhép" + muỗng gõ thau |

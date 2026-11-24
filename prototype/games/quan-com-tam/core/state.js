@@ -2,13 +2,13 @@
 // Quy tắc đọc: mọi số bị kẹp về miền hợp lệ, id lạ bị bỏ; ca dở dang được giữ nếu cấu trúc hợp lệ, ngược lại bỏ riêng ca (giữ tiền / cấp / kho).
 // MIGRATIONS[v] nâng v → v+1 (v1: bản M2 trên master; v2: gộp M3 + M4).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-vN) một lần trước khi nâng, bản hỏng chép sang KEY.corrupt.
-import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES, SHELF, LEVELS, DECOR } from "../data/economy.js?v=c4";
-import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c4";
-import { levelForXp } from "./progress.js?v=c4";
-import { freshSocial, loadSocial } from "./reviews.js?v=c4"; // C: review / tính cách / Nhật Ký
-import { freshDrama } from "./flags.js?v=c4"; // B: drama
-import { freshA, loadA } from "./progression.js?v=c4"; // A: khoá tiến trình M3
-import { freshS, loadS } from "./extras.js?v=c4"; // S: hội chợ, thử thách, huy hiệu (M5)
+import { STOCK_IDS, START_MONEY, START_STOCK, GEAR, SHIFTS, SERVICE, GRILL, DISHES, SHELF, LEVELS, DECOR } from "../data/economy.js?v=c5";
+import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c5";
+import { levelForXp } from "./progress.js?v=c5";
+import { freshSocial, loadSocial } from "./reviews.js?v=c5"; // C: review / tính cách / Nhật Ký
+import { freshDrama } from "./flags.js?v=c5"; // B: drama
+import { freshA, loadA } from "./progression.js?v=c5"; // A: khoá tiến trình M3
+import { freshS, loadS } from "./extras.js?v=c5"; // S: hội chợ, thử thách, huy hiệu (M5)
 
 export const SAVE_VERSION = 3;
 /** Bảng XP của bản lưu v2 (trước cân bằng M5). Nâng v2 → v3 giữ nguyên cấp và % tiến độ trong cấp. */

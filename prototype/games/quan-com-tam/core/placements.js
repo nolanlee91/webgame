@@ -3,7 +3,7 @@
 // test không gọi thì dùng dự phòng. Thời gian đi bộ của chủ quán (core/walker.js) tính trên chính các đường này, nên khi có tranh thật
 // thì bưng ra bàn xa mất đúng thời gian theo khoảng cách trong tranh.
 // Khoá không tiền tố thuộc quan-scene; tiền tố street- thuộc street-scene; đường đi vỉa hè: streetEntry, streetWaitSpots, streetTables…
-import { STREET, QUAN, GRILL_SLOTS } from "../data/scene.js?v=c4";
+import { STREET, QUAN, GRILL_SLOTS } from "../data/scene.js?v=c5";
 
 const pt = (v) => (Array.isArray(v) && typeof v[0] === "number" && v.length >= 2 ? [v[0], v[1]] : Array.isArray(v?.at) ? [v.at[0], v.at[1]] : null);
 const pts = (v) => {

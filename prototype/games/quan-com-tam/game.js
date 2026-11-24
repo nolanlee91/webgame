@@ -1,30 +1,30 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c4";
-import { placeholderFallback } from "./render/placeholder.js?v=c4";
-import { createScene } from "./render/scene.js?v=c4";
-import { configureScene } from "./core/placements.js?v=c4";
-import { createGrillbar } from "./ui/grillbar.js?v=c4";
-import { createColumn } from "./ui/column.js?v=c4";
-import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c4";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c5";
+import { placeholderFallback } from "./render/placeholder.js?v=c5";
+import { createScene } from "./render/scene.js?v=c5";
+import { configureScene } from "./core/placements.js?v=c5";
+import { createGrillbar } from "./ui/grillbar.js?v=c5";
+import { createColumn } from "./ui/column.js?v=c5";
+import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c5";
 import { shareResult } from "../_shared/share.js?v=s1";
-import { createDrama } from "./ui/drama.js?v=c4"; // B: drama
-import { createBigGrill } from "./ui/bigrill.js?v=c4"; // V: bếp lớn HD
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c4";
-import { apply } from "./core/apply.js?v=c4";
-import { hint } from "./core/tutorial.js?v=c4";
-import { layerStrip } from "./core/plate.js?v=c4";
-import { tableJob, groupById } from "./core/tables.js?v=c4";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c4";
-import { itemName } from "./core/rescue.js?v=c4";
-import { MISTAKES } from "./core/score.js?v=c4";
-import { shopSave, browserStorage } from "./save.js?v=c4";
-import { DISHES, LEVELS } from "./data/economy.js?v=c4";
-import { setJournalBg } from "./ui/journal.js?v=c4"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c4"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c4"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c4"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c4";
+import { createDrama } from "./ui/drama.js?v=c5"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c5"; // V: bếp lớn HD
+import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c5";
+import { apply } from "./core/apply.js?v=c5";
+import { hint } from "./core/tutorial.js?v=c5";
+import { layerStrip } from "./core/plate.js?v=c5";
+import { tableJob, groupById } from "./core/tables.js?v=c5";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c5";
+import { itemName } from "./core/rescue.js?v=c5";
+import { MISTAKES } from "./core/score.js?v=c5";
+import { shopSave, browserStorage } from "./save.js?v=c5";
+import { DISHES, LEVELS } from "./data/economy.js?v=c5";
+import { setJournalBg } from "./ui/journal.js?v=c5"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c5"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c5"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c5"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c5";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -33,7 +33,7 @@ const reduced = () => reducedMQ.matches;
 const TASK_NAME = { visit: "châm trà, lấy phiếu", deliver: "bưng dĩa", bill: "tính tiền", clean: "dọn bàn", wash: "rửa chén", rice: "bưng chén cơm", moHanh: "làm mỡ hành", marinate: "ướp sườn" };
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=c4")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=c5")).json();
   configureScene(manifest.placements || {});
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));

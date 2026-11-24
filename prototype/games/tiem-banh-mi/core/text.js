@@ -1,6 +1,6 @@
 // Điền biến vào câu thoại. {Call} = viết hoa chữ đầu của {call}.
 // freshLine: mọi pool câu chọn qua đây — nhớ 120 câu gần nhất (một ca Bánh Mì nói ~60–100 câu: gọi món, thối tiền, review) (trong ca ở sh.usedLines, giữa hai ca ở s.usedDay), ưu tiên câu chưa dùng.
-import { pick } from "./rng.js?v=b4";
+import { pick } from "./rng.js?v=b5";
 
 const cap = (v) => (v ? v[0].toLocaleUpperCase("vi") + v.slice(1) : v);
 export function fill(tpl, ctx = {}) {

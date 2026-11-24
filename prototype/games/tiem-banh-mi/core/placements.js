@@ -2,7 +2,7 @@
 // Mọi toạ độ gốc lấy từ manifest.placements (Codex ghi: door, queueSpots, exitPath, cartEntry, cartQueueSpots, cartExitPath); data/shift.js là dự phòng.
 // Thứ tự hàng chờ: người đầu hàng đứng ở chỗ gần chủ tiệm nhất (chỗ giao bánh), người sau nối dần về phía cửa vào; chỗ phía bên kia
 // (ví dụ góc cửa sổ của tiệm) chỉ dùng khi hàng đã dài. Trước M5 người đầu hàng đứng ở queueSpots[0] = góc trái cửa sổ, xa cửa và xa chủ tiệm.
-import { SHOP } from "../data/shift.js?v=b4";
+import { SHOP } from "../data/shift.js?v=b5";
 
 const d2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 /** Sắp chỗ đứng theo thứ tự vào hàng: [đầu hàng (gần chủ tiệm), …về phía cửa, …phía còn lại]. */

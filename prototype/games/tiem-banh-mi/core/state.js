@@ -3,20 +3,20 @@
 // MIGRATIONS[v] nâng v → v+1. v1 → v2 (M3 + M4): thêm tính cách chủ tiệm, người theo dõi / độ hot, Drama, Nhật Ký, bánh hôm qua, bộ điều chỉnh,
 // trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, đơn đặt trước, quảng bá, phụ việc, hội chợ, thử thách, thời tiết (mặc định an toàn).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-v1) một lần trước khi nâng.
-import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b4";
-import { ARCHETYPES } from "../data/customers.js?v=b4";
-import { QUIRKS } from "../data/quirks.js?v=b4";
-import { levelForXp } from "./shift.js?v=b4";
-import { floatValue } from "./money.js?v=b4";
-import { freshDrama } from "./flags.js?v=b4";
-import { EVENT } from "../data/events.js?v=b4";
-import { NPCS } from "../data/npcs.js?v=b4";
-import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b4";
-import { PERSONAS } from "../data/lines-reply.js?v=b4";
-import { loadContracts } from "./contracts.js?v=b4";
-import { loadCook } from "./cook.js?v=b4";
-import { loadLots } from "./expiry.js?v=b4";
-import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b4";
+import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b5";
+import { ARCHETYPES } from "../data/customers.js?v=b5";
+import { QUIRKS } from "../data/quirks.js?v=b5";
+import { levelForXp } from "./shift.js?v=b5";
+import { floatValue } from "./money.js?v=b5";
+import { freshDrama } from "./flags.js?v=b5";
+import { EVENT } from "../data/events.js?v=b5";
+import { NPCS } from "../data/npcs.js?v=b5";
+import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b5";
+import { PERSONAS } from "../data/lines-reply.js?v=b5";
+import { loadContracts } from "./contracts.js?v=b5";
+import { loadCook } from "./cook.js?v=b5";
+import { loadLots } from "./expiry.js?v=b5";
+import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b5";
 
 export const SAVE_VERSION = 3;
 /** v2 → v3 (M5): hợp đồng định kỳ, lô hàng theo ngày (hạn dùng), số lần hội chợ, thử thách theo lịch, huy hiệu theo id.

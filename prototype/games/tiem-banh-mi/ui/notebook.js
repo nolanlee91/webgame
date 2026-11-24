@@ -1,14 +1,14 @@
 // Sổ quản lý (SCREENS.md): tab Review · Nhật ký · Sự kiện · Nhiệm vụ · Khách quen · Huy hiệu.
 // Review: chạm một review ⇒ khung trả lời với hàng nút tính cách (đổi ngay, thành mặc định) trên các lựa chọn; hậu quả ghi trên nút; câu trả lời
 // lưu nguyên văn dưới review kèm kết quả + câu đáp lại. Vẽ lại giữ vị trí cuộn (bài học Trà Sữa).
-import { replyOptions, optionHint, personaOf, OUTCOME_LABEL } from "../core/reviews.js?v=b4";
-import { personaSwitch } from "./persona.js?v=b4";
-import { EVENT } from "../data/events.js?v=b4";
-import { REGULARS } from "../data/customers.js?v=b4";
-import { RECIPE } from "../data/economy.js?v=b4";
-import { RANKS, HOUSE_PATE } from "../data/equipment.js?v=b4";
-import { PERSONAS } from "../data/lines-reply.js?v=b4";
-import { BADGES, BADGE } from "../core/challenge.js?v=b4";
+import { replyOptions, optionHint, personaOf, OUTCOME_LABEL } from "../core/reviews.js?v=b5";
+import { personaSwitch } from "./persona.js?v=b5";
+import { EVENT } from "../data/events.js?v=b5";
+import { REGULARS } from "../data/customers.js?v=b5";
+import { RECIPE } from "../data/economy.js?v=b5";
+import { RANKS, HOUSE_PATE } from "../data/equipment.js?v=b5";
+import { PERSONAS } from "../data/lines-reply.js?v=b5";
+import { BADGES, BADGE } from "../core/challenge.js?v=b5";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const stars = (n) => "★".repeat(n) + "☆".repeat(5 - n);

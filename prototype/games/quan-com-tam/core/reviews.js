@@ -7,17 +7,17 @@
 // Mỗi review trả lời một lần: 3–4 lựa chọn theo tính cách + sao + lý do; câu trả lời lưu nguyên văn dưới review (r.reply) kèm hậu quả + câu đáp lại.
 // Review sườn sống / dĩa chay dính mặn (serious) chỉ cho lựa chọn xin lỗi nghiêm túc của tính cách đang chọn (không đùa, không khuyến mãi).
 // Cờ dùng chung (Agent B đọc, DEV-NOTES "Cờ dùng chung"): reply-viral, reply-phot, reply-sale, persona-flip, review-1star-<lý do>.
-import { PERSONAS, REPLY_OPTIONS, REPLY_LINES, MISTAKE_TEXT, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_HANDLES, NET_REVIEW, RETURN_LINES } from "../data/lines-reply.js?v=c4";
-import { SLOW_REVIEW, TAKEAWAY_REVIEW, TAKEAWAY_LOW, CHARRED_PRAISE, EGG_PRAISE, SERVICE_PRAISE } from "../data/lines-reviews-m4.js?v=c4";
-import { REVIEWS } from "../data/lines-reviews.js?v=c4";
-import { MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c4";
-import { pool } from "../data/lines.js?v=c4";
-import { DISHES } from "../data/economy.js?v=c4";
-import { ARCHETYPES } from "../data/customers.js?v=c4";
-import { next, pick, int } from "./rng.js?v=c4";
-import { freshLine, fill } from "./text.js?v=c4";
-import { MISTAKES } from "./score.js?v=c4";
-import { caption, recaption } from "./journal.js?v=c4";
+import { PERSONAS, REPLY_OPTIONS, REPLY_LINES, MISTAKE_TEXT, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_HANDLES, NET_REVIEW, RETURN_LINES } from "../data/lines-reply.js?v=c5";
+import { SLOW_REVIEW, TAKEAWAY_REVIEW, TAKEAWAY_LOW, CHARRED_PRAISE, EGG_PRAISE, SERVICE_PRAISE } from "../data/lines-reviews-m4.js?v=c5";
+import { REVIEWS } from "../data/lines-reviews.js?v=c5";
+import { MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c5";
+import { pool } from "../data/lines.js?v=c5";
+import { DISHES } from "../data/economy.js?v=c5";
+import { ARCHETYPES } from "../data/customers.js?v=c5";
+import { next, pick, int } from "./rng.js?v=c5";
+import { freshLine, fill } from "./text.js?v=c5";
+import { MISTAKES } from "./score.js?v=c5";
+import { caption, recaption } from "./journal.js?v=c5";
 
 export const FEED_MAX = 40, RATING_N = 20, FLIP_DAY = 3;
 export const SERIOUS = new Set(["raw", "veganMeat"]);
