@@ -9,7 +9,7 @@ export const LAUNCH = { y: 2026, m: 11, d: 24 };
 export const VN_OFFSET = 7 * 3600 * 1000;
 export const DAY_MS = 86400 * 1000;
 export const STORE_KEY = "wgp.daily.v1";
-export const SITE = "https://lumkeo.up.railway.app";
+export const SITE = "https://lumkeo.com";
 const KEEP_DAYS = 60; // giữ kết quả chi tiết 60 ngày gần nhất
 
 /** Các game có thử thách. path = thư mục trong prototype/games/. */

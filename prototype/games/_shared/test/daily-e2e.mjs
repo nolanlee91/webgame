@@ -125,7 +125,7 @@ try {
   const SH = JSON.parse(await ev(`(async () => { let clip = ""; try { clip = await navigator.clipboard.readText(); } catch (e) { clip = "ERR " + e.message; }
     return JSON.stringify({ clip, text: window.__dailyShareText, toast: document.getElementById("dailyToast")?.textContent, btn: document.getElementById("dlyShare").textContent }); })()`));
   check("chia sẻ: chuỗi đúng mẫu (tên + #N, ô emoji, chuỗi ngày, link ?daily=1&ref=daily)",
-    SH.text && SH.text.startsWith(`Lụm Kèo · Thử thách #${day} · Đố Vui\n${expGrid}\n`) && SH.text.includes("🔥 Chuỗi 1 ngày") && SH.text.endsWith("https://lumkeo.up.railway.app/games/do-vui-nhanh/?daily=1&ref=daily"), JSON.stringify(SH.text));
+    SH.text && SH.text.startsWith(`Lụm Kèo · Thử thách #${day} · Đố Vui\n${expGrid}\n`) && SH.text.includes("🔥 Chuỗi 1 ngày") && SH.text.endsWith("https://lumkeo.com/games/do-vui-nhanh/?daily=1&ref=daily"), JSON.stringify(SH.text));
   check("chia sẻ: fallback clipboard có đúng chuỗi + báo 'Đã chép, dán vào Zalo / Facebook nhé'", SH.clip.replace(/\r\n/g, "\n") === SH.text && SH.toast === "Đã chép, dán vào Zalo / Facebook nhé" && SH.btn === "Đã chép ✓", JSON.stringify(SH.clip) + " | " + SH.toast);
   await shot("do-vui-da-chep-1366.png");
   // Mở lại ⇒ khoá

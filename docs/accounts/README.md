@@ -94,7 +94,7 @@ Tài khoản ẩn danh có thể **liên kết** với Google / Facebook mà v�
 
 1. Supabase → Authentication → Sign In / Providers: bật **Google** / **Facebook**, điền Client ID và Secret lấy từ Google Cloud Console / Meta for Developers. Thêm `https://<ref>.supabase.co/auth/v1/callback` vào redirect URI của hai bên.
 2. Authentication → Sign In / Providers → bật **Allow manual linking** (cần cho `linkIdentity`).
-3. Authentication → URL Configuration: Site URL = `https://lumkeo.up.railway.app`, thêm các trang game vào Redirect URLs.
+3. Authentication → URL Configuration: Site URL = `https://lumkeo.com`, thêm các trang game vào Redirect URLs.
 4. Phía trình duyệt đã có sẵn hàm `linkIdentity(provider)` trong `prototype/games/_shared/account.js`. Chỉ cần làm nút "Liên kết Google/Facebook" gọi `linkIdentity("google")`. Khi quay về trang, `detectSessionInUrl` phải bật cho trang đó (hiện đang tắt vì chưa có luồng OAuth).
 5. Khi có tài khoản thật, cập nhật mục "Quyền riêng tư" bên dưới (sẽ có email / tên từ Google, Facebook) và trang chính sách.
 

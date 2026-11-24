@@ -136,11 +136,11 @@ test("chuỗi chia sẻ: tên + số thử thách, ô emoji, chuỗi ngày, link
   assert.equal(lines[1], "🟩🟥🟩🟩🟩");
   assert.match(t, /Đúng 4\/5 · ⏱️ 38,4 giây/);
   assert.match(t, /🔥 Chuỗi 1 ngày/);
-  assert.equal(lines.at(-1), "https://lumkeo.up.railway.app/games/do-vui-nhanh/?daily=1&ref=daily");
+  assert.equal(lines.at(-1), "https://lumkeo.com/games/do-vui-nhanh/?daily=1&ref=daily");
   for (const q of Q.QUESTIONS) assert.ok(!t.includes(q.a[0]) || q.a[0].length < 3, "lộ đáp án: " + q.a[0]);
 
   const su = D.shareText("sudoku", { day: 9, time: 431, mistakes: 0, hints: 0 }, { streak: 4 });
-  assert.match(su, /^Lụm Kèo · Thử thách #9 · Sudoku\n⏱️🟩🟩🟩🟨 7:11 ⭐\n🔥 Chuỗi 4 ngày\nhttps:\/\/lumkeo\.up\.railway\.app\/games\/sudoku\/\?daily=1&ref=daily$/);
+  assert.match(su, /^Lụm Kèo · Thử thách #9 · Sudoku\n⏱️🟩🟩🟩🟨 7:11 ⭐\n🔥 Chuỗi 4 ngày\nhttps:\/\/lumkeo.com\/games\/sudoku\/\?daily=1&ref=daily$/);
   const su2 = D.shareText("sudoku", { day: 9, time: 1500, mistakes: 2, hints: 1 }, { streak: 0 });
   assert.match(su2, /🟥➕ 25:00\nLỗi 2 · Gợi ý 1\nhttps/);
   assert.ok(!su2.includes("⭐") && !su2.includes("🔥"));

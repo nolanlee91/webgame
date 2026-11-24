@@ -87,7 +87,7 @@ test("layoutCard: mọi phần nằm trong khung, không chồng nhau, thumb ph�
   assert.equal(L4.stats.twoCol, true, "4 dòng ngắn ⇒ 2 cột");
   const L3 = layoutCard(normalizeOpts({ game: "x", title: "t", lines: ["A: 1", "B: 2", "C: 3"] }), measure, null);
   assert.equal(L3.stats.twoCol, false, "3 dòng ⇒ 1 cột");
-  assert.equal(L4.footer.line2, "lumkeo.up.railway.app");
+  assert.equal(L4.footer.line2, "lumkeo.com");
 });
 
 test("communityLinks: chỉ lấy link http(s) không rỗng; rỗng hết ⇒ []", () => {
@@ -103,6 +103,6 @@ test("community.js trên trang chủ mặc định rỗng (không hiện nút)",
   const vm = await import("node:vm");
   const ctx = { window: {} };
   vm.runInNewContext(readFileSync(new URL("../../../homepage/community.js", import.meta.url), "utf8"), ctx);
-  assert.deepEqual(Object.keys(ctx.window.COMMUNITY).sort(), ["facebookGroup", "facebookPage", "tiktok", "zalo"]);
+  assert.deepEqual(Object.keys(ctx.window.COMMUNITY).sort(), ["contactEmail", "facebookGroup", "facebookPage", "tiktok", "zalo"]);
   assert.deepEqual(communityLinks(ctx.window.COMMUNITY), []);
 });
