@@ -180,6 +180,7 @@
       .card .how { order: 9; margin-top: 14px; font-size: 13px; }
       .lvs { grid-template-columns: repeat(4, 1fr); gap: 8px; } .lvb b { font-size: 17px; }
       .actions .btn { flex: 1 1 200px; }
+      #ovWin .actions .btn:not(.btn--primary) { flex-basis: 120px; padding-inline: 8px; font-size: 15px; letter-spacing: .03em; } /* bảng thắng 4 nút: "Chơi lại" + "Khoe kết quả" chung hàng cho vừa màn */
     }
     @media (max-width: 640px) { .bar { gap: 12px; padding: 6px 12px; } .bar h1 { font-size: 15px; letter-spacing: .03em; } .bar a { font-size: 13px; } .tag { display: none; } }
     @media (max-width: 380px) { .stat small { font-size: 9px; letter-spacing: .04em; } .stat.main b { font-size: 22px; } .stat b { font-size: 15px; } .bigstars i { width: 44px; height: 44px; } .eggs i { width: 17px; height: 17px; } }
@@ -270,6 +271,7 @@
           <div class="actions">
             <button class="btn btn--big btn--primary" id="nextBtn" type="button">▶ Màn tiếp</button>
             <button class="btn btn--big" id="replayBtn" type="button">Chơi lại</button>
+            <button class="btn btn--big" id="shareBtnW" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnW" type="button">Menu</button>
           </div>
         </div>
@@ -284,6 +286,7 @@
           <div id="lRecord"></div>
           <div class="actions">
             <button class="btn btn--big btn--primary" id="retryBtn" type="button">▶ Chơi lại</button>
+            <button class="btn btn--big" id="shareBtnL" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnL" type="button">Menu</button>
           </div>
         </div>
@@ -291,7 +294,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js?v=launcher3";
+    import { mount } from "./game.js?v=share1";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

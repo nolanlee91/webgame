@@ -6,28 +6,28 @@
 // Khác biệt có chủ ý so với bản đang chạy trong trình duyệt (ghi trong README):
 //  - Mọi máy / công trình M2–M4 đều dùng được (không lọc CURRENT_MILESTONE), công trình theo core/build.js (M3).
 //  - Nhà kính: 6 ô thêm vào cuối s.plots (chỉ trồng Mía / cây thường), coi như luôn được tưới. Khu đất Đông: +9 ô.
-import { CROP, CROPS } from "../../data/crops.js?v=m6";
-import { ITEM } from "../../data/catalog.js?v=m6";
-import { FIRST_ORDERS, ORDER_TYPES } from "../../data/orders.js?v=m6";
-import { WAREHOUSE, OVERFLOW_MAX } from "../../data/warehouse.js?v=m6";
-import { QUESTS } from "../../data/quests.js?v=m6";
-import { RECIPE } from "../../data/recipes.js?v=m6";
-import { MACHINE } from "../../data/machines.js?v=m6";
-import { ANIMAL } from "../../data/animals.js?v=m6";
-import { BUILDING } from "../../data/buildings.js?v=m6";
-import * as plots from "../../core/plots.js?v=m6";
-import * as orders from "../../core/orders.js?v=m6";
-import * as eco from "../../core/economy.js?v=m6";
-import * as quests from "../../core/quests.js?v=m6";
-import * as P from "../../core/production.js?v=m6";
-import * as A from "../../core/animals.js?v=m6";
-import * as V from "../../core/village.js?v=m6";
-import * as B from "../../core/build.js?v=m6";
-import { MARKET } from "../../core/market.js?v=m6";
-import { addXp, xpNeed } from "../../core/progression.js?v=m6";
-import { bag, have, settleOverflow, used, capacity, overflowCount } from "../../core/inventory.js?v=m6";
-import * as fair from "../../core/fair.js?v=m6";
-import * as book from "../../core/collection.js?v=m6";
+import { CROP, CROPS } from "../../data/crops.js?v=m6s";
+import { ITEM } from "../../data/catalog.js?v=m6s";
+import { FIRST_ORDERS, ORDER_TYPES } from "../../data/orders.js?v=m6s";
+import { WAREHOUSE, OVERFLOW_MAX } from "../../data/warehouse.js?v=m6s";
+import { QUESTS } from "../../data/quests.js?v=m6s";
+import { RECIPE } from "../../data/recipes.js?v=m6s";
+import { MACHINE } from "../../data/machines.js?v=m6s";
+import { ANIMAL } from "../../data/animals.js?v=m6s";
+import { BUILDING } from "../../data/buildings.js?v=m6s";
+import * as plots from "../../core/plots.js?v=m6s";
+import * as orders from "../../core/orders.js?v=m6s";
+import * as eco from "../../core/economy.js?v=m6s";
+import * as quests from "../../core/quests.js?v=m6s";
+import * as P from "../../core/production.js?v=m6s";
+import * as A from "../../core/animals.js?v=m6s";
+import * as V from "../../core/village.js?v=m6s";
+import * as B from "../../core/build.js?v=m6s";
+import { MARKET } from "../../core/market.js?v=m6s";
+import { addXp, xpNeed } from "../../core/progression.js?v=m6s";
+import { bag, have, settleOverflow, used, capacity, overflowCount } from "../../core/inventory.js?v=m6s";
+import * as fair from "../../core/fair.js?v=m6s";
+import * as book from "../../core/collection.js?v=m6s";
 
 export const START_COINS = 24; // = core/state.js START_COINS (không import state.js)
 export const GREENHOUSE_BASE = plots.W * plots.H; // ô nhà kính bắt đầu từ chỉ số 25

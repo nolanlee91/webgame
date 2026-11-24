@@ -1,6 +1,7 @@
 // Nối Thú — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu tiến độ. Luật chơi nằm hết trong logic.js.
 import { LEVELS, newGame, nextLevel, retryLevel, pick, hint, shuffle, tick, remaining, H, W } from "./logic.js";
 import { TILES, renderAnimal } from "./sprites.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const TILE_ART_SIZE = 64;
 const TILE_ART_COLUMNS = 6;
@@ -319,11 +320,32 @@ export function mount(root, ctx = {}) {
       sdk.gameOver && sdk.gameOver({ score: s.score, level: lv, result: "win" });
     }
     ui.eResult.innerHTML = rows.join("");
+    const shareData = endShare(lv);
+    ui.eActions.firstChild.after(btn("Khoe kết quả", "", () => shareResult(shareData), "shareBtn"));
     if (newRecord) sfx.play("trung-kim-cuong", 0.7, 0.8); // kỷ lục mới, trễ 0,8 s sau tiếng thắng/thua
     ui.eRecord.innerHTML = newRecord ? '<span class="record">Kỷ lục mới!</span>' : '<div class="best">Kỷ lục: ' + save.best + " điểm</div>";
     sdk.reportScore && sdk.reportScore(s.score);
     ui.ovEnd.hidden = false; hudCache = ""; hud();
     setTimeout(() => { const b = ui.eActions.querySelector(".btn--primary"); b && b.focus({ preventScroll: true }); }, 0);
+  }
+  // Khoe kết quả: chụp số thật của ván ngay lúc hiện bảng kết thúc.
+  function endShare(lv) {
+    const mm = (t) => Math.floor(t / 60) + ":" + String(Math.floor(t % 60)).padStart(2, "0");
+    const pts = s.score.toLocaleString("vi-VN"), rec = newRecord ? " · kỷ lục mới" : "";
+    if (s.status === "timeout") {
+      const left = remaining(s);
+      return { game: "noi-thu", title: newRecord ? `Kỷ lục mới ${pts} điểm` : `Hết giờ ở màn ${lv}`,
+        lines: [`Màn: ${lv}/${LEVELS.length}`, `Cặp đã nối: ${s.pairs}`, `Ô còn sót: ${left}`, `Điểm: ${pts}${rec}`],
+        tagline: left <= 4 ? "Còn đúng vài ô, đồng hồ chơi ác thiệt!" : lv >= 5 ? "Bàn to cỡ này, ai dọn sạch nổi thì vô đây!" : "Pikachu chạy nhanh quá, mai rượt tiếp!" };
+    }
+    if (s.status === "cleared") {
+      return { game: "noi-thu", title: `Qua màn ${lv}`,
+        lines: [`Cặp đã nối: ${s.pairs}`, `Thời gian còn: ${mm(s.time)}`, `Thưởng giờ: +${s.bonus}`, `Tổng điểm: ${pts}${rec}`],
+        tagline: s.time >= s.timeMax / 2 ? "Dọn bàn nhanh như chớp, mắt thần đây chứ đâu!" : s.time < 20 ? "Sát nút từng giây, tim muốn rớt ra ngoài!" : "Tuổi thơ Pikachu chưa quên chút nào!" };
+    }
+    return { game: "noi-thu", title: `Phá đảo ${LEVELS.length} màn!`,
+      lines: [`Tổng điểm: ${pts}${rec}`, `Thời gian còn màn cuối: ${mm(s.time)}`, `Thưởng giờ: +${s.bonus}`],
+      tagline: "Cả 8 bàn sạch bong. Ai dám so điểm không?" };
   }
   function setPaused(p) {
     if (!s || s.status !== "playing" || paused === p) return;

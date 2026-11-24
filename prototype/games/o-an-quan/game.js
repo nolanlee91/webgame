@@ -5,6 +5,7 @@ import { bestMove } from "./ai.js";
 import { createBoard } from "./board.js?v=oaq2";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
 import { createNet, CODE_RE } from "./net.js?v=oaq2";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module
 const SAVE_KEY = "wgp.o-an-quan.v1", NAME_KEY = "wgp.o-an-quan.name";
@@ -545,6 +546,28 @@ export function mount(root, ctx = {}) {
     overlay("end");
     $("nextBtn").focus({ preventScroll: true });
   }
+  // "Khoe kết quả": ảnh 1080×1080 với số thật của ván vừa xong (điểm, quan ăn được, số nước, mức máy / đối thủ, tỉ số các ván).
+  function shareEnd() {
+    if (!s || !isOver(s)) return;
+    const f = s.final || { score: s.score, eaten: s.eaten }, me = myTeam(), op = 1 - me, nm = teamNames();
+    const mine = f.score[me], theirs = f.score[op], gap = mine - theirs;
+    const res = s.winner === 2 ? "draw" : s.winner === me ? "win" : "lose";
+    const vs = room ? "" : " máy";
+    const title = (res === "win" ? "Thắng" : res === "lose" ? "Thua" : "Hòa") + vs + " " + mine + "–" + theirs;
+    const tagline = res === "draw" ? "Bất phân thắng bại — làm thêm ván nữa!"
+      : res === "lose" ? (room ? "Thua ván này thôi, ván sau gỡ lại cả quan lẫn dân!" : "Máy ăn quan mất rồi, mai phục thù!")
+      : gap >= 20 ? (room ? "Rải một đường, đối thủ hết dân luôn!" : "Máy xin thua, quan dân về tay hết!")
+      : gap <= 6 ? "Thắng sát nút, tim đập thình thịch!" : "Rải sỏi khéo như bà ngoại dạy.";
+    shareResult({
+      game: "o-an-quan", title, tagline, theme: "wood",
+      lines: [
+        room ? "Đối thủ: " + nm[op] : "Mức máy: " + LEVEL_NAME[s.aiLevel],
+        "Quan ăn được: " + f.eaten[me] + " – " + f.eaten[op],
+        "Số nước: " + s.moves.length,
+        "Tỉ số các ván: " + s.tally[me] + " – " + s.tally[op] + (s.tally[2] ? " (hòa " + s.tally[2] + ")" : ""),
+      ],
+    });
+  }
   function clearTimers() { clearTimeout(aiTimer); clearTimeout(endTimer); thinking = false; }
 
   // ---------- Hành động
@@ -670,6 +693,7 @@ export function mount(root, ctx = {}) {
   $("menuBtnP").onclick = () => { if (room) return leaveRoom(); pendingResume = s && !isOver(s) && s.moves.length ? s : null; board.skip(); showMenu(); };
   $("menuBtnE").onclick = () => { if (room) return net.leave(); pendingResume = null; showMenu(); };
   $("nextBtn").onclick = doNext;
+  $("shareBtn").onclick = shareEnd;
   $("viewBtn").onclick = () => { overlay(null); cv.focus({ preventScroll: true }); };
 
   function onKey(e) {

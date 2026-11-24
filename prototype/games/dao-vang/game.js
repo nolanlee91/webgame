@@ -3,8 +3,13 @@
 // Hình vẽ dùng asset thật trong ./assets (nền hang, thợ mỏ + tời + móc, 8 vật thể gộp 1 ảnh — cắt theo SPRITES).
 // Khi ảnh chưa tải xong hoặc lỗi, tự quay về hình khối tạm (vẫn chơi được).
 import { W, H, CFG, KINDS, createGame, step, fire, nextLevel, restart, tipOf, drainEvents } from "./logic.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const DT = 1 / 60;
+const SAVE_KEY = "wgp.daovang.v1"; // kỷ lục điểm (chỉ để khoe kết quả + hiện trên bảng "Hết giờ")
+function loadBest() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY)); return { best: Math.max(0, (v && v.best) | 0), level: Math.max(0, (v && v.level) | 0) }; } catch { return { best: 0, level: 0 }; } }
+const fmtNum = (n) => n.toLocaleString("vi-VN");
+const fmtTime = (t) => { const m = Math.floor(t / 60); return m + ":" + String(Math.floor(t - m * 60)).padStart(2, "0"); };
 const COLORS = {
   sky: "#1d2a35", skyLow: "#2c3b45", ground: "#5a3a26", dirt: "#4a2f1f", dirtDeep: "#3a2418", edge: "#7a5152",
   rope: "#d9c9a3", hook: "#c9ccd1", ink: "#f4ead2", soft: "#b9ad93", gold: "#ffc94a", goldDark: "#a8741a",
@@ -117,6 +122,8 @@ export function mount(el, ctx = {}) {
   let paused = false, destroyed = false, acc = 0, last = performance.now(), raf = 0;
   const pops = [];   // điểm bay lên
   let shake = 0, flash = 0;
+  // Số liệu cả lượt chơi (từ màn 1 tới lúc "Hết giờ") để khoe kết quả
+  let run = { gold: 0, diamond: 0, time: 0 }, result = null, saved = loadBest();
 
   const canvas = document.createElement("canvas");
   canvas.className = "dv-canvas";
@@ -143,7 +150,7 @@ export function mount(el, ctx = {}) {
   function advance() {
     // Khi màn kết thúc: một phím/chạm để sang màn hoặc chơi lại.
     if (g.status === "cleared") { g = nextLevel(g); sfx.play("qua-man"); return true; }
-    if (g.status === "failed") { g = restart(g); return true; }
+    if (g.status === "failed") { g = restart(g); run = { gold: 0, diamond: 0, time: 0 }; result = null; return true; }
     return false;
   }
   function act(i) {
@@ -186,7 +193,7 @@ export function mount(el, ctx = {}) {
     last = now;
     if (!paused) {
       acc += dt;
-      while (acc >= DT) { step(g, DT); acc -= DT; }
+      while (acc >= DT) { if (g.status === "playing") run.time += DT; step(g, DT); acc -= DT; }
       for (const ev of drainEvents(g)) handleEvent(ev);
     }
     for (const p of pops) p.t += paused ? 0 : dt;
@@ -198,7 +205,10 @@ export function mount(el, ctx = {}) {
   function handleEvent(ev) {
     if (ev.type === "fire") sfx.play("tha-moc", 0.9);
     if (ev.type === "grab") sfx.play(ev.kind === "diamond" ? "trung-kim-cuong" : ev.kind.startsWith("rock") ? "trung-da" : "trung-vang");
-    if (ev.type === "collect") sfx.play("keo-vat", 0.9);
+    if (ev.type === "collect") {
+      sfx.play("keo-vat", 0.9);
+      if (ev.kind === "diamond") run.diamond++; else if (ev.kind && ev.kind.startsWith("gold")) run.gold++;
+    }
     if (ev.type === "boom") sfx.play("no-tnt");
     if (ev.type === "levelEnd") {
       const late = ev.reason === "time" ? (sfx.play("het-gio"), 0.65) : 0;
@@ -211,6 +221,11 @@ export function mount(el, ctx = {}) {
     if (ev.type === "boom") { shake = 0.35; flash = 0.18; pops.push({ x: ev.x, y: ev.y - 20, text: "BÙM!", color: COLORS.tnt, t: 0 }); }
     if (ev.type === "levelEnd" && reported !== g) {
       reported = g;
+      if (ev.status === "failed") {
+        const prev = saved.best, record = g.score > prev;
+        if (record) { saved = { best: g.score, level: g.level }; try { localStorage.setItem(SAVE_KEY, JSON.stringify(saved)); } catch {} }
+        result = { score: g.score, level: g.level, target: g.target, record, prev, gold: run.gold, diamond: run.diamond, time: run.time };
+      }
       if (ev.status === "failed" && sdk.gameOver) sdk.gameOver({ score: g.score, level: g.level, players });
     }
   }
@@ -374,6 +389,7 @@ export function mount(el, ctx = {}) {
     pxBox(cx, cy, tw, 34, PX.gold, PX.goldD, true);
     c2.fillStyle = PX.goldL; c2.fillRect(cx, cy, tw, 3);
     c2.fillStyle = "#2c1b05"; c2.fillText(cta.toUpperCase(), W / 2, cy + 18);
+    return by + bh;
   }
   function draw() {
     c2.save();
@@ -409,12 +425,42 @@ export function mount(el, ctx = {}) {
     }
     if (g.status === "cleared") {
       overlay("Qua màn " + g.level + "!", ["Điểm " + g.score + " / mục tiêu " + g.target, "Nhấn Space hoặc chạm để sang màn " + (g.level + 1)], COLORS.ok);
-    } else if (g.status === "failed") {
-      overlay("Hết giờ!", ["Thiếu " + (g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + g.score, "Nhấn Space hoặc chạm để chơi lại"], COLORS.bad);
+    }
+    let shareAt = 0;
+    if (g.status === "failed") {
+      const rec = result && result.record && result.score > 0 ? "Kỷ lục mới!" : saved.best ? "Kỷ lục: " + saved.best : null;
+      shareAt = overlay("Hết giờ!", ["Thiếu " + (g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + g.score, ...(rec ? [rec] : []), "Nhấn Space hoặc chạm để chơi lại"], COLORS.bad);
     } else if (paused) {
       overlay("Tạm dừng", ["Trò chơi đang dừng", "Nhấn P hoặc chạm để chơi tiếp"], PX.ink);
     }
+    placeShare(shareAt);
   }
+
+  // ---------- Nút "Khoe kết quả" (DOM, nằm ngay dưới bảng "Hết giờ" trên canvas) ----------
+  const shareBtn = document.createElement("button");
+  shareBtn.type = "button"; shareBtn.className = "btn dv-share"; shareBtn.id = "shareBtn"; shareBtn.textContent = "Khoe kết quả"; shareBtn.hidden = true;
+  el.appendChild(shareBtn);
+  let shareTop = -1;
+  function placeShare(y) {
+    const show = y > 0 && !paused;
+    if (shareBtn.hidden === show) shareBtn.hidden = !show;
+    if (show && y !== shareTop) { shareTop = y; shareBtn.style.top = (y + 18) / H * 100 + "%"; }
+  }
+  shareBtn.addEventListener("click", () => {
+    const r = result; if (!r) return;
+    const tagline = r.record && r.level >= 4 ? "Kỷ lục mới! Mỏ vàng này giờ đứng tên tui."
+      : r.record ? "Kỷ lục mới! Móc câu thần sầu, ai dám đọ?"
+      : r.diamond >= 2 ? "Kim cương gom cả nắm mà vẫn trễ giờ, tiếc ghê!"
+      : r.level >= 3 ? "Đào tới màn " + r.level + " rồi, ván sau phá đảo!"
+      : "Toàn kéo trúng đá, mai đào tiếp!";
+    shareResult({
+      game: "dao-vang",
+      title: r.record && r.score > 0 ? `Kỷ lục mới ${fmtNum(r.score)} điểm` : `${fmtNum(r.score)} điểm`,
+      lines: [`Màn đạt: ${r.level}`, `Vàng gắp được: ${r.gold} cục`, `Kim cương: ${r.diamond} viên`,
+        !r.record && r.prev ? `Kỷ lục: ${fmtNum(r.prev)}` : `Thời gian: ${fmtTime(r.time)}`],
+      tagline,
+    });
+  });
 
   const inst = {
     pause() { setPaused(true); },
@@ -424,12 +470,13 @@ export function mount(el, ctx = {}) {
       window.removeEventListener("keydown", onKey);
       canvas.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("visibilitychange", onVis);
-      canvas.remove();
+      canvas.remove(); shareBtn.remove();
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return g; },
     set state(v) { g = v; },
     get paused() { return paused; },
+    get result() { return result; },
     get artReady() { return art.ready; },
     get sfx() { return { loaded: sfx.loaded, state: sfx.state, log: sfx.log.slice() }; },
   };

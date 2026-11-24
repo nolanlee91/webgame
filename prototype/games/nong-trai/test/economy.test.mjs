@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SHOP, RESALE_MIN_RATIO } from "../data/shop.js?v=m6";
-import { ITEM, ITEMS } from "../data/catalog.js?v=m6";
-import { CROP } from "../data/crops.js?v=m6";
-import { SAFETY_COOLDOWN_MS } from "../core/economy.js?v=m6";
-import { apply } from "../core/apply.js?v=m6";
+import { SHOP, RESALE_MIN_RATIO } from "../data/shop.js?v=m6s";
+import { ITEM, ITEMS } from "../data/catalog.js?v=m6s";
+import { CROP } from "../data/crops.js?v=m6s";
+import { SAFETY_COOLDOWN_MS } from "../core/economy.js?v=m6s";
+import { apply } from "../core/apply.js?v=m6s";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("không vòng mua → bán có lời: mọi món chợ bán ra hoặc không bán lại được, hoặc giá mua ≥ 1,6 × giá bán lại", () => {
@@ -59,7 +59,7 @@ test("lưới an toàn không tặng khi còn đường đi: đủ xu, có cây 
 });
 
 // ---------- Milestone 4: vật nuôi trong lưới an toàn ----------
-import { stuck, animalsBusy } from "../core/economy.js?v=m6";
+import { stuck, animalsBusy } from "../core/economy.js?v=m6s";
 
 test("M4 lưới an toàn: gà đang làm trứng / trứng chờ thu / còn thức ăn cho con đói ⇒ không coi là kẹt", () => {
   const broke = () => { const s = farm(); s.coins = 0; s.freeSeeds = 0; s.inv = {}; s.overflow = {}; return s; };

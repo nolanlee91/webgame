@@ -306,6 +306,7 @@
           <div class="actions">
             <button class="btn btn--big btn--primary" id="nextBtn" type="button">▶ Màn tiếp</button>
             <button class="btn btn--big" id="replayBtn" type="button">Chơi lại</button>
+            <button class="btn btn--big btn--teal" id="shareBtnW" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnW" type="button">Menu</button>
           </div>
         </div>
@@ -319,6 +320,7 @@
           <div class="result" id="lResult"></div>
           <div class="actions">
             <button class="btn btn--big btn--primary" id="retryBtn" type="button">▶ Chơi lại</button>
+            <button class="btn btn--big btn--teal" id="shareBtnL" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnL" type="button">Menu</button>
           </div>
         </div>
@@ -326,7 +328,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js?v=shop3";
+    import { mount } from "./game.js?v=share1";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

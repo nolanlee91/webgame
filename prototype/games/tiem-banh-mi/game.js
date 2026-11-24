@@ -4,7 +4,7 @@ import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE }
 import { placeholderFallback } from "./render/placeholder.js?v=b3";
 import { createScene } from "./render/scene.js?v=b3";
 import { createBench } from "./ui/bench.js?v=b3";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b3";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b3s";
 import { apply } from "./core/apply.js?v=b3";
 import { customer } from "./core/shift.js?v=b3";
 import { hint } from "./core/tutorial.js?v=b3";

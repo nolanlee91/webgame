@@ -19,11 +19,27 @@ import { personaCards, PERSONAS } from "./persona.js?v=m37";
 import { demandEstimate, menuStock, STOCKOUT } from "../core/stockout.js?v=m37";
 import { FAIR, fairAvailable, fairToday, nextFairDay, TIERS, tierOf, nextTier, shiftFee } from "../core/fair.js?v=m37";
 import { CHALLENGE_UNLOCK, challengeWeek, activeChallenge, CHALLENGE_REWARD } from "../core/challenge.js?v=m37";
+import { shareResult } from "../../_shared/share.js?v=s1";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const k = (n) => `${n.toLocaleString("vi-VN")}k`;
 const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const drinkIcon = (r) => (r.add === "sua" || r.add === "kem-sua" || r.base === "sua-tuoi" ? ["cupui", "served-milk-tea"] : ["cupui", "tea-mid"]);
+
+// Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
+const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;
+export function summaryShare(S) {
+  const p = S.profit, lvUp = S.levelUps?.length ? Math.max(...S.levelUps) : 0;
+  const title = p > 0 ? `Ngày ${S.day} lãi ${vnd(p)}` : p < 0 ? `Ngày ${S.day} lỗ ${vnd(p)}` : `Ngày ${S.day} huề vốn`;
+  const lines = [`Doanh thu: ${vnd(S.revenue)}`, `Ly bán: ${S.cups}${S.lost ? ` (${S.lost} khách bỏ về)` : ""}`];
+  if (S.avgStars) lines.push(`Sao trung bình: ${S.avgStars.toLocaleString("vi-VN")}★`);
+  lines.push(lvUp ? `Lên cấp: ${lvUp}!` : `Cấp tiệm: ${S.level}`);
+  const tagline = p < 0 ? (S.cups ? "Pha trà cho vui, lỗ là học phí. Mai gỡ!" : "Tiệm mở cho có, khách đi lạc hết rồi…")
+    : p === 0 ? "Huề vốn, coi như mời cả xóm uống trà sữa."
+    : lvUp ? `Lên cấp ${lvUp}, sắp mở chuỗi trà sữa riêng tới nơi.`
+    : p >= Math.max(300, S.revenue * 0.4) ? "Lãi đậm cỡ này chắc sắp mở chi nhánh 2." : "Có lãi là vui rồi, mai trân châu nhiều hơn!";
+  return { game: "tiem-tra-sua", title, lines, tagline, accent: "#75d1bf" };
+}
 
 // ---------- HUD ----------
 export function createHud(root, atlas) {
@@ -499,7 +515,9 @@ export function createOverlays(root, atlas, dispatch, hooks) {
       jb.addEventListener("click", () => hooks.journal?.(() => summary(hooks.state())));
       const rb = h("button", "btn", "Trả lời review"); rb.id = "replyBtn"; rb.type = "button";
       rb.addEventListener("click", () => hooks.notebook?.("reviews", () => summary(hooks.state())));
-      left.appendChild(jb); left.appendChild(rb);
+      const sb = h("button", "btn", "Khoe kết quả"); sb.id = "shareBtn"; sb.type = "button";
+      sb.addEventListener("click", () => shareResult(summaryShare(S)));
+      left.appendChild(jb); left.appendChild(rb); left.appendChild(sb);
       foot.appendChild(left);
       const go = h("button", "btn primary big", `Chuẩn bị ngày ${state.day}`); go.id = "nextDay"; go.type = "button"; go.dataset.autofocus = "";
       go.addEventListener("click", () => { dispatch({ type: "closeSummary" }); hooks.afterSummary ? hooks.afterSummary() : prep(hooks.state()); });

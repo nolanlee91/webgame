@@ -1,5 +1,6 @@
 // Xếp Gạch — phần vẽ (canvas), điều khiển (phím, chạm, nút), HUD, âm thanh, lưu kỷ lục. Luật chơi nằm hết trong logic.js.
 import { W, H, HIDDEN, KINDS, SHAPES, CLEAR_TIME, SPRINT_LINES, newGame, step, move, rotate, softDrop, hardDrop, holdPiece, ghostY, cellsOf, stackHeight } from "./logic.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.xepgach.v1";
 // Màu gạch theo khối (index 1..7 = I O T S Z J L, 8 = gạch xám khi thua). [chính, gờ sáng, bóng tối]
@@ -435,6 +436,7 @@ export function mount(root, ctx = {}) {
     if (!s) return;
     const won = s.status === "won", sprint = s.mode === "sprint";
     newRecord = false;
+    const prevBest = sprint ? save.best.sprint : save.best.endless;
     if (sprint && won && (!save.best.sprint || s.time < save.best.sprint)) { save.best.sprint = +s.time.toFixed(2); newRecord = true; }
     if (!sprint && s.score > save.best.endless) { save.best.endless = s.score; newRecord = true; }
     writeSave();
@@ -451,10 +453,36 @@ export function mount(root, ctx = {}) {
     }
     ui.eRecord.innerHTML = newRecord ? '<span class="record">Kỷ lục mới!</span>' : "";
     if (newRecord) setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới
+    lastRun = { won, sprint, record: newRecord, prevBest, score: s.score, lines: s.lines, level: s.level, pieces: s.pieces,
+      tetris: s.stats[4], combo: Math.max(0, s.stats.maxCombo), time: s.time };
     ui.ovEnd.hidden = false;
     $("againBtn").focus({ preventScroll: true });
     sdk.reportScore && sdk.reportScore(s.score);
     sdk.gameOver && sdk.gameOver({ score: s.score, lines: s.lines, mode: s.mode, time: +s.time.toFixed(2), result: won ? "win" : "lose" });
+  }
+  // Khoe kết quả: số thật của ván vừa xong (chụp lúc showEnd)
+  let lastRun = null;
+  function shareRun(e) {
+    const r = lastRun; if (!r) return;
+    // Bấm chuột/chạm: trả focus về "Chơi lại" để đóng bảng xong Space/Enter vẫn là chơi lại
+    if (e && e.detail > 0) $("againBtn").focus({ preventScroll: true });
+    let title, lines, tagline;
+    if (r.sprint) {
+      title = r.won ? (r.record ? `Kỷ lục mới 40 hàng ${fmtTime(r.time, true)}` : `Về đích 40 hàng ${fmtTime(r.time, true)}`) : `${r.lines}/${SPRINT_LINES} hàng`;
+      lines = [`Hàng đã ăn: ${r.lines}/${SPRINT_LINES}`, `Khối đã xếp: ${r.pieces}`, `Xếp 4 hàng: ${r.tetris} lần`,
+        r.won ? (!r.record && r.prevBest ? `Kỷ lục: ${fmtTime(r.prevBest, true)}` : `Điểm: ${fmtNum(r.score)}`) : `Đã chơi: ${fmtTime(r.time, true)}`];
+      tagline = r.won && r.record ? "Tay nhanh như chớp, đồng hồ chạy theo không kịp!"
+        : r.won ? "Về đích rồi, nhưng kỷ lục cũ vẫn đang cười." : SPRINT_LINES - r.lines <= 10 ? "Còn chút xíu nữa thôi, tiếc hùi hụi!" : "Gạch chạm nóc rồi, thở đều rồi chơi lại!";
+    } else {
+      title = r.record ? `Kỷ lục mới ${fmtNum(r.score)} điểm` : `${fmtNum(r.score)} điểm`;
+      lines = [`Hàng đã ăn: ${r.lines}`, `Cấp đạt được: ${r.level}`, `Xếp 4 hàng: ${r.tetris} lần`,
+        !r.record && r.prevBest ? `Kỷ lục: ${fmtNum(r.prevBest)}` : `Thời gian: ${fmtTime(r.time)}`];
+      tagline = r.record && r.lines >= 40 ? "Kỷ lục mới! Gạch xếp thẳng hơn cả bàn học hồi xưa."
+        : r.record ? "Kỷ lục mới! Ai dám vô phá thử không?"
+        : r.tetris >= 3 ? "Ăn 4 hàng như ăn kẹo, chỉ thiếu chút may!"
+        : r.lines >= 20 ? "Xếp cũng ra gì đó, ván sau là kỷ lục!" : "Gạch rơi hơi nhanh, tay chưa kịp nóng!";
+    }
+    shareResult({ game: "xep-gach", title, lines, tagline });
   }
   function setPaused(p) {
     if (!s || s.status !== "playing") return;
@@ -584,6 +612,7 @@ export function mount(root, ctx = {}) {
   $("retryBtnP").addEventListener("click", start);
   $("menuBtnP").addEventListener("click", showMenu);
   $("againBtn").addEventListener("click", start);
+  $("shareBtnE").addEventListener("click", shareRun);
   $("menuBtnE").addEventListener("click", showMenu);
   ui.play.addEventListener("click", start);
   root.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => { mode = b.dataset.mode; writeSave(); renderMenu(); }));

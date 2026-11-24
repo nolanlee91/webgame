@@ -4,6 +4,7 @@ import { W, RED, BLACK, START, parse, sideOf, typeOf, newMatch, newRound, nextRo
   legalFrom, isAiTurn, other, moveName, REASON, findKing } from "./logic.js";
 import { bestMove, evaluate } from "./ai.js";
 import { createNet, CODE_RE } from "./net.js?v=leave1";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.tuong.v1";
 const NAME_KEY = "wgp.tuong.name";
@@ -704,6 +705,33 @@ export function mount(root, ctx = {}) {
     overlay("end");
     $("nextBtn").focus({ preventScroll: true });
   }
+  // "Khoe kết quả": ảnh 1080×1080 với số thật của ván (cách kết thúc, số nước, quân ăn được, mức máy / đối thủ, tỉ số).
+  function shareEnd() {
+    if (!s || !s.winner) return;
+    const me = online() ? mySide() : RED, op = other(me), nm = names(), sc = scores(), w = s.winner;
+    const res = w === 3 ? "draw" : w === me ? "win" : "lose";
+    const lv = s.aiLevel === "normal" ? "Thường" : "Dễ";
+    const foe = online() ? String(nm[op]).slice(0, 16) : "máy (" + lv + ")";
+    const full = Math.ceil(s.moves.length / 2);
+    const ate = (side) => s.moves.filter((m) => m[2] !== "." && sideOf(m[2]) === other(side)).length;
+    const myAte = ate(me), opAte = ate(op);
+    const title = res === "draw" ? "Hòa " + foe
+      : res === "win" ? (s.reason === "checkmate" ? "Chiếu bí " + foe : "Thắng " + foe) + " sau " + full + " nước"
+      : "Thua " + foe + " sau " + full + " nước";
+    const tagline = res === "draw" ? "Kỳ phùng địch thủ — pha trà làm ván nữa!"
+      : res === "lose" ? (online() ? "Tướng nhà hơi run, ván sau gỡ lại!" : "Máy cao cờ quá, ván sau phục thù!")
+      : full <= 25 ? "Chiếu tướng chớp nhoáng, quán nước đầu hẻm vỗ tay!"
+      : myAte - opAte >= 6 ? "Ăn sạch Xe Pháo Mã, đối thủ chỉ còn Tướng ngồi khóc!" : "Thắng chắc tay, cao thủ vỉa hè là đây!";
+    shareResult({
+      game: "co-tuong", title, tagline, theme: "wood",
+      lines: [
+        online() ? "Đối thủ: " + nm[op] : "Mức máy: " + lv,
+        "Kết thúc: " + (s.reason === "resign" ? (res === "win" ? "đối thủ xin thua" : "xin thua") : REASON[s.reason] || "—"),
+        "Quân ăn được: " + myAte + " – " + opAte,
+        "Tỉ số các ván: " + sc[me] + " – " + sc[op] + (sc.draw ? " (hòa " + sc.draw + ")" : ""),
+      ],
+    });
+  }
   function clearTimers() { clearTimeout(aiTimer); clearTimeout(endTimer); thinking = false; }
   function resetSel() { sel = -1; dests = []; }
 
@@ -849,6 +877,7 @@ export function mount(root, ctx = {}) {
   $("menuBtnP").onclick = () => { if (room) return leaveRoom(); pendingResume = s && !s.winner && s.moves.length ? s : null; showMenu(); };
   $("menuBtnE").onclick = () => { if (room) return net.leave(); pendingResume = null; showMenu(); };
   $("nextBtn").onclick = doNext;
+  $("shareBtn").onclick = shareEnd;
   $("viewBtn").onclick = () => { overlay(null); cv.focus({ preventScroll: true }); };
 
   function onKey(e) {

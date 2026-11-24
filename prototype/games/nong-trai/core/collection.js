@@ -8,8 +8,8 @@
 // Mốc thưởng 10 / 20 / 30 món: nhận bằng action claimBook (theo thứ tự). Thưởng: xu + vật liệu + trang trí (đều không tính sức chứa).
 //
 // s.collection = { counts: { id: số đã làm / nhận }, claimed: số mốc đã nhận (0..3) }
-import { ITEMS, ITEM } from "../data/catalog.js?v=m6";
-import { have, add } from "./inventory.js?v=m6";
+import { ITEMS, ITEM } from "../data/catalog.js?v=m6s";
+import { have, add } from "./inventory.js?v=m6s";
 
 const GROUP_ORDER = ["nong-san", "chan-nuoi", "thanh-pham", "vat-lieu"];
 /** 30 món của sổ, theo nhóm kệ (thứ tự hiển thị). */

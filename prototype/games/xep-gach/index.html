@@ -226,6 +226,7 @@
           <div id="eRecord"></div>
           <div class="actions">
             <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
+            <button class="btn btn--big" id="shareBtnE" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Về menu</button>
           </div>
         </div>
@@ -243,7 +244,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=s1";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

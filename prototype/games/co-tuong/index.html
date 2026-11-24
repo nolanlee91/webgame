@@ -236,7 +236,7 @@
       .opts { gap: 8px; margin-top: 12px; }
       .opt { grid-template-columns: 62px 1fr; gap: 6px; } .opt > span { font-size: 11px; letter-spacing: .04em; }
       .actions { position: sticky; bottom: -12px; z-index: 1; margin: 14px -14px -22px; padding: 12px 14px 16px; gap: 10px; background: var(--panel); box-shadow: 0 -3px 0 var(--line); }
-      .actions .btn { flex: 1 1 140px; }
+      .actions .btn { flex: 1 1 140px; padding-left: 8px; padding-right: 8px; font-size: 16px; }
       .entry { gap: 10px; margin-top: 12px; }
       .entry .join { gap: 10px; }
       .vact { gap: 10px; } .vact .btn { flex: 1 1 130px; }
@@ -377,6 +377,7 @@
           <div class="result" id="eResult"></div>
           <div class="actions">
             <button class="btn btn--big btn--primary" id="nextBtn" type="button">Ván tiếp ▶</button>
+            <button class="btn btn--big" id="shareBtn" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="viewBtn" type="button">Xem bàn cờ</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Trận mới</button>
             <button class="btn btn--big btn--danger" id="eDisband" type="button" hidden>Hủy phòng</button>
@@ -387,7 +388,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=leave1";
+    import { mount } from "./game.js?v=share1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

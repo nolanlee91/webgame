@@ -1,14 +1,15 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m6";
-import { browserStorage, farmSave } from "./save.js?v=m6";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m6";
-import { createMarketScene } from "./ui/scene-market.js?v=m6";
-import { loadSprites, playFx, frame as spriteFrame } from "./ui/sprites.js?v=m6";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite } from "./ui/farm-map.js?v=m6";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m6";
-import { createVillageScene } from "./ui/scene-village.js?v=m6";
-import { createTruck } from "./ui/truck.js?v=m6";
+import * as L from "./logic.js?v=m6s";
+import { browserStorage, farmSave } from "./save.js?v=m6s";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m6s";
+import { createMarketScene } from "./ui/scene-market.js?v=m6s";
+import { loadSprites, playFx, frame as spriteFrame } from "./ui/sprites.js?v=m6s";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite } from "./ui/farm-map.js?v=m6s";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m6s";
+import { createVillageScene } from "./ui/scene-village.js?v=m6s";
+import { createTruck } from "./ui/truck.js?v=m6s";
+import { shareResult } from "../_shared/share.js";
 
 const MUTE_KEY = "wgp.muted";
 const STAGE_COL = { seed: 0, sprout: 1, grow: 2, mature: 3, ready: 4 };
@@ -74,6 +75,19 @@ function makeSfx(dir, names, sdk) {
 }
 
 const fmtNum = (n) => n.toLocaleString("vi-VN");
+// Khoe kết quả (lên cấp / danh hiệu Sổ sưu tập): số thật của nông trại.
+export function farmShare(s, kind, title) {
+  const v = L.bookView(s), st = s.stats || {};
+  const lines = [`Cấp nông trại: ${s.level}`, `Xu đã kiếm: ${fmtNum(st.earned || 0)} xu`, `Đơn đã giao: ${fmtNum(st.delivered || 0)}`, `Sổ sưu tập: ${v.unlocked}/${v.total} món`];
+  if (kind === "level") {
+    const tg = s.level >= 20 ? "Cả làng gọi là đại điền chủ rồi đó nha." : s.level >= 10 ? "Gà vịt bò heo đông đủ, sắp thành trang trại kiểu mẫu." : s.level >= 5 ? "Ruộng xanh mướt, hàng xóm bắt đầu hỏi xin giống." : "Mới mấy luống rau mà đã lên cấp, nông dân có khiếu!";
+    return { game: "nong-trai", title: `Lên cấp ${s.level}!`, lines: lines.slice(1), tagline: tg, accent: "#9fd86f" };
+  }
+  const t = title || v.title;
+  const head = t ? `Danh hiệu “${t}”` : `Nông trại cấp ${s.level}`;
+  const tg = v.unlocked >= v.total ? "Đủ cả cuốn sổ, nhà nông kiêm nhà sưu tầm!" : t ? "Danh hiệu mới, cả xóm phải gọi bằng anh/chị." : "Sổ còn trống nhiều, mai đi gom tiếp.";
+  return { game: "nong-trai", title: head.length > 40 ? head.slice(0, 39) + "…" : head, lines, tagline: tg, accent: "#9fd86f" };
+}
 function fmtLeft(ms) {
   const t = Math.max(0, Math.ceil(ms / 1000));
   if (t < 60) return t + " giây";
@@ -230,8 +244,13 @@ export function mount(root, ctx = {}) {
   const exec = (action, origin) => mutate(() => run(action, origin));
 
   // ---------- hiển thị ----------
-  function toast(text, ms = 2400) {
+  function toast(text, ms = 2400, action = null) {
     ui.toast.textContent = text; ui.toast.hidden = false;
+    if (action) { // nút nhỏ trong toast (vd "Khoe kết quả" khi lên cấp) — toast ở lâu hơn để kịp bấm
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn btn--sm btn--primary toast-act"; b.id = action.id || ""; b.textContent = action.label;
+      b.addEventListener("click", () => { ui.toast.hidden = true; action.onClick(); });
+      ui.toast.append(" ", b); ms = Math.max(ms, 7000);
+    }
     clearTimeout(toastT); toastT = setTimeout(() => (ui.toast.hidden = true), ms);
   }
   function float(i, text, color) {
@@ -296,7 +315,7 @@ export function mount(root, ctx = {}) {
   }
   /** Phản hồi cho mọi sự kiện luật trả về: hiệu ứng ô, âm thanh, thông báo. */
   function feedback(events, origin = {}) {
-    let msgs = [];
+    let msgs = [], shareAct = null;
     let sound = null, fxBudget = 6;
     for (const e of events) {
       switch (e.type) {
@@ -327,6 +346,7 @@ export function mount(root, ctx = {}) {
         case "bookNew": pulse(ui.bookBtn); msgs.push(`Sổ sưu tập: thêm ${e.name} (${e.total}/${L.BOOK.length})!`); sound ??= ["trung-kim-cuong", 0.5, 1.35]; break;
         case "bookTierReady": pulse(ui.bookBtn); msgs.push(`Sổ sưu tập đủ ${e.at} món — mở Sổ để nhận thưởng!`); sound = ["qua-man", 0.6]; break;
         case "bookClaimed": sound = ["qua-man", 0.8]; fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${fmtNum(e.reward.coins)} xu`, "#ffe9a8");
+          shareAct = { id: "shareTitle", label: "Khoe kết quả", onClick: ((t) => () => shareResult(farmShare(s, "title", t)))(e.title) };
           msgs.push(`Danh hiệu mới: “${e.title}” — +${fmtNum(e.reward.coins)} xu` + [...Object.entries(e.reward.items), ...Object.entries(e.reward.decor)].map(([id, q]) => `, ${q} ${L.ITEM[id].name}`).join("") + "."); break;
         case "orderNew": if (origin.tick) { pulse(ui.board); pulse(ui.orderTool); } break;
         case "orderExpired": msgs.push("Đơn đặc biệt của Anh Út đã hết hạn."); break;
@@ -376,7 +396,7 @@ export function mount(root, ctx = {}) {
         case "jobsCollected": if (origin.el) fxOn(origin.el, ["lap-lanh", "xu-bay"], `+${e.xp} XP`, "#ffe9a8"); msgs.push(`Nhận ${e.count} mẻ, +${e.xp} XP${e.full ? " — kho đầy, còn mẻ chưa nhận" : ""}.`); break;
         case "bought": sound = ["qua-man", 0.55, 1.2]; fxOn(origin.el, ["lap-lanh"], `−${fmtNum(e.coins)} xu`, "#ffe9a8");
           msgs.push(`Đã mua ${e.count} ${L.ITEM[e.id].name} (−${fmtNum(e.coins)} xu)${L.isDecor(e.id) ? " — cất trong túi trang trí" : ""}.`); break;
-        case "levelUp": { sound = ["qua-man", 0.8]; { const st = ui.level.closest(".stat"); playFx(st, "lap-lanh", st.clientWidth / 2, st.clientHeight / 2, 72); pulse(st); } const u = unlockNames(e.level); msgs.push(`Lên cấp ${e.level}!` + (u.length ? ` Mở khoá: ${u.join(", ")}.` : "")); break; }
+        case "levelUp": { sound = ["qua-man", 0.8]; { const st = ui.level.closest(".stat"); playFx(st, "lap-lanh", st.clientWidth / 2, st.clientHeight / 2, 72); pulse(st); } shareAct = { id: "shareLevel", label: "Khoe kết quả", onClick: () => shareResult(farmShare(s, "level")) }; const u = unlockNames(e.level); msgs.push(`Lên cấp ${e.level}!` + (u.length ? ` Mở khoá: ${u.join(", ")}.` : "")); break; }
         // Milestone 4 — cảnh Chăn nuôi / Làng tự phát hiệu ứng + toast khi đang mở; ở bản đồ thì báo ở đây
         case "villageQuestDone":
           sound ??= ["trung-kim-cuong", 0.6, 1.2];
@@ -391,7 +411,7 @@ export function mount(root, ctx = {}) {
     }
     if (sound) sfx.play(...sound);
     msgs = msgs.filter(Boolean);
-    if (msgs.length) toast(msgs.slice(-2).join(" "), msgs.some((m) => m.startsWith("Lên cấp")) ? 4200 : 2600);
+    if (msgs.length) toast(msgs.slice(-2).join(" "), msgs.some((m) => m.startsWith("Lên cấp")) ? 4200 : 2600, shareAct);
   }
 
   let shownCoins = null;
@@ -913,6 +933,7 @@ export function mount(root, ctx = {}) {
     let html = `<div class="rc-head"><div><b id="bookTitle">Sổ sưu tập</b><br><small>${v.title ? `Danh hiệu: “${esc(v.title)}” · ` : ""}${v.unlocked}/${v.total} món — mỗi món tự ghi khi bạn thu / làm ra lần đầu</small></div>` +
       `<button class="btn btn--sm rc-close" type="button" data-act="close" aria-label="Đóng Sổ sưu tập">✕</button></div>`;
     html += `<div class="px-bar book-bar" aria-hidden="true"><i style="width:${Math.round((100 * v.unlocked) / v.total)}%"></i></div>`;
+    html += `<div class="book-share"><button class="btn btn--sm" type="button" data-act="share" id="shareBook">Khoe kết quả</button></div>`;
     html += `<ul class="book-tiers">${v.tiers.map((x) => {
       const r = x.reward, gift = [`${iconHtml("dong-xu", "it--xs")}${fmtNum(r.coins)}`, ...Object.entries(r.items).map(([id, q]) => `${iconHtml(id, "it--xs")}${q}`), ...Object.entries(r.decor).map(([id, q]) => `${iconHtml(id, "it--xs")}${q}`)].join(" ");
       const btn = x.claimed ? `<span class="book-done">Đã nhận</span>` : v.claimable === x.k ? `<button class="btn btn--primary btn--sm" type="button" data-act="claim" data-tier="${x.k}" data-key="book-claim-${x.k}">Nhận</button>` : `<span class="book-need">${Math.min(v.unlocked, x.at)}/${x.at}</span>`;
@@ -937,6 +958,7 @@ export function mount(root, ctx = {}) {
     const b = e.target.closest("button[data-act]");
     if (!b || b.disabled) return;
     if (b.dataset.act === "close") return showBook(false);
+    if (b.dataset.act === "share") return void shareResult(farmShare(s, "title"));
     if (b.dataset.act === "claim") exec({ type: "claimBook", tier: Number(b.dataset.tier) }, { el: b });
   });
 

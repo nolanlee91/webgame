@@ -6,10 +6,10 @@
 // buy / shopLevel: có ⇒ chợ bán món này với giá `buy`, từ cấp `shopLevel` (hạt giống: giá trong data/crops.js, trả lúc gieo).
 // producer: { kind: "crop", id } | { kind: "machine", id, recipe } | { kind: "animal", id } | { kind: "reward" } | { kind: "shop" }.
 // icon: ô trong assets/v3/items.webp (8 × 4) hoặc assets/v3/decor.webp (4 × 2).
-import { CROPS } from "./crops.js?v=m6";
-import { RECIPES } from "./recipes.js?v=m6";
-import { MACHINE } from "./machines.js?v=m6";
-import { CURRENT_MILESTONE } from "./levels.js?v=m6";
+import { CROPS } from "./crops.js?v=m6s";
+import { RECIPES } from "./recipes.js?v=m6s";
+import { MACHINE } from "./machines.js?v=m6s";
+import { CURRENT_MILESTONE } from "./levels.js?v=m6s";
 
 // Thứ tự ô trong assets/v3/items.webp (8 × 4, ô 64 px), khớp assets/v3/manifest.json.
 export const ICON_IDS = [

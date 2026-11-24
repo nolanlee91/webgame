@@ -235,12 +235,13 @@
         <div class="actions">
           <button class="btn btn--big btn--primary" id="retryBtn" type="button">▶ Chơi lại</button>
           <button class="btn btn--big btn--teal" id="shopBtn" type="button">Nâng cấp xe</button>
+          <button class="btn btn--big" id="shareBtn" type="button">Khoe kết quả</button>
         </div>
       </div>
     </div>
   </main>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=share1";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

@@ -24,6 +24,21 @@ import { currentEvent } from "../core/drama.js?v=b3";
 import { PERSONAS } from "../data/lines-reply.js?v=b3";
 import { STALE } from "../data/lines-m3.js?v=b3";
 import { FILLINGS, NAMES } from "../data/economy.js?v=b3";
+import { shareResult } from "../../_shared/share.js?v=s1";
+
+// Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
+const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;
+export function summaryShare(S) {
+  const p = S.profit;
+  const title = p > 0 ? `Ngày ${S.day} lời ${vnd(p)}` : p < 0 ? `Ngày ${S.day} lỗ ${vnd(p)}` : `Ngày ${S.day} huề vốn`;
+  const lines = [`Doanh thu: ${vnd(S.revenue)}`, `Ổ bán: ${S.loaves} (${S.served} khách)`];
+  if (S.avg) lines.push(`Sao trung bình: ${String(S.avg).replace(".", ",")}★`);
+  lines.push(`Cấp tiệm: ${S.level}`);
+  const tagline = p < 0 ? (S.burntBatches ? "Lò hơi nóng tính, bánh hơi đen, ví hơi mỏng. Mai gỡ!" : "Bán bánh mì mà lỗ, coi như phát cơm từ thiện.")
+    : p === 0 ? "Huề vốn: nướng cả ngày lấy mùi bơ thơm làm lời."
+    : p >= Math.max(150, S.revenue * 0.4) ? "Giòn rụm, lời đậm, hàng xóm bắt đầu ganh tị." : "Có lời là vui rồi, mai nướng thêm mẻ nữa!";
+  return { game: "tiem-banh-mi", title, lines, tagline, accent: "#f7c96d" };
+}
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 export const fmtK = (k) => (Math.round(k * 10) / 10).toLocaleString("vi-VN") + "k";
@@ -518,6 +533,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       const open = (hooks.state().feed || []).filter((r) => !r.reply);
       if (open.length) { const rb = btn(`Trả lời review (${open.length})`, "accent", "replyReviews", () => { bookSel = open[0].id; notebook(hooks.state(), "reviews", "summary"); }); foot.appendChild(rb); }
       foot.appendChild(btn("Lưu ảnh Nhật Ký", "", "journal", () => journalCard(hooks.state(), "summary")));
+      foot.appendChild(btn("Khoe kết quả", "", "shareResult", () => shareResult(summaryShare(S))));
       foot.appendChild(btn("Nâng cấp", "", "upgrades", () => { dispatch({ type: "closeSummary" }); close(); hooks.afterSummary("shop"); }));
       foot.appendChild(go); c.appendChild(foot);
       const info = hooks.replayInfo?.();

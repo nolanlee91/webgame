@@ -140,7 +140,7 @@ const meta = Object.fromEntries(GAMES.map((g) => [g.id, { name: g.name, folder: 
 const metaSrc = `// SINH TỰ ĐỘNG bởi tools/og/gen-og.mjs từ prototype/homepage/games.js — đừng sửa tay, chạy lại script.\n` +
   `export const GAMES_META = ${JSON.stringify(meta, null, 1).replace(/\n\s*/g, " ")};\n`;
 const metaFile = join(PROTO, "games/_shared/games-meta.js");
-if ((existsSync(metaFile) ? readFileSync(metaFile, "utf8") : "") !== metaSrc) {
+if ((existsSync(metaFile) ? readFileSync(metaFile, "utf8") : "").replace(/\r\n/g, "\n") !== metaSrc) {
   changed++;
   if (CHECK) console.log("lệch: prototype/games/_shared/games-meta.js");
   else { writeFileSync(metaFile, metaSrc); console.log("đã ghi: prototype/games/_shared/games-meta.js"); }

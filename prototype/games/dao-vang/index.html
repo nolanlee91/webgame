@@ -46,6 +46,9 @@
     .stage { margin: 3px auto 0; max-width: min(calc(100% - 10px), calc((100svh - 70px) * 1.6)); background: #0b0e11;
       box-shadow: 0 -3px 0 0 #000, 0 3px 0 0 #000, -3px 0 0 0 #000, 3px 0 0 0 #000, 6px 9px 0 0 var(--shadow); }
     .stage canvas { display: block; }
+    .stage { position: relative; }
+    /* Nút "Khoe kết quả" nằm trên canvas, ngay dưới bảng "Hết giờ" (game.js đặt top theo bảng) */
+    .stage .dv-share { position: absolute; left: 50%; translate: -50% 0; z-index: 1; white-space: nowrap; }
     .menu { display: grid; place-items: center; gap: 16px; padding: 48px 16px 52px; text-align: center; background: var(--panel); box-shadow: var(--bevel); }
     .menu h2 { margin: 0; font: 800 32px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 3px 3px 0 #000; }
     .menu p { margin: 0; color: var(--soft); max-width: 520px; }
@@ -110,7 +113,7 @@
     </div>
   </main>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=s1";
     const stage = document.getElementById("stage"), menu = document.getElementById("menu");
     const controls = document.getElementById("controls"), pauseBtn = document.getElementById("pauseBtn");
     const params = new URLSearchParams(location.search);

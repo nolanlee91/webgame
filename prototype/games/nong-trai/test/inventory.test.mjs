@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as I from "../core/inventory.js?v=m6";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m6";
+import * as I from "../core/inventory.js?v=m6s";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m6s";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 const full = (s, n = I.capacity(s)) => { s.inv["ca-chua"] = n; };
