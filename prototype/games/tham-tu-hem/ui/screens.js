@@ -121,6 +121,7 @@ export function seasonIntro(app, onDone) {
   return h("section.season-intro",
     h("div.title-bg", coverImg("assets/scenes/hem-map-2.webp", placeholderScene("hem-map-2", [], "map2"), W, H)),
     h("div.title-shade"),
+    h("div.season-title", h("small", "Mùa 2"), h("b", "Chợ Hẻm 47"), h("span", "Hẻm 47 xong rồi, giờ ra chợ")),
     h("div.phone-wrap.season-phone", { role: "dialog", "aria-label": "Bài đăng nhóm " + P0.group },
       h("div.phone",
         h("div.phone-top", h("span", "9:41"), h("b", P0.group), h("span", "4G")),

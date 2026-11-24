@@ -1,6 +1,6 @@
 // E2E "bot qua giao diện": mỗi vụ có file trong data/cases được giải trọn bằng BẤM THẬT (chuột / chạm), bước kế tiếp lấy từ core/solver.js nextAction.
 // Kiểm: đi hết vụ ra 3★, không lỗi console, nút bấm không bị che; chụp ảnh từng địa điểm + bài đăng + bảng suy luận + vạch mặt + kết vụ để soi bố cục.
-// Chạy: PORT=8871 node server.js  rồi  PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh> [id vụ…] (mặc định: mọi vụ có file)
+// Chạy: PORT=8871 node server.js  rồi  PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh> [id vụ…] (mặc định: mọi vụ có file, cả mùa 2; vụ chưa có file ⇒ SKIP)
 // VIEW=mob ⇒ 390×844 dpr 3 (chạm). Mặc định 1366×768 dpr 1,25.
 import { readdirSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
@@ -8,7 +8,10 @@ import { CASES } from "../data/cases/index.js";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8871, ORIGIN = `http://127.0.0.1:${PORT}`;
 const have = new Set(readdirSync(new URL("../data/cases/", import.meta.url)).map((f) => f.replace(/\.js$/, "")));
-const ids = process.argv.slice(3).length ? process.argv.slice(3) : CASES.map((c) => c.id).filter((id) => have.has(id));
+// mọi vụ trong danh mục (cả mùa 2) có file thì chạy; vụ chưa có file thì bỏ qua (báo SKIP)
+const want = process.argv.slice(3).length ? process.argv.slice(3) : CASES.map((c) => c.id);
+for (const id of want.filter((id) => !have.has(id))) console.log("SKIP " + id + " — chưa có data/cases/" + id + ".js");
+const ids = want.filter((id) => have.has(id));
 const mob = process.env.VIEW === "mob", V = mob ? "m" : "d";
 const b = await launch(OUT, Number(process.env.CDP_PORT) || 9671);
 await b.view(mob ? 390 : 1366, mob ? 844 : 768, mob, mob ? 3 : 1.25);
@@ -41,11 +44,14 @@ for (const id of ids) {
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
   // mở khoá: coi như đã phá các vụ trước
   await b.ev("__game.store.wipe()"); // khoá ghi để pagehide không đè bản lưu tiêm vào
-  await b.ev(`(()=>{const solved={};${JSON.stringify(CASES.slice(0, idx).map((c) => c.id))}.forEach(i=>solved[i]={stars:3,rep:100,times:1,last:3});localStorage.setItem('wgp.tham-tu-hem.v1',JSON.stringify({v:1,name:'Bot',rep:100*${idx},solved,runs:{}}))})()`);
+  await b.ev(`(()=>{const solved={};${JSON.stringify(CASES.slice(0, idx).map((c) => c.id))}.forEach(i=>solved[i]={stars:3,rep:100,times:1,last:3});localStorage.setItem('wgp.tham-tu-hem.v1',JSON.stringify({v:1,name:'Bot',rep:100*${idx},solved,runs:{},flags:{s2intro:1}}))})()`);
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
   const next = () => b.ev(`import("./core/solver.js?v=t3").then(m=>JSON.stringify(m.nextAction(__game.caseData,__game.state)))`).then(JSON.parse);
   try {
-    await press("#startBtn"); await press(`[data-case="${id}"]`);
+    await press("#startBtn");
+    const season = CASES[idx]?.season || 1;
+    check(`${id}: bản đồ tự chọn tab mùa ${season}`, (await waitFor(`__game.season===${season}&&!!document.querySelector('.season-tab.on[data-season="${season}"]')`)));
+    await press(`[data-case="${id}"]`);
     await waitFor("__game.screen==='office'");
     const shotLoc = new Set();
     for (let step = 0; step < 1200; step++) {

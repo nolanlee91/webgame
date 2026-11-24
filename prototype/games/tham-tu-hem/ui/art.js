@@ -267,9 +267,9 @@ function drawMarket(g, px, dither) {
   for (const [y0, y1] of [[56, 122], [150, 204], [230, 266]]) for (const [x0, x1] of [[8, 144], [172, 312], [340, 474]]) {
     const [a, b] = AW[i++ % AW.length];
     px("#0a0807", x0 - 1, y0 - 1, x1 - x0 + 2, y1 - y0 + 2);
-    const cols = Math.floor((x1 - x0) / 34);
+    const cols = Math.max(1, Math.round((x1 - x0) / 34)), step = Math.floor((x1 - x0 - 2) / cols);
     for (let k = 0; k < cols; k++) {
-      const sx = x0 + 2 + k * 34, sw = 30;
+      const sx = x0 + 2 + k * step, sw = step - 4;
       px("#0a0807", sx - 1, y0 + 1, sw + 2, y1 - y0 - 2);
       for (let s = 0; s < sw; s += 6) px(s % 12 ? b : a, sx + s, y0 + 2, Math.min(6, sw - s), y1 - y0 - 4);
       px("rgba(0,0,0,.28)", sx, y1 - 6, sw, 3); px("rgba(255,255,255,.18)", sx, y0 + 2, sw, 2);
