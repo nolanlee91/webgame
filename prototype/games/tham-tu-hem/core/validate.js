@@ -17,12 +17,14 @@ export const wordsIn = (text) => [...String(text ?? "").matchAll(WORD_RE)].map((
 export const lineOf = (l) => (Array.isArray(l) ? { who: l[0], text: l[1], mood: l[2] } : l || {});
 
 /** Duyệt một điều kiện `needs` với hàm kiểm từng nguyên tử. */
-export function evalNeeds(needs, atom) {
+/** Duyệt một điều kiện `needs` với hàm kiểm từng nguyên tử. Tiền tố "!" = phủ định ("!broke:x").
+ *  negPass = true: nguyên tử phủ định luôn coi là đạt (mô phỏng của bộ kiểm — người chơi vét hết vẫn phải đi được tới cuối). */
+export function evalNeeds(needs, atom, negPass = false) {
   if (needs == null) return true;
-  if (typeof needs === "string") return atom(needs);
-  if (Array.isArray(needs)) return needs.every((n) => evalNeeds(n, atom));
-  if (needs.any) return needs.any.some((n) => evalNeeds(n, atom));
-  if (needs.all) return needs.all.every((n) => evalNeeds(n, atom));
+  if (typeof needs === "string") return needs.startsWith("!") ? (negPass ? true : !atom(needs.slice(1))) : atom(needs);
+  if (Array.isArray(needs)) return needs.every((n) => evalNeeds(n, atom, negPass));
+  if (needs.any) return needs.any.some((n) => evalNeeds(n, atom, negPass));
+  if (needs.all) return needs.all.every((n) => evalNeeds(n, atom, negPass));
   return false;
 }
 const atomsOf = (needs, out = []) => {
@@ -81,7 +83,8 @@ export function validateCase(c) {
   };
   const neededFlags = [];
   const checkNeeds = (where, needs) => {
-    for (const a of atomsOf(needs)) {
+    for (const a0 of atomsOf(needs)) {
+      const a = a0.replace(/^!/, "");
       const [kind, ...rest] = a.split(":"); const v = rest.join(":");
       const ok = { clue: () => clues[v], word: () => words[v], stmt: () => stmts[v], broke: () => stmts[v]?.break, talk: () => topicIds.has(v), seen: () => hotIds.has(v), loc: () => locs[v], flag: () => (neededFlags.push([where, v]), true) }[kind];
       if (!ok) err(`${where}.needs: điều kiện lạ "${a}"`);
@@ -118,6 +121,8 @@ export function validateCase(c) {
     checkText(`stmts.${sid}`, s.text);
     if (s.break) {
       if (!clues[s.break.clue]) err(`stmts.${sid}.break: vật chứng "${s.break.clue}" không có`);
+      if (s.break.also != null && !Array.isArray(s.break.also)) err(`stmts.${sid}.break.also: phải là mảng id vật chứng`);
+      for (const x of s.break.also || []) if (!clues[x]) err(`stmts.${sid}.break.also: vật chứng "${x}" không có`);
       checkLines(`stmts.${sid}.break.lines`, s.break.lines); checkGives(`stmts.${sid}.break`, s.break.gives);
     }
   }
@@ -176,11 +181,11 @@ export function validateCase(c) {
     changed = false;
     const before = JSON.stringify(Object.values(S).map((s) => s.size));
     for (const [lid, L] of Object.entries(locs)) {
-      if (!S.loc.has(lid) && !(L.needs && evalNeeds(L.needs, atom))) continue;
+      if (!S.loc.has(lid) && !(L.needs && evalNeeds(L.needs, atom, true))) continue;
       S.loc.add(lid); readLines(L.intro);
       for (const h of L.hotspots || []) {
         const key = `${lid}.${h.id}`;
-        if (S.seen.has(key) || !evalNeeds(h.needs, atom)) continue;
+        if (S.seen.has(key) || !evalNeeds(h.needs, atom, true)) continue;
         S.seen.add(key); readLines(h.lines); give(h.gives);
       }
     }
@@ -188,12 +193,12 @@ export function validateCase(c) {
       if (!S.people.has(pid)) continue;
       for (const t of list || []) {
         const key = `${pid}.${t.id}`;
-        if (S.talk.has(key) || !evalNeeds(t.needs, atom)) continue;
+        if (S.talk.has(key) || !evalNeeds(t.needs, atom, true)) continue;
         S.talk.add(key); readLines(t.lines); give(t.gives);
       }
     }
     for (const [sid, s] of Object.entries(stmts)) {
-      if (!s.break || S.broke.has(sid) || !S.stmt.has(sid) || !S.clue.has(s.break.clue)) continue;
+      if (!s.break || S.broke.has(sid) || !S.stmt.has(sid) || ![s.break.clue, ...(s.break.also || [])].some((x) => S.clue.has(x))) continue;
       S.broke.add(sid); readLines(s.break.lines); give(s.break.gives);
     }
     changed = before !== JSON.stringify(Object.values(S).map((s) => s.size));
@@ -207,6 +212,7 @@ export function validateCase(c) {
   for (const pid of Object.keys(people)) if (people[pid].suspect && !S.people.has(pid)) err(`nghi phạm "${pid}" không bao giờ xuất hiện`);
   for (const d of c.deduction) for (const [b, spec] of Object.entries(d.blanks || {})) if (words[spec.answer] && !S.word.has(spec.answer)) err(`deduction.${d.id}.${b}: người chơi không bao giờ nhặt được từ khoá "${spec.answer}" (phải có [[${spec.answer}]] trong chữ đã đọc hoặc gives.words)`);
   for (const s of F.steps || []) if (clues[s.answer] && !S.clue.has(s.answer)) err(`finale: vật chứng "${s.answer}" không nhặt được`);
+  for (const wid of Object.keys(words)) if (!S.word.has(wid)) warn(`từ khoá "${wid}" không bao giờ nhặt được (không có [[${wid}]] trong chữ đọc tới, không gives.words)`);
   if (!c.deduction.some((d) => Object.values(d.blanks || {}).some((b) => b.kind === "ai"))) err(`bảng suy luận phải có ít nhất 1 chỗ trống loại "ai" (thủ phạm)`);
 
   // ---- lượng nội dung

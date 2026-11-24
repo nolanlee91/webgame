@@ -159,6 +159,17 @@ export default {
 };
 ```
 
+### Trường tuỳ chọn (thêm khi dựng engine; không đổi nghĩa trường cũ, bộ kiểm có kiểm)
+
+- **Phủ định trong `needs`**: tiền tố `!`, ví dụ `"!broke:tuan-ngu-som"`, `"!clue:x"`. Đúng khi nguyên tử KHÔNG đạt. Bộ kiểm mô phỏng coi nguyên tử phủ định là đạt.
+- `stmts.<id>.break.also: [clueId…]`: vật chứng thay thế cũng bể được lời khai này (ngoài `break.clue`).
+- `hints[].done`: điều kiện (`needs`) để gợi ý coi như đã xong, Tèo không nói nữa. Engine còn tự bỏ qua: gợi ý đã nói (nếu còn gợi ý khác hợp), và gợi ý có điều kiện `stmt:x` mà mọi lời khai đó đều đã bể.
+- `finale.steps[].hint`: câu gợi ý của Tèo riêng cho bước vạch mặt đó (không có thì dùng câu chung).
+- `teoRescue: [[line…], …]`: các bộ thoại Tèo can khi hết uy tín (không có thì dùng bộ chung).
+- Bộ kiểm **cảnh báo** (không phải lỗi) khi có từ khoá trong `words` không bao giờ nhặt được.
+
+Cách engine đọc dữ liệu: gợi ý = gợi ý đầu tiên trong mảng có `needs` đạt (xếp gợi ý giai đoạn cuối lên đầu, gợi ý không `needs` ở cuối). Mọi người trong `people` đã mở đều thẩm vấn và đưa vật chứng được (nghi phạm xếp trước). Địa điểm có `needs` tự mở khi đạt; `gives.locs` mở ngay.
+
 Toạ độ `rect` tính trên ảnh cảnh 960×540. Nếu manifest có `hotspots[scene][id]` thì dùng toạ độ manifest.
 
 ### Lượng nội dung tối thiểu (bộ kiểm báo lỗi nếu thiếu)

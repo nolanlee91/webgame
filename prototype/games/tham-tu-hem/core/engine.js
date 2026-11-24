@@ -79,8 +79,14 @@ export const newTopics = (c, s, pid) => topicsOf(c, s, pid).filter((t) => !t.ask
 export const unseenAt = (c, s, lid) => hotspotsAt(c, s, lid).filter((h) => !h.seen).length;
 
 /** Gợi ý Tèo: gợi ý đầu tiên có điều kiện đạt và chưa "xong" (trường tuỳ chọn `done`), ưu tiên câu chưa nói. */
+const atoms = (n, out = []) => { if (n == null) return out; if (typeof n === "string") out.push(n); else if (Array.isArray(n)) n.forEach((x) => atoms(x, out)); else (n.any || n.all || []).forEach((x) => atoms(x, out)); return out; };
+/** Gợi ý coi như xong (suy ra): mọi lời khai "stmt:x" trong điều kiện đều là lời khai bể được và đã bể. */
+export function hintAutoDone(c, s, h) {
+  const ids = atoms(h.needs).filter((a) => a.startsWith("stmt:")).map((a) => a.slice(5));
+  return ids.length > 0 && ids.every((id) => c.stmts[id]?.break && s.broke.includes(id));
+}
 export function hintCandidates(c, s) {
-  return c.hints.map((h, i) => ({ ...h, i })).filter((h) => needsOk(s, h.needs) && !(h.done && needsOk(s, h.done)));
+  return c.hints.map((h, i) => ({ ...h, i })).filter((h) => needsOk(s, h.needs) && !(h.done && needsOk(s, h.done)) && !hintAutoDone(c, s, h));
 }
 export function nextHint(c, s) {
   if (s.phase === "finale") { const st = c.finale.steps[s.fin.step]; return { i: `f${s.fin.step}`, text: st?.hint || GENERIC.finaleHint }; }
@@ -194,7 +200,7 @@ export function apply(c, s0, a) {
         if (!st || !s.stmts.includes(a.stmt)) refuse("chưa có lời khai này");
         if (s.broke.includes(a.stmt)) refuse("lời khai này đã bể");
         if (!s.clues.includes(a.clue)) refuse("chưa có vật chứng này");
-        if (st.break && st.break.clue === a.clue) {
+        if (st.break && (st.break.clue === a.clue || (st.break.also || []).includes(a.clue))) {
           add("broke", a.stmt);
           ev.push({ type: "break", stmt: a.stmt, by: st.by });
           say(st.break.lines); give(st.break.gives);

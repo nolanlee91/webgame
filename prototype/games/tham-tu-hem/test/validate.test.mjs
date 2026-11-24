@@ -36,6 +36,21 @@ test("trường tuỳ chọn: hints[].done, finale.steps[].hint, teoRescue đư�
   assert.match(e, /teoRescue\[0\]/);
 });
 
+test("needs phủ định \"!\", break.also, cảnh báo từ khoá không nhặt được", () => {
+  const c = structuredClone(mini);
+  c.locations.xe.hotspots[1].needs = "!broke:an-khong-an";
+  c.stmts["an-khong-an"].break.also = ["muong"];
+  c.words.thua = { text: "thừa", kind: "khac" };
+  const r = validateCase(c);
+  assert.deepEqual(r.errors, []);
+  assert.ok(r.warns.some((w) => /"thua" không bao giờ nhặt được/.test(w)));
+  c.stmts["an-khong-an"].break.also = ["khong-co"];
+  c.locations.xe.hotspots[1].needs = "!broke:la";
+  const e = validateCase(c).errors.join("\n");
+  assert.match(e, /break\.also: vật chứng "khong-co"/);
+  assert.match(e, /"broke:la" trỏ tới/);
+});
+
 test("mọi vụ thật trong data/cases đạt bộ kiểm", async () => {
   const dir = new URL("../data/cases/", import.meta.url);
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".js") && x !== "index.js")) {

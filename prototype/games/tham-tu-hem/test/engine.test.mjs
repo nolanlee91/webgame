@@ -126,6 +126,26 @@ test("gợi ý Tèo: chọn gợi ý đầu tiên có điều kiện đạt, ưu
   c.hints[0].done = "clue:muong-an";
   s = run(s, { type: "examine", id: "tui" });
   assert.equal(nextHint(c, s).text, "Hỏi An xem.");
+  // suy ra "đã xong": gợi ý về lời khai đã bể thì bỏ qua
+  const c2 = structuredClone(mini);
+  c2.hints[0].needs = "stmt:an-khong-an";
+  assert.match(nextHint(c2, s).text, /soi lại xe/);
+  s = run(s, { type: "contradict", stmt: "an-khong-an", clue: "muong-an" });
+  assert.equal(nextHint(c2, s).text, "Hỏi An xem.");
+});
+
+test("needs phủ định ẩn điểm soi khi điều kiện đã đạt; break.also cũng bể được", () => {
+  const c = structuredClone(mini);
+  c.locations.xe.hotspots[1].needs = "!stmt:an-khong-an";
+  c.stmts["an-khong-an"].break.also = ["muong"];
+  const ap = (s, a) => { const r = apply(c, s, a); assert.equal(r.error, null); return r.s; };
+  let s = ap(createRun(c, 2), { type: "intro" });
+  assert.ok(hotspotsAt(c, s).some((h) => h.id === "ghe"));
+  s = ap(ap(s, { type: "examine", id: "hu-pate" }), { type: "ask", pid: "an", topic: "pate" });
+  assert.ok(!hotspotsAt(c, s).some((h) => h.id === "ghe"));
+  s = ap(s, { type: "contradict", stmt: "an-khong-an", clue: "muong" });
+  assert.deepEqual(s.broke, ["an-khong-an"]);
+  assert.equal(s.cred, 5);
 });
 
 test("★ theo điểm phạt", () => {
