@@ -842,7 +842,6 @@ export default {
       text: "Em hổng có điện thoại, hổng biết Zalo, hổng nhắn tin cho ai bao giờ.",
       break: {
         clue: "binh-luan-tom",
-        also: ["noi-quy"],
         lines: [
           ["me", "\"Tôm Siêu Nhân 2014\". 482 bình luận dưới clip của Bơ. Không có điện thoại thì em gõ bằng gì?", "neutral"],
           ["tom", "...Dạ, máy tính bảng của nội. Nội cho mượn, sáng lấy, tối nộp.", "nervous"],
