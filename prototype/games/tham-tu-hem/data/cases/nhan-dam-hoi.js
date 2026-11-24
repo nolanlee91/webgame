@@ -493,7 +493,7 @@ export default {
     },
     "clip-mit-dam-hoi": {
       name: "Clip live của Bé Mít lúc 9h15",
-      desc: "Live ‘không kịch bản’ của Bé Mít: [[9h15]] đồng hồ đổ chuông, Bé Ti bắn súng nước. Người bị bắn ướt nhẹp đứng sát khay trầu cau là [[anhhung|anh Hùng]], áo GUCCl. Không phải ở cửa.",
+      desc: "Live ‘không kịch bản’ của Bé Mít: [[9h15]] đồng hồ đổ chuông, Bé Ti bắn súng nước. Người bị bắn ướt nhẹp đứng sát khay trầu cau là [[anhhung|anh Hùng]], áo GUCCl. Không phải ở cửa. [[9h25]]: live lia qua cửa bếp vắng, thấy anh Hùng tay xanh lè đi vô bếp.",
     },
     "soi-mau-xanh": {
       name: "So ba vệt xanh",
@@ -978,7 +978,7 @@ export default {
         lines: [
           ["me", "Live của Bé Mít lúc 9h15: người lãnh trọn tia nước của Bé Ti là anh, áo GUCCl, tay chống lên mép khay trầu cau. Không phải ở cửa."],
           ["anhhung", "…Ờ thì… tui có đi vô trong chút xíu. Để coi nhẫn cho kỹ. Ai mà chẳng muốn coi nhẫn gia truyền!", "shock"],
-          ["anhhung", "Rồi bị thằng Ti bắn ướt nhẹp, tui chạy vô bếp lau áo. Vậy thôi. Ướt áo là có tội hả?", "angry"],
+          ["anhhung", "Rồi bị thằng Ti bắn ướt nhẹp, tui chạy vô bếp lau áo lúc [[9h25]]. Vậy thôi. Ướt áo là có tội hả?", "angry"],
           ["teo", "Áo ướt mà cởi ra vắt sofa, giờ anh mặc áo thun trắng. Vậy là anh nói dối vụ đứng cửa rồi đó anh.", "smug"],
         ],
       },
@@ -991,7 +991,7 @@ export default {
         lines: [
           ["me", "Vệt trên bánh là xanh lam, không mùi, có sợi vải. Y hệt vết phai trên áo GUCCl của anh. Nước súng Bé Ti là xanh lá, thơm bạc hà. Người chọc nhẫn vô bánh có bàn tay dính màu áo của anh."],
           ["anhhung", "Tay tui… tay tui dính màu là tại lau áo!", "shock"],
-          ["me", "Lau áo xong thì đi chọc bánh kem? Linh thấy anh vô bếp lúc 9h25, tay xanh lè. Bin thấy anh chùi tay trong nhà vệ sinh."],
+          ["me", "Lau áo thì tay dính màu áo. Mà màu áo đó nằm ngay trong lỗ chọc trên bánh kem, chỗ nhẫn được nhét vô."],
           ["beti", "Chú Hùng đổ thừa con! Chú xấu xa! Con mách ông cố!", "angry"],
           ["anhhung", "…", "nervous"],
         ],
@@ -1150,7 +1150,7 @@ export default {
         c: { answer: "9h25", kind: "luc" },
       },
       explain: [
-        ["me", "9h15 đồng hồ đổ chuông, Bé Ti bắn súng nước, nhẫn mất. Chị Loan đi mua kem tươi từ 9h20, và 9h25 Linh thấy một người tay xanh lè đi vô bếp. Nhẫn nằm trong bánh kem."],
+        ["me", "9h15 đồng hồ đổ chuông, Bé Ti bắn súng nước, nhẫn mất. Chị Loan đi mua kem tươi từ 9h20, và 9h25 có người tay xanh lè đi vô bếp vắng. Nhẫn nằm trong bánh kem."],
       ],
     },
     {

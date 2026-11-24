@@ -934,7 +934,7 @@ export default {
       break: {
         clue: "hop-tai-nghe",
         lines: [
-          ["me", "Hộp tai nghe trong túi xách của cô khắc tên ‘Ba Lấp Lánh’, mặt sau dán sticker Bé Mít Review. Thảo cũng kể hồi nhỏ cả xóm kêu cô là Ba Lấp Lánh."],
+          ["me", "Hộp tai nghe trong túi xách của cô khắc tên ‘Ba Lấp Lánh’, mặt sau dán sticker Bé Mít Review. Đồ của ai thì người đó đặt tên."],
           ["bemit", "Ơ… cái đó là… biệt danh cũ thôi! Máy live của Mít tên khác mà!", "nervous"],
           ["me", "Máy live thì tên khác. Còn một máy nữa thì sao?"],
           ["bemit", "Mít… Mít không có máy nào nữa hết!", "angry"],
@@ -1014,7 +1014,7 @@ export default {
       break: {
         clue: "vach-x",
         lines: [
-          ["me", "Dây loa nằm sát vách góc âm thanh, cách bàn bánh cả chục bước. Em té ngay chính giữa một dấu X băng keo dạ quang. Mà ở hậu trường có cuộn băng keo y chang, với đống thùng quà móp vì có người tập té."],
+          ["me", "Dây loa nằm sát vách góc âm thanh, cách bàn bánh cả chục bước. Em té ngay chính giữa một dấu X băng keo dạ quang, mà dấu đó không phải của bên dịch vụ. Người vấp thì té đâu té, không ai té trúng tâm dấu X."],
           ["tun", "…Dạ. Con không có vấp. Con té theo dấu.", "nervous"],
           ["tun", "Con xin lỗi. Con sợ má con la nên con không dám nói.", "nervous"],
         ],
@@ -1197,7 +1197,7 @@ export default {
         ],
         answer: "hop-tai-nghe",
         right: [
-          ["me", "Hộp tai nghe trong túi xách của cô khắc tên ‘Ba Lấp Lánh’, dán sticker Bé Mít Review. Thảo kể hồi nhỏ cả xóm kêu cô là Ba Lấp Lánh."],
+          ["me", "Hộp tai nghe trong túi xách của cô khắc tên ‘Ba Lấp Lánh’, dán sticker Bé Mít Review. Tai nghe Bluetooth mang tên máy của chủ nó."],
           ["codau", "Mít… mày đặt tên máy bằng biệt danh hồi nhỏ của tụi mình hả?", "shock"],
           ["bemit", "Thảo… tao…", "nervous"],
         ],
