@@ -12,3 +12,16 @@ python -I tools/asset-check/check_assets.py docs/tham-tu-hem/asset-spec.json --p
 
 0 lỗi, 0 cảnh báo — ĐẠT, giao được.
 ```
+
+## Đợt 3
+
+- Thêm Tũn, Khang, Ngọc và chú Sáu Cầm Đồ, mỗi người 4 biểu cảm. Đã mở ảnh chân dung ở 128 px để kiểm nét mặt và nhận diện.
+- Bổ sung 31 vùng soi trên 18 cảnh, giữ vùng soi cũ. Đã mở ảnh tổng hợp có khung vùng soi để rà vị trí.
+- Thêm 93 icon vật chứng trong 6 sheet WebP lossless, lưới 2×. Đã mở ảnh tổng hợp và dọn các mẩu rời ở rìa sprite.
+- Bàn giao 29 MP3 tổng hợp, có thời lượng và nguồn trong AUDIO.md.
+
+```text
+0 lỗi, 8 cảnh báo — ĐẠT, giao được.
+```
+
+Đã soi các cảnh báo còn lại trên icon `noi-sach`, `hinh-chien-than`, `vet-lua`, `bun-xe-dap`, `hoa-don-vy`, `keo-cat-chi`, `bang-ron` và `sac-rgb`. Các cảnh báo đến từ các cụm pixel nhỏ, chi tiết ở rìa hình và vật phụ như vệt hạt lúa, ống hút hoặc dây.
