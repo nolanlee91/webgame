@@ -98,7 +98,26 @@ PORT=8871 node prototype/games/tham-tu-hem/test/e2e-season.mjs <thư mục ảnh
 
 - Ảnh: 18 cảnh, chân dung cast + 6 vụ, title, office, hem-map, 93 icon vật chứng (`assets/clues-<vụ>.webp`, ô 96, lưới 2×, frame = id vật chứng), `manifest.hotspots` đủ.
 - Manifest: `data/asset-manifest.json` là bản chép `docs/tham-tu-hem/asset-manifest.json` (test kiểm khớp). Codex sửa manifest thì chép lại và đổi tag `?v=`.
-- Điểm soi lồng nhau (chi tiết nằm trong đồ vật lớn, ví dụ `hop-qua-lac` trong `hop-nhan` trong `mam-qua`): điểm nhỏ vẽ sau nên nằm trên; nhãn điểm nhỏ đặt phía trên ô.
+- Điểm soi lồng nhau (chi tiết nằm trong đồ vật lớn, ví dụ `hop-qua-lac` trong `dong-ho-qua-lac`, `nut-gain` trong `ban-mixer`): điểm nhỏ vẽ sau nên nằm trên; nhãn điểm nhỏ đặt phía trên ô.
+- Vùng chạm tối thiểu: `.hs::before` nở đều quanh tâm cho đủ 36×36 px css (điểm soi nhỏ như `cong-usb`, `nut-gain`, `thu-nhat` trên điện thoại cảnh co 0,5–0,67). Điểm đủ lớn giữ nguyên khung. Vì vậy không cần phóng to rect cho dễ bấm.
+
+### Sửa toạ độ điểm soi chồng nhau (dev, 2026-11)
+
+Quét mọi cảnh (rect hiệu lực = manifest → rect vụ), tìm cặp IoU > 0,3 hoặc ô nhỏ nằm > 50% trong ô lớn mà không phải lồng chủ ý, soi ảnh rồi sửa trong cả hai bản manifest. Không đổi logic vụ.
+
+| Cảnh | Điểm | Trước | Sau | Lý do |
+|---|---|---|---|---|
+| `nhan-dam-hoi/livingroom` | `mam-qua` | [236,336,450,132] | [618,352,156,112] | Ô cũ trùm cả khay trầu cau và hộp nhẫn (IoU 0,60 với `khay-trau-cau`). Nay ôm hộp mứt bát giác + đĩa cam bên phải hộp nhẫn |
+| | `hop-nhan` | [526,350,96,108] | [530,354,86,98] | Ôm sát hộp nhẫn, không lấn sang mâm quả |
+| | `hop-qua-lac` | [544,392,60,48] | [868,132,60,140] | Ô cũ nằm đè lên hộp nhẫn; "hộp quả lắc" là khoang kính quả lắc của đồng hồ (lồng chủ ý trong `dong-ho-qua-lac`) |
+| | `gam-sofa` | [522,388,272,52] | [772,340,78,60] | Ô cũ vắt ngang mặt bàn (đè hộp nhẫn, mâm quả). Nay ở chân sofa bên phải, chỗ thấy được gầm |
+| `nhan-dam-hoi/kitchen2` | `thot-go` | [478,310,232,94] | [480,318,72,84] | Nồi thịt kho vẽ đè lên giữa thớt (IoU 0,37). Ô thớt nay là phần gỗ lộ bên trái nồi |
+| `noi-thit-kho/kitchen` | `bon-rua` | [744,266,212,260] | [746,266,210,184] | Ô cũ kéo tới sàn, trùm 73% con mèo `meo-mun`. Nay dừng dưới ống xả |
+| `dam-cuoi-toang/tent` | `bong-bay-chu` | [788,40,84,96] | [788,38,84,62] | Chỉ ôm chùm bóng chữ, bỏ bảng 囍 (thuộc cổng hoa) |
+| `dam-cuoi-toang/backstage` | `hop-xop` | [512,354,76,54] | [538,350,54,64] | Ôm hình hộp đen cạnh túi, bớt đè túi xách (66% → 44%) |
+| `dam-cuoi-toang/soundbooth` | `cuon-day-loa` | [558,402,272,136] | [560,404,246,134] | Bỏ phần thừa bên phải cuộn dây; còn chồng `ghe-dj` vì ảnh vẽ vật đó đè lên cuộn dây |
+
+Giữ nguyên (lồng chủ ý, điểm nhỏ nằm trên): `chien-ke/binroom` `thu-nhat`⊂`poster`, `balo` trước `giuong` (balo vẽ đè giường, giường còn lộ ~60%); `tra-sua-van-phong/serverroom` `khe-day-cap`⊂`day-cap`; `dam-cuoi-toang/tent` `man-hinh-led`⊂`san-khau`; `soundbooth` `nut-gain`⊂`ban-mixer`, `cong-usb`⊂`laptop-nhac`; `backstage` `den-guong`⊂`guong-trang-diem`; `kitchen2` `cat-banh`, `soi-vet-kem`⊂`banh-kem`; `pawnshop` `meo-than-tai`⊂`quay-cam-do`.
 - Âm thanh (`ui/sfx.js`, bảng ở `docs/tham-tu-hem/WAVE3.md` mục D):
   - Hiệu ứng nạp lười sau thao tác đầu. Gõ chữ xoay vòng `type-blip/-2/-3`, âm lượng nhỏ, tối đa ~12 lần/giây.
   - Vòng lặp theo màn: mở game = mưa hẻm; bản đồ = `music-map` + mưa; văn phòng = `amb-office`; hiện trường = `music-investigate`; đang thẩm vấn = `music-interrogate`; vạch mặt = `music-finale`; kết vụ = `music-solved`. Đổi màn fade ~0,5 s.
@@ -108,4 +127,4 @@ PORT=8871 node prototype/games/tham-tu-hem/test/e2e-season.mjs <thư mục ảnh
 ## 5. Cần Codex
 
 Hiện không còn mục nào bắt buộc. Có thể làm thêm:
-- Một số ô điểm soi lồng nhau quá sát (ví dụ `nhan-dam-hoi/livingroom`: `khay-trau-cau` gần trùng `mam-qua`). Nếu được thì tách rời để dễ bấm trên điện thoại.
+- (Đã sửa toạ độ, xem §4 "Sửa toạ độ điểm soi chồng nhau".) Nếu vẽ lại thì: `dam-cuoi-toang/soundbooth` `ghe-dj` ("Ghế xoay") trong ảnh đang là một vòng đèn tròn dán đè lên cuộn dây loa, không giống ghế xoay; `dam-cuoi-toang/backstage` `thung-qua` ("Đống thùng quà") đang ôm hộp quà nhỏ trên ghế, còn đống thùng chất cao thì nằm phía sau.

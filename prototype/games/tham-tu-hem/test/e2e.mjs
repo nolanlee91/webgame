@@ -191,7 +191,7 @@ async function play(tag, desktop) {
   }
 }
 
-const IGNORE = /data\/cases\/[\w-]+\.js\?v=t7/; // vụ chưa viết: 404 là bình thường ("Sắp ra mắt")
+const IGNORE = /data\/cases\/[\w-]+\.js\?v=t8/; // vụ chưa viết: 404 là bình thường ("Sắp ra mắt")
 try {
   await b.view(1366, 768, false, 1.25); mobile = false;
   await play("desk", true);
