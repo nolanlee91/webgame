@@ -149,7 +149,7 @@
     256
    ],
    "frames": [
-    "{bemit,mc,exdau,quayphim,mechong,codau,chure}-{neutral,nervous,angry,shock}"
+    "{bemit,mc,exdau,quayphim,mechong,codau,chure,tun}-{neutral,nervous,angry,shock}"
    ],
    "wave": 2,
    "allowEdge": true
@@ -174,7 +174,7 @@
     256
    ],
    "frames": [
-    "{ongnoi,diba,anhhung,chiloan,beti}-{neutral,nervous,angry,shock}"
+    "{ongnoi,diba,anhhung,chiloan,beti,khang,ngoc,chusau}-{neutral,nervous,angry,shock}"
    ],
    "wave": 2,
    "allowEdge": true
@@ -190,6 +190,78 @@
   {
    "file": "assets/scenes/nhan-dam-hoi/pawnshop.webp",
    "wave": 2
+  },
+  {
+   "file": "assets/clues-noi-thit-kho.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{vet-nuoc-mau,vo-mi-sa-te,noi-mi-tuan,ao-tuan,lich-live,clip-live,noi-sach,cay-nhua,vet-nuoc-bon,dep-long-hong,hinh-noi,hoa-don-chao}"
+   ],
+   "wave": 3,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-chien-ke.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{hinh-chien-than,chuong-trong,vet-lua,ban-le-dau,bun-xe-dap,camera-dem,thung-xop-ga,thong-bao-cong,dep-lac,don-hang-dem,dong-ho-bao-thuc,nhat-ky-mat-ngu,balo-long-ga,do-ngu-khung-long,thu-gui-nhat,ghi-am-ga-gay}"
+   ],
+   "wave": 3,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-tra-sua-van-phong.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{ly-rong,hoa-don-vy,lich-truc,hop-com-dat,log-camera,giay-pass,log-the-tu,bit-mat-ngu,ly-hang,hoa-don-hang,video-khoa,coc-ong-hut,ong-hut-det,don-coc,tin-nhan-hua}"
+   ],
+   "wave": 3,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-mat-wifi.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{vet-cat,nhan-hop-quang,dau-dep,kim-loc,phieu-thue-ghe,so-ban-hang,keo-cat-chi,bang-ron,bang-cam-on,keo-tia,khan-co-dong,lich-su-tran,sac-rgb,clip-ti,tin-nhan-loc}"
+   ],
+   "wave": 3,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-dam-cuoi-toang.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{clip-live-mit,nhat-ky-mixer,kim-tuyen-hong,kim-tuyen-vay,kim-tuyen-trung-khop,phim-19h29,file-ghi-am,giay-note-me,bai-chuc-phuc,usb-that-tinh,tin-nhan-thue-mit,hop-tai-nghe,vach-x,chuyen-khoan-tun,zoom-truoc,kich-ban-quay}"
+   ],
+   "wave": 3,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/clues-nhan-dam-hoi.webp",
+   "cell": [
+    96,
+    96
+   ],
+   "frames": [
+    "{anh-ba-co,nuoc-bac-ha,vun-ma-vang,ao-guci,vet-xanh-banh,nhan-trong-banh,nhan-gia,bien-lai-kem,lo-nuong-lanh,tem-sieu-thi,bia-my-ky,clip-mit-dam-hoi,soi-mau-xanh,giay-nhac-ong-noi,vong-tay-diba,bien-nhan-cam-do,so-cam-do,nhan-that,camera-tiem-cam-do}"
+   ],
+   "wave": 3,
+   "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
   }
  ],
  "hotspots": {
@@ -207,121 +279,154 @@
    "thung-rac",
    "cua-so",
    "lich-treo",
-   "bon-rua"
+   "bon-rua",
+   "meo-mun"
   ],
   "assets/scenes/noi-thit-kho/hallway.webp": [
    "cua-phong-tuan",
    "cua-phong-linh",
    "dep-truoc-cua",
    "bang-tin",
-   "dong-ho"
+   "dong-ho",
+   "cau-thang"
   ],
   "assets/scenes/noi-thit-kho/rooftop.webp": [
    "day-phoi",
    "noi-up",
    "chau-cay",
    "ring-light",
-   "bon-nuoc"
+   "bon-nuoc",
+   "ang-ten"
   ],
   "assets/scenes/chien-ke/yard.webp": [
    "chuong-ga",
    "bao-lua",
    "cong-sat",
    "xe-dap",
-   "ban-tho-to"
+   "ban-tho-to",
+   "ga-mai"
   ],
   "assets/scenes/chien-ke/alley.webp": [
    "xe-com-ga",
    "cot-dien",
    "camera-tiem-vang",
    "thung-xop",
-   "xe-may-shipper"
+   "xe-may-shipper",
+   "dep-lac"
   ],
   "assets/scenes/chien-ke/binroom.webp": [
    "ban-hoc",
    "dong-ho-bao-thuc",
    "balo",
    "cua-so-phong",
-   "poster"
+   "poster",
+   "giuong",
+   "thu-nhat"
   ],
   "assets/scenes/tra-sua-van-phong/pantry.webp": [
    "tu-lanh",
    "may-pha-ca-phe",
    "thung-rac-pantry",
    "bang-phan-cong",
-   "lo-vi-song"
+   "lo-vi-song",
+   "ke-ly"
   ],
   "assets/scenes/tra-sua-van-phong/openoffice.webp": [
    "ban-khoa",
    "ban-phong",
    "ban-hang",
    "may-in",
-   "cay-canh"
+   "cay-canh",
+   "thung-rac-hang",
+   "cua-phong-sep"
   ],
   "assets/scenes/tra-sua-van-phong/serverroom.webp": [
    "tu-server",
    "man-hinh-camera",
    "ghe-xoay",
-   "day-cap"
+   "day-cap",
+   "khe-day-cap",
+   "may-lanh"
   ],
   "assets/scenes/mat-wifi/cablepole.webp": [
    "cuon-cap",
    "vet-cat",
    "thang-nhom",
    "hop-quang",
-   "banh-xe"
+   "banh-xe",
+   "meo-tren-day"
   ],
   "assets/scenes/mat-wifi/cafe.webp": [
    "tivi-lon",
    "chong-ghe-nhua",
    "quay-thu-ngan",
    "ro-kim-chi",
-   "bang-menu"
+   "bang-menu",
+   "goc-o-dien",
+   "ban-goc-khuat"
   ],
   "assets/scenes/mat-wifi/namhouse.webp": [
    "ghe-bo",
    "loa-keo",
    "bang-cam-on-ao",
-   "chau-kieng"
+   "chau-kieng",
+   "cua-so"
   ],
   "assets/scenes/dam-cuoi-toang/tent.webp": [
    "san-khau",
    "ban-banh-kem",
    "micro",
    "cong-hoa",
-   "ban-tiec"
+   "ban-tiec",
+   "man-hinh-led",
+   "bong-bay-chu"
   ],
   "assets/scenes/dam-cuoi-toang/soundbooth.webp": [
    "ban-mixer",
    "loa-thung",
    "laptop-nhac",
-   "cuon-day-loa"
+   "cuon-day-loa",
+   "nut-gain",
+   "cong-usb",
+   "ghe-dj"
   ],
   "assets/scenes/dam-cuoi-toang/backstage.webp": [
    "guong-trang-diem",
    "tui-xach",
    "thung-qua",
-   "moc-treo-do"
+   "moc-treo-do",
+   "den-guong",
+   "hop-xop",
+   "dien-thoai-phu"
   ],
   "assets/scenes/nhan-dam-hoi/livingroom.webp": [
    "ban-tho",
    "khay-trau-cau",
    "hop-nhan",
    "bo-sofa",
-   "dong-ho-qua-lac"
+   "dong-ho-qua-lac",
+   "mam-qua",
+   "canh-tu-tho",
+   "gam-sofa",
+   "hop-qua-lac"
   ],
   "assets/scenes/nhan-dam-hoi/kitchen2.webp": [
    "banh-kem",
    "lo-nuong",
    "tu-lanh-lon",
    "thot-go",
-   "hop-dung-cu"
+   "hop-dung-cu",
+   "cat-banh",
+   "soi-vet-kem",
+   "noi-thit-kho"
   ],
   "assets/scenes/nhan-dam-hoi/pawnshop.webp": [
    "quay-cam-do",
    "so-cam-do",
    "tu-kinh",
-   "camera-tiem"
+   "camera-tiem",
+   "meo-than-tai",
+   "bang-lai-suat"
   ]
  },
  "_moods": "neutral = bình thường; nervous = đổ mồ hôi, mắt láo liên; angry = cau mày, nghiến răng; shock = 'bể', mắt trợn, miệng há, có thể kèm giọt mồ hôi lớn; happy = cười; smug = cười đểu. Biểu cảm phải đọc được ở cỡ 128 px.",
