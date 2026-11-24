@@ -41,7 +41,7 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
     rot = fitR > fitN * 1.15;
     const fit = rot ? fitR : fitN;
     const snapped = Math.floor(fit * 2) / 2;
-    k = snapped >= 0.5 && snapped / fit >= 0.8 ? snapped : fit;
+    k = snapped >= 0.5 && snapped / fit >= 0.75 ? snapped : fit; // chịu nhỏ đi tới 25% để giữ bội 0,5 (nét)
     smooth = k < 0.5;
     kCss = k / dpr;
     const cw = (rot ? SCENE.h : SCENE.w) * k, ch = (rot ? SCENE.w : SCENE.h) * k;
@@ -194,9 +194,14 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
     if (api.selected != null && api.canAct) brackets(api.selected, C.gold, 2);
     // nắm sỏi đang cầm + sỏi đang bay
     if (hand && hand.n > 0) {
-      const [hx, hy] = hand.pos, lift = hand.lift ?? 1;
-      if (sheets.hand) sprite(sheets.hand, "hand-hold", hx, hy - 30 * lift);
-      for (let i = 0; i < Math.min(hand.n, 12); i++) stone(variant(hand.at + 50, i), hx + ((i * 7) % 15) - 7, hy - 22 * lift - Math.floor(i / 3) * 3, 1);
+      // nắm sỏi nhấc lên theo hướng "lên" của màn hình (bàn có thể đang xoay / lật)
+      const [hx, hy] = hand.pos, lift = hand.lift ?? 1, [ux, uy] = upVec(), sx = -uy, sy = ux;
+      const L = 26 * lift;
+      if (sheets.hand) sprite(sheets.hand, "hand-hold", hx + ux * (L + 8), hy + uy * (L + 8));
+      for (let i = 0; i < Math.min(hand.n, 12); i++) {
+        const side = ((i * 7) % 15) - 7, up = L + Math.floor(i / 3) * 4;
+        stone(variant(hand.at + 50, i), hx + ux * up + sx * side, hy + uy * up + sy * side, 1);
+      }
     }
     for (const f of flyers) {
       const t = Math.max(0, Math.min(1, (curT - f.delay) / (f.dur || 1)));
@@ -247,7 +252,8 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
       case "drop": return { dur: DUR.drop, start() {
           const from = hand ? hand.pos.slice() : place(st.at).at.slice();
           const to = stonePos(st.at, D.pits[st.at]);
-          flyers = [{ from: [from[0], from[1] - 22], to, frame: variant(st.at, D.pits[st.at]), dur: DUR.drop, delay: 0, arc: 26 }];
+          const [ux, uy] = upVec();
+          flyers = [{ from: [from[0] + ux * 26, from[1] + uy * 26], to, frame: variant(st.at, D.pits[st.at]), dur: DUR.drop, delay: 0, arc: 26 }];
           if (hand) { hand.n--; hand.from = from; hand.to = place(st.at).at.slice(); }
         },
         draw(t) { if (hand && hand.from) { const e = ease(t); hand.pos = [lerp(hand.from[0], hand.to[0], e), lerp(hand.from[1], hand.to[1], e)]; } },
@@ -331,7 +337,7 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
       const A = arrowGeom(dir);
       if (A && Math.abs(x - A.x) <= A.size * 0.62 && Math.abs(y - A.y) <= A.size * 0.62) return { kind: "arrow", dir };
     }
-    for (let pit = 0; pit < 12; pit++) {
+    for (const pit of [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 0, 6]) { // ô dân trước: vùng bấm ô quan có thể chờm sang
       const [cx, cy] = place(pit).at, [hx, hy] = pitHalf(pit);
       if (Math.abs(x - cx) <= hx && Math.abs(y - cy) <= hy) return { kind: "pit", pit };
     }

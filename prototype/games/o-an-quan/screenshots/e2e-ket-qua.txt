@@ -1,0 +1,59 @@
+PASS màn vào game chuẩn: tên · Tạo phòng online · Phòng kín · mã phòng + Vào phòng · Chơi với máy; "Cách chơi" gập
+PASS chưa có ván dở → không có nút "Chơi tiếp"
+PASS "Chơi với máy" → bước tuỳ chọn Máy (Dễ/Vừa/Khó) + Luật, mặc định Vừa · Thường
+PASS Esc → quay lại màn đầu
+PASS "Tạo phòng online" khi chưa nhập tên → báo nhập tên
+PASS nhập tên → bước tạo phòng: Chế độ 1v1/2v2 + Luật Thường/Quan non
+PASS Bắt đầu → bàn 2×5 ô, mỗi ô 5 dân, 2 quan, bạn (đội A) đi trước, khung A sáng "LƯỢT" — [0,5,5,5,5,5,0,5,5,5,5,5]
+PASS desktop: bàn nằm ngang, phóng bội 0,5 (ảnh pixel sắc) — {"k":1,"kCss":1,"dpr":1,"rot":false,"flip":false,"smooth":false,"W":1248,"H":620}
+PASS bàn gọn trong khung, trang không tràn
+PASS ô dân + mũi tên không bị nút / lớp phủ che (elementFromPoint)
+PASS bấm ô bên đối thủ → không chọn được
+PASS bấm ô 3 bên mình → chọn ô, hiện 2 mũi tên vàng + gợi ý
+PASS mũi tên trái không bị che
+PASS mũi tên phải không bị che
+PASS bấm mũi tên phải → rải sỏi từng viên (đang hoạt cảnh, hiện nút Tua / Bỏ qua)
+PASS bấm loạn lúc đang rải → không đi thêm nước
+PASS "Bỏ qua" → hoạt cảnh xong ngay, bàn khớp trạng thái thật
+PASS ô 3 sang phải: rải tiếp ô 9 rồi ăn ô 4 → +6 điểm — [6,0]
+PASS máy (Vừa) đi xong → trả lượt cho bạn
+PASS bàn phím: mũi tên chọn ô, Enter → hiện mũi tên hướng
+PASS bàn phím: mũi tên ← khi đã chọn → rải sang trái
+PASS phím U → đi lại (bỏ nước của bạn + nước máy) — moves 2
+PASS phím M tắt tiếng (lưu chung wgp.muted)
+PASS nút âm thanh bật lại
+PASS tải lại trang → màn đầu có "▶ Chơi tiếp" (ván 1, 2 nước, máy Vừa) — Ván 1 đang dở · 2 nước · điểm 6 – 21 (máy Vừa)
+PASS Chơi tiếp → đúng bàn, đúng điểm, đúng lượt
+PASS desktop: đánh với máy bằng chuột tới hết ván → có kết quả, tổng điểm 70 — người thắng 1 sau 12 nước, điểm 6–64
+PASS desktop: suốt ván, mọi điểm bấm (ô + mũi tên) đều trúng bàn, không bị che — bị che 0
+PASS bảng kết quả: tiêu đề, điểm hai đội, tỉ số các ván, nút Ván tiếp
+PASS âm thanh: tải được file + có tiếng "tách" khi sỏi rơi, tiếng ăn quân, tiếng kết ván — 7 file
+PASS "Xem bàn" đóng bảng, nút công cụ thành "Ván tiếp"
+PASS Ván tiếp → ván 2, đội thua đi trước, giữ tỉ số — {"w":1,"turn":0}
+PASS ván xong thì không còn ván dở trong bản lưu cũ (bản lưu chỉ còn ván mới)
+PASS bản lưu thiếu phiên bản → giữ tuỳ chọn (Khó · Quan non), bỏ ván dở, không lỗi
+PASS bản lưu có nước sai luật → bỏ ván dở
+PASS bản lưu hỏng JSON → về mặc định, vẫn chơi được
+PASS link mời ?room=K7M2Q → điền sẵn mã + nhắc
+PASS 1366×768 dpr 1,25: hệ số phóng thiết bị là bội 0,5 → ảnh pixel nét — {"k":1,"kCss":0.8,"dpr":1.25,"rot":false,"flip":false,"smooth":false,"W":1560,"H":775}
+PASS mobile: màn vào game gọn, 3 nút ≥ 44px, không tràn
+PASS mobile dọc: bàn tự xoay dọc để ô to hơn, hệ số bội 0,5 — {"k":1.5,"kCss":0.5,"dpr":3,"rot":true,"flip":false,"smooth":false,"W":1110,"H":1969}
+PASS mobile: bàn gọn trong màn, không tràn
+PASS mobile: chạm ô → 2 mũi tên trên bàn, cách nhau đủ xa cho ngón cái, không bị che — cách 76px
+PASS mobile: chạm mũi tên → rải, có nút Tua / Bỏ qua
+PASS mobile: nút "Tua ×4" bật
+PASS mobile: đánh với máy Khó bằng chạm tới hết ván → có kết quả — người thắng 1 sau 14 nước
+PASS mobile: suốt ván mọi điểm chạm trúng bàn, không bị che — bị che 0
+PASS mobile: bảng kết quả gọn trong màn
+PASS điện thoại ngang: bàn nằm ngang, gọn, không tràn
+PASS online: tạo phòng → phòng chờ có mã 5 ký tự, luật quan non, chủ phòng chọn được luật — GECK3
+PASS online: người thứ 2 vào → nút Bắt đầu mở
+PASS online: vào ván, quan non bật, tới lượt bạn, có ô chat
+PASS online: nước của bạn tới máy chủ, máy kia nhận đúng
+PASS online: nước của đối thủ → hoạt cảnh rải trên máy mình
+PASS online: tin nhắn của đối thủ hiện trong khung chat
+PASS online: đối thủ rời giữa ván → về phòng chờ, báo có người rời
+PASS online 2v2: phòng chờ 4 ghế (Đội A1, B1, A2, B2), Bắt đầu khoá tới khi đủ 4; danh sách phòng công khai ghi 1/4 — {"game":"o-an-quan","code":"GXGEZ","host":"Tí Sỏi","have":1,"max":4} GXGEZ
+PASS không có lỗi JS / console
+
+57/57 đạt

@@ -185,7 +185,7 @@ export function mount(root, ctx = {}) {
       const p = room.players, nm = (i) => p[i]?.name || (room.phase === "lobby" ? "…" : "?");
       return room.max === 4 ? [nm(0) + " & " + nm(2), nm(1) + " & " + nm(3)] : [nm(0), nm(1)];
     }
-    return ["Bạn", "Máy (" + LEVEL_NAME[(s?.aiLevel ?? opts.aiLevel)] + ")"];
+    return ["Bạn", "Máy"];
   }
   const seatName = (i) => room?.players[i]?.name || "Người " + (i + 1);
   let warnLeft = -1;
@@ -202,7 +202,7 @@ export function mount(root, ctx = {}) {
     ui.anim.hidden = !busy;
     ui.fast.setAttribute("aria-pressed", String(board.fast));
     if (!s) {
-      ui.sA.textContent = "0"; ui.sB.textContent = "0"; ui.xA.textContent = ""; ui.xB.textContent = "";
+      ui.sA.textContent = "0"; ui.sB.textContent = "0"; ui.xA.textContent = ""; ui.xB.textContent = room ? "" : LEVEL_NAME[opts.aiLevel];
       ui.round.textContent = room ? "Phòng " + room.code : "Chưa bắt đầu"; ui.status.textContent = room ? "Phòng chờ" : "Sẵn sàng"; ui.info.textContent = "";
       ui.plA.classList.remove("on", "win"); ui.plB.classList.remove("on", "win");
       ui.undo.disabled = true; ui.next.disabled = true; ui.tip.hidden = true; return;
@@ -210,7 +210,7 @@ export function mount(root, ctx = {}) {
     const sc = D ? D.score : s.score, eat = D ? D.eaten : s.eaten, debt = D ? D.debt : s.debt;
     ui.sA.textContent = sc[0]; ui.sB.textContent = sc[1];
     const extra = (t) => [eat[t] ? eat[t] + " quan" : "", debt[t] ? "nợ " + debt[t] : ""].filter(Boolean).join(" · ");
-    ui.xA.textContent = extra(0); ui.xB.textContent = extra(1);
+    ui.xA.textContent = extra(0); ui.xB.textContent = [room ? "" : LEVEL_NAME[s.aiLevel], extra(1)].filter(Boolean).join(" · ");
     const over = isOver(s) && !busy, turn = busy ? moverShown : s.turn;
     ui.round.textContent = "Ván " + s.round + (s.quanNon ? " · quan non" : "");
     ui.plA.classList.toggle("on", !over && turn === 0); ui.plB.classList.toggle("on", !over && turn === 1);
@@ -227,14 +227,16 @@ export function mount(root, ctx = {}) {
       const mine = room.seat === room.you;
       if (mine && left > 0 && left <= 5 && left !== warnLeft) { warnLeft = left; sfx.play("do-xuc-xac", 0.3); }
       const who = room.players[room.seat];
-      st = mine ? (sent ? "Đang gửi…" : "Lượt bạn · chọn ô") + t : who && !who.connected ? seatName(room.seat) + " mất kết nối…" + t : "Chờ " + seatName(room.seat) + "…" + t;
-    } else st = s.turn === 0 ? "Lượt bạn · chọn ô" : "Lượt máy";
+      st = mine ? (sent ? "Đang gửi…" : "Lượt bạn") + t : who && !who.connected ? seatName(room.seat) + " mất kết nối…" + t : "Chờ " + seatName(room.seat) + "…" + t;
+    } else st = s.turn === 0 ? "Lượt bạn" : "Lượt máy";
     ui.status.textContent = st;
     ui.undo.disabled = !!room || busy || over || isOver(s) || !s.moves.length || !humanMoved();
     ui.next.disabled = online() && !isOver(s);
     ui.next.classList.toggle("btn--primary", over);
     ui.next.firstChild.textContent = over ? "Ván tiếp ▶" : "Ván mới";
-    ui.tip.hidden = !(canAct() && board.selected != null);
+    const act = canAct();
+    ui.tip.textContent = board.selected != null ? "Bấm mũi tên vàng để chọn hướng rải" : "Chạm một ô sáng bên bạn để bốc sỏi";
+    ui.tip.hidden = !(act && (board.selected != null || s.ply < 2));
   }
   const humanMoved = () => s && s.moves.some((_, i) => (s.first + i) % 2 === 0);
   function showMute() {

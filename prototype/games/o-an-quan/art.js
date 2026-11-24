@@ -12,8 +12,8 @@ const QUAN_R = 140, QUAN_L = COL0 - GAP, QUAN_RX = 1200 - QUAN_L; // mép phẳn
 
 export const DEFAULT_PLACEMENTS = (() => {
   const p = {};
-  p["pit-0"] = { at: [QUAN_L - 64, 240], r: 60, half: [QUAN_R, QUAN_R] };
-  p["pit-6"] = { at: [QUAN_RX + 64, 240], r: 60, half: [QUAN_R, QUAN_R] };
+  p["pit-0"] = { at: [QUAN_L - 64, 240], r: 60, half: [70, QUAN_R - 10] };
+  p["pit-6"] = { at: [QUAN_RX + 64, 240], r: 60, half: [70, QUAN_R - 10] };
   for (let i = 1; i <= 5; i++) p["pit-" + i] = { at: [colX(i - 1), rowY(1)], r: 44, half: [PIT / 2, PIT / 2] };
   for (let i = 7; i <= 11; i++) p["pit-" + i] = { at: [colX(11 - i), rowY(0)], r: 44, half: [PIT / 2, PIT / 2] };
   p["tray-a"] = { at: [600, 448], w: 560, h: 44 };
