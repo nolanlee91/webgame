@@ -26,3 +26,17 @@ python -I tools/asset-check/check_assets.py docs/tham-tu-hem/asset-spec.json --p
 
 Đã soi các cảnh báo còn lại trên icon `noi-sach`, `hinh-chien-than`, `vet-lua`, `bun-xe-dap`, `hoa-don-vy`, `keo-cat-chi`, `bang-ron` và `sac-rgb`. Các cảnh báo đến từ các cụm pixel nhỏ, chi tiết ở rìa hình và vật phụ như vệt hạt lúa, ống hút hoặc dây.
 Commit asset đợt 3: ae69436.
+
+## Đợt 4 · Chợ Hẻm 47
+
+- Bản đồ mùa 2 và 18 cảnh hiện trường, WebP lossless 960×540, lưới 2×.
+- 6 sheet chân dung với 23 vai mới × 4 biểu cảm, ô 256×256, lưới 1× và alpha cứng. Số vai lấy theo hợp đồng đợt 4. Các vai dùng lại tiếp tục trỏ tới sheet mùa 1.
+- 85 điểm soi và 6 chấm bản đồ. Đã mở ảnh có khung để rà vật thể, kiểm mọi cặp hình chữ nhật trong mỗi ảnh có diện tích giao bằng 0. Các khung rộng và cao ít nhất 24 px trong file.
+- Đã soi biểu cảm và nhận diện nhân vật trên ảnh xem trước. Hai bản manifest trùng nhau. Test asset của game đạt 3/3.
+
+```text
+0 lỗi, 8 cảnh báo — ĐẠT, giao được.
+```
+
+Tám cảnh báo thuộc icon vật chứng mùa 1 đã được soi và ghi ở đợt 3. Đợt 4 có 0 cảnh báo mới.
+Bản đồ đã có ảnh và dữ liệu điểm bấm. Màn bản đồ trên nhánh gốc hiện vẫn đọc bản đồ mùa 1.

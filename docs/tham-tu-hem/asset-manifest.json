@@ -3628,6 +3628,1588 @@
      ]
     }
    }
+  },
+  {
+   "filename": "assets/portraits-ve-so.webp",
+   "dimensions": [
+    1024,
+    1280
+   ],
+   "pixelScale": 1,
+   "frames": {
+    "ongchin-neutral": {
+     "rect": [
+      0,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ongchin-nervous": {
+     "rect": [
+      256,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ongchin-angry": {
+     "rect": [
+      512,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ongchin-shock": {
+     "rect": [
+      768,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bachin-neutral": {
+     "rect": [
+      0,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bachin-nervous": {
+     "rect": [
+      256,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bachin-angry": {
+     "rect": [
+      512,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bachin-shock": {
+     "rect": [
+      768,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "mai-neutral": {
+     "rect": [
+      0,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "mai-nervous": {
+     "rect": [
+      256,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "mai-angry": {
+     "rect": [
+      512,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "mai-shock": {
+     "rect": [
+      768,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "luc-neutral": {
+     "rect": [
+      0,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "luc-nervous": {
+     "rect": [
+      256,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "luc-angry": {
+     "rect": [
+      512,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "luc-shock": {
+     "rect": [
+      768,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chutu-neutral": {
+     "rect": [
+      0,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chutu-nervous": {
+     "rect": [
+      256,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chutu-angry": {
+     "rect": [
+      512,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "chutu-shock": {
+     "rect": [
+      768,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/ve-so/market.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "market": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/ve-so/garage.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "garage": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/ve-so/lottery.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "lottery": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/portraits-karaoke.webp",
+   "dimensions": [
+    1024,
+    1024
+   ],
+   "pixelScale": 1,
+   "frames": {
+    "cothu-neutral": {
+     "rect": [
+      0,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cothu-nervous": {
+     "rect": [
+      256,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cothu-angry": {
+     "rect": [
+      512,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cothu-shock": {
+     "rect": [
+      768,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhtung-neutral": {
+     "rect": [
+      0,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhtung-nervous": {
+     "rect": [
+      256,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhtung-angry": {
+     "rect": [
+      512,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhtung-shock": {
+     "rect": [
+      768,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "beo-neutral": {
+     "rect": [
+      0,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "beo-nervous": {
+     "rect": [
+      256,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "beo-angry": {
+     "rect": [
+      512,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "beo-shock": {
+     "rect": [
+      768,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cosau-neutral": {
+     "rect": [
+      0,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cosau-nervous": {
+     "rect": [
+      256,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cosau-angry": {
+     "rect": [
+      512,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cosau-shock": {
+     "rect": [
+      768,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/karaoke/stage.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "stage": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/karaoke/fusebox.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "fusebox": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/karaoke/backalley.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "backalley": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/portraits-meo-mat-tich.webp",
+   "dimensions": [
+    1024,
+    1280
+   ],
+   "pixelScale": 1,
+   "frames": {
+    "china-neutral": {
+     "rect": [
+      0,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "china-nervous": {
+     "rect": [
+      256,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "china-angry": {
+     "rect": [
+      512,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "china-shock": {
+     "rect": [
+      768,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "tom-neutral": {
+     "rect": [
+      0,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "tom-nervous": {
+     "rect": [
+      256,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "tom-angry": {
+     "rect": [
+      512,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "tom-shock": {
+     "rect": [
+      768,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacsy-neutral": {
+     "rect": [
+      0,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacsy-nervous": {
+     "rect": [
+      256,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacsy-angry": {
+     "rect": [
+      512,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacsy-shock": {
+     "rect": [
+      768,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cohong-neutral": {
+     "rect": [
+      0,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cohong-nervous": {
+     "rect": [
+      256,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cohong-angry": {
+     "rect": [
+      512,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "cohong-shock": {
+     "rect": [
+      768,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhship-neutral": {
+     "rect": [
+      0,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhship-nervous": {
+     "rect": [
+      256,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhship-angry": {
+     "rect": [
+      512,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "anhship-shock": {
+     "rect": [
+      768,
+      1024,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/meo-mat-tich/shop.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "shop": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/meo-mat-tich/vetclinic.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "vetclinic": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/meo-mat-tich/rooftop2.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "rooftop2": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/portraits-tat-nien.webp",
+   "dimensions": [
+    1024,
+    256
+   ],
+   "pixelScale": 1,
+   "frames": {
+    "quanly-neutral": {
+     "rect": [
+      0,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "quanly-nervous": {
+     "rect": [
+      256,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "quanly-angry": {
+     "rect": [
+      512,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "quanly-shock": {
+     "rect": [
+      768,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/tat-nien/banquet.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "banquet": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/tat-nien/office2.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "office2": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/tat-nien/kitchen3.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "kitchen3": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/portraits-ma-nha-13.webp",
+   "dimensions": [
+    1024,
+    1024
+   ],
+   "pixelScale": 1,
+   "frames": {
+    "quan-neutral": {
+     "rect": [
+      0,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "quan-nervous": {
+     "rect": [
+      256,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "quan-angry": {
+     "rect": [
+      512,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "quan-shock": {
+     "rect": [
+      768,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bado-neutral": {
+     "rect": [
+      0,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bado-nervous": {
+     "rect": [
+      256,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bado-angry": {
+     "rect": [
+      512,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bado-shock": {
+     "rect": [
+      768,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "nhomyt-neutral": {
+     "rect": [
+      0,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "nhomyt-nervous": {
+     "rect": [
+      256,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "nhomyt-angry": {
+     "rect": [
+      512,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "nhomyt-shock": {
+     "rect": [
+      768,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "onghai-neutral": {
+     "rect": [
+      0,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "onghai-nervous": {
+     "rect": [
+      256,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "onghai-angry": {
+     "rect": [
+      512,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "onghai-shock": {
+     "rect": [
+      768,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/ma-nha-13/hauntedhouse.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "hauntedhouse": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/ma-nha-13/attic.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "attic": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/ma-nha-13/realestate.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "realestate": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/portraits-tham-tu-gia.webp",
+   "dimensions": [
+    1024,
+    1024
+   ],
+   "pixelScale": 1,
+   "frames": {
+    "pro-neutral": {
+     "rect": [
+      0,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "pro-nervous": {
+     "rect": [
+      256,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "pro-angry": {
+     "rect": [
+      512,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "pro-shock": {
+     "rect": [
+      768,
+      0,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ly-neutral": {
+     "rect": [
+      0,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ly-nervous": {
+     "rect": [
+      256,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ly-angry": {
+     "rect": [
+      512,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "ly-shock": {
+     "rect": [
+      768,
+      256,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bao-neutral": {
+     "rect": [
+      0,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bao-nervous": {
+     "rect": [
+      256,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bao-angry": {
+     "rect": [
+      512,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bao-shock": {
+     "rect": [
+      768,
+      512,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacuc-neutral": {
+     "rect": [
+      0,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacuc-nervous": {
+     "rect": [
+      256,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacuc-angry": {
+     "rect": [
+      512,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    },
+    "bacuc-shock": {
+     "rect": [
+      768,
+      768,
+      256,
+      256
+     ],
+     "anchor": [
+      128,
+      256
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/tham-tu-gia/office-night.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "office-night": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/tham-tu-gia/locksmith.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "locksmith": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/tham-tu-gia/studio.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "studio": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/scenes/hem-map-2.webp",
+   "dimensions": [
+    960,
+    540
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "hem-map-2": {
+     "rect": [
+      0,
+      0,
+      960,
+      540
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
   }
  ],
  "hotspots": {
@@ -4417,6 +5999,590 @@
     132,
     102,
     60
+   ]
+  },
+  "assets/scenes/ve-so/garage.webp": {
+   "xe-dang-sua": [
+    316,
+    168,
+    314,
+    202
+   ],
+   "thung-do-nghe": [
+    712,
+    242,
+    220,
+    252
+   ],
+   "binh-hoi": [
+    638,
+    204,
+    74,
+    120
+   ],
+   "ghe-cho": [
+    34,
+    310,
+    260,
+    212
+   ],
+   "lich-hen": [
+    80,
+    144,
+    126,
+    130
+   ]
+  },
+  "assets/scenes/ve-so/lottery.webp": {
+   "quay-ve-so": [
+    670,
+    196,
+    136,
+    118
+   ],
+   "bang-ket-qua": [
+    86,
+    100,
+    150,
+    222
+   ],
+   "may-do-so": [
+    514,
+    242,
+    76,
+    52
+   ],
+   "camera-dai-ly": [
+    694,
+    74,
+    78,
+    54
+   ],
+   "thung-ve-cu": [
+    546,
+    332,
+    114,
+    126
+   ]
+  },
+  "assets/scenes/ve-so/market.webp": {
+   "sap-ca": [
+    4,
+    270,
+    354,
+    122
+   ],
+   "can-dia": [
+    366,
+    208,
+    98,
+    82
+   ],
+   "ro-rau": [
+    346,
+    400,
+    304,
+    94
+   ],
+   "xe-day-hang": [
+    652,
+    254,
+    272,
+    198
+   ],
+   "bang-gia": [
+    598,
+    98,
+    138,
+    156
+   ]
+  },
+  "assets/scenes/karaoke/stage.webp": {
+   "man-hinh-loi": [
+    492,
+    138,
+    140,
+    116
+   ],
+   "micro-cay": [
+    390,
+    188,
+    56,
+    150
+   ],
+   "dan-loa": [
+    654,
+    180,
+    88,
+    160
+   ],
+   "bang-ten-thi-sinh": [
+    50,
+    246,
+    170,
+    206
+   ],
+   "tu-lanh-giai-thuong": [
+    800,
+    144,
+    124,
+    280
+   ]
+  },
+  "assets/scenes/karaoke/fusebox.webp": {
+   "tu-dien": [
+    680,
+    86,
+    82,
+    148
+   ],
+   "cau-dao": [
+    764,
+    130,
+    48,
+    68
+   ],
+   "so-dien": [
+    858,
+    106,
+    84,
+    94
+   ],
+   "den-pin-rot": [
+    446,
+    456,
+    116,
+    48
+   ],
+   "day-dien-noi": [
+    668,
+    420,
+    260,
+    48
+   ]
+  },
+  "assets/scenes/karaoke/backalley.webp": {
+   "ban-trang-diem": [
+    8,
+    142,
+    256,
+    346
+   ],
+   "thung-bia": [
+    304,
+    318,
+    188,
+    128
+   ],
+   "ao-kim-sa-du-phong": [
+    434,
+    154,
+    162,
+    154
+   ],
+   "xe-ba-gac": [
+    616,
+    252,
+    340,
+    210
+   ]
+  },
+  "assets/scenes/meo-mat-tich/shop.webp": {
+   "den-quay": [
+    10,
+    108,
+    128,
+    188
+   ],
+   "ke-hang": [
+    398,
+    100,
+    304,
+    204
+   ],
+   "nha-cay-meo": [
+    788,
+    194,
+    168,
+    248
+   ],
+   "chen-an": [
+    422,
+    338,
+    72,
+    38
+   ],
+   "thung-carton": [
+    656,
+    304,
+    132,
+    154
+   ]
+  },
+  "assets/scenes/meo-mat-tich/vetclinic.webp": {
+   "ban-kham": [
+    464,
+    308,
+    320,
+    188
+   ],
+   "so-kham-benh": [
+    102,
+    298,
+    140,
+    86
+   ],
+   "long-nhot": [
+    262,
+    110,
+    282,
+    198
+   ],
+   "tu-thuoc": [
+    562,
+    92,
+    152,
+    216
+   ]
+  },
+  "assets/scenes/meo-mat-tich/rooftop2.webp": {
+   "chuong-meo-tu-che": [
+    206,
+    216,
+    196,
+    156
+   ],
+   "day-phoi-do": [
+    420,
+    102,
+    364,
+    100
+   ],
+   "bon-cat": [
+    568,
+    296,
+    154,
+    92
+   ],
+   "hop-pate-rong": [
+    278,
+    406,
+    106,
+    96
+   ],
+   "ong-nuoc": [
+    842,
+    38,
+    118,
+    348
+   ]
+  },
+  "assets/scenes/tat-nien/banquet.webp": {
+   "san-khau-tiec": [
+    418,
+    40,
+    310,
+    224
+   ],
+   "thung-boc-tham": [
+    430,
+    290,
+    100,
+    90
+   ],
+   "ban-sep": [
+    182,
+    198,
+    230,
+    138
+   ],
+   "ban-team": [
+    646,
+    286,
+    310,
+    206
+   ],
+   "cay-mai": [
+    0,
+    194,
+    180,
+    286
+   ]
+  },
+  "assets/scenes/tat-nien/office2.webp": {
+   "ket-sat": [
+    170,
+    120,
+    124,
+    154
+   ],
+   "man-hinh-camera-2": [
+    382,
+    160,
+    222,
+    82
+   ],
+   "so-dat-ban": [
+    418,
+    336,
+    210,
+    84
+   ],
+   "moc-chia-khoa": [
+    612,
+    122,
+    134,
+    98
+   ]
+  },
+  "assets/scenes/tat-nien/kitchen3.webp": {
+   "noi-lau": [
+    48,
+    214,
+    146,
+    80
+   ],
+   "xe-day-mon": [
+    350,
+    278,
+    250,
+    218
+   ],
+   "thung-rac-bep": [
+    666,
+    262,
+    126,
+    222
+   ],
+   "tu-dong": [
+    810,
+    88,
+    144,
+    314
+   ],
+   "bang-order": [
+    670,
+    68,
+    138,
+    164
+   ]
+  },
+  "assets/scenes/ma-nha-13/hauntedhouse.webp": {
+   "ban-tho-cu": [
+    250,
+    174,
+    264,
+    110
+   ],
+   "guong-vo": [
+    550,
+    140,
+    114,
+    146
+   ],
+   "den-chap-chon": [
+    540,
+    42,
+    94,
+    92
+   ],
+   "ghe-dua": [
+    88,
+    284,
+    220,
+    210
+   ],
+   "tuong-am": [
+    694,
+    66,
+    178,
+    308
+   ]
+  },
+  "assets/scenes/ma-nha-13/attic.webp": {
+   "loa-giau": [
+    122,
+    46,
+    120,
+    76
+   ],
+   "o-cam-hen-gio": [
+    94,
+    192,
+    64,
+    96
+   ],
+   "ruong-go": [
+    78,
+    328,
+    236,
+    160
+   ],
+   "cua-so-gac": [
+    704,
+    140,
+    222,
+    208
+   ],
+   "day-dien-moi": [
+    192,
+    130,
+    510,
+    36
+   ]
+  },
+  "assets/scenes/ma-nha-13/realestate.webp": {
+   "ban-moi-gioi": [
+    140,
+    328,
+    376,
+    172
+   ],
+   "ban-do-quy-hoach": [
+    290,
+    128,
+    262,
+    182
+   ],
+   "tu-ho-so": [
+    562,
+    114,
+    134,
+    312
+   ],
+   "bang-rao-ban": [
+    736,
+    82,
+    222,
+    262
+   ]
+  },
+  "assets/scenes/tham-tu-gia/office-night.webp": {
+   "tu-ho-so-mo": [
+    16,
+    162,
+    192,
+    258
+   ],
+   "cua-kinh": [
+    744,
+    38,
+    174,
+    298
+   ],
+   "ban-lam-viec": [
+    238,
+    274,
+    432,
+    140
+   ],
+   "may-tinh": [
+    468,
+    204,
+    102,
+    68
+   ],
+   "meo-van-phong": [
+    670,
+    396,
+    130,
+    82
+   ]
+  },
+  "assets/scenes/tham-tu-gia/locksmith.webp": {
+   "may-cat-khoa": [
+    84,
+    246,
+    206,
+    126
+   ],
+   "bang-chia-phoi": [
+    426,
+    106,
+    252,
+    154
+   ],
+   "so-in-khoa": [
+    546,
+    266,
+    200,
+    62
+   ],
+   "ghe-nhua-sap": [
+    522,
+    376,
+    310,
+    132
+   ]
+  },
+  "assets/scenes/tham-tu-gia/studio.webp": {
+   "ring-light-pro": [
+    38,
+    168,
+    130,
+    352
+   ],
+   "bang-ghim-gia": [
+    466,
+    94,
+    248,
+    188
+   ],
+   "dien-thoai-livestream": [
+    174,
+    286,
+    82,
+    178
+   ],
+   "tu-quan-ao": [
+    738,
+    42,
+    216,
+    278
+   ],
+   "ho-so-danh-cap": [
+    558,
+    362,
+    190,
+    110
+   ]
+  },
+  "assets/scenes/hem-map-2.webp": {
+   "ve-so": [
+    178,
+    200,
+    56,
+    56
+   ],
+   "karaoke": [
+    456,
+    98,
+    56,
+    58
+   ],
+   "meo-mat-tich": [
+    832,
+    106,
+    56,
+    56
+   ],
+   "tat-nien": [
+    760,
+    274,
+    56,
+    56
+   ],
+   "ma-nha-13": [
+    160,
+    422,
+    56,
+    56
+   ],
+   "tham-tu-gia": [
+    544,
+    450,
+    56,
+    56
    ]
   }
  }
