@@ -14,3 +14,14 @@ CẢNH BÁO [assets/hand.webp] thiếu file (tuỳ chọn)
 ```
 
 Sprite tay là tùy chọn và chưa được vẽ. Hợp đồng này chỉ có bàn và sỏi nên checker không tạo ảnh xếp hàng nhân vật.
+
+## Tay rải sỏi
+
+Hai khung `hand-hold` và `hand-drop`, lưới 2×, alpha cứng, WebP lossless. Đã mở ảnh ở 2× và kiểm tra tư thế nhả sỏi.
+
+```text
+0 lỗi, 1 cảnh báo — ĐẠT, giao được.
+```
+
+Cảnh báo `hand-drop`: đã soi, mẩu rời là viên sỏi đang rơi đúng theo tư thế.
+Commit âm thanh: `73507fa`.
