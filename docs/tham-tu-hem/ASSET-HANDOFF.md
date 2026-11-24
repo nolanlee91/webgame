@@ -40,3 +40,4 @@ Commit asset đợt 3: ae69436.
 
 Tám cảnh báo thuộc icon vật chứng mùa 1 đã được soi và ghi ở đợt 3. Đợt 4 có 0 cảnh báo mới.
 Bản đồ đã có ảnh và dữ liệu điểm bấm. Màn bản đồ trên nhánh gốc hiện vẫn đọc bản đồ mùa 1.
+Commit asset đợt 4: `4f9f5c9`.
