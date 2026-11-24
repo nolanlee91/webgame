@@ -1,11 +1,11 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
-import { h, icon, toast } from "./dom.js?v=t5";
-import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t5";
-import { renderText } from "./dialog.js?v=t5";
-import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t5";
-import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t5";
-import { pickEvidence, clueCard } from "./panels.js?v=t5";
-import { play as sfx } from "./sfx.js?v=t5";
+import { h, icon, toast } from "./dom.js?v=t6";
+import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t6";
+import { renderText } from "./dialog.js?v=t6";
+import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t6";
+import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t6";
+import { pickEvidence, clueCard } from "./panels.js?v=t6";
+import { play as sfx } from "./sfx.js?v=t6";
 
 const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */
@@ -23,18 +23,27 @@ function coverImg(file, fallbackUrl, W, H, fw = SCENE_W, fh = SCENE_H, fx = 0.5)
 /** Máy tính: ảnh nền 960×540 chỉ vẽ gần cỡ gốc (≤ 1,5 px thiết bị mỗi px ảnh, bội 0,5) trong khung poster — không kéo tràn
  *  màn hình nữa (kéo 2–3× làm vỡ hạt). Khi Codex giao bản HD 1920×1080 (file *-hd.webp) thì dùng bản HD và được tràn màn hình. */
 const HD = { "assets/title-art.webp": "assets/title-art-hd.webp", "assets/scenes/hem-map-2.webp": "assets/scenes/hem-map-2-hd.webp" };
-function posterImg(file, fallbackUrl, W, H, x0 = 0) {
+function posterImg(file, fallbackUrl, W, H, x0 = 0, fx = 0.5) {
   const hd = HD[file];
-  if (hd && hasFile(hd)) return coverImg(hd, fallbackUrl, W, H, SCENE_W * 2, SCENE_H * 2);
+  if (hd && hasFile(hd)) return hdCover(hd, W, H, fx);
   const d = dpr(), aw = W - x0 - 48, ah = H - 48;
   const m = Math.max(1, Math.min(3, Math.floor(Math.min(aw / SCENE_W, ah / SCENE_H) * d * 2))), k = m / 2 / d;
   const w = SCENE_W * k, hh = SCENE_H * k;
   return h("img.cover-img.poster-img", { src: hasFile(file) ? file : fallbackUrl, alt: "", draggable: "false",
     style: { width: w + "px", height: hh + "px", left: Math.round(x0 + (W - x0 - w) / 2) + "px", top: Math.round((H - hh) / 2) + "px" } });
 }
+/** Bản HD là tranh chi tiết (không phải lưới 2×): phủ vừa khít màn hình theo tỉ lệ thật, lọc mượt — không làm tròn lên bậc
+ *  0,5 (1920 px mà làm tròn lên thành 1,5× là cắt mất nửa tranh và lại vỡ hạt). */
+function hdCover(file, W, H, fx = 0.5) {
+  const k = Math.max(W / (SCENE_W * 2), H / (SCENE_H * 2)), w = Math.ceil(SCENE_W * 2 * k), hh = Math.ceil(SCENE_H * 2 * k);
+  const left = Math.round(Math.min(0, Math.max(W - w, W / 2 - fx * w)));
+  return h("img.cover-img.hd-img", { src: file, alt: "", draggable: "false", style: { width: w + "px", height: hh + "px", left: left + "px", top: Math.round((H - hh) / 2) + "px" } });
+}
 /** Điện thoại dọc: ảnh mở đầu thành băng ngang trên cùng (đủ chiều cao ảnh, sáng rõ, không phủ tối), chữ nằm dưới. */
 const TITLE_FOCUS = 0.66; // Thám tử + Tèo nằm lệch phải ảnh title-art
 function titleBanner(file, fallbackUrl, W) {
+  const hd = HD[file];
+  if (hd && hasFile(hd)) { const BH = Math.round(W * SCENE_H / SCENE_W); return h("div.title-bg.title-banner", { style: { height: BH + "px" } }, hdCover(hd, W, BH, TITLE_FOCUS)); }
   const d = dpr(), k = Math.ceil((W / SCENE_W) * d * 2) / 2 / d, BH = Math.round(SCENE_H * k);
   return h("div.title-bg.title-banner", { style: { height: BH + "px" } }, coverImg(file, fallbackUrl, W, BH, SCENE_W, SCENE_H, TITLE_FOCUS));
 }
@@ -50,7 +59,7 @@ export function title(app) {
   const banner = W < 720;
   return h("section.title-screen" + (banner ? ".title-screen--banner" : ""),
     banner ? titleBanner("assets/title-art.webp", placeholderScene("title", [], "title"), W)
-      : h("div.title-bg.title-poster", posterImg("assets/title-art.webp", placeholderScene("title", [], "title"), W, H, Math.min(520, W * 0.42))),
+      : h("div.title-bg.title-poster", posterImg("assets/title-art.webp", placeholderScene("title", [], "title"), W, H, Math.min(520, W * 0.42), 0.6)),
     banner || !hasFile(HD["assets/title-art.webp"]) ? null : h("div.title-shade"),
     h("div.title-col",
       h("div.title-logo", h("small", "Hẻm 47 · Sài Gòn"), h("b", "Thám Tử"), h("b.l2", "Hẻm"), h("span.title-tag", "Phá những vụ án dở khóc dở cười trong xóm")),
