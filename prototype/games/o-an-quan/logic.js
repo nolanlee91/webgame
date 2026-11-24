@@ -63,6 +63,7 @@ function freshBoard(m, first) {
     score: [0, 0],   // điểm hiện có (dân ăn được + 10/quan, đã trừ phần lấy ra rải lại / cho vay)
     debt: [0, 0],    // số dân đội này đã vay của đội kia
     eaten: [0, 0],   // số quan mỗi đội đã ăn
+    quanBy: [-1, -1], // đội đã ăn quan trái / quan phải (-1 = chưa ai)
     moves: [], ply: 0, winner: null, final: null, last: null,
   };
 }
@@ -116,7 +117,7 @@ export function step(pos, pit, dir, quanNon, steps) {
       if (hasQ && quanNon && pits[t] < QUAN_NON_MIN) { if (steps) steps.push({ k: "stop", at: t, why: "quan-non" }); break; }
       const n2 = pits[t], v = n2 + (hasQ ? QUAN_VALUE : 0);
       pits[t] = 0;
-      if (hasQ) { quan[qi(t)] = false; pos.eaten[side]++; }
+      if (hasQ) { quan[qi(t)] = false; pos.eaten[side]++; pos.quanBy[qi(t)] = side; }
       score[side] += v; gained += v;
       if (steps) steps.push({ k: "take", at: t, n: n2, quan: hasQ, v, side });
       e = next(t, dir);
@@ -164,7 +165,7 @@ function afterTurn(pos, quanNon, steps) {
 }
 
 function clone(s) {
-  return { ...s, pits: s.pits.slice(), quan: s.quan.slice(), score: s.score.slice(), debt: s.debt.slice(), eaten: s.eaten.slice(), tally: s.tally.slice() };
+  return { ...s, pits: s.pits.slice(), quan: s.quan.slice(), score: s.score.slice(), debt: s.debt.slice(), eaten: s.eaten.slice(), quanBy: s.quanBy.slice(), tally: s.tally.slice() };
 }
 
 /** Đi một nước cho đội đang tới lượt. Trả { state, steps, gained } (không sửa trạng thái cũ) hoặc null nếu không hợp lệ. */
@@ -198,8 +199,8 @@ export function replay(base, moves) {
 
 /** Trạng thái tối giản cho máy nghĩ (không có danh sách nước). */
 export function position(s) {
-  return { pits: s.pits.slice(), quan: s.quan.slice(), score: s.score.slice(), debt: s.debt.slice(), eaten: s.eaten.slice(), turn: s.turn, ply: s.ply, winner: s.winner ?? null, final: null };
+  return { pits: s.pits.slice(), quan: s.quan.slice(), score: s.score.slice(), debt: s.debt.slice(), eaten: s.eaten.slice(), quanBy: s.quanBy.slice(), turn: s.turn, ply: s.ply, winner: s.winner ?? null, final: null };
 }
 export function copyPos(p) {
-  return { pits: p.pits.slice(), quan: p.quan.slice(), score: p.score.slice(), debt: p.debt.slice(), eaten: p.eaten.slice(), turn: p.turn, ply: p.ply, winner: p.winner, final: null };
+  return { pits: p.pits.slice(), quan: p.quan.slice(), score: p.score.slice(), debt: p.debt.slice(), eaten: p.eaten.slice(), quanBy: p.quanBy.slice(), turn: p.turn, ply: p.ply, winner: p.winner, final: null };
 }

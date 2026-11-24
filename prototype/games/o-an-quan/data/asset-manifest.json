@@ -1,0 +1,156 @@
+{
+ "schemaVersion": 1,
+ "phase": "dev-placeholder",
+ "_doc": "BẢN TẠM CỦA DEV: chưa có asset Codex, game vẽ bàn/sỏi/quan/nền bằng code (art.js). placements = toạ độ tâm ô trên bàn vẽ bằng code, cảnh 1200×480: pit-0 quan trái, pit-1..5 hàng dưới trái→phải, pit-6 quan phải, pit-7..11 hàng trên phải→trái; r = bán kính vùng đặt sỏi; half = nửa cỡ vùng bấm (tuỳ chọn); tray-a/tray-b = khay điểm đội A (dưới) / B (trên), tuỳ chọn. Khi Codex giao docs/o-an-quan/asset-manifest.json, chạy tools/sync-manifest.mjs để ghi đè file này.",
+ "items": [],
+ "placements": {
+  "pit-0": {
+   "at": [
+    204,
+    240
+   ],
+   "r": 60,
+   "half": [
+    140,
+    140
+   ]
+  },
+  "pit-6": {
+   "at": [
+    996,
+    240
+   ],
+   "r": 60,
+   "half": [
+    140,
+    140
+   ]
+  },
+  "pit-1": {
+   "at": [
+    340,
+    305
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-2": {
+   "at": [
+    470,
+    305
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-3": {
+   "at": [
+    600,
+    305
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-4": {
+   "at": [
+    730,
+    305
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-5": {
+   "at": [
+    860,
+    305
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-7": {
+   "at": [
+    860,
+    175
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-8": {
+   "at": [
+    730,
+    175
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-9": {
+   "at": [
+    600,
+    175
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-10": {
+   "at": [
+    470,
+    175
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "pit-11": {
+   "at": [
+    340,
+    175
+   ],
+   "r": 44,
+   "half": [
+    58,
+    58
+   ]
+  },
+  "tray-a": {
+   "at": [
+    600,
+    448
+   ],
+   "w": 560,
+   "h": 44
+  },
+  "tray-b": {
+   "at": [
+    600,
+    32
+   ],
+   "w": 560,
+   "h": 44
+  }
+ }
+}

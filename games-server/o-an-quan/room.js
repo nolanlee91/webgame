@@ -158,7 +158,7 @@ class Room {
       gid: this.gid, seq: this.seq, act: this.lastAct, seat: this.seat, startSeat: this.startSeat, deadline: this.deadline, oppLeft: !!this.oppLeft,
       players: this.players.map((p) => ({ name: p.name, connected: p.connected })),
       chat: this.chat.view(this.players[i]?.token),
-      game: s && { first: s.first, round: s.round, tally: s.tally, turn: s.turn, moves: s.moves, pits: s.pits, quan: s.quan, score: s.score, debt: s.debt, eaten: s.eaten, winner: s.winner, final: s.final, quanNon: s.quanNon },
+      game: s && { first: s.first, round: s.round, tally: s.tally, turn: s.turn, moves: s.moves, pits: s.pits, quan: s.quan, score: s.score, debt: s.debt, eaten: s.eaten, quanBy: s.quanBy, winner: s.winner, final: s.final, quanNon: s.quanNon },
     };
   }
 }
