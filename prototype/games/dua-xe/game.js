@@ -2,6 +2,7 @@
 // Toàn bộ hình vẽ pixel bằng canvas ở độ phân giải thấp rồi phóng to "pixelated" (không dùng ảnh AI):
 // xe địa hình đỏ, đồi 4 vùng (cỏ, cát, đá đỏ, tuyết), can xăng, đồng xu, cột mốc, cờ kỷ lục.
 import * as L from "./logic.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.dua-xe.v1";
 const OUT = "#160d0a";
@@ -296,6 +297,23 @@ export function mount(root, ctx = {}) {
     if (s && (mode === "play" || mode === "pause") && s.status !== "over") { s.status = "over"; s.reason = "bo"; finish(true); }
     setMode("menu"); renderShop(); show(ov.menu); sfx.engine(false, 0, false);
   }
+  // Khoe kết quả: số thật của ván vừa kết thúc (chụp lúc hiện bảng).
+  let lastShare = null;
+  function overShare(res, lat) {
+    const d = fmt(s.dist) + " m", gap = res.prev - s.dist;
+    const lines = [`Quãng đường: ${d}`, res.record ? (res.prev > 0 ? `Kỷ lục cũ: ${fmt(res.prev)} m` : "Kỷ lục: lần đầu ghi sổ") : `Kỷ lục: ${fmt(save.best)} m`,
+      `Xu nhặt được: ${fmt(s.coins)}`];
+    if (s.flips > 0) lines.push(`Lộn vòng: ${s.flips} lần`); else lines.push(`Can xăng: ${s.fuels}`);
+    return {
+      game: "dua-xe",
+      title: res.record ? `Kỷ lục mới ${d}` : `${lat ? "Lật xe" : "Hết xăng"} ở ${d}`,
+      lines,
+      tagline: res.record ? (s.dist >= 1000 ? "Tay lái lụa, đồi núi cũng phải cúi đầu!" : "Kỷ lục mới toanh, ai vượt nổi thì vô!")
+        : gap > 0 && gap <= Math.max(30, res.prev * 0.1) ? `Hụt kỷ lục đúng ${fmt(gap)} m, ức ghê!`
+        : lat ? "Ga hơi quá tay, tài xế cắm đầu xuống đất rồi!" : "Xe còn khoẻ mà bình xăng hết hơi, tiếc ghê!",
+      accent: "#75d1bf",
+    };
+  }
   function finish(quiet = false) {
     if (lastRes) return lastRes;
     const res = L.finishRun(save, s);
@@ -315,6 +333,7 @@ export function mount(root, ctx = {}) {
     $("oRecord").innerHTML = res.record ? `<span class="record">Kỷ lục mới · ${fmt(s.dist)} m</span>` : `<span class="record" style="animation:none;background:var(--panel2);color:var(--soft)">Kỷ lục ${fmt(save.best)} m</span>`;
     const affordable = Object.keys(L.UPG).some((k) => { const c = L.upgradeCost(save.up[k]); return c != null && save.coins >= c; });
     $("shopBtn").textContent = affordable ? "Nâng cấp xe ★" : "Nâng cấp xe";
+    lastShare = overShare(res, lat);
     setMode("over"); show(ov.over);
     sfx.play(res.record ? "thang" : "thua", 0.8);
     $("retryBtn").focus({ preventScroll: true });
@@ -568,7 +587,7 @@ export function mount(root, ctx = {}) {
     if (!down || e.repeat) return;
     if (e.code === "KeyM") { toggleMute(); return; }
     if (e.code === "KeyP" || e.code === "Escape") { if (mode === "play") pause(); else if (mode === "pause") resume(); e.preventDefault(); return; }
-    if (e.code === "Enter" && (mode === "over" || (mode === "menu" && !onBtn))) { e.preventDefault(); start(); return; }
+    if (e.code === "Enter" && ((mode === "over" && e.target?.id !== "shareBtn") || (mode === "menu" && !onBtn))) { e.preventDefault(); start(); return; }
     if (e.code === "Space" && !onBtn) {
       if (mode === "menu" || mode === "over") { e.preventDefault(); start(); }
       else if (mode === "pause") { e.preventDefault(); resume(); }
@@ -590,6 +609,7 @@ export function mount(root, ctx = {}) {
   const clearInput = () => { keys.gas = keys.brake = false; ped.gas.clear(); ped.brake.clear(); };
   $("playBtn").addEventListener("click", () => start());
   $("retryBtn").addEventListener("click", () => start());
+  $("shareBtn").addEventListener("click", () => { if (lastShare) shareResult(lastShare); });
   $("shopBtn").addEventListener("click", () => { showMenu(); later(() => $("ups").scrollIntoView({ block: "nearest" }), 0); });
   $("pauseBtn").addEventListener("click", () => (mode === "play" ? pause() : mode === "pause" ? resume() : null));
   $("resumeBtn").addEventListener("click", resume);

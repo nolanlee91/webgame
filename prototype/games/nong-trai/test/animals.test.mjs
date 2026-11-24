@@ -1,10 +1,10 @@
 // Test luật Khu chăn nuôi (core/animals.js, Milestone 4). Chạy: node --test prototype/games/nong-trai/test/animals.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as A from "../core/animals.js?v=m7";
-import { ANIMALS, ANIMAL, FEED, HARD_MAX, HOUSING } from "../data/animals.js?v=m7";
-import { RECIPE } from "../data/recipes.js?v=m7";
-import { ITEM } from "../data/catalog.js?v=m7";
+import * as A from "../core/animals.js?v=m8";
+import { ANIMALS, ANIMAL, FEED, HARD_MAX, HOUSING } from "../data/animals.js?v=m8";
+import { RECIPE } from "../data/recipes.js?v=m8";
+import { ITEM } from "../data/catalog.js?v=m8";
 
 const T0 = 1_700_000_000_000, MIN = 60_000, HOUR = 3600_000;
 
@@ -258,8 +258,8 @@ test("fuzz: vài nghìn thao tác ngẫu nhiên — xu ≥ 0, số món nguyên 
 });
 
 // ---------- Sửa M4: id bò, giá một nguồn, cân bằng ----------
-import { productValue, PROPOSED_SELL, LEGACY_KIND, PRODUCER_OF } from "../data/animals.js?v=m7";
-import { ITEMS as ITEMS4, ANIMAL_REF } from "../data/catalog.js?v=m7";
+import { productValue, PROPOSED_SELL, LEGACY_KIND, PRODUCER_OF } from "../data/animals.js?v=m8";
+import { ITEMS as ITEMS4, ANIMAL_REF } from "../data/catalog.js?v=m8";
 
 test("id bò sữa = bo-sua, không trùng id món nào trong kho (bo = Bơ); save cũ kind \"bo\" ⇒ bo-sua", () => {
   assert.equal(ANIMAL.bo, undefined);

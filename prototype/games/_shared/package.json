@@ -1,0 +1,6 @@
+{
+  "name": "lumkeo-shared",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test test/*.test.mjs", "test:e2e": "node test/share-e2e.mjs" }
+}

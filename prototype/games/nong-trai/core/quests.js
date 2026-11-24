@@ -1,9 +1,9 @@
 // Nhiệm vụ hướng dẫn: tuần tự, tiến độ chỉ đếm sự kiện xảy ra khi nhiệm vụ đang mở (dạy đúng cơ chế, không bấm-để-nhận).
 // s.quests = { tut: chỉ số nhiệm vụ hiện tại trong QUESTS (hướng dẫn rồi tiến trình; = QUESTS.length ⇒ xong), progress }
 // Nhận thưởng: chỉ khi đúng id nhiệm vụ hiện tại và đã đủ tiến độ ⇒ chỉ số tăng ⇒ không nhận 2 lần.
-import { QUESTS } from "../data/quests.js?v=m7";
-import { addXp } from "./progression.js?v=m7";
-import { add } from "./inventory.js?v=m7";
+import { QUESTS } from "../data/quests.js?v=m8";
+import { addXp } from "./progression.js?v=m8";
+import { add } from "./inventory.js?v=m8";
 
 export const currentQuest = (s) => QUESTS[s.quests.tut] || null;
 const matches = (e, where) => !where || Object.entries(where).every(([k, v]) => e[k] === v);

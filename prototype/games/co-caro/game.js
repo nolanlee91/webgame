@@ -2,6 +2,7 @@
 import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, other } from "./logic.js";
 import { bestMove } from "./ai.js";
 import { createNet, CODE_RE } from "./net.js?v=leave1";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.caro.v1";
 const C = {
@@ -599,6 +600,28 @@ export function mount(root, ctx = {}) {
     overlay("end");
     $("nextBtn").focus({ preventScroll: true });
   }
+  // "Khoe kết quả": ảnh 1080×1080 với số thật của ván (mức máy / đối thủ, số nước, bàn + luật, tỉ số các ván).
+  function shareEnd() {
+    if (!s || !s.winner) return;
+    const me = online() ? mySide() : 3 - s.aiSide, op = 3 - me, nm = names();
+    const res = s.winner === 3 ? "draw" : s.winner === me ? "win" : "lose";
+    const mine = s.moves.filter((m) => m[2] === me).length;
+    const foe = online() ? String(nm[op]).slice(0, 16) : "máy (" + (s.aiLevel === "easy" ? "Dễ" : "Khó") + ")";
+    const title = res === "draw" ? "Hòa " + foe : (res === "win" ? "Thắng " : "Thua ") + foe + " sau " + s.moves.length + " nước";
+    const tagline = res === "draw" ? "Kín cả bàn mà chưa ai lọt 5 — kỳ phùng địch thủ!"
+      : res === "lose" ? (online() ? "Bị chặn đầu rồi, ván sau phục thù!" : "Máy chặn hết đường, ván sau phục thù!")
+      : mine <= 12 ? "Năm quân thẳng tắp, đối thủ chưa kịp chớp mắt!"
+      : mine <= 25 ? "Caro thủ thứ thiệt, chặn đâu đánh đó!" : "Lì đòn tới cùng, cuối cùng cũng lọt 5!";
+    shareResult({
+      game: "co-caro", title, tagline,
+      lines: [
+        online() ? "Đối thủ: " + nm[op] : "Mức máy: " + (s.aiLevel === "easy" ? "Dễ" : "Khó"),
+        "Số nước: " + s.moves.length + " (của bạn " + mine + ")",
+        "Bàn: " + s.size + "×" + s.size + (s.rule === "block2" ? ", chặn 2 đầu" : ", tự do"),
+        "Tỉ số các ván: " + s.score[me] + " – " + s.score[op] + (s.score.draw ? " (hòa " + s.score.draw + ")" : ""),
+      ],
+    });
+  }
   function clearTimers() { clearTimeout(aiTimer); clearTimeout(endTimer); thinking = false; }
 
   // ---------- Hành động ----------
@@ -708,6 +731,7 @@ export function mount(root, ctx = {}) {
   $("menuBtnP").onclick = () => { if (room) return leaveRoom(); pendingResume = s && !s.winner && s.moves.length ? s : null; showMenu(); };
   $("menuBtnE").onclick = () => { if (room) return net.leave(); pendingResume = null; showMenu(); };
   $("nextBtn").onclick = doNext;
+  $("shareBtn").onclick = shareEnd;
   $("viewBtn").onclick = () => { overlay(null); cv.focus({ preventScroll: true }); };
 
   function onKey(e) {

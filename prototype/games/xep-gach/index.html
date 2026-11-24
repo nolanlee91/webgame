@@ -4,6 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Xếp Gạch — Lụm Kèo</title>
+  <!-- og:start — sinh bởi tools/og/gen-og.mjs, đừng sửa tay -->
+  <meta name="description" content="Xếp gạch kinh điển: xoay khối, lấp kín hàng để ăn điểm, càng chơi càng nhanh. Phá kỷ lục của bạn!" />
+  <link rel="canonical" href="https://lumkeo.up.railway.app/games/xep-gach/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lụm Kèo" />
+  <meta property="og:locale" content="vi_VN" />
+  <meta property="og:title" content="Xếp Gạch — chơi miễn phí trên Lụm Kèo" />
+  <meta property="og:description" content="Xếp gạch kinh điển: xoay khối, lấp kín hàng để ăn điểm, càng chơi càng nhanh. Phá kỷ lục của bạn!" />
+  <meta property="og:url" content="https://lumkeo.up.railway.app/games/xep-gach/" />
+  <meta property="og:image" content="https://lumkeo.up.railway.app/homepage/assets/og/xep-gach.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Xếp Gạch — Lụm Kèo" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Xếp Gạch — chơi miễn phí trên Lụm Kèo" />
+  <meta name="twitter:description" content="Xếp gạch kinh điển: xoay khối, lấp kín hàng để ăn điểm, càng chơi càng nhanh. Phá kỷ lục của bạn!" />
+  <meta name="twitter:image" content="https://lumkeo.up.railway.app/homepage/assets/og/xep-gach.jpg" />
+  <!-- og:end -->
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%221%22 y=%229%22 width=%226%22 height=%226%22 fill=%22%23e0483d%22/%3E%3Crect x=%229%22 y=%229%22 width=%226%22 height=%226%22 fill=%22%233a7bd5%22/%3E%3Crect x=%229%22 y=%221%22 width=%226%22 height=%226%22 fill=%22%23f2b632%22/%3E%3Crect x=%221%22 y=%221%22 width=%226%22 height=%226%22 fill=%22%238a5cc2%22/%3E%3C/svg%3E" />
   <style>
@@ -207,6 +226,7 @@
           <div id="eRecord"></div>
           <div class="actions">
             <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
+            <button class="btn btn--big" id="shareBtnE" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Về menu</button>
           </div>
         </div>
@@ -224,7 +244,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=s1";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

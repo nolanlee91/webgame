@@ -1,5 +1,6 @@
 // Rắn Săn Mồi — phần vẽ (canvas, khối pixel vẽ bằng code), điều khiển (phím, vuốt, nút), HUD, âm thanh, kỷ lục. Luật trong logic.js.
 import { N, START_LEN, GOLD_LIFE, newGame, step, turn, interval, speedLevel } from "./logic.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.ransanmoi.v1";
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
@@ -313,10 +314,31 @@ export function mount(root, ctx = {}) {
     ui.eResult.innerHTML = `<span>Mồi đã ăn</span><b>${s.eaten}</b><span>Độ dài</span><b>${s.snake.length}</b><span>Tốc độ đạt</span><b>Cấp ${speedLevel(s)}</b>`
       + `<span>Thời gian</span><b>${fmtTime(time)}</b><span class="total">Tổng điểm</span><b>${fmtNum(s.score)}</b>`;
     ui.eRecord.innerHTML = newRecord && s.score > 0 ? '<span class="record">★ Kỷ lục mới</span>' : prev ? `<div class="best">Kỷ lục ${MODE_NAME[s.mode]}: ${fmtNum(prev)}</div>` : "";
+    lastRun = { score: s.score, record: newRecord && s.score > 0, prev, mode: s.mode, len: s.snake.length, eaten: s.eaten, time, won };
     showOv("ovEnd");
     if (!won) sfx.play(newRecord && s.score > 0 ? "thang" : "thua", 0.7);
     sdk.reportScore?.(s.score);
     sdk.gameOver?.({ score: s.score, length: s.snake.length, mode: s.mode });
+  }
+  // Khoe kết quả: số thật của ván vừa xong (lưu lúc finish, không đọc lại s vì có thể đã sang ván mới)
+  let lastRun = null;
+  function shareRun(e) {
+    const r = lastRun; if (!r) return;
+    // Bấm chuột/chạm: bỏ focus khỏi nút để đóng bảng xong Space/Enter vẫn là chơi lại
+    if (e && e.detail > 0) e.currentTarget.blur();
+    const tagline = r.won ? "Rắn phủ kín cả bàn — Nokia 1280 cũng phải quỳ!"
+      : r.record && r.score >= 500 ? "Kỷ lục mới! Rắn này ăn hết vườn nhà hàng xóm rồi."
+      : r.record ? "Kỷ lục mới! Ai chơi thử đi, phá được thì nói."
+      : r.score >= 300 ? "Dài ngoằng mà vẫn cắn nhầm đuôi, tiếc ghê!"
+      : r.score >= 80 ? "Rắn đang lớn, ván sau là kỷ lục!"
+      : "Rắn còn non, mai luyện tiếp!";
+    shareResult({
+      game: "ran-san-moi",
+      title: r.record ? `Kỷ lục mới ${fmtNum(r.score)} điểm` : `${fmtNum(r.score)} điểm`,
+      lines: [`Độ dài: ${r.len} khúc`, `Mồi đã ăn: ${r.eaten}`, `Thời gian: ${fmtTime(r.time)}`,
+        !r.record && r.prev ? `Kỷ lục: ${fmtNum(r.prev)}` : `Chế độ: ${MODE_NAME[r.mode]}`],
+      tagline,
+    });
   }
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function showOv(which) {
@@ -387,6 +409,7 @@ export function mount(root, ctx = {}) {
   ui.play.addEventListener("click", start);
   $("againBtn").addEventListener("click", start);
   $("retryBtnP").addEventListener("click", start);
+  $("shareBtnE").addEventListener("click", shareRun);
   $("menuBtnE").addEventListener("click", toMenu);
   $("menuBtnP").addEventListener("click", toMenu);
   $("resumeBtn").addEventListener("click", () => setPaused(false));

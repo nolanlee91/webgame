@@ -13,12 +13,27 @@ import * as PU from "./progress-ui.js?v=c3"; // A: tab Chuẩn bị M3 (đồ ng
 import { potSize } from "../core/progression.js?v=c3"; // A: cỡ nồi theo giai đoạn
 import "./book-tabs.js?v=c3"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
 import * as M5 from "./m5-ui.js?v=c3"; // S: nút bật / tắt món (M5)
+import { shareResult } from "../../_shared/share.js?v=s1";
+
+// Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
+const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;
+export function summaryShare(m) {
+  const p = Math.round(m.profit), when = m.final ? `Ngày ${m.day}` : `${m.kindName} ngày ${m.day}`;
+  const title = p > 0 ? `${when} lời ${vnd(p)}` : p < 0 ? `${when} lỗ ${vnd(p)}` : `${when} huề vốn`;
+  const lines = [`Doanh thu: ${vnd(m.revenue)}`, `Dĩa bán: ${m.plates}${m.lost ? ` (${m.lost} khách bỏ về)` : ""}`];
+  if (m.avg) lines.push(`Sao trung bình: ${String(m.avg).replace(".", ",")}★`);
+  lines.push(`Cấp quán: ${m.level}`);
+  const tagline = p < 0 ? (m.burnt ? "Sườn cháy khét lẹt, ví cũng cháy theo. Mai gỡ!" : "Lỗ chút đỉnh, coi như đãi cả hẻm ăn cơm tấm.")
+    : p === 0 ? "Huề vốn: quạt than cả buổi, lời được mùi sườn nướng."
+    : p >= Math.max(200, m.revenue * 0.4) ? "Sườn thơm cả hẻm, lời đậm, chủ quán cười tít mắt." : "Có lời là vui rồi, mai nướng thêm vỉ nữa!";
+  return { game: "quan-com-tam", title, lines, tagline, accent: "#f7c96d", theme: "wood" };
+}
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];
 
 export function createOverlays(overlay, sheet, atlas, act, hooks) {
   let current = null, prepTab = "buy";
-  const open = (name, cls = "") => { current = name; overlay.hidden = false; sheet.className = "sheet " + cls; sheet.textContent = ""; document.body.classList.add("ov"); sheet.dataset.ov = name; return sheet; };
+  const open = (name, cls = "") => { current = name; overlay.hidden = false; sheet.className = "sheet " + cls; sheet.textContent = ""; if (sheet.dataset.ov !== name) sheet.scrollTop = 0; document.body.classList.add("ov"); sheet.dataset.ov = name; return sheet; }; // đổi sang bảng khác ⇒ cuộn về đầu (vẽ lại cùng bảng thì giữ chỗ cuộn)
   const close = () => { current = null; overlay.hidden = true; sheet.textContent = ""; document.body.classList.remove("ov"); };
   const footer = (p) => el("div", "footer", p);
   const focusFirst = () => setTimeout(() => sheet.querySelector(".choice:not(:disabled), .btn.primary, input")?.focus({ preventScroll: true }), 30);
@@ -177,8 +192,12 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
       C.journalButton(fo, s, m.day); // C: thẻ Nhật Ký Làm Chủ
       if (s.feed.some((r) => !r.reply)) button(fo, "btn", "Trả lời review", () => book(state(), "reviews"), { "data-act": "openBook" }); // C:
       if (hooks.replayInfo()) button(fo, "btn", "Chơi lại ngày hôm nay", () => confirm("replay", () => summary(state())), { "data-act": "replay" });
+      button(fo, "btn", "Khoe kết quả", () => shareResult(summaryShare(m)), { "data-act": "shareResult" });
       button(fo, "btn primary", "Ngày tiếp theo", () => { act({ type: "closeSummary" }); const r = act({ type: "nextDay" }); if (!r.err) { close(); hooks.afterSummary(); } }, { "data-act": "nextDay" });
-    } else button(fo, "btn primary", "Nghỉ giữa ca", () => { act({ type: "closeSummary" }); close(); prep(state(), "buy"); }, { "data-act": "toBreak" });
+    } else {
+      button(fo, "btn", "Khoe kết quả", () => shareResult(summaryShare(m)), { "data-act": "shareResult" });
+      button(fo, "btn primary", "Nghỉ giữa ca", () => { act({ type: "closeSummary" }); close(); prep(state(), "buy"); }, { "data-act": "toBreak" });
+    }
     focusFirst();
   }
 

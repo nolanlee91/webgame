@@ -1,22 +1,22 @@
 // Fuzz: vài nghìn action ngẫu nhiên (hợp lệ lẫn rác) qua apply(), sau mỗi bước kiểm bất biến.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply, invariantError } from "../core/apply.js?v=m7";
-import { createState, loadV3, dump } from "../core/state.js?v=m7";
-import { used, capacity, overflowCount } from "../core/inventory.js?v=m7";
-import { OVERFLOW_MAX } from "../data/warehouse.js?v=m7";
-import { TUTORIAL } from "../data/quests.js?v=m7";
-import { CROPS } from "../data/crops.js?v=m7";
-import { ITEMS } from "../data/catalog.js?v=m7";
-import { MACHINES } from "../data/machines.js?v=m7";
-import { RECIPES } from "../data/recipes.js?v=m7";
-import { QUESTS } from "../data/quests.js?v=m7";
-import { capacity as queueCap } from "../core/production.js?v=m7";
-import { BUILDINGS, DECOR, DECOR_SLOTS } from "../data/buildings.js?v=m7";
-import { effects } from "../core/build.js?v=m7";
-import { WAREHOUSE } from "../data/warehouse.js?v=m7";
-import { extraSlots } from "../core/workshop.js?v=m7";
-import { m4InvariantError } from "../core/m4-handlers.js?v=m7";
+import { apply, invariantError } from "../core/apply.js?v=m8";
+import { createState, loadV3, dump } from "../core/state.js?v=m8";
+import { used, capacity, overflowCount } from "../core/inventory.js?v=m8";
+import { OVERFLOW_MAX } from "../data/warehouse.js?v=m8";
+import { TUTORIAL } from "../data/quests.js?v=m8";
+import { CROPS } from "../data/crops.js?v=m8";
+import { ITEMS } from "../data/catalog.js?v=m8";
+import { MACHINES } from "../data/machines.js?v=m8";
+import { RECIPES } from "../data/recipes.js?v=m8";
+import { QUESTS } from "../data/quests.js?v=m8";
+import { capacity as queueCap } from "../core/production.js?v=m8";
+import { BUILDINGS, DECOR, DECOR_SLOTS } from "../data/buildings.js?v=m8";
+import { effects } from "../core/build.js?v=m8";
+import { WAREHOUSE } from "../data/warehouse.js?v=m8";
+import { extraSlots } from "../core/workshop.js?v=m8";
+import { m4InvariantError } from "../core/m4-handlers.js?v=m8";
 
 function prng(seed) { return () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296); }
 

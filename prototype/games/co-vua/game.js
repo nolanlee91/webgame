@@ -3,6 +3,7 @@
 import * as L from "./logic.js";
 import { bestMove } from "./ai.js";
 import { createNet, CODE_RE } from "./net.js?v=leave1";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.covua.v1";
 const NAME_KEY = "wgp.covua.name";
@@ -595,6 +596,33 @@ export function mount(root, ctx = {}) {
     overlay("end");
     $("nextBtn").focus({ preventScroll: true });
   }
+  // "Khoe kết quả": ảnh 1080×1080 với số thật của ván (cách kết thúc, số nước, quân ăn được, mức máy / đối thủ, tỉ số).
+  function shareEnd() {
+    if (!s || !s.result) return;
+    const r = s.result, me = mySeat(), op = 1 - me, nm = names();
+    const myC = L.colorOfSeat(s, me), opC = L.other(myC);
+    const res = !r.winner ? "draw" : L.seatOf(s, r.winner) === me ? "win" : "lose";
+    const lv = s.aiLevel === "normal" ? "Vừa" : "Dễ";
+    const foe = online() ? String(nm[op]).slice(0, 16) : "máy (" + lv + ")";
+    const full = Math.ceil(s.moves.length / 2);
+    const caps = L.captured(s), mat = (c) => caps[c].reduce((a, p) => a + VAL[L.typeOf(p)], 0);
+    const title = res === "draw" ? "Hòa " + foe
+      : res === "win" ? (r.reason === "mate" ? "Chiếu bí " + foe : "Thắng " + foe) + " sau " + full + " nước"
+      : "Thua " + foe + " sau " + full + " nước";
+    const tagline = res === "draw" ? "Bất phân thắng bại — hẹn ván sau phân định!"
+      : res === "lose" ? (online() ? "Vua mình hơi lạnh gáy, ván sau phục thù!" : "Máy cao tay quá, ván sau phục thù!")
+      : full <= 25 ? "Chiếu bí chớp nhoáng, Magnus cũng phải gật gù!"
+      : mat(myC) - mat(opC) >= 10 ? "Ăn sạch bàn cờ rồi mới tha!" : "Thắng chắc tay, từng nước một!";
+    shareResult({
+      game: "co-vua", title, tagline,
+      lines: [
+        online() ? "Đối thủ: " + nm[op] : "Mức máy: " + lv,
+        "Kết thúc: " + (r.reason === "mate" ? "chiếu bí" : r.reason === "resign" ? (res === "win" ? "đối thủ xin thua" : "xin thua") : "hòa (" + ({ stalemate: "hết nước đi", material: "thiếu quân chiếu bí", fifty: "luật 50 nước", repeat: "lặp thế 3 lần", agreed: "hai bên đồng ý" }[r.reason] || "hòa") + ")"),
+        "Quân ăn được: " + caps[myC].length + " – " + caps[opC].length,
+        "Tỉ số các ván: " + s.score[me] + " – " + s.score[op] + (s.draws ? " (hòa " + s.draws + ")" : ""),
+      ],
+    });
+  }
   function clearTimers() { clearTimeout(aiTimer); clearTimeout(endTimer); thinking = false; }
 
   // ---------- Hành động ----------
@@ -734,6 +762,7 @@ export function mount(root, ctx = {}) {
   $("menuBtnP").onclick = () => { if (room) return leaveRoom(); pendingResume = s && !s.result && s.moves.length ? s : null; showMenu(); };
   $("menuBtnE").onclick = () => { if (room) return net.leave(); pendingResume = null; showMenu(); };
   $("nextBtn").onclick = doNext;
+  $("shareBtn").onclick = shareEnd;
   $("viewBtn").onclick = () => { overlay(null); cv.focus({ preventScroll: true }); };
 
   function onKey(e) {

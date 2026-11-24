@@ -1,6 +1,7 @@
 // Bắn Bóng Khủng Long — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
 // Bóng 6 màu giữ ký hiệu riêng để dễ phân biệt. Khủng long dùng sprite riêng và có hình dự phòng khi ảnh chưa tải.
 import * as L from "./logic.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.ban-bong.v1";
 const FLY_SPEED = 26; // đơn vị (đường kính bóng) / giây
@@ -584,6 +585,8 @@ export function mount(root, ctx = {}) {
     $("wResult").innerHTML = `<span>Điểm bắn bóng</span><b>${fmt(s.score - s.bonus)}</b><span>Thưởng ${s.shots} viên dư</span><b>+${fmt(s.bonus)}</b><span>Số viên đã bắn</span><b>${s.fired}</b><span>Chuỗi nổ + rơi lớn nhất</span><b>${s.bestChain}</b><span class="total">Tổng điểm</span><b>${fmt(s.score)}</b>`;
     $("wRecord").innerHTML = record && prevBest ? `<span class="record">Kỷ lục mới!</span>` : prevBest ? `<span class="sub">Kỷ lục màn: ${fmt(save.best[lv])}</span>` : "";
     $("nextBtn").hidden = lv >= L.LEVELS.length;
+    lastRun = { won: true, last: lv >= L.LEVELS.length, level: lv, score: s.score, record: record && prevBest > 0, prev: prevBest, stars: s.stars,
+      eggs: s.eggsTotal, eggsTotal: s.eggsTotal, fired: s.fired, chain: s.bestChain, time: s.time };
     pending = null;
     show(ov.win);
     sfx.play("thang", 0.6);
@@ -604,10 +607,39 @@ export function mount(root, ctx = {}) {
     $("lResult").innerHTML = free
       ? `<span>Điểm</span><b>${fmt(s.score)}</b><span>Số viên đã bắn</span><b>${s.fired}</b><span>Số lần dọn sạch bàn</span><b>${s.refills}</b>`
       : `<span>Điểm đạt được</span><b>${fmt(s.score)}</b><span>Trứng đã cứu</span><b>${s.eggsTotal - s.eggsLeft}/${s.eggsTotal}</b>`;
-    $("lRecord").innerHTML = free && s.score > 0 && s.score >= save.freeBest && s.score > (prevFree === s.score ? -1 : prevFree) ? `<span class="record">Kỷ lục tự do: ${fmt(save.freeBest)}</span>` : free ? `<span class="sub">Kỷ lục tự do: ${fmt(save.freeBest)}</span>` : "";
+    const freeRec = free && s.score > 0 && s.score >= save.freeBest && s.score > (prevFree === s.score ? -1 : prevFree);
+    lastRun = { won: false, free, level: s.level, score: s.score, record: freeRec, prev: free ? save.freeBest : save.best[s.level] || 0, line: res.reason === "line",
+      eggs: s.eggsTotal - s.eggsLeft, eggsTotal: s.eggsTotal, fired: s.fired, refills: s.refills, chain: s.bestChain, time: s.time };
+    $("lRecord").innerHTML = freeRec ? `<span class="record">Kỷ lục tự do: ${fmt(save.freeBest)}</span>` : free ? `<span class="sub">Kỷ lục tự do: ${fmt(save.freeBest)}</span>` : "";
     pending = null;
     show(ov.lose);
     $("retryBtn").focus({ preventScroll: true });
+  }
+
+  // ---------- Khoe kết quả (bảng thắng + bảng thua) ----------
+  let lastRun = null;
+  const fmtTime = (t) => { const m = Math.floor(t / 60); return m + ":" + String(Math.floor(t - m * 60)).padStart(2, "0"); };
+  function shareRun(e) {
+    const r = lastRun; if (!r) return;
+    // Bấm chuột/chạm: trả focus về nút chính để đóng bảng xong Enter/Space vẫn là "Màn tiếp"/"Chơi lại"
+    if (e && e.detail > 0) $(r.won ? (r.last ? "replayBtn" : "nextBtn") : "retryBtn").focus({ preventScroll: true });
+    const title = r.record ? `Kỷ lục mới ${fmt(r.score)} điểm` : `${fmt(r.score)} điểm`;
+    let lines, tagline;
+    if (r.won) {
+      lines = [`Màn: ${r.level} — ${"★".repeat(r.stars)}${"☆".repeat(3 - r.stars)}`, `Trứng cứu: ${r.eggs}/${r.eggsTotal}`, `Số viên đã bắn: ${r.fired}`,
+        !r.record && r.prev ? `Kỷ lục màn: ${fmt(r.prev)}` : `Chuỗi lớn nhất: ${r.chain}`];
+      tagline = r.last ? "Phá đảo 12 màn! Khủng long gọi bằng má rồi."
+        : r.record ? "Kỷ lục mới! Bắn đâu trúng đó, trứng nở rần rần."
+        : r.stars === 3 ? "3 sao gọn gàng, khủng long mẹ cảm ơn rối rít!"
+        : "Qua màn rồi, nhưng sao còn thiếu — ai làm 3 sao thử coi?";
+    } else if (r.free) {
+      lines = [`Chế độ: Tự do`, `Số viên đã bắn: ${r.fired}`, `Dọn sạch bàn: ${r.refills} lần`, `Thời gian: ${fmtTime(r.time)}`];
+      tagline = r.record ? "Kỷ lục tự do mới! Bóng nổ như pháo Tết." : r.refills >= 2 ? "Dọn bàn liền tay, chỉ thiếu chút may!" : "Bóng tràn xuống rồi, bắn lại nào!";
+    } else {
+      lines = [`Màn: ${r.level}`, `Trứng cứu: ${r.eggs}/${r.eggsTotal}`, `Số viên đã bắn: ${r.fired}`, r.prev ? `Kỷ lục màn: ${fmt(r.prev)}` : `Thời gian: ${fmtTime(r.time)}`];
+      tagline = r.eggsTotal - r.eggs <= 1 ? "Còn đúng một trứng nữa thôi, tức ghê!" : r.line ? "Bóng chạm vạch đỏ, khủng long mẹ khóc ròng!" : "Hết viên rồi, trứng vẫn đang chờ cứu!";
+    }
+    shareResult({ game: "ban-bong", title, lines, tagline });
   }
 
   // ---------- Màn phủ / menu ----------
@@ -754,6 +786,8 @@ export function mount(root, ctx = {}) {
   $("menuBtn").addEventListener("click", () => { if (!pending) showMenu(); });
   $("menuBtnW").addEventListener("click", showMenu);
   $("menuBtnL").addEventListener("click", showMenu);
+  $("shareBtnW").addEventListener("click", shareRun);
+  $("shareBtnL").addEventListener("click", shareRun);
   $("swapBtn").addEventListener("click", () => { swap(); hud(); stage.focus({ preventScroll: true }); });
   $("muteBtn").addEventListener("click", toggleMute);
   $("muteBtn2").addEventListener("click", toggleMute);

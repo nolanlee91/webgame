@@ -4,7 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lụm Kèo — Rủ bạn vào chơi</title>
-  <meta name="description" content="Lụm Kèo — rủ bạn vào chơi Cờ Cá Ngựa, Cờ Caro, Đào Vàng và nhiều game miễn phí ngay trên trình duyệt, không cần tải." />
+  <!-- og:start — sinh bởi tools/og/gen-og.mjs, đừng sửa tay -->
+  <meta name="description" content="Cổng game miễn phí ngay trên trình duyệt: Cờ Cá Ngựa, Ô Ăn Quan, Cờ Caro, Tiệm Trà Sữa, Nông Trại và hơn 20 game. Rủ bạn vào chơi, không cần tải." />
+  <link rel="canonical" href="https://lumkeo.up.railway.app/homepage/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lụm Kèo" />
+  <meta property="og:locale" content="vi_VN" />
+  <meta property="og:title" content="Lụm Kèo — Rủ bạn vào chơi game miễn phí" />
+  <meta property="og:description" content="Cổng game miễn phí ngay trên trình duyệt: Cờ Cá Ngựa, Ô Ăn Quan, Cờ Caro, Tiệm Trà Sữa, Nông Trại và hơn 20 game. Rủ bạn vào chơi, không cần tải." />
+  <meta property="og:url" content="https://lumkeo.up.railway.app/homepage/" />
+  <meta property="og:image" content="https://lumkeo.up.railway.app/homepage/assets/og/home.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Lụm Kèo — cổng game miễn phí trên trình duyệt" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lụm Kèo — Rủ bạn vào chơi game miễn phí" />
+  <meta name="twitter:description" content="Cổng game miễn phí ngay trên trình duyệt: Cờ Cá Ngựa, Ô Ăn Quan, Cờ Caro, Tiệm Trà Sữa, Nông Trại và hơn 20 game. Rủ bạn vào chơi, không cần tải." />
+  <meta name="twitter:image" content="https://lumkeo.up.railway.app/homepage/assets/og/home.jpg" />
+  <!-- og:end -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet" />
@@ -104,7 +122,30 @@
           <img id="soundIc" src="assets/ui/icon-am-thanh-bat.png" alt="" width="16" height="16" /><span id="soundTx">Âm thanh: bật</span>
         </button>
       </div>
+      <!-- Nút cộng đồng: link điền trong community.js; ô trống ⇒ nút ẩn, tất cả trống ⇒ cả hàng ẩn -->
+      <nav class="footer__community" id="community" aria-label="Cộng đồng Lụm Kèo" hidden></nav>
     </div>
+    <script src="community.js?v=c1"></script>
+    <script>
+      (function () {
+        var C = window.COMMUNITY || {}, box = document.getElementById("community");
+        var L = [["facebookGroup", "Nhóm Facebook"], ["facebookPage", "Trang Facebook"], ["zalo", "Nhóm Zalo"], ["tiktok", "TikTok"]];
+        var n = 0;
+        L.forEach(function (it) {
+          var u = typeof C[it[0]] === "string" ? C[it[0]].trim() : "";
+          if (!/^https?:\/\/\S+$/i.test(u)) return;
+          var a = document.createElement("a");
+          a.className = "btn btn--sm"; a.href = u; a.target = "_blank"; a.rel = "noopener"; a.textContent = it[1]; a.dataset.comm = it[0];
+          box.appendChild(a); n++;
+        });
+        if (n) { box.insertAdjacentHTML("afterbegin", '<span class="footer__small">Vào nhóm Lụm Kèo:</span>'); box.hidden = false; }
+      })();
+    </script>
+    <style>
+      .footer__community { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; padding: 0 7px 0 3px; }
+      .footer__community[hidden] { display: none; }
+      .footer__community .btn { text-decoration: none; }
+    </style>
   </footer>
 
   <script src="games.js?v=unified4"></script>

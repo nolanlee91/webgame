@@ -1,6 +1,7 @@
 // Ghép Kẹo — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
 // Kẹo thường và kẹo đặc biệt được vẽ bằng Canvas, với hình riêng cho từng màu.
 import * as L from "./logic.js";
+import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.ghep-keo.v1";
 const IDLE_HINT = 6; // giây không thao tác thì tự gợi ý
@@ -513,6 +514,7 @@ export function mount(root, ctx = {}) {
     $("wResult").innerHTML = `<span>Điểm nổ kẹo</span><b>${fmt(s.score - s.bonus)}</b><span>Thưởng ${s.movesLeft} bước dư</span><b>+${fmt(s.bonus)}</b><span>Combo dài nhất</span><b>×${s.maxCombo}</b><span class="total">Tổng điểm</span><b>${fmt(s.score)}</b>`;
     $("wRecord").innerHTML = record && prevBest ? `<span class="record">Kỷ lục mới!</span>` : prevBest ? `<span class="sub">Kỷ lục màn: ${fmt(save.best[lv])}</span>` : "";
     $("nextBtn").hidden = lv >= L.LEVELS.length;
+    lastShare = winShare(lv, record && prevBest > 0);
     show(ov.win);
     sfx.play("thang", 0.6);
     if (record && prevBest) setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới
@@ -533,9 +535,39 @@ export function mount(root, ctx = {}) {
     for (const g of s.goals) if (g.left > 0) miss.push(`${g.left} <i class="gi" style="display:inline-block;width:18px;height:18px;vertical-align:-4px;background-size:100% 100%;image-rendering:pixelated;background-image:url(${sprite(g.k, 0)})"></i>`);
     $("lMiss").innerHTML = "Còn thiếu: " + miss.join(" · ");
     $("lResult").innerHTML = `<span>Điểm đạt được</span><b>${fmt(s.score)}</b><span>Mục tiêu</span><b>${fmt(s.target)}</b>`;
+    lastShare = loseShare();
     show(ov.lose);
     $("retryBtn").focus({ preventScroll: true });
   }
+
+  // ---------- Khoe kết quả (số thật của ván vừa xong, chụp lúc hiện bảng) ----------
+  let lastShare = null;
+  function winShare(lv, record) {
+    const last = lv >= L.LEVELS.length, stars = "★".repeat(s.stars) + "☆".repeat(3 - s.stars);
+    return {
+      game: "ghep-keo",
+      title: last ? `Phá đảo ${L.LEVELS.length} màn!` : record ? `Kỷ lục màn ${lv}: ${fmt(s.score)}` : `Qua màn ${lv} ${stars}`,
+      lines: [`Tổng điểm: ${fmt(s.score)}`, `Sao: ${stars}`, `Combo dài nhất: ×${s.maxCombo}`, `Bước dư: ${s.movesLeft}`],
+      tagline: last ? "12 màn kẹo ngọt đã nằm gọn trong túi!" : record ? "Phá kỷ lục chính mình, kẹo cũng phải nể." : s.stars === 3 ? "Ba sao tròn trịa, tay nghề thợ kẹo lành nghề!" : s.movesLeft >= 5 ? "Dư cả nắm bước, qua màn nhẹ như kẹo bông." : "Qua rồi! Ai chơi lấy đủ ba sao thử coi?",
+      accent: "#f4c3e1",
+    };
+  }
+  function loseShare() {
+    const lack = s.target - s.score, goalsLeft = s.goals.reduce((a, g) => a + Math.max(0, g.left), 0);
+    const lines = [`Điểm: ${fmt(s.score)} / ${fmt(s.target)}`];
+    if (lack > 0) lines.push(`Còn thiếu: ${fmt(lack)} điểm`);
+    if (goalsLeft > 0) lines.push(`Kẹo chưa thu: ${goalsLeft} viên`);
+    lines.push(`Combo dài nhất: ×${s.maxCombo}`);
+    const close = (lack <= 0 || lack < s.target * 0.1) && goalsLeft <= 3;
+    return {
+      game: "ghep-keo",
+      title: `Hết bước ở màn ${s.level}`,
+      lines,
+      tagline: close ? "Thiếu đúng một chút xíu, ức muốn xỉu luôn!" : "Kẹo ngọt mà màn này đắng ghê, ai qua giùm coi?",
+      accent: "#f4c3e1",
+    };
+  }
+  function share() { if (lastShare) shareResult(lastShare); }
 
   // ---------- Gợi ý ----------
   function hint(auto = false) {
@@ -715,6 +747,8 @@ export function mount(root, ctx = {}) {
   $("menuBtn").addEventListener("click", () => { if (!busy) showMenu(); });
   $("menuBtnW").addEventListener("click", showMenu);
   $("menuBtnL").addEventListener("click", showMenu);
+  $("shareBtnW").addEventListener("click", share);
+  $("shareBtnL").addEventListener("click", share);
   $("hintBtn").addEventListener("click", () => { hint(); stage.focus({ preventScroll: true }); });
   $("muteBtn").addEventListener("click", toggleMute);
   $("muteBtn2").addEventListener("click", toggleMute);
