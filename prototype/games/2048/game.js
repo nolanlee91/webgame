@@ -297,7 +297,7 @@ export function mount(root, ctx = {}) {
   }
   function recordBadge(el) {
     el.innerHTML = "";
-    if (s.score > startBest && s.score > 0) { const r = document.createElement("span"); r.className = "record"; r.textContent = "★ Kỷ lục mới!"; el.appendChild(r); setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); // kỷ lục mới }
+    if (s.score > startBest && s.score > 0) { const r = document.createElement("span"); r.className = "record"; r.textContent = "★ Kỷ lục mới!"; el.appendChild(r); setTimeout(() => sfx.play("trung-kim-cuong", 0.7, 1.2), 700); } // kỷ lục mới
   }
   function stats() {
     return [["Ô lớn nhất", String(s.maxTile)], ["Nước đi", fmt(s.moves)], ["Lần gộp", fmt(s.merges)], ["Thời gian", fmtTime(s.time)], ["Tổng điểm", fmt(s.score), true]];
