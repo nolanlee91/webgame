@@ -134,10 +134,10 @@ function renderBar() {
     const cred = h("div.cred", { title: `Uy tín ${G.s.cred}/${MAX_CRED}`, "aria-label": `Uy tín ${G.s.cred} trên ${MAX_CRED}` });
     for (let i = 0; i < MAX_CRED; i++) cred.append(h("span.lens" + (i < G.s.cred ? "" : ".off"), icon(i < G.s.cred ? "lens" : "lensOff", 16)));
     b.append(cred);
-    tools.append(
+    tools.append(...[
       h("button.btn.btn--icon", { type: "button", id: "btnNotebook", title: "Sổ tay (N)", onclick: () => toggleOverlay("notebook") }, icon("book", 16), h("span.hide-sm", "Sổ tay"), h("span.dot", { hidden: true })),
       G.screen === "scene" ? h("button.btn.btn--icon", { type: "button", id: "btnBoard", title: "Bảng suy luận (B)", onclick: () => toggleOverlay("board") }, icon("board", 16), h("span.hide-sm", "Bảng")) : null,
-      h("button.btn.btn--icon", { type: "button", id: "btnHint", title: "Gợi ý của Tèo (trừ điểm sao)", onclick: () => app.hint() }, icon("bulb", 16), h("span.hide-sm", "Tèo")));
+      h("button.btn.btn--icon", { type: "button", id: "btnHint", title: "Gợi ý của Tèo (trừ điểm sao)", onclick: () => app.hint() }, icon("bulb", 16), h("span.hide-sm", "Tèo"))].filter(Boolean));
   }
   tools.append(h("button.btn.btn--icon", { type: "button", id: "btnMute", title: muted() ? "Bật tiếng" : "Tắt tiếng", "aria-pressed": muted() ? "true" : "false", onclick: () => { setMuted(!muted()); renderBar(); } }, icon(muted() ? "mute" : "sound", 16)));
   b.append(tools);

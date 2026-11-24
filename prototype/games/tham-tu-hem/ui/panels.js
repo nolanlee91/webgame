@@ -80,7 +80,7 @@ export function talk(app, pid) {
   if (p.bio) app.read(p.bio);
   const big = narrow() ? 120 : Math.min(300, innerHeight - 300);
   return panel(p.name, () => app.closeOverlay(),
-    h("div.talk-body",
+    h("div.talk-body", { data: { pid } },
       h("div.talk-left", portraitEl(pid, ui.mood[pid] || "neutral", c.id, big, p.name, "big"),
         h("div.nameplate", { style: { "--who": accentOf(pid) } }, p.name, h("small", p.role || "")),
         p.bio ? h("p.bio", renderText(p.bio, c.words)) : null),
