@@ -169,7 +169,7 @@ function onMsg(m) {
     case "closed": { // chủ phòng hủy phòng ⇒ server gửi cho mọi người (cả chủ phòng), xoá phòng, giữ kết nối
       const wasHost = v && v.host === v.seat;
       save(null); v = null; vsBots = false; showHome(); history.replaceState(null, "", location.pathname);
-      homeMsg(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."); sfx.play("trung-da", 0.35); leaveDone();
+      homeMsg(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."); sfx.play("leave", 0.7); leaveDone();
       break;
     }
     case "replaced": save(null); v = null; showHome(); homeMsg("Phòng này đang mở ở tab khác."); break;

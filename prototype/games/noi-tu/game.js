@@ -438,7 +438,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     if (!session || !r || r.over || busy) return;
     if (r.turn !== (session.mySeat ?? ME)) { setMsg(`Chưa tới lượt bạn — chờ ${opp()} nối xong.`, "bad"); return; }
     const word = wordFrom(el.inp.value);
-    if (!word) { setMsg("Gõ một từ trước đã.", "bad"); shake(); return; }
+    if (!word) { setMsg("Gõ một từ trước đã.", "bad"); sfx.play("trung-da", 0.4); shake(); return; }
     busy = true; setSendOff(true); t.submits++;
     const res = await session.submit(word);
     busy = false; t.results.push(res);

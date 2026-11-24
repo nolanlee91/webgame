@@ -1,7 +1,7 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
-import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=leave1";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=snd1";
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;
@@ -19,6 +19,7 @@ function beep(freq, dur = 0.06, type = "square", vol = 0.05) {
   if (muted || !AC) return;
   try {
     ac = ac || new AC();
+    if (ac.state === "suspended") ac.resume().catch(() => {}); // tạo trước lần chạm đầu ⇒ bị treo, phải resume
     const o = ac.createOscillator(), gn = ac.createGain();
     o.type = type; o.frequency.value = freq; gn.gain.value = vol;
     gn.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);

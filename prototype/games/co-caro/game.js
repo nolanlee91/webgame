@@ -1,7 +1,7 @@
 // Cờ Caro — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu ván. Luật chơi ở logic.js, máy chơi ở ai.js.
 import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, other } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=leave1";
+import { createNet, CODE_RE } from "./net.js?v=snd1";
 import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.caro.v1";
@@ -711,7 +711,7 @@ export function mount(root, ctx = {}) {
     if (!cell || !s) return;
     if (e.pointerType === "mouse") { cursor = null; place(cell[0], cell[1]); hover = null; }
     else if (s && !s.winner && !blocked() && ui.ovPause.hidden && ui.ovEnd.hidden) {
-      if (s.board[cell[0] * s.size + cell[1]]) { fx.bad = { r: cell[0], c: cell[1], t: performance.now() }; pending = null; }
+      if (s.board[cell[0] * s.size + cell[1]]) { fx.bad = { r: cell[0], c: cell[1], t: performance.now() }; pending = null; sfx.play("trung-da", 0.35); } // ô đã có quân: cùng tiếng lỗi như bấm chuột
       else pending = cell;
       cursor = null; hud();
     }

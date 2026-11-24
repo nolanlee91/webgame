@@ -4,9 +4,9 @@
 // Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
-import { createHud } from "./hud.js?v=leave1";
+import { createHud } from "./hud.js?v=snd1";
 import { botMove, makeRng } from "./ai.js";
-import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=leave1";
+import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=snd1";
 
 export const W = 832, H = 832;
 const N = 13, C = 64, BX = 0, BY = 0;   // canvas = đúng ảnh board-v5 (13×13 ô 64px); HUD nằm ngoài (hud.js)
@@ -201,7 +201,7 @@ export function mount(el, ctx = {}) {
     onColor(s) { if (net || ![0, 1, 2, 3].includes(s)) return; if (lobby) { human = s; saveColor(s); newGame(); } refocus(); },
     onBot(b) { if (net) net.send(b === "add" ? { t: "add-bot" } : { t: "kick-bot", seat: Number(b) }); refocus(); }, // chủ phòng online: lấp / bớt ghế bot
     onRule(k) { if (net) { net.send({ t: "rule", rule: k }); return; } if (lobby) { ruleKey = k; newGame(); } refocus(); },
-    onPlay() { sfx.unlock(); if (net) { net.send({ t: "start" }); return; } lobby = false; newGame(); refocus(); },
+    onPlay() { sfx.unlock(); if (net) { net.send({ t: "start" }); return; } lobby = false; newGame(); sfx.play("qua-man", 0.5); refocus(); }, // vào ván với máy: cùng tiếng "vào ván" như online
     onDisband() { if (net && net.disband) net.disband(); }, // chủ phòng online: hủy phòng (online.js hỏi xác nhận nếu còn người khác)
     onLobby() { if (net) { net.leave(); return; } lobby = true; paused = false; newGame(); },
     onAgain() { sfx.unlock(); if (net) { net.send({ t: "again" }); return; } advanceOver(); refocus(); },
