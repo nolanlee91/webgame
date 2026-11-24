@@ -18,3 +18,26 @@ Làm trên nhánh `claude/oaq-audio`, tạo từ `codex/o-an-quan-assets`.
 | `win.mp3` / `lose.mp3` / `draw.mp3` | Kết ván |
 | `amb-yard.mp3` | Nền: sân gạch buổi chiều, chim sẻ, lá xào xạc, xa xa tiếng rao (loop) |
 | `music-game.mp3` | Nhạc trong ván (loop, nhỏ) |
+
+## Bản giao âm thanh
+
+Tất cả âm thanh được tổng hợp riêng bằng NumPy và SciPy. Hiệu ứng dùng xung gõ, nhiễu lọc và dao động theo cao độ. Nhạc không lời và tiếng nền dùng tín hiệu tổng hợp theo chu kỳ. MP3 32 kHz, mono 56 kbps cho hiệu ứng và stereo 96 kbps cho vòng lặp. Độ dài bên dưới là thời lượng tín hiệu trước khi mã hóa.
+
+| File | Thời lượng (giây) | Loại |
+|---|---:|---|
+| `pebble-1.mp3` | 0.095 | Hiệu ứng |
+| `pebble-2.mp3` | 0.095 | Hiệu ứng |
+| `pebble-3.mp3` | 0.095 | Hiệu ứng |
+| `pebble-4.mp3` | 0.095 | Hiệu ứng |
+| `pick-up.mp3` | 0.360 | Hiệu ứng |
+| `capture.mp3` | 0.570 | Hiệu ứng |
+| `capture-quan.mp3` | 0.625 | Hiệu ứng |
+| `chain.mp3` | 0.589 | Hiệu ứng |
+| `borrow.mp3` | 0.655 | Hiệu ứng |
+| `select.mp3` | 0.105 | Hiệu ứng |
+| `turn.mp3` | 0.430 | Hiệu ứng |
+| `win.mp3` | 0.860 | Hiệu ứng |
+| `lose.mp3` | 0.850 | Hiệu ứng |
+| `draw.mp3` | 0.715 | Hiệu ứng |
+| `amb-yard.mp3` | 72.000 | Vòng lặp |
+| `music-game.mp3` | 70.244 | Vòng lặp |
