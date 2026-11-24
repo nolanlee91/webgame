@@ -76,3 +76,11 @@ Commit sửa cảnh: 2e24a93. Commit ảnh và âm thanh đợt 5: f781fcd.
 Các cảnh báo thuộc icon cũ của mùa 1, không có cảnh báo mới.
 
 Commit ảnh đợt 6: 383cd7c.
+
+## Sửa điểm soi đám cưới
+
+Ghế xoay dưới bàn mixer tách khỏi cuộn dây đã phục hồi từ ảnh gốc. Điểm soi thùng quà chuyển ra đống thùng phía sau. Thu mép trái vùng móc treo đồ để hai vùng sát nhau không giao nhau. Hai manifest khớp. Test asset Node 3/3.
+
+Bộ kiểm: 0 lỗi, 8 cảnh báo — ĐẠT, giao được. Tám cảnh báo thuộc icon cũ đã ghi ở đợt 3.
+
+Commit asset: 955a46c.
