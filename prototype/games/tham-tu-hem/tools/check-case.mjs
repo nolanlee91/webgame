@@ -6,7 +6,7 @@ import { validateCase } from "../core/validate.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 let files = process.argv.slice(2);
-if (!files.length) files = readdirSync(join(here, "../data/cases")).filter((f) => f.endsWith(".js")).map((f) => join(here, "../data/cases", f));
+if (!files.length) files = readdirSync(join(here, "../data/cases")).filter((f) => f.endsWith(".js") && f !== "index.js").map((f) => join(here, "../data/cases", f));
 let bad = 0;
 for (const f of files) {
   const c = (await import(pathToFileURL(resolve(f)).href)).default;

@@ -23,7 +23,7 @@ test("bộ kiểm bắt: từ khoá lạ, vật chứng không nhặt được, 
 
 test("mọi vụ thật trong data/cases đạt bộ kiểm", async () => {
   const dir = new URL("../data/cases/", import.meta.url);
-  for (const f of readdirSync(dir).filter((x) => x.endsWith(".js"))) {
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".js") && x !== "index.js")) {
     const c = (await import(new URL(f, dir))).default;
     assert.deepEqual(validateCase(c).errors, [], f);
     assert.ok(c.difficulty >= 1, f + ": vụ thật phải có độ khó 1–3");
