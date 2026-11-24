@@ -2,7 +2,7 @@
 // - Bản lưu hỏng không bị xoá: chép nguyên văn sang KEY + ".corrupt" (một lần) rồi mới tạo hồ sơ mới.
 // - Bản lưu phiên bản cũ: chép nguyên văn sang KEY + ".bak-v<cũ>" (một lần) trước khi nâng.
 // - "Xoá tiến độ": cất bản hiện tại sang KEY + ".backup" rồi mới xoá. "Chơi lại vụ": chỉ bỏ tiến độ đang dở của vụ đó (vụ đã phá giữ ★).
-import { createProfile, loadProfile, dumpProfile, saveVersion, PROFILE_VERSION } from "./core/progress.js?v=t4";
+import { createProfile, loadProfile, dumpProfile, saveVersion, PROFILE_VERSION } from "./core/progress.js?v=t5";
 
 export const KEY = "wgp.tham-tu-hem.v1";
 export const CORRUPT_KEY = KEY + ".corrupt";

@@ -1,18 +1,18 @@
 // Nối mọi thứ: manifest → bản lưu → danh mục vụ (nạp động, thiếu file ⇒ "Sắp ra mắt") → màn hình.
 // Trạng thái vụ chỉ đổi qua apply() (core/engine.js). Giao diện đọc state + sự kiện để chạy hiệu ứng, âm thanh, thoại.
-import { CASES } from "./data/cases/index.js?v=t4";
-import { validateCase } from "./core/validate.js?v=t4";
-import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t4";
-import { recordSolve, displayName, unlocked as isUnlocked, SEASONS, seasonOf, seasonUnlocked, pickSeason } from "./core/progress.js?v=t4";
-import { plain } from "./core/text.js?v=t4";
-import { makeSave, browserStorage } from "./save.js?v=t4";
-import { setManifest, registerSheets } from "./ui/art.js?v=t4";
-import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t4";
-import { createDialog } from "./ui/dialog.js?v=t4";
-import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t4";
-import * as S from "./ui/screens.js?v=t4";
-import * as P from "./ui/panels.js?v=t4";
-import { stamp, shake, crackLens } from "./ui/fx.js?v=t4";
+import { CASES } from "./data/cases/index.js?v=t5";
+import { validateCase } from "./core/validate.js?v=t5";
+import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t5";
+import { recordSolve, displayName, unlocked as isUnlocked, SEASONS, seasonOf, seasonUnlocked, pickSeason } from "./core/progress.js?v=t5";
+import { plain } from "./core/text.js?v=t5";
+import { makeSave, browserStorage } from "./save.js?v=t5";
+import { setManifest, registerSheets } from "./ui/art.js?v=t5";
+import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t5";
+import { createDialog } from "./ui/dialog.js?v=t5";
+import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t5";
+import * as S from "./ui/screens.js?v=t5";
+import * as P from "./ui/panels.js?v=t5";
+import { stamp, shake, crackLens } from "./ui/fx.js?v=t5";
 
 const params = new URLSearchParams(location.search);
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -230,7 +230,7 @@ addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if 
 
 // ---------- khởi động ----------
 async function loadCase(entry) {
-  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t4" : `./data/cases/${entry.id}.js?v=t4`;
+  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t5" : `./data/cases/${entry.id}.js?v=t5`;
   try {
     const c = (await import(url)).default;
     const v = validateCase(c);
@@ -240,7 +240,7 @@ async function loadCase(entry) {
   } catch { return { ...entry, c: null, status: "soon" }; }
 }
 async function boot() {
-  try { setManifest(await (await fetch("data/asset-manifest.json?v=t4")).json()); } catch { setManifest(null); }
+  try { setManifest(await (await fetch("data/asset-manifest.json?v=t5")).json()); } catch { setManifest(null); }
   const r = store.read();
   G.profile = r.profile;
   if (r.corrupt) setTimeout(() => toast("Bản lưu bị hỏng nên đã mở hồ sơ mới (bản cũ vẫn được cất trong máy).", "bad"), 400);

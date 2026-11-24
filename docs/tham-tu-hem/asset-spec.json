@@ -489,6 +489,18 @@
    ],
    "wave": 5,
    "_note": "Icon vật chứng lưới 2× (48×48 điểm vẽ), đồ vật chiếm ~70% ô, nền trong suốt, bóng cứng nhỏ dưới đáy, đọc được ở 48 px."
+  },
+  {
+   "file": "assets/title-art-hd.webp",
+   "wave": 6,
+   "optional": true,
+   "_note": "Bản HD của title-art cho nền TRÀN màn hình máy tính: 1920×1080, lưới 2× (960×540 điểm vẽ) — chi tiết gấp đôi bản 960×540, cùng bố cục / nhân vật / ánh sáng (Thám tử + Tèo soi kính lúp, biển HẺM 47, hẻm mưa đêm). Chừa 1/3 trái tối hơn, ít chi tiết để đặt chữ tiêu đề."
+  },
+  {
+   "file": "assets/scenes/hem-map-2-hd.webp",
+   "wave": 6,
+   "optional": true,
+   "_note": "Bản HD của hem-map-2 làm nền màn chuyển sang mùa 2 trên máy tính: 1920×1080, lưới 2×, cùng bố cục bản đồ Chợ Hẻm."
   }
  ],
  "hotspots": {
