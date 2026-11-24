@@ -116,6 +116,8 @@
     .how ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
     .actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
     .best { margin-top: 12px; font-size: 13px; color: var(--soft); }
+    .daily-link { display: inline-block; margin-top: 12px; padding: 6px 12px; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--gold); text-decoration: none; box-shadow: 0 0 0 3px #4a4036; }
+    .daily-link:hover { background: var(--panel2); } .daily-link:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
     .result { display: grid; grid-template-columns: 1fr auto; gap: 4px 18px; max-width: 320px; margin: 14px auto 0; text-align: left; color: var(--soft); }
     .result b { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
     .result .total { color: var(--ink); font-weight: 800; padding-top: 6px; border-top: 3px solid var(--line); }
@@ -212,6 +214,7 @@
       </div>
       <div class="actions"><button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button></div>
       <div class="best" id="mBest"></div>
+      <a class="daily-link" id="dailyLink" href="?daily=1">★ Thử thách hôm nay</a>
       <div class="how">
         <ul>
           <li>Mỗi câu đúng: <b>100 điểm</b> + thưởng <b>tốc độ</b> (tới 100) + thưởng <b>chuỗi đúng liên tiếp</b> (tới 100).</li>
@@ -248,7 +251,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js";
+    import { mount } from "./game.js?v=daily1";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
@@ -257,7 +260,7 @@
       requestAdBreak: () => Promise.resolve(),
       sound: { muted: localStorage.getItem("wgp.muted") === "1" },
     };
-    window.__game = mount(document.body, { sdk, seed: params.has("seed") ? Number(params.get("seed")) : undefined });
+    window.__game = mount(document.body, { sdk, seed: params.has("seed") ? Number(params.get("seed")) : undefined, daily: params.get("daily") === "1" });
   </script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>

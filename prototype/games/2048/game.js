@@ -1,5 +1,9 @@
 // 2048 — phần hiển thị + điều khiển. Ô số là phần tử DOM (trượt bằng transform), luật nằm ở logic.js.
-import * as L from "./logic.js";
+import * as L from "./logic.js?v=daily1";
+import * as UI from "../_shared/daily-ui.js?v=daily1";
+
+const D = UI.D;
+const DAILY_ID = "2048";
 
 const SAVE_KEY = "wgp.2048.v1";
 const ANIM = 100; // ms trượt
@@ -80,9 +84,14 @@ export function mount(root, ctx = {}) {
   const els = new Map();
   let pending = null, endTimer = 0, raf = 0, last = performance.now(), lastSec = -1;
   let G = { n: 4, cs: 80, gp: 10, st: 90, bw: 370, px: 3 };
+  // Thử thách hôm nay (?daily=1): bàn 4×4, chuỗi ô sinh cố định theo ngày (cùng nước đi ⇒ cùng kết quả),
+  // tối đa 150 nước, không hoàn tác. Chơi 1 lần rồi khoá. Không đụng bản lưu thường.
+  const daily = ctx.daily ? { day: D.dayNumber(), seed: 0, limit: D.GAMES["2048"].moveLimit, panel: null, done: false } : null;
+  if (daily) daily.seed = D.seedFor(DAILY_ID, daily.day);
 
   // ---------- Lưu ----------
   function persist() {
+    if (daily) { if (s && !daily.done && s.status === "playing") D.saveProgress(DAILY_ID, daily.day, L.serialize(s)); return; }
     try {
       if (s) {
         save.size = s.size;
@@ -234,6 +243,15 @@ export function mount(root, ctx = {}) {
     else if (top) sfx.play("trung-da", 0.5, 0.9 + Math.min(0.4, r.merges.length * 0.08));
     else sfx.play("buoc-nhay", 0.25, 1.15);
     if (r.gained) scoreGain(r.gained);
+    if (daily) {
+      sdk.reportScore && sdk.reportScore(s.score);
+      if (r.reachedGoal) { L.keepGoing(s); sfx.play("qua-man", 0.7); D.toast("Đạt 2048! Đi tiếp tới hết lượt nhé"); }
+      if (s.status === "playing" && s.moves >= daily.limit) s.status = "over";
+      if (s.status === "over") finishDaily();
+      else persist();
+      hud();
+      return true;
+    }
     if (s.score > save.best[s.size]) save.best[s.size] = s.score;
     if (s.maxTile > save.top[s.size]) save.top[s.size] = s.maxTile;
     sdk.reportScore && sdk.reportScore(s.score);
@@ -272,7 +290,7 @@ export function mount(root, ctx = {}) {
     setText("hBest", fmt(Math.max(save.best[s.size], s.score)));
     setText("hTop", String(s.maxTile));
     setText("hTopL", ` · mục tiêu ${s.goal}`);
-    setText("hMoves", fmt(s.moves));
+    setText("hMoves", daily ? `${s.moves}/${daily.limit}` : fmt(s.moves));
     setText("hTime", fmtTime(s.time));
     const pct = Math.min(100, Math.round((Math.log2(Math.max(2, s.maxTile)) - 1) / (Math.log2(s.goal) - 1) * 100));
     if (hudCache.fill !== pct) { hudCache.fill = pct; $("hFill").style.width = pct + "%"; $("hBar").classList.toggle("done", pct >= 100); }
@@ -330,6 +348,50 @@ export function mount(root, ctx = {}) {
     $("againBtn").focus({ preventScroll: true });
   }
 
+  function finishDaily() {
+    if (daily.done) return;
+    daily.done = true;
+    clearTimeout(endTimer);
+    const r = { maxTile: s.maxTile, score: s.score, moves: s.moves, time: Math.round(s.time), board: L.serialize(s).cells };
+    D.record(DAILY_ID, daily.day, r);
+    sdk.gameOver && sdk.gameOver({ score: s.score, maxTile: s.maxTile, size: s.size, moves: s.moves, time: Math.round(s.time), result: "daily", daily: daily.day });
+    setTimeout(() => board.classList.add("dead"), ANIM + 120);
+    endTimer = setTimeout(() => { sfx.play(s.maxTile >= 512 ? "thang" : "thua", 0.7); showDaily(); }, ANIM + 900);
+  }
+  function showDaily() {
+    const res = D.getResult(DAILY_ID, daily.day);
+    const title = res.maxTile >= 2048 ? "Đạt 2048!" : res.moves >= daily.limit ? `Hết ${daily.limit} nước!` : "Hết nước đi!";
+    if (daily.panel) daily.panel.destroy();
+    daily.panel = UI.panel({ game: DAILY_ID, day: daily.day, result: res, title });
+  }
+  function startDaily() {
+    UI.badge(daily.day);
+    document.body.classList.add("is-daily");
+    $("newBtn").hidden = true;
+    $("menuBtn").textContent = "☰ Chơi thường"; $("menuBtn").title = "Về chế độ chơi thường";
+    const mv = root.querySelector(".stat.moves small"); if (mv) mv.textContent = "Nước đi (tối đa " + daily.limit + ")";
+    size = 4;
+    const res = D.getResult(DAILY_ID, daily.day);
+    let g = null;
+    if (res) {
+      daily.done = true;
+      const n = 4, cells = Array.isArray(res.board) && res.board.length === n * n ? res.board : new Array(n * n).fill(0);
+      g = L.deserialize({ size: n, cells: cells.some(Boolean) ? cells : [2].concat(new Array(15).fill(0)), score: res.score, moves: res.moves, rng: 1, undoLeft: 0, time: res.time });
+      if (g) g.status = "over";
+    } else {
+      const prog = D.loadProgress(DAILY_ID, daily.day);
+      g = prog && prog.size === 4 ? L.deserialize(prog) : null;
+      if (g && g.status === "won") L.keepGoing(g);
+      if (!g || g.status !== "playing") g = L.newGame({ size: 4, seed: daily.seed });
+    }
+    s = g; s.undoLeft = 0; s.history = [];
+    hide(ov.menu); hide(ov.win); hide(ov.end); hide(ov.confirm);
+    setMenuMode(false);
+    for (const k in hudCache) delete hudCache[k];
+    layout(); syncAll(); hud();
+    if (daily.done) { board.classList.add("dead"); showDaily(); }
+    else { persist(); stage.focus({ preventScroll: true }); }
+  }
   function renderMenu() {
     root.querySelectorAll(".mode").forEach((b) => { const on = +b.dataset.size === size; b.classList.toggle("on", on); b.setAttribute("aria-checked", on ? "true" : "false"); });
     const g = save.games[size] ? L.deserialize(save.games[size]) : null;
@@ -339,6 +401,7 @@ export function mount(root, ctx = {}) {
     $("mBest").textContent = b ? `Kỷ lục ${size}×${size}: ${fmt(b)} điểm · ô lớn nhất ${t}` : `Chưa có kỷ lục ở bàn ${size}×${size}.`;
   }
   function showMenu() {
+    if (daily) { persist(); location.href = "./"; return; }
     finishPending(); clearTimeout(endTimer);
     if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     if (s) persist();
@@ -365,6 +428,7 @@ export function mount(root, ctx = {}) {
     stage.focus({ preventScroll: true });
   }
   function askNew() {
+    if (daily) return;
     if (!s) return start(true);
     if (s.status === "playing" && s.moves > 0) { show(ov.confirm); $("yesNewBtn").focus({ preventScroll: true }); }
     else start(true);
@@ -393,7 +457,7 @@ export function mount(root, ctx = {}) {
     else if (k === "m") toggleMute();
     else if (e.key === "Escape") {
       if (!ov.confirm.hidden) { hide(ov.confirm); stage.focus({ preventScroll: true }); }
-      else if (ov.menu.hidden && ov.win.hidden) showMenu();
+      else if (ov.menu.hidden && ov.win.hidden && !daily) showMenu();
     }
   }
 
@@ -487,10 +551,16 @@ export function mount(root, ctx = {}) {
   }
   renderMenu(); showMute();
   raf = requestAnimationFrame(frameLoop);
+  if (daily) startDaily();
+  else {
+    const dl = $("dailyLink");
+    if (dl) { const n = D.dayNumber(); dl.textContent = D.isDone(DAILY_ID, n) ? `★ Thử thách #${n} · đã xong ✓` : `★ Thử thách hôm nay #${n}`; }
+  }
 
   return {
     get state() { return s; },
     get layout() { return G; },
+    get daily() { return daily ? { day: daily.day, seed: daily.seed, limit: daily.limit, done: daily.done } : null; },
     sfx,
     move: doMove, undo: doUndo, start, showMenu,
     resync() { syncAll(); hud(); }, // dùng cho test: vẽ lại sau khi sửa bàn trực tiếp

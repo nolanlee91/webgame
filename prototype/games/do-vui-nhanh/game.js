@@ -1,5 +1,9 @@
 // Đố Vui Nhanh — giao diện (DOM), đồng hồ, phím/chạm, âm thanh, hiệu ứng hạt pixel, lưu kỷ lục. Luật + chấm điểm nằm trong logic.js.
-import { CATS, MODES, ROUND_LEN, newRound, current, answer, fifty, next, rank, rng } from "./logic.js";
+import { CATS, MODES, ROUND_LEN, QUESTIONS, newRound, current, answer, fifty, next, rank, rng } from "./logic.js?v=daily1";
+import * as UI from "../_shared/daily-ui.js?v=daily1";
+
+const D = UI.D;
+const DAILY_ID = "do-vui-nhanh";
 
 const SAVE_KEY = "wgp.dovuinhanh.v1";
 const REVEAL_MS = 1900, RECENT_MAX = 50;
@@ -66,6 +70,14 @@ export function mount(root, ctx = {}) {
   let seedBase = ctx.seed ?? (Date.now() & 0xffffff);
   let askAt = 0, usedBefore = 0, revealTimer = 0, lastTick = -1, newRecord = false;
   const fxr = rng(seedBase ^ 0x5bd1e995);
+  // Thử thách hôm nay (?daily=1): 5 câu chọn theo ngày (không lặp câu trong cửa sổ nhiều ngày nhất bộ câu cho phép),
+  // tốc độ Bình thường, chơi 1 lần rồi khoá. Tải lại giữa chừng: câu đang hỏi tính là hết giờ. Không đụng bản lưu thường.
+  const daily = ctx.daily ? { day: D.dayNumber(), seed: 0, ids: [], panel: null } : null;
+  if (daily) {
+    daily.seed = D.seedFor(DAILY_ID, daily.day);
+    daily.ids = D.pickNoRepeat(DAILY_ID, daily.day, QUESTIONS.length, D.GAMES[DAILY_ID].questions, 30);
+  }
+  const total = () => (s ? s.qs.length : daily ? daily.ids.length : ROUND_LEN);
 
   // ---------- Menu ----------
   ui.catPick.innerHTML = [{ id: "all", name: "Tất cả chủ đề", icon: "🎲" }, ...CATS]
@@ -99,7 +111,7 @@ export function mount(root, ctx = {}) {
   function ask() {
     const q = current(s), c = catOf(q.cat);
     ui.qCat.textContent = c.icon + " " + c.name;
-    ui.qNo.textContent = `CÂU ${s.i + 1}/${ROUND_LEN}`;
+    ui.qNo.textContent = `CÂU ${s.i + 1}/${total()}`;
     ui.qText.textContent = q.q;
     ui.btns.forEach((b, k) => {
       b.className = "ans"; b.disabled = false; b.querySelector(".t").textContent = q.opts[k]; b.querySelector(".mark").textContent = "";
@@ -108,6 +120,7 @@ export function mount(root, ctx = {}) {
     ui.answers.classList.remove("locked");
     ui.fbText.textContent = ""; ui.fbText.className = "fb-text"; ui.fbNote.textContent = ""; ui.next.hidden = true;
     askAt = performance.now(); usedBefore = 0; lastTick = -1;
+    saveDaily(true);
     hud();
   }
   const used = () => (paused ? usedBefore : usedBefore + performance.now() - askAt);
@@ -133,7 +146,8 @@ export function mount(root, ctx = {}) {
     }
     ui.fbNote.textContent = (rec.ok ? "" : "Đáp án: " + LETTERS[q.correct] + ". " + q.opts[q.correct] + ". ") + (q.note || "");
     ui.next.hidden = false;
-    ui.next.textContent = s.i + 1 >= ROUND_LEN ? "Xem kết quả ▶" : "Câu tiếp ▶";
+    ui.next.textContent = s.i + 1 >= total() ? "Xem kết quả ▶" : "Câu tiếp ▶";
+    saveDaily(false);
     hud();
     clearTimeout(revealTimer);
     revealTimer = setTimeout(goNext, REVEAL_MS + (q.note ? 1400 : 0) + (rec.ok ? 0 : 900));
@@ -157,6 +171,7 @@ export function mount(root, ctx = {}) {
 
   function finish() {
     clearTimeout(revealTimer);
+    if (daily) return finishDaily();
     const ids = s.qs.map((q) => q.id);
     save.recent = [...save.recent.filter((x) => !ids.includes(x)), ...ids].slice(-RECENT_MAX);
     const prev = save.best[s.mode] || 0;
@@ -169,7 +184,7 @@ export function mount(root, ctx = {}) {
     ui.eSub.textContent = `${s.cat !== "all" ? catOf(s.cat).name : "Tất cả chủ đề"} · ${MODES[s.mode].name}`;
     const okMs = s.answers.filter((a) => a.ok).map((a) => a.ms);
     const avg = okMs.length ? (okMs.reduce((p, q) => p + q, 0) / okMs.length / 1000).toFixed(1).replace(".", ",") + " giây" : "—";
-    ui.eResult.innerHTML = `<span>Trả lời đúng</span><b>${s.correct}/${ROUND_LEN}</b><span>Chuỗi dài nhất</span><b>${s.bestStreak}</b>`
+    ui.eResult.innerHTML = `<span>Trả lời đúng</span><b>${s.correct}/${total()}</b><span>Chuỗi dài nhất</span><b>${s.bestStreak}</b>`
       + `<span>Tốc độ TB (câu đúng)</span><b>${avg}</b><span class="total">Tổng điểm</span><b>${fmtNum(s.score)}</b>`;
     ui.eRecord.innerHTML = newRecord ? '<span class="record">★ Kỷ lục mới</span>' : prev ? `<div class="best">Kỷ lục ${MODES[s.mode].name}: ${fmtNum(prev)}</div>` : "";
     ui.eList.innerHTML = "";
@@ -200,12 +215,60 @@ export function mount(root, ctx = {}) {
     sfx.play("buoc-nhay", 0.4, on ? 0.8 : 1.2);
     showOv(paused ? "ovPause" : null);
   }
-  function toMenu() { if (s) sfx.play("buoc-nhay", 0.35, 0.8); clearTimeout(revealTimer); s = null; paused = false; document.body.classList.remove("is-paused"); showMenuPicks(); showOv("ovMenu"); hud(); }
+  // ---------- Thử thách hôm nay ----------
+  function saveDaily(asking) {
+    if (!daily || !s || s.status !== "play") return;
+    D.saveProgress(DAILY_ID, daily.day, { i: s.i, asking, fiftyLeft: s.fiftyLeft, answers: s.answers.map((a) => ({ pick: a.pick, ms: Math.round(a.ms) })) });
+  }
+  function startDaily() {
+    clearTimeout(revealTimer);
+    UI.badge(daily.day);
+    document.body.classList.add("is-daily");
+    if (D.isDone(DAILY_ID, daily.day)) {
+      s = null; showOv(null); hud();
+      ui.qCat.textContent = "★ Thử thách #" + daily.day; ui.qText.textContent = "Bạn đã chơi thử thách hôm nay rồi. Hẹn mai nhé!";
+      ui.btns.forEach((b) => { b.disabled = true; b.querySelector(".t").textContent = ""; });
+      showDaily(); return;
+    }
+    s = newRound({ seed: daily.seed, ids: daily.ids, mode: "normal" });
+    const prog = D.loadProgress(DAILY_ID, daily.day);
+    if (prog && Array.isArray(prog.answers)) {
+      for (const a of prog.answers) { if (s.status !== "play" || !answer(s, a.pick | 0, a.ms)) break; next(s); }
+      if (prog.asking && prog.i === s.i && s.status === "play" && answer(s, -1, s.limit)) next(s); // tải lại giữa câu ⇒ hết giờ
+      if (Number.isInteger(prog.fiftyLeft)) s.fiftyLeft = Math.min(1, Math.max(0, prog.fiftyLeft));
+    }
+    games++; paused = false; newRecord = false;
+    document.body.classList.remove("is-paused");
+    showOv(null);
+    if (s.status === "over") return finish();
+    sfx.play("qua-man", 0.6);
+    ask();
+  }
+  function finishDaily() {
+    const marks = s.answers.map((a) => a.ok);
+    const ms = s.answers.reduce((p, a) => p + (a.ms || 0), 0);
+    D.record(DAILY_ID, daily.day, { marks, ms: Math.round(ms), score: s.score });
+    sfx.play(s.correct >= Math.ceil(total() / 2) ? "thang" : "thua", 0.8);
+    if (s.correct === total()) setTimeout(() => confetti(), 150);
+    sdk.reportScore?.(s.score);
+    sdk.gameOver?.({ score: s.score, correct: s.correct, mode: s.mode, cat: "all", daily: daily.day });
+    hud();
+    showDaily();
+  }
+  function showDaily() {
+    const res = D.getResult(DAILY_ID, daily.day);
+    const ok = res.marks.filter(Boolean).length;
+    if (daily.panel) daily.panel.destroy();
+    daily.panel = UI.panel({ game: DAILY_ID, day: daily.day, result: res, title: rank(ok, res.marks.length) });
+  }
+
+  function toMenu() {
+    if (daily) { location.href = "./"; return; } if (s) sfx.play("buoc-nhay", 0.35, 0.8); clearTimeout(revealTimer); s = null; paused = false; document.body.classList.remove("is-paused"); showMenuPicks(); showOv("ovMenu"); hud(); }
 
   // ---------- HUD + đồng hồ ----------
   function hud() {
     const best = save.best[s ? s.mode : mode];
-    ui.no.textContent = s ? `${Math.min(ROUND_LEN, s.i + 1)}/${ROUND_LEN}` : `0/${ROUND_LEN}`;
+    ui.no.textContent = s ? `${Math.min(total(), s.i + 1)}/${total()}` : `0/${total()}`;
     ui.score.textContent = fmtNum(s ? s.score : 0);
     ui.streak.textContent = s && s.streak >= 2 ? "🔥" + s.streak : String(s ? s.streak : 0);
     ui.best.textContent = best ? fmtNum(best) : "—";
@@ -295,10 +358,16 @@ export function mount(root, ctx = {}) {
   document.addEventListener("visibilitychange", onVis);
   window.addEventListener("resize", sizeFx);
 
-  showMute(); showMenuPicks(); hud(); showOv("ovMenu");
+  showMute(); showMenuPicks(); hud();
+  if (daily) startDaily();
+  else {
+    showOv("ovMenu");
+    const dl = $("dailyLink");
+    if (dl) { const n = D.dayNumber(); dl.textContent = D.isDone(DAILY_ID, n) ? `★ Thử thách #${n} · đã xong ✓` : `★ Thử thách hôm nay #${n} · 5 câu`; }
+  }
 
   return {
-    get state() { return s; }, get paused() { return paused; }, get save() { return save; }, sfx,
+    get state() { return s; }, get daily() { return daily ? { day: daily.day, ids: daily.ids.slice() } : null; }, get paused() { return paused; }, get save() { return save; }, sfx,
     get parts() { return parts.length; },
     start, pick, goNext, useFifty, setPaused, toMenu,
     /** test: tua đồng hồ câu hiện tại (ms đã dùng) */
