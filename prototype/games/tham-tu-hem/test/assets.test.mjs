@@ -22,3 +22,16 @@ test("mọi file khai trong manifest có thật; frame chân dung đúng ô 256"
     }
   }
 });
+
+test("mọi tiếng khai trong ui/sfx.js có file mp3; mọi icon vật chứng của vụ có frame", async () => {
+  const { SFX, LOOPS, BLIPS, SCENES } = await import("../ui/sfx.js");
+  for (const n of [...Object.keys(SFX), ...Object.keys(LOOPS), ...BLIPS]) assert.ok(existsSync(here(`../assets/audio/${n}.mp3`)), "thiếu " + n);
+  for (const list of Object.values(SCENES)) for (const n of list) assert.ok(LOOPS[n], n);
+  const { readdirSync } = await import("node:fs");
+  const frames = new Set(game.items.filter((i) => /^assets\/clues-/.test(i.filename)).flatMap((i) => Object.keys(i.frames || {})));
+  if (!frames.size) return;
+  for (const f of readdirSync(here("../data/cases/")).filter((x) => x.endsWith(".js") && x !== "index.js")) {
+    const c = (await import(here("../data/cases/" + f))).default;
+    for (const id of Object.keys(c.clues)) assert.ok(frames.has(id), `${c.id}: thiếu icon vật chứng ${id}`);
+  }
+});

@@ -1,18 +1,20 @@
 // Hình: đọc data/asset-manifest.json (bản chép của docs/tham-tu-hem/asset-manifest.json — test kiểm khớp).
 // Có frame / file thật thì dùng, không có thì vẽ thay bằng canvas (cảnh tối có hoạ tiết, chân dung pixel chữ cái đầu) — game luôn chơi trọn được.
 // Crisp (PLAYBOOK §2): hệ số hiển thị = px thiết bị / px file luôn là bội 0,5. Cảnh lưới 2× (960×540), chân dung HD lưới 1× (ô 256).
-import { h } from "./dom.js?v=t1";
+import { h } from "./dom.js?v=t2";
 
 export const SCENE_W = 960, SCENE_H = 540, CELL = 256;
 let M = { items: [], hotspots: {} };
 const byFile = new Map();
 const frameIndex = new Map(); // tên frame chân dung ⇒ [{item, f}]
+const clueIndex = new Map(); // id vật chứng ⇒ [{item, f}] (assets/clues-<vụ>.webp, ô 96, lưới 2×)
 export function setManifest(m) {
   M = m && typeof m === "object" ? m : { items: [], hotspots: {} };
-  byFile.clear(); frameIndex.clear();
+  byFile.clear(); frameIndex.clear(); clueIndex.clear();
   for (const it of M.items || []) {
     if (!it?.filename) continue;
     byFile.set(it.filename, it);
+    if (/^assets\/clues-/.test(it.filename)) for (const [name, f] of Object.entries(it.frames || {})) { if (!clueIndex.has(name)) clueIndex.set(name, []); clueIndex.get(name).push({ it, f }); }
     if (/^assets\/portraits-/.test(it.filename)) for (const [name, f] of Object.entries(it.frames || {})) {
       if (!frameIndex.has(name)) frameIndex.set(name, []);
       frameIndex.get(name).push({ it, f });
@@ -251,3 +253,21 @@ export function hotspotRect(file, h, index, total) {
   return { r: [Math.round(col * cw + (cw - w) / 2), Math.round(100 + row * ch + (ch - hh) / 2), Math.round(w), Math.round(hh)], src: "grid" };
 }
 export const mapPin = (caseId) => M.hotspots?.["assets/scenes/hem-map.webp"]?.[caseId] || null;
+
+// ---------- icon vật chứng ----------
+/** Frame icon vật chứng (ưu tiên sheet của vụ). */
+export function clueFrame(id, caseId = "") {
+  const list = clueIndex.get(id); if (!list) return null;
+  const pick = list.find((x) => x.it.filename === `assets/clues-${caseId}.webp`) || list[0];
+  return { url: pick.it.filename, sw: pick.it.dimensions[0], sh: pick.it.dimensions[1], x: pick.f.rect[0], y: pick.f.rect[1], w: pick.f.rect[2], h: pick.f.rect[3] };
+}
+/** Cỡ css cho icon 96 px lưới 2×: px thiết bị / px file là bội 0,5 (ô 2×2 phủ số nguyên px). */
+export function clueSize(want) {
+  const d = dpr(), m = Math.max(1, Math.round((want * d) / 48));
+  return (m * 48) / d;
+}
+export function clueSprite(id, caseId, want) {
+  const f = clueFrame(id, caseId); if (!f) return null;
+  const size = clueSize(want), k = size / f.w;
+  return h("span.cicon-img", { "aria-hidden": "true", style: { width: size + "px", height: size + "px", backgroundImage: `url("${f.url}")`, backgroundSize: `${f.sw * k}px ${f.sh * k}px`, backgroundPosition: `${-f.x * k}px ${-f.y * k}px` } });
+}

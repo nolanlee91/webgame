@@ -1,78 +1,100 @@
-// Âm thanh Thám Tử Hẻm. Tiếng bấm nút do _shared/feedback.js lo. Ở đây: gõ chữ (tổng hợp WebAudio), và tiếng sự kiện MƯỢN TẠM
-// của game khác (DEV-NOTES "Cần Codex" ghi bộ tiếng riêng cần làm). File đặt ở assets/audio/<tên>.mp3 thì tự dùng thay bản mượn (AVAILABLE).
-// Công tắc tổng: localStorage "wgp.muted" (chung Lụm Kèo). Chỉ tạo AudioContext / tải file sau thao tác đầu tiên.
+// Âm thanh Thám Tử Hẻm: bộ mp3 riêng của Codex trong assets/audio/ (docs/tham-tu-hem/WAVE3.md mục D, AUDIO.md).
+// - Nạp lười: chỉ tạo Audio / tải file sau thao tác đầu tiên, và chỉ khi cần tới tiếng đó.
+// - Nhạc + tiếng nền đổi theo màn (setScene), đổi màn thì fade ngắn.
+// - Công tắc tổng "wgp.muted" (chung Lụm Kèo, phím M); "tth.music" = "0" tắt riêng nhạc (tiếng nền + hiệu ứng vẫn còn).
+// - Tiếng bấm nút: click.mp3 (game tự phát; feedback.js chung được tắt bằng data-nosfx trên body để không kêu hai lần).
 export const MUTE_KEY = "wgp.muted";
-/** Tên tiếng ⇒ [file mượn, âm lượng]. */
-export const BORROW = {
-  clue: ["../tiem-tra-sua/assets/audio/paper.mp3", 0.5],
-  stmt: ["../quan-com-tam/assets/audio/bill-key.mp3", 0.45],
-  stamp: ["../tiem-tra-sua/assets/audio/seal.mp3", 0.6],
-  break: ["../quan-com-tam/assets/audio/drama.mp3", 0.5],
-  gasp: ["../quan-com-tam/assets/audio/voice-surprised.mp3", 0.45],
-  wrong: ["../quan-com-tam/assets/audio/error.mp3", 0.45],
-  huh: ["../quan-com-tam/assets/audio/voice-annoyed.mp3", 0.4],
-  solved: ["../tiem-tra-sua/assets/audio/ready.mp3", 0.5],
-  win: ["../quan-com-tam/assets/audio/shift-end.mp3", 0.5],
-  rank: ["../quan-com-tam/assets/audio/level-up.mp3", 0.5],
-  viral: ["../quan-com-tam/assets/audio/viral.mp3", 0.45],
-  hint: ["../tiem-tra-sua/assets/audio/voice-happy.mp3", 0.4],
-  phone: ["../quan-com-tam/assets/audio/voice-call.mp3", 0.4],
-  door: ["../quan-com-tam/assets/audio/arrival.mp3", 0.4],
+export const MUSIC_KEY = "tth.music";
+const BASE = "assets/audio/";
+
+/** Hiệu ứng: tên file (không đuôi) ⇒ âm lượng. */
+export const SFX = {
+  click: 0.35, "page-flip": 0.45, "clue-found": 0.55, keyword: 0.4, inspect: 0.4, objection: 0.6, wrong: 0.5, "lose-cred": 0.5,
+  "deduce-ok": 0.55, "deduce-bad": 0.5, confront: 0.55, confess: 0.55, "case-solved": 0.6, "rank-up": 0.55, "zalo-ping": 0.5,
+  "like-pop": 0.45, "door-bell": 0.5, "teo-hint": 0.5, "map-select": 0.5,
 };
-/** Tiếng riêng Codex giao (assets/audio/<tên>.mp3) — thêm tên vào đây khi có file. */
-export const AVAILABLE = new Set([]);
+export const BLIPS = ["type-blip", "type-blip-2", "type-blip-3"];
+/** Vòng lặp: music = nhạc (tắt riêng được), còn lại là tiếng nền. */
+export const LOOPS = {
+  "music-map": { gain: 0.32, music: true }, "music-investigate": { gain: 0.28, music: true }, "music-interrogate": { gain: 0.3, music: true },
+  "music-finale": { gain: 0.32, music: true }, "music-solved": { gain: 0.32, music: true },
+  "amb-rain-alley": { gain: 0.22 }, "amb-office": { gain: 0.25 },
+};
+/** Màn ⇒ vòng lặp đang phát. */
+export const SCENES = {
+  title: ["amb-rain-alley"], map: ["music-map", "amb-rain-alley"], office: ["amb-office"], scene: ["music-investigate"],
+  talk: ["music-interrogate"], finale: ["music-finale"], result: ["music-solved"],
+};
 
-export const muted = () => { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch { return false; } };
-export function setMuted(on) { try { localStorage.setItem(MUTE_KEY, on ? "1" : "0"); } catch {} }
+const ls = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+export const muted = () => ls(MUTE_KEY) === "1";
+export const musicOn = () => ls(MUSIC_KEY) !== "0";
+export function setMuted(on) { lsSet(MUTE_KEY, on ? "1" : "0"); sync(); }
+export function setMusic(on) { lsSet(MUSIC_KEY, on ? "1" : "0"); sync(); }
 
-let ac = null, unlocked = false;
-const cache = new Map(), last = {};
-export function unlockSound() {
-  if (unlocked) return; unlocked = true;
-  for (const n of ["clue", "stamp", "wrong", "break"]) load(n);
-}
-function load(name) {
+let unlocked = false, want = [], blipI = 0, lastBlip = 0;
+const cache = new Map(), last = {}, loops = new Map();
+export function unlockSound() { if (unlocked) return; unlocked = true; sync(); }
+function base(name) {
   if (cache.has(name)) return cache.get(name);
-  const src = AVAILABLE.has(name) ? `assets/audio/${name}.mp3` : BORROW[name]?.[0];
-  if (!src) return null;
-  const a = new Audio(); a.preload = "auto"; a.src = src;
+  const a = new Audio(); a.preload = "auto"; a.src = BASE + name + ".mp3";
   a.addEventListener("error", () => cache.set(name, null), { once: true });
   cache.set(name, a);
   return a;
 }
 export function play(name, delay = 0) {
-  if (muted() || !unlocked) return;
-  const now = performance.now(); if (now - (last[name] || 0) < 120) return; last[name] = now;
-  const base = load(name); if (!base) return;
-  const go = () => { try { const a = base.cloneNode(); a.volume = BORROW[name]?.[1] ?? 0.5; a.play().catch(() => {}); } catch {} };
+  if (muted() || !unlocked || !(name in SFX)) return;
+  const now = performance.now(); if (now - (last[name] || 0) < 90) return; last[name] = now;
+  const go = () => { const b = base(name); if (!b) return; try { const a = b.cloneNode(); a.volume = SFX[name]; a.play().catch(() => {}); } catch {} };
   delay ? setTimeout(go, delay * 1000) : go();
 }
-/** Tiếng gõ chữ: nhịp ngắn, cao độ theo người nói (tổng hợp, không tải file). */
-export function blip(pitch = 1) {
+/** Tiếng gõ chữ: xoay vòng 3 file, nhỏ, tối đa ~12 lần / giây. */
+export function blip() {
   if (muted() || !unlocked) return;
-  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-  try {
-    if (!ac) ac = new AC();
-    if (ac.state === "suspended") ac.resume().catch(() => {});
-    const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
-    o.type = "square"; o.frequency.setValueAtTime(420 * pitch + Math.random() * 30, t);
-    g.gain.setValueAtTime(0.025, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.05);
-  } catch {}
+  const now = performance.now(); if (now - lastBlip < 80) return; lastBlip = now;
+  const b = base(BLIPS[blipI++ % BLIPS.length]); if (!b) return;
+  try { const a = b.cloneNode(); a.volume = 0.18; a.play().catch(() => {}); } catch {}
 }
-/** Sự kiện engine ⇒ tiếng. */
-export function soundFor(e) {
-  switch (e.type) {
-    case "clue": return play("clue");
-    case "stmt": return play("stmt");
-    case "break": play("stamp"); play("break", 0.12); return play("gasp", 0.35);
-    case "wrong": case "stepWrong": play("wrong"); return play("huh", 0.25);
-    case "boardWrong": return play("wrong");
-    case "boardSolved": return play("solved");
-    case "stepRight": return play("stamp");
-    case "done": return play("win", 0.3);
-    case "hint": return play("hint");
-    case "word": return blip(1.8);
-    default: return undefined;
+
+// ---------- vòng lặp theo màn ----------
+function fade(a, to, ms, done) {
+  clearInterval(a._fade);
+  const from = a.volume, t0 = performance.now();
+  a._fade = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    a.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+    if (k >= 1) { clearInterval(a._fade); done?.(); }
+  }, 40);
+}
+export function setScene(name) { want = SCENES[name] || []; sync(); }
+function sync() {
+  const on = new Set(unlocked && !muted() ? want.filter((n) => !LOOPS[n].music || musicOn()) : []);
+  for (const [n, a] of loops) if (!on.has(n)) { fade(a, 0, 500, () => { a.pause(); loops.delete(n); }); }
+  for (const n of on) {
+    let a = loops.get(n);
+    if (a && !a.paused) { fade(a, LOOPS[n].gain, 300); continue; }
+    a = new Audio(BASE + n + ".mp3"); a.loop = true; a.volume = 0;
+    a.addEventListener("error", () => loops.delete(n), { once: true });
+    loops.set(n, a);
+    a.play().then(() => fade(a, LOOPS[n].gain, 700)).catch(() => {});
   }
+}
+export const soundDebug = () => ({ unlocked, want, playing: [...loops.keys()] });
+
+/** Sự kiện engine (cả danh sách của một lần apply) ⇒ tiếng. */
+export function soundsFor(evs) {
+  const has = (t) => evs.some((e) => e.type === t);
+  if (has("break")) play("objection");
+  if (has("clue")) play("clue-found");
+  else if (has("seen")) play("inspect");
+  if (has("word")) play("keyword", 0.05);
+  if (has("wrong") || has("stepWrong")) play("wrong");
+  if (has("cred")) play("lose-cred", 0.2);
+  if (has("boardWrong")) play("deduce-bad");
+  if (has("boardSolved")) play("deduce-ok");
+  if (has("finale")) play("confront");
+  if (has("stepRight") && !has("done")) play("objection");
+  if (has("done")) play("confess");
+  if (has("hint")) play("teo-hint");
 }

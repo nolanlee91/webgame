@@ -1,25 +1,29 @@
 // Bảng phủ: thẩm vấn, sổ tay (vật chứng / lời khai / từ khoá / nhân vật), bảng suy luận (ghim + dây đỏ, kéo-thả hoặc chạm chọn), chọn vật chứng, thẻ trong thoại.
-import { h, $, $$, icon, toast } from "./dom.js?v=t1";
-import { portraitEl, accentOf } from "./art.js?v=t1";
-import { renderText } from "./dialog.js?v=t1";
-import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t1";
-import { KINDS } from "../core/validate.js?v=t1";
-import { accuse } from "./screens.js?v=t1";
+import { h, $, $$, icon, toast } from "./dom.js?v=t2";
+import { portraitEl, accentOf, clueSprite } from "./art.js?v=t2";
+import { renderText } from "./dialog.js?v=t2";
+import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t2";
+import { KINDS } from "../core/validate.js?v=t2";
+import { accuse } from "./screens.js?v=t2";
+import { play as sfx } from "./sfx.js?v=t2";
 
 export const KIND_NAME = { ai: "Ai", luc: "Lúc nào", o: "Ở đâu", vat: "Vật gì", cach: "Cách nào", vi: "Vì sao", khac: "Khác" };
 const narrow = () => innerWidth < 900;
 
 // ---------- thẻ dùng chung ----------
 const hue = (id) => { let x = 7; for (const ch of String(id)) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return x % 360; };
+let CASE_ID = "";
 export function clueIcon(id, name, big = false) {
+  const real = clueSprite(id, CASE_ID, big ? 96 : 64);
+  if (real) return real;
   return h("span.cicon" + (big ? ".big" : ""), { style: { "--h": hue(id) }, "aria-hidden": "true" }, h("i"), (name || id).trim().charAt(0).toUpperCase());
 }
 export function clueCard(app, id, { sel = false, onclick = null, attr = "clue" } = {}) {
-  const k = app.G.c.clues[id];
+  const k = app.G.c.clues[id]; CASE_ID = app.G.c.id;
   return h("button.ccard" + (sel ? ".sel" : ""), { type: "button", data: { [attr]: id }, "aria-pressed": sel ? "true" : "false", onclick }, clueIcon(id, k.name), h("b", k.name));
 }
 export function dialogCard(app, it) {
-  const c = app.G.c;
+  const c = app.G.c; CASE_ID = c.id;
   if (it.t === "clue") { const k = c.clues[it.id]; return h("div.dcard.dcard--clue", h("small.dcap", icon("book", 16), " Vật chứng mới"), h("div.drow", clueIcon(it.id, k.name, true), h("div", h("b", k.name), h("p", renderText(k.desc, c.words))))); }
   if (it.t === "stmt") { const st = c.stmts[it.id]; return h("div.dcard.dcard--stmt", h("small.dcap", icon("chat", 16), " Ghi vào sổ: lời khai"), h("div.drow", portraitEl(st.by, "neutral", c.id, 64, app.name(st.by)), h("div", h("b", app.name(st.by)), h("p.quote", "“", renderText(st.text, c.words), "”")))); }
   if (it.t === "loc") return h("div.dcard.dcard--loc", h("small.dcap", icon("pin", 16), " Địa điểm mới"), h("b.big", c.locations[it.id].name));
@@ -108,10 +112,10 @@ function stmtRow(app, id, { select = null, sel = false } = {}) {
 // ---------- sổ tay ----------
 const TABS = [["clues", "Vật chứng"], ["stmts", "Lời khai"], ["words", "Từ khoá"], ["people", "Nhân vật"]];
 export function notebook(app) {
-  const { c, s, ui } = app.G;
+  const { c, s, ui } = app.G; CASE_ID = c.id;
   ui.nbSeen = s.clues.length + s.stmts.length;
   const tab = ui.nbTab || "clues";
-  const tabs = h("div.tabs", { role: "tablist" }, TABS.map(([id, label]) => h("button.tab" + (tab === id ? ".on" : ""), { type: "button", role: "tab", "aria-selected": tab === id ? "true" : "false", data: { tab: id }, onclick: () => { ui.nbTab = id; ui.nbSel = null; app.refresh(); } },
+  const tabs = h("div.tabs", { role: "tablist" }, TABS.map(([id, label]) => h("button.tab" + (tab === id ? ".on" : ""), { type: "button", role: "tab", "aria-selected": tab === id ? "true" : "false", data: { tab: id }, onclick: () => { ui.nbTab = id; ui.nbSel = null; sfx("page-flip"); app.refresh(); } },
     label, h("small", { stmts: s.stmts.length, clues: s.clues.length, words: s.words.length, people: peopleList(c, s).length }[id]))));
   let body;
   if (tab === "clues") {

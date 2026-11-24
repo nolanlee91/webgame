@@ -1,7 +1,7 @@
 # Thám Tử Hẻm: ghi chú dev
 
 Hợp đồng chung (vòng chơi, dàn nhân vật, 6 vụ, định dạng vụ): `docs/tham-tu-hem/DESIGN.md`. Asset: `docs/tham-tu-hem/asset-spec.json`.
-Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t1`** cho mọi import và `<script src>`.
+Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t2`** cho mọi import và `<script src>`.
 
 ## 1. Kiến trúc
 
@@ -22,7 +22,7 @@ ui/dialog.js            thoại visual novel (gõ chữ dần, bấm qua, Tua, t
 ui/screens.js           màn nền: mở game, bản đồ, văn phòng + bài đăng nhóm, hiện trường, vạch mặt, kết vụ
 ui/panels.js            bảng phủ: thẩm vấn, sổ tay, bảng suy luận, chọn vật chứng
 ui/fx.js                tem mực (MÂU THUẪN! / BỂ! / TRẬT! / VẠCH MẶT! / ĐÃ KHỚP), rung màn, kính lúp nứt
-ui/sfx.js               âm thanh (mượn tạm, xem "Cần Codex")
+ui/sfx.js               âm thanh: bộ mp3 riêng, nhạc + nền theo màn (mục 4)
 test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs (Chrome headless qua cdp.mjs)
 ```
 
@@ -60,7 +60,7 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs (Chrome 
 - Toạ độ điểm soi: `manifest.hotspots["assets/scenes/<case>/<scene>.webp"][id]` → `rect` trong vụ → tự xếp lưới.
 - Chân dung: frame `<pid>-<mood>` tìm ở `portraits-<case>.webp`, rồi `portraits-cast.webp`, rồi bất kỳ sheet chân dung (khách mời vụ 6). Thiếu mood ⇒ neutral. Thiếu hết ⇒ chân dung pixel vẽ bằng canvas (màu theo người, chữ cái đầu, biểu cảm theo mood).
 - Chưa có cảnh ⇒ cảnh vẽ thay (tường / sàn dither, đèn, khối đồ vật ở vị trí điểm soi đang hiện) và luôn bật nhãn điểm soi.
-- Phím: Space/Enter qua thoại, N sổ tay, B bảng suy luận, Esc đóng bảng phủ.
+- Phím: Space/Enter qua thoại, N sổ tay, B bảng suy luận, M tắt tiếng, Esc đóng bảng phủ.
 - Móc test: `?case=__mini` thêm vụ mẫu (chỉ localhost hoặc `?dev=1`), `?fast=1` hiện chữ ngay, `window.__game`.
 
 ## 2. Thêm một vụ
@@ -80,34 +80,18 @@ PORT=8871 node prototype/games/tham-tu-hem/test/e2e.mjs <thư mục ảnh>      
 PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh>    # mọi vụ thật qua giao diện (VIEW=mob cho điện thoại)
 ```
 
-## 4. Cần Codex
+## 4. Asset + âm thanh (đợt 3 đã giao)
 
-### Ảnh (theo asset-spec.json; game đã đón sẵn, giao là tự dùng)
+- Ảnh: 18 cảnh, chân dung cast + 6 vụ, title, office, hem-map, 93 icon vật chứng (`assets/clues-<vụ>.webp`, ô 96, lưới 2×, frame = id vật chứng), `manifest.hotspots` đủ.
+- Manifest: `data/asset-manifest.json` là bản chép `docs/tham-tu-hem/asset-manifest.json` (test kiểm khớp). Codex sửa manifest thì chép lại và đổi tag `?v=`.
+- Điểm soi lồng nhau (chi tiết nằm trong đồ vật lớn, ví dụ `hop-qua-lac` trong `hop-nhan` trong `mam-qua`): điểm nhỏ vẽ sau nên nằm trên; nhãn điểm nhỏ đặt phía trên ô.
+- Âm thanh (`ui/sfx.js`, bảng ở `docs/tham-tu-hem/WAVE3.md` mục D):
+  - Hiệu ứng nạp lười sau thao tác đầu. Gõ chữ xoay vòng `type-blip/-2/-3`, âm lượng nhỏ, tối đa ~12 lần/giây.
+  - Vòng lặp theo màn: mở game = mưa hẻm; bản đồ = `music-map` + mưa; văn phòng = `amb-office`; hiện trường = `music-investigate`; đang thẩm vấn = `music-interrogate`; vạch mặt = `music-finale`; kết vụ = `music-solved`. Đổi màn fade ~0,5 s.
+  - Phím M hoặc nút loa = tắt hết (`wgp.muted`, chung Lụm Kèo). Nút nốt nhạc = tắt riêng nhạc (`tth.music`).
+  - Tiếng bấm nút dùng `click.mp3` của game; tiếng bấm chung của `_shared/feedback.js` bị tắt bằng `data-nosfx` trên body, hiệu ứng lún nút vẫn giữ.
 
-- Đợt 1: `assets/title-art.webp`, `assets/scenes/office.webp`, `assets/scenes/hem-map.webp` (+ `manifest.hotspots["assets/scenes/hem-map.webp"][<id vụ>]` cho chấm vụ), `assets/portraits-cast.webp`, chân dung + 3 cảnh của vụ 1–2.
-- Đợt 2: chân dung + cảnh vụ 3–6.
-- Mọi cảnh: ghi `manifest.hotspots[<file cảnh>][<id đồ vật>]` = `[x, y, w, h]`. Khi giao, chép `docs/tham-tu-hem/asset-manifest.json` sang `prototype/games/tham-tu-hem/data/asset-manifest.json` (test kiểm khớp).
-- Đợt 3 (chưa đón trong code, dev làm khi có danh sách): icon vật chứng ô 96×96 `assets/clue-icons.webp`, frame = id vật chứng. Hiện vẽ thay bằng thẻ chữ cái đầu.
+## 5. Cần Codex
 
-### Tiếng (đang MƯỢN TẠM của game khác, xem `ui/sfx.js` BORROW)
-
-Giao vào `prototype/games/tham-tu-hem/assets/audio/<tên>.mp3` rồi thêm tên vào `AVAILABLE` trong `ui/sfx.js`:
-
-| tên | dùng khi | đang mượn |
-|---|---|---|
-| `clue` | nhặt vật chứng (giấy sột soạt) | tiem-tra-sua/paper |
-| `stmt` | ghi lời khai vào sổ (bút gạch) | quan-com-tam/bill-key |
-| `stamp` | đóng tem mực (MÂU THUẪN!/BỂ!) | tiem-tra-sua/seal |
-| `break` | nghi phạm bể lời khai (nhạc nhấn) | quan-com-tam/drama |
-| `gasp` | nghi phạm hốt hoảng | quan-com-tam/voice-surprised |
-| `wrong` | đưa sai | quan-com-tam/error |
-| `huh` | nghi phạm cà khịa khi đưa sai | quan-com-tam/voice-annoyed |
-| `solved` | bảng suy luận khớp | tiem-tra-sua/ready |
-| `win` | phá án xong | quan-com-tam/shift-end |
-| `rank` | lên hạng thám tử | quan-com-tam/level-up |
-| `viral` | tường bình luận viral | quan-com-tam/viral |
-| `hint` | Tèo gợi ý | tiem-tra-sua/voice-happy |
-| `phone` | điện thoại rung (bài đăng nhóm) | quan-com-tam/voice-call |
-| `door` | khách vào văn phòng | quan-com-tam/arrival |
-
-Thêm nếu được: nhạc nền văn phòng (vòng lặp, lofi đêm hẻm), nhạc căng thẳng màn vạch mặt (vòng lặp), tiếng gõ chữ (hiện tổng hợp bằng WebAudio).
+Hiện không còn mục nào bắt buộc. Có thể làm thêm:
+- Một số ô điểm soi lồng nhau quá sát (ví dụ `nhan-dam-hoi/livingroom`: `khay-trau-cau` gần trùng `mam-qua`). Nếu được thì tách rời để dễ bấm trên điện thoại.

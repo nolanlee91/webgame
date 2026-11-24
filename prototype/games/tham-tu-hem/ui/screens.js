@@ -1,11 +1,11 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
-import { h, icon, toast } from "./dom.js?v=t1";
-import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t1";
-import { renderText } from "./dialog.js?v=t1";
-import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t1";
-import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep } from "../core/progress.js?v=t1";
-import { pickEvidence, clueCard } from "./panels.js?v=t1";
-import { play as sfx } from "./sfx.js?v=t1";
+import { h, icon, toast } from "./dom.js?v=t2";
+import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t2";
+import { renderText } from "./dialog.js?v=t2";
+import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t2";
+import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep } from "../core/progress.js?v=t2";
+import { pickEvidence, clueCard } from "./panels.js?v=t2";
+import { play as sfx } from "./sfx.js?v=t2";
 
 const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */
@@ -45,7 +45,7 @@ export function title(app) {
             h("li", h("b", "Thẩm vấn:"), " hỏi từng người, lời khai được ghi vào Sổ tay."),
             h("li", h("b", "Vạch mâu thuẫn:"), " chọn lời khai rồi đưa vật chứng nói ngược. Sai thì mất uy tín (kính lúp)."),
             h("li", h("b", "Bảng suy luận:"), " điền từ khoá vào chỗ trống rồi chốt. Đúng hết thì vạch mặt thủ phạm."),
-            h("li", h("b", "Phím tắt:"), " Space/Enter qua thoại, N sổ tay, B bảng, Esc đóng.")),
+            h("li", h("b", "Phím tắt:"), " Space/Enter qua thoại, N sổ tay, B bảng, M tắt tiếng, Esc đóng.")),
           hasRun ? h("button.btn.btn--danger.btn--sm#wipeBtn", { type: "button", onclick: () => app.wipeAll() }, "Xoá tiến độ") : null))));
 }
 
@@ -60,7 +60,7 @@ export function map(app) {
     const state = !e.c ? (e.status === "broken" ? "fix" : "soon") : !e.open ? "lock" : solved ? "done" : run && run.phase !== "intro" ? "wip" : "new";
     const label = { soon: "Sắp ra mắt", fix: "Đang sửa", lock: "Khoá", done: "Đã phá", wip: "Đang điều tra", new: "Mới" }[state];
     const can = state !== "soon" && state !== "lock" && state !== "fix";
-    cards.append(h("button.case-card.st-" + state, { type: "button", data: { case: e.id }, disabled: !can, onclick: () => app.openCase(e.id), "aria-label": `Hồ sơ số ${e.no}: ${e.title}. ${label}` },
+    cards.append(h("button.case-card.st-" + state, { type: "button", data: { case: e.id }, disabled: !can, onclick: () => { sfx("map-select"); app.openCase(e.id); }, "aria-label": `Hồ sơ số ${e.no}: ${e.title}. ${label}` },
       h("span.case-tab", `Hồ sơ số ${e.no}`),
       h("b.case-title", e.title),
       e.tagline && can ? h("span.case-tagline", e.tagline) : null,
@@ -112,7 +112,7 @@ export function office(app) {
       await app.dialog.play(c.intro);
       if (posts.length && app.G.screen === "office") {
         await app.dialog.play([["teo", "Sếp ơi, nhóm “" + (c.social.group || "Hẻm 47 Hóng Biến") + "” đang nổ bài về vụ này nè!", "smug"]]);
-        sfx("phone"); ui.phone = true; app.refresh();
+        sfx("zalo-ping"); ui.phone = true; app.refresh();
       }
     });
   }
@@ -128,13 +128,13 @@ function phone(app, posts, onClose, onAccept) {
     const liked = !!ui.liked[i];
     const comments = [...(p.comments || []), ...(ui.myComments[i] || [])];
     const inp = h("input.inp.inp--sm", { type: "text", maxlength: "80", placeholder: "Viết bình luận…", "aria-label": "Viết bình luận" });
-    const send = () => { const t = inp.value.trim(); if (!t) return; (ui.myComments[i] ??= []).push({ by: "me", text: t }); app.refresh(); };
+    const send = () => { const t = inp.value.trim(); if (!t) return; (ui.myComments[i] ??= []).push({ by: "me", text: t }); sfx("like-pop"); app.refresh(); };
     inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); send(); } });
     list.append(h("article.post",
       h("header", c.people[p.by] || ["teo", "batu", "chuba"].includes(p.by) ? portraitEl(p.by, "neutral", c.id, 36, who(p.by), "ava") : h("span.ava-ph", who(p.by).charAt(0)), h("div", h("b", who(p.by)), h("small", (p.by === "batu" ? "Quản trị viên · " : "") + (p.time || "vừa xong")))),
       h("p.post-text", renderText(p.text, c.words)),
       h("div.post-acts",
-        h("button.like" + (liked ? ".on" : ""), { type: "button", data: { like: String(i) }, "aria-pressed": liked ? "true" : "false", onclick: () => { ui.liked[i] = !liked; app.refresh(); } }, icon("heart", 16), ` ${(p.likes || 0) + (liked ? 1 : 0)}`),
+        h("button.like" + (liked ? ".on" : ""), { type: "button", data: { like: String(i) }, "aria-pressed": liked ? "true" : "false", onclick: () => { ui.liked[i] = !liked; if (!liked) sfx("like-pop"); app.refresh(); } }, icon("heart", 16), ` ${(p.likes || 0) + (liked ? 1 : 0)}`),
         h("span.cmt-n", icon("chat", 16), ` ${comments.length} bình luận`)),
       h("ul.comments", comments.map((m) => h("li", h("b", who(m.by)), " ", renderText(m.text, c.words)))),
       h("form.cmt-form", { "data-nochatsfx": "", onsubmit: (e) => { e.preventDefault(); send(); } }, inp, h("button.btn.btn--sm", { type: "submit" }, "Gửi"))));
@@ -162,9 +162,13 @@ export function scene(app) {
   const bg = real ? file : placeholderScene(c.id + "/" + s.loc, vis.map((hs) => rects.get(hs.id).r)); // chỉ vẽ đồ của điểm đang hiện (không lộ điểm ẩn)
   const stage = h("div.scene" + (crisp ? "" : ".smooth") + (ui.soi || !real ? ".soi" : ""), { style: { width: W + "px", height: H + "px" } },
     h("img.scene-img", { src: bg, alt: L.name, draggable: "false" }),
-    vis.map((hs) => {
+    // thứ tự lớp: điểm đã soi nằm dưới, điểm chưa soi nằm trên; cùng nhóm thì điểm nhỏ (chi tiết trong đồ vật lớn) nằm trên.
+    // ⇒ đồ vật lớn bị chi tiết che gần kín vẫn bấm được sau khi đã soi các chi tiết.
+    [...vis].sort((a, b) => (a.seen === b.seen ? area(rects.get(b.id).r) - area(rects.get(a.id).r) : a.seen ? -1 : 1)).map((hs) => {
       const [x, y, w, hh] = rects.get(hs.id).r;
-      return h("button.hs" + (hs.seen ? ".seen" : ""), { type: "button", data: { hs: hs.id }, title: hs.label, "aria-label": hs.label + (hs.seen ? " (đã soi)" : ""),
+      const inner = vis.some((o) => o.id !== hs.id && area(rects.get(o.id).r) > area([x, y, w, hh]) && overlap(rects.get(o.id).r, [x, y, w, hh]) > 0.4 * w * hh);
+      const cx = (x + w / 2) * k, side = cx < 80 ? ".lbl-l" : cx > W - 80 ? ".lbl-r" : "";
+      return h("button.hs" + (hs.seen ? ".seen" : "") + (inner ? ".lbl-top" : "") + side, { type: "button", data: { hs: hs.id }, title: hs.label, "aria-label": hs.label + (hs.seen ? " (đã soi)" : ""),
         style: { left: x * k + "px", top: y * k + "px", width: w * k + "px", height: hh * k + "px" }, onclick: () => app.act({ type: "examine", id: hs.id }) },
         h("span.hs-label", hs.seen ? icon("check", 16) : null, hs.label));
     }));
@@ -199,6 +203,8 @@ export function scene(app) {
         : h("button.btn#boardBtn2", { type: "button", onclick: () => app.openOverlay("board") }, icon("board", 16), `Bảng suy luận (${filledCount(c, s)})`)));
   return h("section.scene-screen", h("div.scene-main", locbar, wrap, tools), side);
 }
+const area = (r) => r[2] * r[3];
+const overlap = (a, b) => Math.max(0, Math.min(a[0] + a[2], b[0] + b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]));
 const filledCount = (c, s) => { let f = 0, t = 0; for (const d of c.deduction) for (const b of Object.keys(d.blanks)) { t++; if (s.board[d.id][b]) f++; } return `${f}/${t}`; };
 export async function accuse(app) {
   app.closeAll();
@@ -247,7 +253,7 @@ export function result(app) {
     return h("div.bonus", h("p.q", q.q), h("div.choices", q.choices.map((ch, i) => h("button.btn.btn--sm.choice" + (ans == null ? "" : i === q.answer ? ".right" : i === ans ? ".wrongc" : ""), { type: "button", data: { bonus: q.id, choice: String(i) }, disabled: ans != null,
       onclick: async () => { const r = await app.act({ type: "bonus", id: q.id, choice: i }); if (!r.error) toast(i === q.answer ? `Đúng! +20 danh tiếng` : "Trật mất rồi.", i === q.answer ? "good" : "bad"); } }, ch))));
   });
-  after.push(() => { sfx("stamp"); setTimeout(() => sfx("viral"), 900); });
+  after.push(() => { if (!app.G.ui.solvedSfx) { app.G.ui.solvedSfx = true; sfx("case-solved", 0.15); if (r1.index > r0.index) sfx("rank-up", 1.1); } });
   return h("section.result-screen",
     h("div.result-grid",
       h("div.folder.result-folder",

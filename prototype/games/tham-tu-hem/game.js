@@ -1,18 +1,18 @@
 // Nối mọi thứ: manifest → bản lưu → danh mục vụ (nạp động, thiếu file ⇒ "Sắp ra mắt") → màn hình.
 // Trạng thái vụ chỉ đổi qua apply() (core/engine.js). Giao diện đọc state + sự kiện để chạy hiệu ứng, âm thanh, thoại.
-import { CASES } from "./data/cases/index.js?v=t1";
-import { validateCase } from "./core/validate.js?v=t1";
-import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t1";
-import { recordSolve, displayName, unlocked as isUnlocked } from "./core/progress.js?v=t1";
-import { plain } from "./core/text.js?v=t1";
-import { makeSave, browserStorage } from "./save.js?v=t1";
-import { setManifest } from "./ui/art.js?v=t1";
-import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t1";
-import { createDialog } from "./ui/dialog.js?v=t1";
-import { soundFor, unlockSound, muted, setMuted, play as sfx } from "./ui/sfx.js?v=t1";
-import * as S from "./ui/screens.js?v=t1";
-import * as P from "./ui/panels.js?v=t1";
-import { stamp, shake, crackLens } from "./ui/fx.js?v=t1";
+import { CASES } from "./data/cases/index.js?v=t2";
+import { validateCase } from "./core/validate.js?v=t2";
+import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t2";
+import { recordSolve, displayName, unlocked as isUnlocked } from "./core/progress.js?v=t2";
+import { plain } from "./core/text.js?v=t2";
+import { makeSave, browserStorage } from "./save.js?v=t2";
+import { setManifest } from "./ui/art.js?v=t2";
+import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t2";
+import { createDialog } from "./ui/dialog.js?v=t2";
+import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t2";
+import * as S from "./ui/screens.js?v=t2";
+import * as P from "./ui/panels.js?v=t2";
+import { stamp, shake, crackLens } from "./ui/fx.js?v=t2";
 
 const params = new URLSearchParams(location.search);
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -37,14 +37,14 @@ const app = {
     if (r.error || r.s === G.s) return;
     const fresh = r.ev.filter((e) => e.type === "word");
     G.s = r.s;
-    if (fresh.length) { for (const e of fresh) toast("Từ khoá mới: " + G.c.words[e.id].text, "word"); soundFor({ type: "word" }); app.save(); P.refreshBadges(app); }
+    if (fresh.length) { for (const e of fresh) toast("Từ khoá mới: " + G.c.words[e.id].text, "word"); sfx("keyword"); app.save(); P.refreshBadges(app); }
   },
   /** Hành động engine ⇒ hiệu ứng ⇒ thoại ⇒ vẽ lại. */
   async act(a, { quiet = false, before = null } = {}) {
     const r = apply(G.c, G.s, a);
     if (r.error) { if (!quiet) toast(r.error, "bad"); return r; }
     G.s = r.s;
-    for (const e of r.ev) soundFor(e);
+    soundsFor(r.ev);
     const lastLine = [...r.show].reverse().find((x) => x.t === "line" && G.c.people[x.who]);
     if (lastLine) G.ui.mood[lastLine.who] = lastLine.mood;
     app.save();
@@ -74,11 +74,11 @@ const app = {
       if (v == null) return;
       if (v === "redo") s = null;
     }
-    G.c = e.c; G.s = s || createRun(e.c, (Math.random() * 2 ** 31) >>> 0); G.ui.mood = {}; G.ui.soi = false; G.ui.sceneScroll = 0;
+    G.c = e.c; G.s = s || createRun(e.c, (Math.random() * 2 ** 31) >>> 0); G.ui.mood = {}; G.ui.soi = false; G.ui.sceneScroll = 0; G.ui.solvedSfx = false; G.ui.slot = null; G.ui.chip = null; G.ui.boardMsg = "";
     app.save();
     const ph = G.s.phase;
     app.show(ph === "intro" ? "office" : ph === "finale" ? "finale" : ph === "done" ? "result" : "scene");
-    sfx("door");
+    sfx("door-bell");
   },
   /** Kết vụ đã ghi ⇒ về bản đồ. */
   leaveCase(to = "map") { finalizeNow(); G.c = null; G.s = null; app.show(to); },
@@ -139,7 +139,8 @@ function renderBar() {
       G.screen === "scene" ? h("button.btn.btn--icon", { type: "button", id: "btnBoard", title: "Bảng suy luận (B)", onclick: () => toggleOverlay("board") }, icon("board", 16), h("span.hide-sm", "Bảng")) : null,
       h("button.btn.btn--icon", { type: "button", id: "btnHint", title: "Gợi ý của Tèo (trừ điểm sao)", onclick: () => app.hint() }, icon("bulb", 16), h("span.hide-sm", "Tèo"))].filter(Boolean));
   }
-  tools.append(h("button.btn.btn--icon", { type: "button", id: "btnMute", title: muted() ? "Bật tiếng" : "Tắt tiếng", "aria-pressed": muted() ? "true" : "false", onclick: () => { setMuted(!muted()); renderBar(); } }, icon(muted() ? "mute" : "sound", 16)));
+  if (!muted()) tools.append(h("button.btn.btn--icon.hide-xs", { type: "button", id: "btnMusic", title: musicOn() ? "Tắt nhạc (giữ tiếng)" : "Bật nhạc", "aria-pressed": musicOn() ? "true" : "false", onclick: () => { setMusic(!musicOn()); renderBar(); } }, icon(musicOn() ? "note" : "noteOff", 16)));
+  tools.append(h("button.btn.btn--icon", { type: "button", id: "btnMute", title: muted() ? "Bật tiếng (M)" : "Tắt tiếng (M)", "aria-pressed": muted() ? "true" : "false", onclick: () => { setMuted(!muted()); renderBar(); } }, icon(muted() ? "mute" : "sound", 16)));
   b.append(tools);
 }
 function renderAll() {
@@ -155,6 +156,7 @@ function renderAll() {
   }
   ov.hidden = !G.overlays.length;
   document.body.classList.toggle("ov-open", !!G.overlays.length);
+  setScene(G.screen === "scene" && app.top === "talk" ? "talk" : G.screen);
   S.afterRender?.(app);
   P.refreshBadges(app);
 }
@@ -162,7 +164,7 @@ function toggleOverlay(name) {
   if (!G.c || !(G.screen === "scene" || G.screen === "finale")) return;
   if (name === "board" && G.screen !== "scene") return;
   if (app.top === name) app.closeOverlay();
-  else { G.overlays = G.overlays.filter((o) => o.name !== name); app.openOverlay(name); }
+  else { G.overlays = G.overlays.filter((o) => o.name !== name); if (name === "notebook") sfx("page-flip"); app.openOverlay(name); }
 }
 
 // ---------- phím tắt ----------
@@ -175,10 +177,14 @@ addEventListener("keydown", (e) => {
   }
   if (typing) return;
   if (e.key === "Escape") { if (G.overlays.length) { e.preventDefault(); app.closeOverlay(); } return; }
+  if (e.key === "m" || e.key === "M") { e.preventDefault(); setMuted(!muted()); renderBar(); toast(muted() ? "Đã tắt tiếng" : "Đã bật tiếng"); return; }
   if (e.key === "n" || e.key === "N") { e.preventDefault(); toggleOverlay("notebook"); }
   if (e.key === "b" || e.key === "B") { e.preventDefault(); toggleOverlay("board"); }
 });
 addEventListener("pointerdown", unlockSound, { capture: true, once: true });
+// tiếng bấm nút của game (feedback.js chung bị tắt bằng data-nosfx trên body, vẫn giữ hiệu ứng lún nút)
+document.body.dataset.nosfx = "";
+addEventListener("pointerdown", (e) => { const b = e.target.closest("button:not(:disabled), .btn, a.back"); if (b && !b.closest(".dlg") && (e.button === 0 || e.pointerType !== "mouse")) sfx("click"); }, true);
 addEventListener("keydown", unlockSound, { capture: true, once: true });
 addEventListener("pagehide", () => { if (G.profile) app.save(); });
 let rz = 0;
@@ -186,7 +192,7 @@ addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if 
 
 // ---------- khởi động ----------
 async function loadCase(entry) {
-  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t1" : `./data/cases/${entry.id}.js?v=t1`;
+  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t2" : `./data/cases/${entry.id}.js?v=t2`;
   try {
     const c = (await import(url)).default;
     const v = validateCase(c);
@@ -195,7 +201,7 @@ async function loadCase(entry) {
   } catch { return { ...entry, c: null, status: "soon" }; }
 }
 async function boot() {
-  try { setManifest(await (await fetch("data/asset-manifest.json?v=t1")).json()); } catch { setManifest(null); }
+  try { setManifest(await (await fetch("data/asset-manifest.json?v=t2")).json()); } catch { setManifest(null); }
   const r = store.read();
   G.profile = r.profile;
   if (r.corrupt) setTimeout(() => toast("Bản lưu bị hỏng nên đã mở hồ sơ mới (bản cũ vẫn được cất trong máy).", "bad"), 400);
@@ -216,7 +222,7 @@ async function boot() {
   window.__game = {
     get state() { return G.s; }, get profile() { return G.profile; }, get screen() { return G.screen; }, get overlay() { return app.top; },
     get dialogOpen() { return !!app.dialog.open; }, get caseData() { return G.c; }, catalog: () => G.cat.map((e) => ({ id: e.id, status: e.status, open: e.open })),
-    store, app,
+    store, app, sound: soundDebug,
   };
 }
 const _leave = app.leaveCase;

@@ -15,7 +15,10 @@ await b.view(mob ? 390 : 1366, mob ? 844 : 768, mob, mob ? 3 : 1.25);
 if (mob) await b.touch(true);
 let fails = 0;
 const check = (n, c, d = "") => { console.log((c ? "PASS " : "FAIL ") + n + (d ? " — " + d : "")); if (!c) fails++; };
-const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]')||e.disabled)return null;e.scrollIntoView({block:'nearest',inline:'center'});const r=e.getBoundingClientRect();return r.width?[r.x+r.width/2,r.y+r.height/2]:null})()`);
+// điểm bấm: tâm phần tử, nếu tâm bị điểm soi nhỏ hơn nằm đè thì dò lưới tìm chỗ lộ ra (như người chơi bấm vào phần còn thấy)
+const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]')||e.disabled)return null;e.scrollIntoView({block:'nearest',inline:'center'});const r=e.getBoundingClientRect();if(!r.width)return null;
+  const ok=(x,y)=>{const h=document.elementFromPoint(x,y);return !!h&&(h===e||e.contains(h))};const c=[r.x+r.width/2,r.y+r.height/2];if(ok(...c))return c;
+  for(let fy=.1;fy<.95;fy+=.1)for(let fx=.06;fx<.97;fx+=.06){const x=r.x+r.width*fx,y=r.y+r.height*fy;if(x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&ok(x,y))return [x,y]}return c})()`);
 async function press(sel, wait = 40) {
   let p = null;
   for (let i = 0; i < wait && !(p = await at(sel)); i++) await sleep(80);
@@ -40,7 +43,7 @@ for (const id of ids) {
   await b.ev("__game.store.wipe()"); // khoá ghi để pagehide không đè bản lưu tiêm vào
   await b.ev(`(()=>{const solved={};${JSON.stringify(CASES.slice(0, idx).map((c) => c.id))}.forEach(i=>solved[i]={stars:3,rep:100,times:1,last:3});localStorage.setItem('wgp.tham-tu-hem.v1',JSON.stringify({v:1,name:'Bot',rep:100*${idx},solved,runs:{}}))})()`);
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
-  const next = () => b.ev(`import("./core/solver.js?v=t1").then(m=>JSON.stringify(m.nextAction(__game.caseData,__game.state)))`).then(JSON.parse);
+  const next = () => b.ev(`import("./core/solver.js?v=t2").then(m=>JSON.stringify(m.nextAction(__game.caseData,__game.state)))`).then(JSON.parse);
   try {
     await press("#startBtn"); await press(`[data-case="${id}"]`);
     await waitFor("__game.screen==='office'");
@@ -56,7 +59,7 @@ for (const id of ids) {
       if (!a) break;
       if (a.type === "intro") { await talk(); if (await waitFor("!!document.querySelector('#acceptPhone')", 2500)) { await b.shot(`${OUT}/${id}-${V}-bai-dang.png`); await press("#acceptPhone"); } else await press("#acceptCase"); await talk(); continue; }
       if (a.type === "go") { await closeOv(); await press(`[data-loc="${a.loc}"]`); await talk(); continue; }
-      if (a.type === "examine") { await closeOv(); await press(`[data-hs="${a.id}"]`); await talk(); continue; }
+      if (a.type === "examine") { await closeOv(); await press(`[data-hs="${a.id}"]`); await talk(); if ((await b.ev(`__game.state.seen.includes(__game.state.loc+".${a.id}")`)) === false) throw new Error("bấm không tới điểm soi " + a.id); continue; }
       if (a.type === "ask") { const t = `.talk-body[data-pid="${a.pid}"] [data-topic="${a.topic}"]`; if ((await overlay()) !== "talk" || !(await at(t))) { await closeOv(); await press(`[data-person="${a.pid}"]`); } await press(t); await talk(); continue; }
       if (a.type === "contradict") { await closeOv(); await press("#btnNotebook"); await press('[data-tab="stmts"]'); await press(`[data-stmt="${a.stmt}"] .stmt-pick`); await press("#contraBtn"); await press(`[data-pick="${a.clue}"]`); await press("#pickGo"); await talk(4000); await closeOv(); continue; }
       if (a.type === "fill") { if ((await overlay()) !== "board") { await closeOv(); await press("#btnBoard"); } await press(`.slot[data-ded="${a.ded}"][data-blank="${a.blank}"]`); await press(`.chip[data-word="${a.word}"]`); continue; }
@@ -69,7 +72,7 @@ for (const id of ids) {
     check(`${id}: giải trọn qua giao diện ra 3★`, await b.ev("!!__game.state&&__game.state.phase==='done'&&__game.state.result.stars===3"), JSON.stringify(await b.ev("__game.state&&{ph:__game.state.phase,r:__game.state.result}")));
   } catch (e) { check(`${id}: kịch bản`, false, e.message); }
 }
-const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t1/.test(e));
+const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t2/.test(e));
 check("0 lỗi console", !errs.length, errs.slice(0, 5).join(" | "));
 b.close();
 console.log(fails ? `${fails} FAIL` : "E2E-BOT ĐẠT");

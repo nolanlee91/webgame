@@ -148,7 +148,7 @@ export default {
             ["me", "Cửa phòng 3. Treo trên móc là cái [[ao-thun|áo thun]] 'Deadline là bạn', ngực áo có vệt đỏ."],
             ["me", "Vệt màu đỏ cam, lấm tấm hột ớt, còn thơm mùi tỏi phi."],
             ["teo", "Nước màu thịt kho đó sếp! Bà Tư nói đúng rồi! Bắt ảnh!", "shock"],
-            ["me", "Tèo, nước màu thịt kho có hột ớt không?"],
+            ["me", "Tèo, [[nuoc-mau|nước màu]] thịt kho có hột ớt không?"],
             ["teo", "...Em không có biết nấu ăn sếp.", "nervous"],
           ],
           gives: { clues: ["ao-tuan"] },
@@ -209,7 +209,7 @@ export default {
       name: "Sân thượng", scene: "rooftop",
       intro: [
         ["narr", "Sân thượng nhìn ra cả hẻm. Dây phơi đồ, bồn nước inox, mấy chậu kiểng. Gió sớm thổi mát rượi."],
-        ["teo", "View đẹp ghê sếp! Chỗ này mà livestream là đẹp số một xóm.", "happy"],
+        ["teo", "View đẹp ghê sếp! Chỗ này mà [[livestream]] là đẹp số một xóm.", "happy"],
       ],
       hotspots: [
         {

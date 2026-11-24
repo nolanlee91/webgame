@@ -219,6 +219,9 @@
     .soi .hs.seen { outline: 3px solid rgba(125,117,100,.7); background: rgba(10,8,7,.35); opacity: .8; }
     .hs-label { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); max-width: calc(100% + 40px); padding: 2px 7px; display: none; align-items: center; gap: 4px;
       font: 800 12px/1.3 "Be Vietnam Pro"; color: var(--ink); background: rgba(12,10,8,.9); box-shadow: 0 0 0 2px var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hs.lbl-top .hs-label { bottom: auto; top: -24px; }
+    .hs.lbl-l .hs-label { left: 0; transform: none; }
+    .hs.lbl-r .hs-label { left: auto; right: 0; transform: none; }
     .hs:hover .hs-label, .hs:focus-visible .hs-label, .soi .hs-label { display: inline-flex; }
     .scene-tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; font-size: 13px; color: var(--soft); font-weight: 700; }
     .scene-tools .prog { display: inline-flex; align-items: center; gap: 4px; }
@@ -292,6 +295,7 @@
     .cicon { position: relative; width: 44px; height: 44px; display: grid; place-items: center; font: 800 20px "Be Vietnam Pro"; color: var(--ink); flex: none;
       background: hsl(var(--h) 30% 34%); box-shadow: inset 0 3px 0 hsl(var(--h) 30% 48%), inset 0 -3px 0 hsl(var(--h) 30% 22%), 0 0 0 3px var(--line); text-shadow: 2px 2px 0 #000; }
     .cicon i { position: absolute; top: 4px; left: 4px; width: 6px; height: 6px; background: var(--paper); box-shadow: 0 0 0 2px var(--line); }
+    .cicon-img { display: block; flex: none; background-repeat: no-repeat; image-rendering: pixelated; }
     .cicon.big { width: 72px; height: 72px; font-size: 32px; }
     .nb-stmts { display: grid; gap: 2px; }
     .nb-act { display: flex; justify-content: center; margin-top: 8px; position: sticky; bottom: 0; padding: 6px; background: var(--panel); }
@@ -499,7 +503,7 @@
   <div id="ov" hidden></div>
   <div id="fx" aria-live="assertive"></div>
   <div id="toasts" aria-live="polite"></div>
-  <script type="module" src="../_shared/feedback.js?v=t1"></script>
-  <script type="module" src="game.js?v=t1"></script>
+  <script type="module" src="../_shared/feedback.js?v=t2"></script>
+  <script type="module" src="game.js?v=t2"></script>
 </body>
 </html>

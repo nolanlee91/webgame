@@ -1,10 +1,10 @@
 // Thoại kiểu visual novel: chân dung trái (thám tử, Tèo) / phải (người khác) đổi biểu cảm theo mood, gõ chữ dần, bấm để qua, nút Tua.
 // Phát hàng đợi `show` của engine: dòng thoại + thẻ (vật chứng mới, ghi lời khai, địa điểm mới, nhân vật mới).
 // Mỗi mục HIỆN RA thì gọi ctx.read(text) ⇒ nhặt [[từ khoá]]. Tua: chạy nhanh tới thẻ kế tiếp (thẻ vẫn hiện để không lỡ vật chứng), chữ bị tua vẫn tính là đã đọc.
-import { h, clear, icon } from "./dom.js?v=t1";
-import { segments, norm } from "../core/text.js?v=t1";
-import { portraitEl, setPortrait, portraitSize, accentOf } from "./art.js?v=t1";
-import { blip, play as sfx } from "./sfx.js?v=t1";
+import { h, clear, icon } from "./dom.js?v=t2";
+import { segments, norm } from "../core/text.js?v=t2";
+import { portraitEl, setPortrait, portraitSize, accentOf } from "./art.js?v=t2";
+import { blip, play as sfx } from "./sfx.js?v=t2";
 
 const LEFT = new Set(["me", "teo"]);
 const CPS = 46; // ký tự / giây
@@ -63,7 +63,6 @@ export function createDialog(root, ctx) {
       box.classList.add("is-card"); name.hidden = true; text.hidden = true; card.hidden = false;
       ctx.read(ctx.textOf(it));
       card.append(ctx.card(it));
-      if (it.t === "clue") sfx("clue"); else if (it.t === "stmt") sfx("stmt");
       more.hidden = false;
     }
   }
@@ -86,7 +85,7 @@ export function createDialog(root, ctx) {
     typing = setInterval(() => {
       shown = Math.min(full.length, shown + 2);
       draw();
-      if (++n % 3 === 0 && who !== "narr") blip(pitch);
+      if (who !== "narr") blip(pitch);
       if (shown >= full.length) { clearInterval(typing); typing = null; more.hidden = false; }
     }, 2000 / CPS);
     draw();
