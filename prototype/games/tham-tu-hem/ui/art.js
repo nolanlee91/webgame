@@ -31,7 +31,8 @@ export function crispScale(fileW, fileH, maxW, maxH) {
 }
 /** Cỡ chân dung css ≤ want: bội 128 px thiết bị (0,5 × ô 256). Dưới 1× thì lọc mượt (ảnh HD lưới 1× rơi điểm). */
 export function portraitSize(want) {
-  const d = dpr(), n = Math.max(1, Math.floor((want * d) / 128));
+  const d = dpr(), n = Math.floor((want * d) / 128);
+  if (n < 1) return { size: Math.round(want), smooth: true }; // ảnh nhỏ (ảnh đại diện): lọc mượt
   return { size: (n * 128) / d, smooth: n < 2 };
 }
 
@@ -44,7 +45,7 @@ const CAST_LOOK = {
   narr: { shirt: "#555", hair: "#333", skin: "#aaa", bg: "#222" },
 };
 const SHIRTS = ["#3a7bd5", "#e0483d", "#3fae4a", "#9a5ac8", "#e07f3a", "#2f8f7f", "#c8a03a", "#d0607a", "#5a6ad0", "#7a8a3a"];
-const HAIRS = ["#2a1a10", "#3a2414", "#1a1a1a", "#5a3a22", "#a04a6a", "#d080a0", "#888888", "#6a4a2a"];
+const HAIRS = ["#2a1a10", "#3a2414", "#1a1a1a", "#5a3a22", "#a04a6a", "#d080a0", "#6a4a2a", "#20242e", "#7a3a1a"];
 const SKINS = ["#e8b48a", "#d9a477", "#c99064", "#b87c50", "#f0c49c"];
 const BGS = ["#2a3a4a", "#3a2a3a", "#2a3a32", "#3a3324", "#24304a", "#402a2a"];
 const hash = (s) => { let x = 2166136261; for (const ch of String(s)) x = Math.imul(x ^ ch.codePointAt(0), 16777619); return x >>> 0; };
@@ -143,7 +144,7 @@ export function setPortrait(el, pid, mood, caseId, size, smooth, name = "") {
   } else {
     st.backgroundImage = `url("${placeholderPortrait(pid, mood, name)}")`;
     st.backgroundSize = `${size}px ${size}px`; st.backgroundPosition = "0 0";
-    el.classList.remove("smooth"); el.classList.add("ph");
+    el.classList.toggle("smooth", (size * dpr()) % 32 !== 0); el.classList.add("ph");
   }
 }
 
@@ -187,6 +188,14 @@ export function placeholderScene(seedKey, rects = [], kind = "scene") {
   });
   const url = cv.toDataURL(); sceneCache.set(key, url); return url;
 }
+/** Chữ pixel cứng: vẽ chữ lên canvas phụ rồi nhị phân hoá alpha. */
+function pixelText(g, text, cx, cy, size, color) {
+  const t = document.createElement("canvas"); t.width = size * text.length; t.height = size * 2;
+  const tg = t.getContext("2d"); tg.fillStyle = "#fff"; tg.font = `800 ${size}px 'Be Vietnam Pro', system-ui, sans-serif`; tg.textAlign = "center"; tg.textBaseline = "middle"; tg.fillText(text, t.width / 2, t.height / 2 + 1);
+  const d = tg.getImageData(0, 0, t.width, t.height).data;
+  g.fillStyle = color;
+  for (let y = 0; y < t.height; y++) for (let x = 0; x < t.width; x++) if (d[(y * t.width + x) * 4 + 3] > 120) g.fillRect(Math.round(cx - t.width / 2 + x), Math.round(cy - t.height / 2 + y), 1, 1);
+}
 function drawSpecial(cv, g, px, dither, kind, key) {
   if (kind === "title") {
     px("#141b28", 0, 0, 480, 270); dither("#1b2433", 0, 0, 480, 120, 2);
@@ -207,6 +216,7 @@ function drawSpecial(cv, g, px, dither, kind, key) {
     for (let r = 0; r < 4; r++) dither("rgba(255,201,74,.12)", 220 - r * 14, 96 + r * 4, 62 + r * 28, 40 + r * 22, 2 + r);
     // biển văn phòng
     px("#0a0807", 300, 120, 92, 30); px("#5a1410", 302, 122, 88, 26); px("#c8382e", 302, 122, 88, 3);
+    pixelText(g, "THÁM TỬ", 346, 136, 13, "#ffe9a8");
     // hai bóng người
     for (const [x, hh, hat] of [[200, 58, true], [222, 50, false]]) {
       px("#0a0807", x, 230 - hh, 14, hh); px("#0a0807", x + 2, 230 - hh - 12, 10, 12);

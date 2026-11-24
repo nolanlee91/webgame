@@ -124,6 +124,7 @@ const bar = () => $("#bar"), screenEl = () => $("#screen"), ovEl = () => $("#ov"
 function renderBar() {
   const b = clear(bar());
   const inCase = !!G.c && ["office", "scene", "finale", "result"].includes(G.screen);
+  b.classList.toggle("in-case", inCase);
   if (inCase) b.append(h("button.btn.btn--ghost.back", { type: "button", id: "toMap", title: "Về bản đồ (tiến độ đã lưu)", onclick: () => app.leaveCase() }, icon("back", 16), h("span.hide-xs", "Bản đồ")));
   else b.append(h("a.back", { href: "../../homepage/", title: "Về Lụm Kèo" }, icon("back", 16), h("span.hide-xs", "Lụm Kèo")));
   b.append(h("h1", h("span.t1", "Thám Tử"), " ", h("span.t2", "Hẻm")));

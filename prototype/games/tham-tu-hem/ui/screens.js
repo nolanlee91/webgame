@@ -131,7 +131,7 @@ function phone(app, posts, onClose, onAccept) {
     const send = () => { const t = inp.value.trim(); if (!t) return; (ui.myComments[i] ??= []).push({ by: "me", text: t }); app.refresh(); };
     inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); send(); } });
     list.append(h("article.post",
-      h("header", c.people[p.by] || ["teo", "batu", "chuba"].includes(p.by) ? portraitEl(p.by, "neutral", c.id, 36, who(p.by), "ava") : h("span.ava-ph", who(p.by).charAt(0)), h("div", h("b", who(p.by)), h("small", "Quản trị viên · vừa xong"))),
+      h("header", c.people[p.by] || ["teo", "batu", "chuba"].includes(p.by) ? portraitEl(p.by, "neutral", c.id, 36, who(p.by), "ava") : h("span.ava-ph", who(p.by).charAt(0)), h("div", h("b", who(p.by)), h("small", (p.by === "batu" ? "Quản trị viên · " : "") + (p.time || "vừa xong")))),
       h("p.post-text", renderText(p.text, c.words)),
       h("div.post-acts",
         h("button.like" + (liked ? ".on" : ""), { type: "button", data: { like: String(i) }, "aria-pressed": liked ? "true" : "false", onclick: () => { ui.liked[i] = !liked; app.refresh(); } }, icon("heart", 16), ` ${(p.likes || 0) + (liked ? 1 : 0)}`),
@@ -159,7 +159,7 @@ export function scene(app) {
   const availW = narrow() ? innerWidth * 1.8 : innerWidth - 340 - 40, availH = narrow() ? Math.min(innerHeight * 0.48, 420) : innerHeight - 52 - 120;
   const { k, crisp } = crispScale(SCENE_W, SCENE_H, availW, availH);
   const W = SCENE_W * k, H = SCENE_H * k;
-  const bg = real ? file : placeholderScene(c.id + "/" + s.loc, all.map((hs) => rects.get(hs.id).r));
+  const bg = real ? file : placeholderScene(c.id + "/" + s.loc, vis.map((hs) => rects.get(hs.id).r)); // chỉ vẽ đồ của điểm đang hiện (không lộ điểm ẩn)
   const stage = h("div.scene" + (crisp ? "" : ".smooth") + (ui.soi || !real ? ".soi" : ""), { style: { width: W + "px", height: H + "px" } },
     h("img.scene-img", { src: bg, alt: L.name, draggable: "false" }),
     vis.map((hs) => {

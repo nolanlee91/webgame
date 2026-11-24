@@ -27,7 +27,8 @@ export function dialogCard(app, it) {
   return h("div");
 }
 function panel(title, onClose, ...body) {
-  return h("div.panel", { role: "dialog", "aria-label": title },
+  const full = typeof body[0] === "string" ? body.shift() : "";
+  return h("div.panel" + full, { role: "dialog", "aria-label": title },
     h("header.panel-head", h("h2", title), h("button.btn.btn--sm.close", { type: "button", "data-close": "", title: "Đóng (Esc)", onclick: onClose }, "Đóng")),
     ...body);
 }
@@ -137,7 +138,7 @@ export function notebook(app) {
   } else {
     body = h("div.nb-people", peopleList(c, s).map((pid) => { const p = c.people[pid]; if (p.bio) app.read(p.bio); return h("div.pcard2", portraitEl(pid, "neutral", c.id, 72, p.name), h("div", h("b", p.name), p.suspect ? h("span.tag", "Nghi phạm") : null, h("small", p.role || ""), p.bio ? h("p", renderText(p.bio, c.words)) : null)); }));
   }
-  return panel("Sổ tay", () => app.closeOverlay(), tabs, h("div.nb-body", body));
+  return panel("Sổ tay", () => app.closeOverlay(), ".full", tabs, h("div.nb-body", body));
 }
 
 // ---------- bảng suy luận ----------
@@ -181,7 +182,7 @@ export function board(app) {
       } }, "Chốt bảng"));
   const cork = h("div.cork", h("svg.string", { "aria-hidden": "true" }), notes);
   requestAnimationFrame(() => drawString(cork));
-  return panel("Bảng suy luận", () => app.closeOverlay(), cork, tray, foot);
+  return panel("Bảng suy luận", () => app.closeOverlay(), ".full", cork, tray, foot);
 }
 function drawString(cork) {
   const svg = cork.querySelector("svg.string"); if (!svg || !cork.isConnected) return;

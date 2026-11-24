@@ -1,0 +1,6 @@
+{
+ "schemaVersion": 1,
+ "_doc": "Bản chép của docs/tham-tu-hem/asset-manifest.json (server chỉ phục vụ prototype/). Codex chưa giao: để trống, game vẽ thay bằng code. Khi Codex giao, chép đè file này (test/assets.test.mjs kiểm khớp).",
+ "items": [],
+ "hotspots": {}
+}
