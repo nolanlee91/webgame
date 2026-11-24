@@ -134,6 +134,9 @@
     body.ov .toasts { position: fixed; top: 6px; bottom: auto; left: 50%; right: auto; transform: translateX(-50%); width: min(92vw, 640px); z-index: 60; }
     .toast { background: rgba(255, 250, 240, .98); color: var(--ink); border-radius: 12px; padding: 6px 12px; font-weight: 700; font-size: 13px; box-shadow: 0 0 0 2px var(--ink), 0 4px 12px rgba(0, 0, 0, .3); max-width: 100%; animation: pop .2s ease-out; }
     .toast.good { background: #e3f4e6; } .toast.warn { background: #ffe7dc; } .toast.phase { background: #2b2a5c; color: var(--cream); box-shadow: 0 0 0 2px var(--cream3), 0 4px 12px rgba(0, 0, 0, .3); }
+    .toast.has-act { display: flex; align-items: center; gap: 10px; padding-right: 5px; }
+    .toast-act { pointer-events: auto; flex: none; min-height: 32px; padding: 3px 14px; border: 0; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; background: var(--indigo2); color: #fff; box-shadow: 0 3px 0 var(--indigo); touch-action: manipulation; }
+    .toast-act:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--indigo); }
     @keyframes pop { from { opacity: 0; translate: 0 6px; } }
 
     /* ---------- Thanh Bếp ---------- */
@@ -317,7 +320,8 @@
       .toasts { top: 3px; left: 3px; right: 3px; }
       .hintbar:not([hidden]) ~ .toasts { top: 26px; }
       .toast { font-size: 11px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-      .toast:not(:last-child) { display: none; }
+      .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; }
+      .toast.has-act { overflow: visible; padding: 2px 3px 2px 8px; gap: 8px; } .toast.has-act > span { overflow: hidden; text-overflow: ellipsis; } .toast-act { min-height: 28px; padding: 1px 12px; font-size: 12px; }
       .banner { font-size: 12px; top: 4px; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
@@ -362,6 +366,6 @@
   </nav>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="bootError" hidden></div>
-  <script type="module" src="game.js?v=c3s"></script>
+  <script type="module" src="game.js?v=c4"></script>
 </body>
 </html>

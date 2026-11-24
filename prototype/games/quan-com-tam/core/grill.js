@@ -4,7 +4,7 @@
 // Mỗi mặt 0 → 160: < 60 sống · 60–99 tái · 100–114 chín · 115–129 cháy cạnh · ≥ 130 cháy đen. Kết quả miếng = mặt kém hơn.
 // Than 0–100 cháy −0,5/giây (quạt ×2); nấc than: ≥ 60 rực ×1,2 · 30–59 vừa ×1 · 10–29 yếu ×0,6 · < 10 tàn ×0. Quạt: +1 nấc.
 // Thêm than: +35 sau 4 giây; thêm khi đang rực ⇒ lửa bùng 3 giây (vùng nóng ×2). Khói: +1/giây quạt, +3/giây khi có miếng ≥ 125, −2/giây khi yên.
-import { GRILL } from "../data/economy.js?v=c3";
+import { GRILL } from "../data/economy.js?v=c4";
 
 export const zoneOf = (i, g = null) => (g && g.vegFrom != null && i >= g.vegFrom ? "veg" : GRILL.zones[i % GRILL.slots] || "mid"); // A: bếp 2 (chỗ 6–11) cùng luật vùng; S: vỉ chay riêng (g.vegFrom)
 /** S (M5): chỗ thuộc bếp 2 (than riêng g.coal2). Vỉ chay nằm trên bếp 1. */

@@ -1,32 +1,43 @@
 // Bảng phủ: màn chào, Chuẩn bị (Nhập hàng · Ướp sườn · Mẻ đầu · Menu · Ca · Dự báo), chốt ca (lời lỗ), nghỉ giữa ca, tạm dừng, cách chơi,
 // xác nhận chơi lại, khiếu nại, tính dư, hết hàng, Kho (nhập gấp trong ca), Sổ (review, khách quen). Ca tạm dừng khi có bảng phủ.
-import { el, button, fmtK, starText, tableName } from "./common.js?v=c3";
-import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c3";
-import { ARCHETYPES } from "../data/customers.js?v=c3";
-import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c3";
-import { stockoutOptions, itemName } from "../core/rescue.js?v=c3";
-import { MISTAKES } from "../core/score.js?v=c3";
-import { xpToNext } from "../core/progress.js?v=c3";
-import { groupById } from "../core/tables.js?v=c3";
-import { createBook } from "./notebook.js?v=c3"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
-import * as PU from "./progress-ui.js?v=c3"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
-import { potSize } from "../core/progression.js?v=c3"; // A: cỡ nồi theo giai đoạn
-import "./book-tabs.js?v=c3"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
-import * as M5 from "./m5-ui.js?v=c3"; // S: nút bật / tắt món (M5)
+import { el, button, fmtK, starText, tableName } from "./common.js?v=c4";
+import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c4";
+import { ARCHETYPES } from "../data/customers.js?v=c4";
+import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c4";
+import { stockoutOptions, itemName } from "../core/rescue.js?v=c4";
+import { MISTAKES } from "../core/score.js?v=c4";
+import { xpToNext } from "../core/progress.js?v=c4";
+import { groupById } from "../core/tables.js?v=c4";
+import { createBook } from "./notebook.js?v=c4"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
+import * as PU from "./progress-ui.js?v=c4"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
+import { potSize } from "../core/progression.js?v=c4"; // A: cỡ nồi theo giai đoạn
+import "./book-tabs.js?v=c4"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import * as M5 from "./m5-ui.js?v=c4"; // S: nút bật / tắt món (M5)
 import { shareResult } from "../../_shared/share.js?v=s1";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
 const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;
 export function summaryShare(m) {
+  const lvUp = Array.isArray(m.levelUps) && m.levelUps.length ? Math.max(...m.levelUps) : 0;
   const p = Math.round(m.profit), when = m.final ? `Ngày ${m.day}` : `${m.kindName} ngày ${m.day}`;
   const title = p > 0 ? `${when} lời ${vnd(p)}` : p < 0 ? `${when} lỗ ${vnd(p)}` : `${when} huề vốn`;
   const lines = [`Doanh thu: ${vnd(m.revenue)}`, `Dĩa bán: ${m.plates}${m.lost ? ` (${m.lost} khách bỏ về)` : ""}`];
   if (m.avg) lines.push(`Sao trung bình: ${String(m.avg).replace(".", ",")}★`);
-  lines.push(`Cấp quán: ${m.level}`);
+  lines.push(lvUp ? `Lên cấp: ${lvUp}!` : `Cấp quán: ${m.level}`);
   const tagline = p < 0 ? (m.burnt ? "Sườn cháy khét lẹt, ví cũng cháy theo. Mai gỡ!" : "Lỗ chút đỉnh, coi như đãi cả hẻm ăn cơm tấm.")
     : p === 0 ? "Huề vốn: quạt than cả buổi, lời được mùi sườn nướng."
+    : lvUp ? `Lên cấp ${lvUp}, quán cơm tấm sắp nổi tiếng cả quận.`
     : p >= Math.max(200, m.revenue * 0.4) ? "Sườn thơm cả hẻm, lời đậm, chủ quán cười tít mắt." : "Có lời là vui rồi, mai nướng thêm vỉ nữa!";
   return { game: "quan-com-tam", title, lines, tagline, accent: "#f7c96d", theme: "wood" };
+}
+
+/** Khoe ngay lúc lên cấp giữa ca (nút "Khoe" trên thông báo): số thật của quán lúc đó. */
+export function levelUpShare(s, level = s.level) {
+  const lines = [`Quán: ${s.shopName}`, `Ngày: ${s.day}`, `Danh tiếng: ${Math.round(s.rep ?? 50)}`];
+  if (s.followers) lines.push(`Người theo dõi: ${s.followers}`);
+  const tagline = level >= 16 ? "Khói sườn bay tới quận bên, khách xếp hàng dài." : level >= 8 ? "Từ gánh vỉa hè lên quán đàng hoàng, sườn vẫn thơm như cũ!"
+    : "Lật sườn đều tay, chủ quán lên nghề thấy rõ.";
+  return { game: "quan-com-tam", title: `Lên cấp ${level}!`, lines, tagline, accent: "#f7c96d", theme: "wood" };
 }
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui"];

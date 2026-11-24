@@ -66,7 +66,7 @@ export async function coverChecks(ctx, tag) {
 export async function queueChecks(ctx, tag) {
   const { b, check } = ctx;
   const r = await b.ev(`(()=>{const s=__game.state,P=__game.scene.points;const m=s.shop?'queueSpots':'cartQueueSpots';
-    return (async()=>{const man=await (await fetch('data/asset-manifest.json?v=b3')).json();
+    return (async()=>{const man=await (await fetch('data/asset-manifest.json?v=b4')).json();
       const spots=man.placements[m];const w=s.shift.customers.filter(c=>c.phase==='wait'&&!c.pre);
       const pos=w.map(c=>__game.scene.posOf(s,c.id));
       const onSpot=pos.every(p=>spots.some(q=>Math.abs(q[0]-p[0])<1&&Math.abs(q[1]-p[1])<1));

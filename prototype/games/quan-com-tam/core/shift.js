@@ -1,23 +1,23 @@
 // Một ca (GAME-DESIGN §3): mở quán → nhịp ca (khách tới theo lịch, bếp, nồi cơm, cô chủ đi làm việc, khách ăn) → đóng quán → chốt ca.
 // Thuần. Mọi thay đổi đi qua core/apply.js. Đồng hồ ca dừng khi có hội thoại / bảng phủ (game.js không gửi tick).
 // Ca tối mặc định; ca trưa mở ở cấp 5 (data/economy.js SHIFTS, s.plan). Ngày 1 là ca hướng dẫn: khách thưa, kiên nhẫn dài, có gợi ý từng bước.
-import { SHIFTS, SERVICE, GRILL, STOCK, FEES, CLOSE_GRACE_MS, DISHES, guestsFor, MO_HANH } from "../data/economy.js?v=c3";
-import { ARCHETYPES, ARCH_IDS } from "../data/customers.js?v=c3";
-import { OPS, pool } from "../data/lines.js?v=c3";
-import { next, int, weighted } from "./rng.js?v=c3";
-import { freshLine } from "./text.js?v=c3";
-import { freshGrill, tickGrill, placeItem, flip, moveItem, takeItem, addCoal, setFan, freeWarm, hottestFree, isCooked, itemResult, zoneOf } from "./grill.js?v=c3";
-import { freshRice, startCook, tickRice, makeJar, startEgg, tickSteamer, freshSteamer, loadSteamer } from "./rice.js?v=c3";
-import { slotOf, ticketOf, targetOf, addWaste, bestPiece, pickMeat } from "./plate.js?v=c3";
-import { freshOwner, stepOwner, ownerFree, enqueue, pointsOf } from "./walker.js?v=c3";
-import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTable, autoPay, groupById, serveTakeaway, allServed } from "./tables.js?v=c3";
-import { openStockout } from "./rescue.js?v=c3";
-import { levelForXp } from "./progress.js?v=c3";
-import { expireStock, addLot } from "./stock.js?v=c3";
-import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c3"; // C: khách nhờ review, Nhật Ký ngày
-import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c3"; // B: drama
-import * as PG from "./progression.js?v=c3"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
-import * as EX from "./extras.js?v=c3"; // S: M5 (hội chợ, thử thách, tủ kính, vỉ chay, bếp 2 than riêng)
+import { SHIFTS, SERVICE, GRILL, STOCK, FEES, CLOSE_GRACE_MS, DISHES, guestsFor, MO_HANH } from "../data/economy.js?v=c4";
+import { ARCHETYPES, ARCH_IDS } from "../data/customers.js?v=c4";
+import { OPS, pool } from "../data/lines.js?v=c4";
+import { next, int, weighted } from "./rng.js?v=c4";
+import { freshLine } from "./text.js?v=c4";
+import { freshGrill, tickGrill, placeItem, flip, moveItem, takeItem, addCoal, setFan, freeWarm, hottestFree, isCooked, itemResult, zoneOf } from "./grill.js?v=c4";
+import { freshRice, startCook, tickRice, makeJar, startEgg, tickSteamer, freshSteamer, loadSteamer } from "./rice.js?v=c4";
+import { slotOf, ticketOf, targetOf, addWaste, bestPiece, pickMeat } from "./plate.js?v=c4";
+import { freshOwner, stepOwner, ownerFree, enqueue, pointsOf } from "./walker.js?v=c4";
+import { TASKS, availableTables, freshTable, spawnGroup, updateGroups, leaveTable, autoPay, groupById, serveTakeaway, allServed } from "./tables.js?v=c4";
+import { openStockout } from "./rescue.js?v=c4";
+import { levelForXp } from "./progress.js?v=c4";
+import { expireStock, addLot } from "./stock.js?v=c4";
+import { onShiftStart, onShiftEnd, onNewDay } from "./reviews.js?v=c4"; // C: khách nhờ review, Nhật Ký ngày
+import { startDrama, maybeTrigger, endDrama } from "./drama.js?v=c4"; // B: drama
+import * as PG from "./progression.js?v=c4"; // A: tiến trình + kinh tế M3 (móc onStart / onTick / beforeEnd / afterEnd / onNextDay)
+import * as EX from "./extras.js?v=c4"; // S: M5 (hội chợ, thử thách, tủ kính, vỉ chay, bếp 2 than riêng)
 
 /** Ca hướng dẫn ngày 1: bếp chín chậm hơn để người mới kịp hiểu "hai mặt" (vùng chín rộng hơn theo thời gian). */
 export const TUTORIAL_GRILL = 0.85;
@@ -102,7 +102,7 @@ export function startShift(s, ev = []) {
     tutorialNoReq: tutorial,
     waste: {}, coalUsed: 0,
     stats: { plates: 0, revenue: 0, cogs: 0, wasteCost: 0, teaCost: 0, waterPours: 0, restockSpent: 0, rescueSpent: 0, consignRepaid: 0, underBill: 0, refunds: 0,
-      lost: 0, timeouts: 0, soldOut: 0, passed: 0, groupsServed: 0, takeaway: 0, washed: 0, perfectFlips: 0, flips: 0, burnt: 0, stars: [], mistakes: {}, reviews: 0, xp: 0, maxDirtyMs: 0, smokeMax: 0 },
+      lost: 0, timeouts: 0, soldOut: 0, passed: 0, groupsServed: 0, takeaway: 0, washed: 0, perfectFlips: 0, flips: 0, burnt: 0, stars: [], mistakes: {}, reviews: 0, xp: 0, maxDirtyMs: 0, smokeMax: 0, levelUps: [] },
   };
   if (s.kitchen.coal > 0) s.shift.lit = true;
   // thứ tự móc lịch khách: lịch gốc → A (mưa bớt khách thường, ca trưa dồn, khách thêm, đơn mâm, nhiệm vụ) → C (khách nhờ review, khách quay lại)
@@ -234,6 +234,8 @@ export function endShift(s, ev = []) {
   s.lastSummary = { ...summary, seen: false };
   PG.afterEnd(s, sh, s.lastSummary, ev); // A: lương nhân viên, nhiệm vụ cuối ca, cơm chiên ngày mai (trước C: lời lỗ ngày đã trừ lương)
   EX.afterEnd(s, sh, s.lastSummary, ev); // S: hội chợ, thử thách, huy hiệu (trước C: Nhật Ký ghi khoảnh khắc huy hiệu)
+  // lên cấp trong ca (kể cả thưởng nhiệm vụ / thử thách cuối ca) ⇒ thẻ khoe ghi "Lên cấp N!"; cấp tính sau thưởng cuối ca
+  s.lastSummary.levelUps = (Array.isArray(st.levelUps) ? st.levelUps : []).filter(Number.isInteger).slice(0, 20); s.lastSummary.level = s.level;
   onShiftEnd(s, s.lastSummary, sh, lastOfDay); // C: cộng dồn ngày, lời hứa, độ hot, câu chốt + Nhật Ký
   s.shift = null;
   if (lastOfDay) { s.dayDone = true; s.between = null; }

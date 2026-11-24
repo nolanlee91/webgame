@@ -1,36 +1,36 @@
 // Một ca: khách tới theo ba buổi, ghim phiếu, giao ổ (cả ráp ×N), chấm sao, khiếu nại, trả tiền + thối, review, chốt ca lời lỗ. Thuần.
 // M3: đơn nhiều ổ (đơn nhóm từ sự kiện), đơn đặt trước (cọc, hạn giao, trễ), thớt đôi / ba, phụ việc, bánh hôm qua, quảng bá, hội chợ,
 // thử thách, nhiệm vụ ngày, bộ điều chỉnh có hạn. M4: Drama Engine (core/drama.js), review lưu sổ + trả lời (core/reviews.js), Nhật Ký.
-import { RECIPE, NAMES, LEVELS, XP_MUL, STOCK, AUTO_CHANGE_DAYS, HONEST_RETURN, BACHUC, QUEUE_MAX, QUE } from "../data/economy.js?v=b3";
-import { ARCHETYPES, ARCH_IDS, REGULARS, REGULAR_KNOWN_AT } from "../data/customers.js?v=b3";
-import { QUIRKS } from "../data/quirks.js?v=b3";
-import { PHASES, SHIFT_MS, PHASE_BANNER, NORMAL_DAY, TUTORIAL, WALK_MS } from "../data/shift.js?v=b3";
-import { PREORDER, FAIR } from "../data/equipment.js?v=b3";
-import * as L from "../data/lines.js?v=b3";
-import * as M3 from "../data/lines-m3.js?v=b3";
-import { STAR_REVIEWS_MORE, STAR_REVIEWS_ARCH_MORE, MISTAKE_SAY_MORE, MISTAKE_REVIEW_MORE } from "../data/lines-reviews.js?v=b3";
-import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=b3";
-import { next, int, pick, weighted } from "./rng.js?v=b3";
-import { fill, freshLine, poolFor } from "./text.js?v=b3";
-import { makeItem, makeBachuc, menuFor, orderText, loafName, bachucMax, bachucPrice } from "./order.js?v=b3";
-import { scoreOrder } from "./score.js?v=b3";
-import { customerPays, makeChange, canChange, payOut, receive, spend, greedyBills, sumBills } from "./money.js?v=b3";
-import { ovenOf, newLoaf, tickOven, addWaste } from "./oven.js?v=b3";
-import { emptyBoard, board, finished, wasteLoaf } from "./board.js?v=b3";
-import { shiftFee, repayConsign, stage, baseGuests } from "./stock.js?v=b3";
-import { tickRescue, openNochange } from "./rescue.js?v=b3";
-import { engineFlag, modSum, modGuests, pruneMods, today, hasFlag } from "./flags.js?v=b3";
-import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./drama.js?v=b3";
-import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b3";
-import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b3";
-import { caption } from "./journal.js?v=b3";
-import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, rollWeather, createPreorder, STALE_CRISP, rainMul, shiftLenFor } from "./progress.js?v=b3";
-import { judgeChallenge, challengeMods, checkBadges } from "./challenge.js?v=b3";
-import { freshCook, tickCook, cookLeftover } from "./cook.js?v=b3";
-import { addContract, contractOrders, contractDelivered, contractFailed } from "./contracts.js?v=b3";
-import { expire } from "./expiry.js?v=b3";
-import { takePartial } from "./partial.js?v=b3";
-import { CONTRACT_LINES, CONTRACT_REVIEW, COOK_LINES, EXPIRY_LINES, BO_DUONG, FAIR_LINES } from "../data/lines-m5.js?v=b3";
+import { RECIPE, NAMES, LEVELS, XP_MUL, STOCK, AUTO_CHANGE_DAYS, HONEST_RETURN, BACHUC, QUEUE_MAX, QUE } from "../data/economy.js?v=b4";
+import { ARCHETYPES, ARCH_IDS, REGULARS, REGULAR_KNOWN_AT } from "../data/customers.js?v=b4";
+import { QUIRKS } from "../data/quirks.js?v=b4";
+import { PHASES, SHIFT_MS, PHASE_BANNER, NORMAL_DAY, TUTORIAL, WALK_MS } from "../data/shift.js?v=b4";
+import { PREORDER, FAIR } from "../data/equipment.js?v=b4";
+import * as L from "../data/lines.js?v=b4";
+import * as M3 from "../data/lines-m3.js?v=b4";
+import { STAR_REVIEWS_MORE, STAR_REVIEWS_ARCH_MORE, MISTAKE_SAY_MORE, MISTAKE_REVIEW_MORE } from "../data/lines-reviews.js?v=b4";
+import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=b4";
+import { next, int, pick, weighted } from "./rng.js?v=b4";
+import { fill, freshLine, poolFor } from "./text.js?v=b4";
+import { makeItem, makeBachuc, menuFor, orderText, loafName, bachucMax, bachucPrice } from "./order.js?v=b4";
+import { scoreOrder } from "./score.js?v=b4";
+import { customerPays, makeChange, canChange, payOut, receive, spend, greedyBills, sumBills } from "./money.js?v=b4";
+import { ovenOf, newLoaf, tickOven, addWaste } from "./oven.js?v=b4";
+import { emptyBoard, board, finished, wasteLoaf } from "./board.js?v=b4";
+import { shiftFee, repayConsign, stage, baseGuests } from "./stock.js?v=b4";
+import { tickRescue, openNochange } from "./rescue.js?v=b4";
+import { engineFlag, modSum, modGuests, pruneMods, today, hasFlag } from "./flags.js?v=b4";
+import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./drama.js?v=b4";
+import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b4";
+import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b4";
+import { caption } from "./journal.js?v=b4";
+import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, rollWeather, createPreorder, STALE_CRISP, rainMul, shiftLenFor } from "./progress.js?v=b4";
+import { judgeChallenge, challengeMods, checkBadges } from "./challenge.js?v=b4";
+import { freshCook, tickCook, cookLeftover } from "./cook.js?v=b4";
+import { addContract, contractOrders, contractDelivered, contractFailed } from "./contracts.js?v=b4";
+import { expire } from "./expiry.js?v=b4";
+import { takePartial } from "./partial.js?v=b4";
+import { CONTRACT_LINES, CONTRACT_REVIEW, COOK_LINES, EXPIRY_LINES, BO_DUONG, FAIR_LINES } from "../data/lines-m5.js?v=b4";
 
 export const customer = (s, cid) => s.shift?.customers.find((c) => c.id === cid) || null;
 export const levelForXp = (xp) => { let lv = 1; for (let i = 0; i < LEVELS.length; i++) if (xp >= LEVELS[i]) lv = i + 1; return lv; };
@@ -57,6 +57,7 @@ export function gainXp(s, xp, ev) {
   if (s.shift) s.shift.stats.xp += xp;
   while (s.level < LEVELS.length && s.xp >= LEVELS[s.level]) {
     s.level++; ev.push({ type: "levelUp", level: s.level });
+    if (s.shift) (s.shift.stats.levelUps ||= []).push(s.level); // nhớ để bảng chốt ca / thẻ khoe ghi "Lên cấp N!"
     if (s.level >= 16 && s.shop) engineFlag(s, "noi-tieng", 4);
   }
   return xp;
@@ -260,7 +261,7 @@ export function startShift(s, ev) {
     moments: [], missions: [], lastServe: null, burntAt: null, helperUntil: 0, followers0: s.followers || 0, witness: null,
     stats: { served: 0, loaves: 0, revenue: 0, cogs: 0, batches: s.prep?.batches || 0, burntBatches: 0, goldenPulls: 0, toasts: 0, lost: 0, timeouts: 0, stars: [],
       changeRight: 0, changeWrong: 0, changeLoss: 0, restockSpent: 0, rescueSpent: 0, xp: 0, consignRepaid: 0, owed: 0, mistakes: {}, multi: 0, preorders: 0, preLate: 0,
-      staleSold: 0, eventCash: 0, missionCash: 0, lostSang: 0, burntMeat: 0, boDuong: 0 },
+      staleSold: 0, eventCash: 0, missionCash: 0, lostSang: 0, burntMeat: 0, boDuong: 0, levelUps: [] },
   };
   s.shift = sh;
   sh.schedule = genGuests(s);
@@ -773,6 +774,8 @@ export function endShift(s, ev, early = false) {
     ev.push({ type: "challengeResult", ok: S.challenge.ok, name: S.challenge.name, money: S.challenge.money, xp: S.challenge.xp });
     s.challenge = null;
   }
+  // lên cấp trong ca (kể cả thưởng nhiệm vụ / thử thách cuối ca) ⇒ thẻ khoe ghi "Lên cấp N!"; cấp tính sau thưởng thử thách
+  S.levelUps = (st.levelUps || []).slice(0, 20); S.level = s.level;
   S.badges = checkBadges(s, S, ev).map((b) => ({ id: b.id, name: b.name, line: b.line }));
   S.money = s.money;
   archiveShift(s, S);

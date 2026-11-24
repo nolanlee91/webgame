@@ -1,23 +1,24 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=b3";
-import { placeholderFallback } from "./render/placeholder.js?v=b3";
-import { createScene } from "./render/scene.js?v=b3";
-import { createBench } from "./ui/bench.js?v=b3";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=b3s";
-import { apply } from "./core/apply.js?v=b3";
-import { customer } from "./core/shift.js?v=b3";
-import { hint } from "./core/tutorial.js?v=b3";
-import { itemName } from "./core/rescue.js?v=b3";
-import { STEP_NAME } from "./core/board.js?v=b3";
-import { STOCK, NAMES } from "./data/economy.js?v=b3";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b3";
-import { shopSave, browserStorage } from "./save.js?v=b3";
-import { setJournalBg } from "./ui/journal.js?v=b3";
-import { currentEvent, openEvent } from "./core/drama.js?v=b3";
-import { DECOR } from "./data/equipment.js?v=b3";
-import { PLACE_REASON } from "./core/progress.js?v=b3";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b3";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=b4";
+import { placeholderFallback } from "./render/placeholder.js?v=b4";
+import { createScene } from "./render/scene.js?v=b4";
+import { createBench } from "./ui/bench.js?v=b4";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b4";
+import { shareResult } from "../_shared/share.js?v=s1";
+import { apply } from "./core/apply.js?v=b4";
+import { customer } from "./core/shift.js?v=b4";
+import { hint } from "./core/tutorial.js?v=b4";
+import { itemName } from "./core/rescue.js?v=b4";
+import { STEP_NAME } from "./core/board.js?v=b4";
+import { STOCK, NAMES } from "./data/economy.js?v=b4";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b4";
+import { shopSave, browserStorage } from "./save.js?v=b4";
+import { setJournalBg } from "./ui/journal.js?v=b4";
+import { currentEvent, openEvent } from "./core/drama.js?v=b4";
+import { DECOR } from "./data/equipment.js?v=b4";
+import { PLACE_REASON } from "./core/progress.js?v=b4";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b4";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -26,7 +27,7 @@ const reduced = () => reducedMQ.matches;
 const pickOf = (list, i) => list[i % list.length];
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=b3")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=b4")).json();
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
   const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
@@ -165,7 +166,11 @@ async function boot() {
         case "lowStock": say(`“${LOW_LINES[0].replace("{item}", STOCK[e.id]?.name || e.id).replace("{n}", e.n)}”`, "warn"); break;
         case "ranBack": case "delivered": say(e.line, e.wrong ? "warn" : "good"); break;
         case "timeout": say(`${e.name} bỏ về vì chờ lâu. Review 1 sao.`, "warn"); break;
-        case "levelUp": say(`Lên cấp ${e.level}!`, "good"); break;
+        case "levelUp": { // nút "Khoe" trên thông báo (7 giây); bấm thì ca tạm dừng tới khi đóng bảng chia sẻ. Bảng chốt ca cũng ghi "Lên cấp N!"
+          const lv = e.level;
+          toast($("#toasts"), `Lên cấp ${lv}!`, "good", { label: "Khoe", act: "shareLevel", onClick: () => shareLevel(lv) });
+          break;
+        }
         case "phase": showBanner(e.text); break;
         case "restocked": say(`Nhập ${e.n} phần ${STOCK[e.id].name} (−${fmtK(e.price)}${e.express ? ", giao gấp" : ""})`); break;
         case "restockedToday": say(`Đã nhập đủ cho hôm nay (−${fmtK(e.spent)}).`, "good"); break;
@@ -187,13 +192,21 @@ async function boot() {
     else if (d.kind === "stockout") overlays.stockout(state);
     else if (d.kind === "nochange") overlays.nochange(state);
   }
+  // Khoe lúc lên cấp giữa ca: đang tạo ảnh / bảng chia sẻ đang mở ⇒ đồng hồ ca dừng (khách không mất kiên nhẫn), đóng bảng là chạy tiếp
+  let sharing = false;
+  function shareLevel(level) {
+    if (sharing) return;
+    sharing = true;
+    shareResult(levelUpShare(state, level)).finally(() => { sharing = false; });
+  }
+  const shareOpen = () => sharing || !!document.querySelector(".lk-share");
   let bannerT = 0;
   function showBanner(text) { const b = $("#banner"); b.textContent = text; b.hidden = false; clearTimeout(bannerT); bannerT = setTimeout(() => { b.hidden = true; }, 2600); }
 
   // ---------- vòng lặp ----------
   let last = performance.now();
   const shopLabel = $("#shopLabel"), hintbar = $("#hintbar"), away = $("#away");
-  const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current;
+  const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current && !shareOpen();
   function frame(now) {
     const dt = Math.min(250, now - last); last = now;
     if (running()) act({ type: "tick", dt }, true);

@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { Player } from "./harness.mjs";
 import { PROFILES, PROFILE_IDS } from "./profiles.mjs";
 import { renderReport } from "./report.mjs";
-import { LEVELS, GEAR, TIERS, FISH_SAUCE } from "../../data/economy.js?v=c3";
+import { LEVELS, GEAR, TIERS, FISH_SAUCE } from "../../data/economy.js?v=c4";
 
 /** Mục tiêu (PLAYBOOK §6, ECONOMY §12): phút chơi thật tới cấp. */
 export const TARGETS = { 4: [7, 14], 7: [30, 50], 10: [100, 140], 20: [600, 720] };

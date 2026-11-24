@@ -1,14 +1,15 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m8";
-import { browserStorage, farmSave } from "./save.js?v=m8";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m8";
-import { createMarketScene } from "./ui/scene-market.js?v=m8";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m8";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m8";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m8";
-import { createVillageScene } from "./ui/scene-village.js?v=m8";
-import { createTruck } from "./ui/truck.js?v=m8";
+import * as L from "./logic.js?v=m9";
+import { browserStorage, farmSave } from "./save.js?v=m9";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m9";
+import { createMarketScene } from "./ui/scene-market.js?v=m9";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m9";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m9";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m9";
+import { createVillageScene } from "./ui/scene-village.js?v=m9";
+import { createTruck } from "./ui/truck.js?v=m9";
+import { farmShare } from "./ui/share-card.js?v=m9";
 import { shareResult } from "../_shared/share.js?v=s1";
 
 const MUTE_KEY = "wgp.muted";
@@ -76,19 +77,7 @@ function makeSfx(dir, names, sdk) {
 }
 
 const fmtNum = (n) => n.toLocaleString("vi-VN");
-// Khoe kết quả (lên cấp / danh hiệu Sổ sưu tập): số thật của nông trại.
-export function farmShare(s, kind, title) {
-  const v = L.bookView(s), st = s.stats || {};
-  const lines = [`Cấp nông trại: ${s.level}`, `Xu đã kiếm: ${fmtNum(st.earned || 0)} xu`, `Đơn đã giao: ${fmtNum(st.delivered || 0)}`, `Sổ sưu tập: ${v.unlocked}/${v.total} món`];
-  if (kind === "level") {
-    const tg = s.level >= 20 ? "Cả làng gọi là đại điền chủ rồi đó nha." : s.level >= 10 ? "Gà vịt bò heo đông đủ, sắp thành trang trại kiểu mẫu." : s.level >= 5 ? "Ruộng xanh mướt, hàng xóm bắt đầu hỏi xin giống." : "Mới mấy luống rau mà đã lên cấp, nông dân có khiếu!";
-    return { game: "nong-trai", title: `Lên cấp ${s.level}!`, lines: lines.slice(1), tagline: tg, accent: "#9fd86f" };
-  }
-  const t = title || v.title;
-  const head = t ? `Danh hiệu “${t}”` : `Nông trại cấp ${s.level}`;
-  const tg = v.unlocked >= v.total ? "Đủ cả cuốn sổ, nhà nông kiêm nhà sưu tầm!" : t ? "Danh hiệu mới, cả xóm phải gọi bằng anh/chị." : "Sổ còn trống nhiều, mai đi gom tiếp.";
-  return { game: "nong-trai", title: head.length > 40 ? head.slice(0, 39) + "…" : head, lines, tagline: tg, accent: "#9fd86f" };
-}
+export { farmShare }; // giữ chỗ export cũ (thân hàm chuyển sang ui/share-card.js để test Node)
 function fmtLeft(ms) {
   const t = Math.max(0, Math.ceil(ms / 1000));
   if (t < 60) return t + " giây";
@@ -914,7 +903,7 @@ export function mount(root, ctx = {}) {
 
   // ---------- m7: thẻ chúc mừng khi xây / nâng xong + thẻ "Kho đầy" (một lần) ----------
   const cel = { ov: $("ovCelebrate"), card: $("ovCelebrate").querySelector(".cel-card"), stage: $("celStage"), pic: $("celPic"), ribbon: $("celRibbon"),
-    title: $("celTitle"), body: $("celBody"), go: $("celGo"), later: $("celLater"), more: $("celMore") };
+    title: $("celTitle"), body: $("celBody"), go: $("celGo"), later: $("celLater"), more: $("celMore"), share: $("celShare") };
   /** Hình công trình cỡ hiển thị = bội 0,5 px thiết bị (PLAYBOOK §2), không quá ~150 px CSS. */
   function picHtml(sp, max = 150) {
     sp = sp && resolveSprite(sp);
@@ -985,6 +974,7 @@ export function mount(root, ctx = {}) {
         `<ul class="cel-gain">${a.gain.map((g) => `<li>${gainHtml(g)}</li>`).join("")}</ul><p class="cel-next"><b>Làm gì tiếp:</b> ${esc(a.next)}</p>`;
     cel.go.textContent = a.tip ? "Mở Nhà kho" : "Vào xem ngay";
     cel.more.hidden = !more; cel.more.textContent = more ? `Còn ${more} thẻ nữa` : "";
+    cel.share.hidden = !(c.kind === "building" && c.id === "nha" && c.from >= 1 && c.to > c.from); // nâng Nhà ⇒ danh hiệu danh tiếng mới: nút khoe
     cel.card.dataset.kind = c.kind; cel.card.dataset.id = c.id;
     // pháo giấy pixel: vài ô vuông màu rơi xuống (CSS steps), mỗi lần hiện đổi chỗ
     const conf = cel.stage.querySelector(".cel-confetti");
@@ -1037,6 +1027,8 @@ export function mount(root, ctx = {}) {
   }
   cel.go.onclick = () => closeCard(true);
   cel.later.onclick = () => closeCard(false);
+  // Khoe danh hiệu Nhà: thẻ chúc mừng vẫn mở (bảng chia sẻ nổi trên), đóng bảng là quay lại thẻ
+  cel.share.onclick = () => { const c = celCur; if (c?.id === "nha") shareResult(farmShare(s, "fame", null, c.to)); };
   cel.ov.addEventListener("click", (e) => { if (e.target === cel.ov) closeCard(false); });
   celReady = true;
 
@@ -1274,10 +1266,16 @@ export function mount(root, ctx = {}) {
   ui.help.addEventListener("click", () => showHelp(true));
   ui.helpOk.addEventListener("click", () => showHelp(false));
   function onKey(e) {
-    if (celCur) { // m7: thẻ chúc mừng — Enter = Vào xem ngay (trừ khi đang ở nút Để sau), Esc = Để sau, Tab quanh 2 nút
+    if (document.querySelector(".lk-share")) return; // bảng chia sẻ đang mở: phím thuộc về bảng
+    if (celCur) { // m7: thẻ chúc mừng — Enter = Vào xem ngay (trừ khi đang ở nút Để sau / Khoe), Esc = Để sau, Tab quanh các nút
       if (e.key === "Escape") { e.preventDefault(); closeCard(false); }
+      else if ((e.key === "Enter" || e.key === " ") && document.activeElement === cel.share && !cel.share.hidden) { e.preventDefault(); cel.share.click(); }
       else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); closeCard(document.activeElement !== cel.later); }
-      else if (e.key === "Tab") { e.preventDefault(); (document.activeElement === cel.go ? cel.later : cel.go).focus(); }
+      else if (e.key === "Tab") {
+        e.preventDefault();
+        const f = [cel.go, cel.later, cel.share].filter((b) => !b.hidden), i = f.indexOf(document.activeElement);
+        f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
+      }
       return;
     }
     if (!ui.ovHelp.hidden) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); showHelp(false); } return; }

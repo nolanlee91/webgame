@@ -292,6 +292,9 @@
     .overlay { padding-top: 52px !important; } .sheet { max-height: calc(100svh - 64px) !important; }
     .toast { background: rgba(22, 32, 45, .95); color: var(--cream); padding: 7px 12px; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: 0 6px 16px rgba(0, 0, 0, .4); animation: pop .25s ease-out; }
     .toast.good { background: rgba(47, 90, 80, .97); } .toast.warn { background: rgba(160, 60, 50, .97); }
+    .toast.has-act { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-right: 6px; }
+    .toast-act { pointer-events: auto; flex: none; min-height: 34px; padding: 4px 14px; border: 0; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; background: var(--amber, #e8a040); color: #2a1a08; box-shadow: 0 3px 0 #8a5a18; }
+    .toast-act:active { transform: translateY(2px); box-shadow: 0 1px 0 #8a5a18; }
     .boot-error { position: fixed; inset: auto 16px 16px; background: var(--red); color: #fff; padding: 12px; border-radius: 12px; z-index: 99; }
     .kbd { font: 700 10px "Be Vietnam Pro", system-ui; opacity: .55; }
 
@@ -307,7 +310,7 @@
       .pill { min-height: 36px; min-width: 0; padding: 2px 8px 2px 4px; } .pill .ring { width: 28px; height: 28px; } .pill.gas { min-height: 24px; font-size: 11px; }
       /* thông báo nằm dưới đáy cảnh (trên dock), không đè HUD / số liệu */
       /* thông báo nằm ở đáy khung cảnh (trong #world), không bao giờ đè nút Giao / Hoàn tác / dải bước / dock */
-      #toasts { position: absolute; top: auto; bottom: 8px; width: calc(100% - 16px); } .toast { font-size: 12px; padding: 5px 10px; } .toast:not(:last-child) { display: none; }
+      #toasts { position: absolute; top: auto; bottom: 8px; width: calc(100% - 16px); } .toast { font-size: 12px; padding: 5px 10px; } .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; } .toast-act { min-height: 30px; padding: 2px 12px; font-size: 12px; }
       .world:has(.hintbar:not([hidden])) #toasts { bottom: 46px; }
       .bubble { max-width: 180px; font-size: 12px; padding: 5px 9px; }
       .cook-row { grid-template-columns: 1fr; }
@@ -370,6 +373,6 @@
   <div class="decor-bar" id="decorBar" hidden></div>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div class="boot-error" id="bootError" hidden></div>
-  <script type="module" src="./game.js?v=b3s"></script>
+  <script type="module" src="./game.js?v=b4"></script>
 </body>
 </html>

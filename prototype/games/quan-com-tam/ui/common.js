@@ -1,5 +1,5 @@
 // Tiện ích giao diện dùng chung: tạo phần tử, thông báo (toast), định dạng tiền, màu bàn, giờ ca.
-import { SHIFTS } from "../data/economy.js?v=c3";
+import { SHIFTS } from "../data/economy.js?v=c4";
 
 export function el(tag, cls, parent, text) {
   const e = document.createElement(tag);
@@ -16,14 +16,21 @@ export function button(parent, cls, text, onClick, attrs = {}) {
   return b;
 }
 export const fmtK = (n) => `${Math.round(n * 10) / 10}k`.replace(".", ",");
-/** Thông báo trong khung cảnh (tối đa 2 cái, tự tắt). */
-export function toast(root, text, kind = "") {
+/** Thông báo trong khung cảnh (tối đa 2 cái thường, tự tắt). `action` = { label, act, onClick }: thêm nút nhỏ (vd "Khoe" lúc lên cấp) —
+ *  thông báo ở 7 giây cho kịp bấm, luôn nằm dưới cùng (thông báo thường chen lên trên) và không bị thông báo thường đẩy mất. */
+export function toast(root, text, kind = "", action = null) {
   if (!root || !text) return;
-  for (const x of root.children) if (x.textContent === text) { x.remove(); break; } // V: cùng câu đang hiện ⇒ thay, không xếp chồng hai dòng giống nhau
-  const t = el("div", "toast" + (kind ? " " + kind : ""), root, text);
-  while (root.children.length > 2) root.firstChild.remove();
+  for (const x of root.children) if (x.firstChild?.textContent === text || x.textContent === text) { x.remove(); break; } // V: cùng câu đang hiện ⇒ thay, không xếp chồng hai dòng giống nhau
+  const t = el("div", "toast" + (kind ? " " + kind : ""), null, text);
+  if (action) {
+    t.classList.add("has-act"); t.textContent = ""; el("span", "", t, text);
+    button(t, "toast-act", action.label, (e) => { e.stopPropagation(); t.remove(); action.onClick(); }, { "data-act": action.act });
+  }
+  const keep = !action && root.querySelector(".toast.has-act");
+  if (keep) root.insertBefore(t, keep); else root.appendChild(t);
+  while (root.children.length > (root.querySelector(".has-act") ? 3 : 2)) (root.querySelector(".toast:not(.has-act)") || root.firstChild).remove();
   t.dataset.t = Date.now();
-  setTimeout(() => t.remove(), kind === "warn" ? 3600 : 2800);
+  setTimeout(() => t.remove(), action ? 7000 : kind === "warn" ? 3600 : 2800);
 }
 /** Màu viền phiếu theo bàn (5 màu tách biệt, ART-DIRECTION §2). */
 export function tableColor(tid) {

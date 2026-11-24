@@ -2,10 +2,10 @@
 // core/reviews.js onShiftEnd) + nội dung thẻ 1080×1350 (ui/journal.js vẽ lên journal-card.webp khi có, không thì nền canvas dự phòng).
 // Câu trả lời review nổi nhất ngày (lên mạng / dính phốt) hoặc đổi tính ≥ 3 lần thay câu chốt (recaption), kể cả khi trả lời sau lúc chốt ngày.
 // Thuần: test kiểm câu chọn đúng tình huống, đủ biến, thẻ đủ dòng. Mọi câu chọn qua freshLine.
-import { CAPTIONS } from "../data/lines-journal.js?v=c3";
-import { CAPTIONS_PERSONA, CAPTIONS_REPLY, PERSONAS } from "../data/lines-reply.js?v=c3";
-import { freshLine } from "./text.js?v=c3";
-import { int } from "./rng.js?v=c3";
+import { CAPTIONS } from "../data/lines-journal.js?v=c4";
+import { CAPTIONS_PERSONA, CAPTIONS_REPLY, PERSONAS } from "../data/lines-reply.js?v=c4";
+import { freshLine } from "./text.js?v=c4";
+import { int } from "./rng.js?v=c4";
 
 const PLAIN = new Set(["good", "few", "perfect"]);
 const ALL = { ...CAPTIONS, replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip };

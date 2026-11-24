@@ -3,12 +3,12 @@
 //   missions "Nhiệm vụ"  (A) nhiệm vụ ca đang mở / ca vừa chốt
 //   badges   "Huy hiệu"  (A) cấp, giai đoạn quán, hạng quán, cột mốc (lên quán, mâm cơm), khách quen, kỷ niệm vỉa hè
 //   debts    "Sổ nợ"     (A) sổ ghi nợ, xoá nợ (ngoài ca)
-import { registerTab } from "./notebook.js?v=c3";
-import { xpToNext } from "../core/progress.js?v=c3";
-import { DISHES, DEBT, TIERS } from "../data/economy.js?v=c3";
-import * as PG from "../core/progression.js?v=c3";
-import * as PU from "./progress-ui.js?v=c3";
-import * as M5 from "./m5-ui.js?v=c3"; // S: huy hiệu (M5)
+import { registerTab } from "./notebook.js?v=c4";
+import { xpToNext } from "../core/progress.js?v=c4";
+import { DISHES, DEBT, TIERS } from "../data/economy.js?v=c4";
+import * as PG from "../core/progression.js?v=c4";
+import * as PU from "./progress-ui.js?v=c4";
+import * as M5 from "./m5-ui.js?v=c4"; // S: huy hiệu (M5)
 
 registerTab("events", "Sự kiện", (body, s, { el }) => {
   const hist = s.drama?.history || [];

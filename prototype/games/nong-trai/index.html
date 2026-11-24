@@ -547,6 +547,7 @@
     .cel-card .cel-next { padding: 8px 10px; background: #26401b; color: #eaffd8; box-shadow: 0 0 0 3px var(--teal-d); margin: 14px 3px 4px; }
     .cel-card .actions { margin-top: 16px; gap: 14px; }
     .cel-card .actions .btn { flex: 1 1 150px; min-height: 48px; }
+    .cel-card .actions #celShare { flex-basis: 100%; }
     .cel-more { display: block; margin-top: 10px; text-align: center; color: var(--soft); font-size: 12px; font-weight: 700; }
     @keyframes cel-pop { 0% { transform: translateY(32px) scale(.72); opacity: 0; } 60% { transform: translateY(-4px) scale(1.04); opacity: 1; } 100% { transform: none; } }
     @keyframes cel-drop { 0% { transform: translateY(-60px); opacity: 0; } 60% { transform: translateY(6px); opacity: 1; } 100% { transform: none; } }
@@ -786,7 +787,7 @@
       <div class="cel-stage" id="celStage" aria-hidden="true"><span class="cel-confetti"></span><span id="celPic"></span></div>
       <h2 id="celTitle"></h2>
       <div id="celBody"></div>
-      <div class="actions"><button class="btn btn--primary" id="celGo" type="button">Vào xem ngay</button><button class="btn" id="celLater" type="button">Để sau</button></div>
+      <div class="actions"><button class="btn btn--primary" id="celGo" type="button">Vào xem ngay</button><button class="btn" id="celLater" type="button">Để sau</button><button class="btn btn--teal" id="celShare" type="button" hidden>Khoe danh hiệu mới</button></div>
       <small class="cel-more" id="celMore" hidden></small>
     </div>
   </div>
@@ -814,7 +815,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m8";
+    import { mount } from "./game.js?v=m9";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

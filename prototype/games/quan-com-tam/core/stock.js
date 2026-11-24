@@ -1,8 +1,8 @@
 // Kho + nhập hàng + ướp sườn + đồ nghề + gói ký gửi Cô Ba (ECONOMY §1, §6, §7). Thuần.
 // Sức chứa kho tính các nguyên liệu có cap (vỉa hè 80 phần). Hàng ký gửi / cứu giữa ca được vượt sức chứa (để dưới gầm bếp).
 // Không bao giờ kẹt: khi tiền + hàng không làm nổi một dĩa cơm sườn, Cô Ba gửi gói ký gửi (bù đủ 10 dĩa, trả dần bằng giá vốn khi bán).
-import { STOCK, STOCK_IDS, CAPACITY, GEAR, CONSIGN, SERVICE, guestsFor, MO_HANH, DISHES, dishParts, SHELF } from "../data/economy.js?v=c3";
-import { addNewDishes } from "./progress.js?v=c3";
+import { STOCK, STOCK_IDS, CAPACITY, GEAR, CONSIGN, SERVICE, guestsFor, MO_HANH, DISHES, dishParts, SHELF } from "../data/economy.js?v=c4";
+import { addNewDishes } from "./progress.js?v=c4";
 
 export const capacity = (s) => (s.owned?.fridge && s.stage === "quan" ? 200 : CAPACITY[s.stage === "quan" ? "quan" : "street"]); // A: tủ mát kho 200
 export const stockUsed = (s) => STOCK_IDS.filter((id) => STOCK[id].cap).reduce((a, id) => a + (s.stock[id] || 0), 0);

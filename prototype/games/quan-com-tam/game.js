@@ -1,29 +1,30 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c3";
-import { placeholderFallback } from "./render/placeholder.js?v=c3";
-import { createScene } from "./render/scene.js?v=c3";
-import { configureScene } from "./core/placements.js?v=c3";
-import { createGrillbar } from "./ui/grillbar.js?v=c3";
-import { createColumn } from "./ui/column.js?v=c3";
-import { createOverlays } from "./ui/overlays.js?v=c3s";
-import { createDrama } from "./ui/drama.js?v=c3"; // B: drama
-import { createBigGrill } from "./ui/bigrill.js?v=c3"; // V: bếp lớn HD
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c3";
-import { apply } from "./core/apply.js?v=c3";
-import { hint } from "./core/tutorial.js?v=c3";
-import { layerStrip } from "./core/plate.js?v=c3";
-import { tableJob, groupById } from "./core/tables.js?v=c3";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c3";
-import { itemName } from "./core/rescue.js?v=c3";
-import { MISTAKES } from "./core/score.js?v=c3";
-import { shopSave, browserStorage } from "./save.js?v=c3";
-import { DISHES, LEVELS } from "./data/economy.js?v=c3";
-import { setJournalBg } from "./ui/journal.js?v=c3"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c3"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c3"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c3"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c3";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c4";
+import { placeholderFallback } from "./render/placeholder.js?v=c4";
+import { createScene } from "./render/scene.js?v=c4";
+import { configureScene } from "./core/placements.js?v=c4";
+import { createGrillbar } from "./ui/grillbar.js?v=c4";
+import { createColumn } from "./ui/column.js?v=c4";
+import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c4";
+import { shareResult } from "../_shared/share.js?v=s1";
+import { createDrama } from "./ui/drama.js?v=c4"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c4"; // V: bếp lớn HD
+import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c4";
+import { apply } from "./core/apply.js?v=c4";
+import { hint } from "./core/tutorial.js?v=c4";
+import { layerStrip } from "./core/plate.js?v=c4";
+import { tableJob, groupById } from "./core/tables.js?v=c4";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c4";
+import { itemName } from "./core/rescue.js?v=c4";
+import { MISTAKES } from "./core/score.js?v=c4";
+import { shopSave, browserStorage } from "./save.js?v=c4";
+import { DISHES, LEVELS } from "./data/economy.js?v=c4";
+import { setJournalBg } from "./ui/journal.js?v=c4"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c4"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c4"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c4"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c4";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -32,7 +33,7 @@ const reduced = () => reducedMQ.matches;
 const TASK_NAME = { visit: "châm trà, lấy phiếu", deliver: "bưng dĩa", bill: "tính tiền", clean: "dọn bàn", wash: "rửa chén", rice: "bưng chén cơm", moHanh: "làm mỡ hành", marinate: "ướp sườn" };
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=c3")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=c4")).json();
   configureScene(manifest.placements || {});
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
@@ -178,7 +179,11 @@ async function boot() {
         case "billOpen": setDock("plate"); break;
         case "replied": say(`${e.label}: ${e.fx.join(" · ")}`, e.outcome === "phot" || e.outcome === "annoyed" ? "warn" : "good"); break; // C:
         case "persona": if (e.from) say(`Đổi tính: ${e.switches >= 3 ? "cư dân mạng bắt đầu để ý!" : "lựa chọn trả lời đã đổi theo."}`, e.switches >= 3 ? "warn" : ""); break; // C:
-        case "levelUp": say(`Lên cấp ${e.level}!`, "good"); break;
+        case "levelUp": { // nút "Khoe" trên thông báo (7 giây); bấm thì ca tạm dừng tới khi đóng bảng chia sẻ. Bảng chốt ca cũng ghi "Lên cấp N!"
+          const lv = e.level;
+          toast($("#toasts"), `Lên cấp ${lv}!`, "good", { label: "Khoe", act: "shareLevel", onClick: () => shareLevel(lv) });
+          break;
+        }
         case "newDish": say(`Món mới vào menu: ${e.name}. Nhớ nhập đủ nguyên liệu!`, "good"); break;
         case "phase": showBanner(e.text); break;
         case "closing": showBanner("Hết giờ nhận khách. Phục vụ nốt các bàn đang ăn."); break;
@@ -230,7 +235,15 @@ async function boot() {
   // ---------- vòng lặp ----------
   let last = performance.now();
   const shopLabel = $("#shopLabel"), hintbar = $("#hintbar"), away = $("#away");
-  const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current;
+  // Khoe lúc lên cấp giữa ca: đang tạo ảnh / bảng chia sẻ đang mở ⇒ đồng hồ ca dừng (khách không mất kiên nhẫn), đóng bảng là chạy tiếp
+  let sharing = false;
+  function shareLevel(level) {
+    if (sharing) return;
+    sharing = true;
+    shareResult(levelUpShare(state, level)).finally(() => { sharing = false; });
+  }
+  const shareOpen = () => sharing || !!document.querySelector(".lk-share");
+  const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current && !shareOpen();
   function frame(now) {
     const dt = Math.min(250, now - last); last = now;
     if (running()) act({ type: "tick", dt }, true);

@@ -1,10 +1,10 @@
 // A: thao tác M3 (tiến trình + kinh tế) cho core/apply.js. Gộp vào HANDLERS bằng một dòng `...aHandlers(deps)`; khoá trùng (layer, undo, discard,
 // serve, buyGear, prepCook) bọc bản gốc để thêm bày ×N cho mâm cơm, lọc đồ vỉa hè / quán, cỡ nồi theo giai đoạn.
-import * as PG from "./progression.js?v=c3";
-import * as st from "./stock.js?v=c3";
-import { judge } from "./score.js?v=c3";
-import { cookNow } from "./rice.js?v=c3";
-import { LATE } from "../data/economy.js?v=c3";
+import * as PG from "./progression.js?v=c4";
+import * as st from "./stock.js?v=c4";
+import { judge } from "./score.js?v=c4";
+import { cookNow } from "./rice.js?v=c4";
+import { LATE } from "../data/economy.js?v=c4";
 
 export function aHandlers({ noShift, noDialog, ownerOnly, inShift, outToDialog, pl, tb, sh, autoStep }) {
   return {
