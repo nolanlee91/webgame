@@ -215,14 +215,14 @@
 
     @media (max-width: 860px), (max-aspect-ratio: 1/1) {
       .tag { display: none; }
-      .wrap { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "hud" "stage" "tools"; padding: 14px 10px 12px; gap: 10px; }
+      .wrap { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "hud" "stage" "tools"; padding: 14px 10px 12px; gap: 10px; }
       .side { display: contents; }
       .log { display: none; }
       .tools { grid-area: tools; display: flex; justify-content: space-between; gap: 10px; margin: 3px 7px 7px 3px; }
-      .tools > .btn { flex: 1; padding: 8px 4px; font-size: 12px; letter-spacing: .02em; }
+      .tools > .btn { flex: 1; min-width: 0; padding: 8px 4px; font-size: 12px; letter-spacing: .02em; } /* minmax(0,1fr) + min-width 0: hàng nút không được kéo giãn trang quá bề rộng màn hình */
       .tools .icons { flex: none; gap: 10px; }
       .tools .icons .btn { flex: 0 0 48px; }
-      body.live .tools #newBtn { display: none; }
+      body.live .tools #newBtn { display: none; } body:not(.live) .tools #drawBtn, body:not(.live) .tools #resignBtn { display: none; } /* hết ván: 2 nút này tắt, nhường chỗ "Ván tiếp" */
       .hud { gap: 8px; }
       .pl { padding: 6px 8px; gap: 7px; }
       .pl .pc { width: 28px; height: 28px; }
@@ -249,6 +249,15 @@
       body:not(.chat-open) .chat { display: none; }
       .chat-hd .btn { display: inline-flex; }
     }
+    @media (max-width: 440px) {
+      .tools { gap: 8px; } .tools .icons { gap: 8px; } .tools .icons .btn { flex-basis: 44px; }
+      .tools > .btn { padding: 8px 2px; letter-spacing: 0; white-space: nowrap; } .tools > .btn .kb { display: none; }
+    }
+    @media (max-width: 380px) { /* thẻ kết ván / menu vừa khung bàn cờ hẹp */
+      .ov { padding: 8px; } .card { width: calc(100% - 10px); }
+      .result { gap: 6px; } .result div { min-width: 0; flex: 1 1 0; padding: 8px 4px; } .result small { letter-spacing: .02em; }
+    }
+    @media (max-width: 360px) { .pl .who { display: none; } .pl { justify-content: space-between; } } /* tên bị cắt còn 1 chữ: giữ quân + điểm */
     @media (max-width: 380px) {
       .tools { gap: 8px; } .tools .icons { gap: 8px; } .tools .icons .btn { flex-basis: 44px; padding: 8px 6px; }
       .tools > .btn { font-size: 11px; }
