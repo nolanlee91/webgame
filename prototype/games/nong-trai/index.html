@@ -498,6 +498,46 @@
     .build-card .ok { color: #2f7a1f; font-weight: 800; } .build-card .miss { color: #a3341f; font-weight: 800; }
     .build-card .bc-bar { height: 10px; margin: 6px 0; background: #0d0b09; box-shadow: 0 0 0 2px #3b2a17; position: relative; }
     .build-card .bc-bar i { position: absolute; inset: 0 auto 0 0; background: var(--gold); }
+    /* m7: công dụng trong thẻ xây ("Dùng để / Bạn được") */
+    .build-card .bc-gain { margin: 2px 0 0; padding-left: 18px; gap: 2px; }
+    .build-card .bc-gain b { color: #8a4b05; }
+    .mach-use { flex-basis: 100%; max-width: 100%; box-sizing: border-box; text-align: center; font-size: 12px; line-height: 1.35; color: #3a2414; background: #f3e3bfdd; padding: 4px 8px; box-shadow: 2px 2px 0 #0005; }
+    .mach-use b { font-size: 12px; }
+    /* m7: thẻ chúc mừng xây / nâng xong — pixel V5: viền vàng 3px bằng box-shadow (góc khuyết), bóng cứng lệch, không bo tròn */
+    .ov--cel { z-index: 10; background: rgba(10, 8, 7, .8); }
+    .cel-card { --b: var(--gold); position: relative; width: min(440px, 100%); max-height: calc(100svh - 24px); overflow: auto; padding: 22px 18px 16px; background: var(--panel2); text-align: left; }
+    .cel-card.cel-in { animation: cel-pop .42s steps(6) both; }
+    .cel-ribbon { display: block; width: fit-content; margin: -6px auto 8px; padding: 5px 14px; background: var(--gold); color: #2c1b05; font: 800 12px/1.2 "Be Vietnam Pro", system-ui; letter-spacing: .12em; text-transform: uppercase;
+      box-shadow: 0 -3px 0 var(--gold-d), 0 3px 0 var(--gold-d), -3px 0 0 var(--gold-d), 3px 0 0 var(--gold-d), 4px 6px 0 #0009; }
+    .cel-stage { position: relative; display: grid; place-items: end center; height: 150px; margin: 0 -18px; padding-bottom: 8px; overflow: hidden;
+      background: repeating-conic-gradient(from 0deg at 50% 100%, #3a2c16 0 8deg, #2b2114 8deg 16deg); box-shadow: inset 0 -3px 0 #0008, inset 0 3px 0 #0008; }
+    .cel-pic { display: block; image-rendering: pixelated; background-repeat: no-repeat; position: relative; z-index: 1; }
+    .cel-in .cel-pic { animation: cel-drop .5s steps(5) .12s both; }
+    .cel-pic--field { width: 120px; height: 96px; background: url(assets/garden/soil.webp) 0 0 / 40px 32px repeat; box-shadow: 0 0 0 3px #3f2716, 4px 6px 0 #0008; }
+    .cel-confetti { position: absolute; inset: 0; pointer-events: none; }
+    .cel-confetti i { position: absolute; top: -8px; left: var(--x); width: 6px; height: 6px; background: var(--c); box-shadow: 2px 2px 0 #0008; opacity: 0; }
+    .cel-in .cel-confetti i { animation: cel-fall 1.3s steps(9) var(--d) both; }
+    .cel-card h2 { margin: 12px 0 8px; font-size: 22px; line-height: 1.2; color: var(--gold-l); text-align: center; }
+    .cel-card p { margin: 8px 0; }
+    .cel-card .cel-h { margin: 10px 0 4px; font-weight: 800; color: var(--gold-l); }
+    .cel-gain { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .cel-gain li { position: relative; padding: 6px 10px 6px 26px; background: #1a1612; box-shadow: inset 0 -2px 0 #0007, inset 0 2px 0 #ffffff10; font-weight: 700; }
+    .cel-gain li::before { content: ""; position: absolute; left: 10px; top: 13px; width: 8px; height: 8px; background: var(--teal-l); box-shadow: 2px 2px 0 #000; }
+    .cel-gain b { color: var(--gold); }
+    .cel-card .cel-next { padding: 8px 10px; background: #26401b; color: #eaffd8; box-shadow: 0 0 0 3px var(--teal-d); margin: 14px 3px 4px; }
+    .cel-card .actions { margin-top: 16px; gap: 14px; }
+    .cel-card .actions .btn { flex: 1 1 150px; min-height: 48px; }
+    .cel-more { display: block; margin-top: 10px; text-align: center; color: var(--soft); font-size: 12px; font-weight: 700; }
+    @keyframes cel-pop { 0% { transform: translateY(32px) scale(.72); opacity: 0; } 60% { transform: translateY(-4px) scale(1.04); opacity: 1; } 100% { transform: none; } }
+    @keyframes cel-drop { 0% { transform: translateY(-60px); opacity: 0; } 60% { transform: translateY(6px); opacity: 1; } 100% { transform: none; } }
+    @keyframes cel-fall { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(160px); opacity: 0; } }
+    /* "Vào xem ngay" khi công trình không có cảnh riêng: viền vàng nhấp nháy + mũi tên */
+    .spot { outline: 3px solid var(--gold-l) !important; outline-offset: 4px; animation: qblink .5s steps(2) 8; z-index: 3; }
+    .bld.spot::after, .mach.spot::after { content: ""; position: absolute; left: 50%; top: -26px; margin-left: -9px; z-index: 4; pointer-events: none;
+      border: 9px solid transparent; border-top: 12px solid var(--gold); filter: drop-shadow(2px 2px 0 #000); animation: bob .6s steps(2) infinite alternate; }
+    .mach.spot { position: relative; }
+    @media (max-width: 480px) { .cel-card { padding: 18px 14px 14px; } .cel-stage { height: 128px; margin: 0 -14px; } .cel-card h2 { font-size: 19px; } }
+    @media (prefers-reduced-motion: reduce) { .cel-card.cel-in, .cel-in .cel-pic, .cel-in .cel-confetti i, .spot, .bld.spot::after, .mach.spot::after { animation: none; } }
     .decor-card .dc-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
     .decor-card .dc-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 8px; background: #fff4dc99; box-shadow: inset 0 -2px #d8c193; }
     .decor-card .it--decor { --sz: 48px; }
@@ -720,6 +760,17 @@
     <div class="uk-card recipe-card book-card" role="dialog" aria-modal="true" aria-labelledby="bookTitle"><div id="bookBody"></div></div>
   </div>
 
+  <div class="ov ov--cel" id="ovCelebrate" hidden>
+    <div class="card cel-card" role="dialog" aria-modal="true" aria-labelledby="celTitle" aria-describedby="celBody">
+      <span class="cel-ribbon" id="celRibbon">Xây xong!</span>
+      <div class="cel-stage" id="celStage" aria-hidden="true"><span class="cel-confetti"></span><span id="celPic"></span></div>
+      <h2 id="celTitle"></h2>
+      <div id="celBody"></div>
+      <div class="actions"><button class="btn btn--primary" id="celGo" type="button">Vào xem ngay</button><button class="btn" id="celLater" type="button">Để sau</button></div>
+      <small class="cel-more" id="celMore" hidden></small>
+    </div>
+  </div>
+
   <div class="ov" id="ovHelp" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
       <h2 id="helpTitle">Nông Trại</h2>
@@ -743,7 +794,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m6";
+    import { mount } from "./game.js?v=m7";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

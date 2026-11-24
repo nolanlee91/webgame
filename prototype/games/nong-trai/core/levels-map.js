@@ -1,9 +1,9 @@
 // Bản đồ nông trại theo cấp + trạng thái công trình (DESIGN-2.0 §1, §3). Thuần: UI chỉ việc vẽ danh sách trả về.
 // Không đổi trạng thái. Nguồn: data/buildings.js (lô, sprite), data/levels.js (mở khoá theo cấp), core/build.js (trạng thái).
 
-import { BUILDINGS, BUILDING, LOTS, DECOR, DECOR_SLOTS, DECOR_ITEM, DECOR_SLOT, BLUEPRINT, SCAFFOLD, EAST_W, FIELD, EAST_FIELD } from "../data/buildings.js?v=m6";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m6";
-import { buildingStatus, levelOf, effects, slotOpen } from "./build.js?v=m6";
+import { BUILDINGS, BUILDING, LOTS, DECOR, DECOR_SLOTS, DECOR_ITEM, DECOR_SLOT, BLUEPRINT, SCAFFOLD, EAST_W, FIELD, EAST_FIELD } from "../data/buildings.js?v=m7";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m7";
+import { buildingStatus, levelOf, effects, slotOpen } from "./build.js?v=m7";
 
 const rec = (b, id) => (b?.buildings && Object.prototype.hasOwnProperty.call(b.buildings, id) ? b.buildings[id] : null);
 const progressOf = (startAt, readyAt, now) => (readyAt <= startAt ? 1 : Math.max(0, Math.min(1, (now - startAt) / (readyAt - startAt))));
