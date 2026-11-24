@@ -1,11 +1,11 @@
 // Bảng phủ: thẩm vấn, sổ tay (vật chứng / lời khai / từ khoá / nhân vật), bảng suy luận (ghim + dây đỏ, kéo-thả hoặc chạm chọn), chọn vật chứng, thẻ trong thoại.
-import { h, $, $$, icon, toast } from "./dom.js?v=t7";
-import { portraitEl, accentOf, clueSprite } from "./art.js?v=t7";
-import { renderText } from "./dialog.js?v=t7";
-import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t7";
-import { KINDS } from "../core/validate.js?v=t7";
-import { accuse } from "./screens.js?v=t7";
-import { play as sfx } from "./sfx.js?v=t7";
+import { h, $, $$, icon, toast } from "./dom.js?v=t8";
+import { portraitEl, accentOf, clueSprite } from "./art.js?v=t8";
+import { renderText } from "./dialog.js?v=t8";
+import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t8";
+import { KINDS } from "../core/validate.js?v=t8";
+import { accuse } from "./screens.js?v=t8";
+import { play as sfx } from "./sfx.js?v=t8";
 
 export const KIND_NAME = { ai: "Ai", luc: "Lúc nào", o: "Ở đâu", vat: "Vật gì", cach: "Cách nào", vi: "Vì sao", khac: "Khác" };
 const narrow = () => innerWidth < 900;

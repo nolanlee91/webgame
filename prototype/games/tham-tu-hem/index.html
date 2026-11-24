@@ -260,6 +260,8 @@
     .scene { position: relative; background: #101418; }
     .scene-img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; pointer-events: none; }
     .hs { all: unset; position: absolute; cursor: zoom-in; touch-action: manipulation; }
+    /* vùng chạm tối thiểu 36×36 px css (điểm soi nhỏ trên điện thoại): ::before nở đều quanh tâm, điểm đủ lớn thì giữ nguyên khung */
+    .hs::before { content: ""; position: absolute; inset: min(0px, calc(50% - 18px)); }
     .hs:hover, .hs:focus-visible { outline: 3px dashed var(--ink); outline-offset: -3px; background: rgba(244,234,210,.10); }
     .soi .hs { outline: 3px dashed rgba(244,234,210,.92); outline-offset: -3px; background: rgba(244,234,210,.06); }
     .soi .hs:not(.seen) { animation: soi 1.2s steps(2) infinite; }
@@ -552,7 +554,7 @@
   <div id="ov" hidden></div>
   <div id="fx" aria-live="assertive"></div>
   <div id="toasts" aria-live="polite"></div>
-  <script type="module" src="../_shared/feedback.js?v=t7"></script>
-  <script type="module" src="game.js?v=t7"></script>
+  <script type="module" src="../_shared/feedback.js?v=t8"></script>
+  <script type="module" src="game.js?v=t8"></script>
 </body>
 </html>
