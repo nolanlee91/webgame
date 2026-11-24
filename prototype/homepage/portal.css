@@ -184,3 +184,6 @@
   .hero__dots { position: absolute; left: 45%; right: 0; bottom: 0; }
   .arena { gap: 16px; margin-bottom: 26px; }
 }
+
+/* Sảnh: nút "Tạo phòng mới" (thẻ <a>) cao bằng nút "Vào phòng" (thẻ <button>) và ô mã — trước lệch 8 px */
+.portal .lobby__bar .lobby__create, .portal .pin__row .btn { min-height: 48px; box-sizing: border-box; }
