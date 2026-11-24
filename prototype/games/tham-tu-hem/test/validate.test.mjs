@@ -21,6 +21,21 @@ test("bộ kiểm bắt: từ khoá lạ, vật chứng không nhặt được, 
   assert.match(e, /không bao giờ nhặt được từ khoá "binh"/);
 });
 
+test("trường tuỳ chọn: hints[].done, finale.steps[].hint, teoRescue được kiểm", () => {
+  const c = structuredClone(mini);
+  c.hints[0].done = "clue:muong-an";
+  c.finale.steps[0].hint = "Muỗng trong túi ai?";
+  c.teoRescue = [[["teo", "Sếp ơi bình tĩnh!", "nervous"]]];
+  assert.deepEqual(validateCase(c).errors, []);
+  c.hints[0].done = "clue:khong-co";
+  c.finale.steps[0].hint = 5;
+  c.teoRescue = [[["ai-do", "x"]]];
+  const e = validateCase(c).errors.join("\n");
+  assert.match(e, /hints\[0\]\.done/);
+  assert.match(e, /steps\[0\]\.hint/);
+  assert.match(e, /teoRescue\[0\]/);
+});
+
 test("mọi vụ thật trong data/cases đạt bộ kiểm", async () => {
   const dir = new URL("../data/cases/", import.meta.url);
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".js") && x !== "index.js")) {

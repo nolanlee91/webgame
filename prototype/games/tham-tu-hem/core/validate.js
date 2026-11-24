@@ -147,7 +147,10 @@ export function validateCase(c) {
   checkLines("finale.intro", F.intro); checkLines("finale.confess", F.confess); checkLines("finale.epilogue", F.epilogue);
   (F.steps || []).forEach((s, i) => { if (!clues[s.answer]) err(`finale.steps[${i}]: vật chứng "${s.answer}" không có`); checkLines(`finale.steps[${i}].claim`, s.claim); checkLines(`finale.steps[${i}].right`, s.right); checkLines(`finale.steps[${i}].wrong`, s.wrong); });
   (F.comments || []).forEach((m, i) => { if (!m.by || !m.text) err(`finale.comments[${i}]: cần by + text`); });
-  c.hints.forEach((h, i) => { checkNeeds(`hints[${i}]`, h.needs); if (!h.text) err(`hints[${i}]: thiếu text`); });
+  c.hints.forEach((h, i) => { checkNeeds(`hints[${i}]`, h.needs); checkNeeds(`hints[${i}].done`, h.done); if (!h.text) err(`hints[${i}]: thiếu text`); });
+  // trường tuỳ chọn cho engine: finale.steps[].hint (gợi ý Tèo lúc vạch mặt), teoRescue (các bộ thoại Tèo can khi hết uy tín)
+  (F.steps || []).forEach((s, i) => { if (s.hint != null && (typeof s.hint !== "string" || !s.hint.trim())) err(`finale.steps[${i}].hint: phải là chuỗi`); });
+  if (c.teoRescue != null) { if (!Array.isArray(c.teoRescue)) err(`teoRescue: phải là mảng các bộ thoại`); else c.teoRescue.forEach((ls, i) => checkLines(`teoRescue[${i}]`, ls)); }
   for (const b of c.bonus || []) if (!Array.isArray(b.choices) || !(b.answer >= 0 && b.answer < b.choices.length)) err(`bonus.${b.id}: answer phải là chỉ số trong choices`);
   for (const [where, f] of neededFlags) if (!flagsGiven.has(f)) err(`${where}: cần flag "${f}" nhưng không chỗ nào gives flag này`);
 
