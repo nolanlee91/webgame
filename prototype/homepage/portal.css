@@ -187,3 +187,4 @@
 
 /* Sảnh: nút "Tạo phòng mới" (thẻ <a>) cao bằng nút "Vào phòng" (thẻ <button>) và ô mã — trước lệch 8 px */
 .portal .lobby__bar .lobby__create, .portal .pin__row .btn { min-height: 48px; box-sizing: border-box; }
+.portal .footer__link { white-space: nowrap; color: #c6f7ea; }

@@ -6,4 +6,5 @@ window.COMMUNITY = {
   facebookPage: "",  // vd "https://www.facebook.com/lumkeo"
   zalo: "",          // link mời nhóm/cộng đồng Zalo, vd "https://zalo.me/g/abcxyz"
   tiktok: "",        // vd "https://www.tiktok.com/@lumkeo"
+  contactEmail: "",  // email liên hệ CÔNG KHAI (hiện ở trang Quyền riêng tư), vd "lienhe@…" — đừng dùng email cá nhân
 };

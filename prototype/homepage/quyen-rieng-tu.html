@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quyền riêng tư — Lụm Kèo</title>
+  <meta name="description" content="Lụm Kèo thu những dữ liệu gì, dùng vào việc gì, lưu ở đâu và cách xoá." />
+  <link rel="icon" href="assets/ui/icon-xuc-xac-6.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=unified4" />
+  <link rel="stylesheet" href="portal.css?v=unified6" />
+  <link rel="stylesheet" href="portal-pixel.css?v=unified4" />
+  <style>
+    .policy { max-width: 760px; margin: 0 auto; padding: 22px 26px 26px; }
+    .policy h1 { margin: 0 0 6px; font: 800 clamp(24px, 3.4vw, 32px)/1.15 var(--font-title); }
+    .policy .updated { margin: 0 0 18px; color: var(--soft, #9fb0c4); font-size: 14px; }
+    .policy h2 { margin: 26px 0 8px; font: 800 19px/1.25 "Be Vietnam Pro", system-ui, sans-serif; color: #c6f7ea; }
+    .policy p, .policy li { font-size: 15.5px; line-height: 1.65; }
+    .policy ul { padding-left: 20px; margin: 6px 0; }
+    .policy li + li { margin-top: 4px; }
+    .policy table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 14.5px; }
+    .policy th, .policy td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 2px solid #22344a; }
+    .policy th { color: #ffcf8a; font-weight: 800; white-space: nowrap; }
+    .policy .lead { font-size: 16.5px; }
+    .policy code { font-size: 13px; padding: 1px 5px; background: #0f1a28; }
+    .back { display: inline-flex; margin: 0 0 16px; }
+    @media (max-width: 560px) {
+      .policy { padding: 16px 14px 20px; }
+      .policy table, .policy tbody, .policy tr, .policy th, .policy td { display: block; }
+      .policy tr { padding: 6px 0; border-bottom: 2px solid #22344a; }
+      .policy th, .policy td { border: 0; padding: 2px 0; white-space: normal; }
+    }
+  </style>
+</head>
+<body class="portal theme-b">
+  <header class="topbar" data-name="topbar">
+    <div class="topbar__inner">
+      <a class="logo" href="./" aria-label="Lụm Kèo — Rủ bạn vào chơi. Về trang chủ">
+        <img class="logo__mark" src="assets/ui/icon-xuc-xac-6.png" alt="" width="32" height="32" />
+        <span class="logo__words"><span class="logo__text">Lụm Kèo</span><span class="logo__slogan">Rủ bạn vào chơi</span></span>
+      </a>
+    </div>
+  </header>
+
+  <main class="page">
+    <a class="btn btn--sm back" href="./">← Về trang chủ</a>
+    <article class="policy px-panel">
+      <h1>Quyền riêng tư</h1>
+      <p class="updated">Cập nhật ngày 25/11/2026</p>
+
+      <p class="lead">Lụm Kèo là cổng game chơi miễn phí trên trình duyệt. Bạn chơi được mà không cần đăng ký, không cần email hay số điện thoại. Trang này nói rõ Lụm Kèo giữ những gì, để làm gì, và cách xoá.</p>
+
+      <h2>1. Lưu ngay trên máy của bạn</h2>
+      <p>Phần lớn dữ liệu chỉ nằm trong bộ nhớ trình duyệt của bạn (localStorage), không gửi về máy chủ:</p>
+      <ul>
+        <li>Bản lưu game: nông trại, tiệm, kỷ lục, hồ sơ thám tử…</li>
+        <li>Cài đặt: bật/tắt âm thanh, tên bạn gõ trong game.</li>
+        <li>Kết quả và chuỗi ngày của Thử thách hôm nay.</li>
+      </ul>
+      <p>Xoá dữ liệu trang web trong trình duyệt là các bản lưu này mất luôn, Lụm Kèo không khôi phục được.</p>
+
+      <h2>2. Gửi lên máy chủ</h2>
+      <table>
+        <tbody>
+          <tr><th scope="row">Mã người chơi ẩn danh</th><td>Một dãy ngẫu nhiên tạo ra lần đầu bạn chơi Thử thách hôm nay. Không gắn với tên thật, email hay số điện thoại. Dùng để biết kết quả nào là của bạn trên bảng xếp hạng.</td></tr>
+          <tr><th scope="row">Tên hiển thị</th><td>Tên bạn tự đặt (2–16 ký tự, không bắt buộc, mặc định "Người chơi"). Tên này <b>công khai</b> trên bảng xếp hạng. Đừng dùng tên thật đầy đủ hay thông tin riêng.</td></tr>
+          <tr><th scope="row">Kết quả Thử thách</th><td>Thời gian giải, số lỗi, điểm, số câu đúng, cùng các bước bạn đi để máy chủ kiểm kết quả có thật. Hiện công khai trên bảng xếp hạng kèm tên hiển thị.</td></tr>
+          <tr><th scope="row">Phòng chơi online</th><td>Khi chơi cùng bạn bè, tên bạn gõ và các nước đi được gửi qua máy chủ để người cùng phòng thấy. Không lưu lại sau khi phòng đóng.</td></tr>
+          <tr><th scope="row">Địa chỉ IP</th><td>Máy chủ nào cũng thấy địa chỉ IP khi bạn vào trang. Lụm Kèo chỉ dùng IP để chặn gửi quá nhiều lần (giữ trong bộ nhớ khoảng một phút) và không ghi vào cơ sở dữ liệu.</td></tr>
+        </tbody>
+      </table>
+      <p>Lụm Kèo <b>không</b> thu email, số điện thoại, danh bạ, vị trí hay ảnh của bạn, không bán dữ liệu và không dùng dữ liệu để quảng cáo nhắm theo người.</p>
+
+      <h2>3. Lưu ở đâu</h2>
+      <ul>
+        <li><b>Railway</b>: máy chủ chạy trang web và phòng chơi online.</li>
+        <li><b>Supabase</b>, máy chủ đặt tại Singapore: lưu mã ẩn danh, tên hiển thị và kết quả Thử thách.</li>
+        <li><b>jsDelivr</b>, <b>Google Fonts</b>: tải thư viện và phông chữ. Các dịch vụ này cũng thấy địa chỉ IP của bạn khi tải.</li>
+      </ul>
+      <p>Bảng xếp hạng mỗi ngày giữ lại để xem lịch sử. Lụm Kèo có thể xoá bớt dữ liệu cũ mà không báo trước.</p>
+
+      <h2>4. Trẻ em</h2>
+      <p>Lụm Kèo không yêu cầu thông tin cá nhân nên trẻ em chơi được. Bố mẹ nên dặn con không đặt tên hiển thị bằng tên thật, tên trường hay số điện thoại.</p>
+
+      <h2>5. Xoá dữ liệu và liên hệ</h2>
+      <ul>
+        <li>Muốn đổi tên trên bảng xếp hạng: bấm <b>Đổi tên</b> ngay dòng hạng của bạn.</li>
+        <li>Muốn xoá hẳn kết quả và tên trên máy chủ: gửi yêu cầu cho Lụm Kèo kèm tên hiển thị và ngày chơi. Lụm Kèo xoá trong vòng 7 ngày.</li>
+      </ul>
+      <p id="contactLine">Liên hệ: <span id="contactBox">đang cập nhật.</span></p>
+
+      <h2>6. Thay đổi</h2>
+      <p>Khi Lụm Kèo thêm tính năng mới (ví dụ đăng nhập bằng Google hoặc Facebook để giữ bản lưu khi đổi máy), trang này sẽ được cập nhật trước khi tính năng chạy, kèm ngày cập nhật ở đầu trang.</p>
+    </article>
+  </main>
+
+  <footer class="footer" data-name="footer">
+    <div class="footer__inner">
+      <div class="footer__row"><p class="footer__brand"><strong>Lụm Kèo</strong> · Rủ bạn vào chơi · © 2026</p></div>
+    </div>
+  </footer>
+  <script src="community.js?v=c2"></script>
+  <script>
+    (function () {
+      var C = window.COMMUNITY || {}, box = document.getElementById("contactBox"), parts = [];
+      var mail = typeof C.contactEmail === "string" ? C.contactEmail.trim() : "";
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) parts.push('<a href="mailto:' + mail + '">' + mail + "</a>");
+      var g = typeof C.facebookGroup === "string" ? C.facebookGroup.trim() : "", z = typeof C.zalo === "string" ? C.zalo.trim() : "";
+      if (/^https?:\/\/\S+$/i.test(g)) parts.push('<a href="' + g + '" target="_blank" rel="noopener">nhóm Facebook Lụm Kèo</a>');
+      if (/^https?:\/\/\S+$/i.test(z)) parts.push('<a href="' + z + '" target="_blank" rel="noopener">nhóm Zalo Lụm Kèo</a>');
+      if (parts.length) box.innerHTML = parts.join(" hoặc ") + ".";
+    })();
+  </script>
+</body>
+</html>
