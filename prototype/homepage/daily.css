@@ -43,8 +43,8 @@
   .daily__title { font-size: 20px; }
   .daily__sub { font-size: 12px; }
   .daily__lead, .dcard__meta, .dcard__cd { display: none; }
-  .daily__row { display: flex; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-left: 3px;
-    margin: 0 -12px; padding: 3px 21px 10px 15px; scrollbar-width: none; }
+  .daily__row { display: flex; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-left: 12px; /* = lề trái bên dưới: thẻ đầu thẳng mép 12 px với tiêu đề + lưới game (trước hít về 3 px) */
+    margin: 0 -12px; padding: 3px 21px 10px 12px; scrollbar-width: none; }
   .daily__row::-webkit-scrollbar { display: none; }
   .dcard { flex: 0 0 min(272px, 76vw); scroll-snap-align: start; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; padding: 8px 10px; }
   .dcard:hover { transform: none; }
