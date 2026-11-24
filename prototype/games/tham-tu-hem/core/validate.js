@@ -1,6 +1,6 @@
 // Bộ kiểm dữ liệu vụ án (thuần, không DOM). Dùng ở test, tools/check-case.mjs và (tuỳ chọn) lúc nạp vụ.
 // Kiểm 3 thứ: tham chiếu đúng, đi được tới cuối (mô phỏng người chơi vét hết), đủ lượng nội dung (DESIGN.md §4).
-import { CASES } from "../data/cases/index.js?v=t3";
+import { CASES } from "../data/cases/index.js?v=t4";
 export const CASE_IDS = new Set(CASES.map((x) => x.id));
 
 export const CAST = ["me", "teo", "batu", "chuba", "narr"];

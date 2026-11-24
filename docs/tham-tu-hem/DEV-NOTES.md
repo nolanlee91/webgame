@@ -1,7 +1,7 @@
 # Thám Tử Hẻm: ghi chú dev
 
 Hợp đồng chung (vòng chơi, dàn nhân vật, 6 vụ, định dạng vụ): `docs/tham-tu-hem/DESIGN.md`. Asset: `docs/tham-tu-hem/asset-spec.json`.
-Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t3`** cho mọi import và `<script src>`.
+Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t4`** cho mọi import và `<script src>`.
 
 ## 1. Kiến trúc
 
@@ -71,7 +71,7 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs, e2e-sea
 - **Khoá**: mùa mở khi vụ đầu của mùa đã mở khoá (`seasonUnlocked`). Tab khoá có ổ khoá + tooltip "Phá xong Vụ 6 để mở Chợ Hẻm"; bấm thì hiện toast đó và ở lại mùa 1.
 - **Tab tự chọn** (`pickSeason`): mùa của vụ mới nhất đang dở (phase `play`/`finale`), không có thì mùa của vụ mới nhất đã mở khoá. Chọn tay giữ trong phiên. Rời một vụ thì về tab của vụ đó; riêng lúc vừa mở mùa 2 mà chưa xem màn chuyển thì tự chọn (ra màn chuyển).
 - **Màn chuyển** (screen `season`, lần đầu bản đồ ra mùa 2): thoại Tèo + bà Tư (`SEASON2_INTRO`), rồi điện thoại có bài đăng nhóm của bà Tư (`SEASON2_POST`), nút "Ra Chợ Hẻm" ghi `profile.flags.s2intro = 1`.
-- **Nạp lười**: mùa còn khoá thì không nạp file vụ (status `pending`, thẻ "Khoá"), nên người chơi mùa 1 không phải tải hay gặp 404 các vụ chưa ra. Phá Vụ 6 xong rời màn kết ⇒ `refreshCatalog` nạp file vụ mùa 2 rồi vẽ lại. Mùa đã mở mà file vụ chưa có (404) ⇒ "Sắp ra mắt", không lỗi JS (dòng 404 mạng của trình duyệt vẫn có, e2e bỏ qua đúng đường `data/cases/*.js?v=t3`).
+- **Nạp lười**: mùa còn khoá thì không nạp file vụ (status `pending`, thẻ "Khoá"), nên người chơi mùa 1 không phải tải hay gặp 404 các vụ chưa ra. Phá Vụ 6 xong rời màn kết ⇒ `refreshCatalog` nạp file vụ mùa 2 rồi vẽ lại. Mùa đã mở mà file vụ chưa có (404) ⇒ "Sắp ra mắt", không lỗi JS (dòng 404 mạng của trình duyệt vẫn có, e2e bỏ qua đúng đường `data/cases/*.js?v=t4`).
 - **Chân dung dùng lại**: `people.<pid>.sheet: "<id vụ cũ>"` ⇒ `registerSheets(c)` lúc nạp vụ, `portraitFrame` ưu tiên `portraits-<sheet>.webp`.
 - **Asset đợt 4** (Codex): `assets/scenes/hem-map-2.webp` + `manifest.hotspots` cho 6 chấm, cảnh `assets/scenes/<vụ>/<cảnh>.webp`, `portraits-<vụ>.webp`, `clues-<vụ>.webp`. Có file là game tự dùng, không cần sửa code.
 - **Kiểm**: `test/season.test.mjs` (tab, mở khoá, tab tự chọn, hạng, bản lưu cũ, `sheet`); `test/e2e-season.mjs` (tiêm bản lưu đã phá Vụ 6 ⇒ màn chuyển ⇒ tab mùa 2 ở 1366×768 và 390×844, elementFromPoint, ảnh); `e2e-bot.mjs` chạy mọi vụ có file kể cả mùa 2, vụ chưa có file thì SKIP.
