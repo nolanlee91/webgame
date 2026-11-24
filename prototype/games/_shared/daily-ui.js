@@ -1,14 +1,15 @@
 // Thử thách hôm nay — phần giao diện dùng chung trong game: nhãn "Thử thách #N" và bảng kết quả.
 // Bảng kết quả tự mang CSS riêng (tiền tố .dly-), lấy màu từ biến của game (--panel, --gold…) nếu có,
 // theo Pixel UI V5 của HUD trong game: viền 3px, vát, bóng cứng, không bo tròn.
+// Dưới các nút là "Bảng xếp hạng hôm nay" (daily-board.js, nạp lười; máy chủ tắt bảng thì ẩn hẳn).
 import * as D from "./daily.js?v=daily1";
 
 const CSS = `
 .dly-chip{display:inline-flex;align-items:center;gap:6px;margin-left:12px;padding:3px 9px;vertical-align:middle;font:800 12px/1.2 "Be Vietnam Pro",system-ui,sans-serif;
   letter-spacing:.06em;text-transform:uppercase;text-shadow:none;color:#2c1b05;background:var(--gold,#ffc94a);box-shadow:0 0 0 3px var(--gold-d,#5a3a08)}
-.dly-ov{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:12px;background:rgba(10,8,7,.8);overflow:auto}
+.dly-ov{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:12px;background:rgba(10,8,7,.8);overflow:auto;overscroll-behavior:contain}
 .dly-ov[hidden],.dly-reopen[hidden]{display:none!important}
-.dly-card{width:min(440px,100%);margin:3px 7px 7px 3px;padding:20px 20px 22px;text-align:center;color:var(--ink,#f4ead2);background:var(--panel,#1d1a16);
+.dly-card{box-sizing:border-box;width:min(440px,calc(100% - 10px));margin:auto 7px auto 3px;padding:20px 20px 22px;text-align:center;color:var(--ink,#f4ead2);background:var(--panel,#1d1a16);
   font:500 15px/1.5 "Be Vietnam Pro",system-ui,sans-serif;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.13),inset 0 -2px 0 rgba(0,0,0,.35),0 -3px 0 0 #0a0807,0 3px 0 0 #0a0807,-3px 0 0 0 #0a0807,3px 0 0 0 #0a0807,4px 7px 0 0 rgba(0,0,0,.6),7px 4px 0 0 rgba(0,0,0,.6)}
 .dly-kick{font:800 12px/1 "Be Vietnam Pro",system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--soft,#b9ad93)}
@@ -33,7 +34,38 @@ const CSS = `
 .dly-btn--share:hover{background:linear-gradient(#fff3c9 0 3px,#ffd466 3px)}
 .dly-btn--ghost{flex:1 1 140px}
 .dly-reopen{position:fixed;right:16px;bottom:16px;z-index:40}
-@media (max-width:420px){.dly-card{padding:16px 14px 18px}.dly-card h2{font-size:22px}.dly-grid{font-size:21px}.dly-stats b{font-size:19px}}
+.dly-lb{margin-top:18px;padding:12px 12px 10px;text-align:left;background:var(--panel2,#262019);box-shadow:0 0 0 3px #0a0807;margin-left:3px;margin-right:3px}
+.dly-lb[hidden]{display:none!important}
+.dly-lb__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;margin-bottom:8px}
+.dly-lb__title{font:800 14px/1.2 "Be Vietnam Pro",system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--gold,#ffc94a)}
+.dly-lb__count{font:700 12px/1.2 "Be Vietnam Pro",system-ui;color:var(--soft,#b9ad93);font-variant-numeric:tabular-nums}
+.dly-lb__list{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.dly-lb__row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:28px;padding:3px 8px;font:600 14px/1.25 "Be Vietnam Pro",system-ui;background:rgba(0,0,0,.18)}
+.dly-lb__row:nth-child(-n+3) .dly-lb__rank{color:var(--gold,#ffc94a)}
+.dly-lb__row.is-you{color:#c6f7ea;background:#1b3c42;box-shadow:inset 3px 0 0 #75d1bf}
+.dly-lb__rank{font-weight:800;font-variant-numeric:tabular-nums;color:var(--soft,#b9ad93)}
+.dly-lb__name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dly-lb__score{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dly-lb__gap{text-align:center;line-height:1;color:var(--soft,#b9ad93)}
+.dly-lb__you{margin:8px 0 0;font-size:13px;color:var(--soft,#b9ad93)}.dly-lb__you b{color:#c6f7ea;font-size:15px}
+.dly-lb__msg,.dly-lb__note{margin:4px 0;font-size:13px;line-height:1.4;color:var(--soft,#b9ad93)}
+.dly-lb__note{color:#ffcf8a}
+.dly-lb__msg.is-wait::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;background:currentColor;animation:dlyBlink 1s steps(2) infinite}
+@keyframes dlyBlink{50%{opacity:0}}
+.dly-lb__retry{min-height:34px;padding:6px 12px;font-size:12px;margin:4px 0 0 4px}
+.dly-name{display:grid;gap:6px}
+.dly-name__lab{font:700 13px/1.3 "Be Vietnam Pro",system-ui;color:var(--ink,#f4ead2)}
+.dly-name__row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.dly-name__inp{flex:1 1 140px;min-width:0;box-sizing:border-box;height:40px;margin:3px;padding:6px 10px;border:0;border-radius:0;font:700 16px/1 "Be Vietnam Pro",system-ui;
+  color:var(--ink,#f4ead2);background:#0f0d0b;box-shadow:0 0 0 3px #6d6150;outline:none}
+.dly-name__inp:focus-visible{box-shadow:0 0 0 3px var(--gold,#ffc94a)}
+.dly-name__ok,.dly-name__skip{min-height:40px;padding:8px 12px;font-size:13px}
+.dly-name__ok{color:#2c1b05;background:var(--gold,#ffc94a)}
+.dly-name__ok:hover{background:#ffd466}
+.dly-name__hint{font-size:12px;color:var(--soft,#b9ad93)}
+@media (prefers-reduced-motion:reduce){.dly-lb__msg.is-wait::after{animation:none}}
+@media (max-width:420px){.dly-card{padding:16px 14px 18px}.dly-card h2{font-size:22px}.dly-grid{font-size:21px}.dly-stats b{font-size:19px}
+  .dly-lb{padding:10px 8px 8px}.dly-lb__row{grid-template-columns:34px minmax(0,1fr) auto;gap:6px;padding:3px 6px;font-size:13px}}
 `;
 
 function injectCss() {
@@ -57,7 +89,7 @@ export function badge(day, where = document.querySelector(".bar h1")) {
  * Bảng kết quả đã khoá. game: id trong D.GAMES; day; result (đã ghi). normalUrl: link chế độ chơi thường.
  * title: dòng tiêu đề (vd. "Giải xong!"). Trả về { el, show(), hide(), destroy() }.
  */
-export function panel({ game, day, result, title = "Xong rồi!", normalUrl = "./", homeUrl = "../../homepage/" }) {
+export function panel({ game, day, result, title = "Xong rồi!", normalUrl = "./", homeUrl = "../../homepage/", board = true }) {
   injectCss();
   const old = document.getElementById("dlyOv"); if (old) old.remove();
   const oldR = document.getElementById("dlyReopen"); if (oldR) oldR.remove();
@@ -81,6 +113,7 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
         <a class="dly-btn dly-btn--ghost" id="dlyNormal" href="${normalUrl}">Chơi thường</a>
         <button class="dly-btn dly-btn--ghost" id="dlyView" type="button">Xem bàn</button>
       </div>
+      <section class="dly-lb" id="dlyLb" aria-live="polite" aria-label="Bảng xếp hạng hôm nay" hidden></section>
     </div>`;
   ov.querySelector("#dlyTitle").textContent = title;
   ov.querySelector("#dlyGrid").textContent = D.grid(game, result);
@@ -111,6 +144,14 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
   tick();
   const t = setInterval(tick, 1000);
   show();
+  // Bảng xếp hạng: nạp lười, lỗi gì cũng chỉ ẩn phần này (kết quả + nút Khoe vẫn dùng được).
+  const lb = ov.querySelector("#dlyLb");
+  if (board) {
+    import("./daily-board.js?v=board1")
+      .then((m) => m.mountBoard(lb, { game, day, result }))
+      .then((st) => { window.__dailyBoardState = st; })
+      .catch(() => { lb.hidden = true; window.__dailyBoardState = "failed"; });
+  }
   return { el: ov, show, hide, destroy() { clearInterval(t); ov.remove(); reopen.remove(); } };
 }
 

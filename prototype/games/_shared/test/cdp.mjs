@@ -34,15 +34,17 @@ export async function launchChrome() {
   const cmd = (method, params = {}) => new Promise((r) => { const i = ++bid; pend.set(i, r); bws.send(JSON.stringify({ id: i, method, params })); });
   return {
     port, cmd,
-    async newTab(name, w = 1366, h = 768, mobile = false) { return new Tab(this, name).open(w, h, mobile); },
+    async newTab(name, w = 1366, h = 768, mobile = false, browserContextId) { return new Tab(this, name).open(w, h, mobile, browserContextId); },
+    /** Hồ sơ trình duyệt riêng (localStorage / cookie tách biệt) — để giả lập nhiều người chơi trên cùng một Chrome. */
+    async newContext() { return (await cmd("Target.createBrowserContext", { disposeOnDetach: true })).result.browserContextId; },
     close() { try { bws.close(); } catch {} proc.kill(); setTimeout(() => { try { rmSync(prof, { recursive: true, force: true }); } catch {} }, 800); },
   };
 }
 
 export class Tab {
   constructor(chrome, name) { this.chrome = chrome; this.name = name; this.id = 0; this.pend = new Map(); this.errors = []; this.console = []; }
-  async open(w, h, mobile) {
-    const { targetId } = (await this.chrome.cmd("Target.createTarget", { url: "about:blank", newWindow: true })).result;
+  async open(w, h, mobile, browserContextId) {
+    const { targetId } = (await this.chrome.cmd("Target.createTarget", { url: "about:blank", newWindow: true, ...(browserContextId ? { browserContextId } : {}) })).result;
     this.ws = new WebSocket(`ws://127.0.0.1:${this.chrome.port}/devtools/page/${targetId}`);
     await new Promise((r) => (this.ws.onopen = r));
     this.ws.onmessage = (e) => {

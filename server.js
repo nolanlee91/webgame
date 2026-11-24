@@ -22,7 +22,22 @@ function send(res, code, body, headers = {}) {
 
 const gameHosts = new Map();
 
+// Tài khoản + Bảng xếp hạng Thử thách hôm nay (games-server/account/, ES module ⇒ nạp bất đồng bộ một lần).
+// Supabase khi có SUPABASE_URL + SUPABASE_ANON_KEY + SUPABASE_SERVICE_ROLE_KEY; máy dev không cấu hình ⇒ bảng trong RAM;
+// trên Railway chưa cấu hình ⇒ tắt bảng. Xem docs/accounts/README.md.
+const accountApi = import("./games-server/account/index.mjs").then((m) => {
+  const api = m.createAccountApi({ env: process.env });
+  if (require.main === module) console.log(`Bảng xếp hạng Thử thách hôm nay: chế độ ${api.mode}`);
+  return api;
+});
+accountApi.catch((e) => console.error("[daily-board] không nạp được games-server/account:", e && e.message));
+function handleAccount(req, res) {
+  accountApi.then((api) => api.handle(req, res)).then((done) => { if (!done && !res.headersSent) sendJson(res, 404, { error: "not_found" }); })
+    .catch(() => { if (!res.headersSent) sendJson(res, 500, { error: "server" }); else res.destroy(); });
+}
+
 const server = http.createServer((req, res) => {
+  if (req.url === "/api/config" || req.url.startsWith("/api/config?") || req.url.startsWith("/api/daily/")) return handleAccount(req, res);
   if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, "Method Not Allowed", { Allow: "GET, HEAD" });
   let urlPath;
   try { urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { return send(res, 400, "Bad Request"); }
