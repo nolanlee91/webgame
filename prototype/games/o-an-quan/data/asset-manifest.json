@@ -1,156 +1,309 @@
 {
  "schemaVersion": 1,
- "phase": "dev-placeholder",
- "_doc": "BẢN TẠM CỦA DEV: chưa có asset Codex, game vẽ bàn/sỏi/quan/nền bằng code (art.js). placements = toạ độ tâm ô trên bàn vẽ bằng code, cảnh 1200×480: pit-0 quan trái, pit-1..5 hàng dưới trái→phải, pit-6 quan phải, pit-7..11 hàng trên phải→trái; r = bán kính vùng đặt sỏi; half = nửa cỡ vùng bấm (tuỳ chọn); tray-a/tray-b = khay điểm đội A (dưới) / B (trên), tuỳ chọn. Khi Codex giao docs/o-an-quan/asset-manifest.json, chạy tools/sync-manifest.mjs để ghi đè file này.",
- "items": [],
+ "items": [
+  {
+   "filename": "assets/yard-bg.webp",
+   "dimensions": [
+    1280,
+    720
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "yard-bg": {
+     "rect": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/board.webp",
+   "dimensions": [
+    1200,
+    480
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "board": {
+     "rect": [
+      0,
+      0,
+      1200,
+      480
+     ],
+     "anchor": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/stones.webp",
+   "dimensions": [
+    128,
+    64
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "dan-1": {
+     "rect": [
+      0,
+      0,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-2": {
+     "rect": [
+      32,
+      0,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-3": {
+     "rect": [
+      64,
+      0,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-4": {
+     "rect": [
+      96,
+      0,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-5": {
+     "rect": [
+      0,
+      32,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-6": {
+     "rect": [
+      32,
+      32,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-7": {
+     "rect": [
+      64,
+      32,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    },
+    "dan-8": {
+     "rect": [
+      96,
+      32,
+      32,
+      32
+     ],
+     "anchor": [
+      16,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/quan.webp",
+   "dimensions": [
+    192,
+    96
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "quan-left": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    },
+    "quan-right": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      48,
+      48
+     ]
+    }
+   }
+  },
+  {
+   "filename": "assets/hand.webp",
+   "dimensions": [
+    192,
+    96
+   ],
+   "pixelScale": 2,
+   "frames": {
+    "hand-hold": {
+     "rect": [
+      0,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      72,
+      76
+     ]
+    },
+    "hand-drop": {
+     "rect": [
+      96,
+      0,
+      96,
+      96
+     ],
+     "anchor": [
+      72,
+      76
+     ]
+    }
+   }
+  }
+ ],
  "placements": {
   "pit-0": {
    "at": [
-    204,
-    240
+    135,
+    239
    ],
-   "r": 60,
-   "half": [
-    70,
-    130
-   ]
-  },
-  "pit-6": {
-   "at": [
-    996,
-    240
-   ],
-   "r": 60,
-   "half": [
-    70,
-    130
-   ]
+   "r": 72
   },
   "pit-1": {
    "at": [
-    340,
-    305
+    299,
+    315
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-2": {
    "at": [
-    470,
-    305
+    449,
+    315
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-3": {
    "at": [
-    600,
-    305
+    599,
+    315
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-4": {
    "at": [
-    730,
-    305
+    748,
+    315
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-5": {
    "at": [
-    860,
-    305
+    899,
+    315
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
+  },
+  "pit-6": {
+   "at": [
+    1068,
+    239
+   ],
+   "r": 72
   },
   "pit-7": {
    "at": [
-    860,
-    175
+    899,
+    163
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-8": {
    "at": [
-    730,
-    175
+    748,
+    163
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-9": {
    "at": [
-    600,
-    175
+    599,
+    163
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-10": {
    "at": [
-    470,
-    175
+    449,
+    163
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
+   "r": 57
   },
   "pit-11": {
    "at": [
-    340,
-    175
+    299,
+    163
    ],
-   "r": 44,
-   "half": [
-    58,
-    58
-   ]
-  },
-  "tray-a": {
-   "at": [
-    600,
-    448
-   ],
-   "w": 560,
-   "h": 44
-  },
-  "tray-b": {
-   "at": [
-    600,
-    32
-   ],
-   "w": 560,
-   "h": 44
+   "r": 57
   }
  }
 }

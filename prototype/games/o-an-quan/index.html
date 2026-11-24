@@ -198,6 +198,7 @@
       .pl .pc { width: 26px; height: 26px; }
       .pl .who small { display: none; }
       .pl .who b { font-size: 14px; }
+      .pl .who em { white-space: normal; overflow: visible; font-size: 10px; line-height: 1.15; } /* dòng phụ (mức máy · quan · nợ) xuống dòng thay vì bị cắt */
       .pl .sc { font-size: 22px; }
       .mid { min-width: 74px; max-width: 112px; } .mid b { font-size: 13px; white-space: normal; } .mid small { letter-spacing: .03em; font-size: 10px; }
       .tools { justify-content: space-between; gap: 10px; margin: 3px 7px 7px 3px; }
@@ -223,11 +224,18 @@
       body:not(.chat-open) .chat { display: none; }
       .chat-hd .btn { display: inline-flex; }
     }
+    /* Điện thoại ngang / màn thấp: HUD + công cụ dồn sang cột trái để bàn được trọn chiều cao (phóng bội 0,5 lớn hơn) */
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
-      body.has-chat .wrap { grid-template-columns: minmax(0, 1fr) 260px; }
-      .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; }
-      .wrap { padding: 12px 10px 6px; gap: 8px; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; grid-template-areas: "hud tools" "stage stage"; }
-      .pl { padding: 3px 8px; } .tools .btn { min-height: 36px; flex: none; } .tools .btn--icon { flex: none; }
+      .bar { padding: 3px 12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .wrap { padding: 8px 10px 6px; gap: 8px; grid-template-columns: 184px minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "hud stage" "tools stage"; }
+      body.has-chat .wrap { grid-template-columns: 184px minmax(0, 1fr) 240px; grid-template-areas: "hud stage chat" "tools stage chat"; }
+      .hud { grid-template-columns: minmax(0, 1fr); gap: 18px; align-content: start; }
+      .pl { padding: 4px 8px; } .pl .who small { display: none; } .pl .sc { font-size: 22px; }
+      .pl .who em { white-space: normal; overflow: visible; font-size: 10px; line-height: 1.15; }
+      .pl--b { flex-direction: row; text-align: left; } .pl--b .sc { margin-left: auto; margin-right: 0; } .pl--b .turn { left: 10px; right: auto; }
+      .mid { order: -1; min-width: 0; margin-bottom: 8px; } .mid b { white-space: normal; font-size: 13px; }
+      .tools { flex-wrap: wrap; align-content: flex-end; gap: 10px; margin: 3px 7px 7px 3px; }
+      .tools .btn { min-height: 38px; padding: 6px 10px; font-size: 12px; flex: 1 1 70px; } .tools .btn--icon { flex: 0 0 44px; } .kb { display: none; }
     }
   </style>
 </head>
@@ -367,7 +375,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=oaq1";
+    import { mount } from "./game.js?v=oaq2";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

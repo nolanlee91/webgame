@@ -3,7 +3,7 @@
 // (hàng mình luôn ở dưới), xoay 90° khi khung dọc (điện thoại) để bàn to gấp rưỡi. Hệ số phóng làm tròn bội 0,5 theo dpr
 // (PLAYBOOK §2) để ảnh pixel sắc; tắt làm mượt ảnh khi phóng ≥ 0,5.
 import { ROWS, QUAN, isQuan } from "./logic.js";
-import { SCENE, DEFAULT_PLACEMENTS, drawTray } from "./art.js?v=oaq1";
+import { SCENE, DEFAULT_PLACEMENTS, drawTray } from "./art.js?v=oaq2";
 
 const C = { gold: "#ffc94a", goldD: "#5a3a08", teal: "#6fd0bb", line: "#0a0807", ink: "#f4ead2", a: "#9cc8ff", b: "#ff8f84", aD: "#3f8be0", bD: "#e0483d" };
 const TEAM_COL = [C.a, C.b], TEAM_ACC = [C.aD, C.bD];
@@ -19,13 +19,16 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
   let sheets = null, P = DEFAULT_PLACEMENTS, yardPattern = null;
   let M = [1, 0, 0, 1, 0, 0], Mi = M, k = 1, kCss = 1, dpr = 1, rot = false, flip = false, W = 0, H = 0, smooth = false;
   let D = null;                  // trạng thái đang HIỂN THỊ (đi sau trạng thái thật trong lúc hoạt cảnh)
-  let quiet = false, queue = [], cur = null, curT = 0, speed = 1, hand = null, flyers = [], floats = [], marks = [], lastNow = 0, done = null;
+  let takes = 0, quiet = false, queue = [], cur = null, curT = 0, speed = 1, hand = null, flyers = [], floats = [], marks = [], lastNow = 0, done = null;
   const api = { mine: 0, canAct: false, preview: null, selected: null, cursor: null, hover: null, hoverArrow: 0, flash: null };
 
   // ---------- hình
   function setSheets(s) {
     sheets = s; P = s.placements || DEFAULT_PLACEMENTS;
-    yardPattern = s.yardTile ? g.createPattern(s.yardTile, "repeat") : null;
+    // nền ngoài vùng ảnh sân: lặp chính ảnh sân của Codex (gốc lặp trùng chỗ đặt ảnh) hoặc ô gạch vẽ bằng code
+    const tile = s.yard || s.yardTile;
+    yardPattern = tile ? g.createPattern(tile, "repeat") : null;
+    if (yardPattern && s.yard && yardPattern.setTransform && typeof DOMMatrix !== "undefined") yardPattern.setTransform(new DOMMatrix([1, 0, 0, 1, (SCENE.w - s.yard.width) / 2, (SCENE.h - s.yard.height) / 2]));
   }
   const place = (pit) => P["pit-" + pit] || DEFAULT_PLACEMENTS["pit-" + pit];
   const tray = (side) => P[side ? "tray-b" : "tray-a"] || DEFAULT_PLACEMENTS[side ? "tray-b" : "tray-a"];
@@ -37,19 +40,25 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
     dpr = Math.min(3, window.devicePixelRatio || 1);
     W = Math.max(1, Math.round(r.width * dpr)); H = Math.max(1, Math.round(r.height * dpr));
     cv.width = W; cv.height = H;
-    const m = 10, fitN = Math.min(W / (SCENE.w + 2 * m), H / (SCENE.h + 2 * m)), fitR = Math.min(W / (SCENE.h + 2 * m), H / (SCENE.w + 2 * m));
+    // khung nội dung = bàn + hai khay điểm (khay có thể nằm ngoài cảnh 1200×480 khi dùng ảnh bàn của Codex)
+    const ta = tray(0), tb = tray(1), m = 10;
+    const by0 = Math.min(0, ta.at[1] - ta.h / 2 - 8, tb.at[1] - tb.h / 2 - 8), by1 = Math.max(SCENE.h, ta.at[1] + ta.h / 2 + 8, tb.at[1] + tb.h / 2 + 8);
+    const bw = SCENE.w + 2 * m, bh = by1 - by0 + 2 * m;
+    const fitN = Math.min(W / bw, H / bh), fitR = Math.min(W / bh, H / bw);
     rot = fitR > fitN * 1.15;
     const fit = rot ? fitR : fitN;
     const snapped = Math.floor(fit * 2) / 2;
     k = snapped >= 0.5 && snapped / fit >= 0.75 ? snapped : fit; // chịu nhỏ đi tới 25% để giữ bội 0,5 (nét)
     smooth = k < 0.5;
     kCss = k / dpr;
-    const cw = (rot ? SCENE.h : SCENE.w) * k, ch = (rot ? SCENE.w : SCENE.h) * k;
-    const ox = Math.round((W - cw) / 2), oy = Math.round((H - ch) / 2);
     // F: lật 180° (đội B nhìn từ phía mình) · R: xoay ngược kim đồng hồ 90° (bên phải cảnh → phía trên màn hình)
     const F = flip ? [-1, 0, 0, -1, SCENE.w, SCENE.h] : [1, 0, 0, 1, 0, 0];
     const R = rot ? [0, -1, 1, 0, 0, SCENE.w] : [1, 0, 0, 1, 0, 0];
-    M = mul([k, 0, 0, k, ox, oy], mul(R, F));
+    const M0 = mul([k, 0, 0, k, 0, 0], mul(R, F));
+    const cs = [[-m, by0 - m], [SCENE.w + m, by0 - m], [-m, by1 + m], [SCENE.w + m, by1 + m]].map(([x, y]) => app(M0, x, y));
+    const minX = Math.min(...cs.map((c) => c[0])), maxX = Math.max(...cs.map((c) => c[0])), minY = Math.min(...cs.map((c) => c[1])), maxY = Math.max(...cs.map((c) => c[1]));
+    const ox = Math.round((W - (maxX - minX)) / 2 - minX), oy = Math.round((H - (maxY - minY)) / 2 - minY);
+    M = [M0[0], M0[1], M0[2], M0[3], M0[4] + ox, M0[5] + oy];
     Mi = inv(M);
   }
   function setPerspective(team) { const f = team === 1; if (f !== flip) { flip = f; layout(); } api.mine = team; }
@@ -84,11 +93,17 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
     if (!sheet) return;
     const f = sheet.frames[name]; if (!f) return;
     const [sx, sy, sw, sh] = f.rect, [ax, ay] = f.anchor;
+    // vẽ thẳng đứng theo màn hình (không xoay / lật theo bàn) để bóng đổ luôn nằm dưới viên sỏi; toạ độ làm tròn px thiết bị
+    const [dx, dy] = app(M, x, y), sc = k * scale;
     g.globalAlpha = alpha;
-    g.drawImage(sheet.img, sx, sy, sw, sh, Math.round(x - ax * scale), Math.round(y - ay * scale), sw * scale, sh * scale);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(sheet.img, sx, sy, sw, sh, Math.round(dx - ax * sc), Math.round(dy - ay * sc), sw * sc, sh * sc);
+    g.setTransform(...M);
     g.globalAlpha = 1;
   }
-  const stone = (name, x, y, a, s) => sprite(sheets.stones, name, x, y, a, s);
+  // sỏi Codex vẽ ~16 px trong ô 32 → phóng 1,5 (vẫn bội 0,5 nên nét) cho cân với ô 114 px; sỏi vẽ bằng code đã đủ to (1)
+  const stone = (name, x, y, a, s = 1) => sprite(sheets.stones, name, x, y, a, s * (sheets.stoneScale || 1));
+  const trayStone = () => (sheets.stoneScale ? 1 / sheets.stoneScale : 0.75); // sỏi trong khay: cỡ gốc
   const quanStone = (side, x, y, a, s) => sprite(sheets.quan, side ? "quan-right" : "quan-left", x, y, a, s);
 
   // chữ thẳng đứng trên màn hình (không xoay theo bàn)
@@ -179,7 +194,7 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
       drawTray(g, t.at[0], t.at[1], t.w, t.h, TEAM_ACC[side]);
       const shown = Math.max(0, Math.min(90, D.score[side] - 10 * D.eaten[side]));
       [0, 1].filter((q) => D.quanBy[q] === side).forEach((q, i) => quanStone(q, ...trayPos(side, i, true), 1, 0.5));
-      for (let i = 0; i < shown; i++) stone(variant(side + 40, i), ...trayPos(side, i), 1, 0.75);
+      for (let i = 0; i < shown; i++) stone(variant(side + 40, i), ...trayPos(side, i), 1, trayStone());
     }
     // ô có thể chọn / ô đang chọn
     const pulse = Math.floor(now / 380) % 2;
@@ -193,12 +208,19 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
     }
     if (api.selected != null && api.canAct) brackets(api.selected, C.gold, 2);
     // nắm sỏi đang cầm + sỏi đang bay
-    if (hand && hand.n > 0) {
+    if (hand && (hand.n > 0 || (sheets.hand && hand.drop))) {
       // nắm sỏi nhấc lên theo hướng "lên" của màn hình (bàn có thể đang xoay / lật)
       const [hx, hy] = hand.pos, lift = hand.lift ?? 1, [ux, uy] = upVec(), sx = -uy, sy = ux;
       const L = 26 * lift;
-      if (sheets.hand) sprite(sheets.hand, "hand-hold", hx + ux * (L + 8), hy + uy * (L + 8));
-      for (let i = 0; i < Math.min(hand.n, 12); i++) {
+      if (sheets.hand) {
+        // tay vẽ thẳng đứng theo màn hình (không xoay theo bàn), điểm neo = đầu ngón đang nhón sỏi
+        const f = sheets.hand.frames[hand.drop ? "hand-drop" : "hand-hold"] || sheets.hand.frames["hand-hold"];
+        const [dx, dy] = toDev(hx + ux * L * 0.6, hy + uy * L * 0.6), [sx0, sy0, sw, sh] = f.rect, [ax, ay] = f.anchor;
+        g.setTransform(1, 0, 0, 1, 0, 0);
+        g.drawImage(sheets.hand.img, sx0, sy0, sw, sh, Math.round(dx - ax * k), Math.round(dy - ay * k), sw * k, sh * k);
+        if (hand.n > 1) text("×" + hand.n, [dx - 70 * k, dy - 70 * k], { size: Math.max(12, 16 * kCss * 1.3), col: C.ink, bg: "rgba(18,12,8,.85)", pad: 3, stroke: false });
+        g.setTransform(...M);
+      } else for (let i = 0; i < Math.min(hand.n, 12); i++) {
         const side = ((i * 7) % 15) - 7, up = L + Math.floor(i / 3) * 4;
         stone(variant(hand.at + 50, i), hx + ux * up + sx * side, hy + uy * up + sy * side, 1);
       }
@@ -254,10 +276,10 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
           const to = stonePos(st.at, D.pits[st.at]);
           const [ux, uy] = upVec();
           flyers = [{ from: [from[0] + ux * 26, from[1] + uy * 26], to, frame: variant(st.at, D.pits[st.at]), dur: DUR.drop, delay: 0, arc: 26 }];
-          if (hand) { hand.n--; hand.from = from; hand.to = place(st.at).at.slice(); }
+          if (hand) { hand.n--; hand.from = from; hand.to = place(st.at).at.slice(); hand.drop = true; }
         },
         draw(t) { if (hand && hand.from) { const e = ease(t); hand.pos = [lerp(hand.from[0], hand.to[0], e), lerp(hand.from[1], hand.to[1], e)]; } },
-        end() { D.pits[st.at]++; flyers = []; snd("tach", D.pits[st.at]); } };
+        end() { D.pits[st.at]++; flyers = []; if (hand) hand.drop = false; snd("tach", D.pits[st.at]); } };
       case "stop": return { dur: DUR.stop, start() {
           hand = null;
           if (st.why === "quan") float("Mất lượt", place(st.at).at, { col: "#b9ad93", size: 15, dur: 900 });
@@ -265,16 +287,17 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
           marks = [{ pit: st.at, col: "#b9ad93" }];
         }, end() { marks = []; } };
       case "take": return { dur: DUR.take, start() {
+          takes++;
           hand = null;
           const n = D.pits[st.at];
           flyers = [];
           const baseIdx = Math.max(0, D.score[st.side] - 10 * D.eaten[st.side]);
-          for (let i = 0; i < n; i++) flyers.push({ from: stonePos(st.at, i), to: trayPos(st.side, baseIdx + i), frame: variant(st.at, i), dur: DUR.take * 0.7, delay: Math.min(i * 12, DUR.take * 0.28), toScale: 0.75 });
+          for (let i = 0; i < n; i++) flyers.push({ from: stonePos(st.at, i), to: trayPos(st.side, baseIdx + i), frame: variant(st.at, i), dur: DUR.take * 0.7, delay: Math.min(i * 12, DUR.take * 0.28), toScale: trayStone() });
           if (st.quan) { flyers.push({ from: place(st.at).at, to: trayPos(st.side, [0, 1].filter((q) => D.quanBy[q] === st.side).length, true), quan: st.at ? 1 : 0, dur: DUR.take * 0.85, delay: 0, toScale: 0.5, arc: 60 }); D.quan[st.at ? 1 : 0] = false; }
           D.pits[st.at] = 0;
           marks = [{ pit: st.at, col: TEAM_COL[st.side] }];
           if (st.quan) { float("ĂN QUAN! +" + st.v, place(st.at).at, { col: C.gold, size: 26, dur: 1500, bg: "rgba(44,27,5,.9)" }); snd("quan"); }
-          else { float("+" + st.v, place(st.at).at, { col: TEAM_COL[st.side], size: 22, dur: 1100 }); snd("take", st.v); }
+          else { float("+" + st.v, place(st.at).at, { col: TEAM_COL[st.side], size: 22, dur: 1100 }); snd("take", st.v, takes); }
         }, end() { D.score[st.side] += st.v; if (st.quan) { D.eaten[st.side]++; D.quanBy[st.at ? 1 : 0] = st.side; } flyers = []; marks = []; onChange(); } };
       case "refill": return { dur: DUR.refill, start() {
           const o = 1 - st.side;
@@ -287,7 +310,7 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
         }, end() { for (const p of st.at) D.pits[p]++; flyers = []; } };
       case "collect": return { dur: DUR.collect, start() {
           flyers = []; let i = Math.max(0, D.score[st.side] - 10 * D.eaten[st.side]);
-          for (const [p, n] of st.at) { for (let j = 0; j < n; j++) flyers.push({ from: stonePos(p, j), to: trayPos(st.side, i++), frame: variant(p, j), dur: DUR.collect * 0.6, delay: Math.min(j * 30 + p * 10, DUR.collect * 0.35), toScale: 0.75 }); D.pits[p] = 0; }
+          for (const [p, n] of st.at) { for (let j = 0; j < n; j++) flyers.push({ from: stonePos(p, j), to: trayPos(st.side, i++), frame: variant(p, j), dur: DUR.collect * 0.6, delay: Math.min(j * 30 + p * 10, DUR.collect * 0.35), toScale: trayStone() }); D.pits[p] = 0; }
           float(`Thu ${st.n} dân`, place(ROWS[st.side][2]).at, { col: TEAM_COL[st.side], size: 18, dur: 1300 });
           snd("take", st.n);
         }, end() { D.score[st.side] += st.n; flyers = []; onChange(); } };
@@ -313,7 +336,7 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
   function animate(steps, final, names = ["Đội A", "Đội B"]) {
     if (done) skip();
     target = final;
-    queue = steps.map((s) => makeTask(s, names));
+    queue = steps.map((s) => makeTask(s, names)); takes = 0;
     return new Promise((res) => { done = () => { show(target); res(); }; onChange(); });
   }
   function skip() {

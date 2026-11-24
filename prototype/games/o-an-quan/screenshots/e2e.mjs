@@ -137,10 +137,12 @@ check('bàn phím: mũi tên ← khi đã chọn → rải sang trái', (await S
 await key('KeyS'); await waitIdle();
 await key('KeyU'); s = await S();
 check('phím U → đi lại (bỏ nước của bạn + nước máy)', s.moves === 2 && s.turn === 0, 'moves ' + s.moves);
-await key('KeyM');
-check('phím M tắt tiếng (lưu chung wgp.muted)', await ev(`localStorage.getItem('wgp.muted')==='1'&&document.getElementById('muteBtn').getAttribute('aria-pressed')==='true'`));
-await pressSel('#muteBtn');
-check('nút âm thanh bật lại', await ev(`localStorage.getItem('wgp.muted')==='0'`));
+await sleep(400);
+check('nền lặp (sân + nhạc ván) bật sau lần chạm đầu', await ev(`(()=>{const l=__game.sfx.loops;return l['amb-yard']===true&&l['music-game']===true})()`), JSON.stringify(await ev('__game.sfx.loops')));
+await key('KeyM'); await sleep(100);
+check('phím M tắt tất cả (lưu chung wgp.muted), nền lặp dừng', await ev(`localStorage.getItem('wgp.muted')==='1'&&document.getElementById('muteBtn').getAttribute('aria-pressed')==='true'&&!Object.values(__game.sfx.loops).some(Boolean)`));
+await pressSel('#muteBtn'); await sleep(300);
+check('nút âm thanh bật lại, nền lặp chạy lại', await ev(`localStorage.getItem('wgp.muted')==='0'&&__game.sfx.loops['amb-yard']===true`));
 // lưu ván dở → tải lại → "Chơi tiếp"
 await nav(BASE);
 check('tải lại trang → màn đầu có "▶ Chơi tiếp" (ván 1, 2 nước, máy Vừa)', await visible('#resumeGameBtn') && /Ván 1.*2 nước.*Vừa/.test(await text('#mResume')), await text('#mResume'));
@@ -155,7 +157,8 @@ check('desktop: suốt ván, mọi điểm bấm (ô + mũi tên) đều trúng 
 check('bảng kết quả: tiêu đề, điểm hai đội, tỉ số các ván, nút Ván tiếp', await visible('#ovEnd') && /thắng|thua|Hòa/.test(await text('#eTitle')) && await ev(`document.querySelectorAll('#eResult b').length===2`) && /Tỉ số các ván/.test(await text('#eTally')));
 await shot('desktop-ket-qua.png');
 const snd = await ev('__game.sfx.loaded');
-check('âm thanh: tải được file + có tiếng "tách" khi sỏi rơi, tiếng ăn quân, tiếng kết ván', snd >= 5 && await ev(`(()=>{const n=__game.sfx.log.map(x=>x.n);return n.includes('tach')&&n.includes('trung-da')&&(n.includes('thang')||n.includes('thua')||n.includes('qua-man'))})()`), snd + ' file');
+check('âm thanh Codex (AUDIO.md): nạp đủ 14 hiệu ứng mp3; pebble-1..4 xoay vòng khi rải, bốc, ăn, chọn, tới lượt, kết ván', snd === 14 && await ev(`(()=>{const n=__game.sfx.log.map(x=>x.n);return ['pebble-1','pebble-2','pebble-3','pebble-4','pick-up','capture','select','turn'].every(k=>n.includes(k))&&(n.includes('win')||n.includes('lose')||n.includes('draw'))})()`), snd + ' file · ' + [...new Set(await ev('__game.sfx.log.map(x=>x.n)'))].join(','));
+check('dùng ảnh thật của Codex (sân, bàn, sỏi, quan, tay)', (await ev('__game.assets.loaded.join()')) === 'yard,board,stones,quan,hand');
 await pressSel('#viewBtn');
 check('"Xem bàn" đóng bảng, nút công cụ thành "Ván tiếp"', !(await visible('#ovEnd')) && /Ván tiếp/.test(await text('#newBtn')));
 await shot('desktop-xem-ban.png');
@@ -194,11 +197,11 @@ const a1 = await arrowXY(1), a0 = await arrowXY(-1);
 const gap = Math.hypot(a1[0] - a0[0], a1[1] - a0[1]);
 check('mobile: chạm ô → 2 mũi tên trên bàn, cách nhau đủ xa cho ngón cái, không bị che', (await S()).sel === 2 && gap >= 60 && await onCanvas(...a1) && await onCanvas(...a0), 'cách ' + Math.round(gap) + 'px');
 await shot('mobile-chon-huong.png');
-await press(...a1); await sleep(900);
-await shot('mobile-dang-rai.png');
+await press(...a1); await sleep(250);
 check('mobile: chạm mũi tên → rải, có nút Tua / Bỏ qua', (await S()).busy && await visible('#anim'));
 await pressSel('#fastBtn');
 check('mobile: nút "Tua ×4" bật', await ev(`document.getElementById('fastBtn').getAttribute('aria-pressed')==='true'`));
+await sleep(200); await shot('mobile-dang-rai.png');
 covered = 0;
 r = await playToEnd(200, { fast: true });
 s = await S();
@@ -210,7 +213,8 @@ await pressSel('#viewBtn'); await shot('mobile-xem-ban.png');
 
 // ===== 6. Điện thoại ngang 844×390 =====
 await view(844, 390, true, 3); await nav(BASE); await toSolo(); await pressSel('#startBtn');
-check('điện thoại ngang: bàn nằm ngang, gọn, không tràn', !(await ev('__game.board.info.rot')) && await boardIn() && await noOverflow());
+const il = await ev('__game.board.info');
+check('điện thoại ngang: HUD dồn cột trái, bàn nằm ngang phóng bội 0,5 lớn nhất (1,5 thiết bị), gọn, không tràn', !il.rot && il.k === 1.5 && await boardIn() && await noOverflow(), JSON.stringify(il));
 await shot('mobile-ngang.png');
 
 // ===== 7. Online: trang này tạo phòng, một người chơi giả (WebSocket Node) vào bằng mã =====

@@ -2,11 +2,11 @@
 // Luật ở logic.js (dùng chung với máy chủ), máy chơi ở ai.js, vẽ bàn + hoạt cảnh ở board.js, hình vẽ bằng code ở art.js.
 import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, isAiTurn, legalMoves, ROWS, LEVELS, RULES } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createBoard } from "./board.js?v=oaq1";
-import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq1";
-import { createNet, CODE_RE } from "./net.js?v=oaq1";
+import { createBoard } from "./board.js?v=oaq2";
+import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
+import { createNet, CODE_RE } from "./net.js?v=oaq2";
 
-const V = "oaq1"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module
+const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module
 const SAVE_KEY = "wgp.o-an-quan.v1", NAME_KEY = "wgp.o-an-quan.name";
 const DEFAULT_OPTS = { aiLevel: "medium", rule: "thuong", size: 2 };
 const LEVEL_NAME = { easy: "Dễ", medium: "Vừa", hard: "Khó" };
@@ -39,45 +39,61 @@ function pebbleSvg(c, hi, d) {
 const TEAM_SVG = [pebbleSvg("#3f8be0", "#9cc8ff", "#122e57"), pebbleSvg("#e0483d", "#ff8f84", "#5a1410")];
 const QUAN_SVG = [pebbleSvg("#3fae98", "#8be3cf", "#0f3a33"), pebbleSvg("#c8452e", "#ff9a7e", "#3e0f07")];
 
-function makeSfx(dir, names, sdk) {
+// Âm thanh Codex (docs/o-an-quan/AUDIO.md): hiệu ứng mp3 ngắn giải mã vào WebAudio, nạp lười (sau lần chạm đầu hoặc
+// ~1,5 s rảnh) để không chặn lúc vào game; hai nền lặp (sân + nhạc) là <audio> nhỏ, chỉ bật sau lần chạm đầu. M tắt tất cả.
+const SFX = ["pebble-1", "pebble-2", "pebble-3", "pebble-4", "pick-up", "capture", "capture-quan", "chain", "borrow", "select", "turn", "win", "lose", "draw"];
+const LOOPS = { "amb-yard": 0.22, "music-game": 0.14 };
+function makeAudio(dir, sdk) {
   const AC = window.AudioContext || window.webkitAudioContext;
   const buf = {}, log = [];
-  let ac = null;
-  if (AC) {
-    try { ac = new AC(); } catch { ac = null; }
-    if (ac) for (const n of names) {
-      fetch(new URL(dir + n + ".ogg", import.meta.url)).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+  let ac = null, loading = false, unlocked = false, pebble = 0, inGame = false;
+  const loops = {};
+  const muted = () => !!(sdk.sound && sdk.sound.muted);
+  const url = (n) => new URL(dir + n + ".mp3?v=oaq2", import.meta.url).href;
+  function load() {
+    if (loading || !AC) return; loading = true;
+    try { ac = ac || new AC(); } catch { ac = null; return; }
+    for (const n of SFX) {
+      fetch(url(n)).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
         .then((b) => ac.decodeAudioData(b)).then((d) => { buf[n] = d; })
-        .catch(() => console.warn("Không tải được âm thanh " + n + ".ogg"));
+        .catch(() => console.warn("Không tải được âm thanh " + n + ".mp3"));
     }
   }
-  const muted = () => !!(sdk.sound && sdk.sound.muted);
-  const ok = () => { if (muted() || !ac) return false; if (ac.state === "suspended") ac.resume().catch(() => {}); return true; };
-  const note = (n) => { log.push({ n, t: Math.round(performance.now()) }); if (log.length > 500) log.shift(); };
-  function tone(f0, f1, dur, vol, type = "square", delay = 0) {
-    const t = ac.currentTime + delay, o = ac.createOscillator(), gn = ac.createGain();
-    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(gn).connect(ac.destination); o.start(t); o.stop(t + dur + 0.02);
+  const idle = setTimeout(load, 1500);
+  function syncLoops() {
+    for (const [n, vol] of Object.entries(LOOPS)) {
+      const want = unlocked && !muted() && (n === "amb-yard" || inGame);
+      let a = loops[n];
+      if (want && !a) { a = loops[n] = new Audio(url(n)); a.loop = true; a.volume = vol; a.preload = "auto"; }
+      if (!a) continue;
+      if (want && a.paused) a.play().then(() => log.push({ n, t: Math.round(performance.now()) })).catch(() => {});
+      if (!want && !a.paused) a.pause();
+    }
+  }
+  function unlock() {
+    load();
+    if (ac && ac.state === "suspended") ac.resume().catch(() => {});
+    if (!unlocked) { unlocked = true; syncLoops(); }
+  }
+  addEventListener("pointerdown", unlock, { capture: true });
+  addEventListener("keydown", unlock, { capture: true });
+  function play(n, vol = 1) {
+    if (muted() || !ac || !buf[n]) return false;
+    if (ac.state === "suspended") ac.resume().catch(() => {});
+    const src = ac.createBufferSource(), gn = ac.createGain();
+    src.buffer = buf[n]; gn.gain.value = vol; src.connect(gn).connect(ac.destination); src.start();
+    log.push({ n, t: Math.round(performance.now()) }); if (log.length > 500) log.shift();
+    return true;
   }
   return {
-    play(n, vol = 1) {
-      if (!ok() || !buf[n]) return false;
-      const s = ac.createBufferSource(), gn = ac.createGain();
-      s.buffer = buf[n]; gn.gain.value = vol; s.connect(gn).connect(ac.destination); s.start();
-      note(n); return true;
-    },
-    // tiếng "tách" sỏi chạm gỗ — tổng hợp tại chỗ, cao dần theo số sỏi trong ô cho vui tai
-    tach(k = 1) {
-      if (!ok()) return false;
-      const f = 1700 + Math.min(10, k) * 45 + Math.random() * 160;
-      tone(f, f * 0.5, 0.03, 0.07, "square"); tone(420 + Math.random() * 60, 260, 0.045, 0.09, "triangle");
-      note("tach"); return true;
-    },
-    chime() { if (!ok()) return false; [660, 880, 1320].forEach((f, i) => tone(f, f, 0.12, 0.06, "square", i * 0.08)); note("chime"); return true; },
+    play,
+    pebble(k = 1) { pebble = (pebble + 1) % 4; return play("pebble-" + (pebble + 1), Math.min(1, 0.55 + k * 0.03)); }, // 4 biến thể xoay vòng
+    setInGame(on) { inGame = !!on; syncLoops(); },
+    syncMute: syncLoops,
     get loaded() { return Object.keys(buf).length; },
+    get loops() { return Object.fromEntries(Object.entries(loops).map(([n, a]) => [n, !a.paused])); },
     log,
-    close() { if (ac) ac.close().catch(() => {}); },
+    close() { clearTimeout(idle); removeEventListener("pointerdown", unlock, { capture: true }); removeEventListener("keydown", unlock, { capture: true }); for (const a of Object.values(loops)) a.pause(); if (ac) ac.close().catch(() => {}); },
   };
 }
 
@@ -122,7 +138,7 @@ export function mount(root, ctx = {}) {
   root.querySelectorAll(".pcB").forEach((e) => { e.innerHTML = TEAM_SVG[1]; });
   root.querySelectorAll(".pcQL").forEach((e) => { e.innerHTML = QUAN_SVG[0]; });
   root.querySelectorAll(".pcQR").forEach((e) => { e.innerHTML = QUAN_SVG[1]; });
-  const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "do-xuc-xac", "thang", "thua", "qua-man", "tin-nhan"], sdk);
+  const sfx = makeAudio("assets/audio/", sdk);
 
   const saved = loadSave();
   let opts = saved.opts;
@@ -135,11 +151,11 @@ export function mount(root, ctx = {}) {
 
   const board = createBoard(cv, {
     sfx: {
-      pick: () => sfx.play("buoc-nhay", 0.35),
-      tach: (k) => sfx.tach(k),
-      take: () => sfx.play("trung-da", 0.55),
-      quan: () => { sfx.play("trung-da", 0.7); sfx.chime(); },
-      refill: (borrow) => sfx.play("do-xuc-xac", borrow ? 0.6 : 0.4),
+      pick: () => sfx.play("pick-up", 0.7),
+      tach: (k) => sfx.pebble(k),
+      take: (v, nth) => sfx.play(nth > 1 ? "chain" : "capture", 0.8), // lần ăn thứ 2 trở đi trong một nước = ăn liên hoàn
+      quan: () => sfx.play("capture-quan", 0.9),
+      refill: () => sfx.play("borrow", 0.8),
     },
     onChange: () => hud(),
   });
@@ -167,11 +183,12 @@ export function mount(root, ctx = {}) {
     const pl = man && man.placements;
     const pitsOk = pl && [...Array(12).keys()].every((i) => Array.isArray(pl["pit-" + i]?.at) && pl["pit-" + i].r > 0);
     if (yard) { next.yard = yard.img; assets.loaded.push("yard"); }
-    if (bd && pitsOk) { next.board = bd.img; next.placements = { "tray-a": DEFAULT_PLACEMENTS["tray-a"], "tray-b": DEFAULT_PLACEMENTS["tray-b"], ...pl }; assets.loaded.push("board"); }
-    if (stones && stones.frames["dan-1"]) { next.stones = stones; assets.loaded.push("stones"); }
+    // ảnh bàn Codex kín 10..470 px → hai khay điểm đặt ngoài bàn (trên / dưới), trừ khi manifest ghi tray-a / tray-b
+    if (bd && pitsOk) { next.board = bd.img; next.placements = { "tray-a": { at: [600, 498], w: 560, h: 44 }, "tray-b": { at: [600, -18], w: 560, h: 44 }, ...pl }; assets.loaded.push("board"); }
+    if (stones && stones.frames["dan-1"]) { next.stones = stones; next.stoneScale = 1.5; assets.loaded.push("stones"); }
     if (quan && quan.frames["quan-left"] && quan.frames["quan-right"]) { next.quan = quan; assets.loaded.push("quan"); }
     if (hand && hand.frames["hand-hold"]) { next.hand = hand; assets.loaded.push("hand"); }
-    if (assets.loaded.length) board.setSheets(next);
+    if (assets.loaded.length) { board.setSheets(next); layout(); }
   })();
 
   // ---------- Bố cục
@@ -194,6 +211,7 @@ export function mount(root, ctx = {}) {
     ui.nA.textContent = nm[0]; ui.nB.textContent = nm[1];
     document.body.classList.toggle("is-online", online());
     document.body.classList.toggle("in-game", !!s);
+    sfx.setInGame(!!s && !overlaysOpen());
     const me = myTeam();
     ui.tA.textContent = "Đội A" + (s && (room ? me === 0 : true) ? " · Bạn" : "");
     ui.tB.textContent = "Đội B" + (room && me === 1 ? " · Bạn" : "");
@@ -225,7 +243,7 @@ export function mount(root, ctx = {}) {
       const left = room.deadline ? Math.max(0, Math.ceil((room.deadline - (Date.now() + skew)) / 1000)) : 0;
       const t = left && left <= 15 ? " · " + left + "s" : "";
       const mine = room.seat === room.you;
-      if (mine && left > 0 && left <= 5 && left !== warnLeft) { warnLeft = left; sfx.play("do-xuc-xac", 0.3); }
+      if (mine && left > 0 && left <= 5 && left !== warnLeft) { warnLeft = left; sfx.play("select", 0.5); }
       const who = room.players[room.seat];
       st = mine ? (sent ? "Đang gửi…" : "Lượt bạn") + t : who && !who.connected ? seatName(room.seat) + " mất kết nối…" + t : "Chờ " + seatName(room.seat) + "…" + t;
     } else st = s.turn === 0 ? "Lượt bạn" : "Lượt máy";
@@ -244,7 +262,7 @@ export function mount(root, ctx = {}) {
     ui.mute.setAttribute("aria-pressed", String(m));
     ui.muteIc.src = "assets/ui/icon-am-thanh-" + (m ? "tat" : "bat") + ".png";
   }
-  function toggleMute() { sdk.sound.muted = !sdk.sound.muted; try { localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0"); } catch {} showMute(); }
+  function toggleMute() { sdk.sound.muted = !sdk.sound.muted; try { localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0"); } catch {} showMute(); sfx.syncMute(); }
 
   function persist() {
     if (room) return; // ván online do máy chủ giữ — không ghi đè ván dở chơi với máy
@@ -324,7 +342,7 @@ export function mount(root, ctx = {}) {
     closed() {
       if (exiting) return;
       const mine = !!room && room.you === room.host;
-      setRoomParam(""); s = null; sfx.play("trung-da", 0.5);
+      setRoomParam(""); s = null; sfx.play("borrow", 0.5);
       showMenu(mine ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng.");
     },
     error(code, inRoom) {
@@ -403,7 +421,7 @@ export function mount(root, ctx = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) ui.chatLog.scrollTop = ui.chatLog.scrollHeight;
       const last = list.at(-1);
-      if (isNew && last && !last.mine) sfx.play("tin-nhan", 0.6);
+      if (isNew && last && !last.mine) sfx.play("select", 0.7);
       if (isNew && last && !last.mine && !chatOpen()) toast(last.name + ": " + last.text, 3500);
     }
     if (chatOpen()) chatSeen = top;
@@ -433,7 +451,7 @@ export function mount(root, ctx = {}) {
       if (!o || o.name !== p.name || (!o.connected && p.connected)) join = true;
       else if (o.connected && !p.connected) gone = true;
     });
-    if (join) sfx.play("buoc-nhay", 0.6); else if (gone) sfx.play("trung-da", 0.4);
+    if (join) sfx.play("turn", 0.5); else if (gone) sfx.play("pick-up", 0.5);
   }
   function netState(v) {
     const prev = room; room = v;
@@ -452,7 +470,7 @@ export function mount(root, ctx = {}) {
       board.setPerspective(v.you % 2);
       s = next; board.show(s);
       overlay(null); layout(); cv.focus({ preventScroll: true });
-      sfx.play("qua-man", 0.5);
+      sfx.play("turn", 0.6);
       if (isOver(s)) endTimer = setTimeout(showEnd, 300);
       hud(); return;
     }
@@ -508,7 +526,7 @@ export function mount(root, ctx = {}) {
     pendingResume = null;
     board.skip(); board.setPerspective(0); board.selected = null; board.cursor = null; board.show(s);
     overlay(null); layout(); persist(); hud(); cv.focus({ preventScroll: true });
-    sfx.play("qua-man", 0.4);
+    sfx.play("turn", 0.6);
     maybeAi();
   }
   function showEnd() {
@@ -559,11 +577,13 @@ export function mount(root, ctx = {}) {
       hud();
       if (isOver(s)) {
         const lost = room ? s.winner !== myTeam() : s.winner === 1;
-        sfx.play(s.winner === 2 ? "qua-man" : lost ? "thua" : "thang", 0.8);
+        sfx.play(s.winner === 2 ? "draw" : lost ? "lose" : "win", 0.9);
         if (!room) { sdk.reportScore?.(s.final.score[0]); sdk.gameOver?.({ winner: s.winner, score: s.final.score, moves: s.moves.length }); }
         endTimer = setTimeout(showEnd, 900);
         return;
       }
+      const myTurn = room ? room.seat === room.you : s.turn === 0;
+      if (myTurn && mover !== myTeam()) sfx.play("turn", 0.6);
       maybeAi();
     });
   }
@@ -594,7 +614,7 @@ export function mount(root, ctx = {}) {
     const u = replay(restartRound(s), s.moves.slice(0, k));
     if (!u) return false;
     s = u; board.selected = null; board.show(s);
-    sfx.play("do-xuc-xac", 0.35);
+    sfx.play("pick-up", 0.5);
     persist(); hud(); maybeAi();
     return true;
   }
@@ -604,7 +624,7 @@ export function mount(root, ctx = {}) {
     clearTimers(); board.skip();
     s = isOver(s) ? nextRound(s) : { ...restartRound(s) };
     board.selected = null; board.show(s);
-    overlay(null); persist(); hud(); cv.focus({ preventScroll: true }); sfx.play("qua-man", 0.4); maybeAi();
+    overlay(null); persist(); hud(); cv.focus({ preventScroll: true }); sfx.play("turn", 0.6); maybeAi();
   }
   function setPause(on) {
     if (!s || !ui.ovMenu.hidden || !ui.ovEnd.hidden) return;
@@ -624,7 +644,7 @@ export function mount(root, ctx = {}) {
     if (!canAct()) return;
     if (h && h.kind === "pit") {
       const mineRow = ROWS[myTeam()].includes(h.pit);
-      if (mineRow && s.pits[h.pit] > 0) { board.selected = board.selected === h.pit ? null : h.pit; board.cursor = null; sfx.play("buoc-nhay", 0.25); }
+      if (mineRow && s.pits[h.pit] > 0) { board.selected = board.selected === h.pit ? null : h.pit; board.cursor = null; sfx.play("select", 0.7); }
       else { board.flash = { pit: h.pit, t: performance.now() }; board.selected = null; }
     } else board.selected = null;
     hud();

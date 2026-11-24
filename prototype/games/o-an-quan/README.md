@@ -39,14 +39,18 @@ Bàn 12 ô: ô 0 = quan trái, ô 1..5 = hàng dưới (đội A, trái → ph�
 - Bàn phím: ← → (hoặc ↑ ↓ khi bàn dọc) chọn ô · Enter hiện mũi tên · ← → rải theo hướng · Esc bỏ chọn / tạm dừng · U đi lại · N ván mới / ván tiếp · M tắt / bật tiếng.
 
 ## Hoạt cảnh + âm thanh
-- Theo chuỗi bước của `playSteps`: nắm sỏi nhấc lên, **từng viên bay ô → ô** kèm tiếng "tách" (tổng hợp WebAudio, cao dần theo số sỏi trong ô); ăn quân thì sỏi bay về **khay điểm** của đội (khay nong tre dưới / trên bàn, quan đã ăn nằm đầu khay); chữ nổi "+12", "ĂN QUAN! +13", "Mất lượt", "Quan non, chưa ăn được"; hết dân hiện "… hết dân! Rải lại …, vay thêm … dân".
-- Âm thanh dùng lại `assets/sfx/*.ogg` của Cờ Caro + `_shared/feedback.js` cho nút bấm. Tắt tiếng chung `wgp.muted` (nút loa / M).
+- Theo chuỗi bước của `playSteps`: **bàn tay** (`hand.webp`, khung `hand-hold` / `hand-drop`) nhón nắm sỏi đi theo đường rải, **từng viên bay ô → ô**; ăn quân thì sỏi bay về **khay điểm** của đội (khay nong tre dưới / trên bàn, quan đã ăn nằm đầu khay); chữ nổi "+12", "ĂN QUAN! +13", "Mất lượt", "Quan non, chưa ăn được"; hết dân hiện "… hết dân! Rải lại …, vay thêm … dân".
+- Âm thanh Codex `assets/audio/*.mp3` đúng bảng `docs/o-an-quan/AUDIO.md`: `pebble-1..4` xoay vòng mỗi viên rơi, `pick-up` khi bốc, `capture` / `chain` (lần ăn thứ 2 trở đi trong một nước) / `capture-quan`, `borrow` khi rải lại / vay, `select` khi chọn ô (cả tin chat, đếm ngược 5 s), `turn` khi tới lượt mình, `win` / `lose` / `draw`.
+- **Nạp lười**: hiệu ứng tải + giải mã sau lần chạm / phím đầu tiên hoặc ~1,5 s rảnh — không chặn lúc vào game. Hai nền lặp `amb-yard` (luôn, vol 0,22) và `music-game` (chỉ khi đang trong ván, không mở bảng; vol 0,14) là `<audio loop>`, chỉ bật **sau lần chạm đầu**.
+- Nút loa / phím **M** tắt **tất cả** (cả hai nền lặp), lưu chung `wgp.muted`. Nút bấm dùng `_shared/feedback.js`.
 
-## Hình (asset) — vẽ bằng code khi chưa có ảnh Codex
-- Hợp đồng: `docs/o-an-quan/asset-spec.json` — `assets/yard-bg.webp`, `board.webp`, `stones.webp` (dan-1..8), `quan.webp` (quan-left/right), `hand.webp` (tuỳ chọn) + toạ độ ô `placements.pit-N.{at,r}`.
-- Chưa có ảnh: `art.js` vẽ đúng định dạng đó bằng code theo lưới 2 px (sân gạch tàu lặp liền mạch có bóng lá, bàn gỗ khắc rãnh + hoa văn, ô dân hõm cắt góc, ô quan bán nguyệt, 8 biến thể sỏi, quan ngọc lam / đỏ son). Game luôn chơi được.
-- **Đồng bộ manifest**: máy chủ chỉ phục vụ `prototype/`, nên game đọc bản chép `data/asset-manifest.json`. Khi Codex giao `docs/o-an-quan/asset-manifest.json`, chạy `node prototype/games/o-an-quan/tools/sync-manifest.mjs` (chép nguyên văn) rồi đổi tag `?v=` ở `index.html` + `game.js`. `test/assets.test.mjs` báo lỗi nếu hai bản lệch nhau. Hiện `data/asset-manifest.json` là **bản tạm của dev** (`items: []`, toạ độ = bàn vẽ bằng code).
-- Ảnh nào có trong `items` của manifest và tải được thì thay hình vẽ bằng code (bàn chỉ thay khi manifest đủ 12 toạ độ ô). Hiển thị pixel: hệ số phóng thiết bị làm tròn **bội 0,5** (chịu nhỏ đi tới 25% để giữ nét), tắt làm mượt ảnh (PLAYBOOK §2).
+## Hình (asset Codex)
+- Đã ghép asset Codex (`docs/o-an-quan/ASSET-HANDOFF.md`, `check_assets` 0 lỗi): `assets/yard-bg.webp`, `board.webp`, `stones.webp` (dan-1..8), `quan.webp` (quan-left/right), `hand.webp`. Toạ độ ô lấy từ manifest Codex (`pit-N.at` + `r`).
+- **Đồng bộ manifest**: máy chủ chỉ phục vụ `prototype/`, nên game đọc bản chép `data/asset-manifest.json`. Mỗi lần Codex sửa `docs/o-an-quan/asset-manifest.json`: chạy `node prototype/games/o-an-quan/tools/sync-manifest.mjs` rồi đổi tag `?v=` (hiện `oaq2`) ở `index.html`, `game.js`, `board.js`. `test/assets.test.mjs` báo lỗi nếu hai bản lệch nhau.
+- Ảnh bàn kín 10..470 px nên hai khay điểm đặt ngoài bàn (y −18 và 498; manifest có thể ghi đè bằng `tray-a` / `tray-b`). Sỏi Codex (~16 px trong ô 32) vẽ phóng **1,5** cho cân với ô 114 px.
+- Sprite (sỏi, quan, tay) luôn vẽ **thẳng đứng theo màn hình** kể cả khi bàn xoay dọc / lật, để bóng đổ nằm dưới.
+- Ảnh nào thiếu / tải lỗi thì `art.js` vẽ thay bằng code đúng định dạng hợp đồng (sân gạch, bàn gỗ, sỏi, quan) — game luôn chơi được.
+- Hiển thị pixel: hệ số phóng thiết bị là **bội 0,5 lớn nhất mà vừa** (chịu nhỏ đi tới 25% để giữ nét), tắt làm mượt ảnh (PLAYBOOK §2). Điện thoại ngang / màn thấp: HUD + công cụ dồn sang cột trái để bàn lấy trọn chiều cao (844×390 dpr 3 → 1,5).
 
 ## Tệp
 | Tệp | Nội dung |
@@ -54,13 +58,14 @@ Bàn 12 ô: ô 0 = quan trái, ô 1..5 = hàng dưới (đội A, trái → ph�
 | `logic.js` | Luật thuần, dùng chung trình duyệt + máy chủ. |
 | `ai.js` | Máy chơi Dễ / Vừa / Khó. |
 | `board.js` | Vẽ bàn bằng canvas, bố cục (xoay / lật, bội 0,5), chạm ô, mũi tên, hoạt cảnh theo chuỗi bước. |
-| `art.js` | Hình vẽ bằng code + toạ độ ô mặc định. |
+| `art.js` | Hình vẽ bằng code (dự phòng khi thiếu ảnh) + toạ độ ô mặc định. |
 | `game.js` | Màn vào game, HUD, chơi với máy, phòng online + chat, âm thanh, lưu ván. |
 | `net.js` | WebSocket tới máy chủ, tự nối lại, giữ ghế. |
 | `index.html` | Giao diện + CSS pixel V5 (cùng token màu Cờ Caro). |
-| `data/asset-manifest.json` | Bản chép manifest asset (xem trên). `tools/sync-manifest.mjs` đồng bộ. |
+| `data/asset-manifest.json` | Bản chép manifest Codex (xem trên). `tools/sync-manifest.mjs` đồng bộ. |
+| `assets/` | Ảnh Codex (`*.webp`), âm thanh Codex (`audio/*.mp3`), icon UI (`ui/`). |
 | `test/*.test.mjs` | 21 test luật + máy + manifest (`npm test`). Test phòng online: `games-server/o-an-quan/test/room.test.mjs` (11 test). |
-| `screenshots/e2e.mjs` | Test trình duyệt thật (Chrome headless, chuột + cảm ứng, desktop / dpr 1,25 / điện thoại dọc + ngang / online 1v1 + phòng 2v2); kết quả ở `screenshots/e2e-ket-qua.txt`. |
+| `screenshots/e2e.mjs` | Test trình duyệt thật (Chrome headless, chuột + cảm ứng, desktop / dpr 1,25 / điện thoại dọc + ngang / online 1v1 + phòng 2v2, ảnh + âm thanh Codex); kết quả ở `screenshots/e2e-ket-qua.txt`. |
 
 ## Chạy thử
 Từ thư mục gốc repo: `node server.js` rồi mở `/games/o-an-quan/`. E2E: `PORT=8771 node server.js` rồi `node prototype/games/o-an-quan/screenshots/e2e.mjs prototype/games/o-an-quan/screenshots`.
