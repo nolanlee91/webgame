@@ -48,7 +48,7 @@ window.DUEL_IDS = ["o-an-quan", "co-ca-ngua", "co-caro", "dat-bom", "noi-tu", "m
 // Tab lọc phía trên lưới dùng CHÍNH danh sách kệ này ⇒ tên + số đếm luôn khớp kệ bên dưới.
 // Mỗi game nằm đúng 1 kệ: game trong DUEL_IDS thuộc kệ "duel", còn lại theo cat.
 window.SHELVES = [
-  { cat: "tap-lam-chu", title: "Tập Làm Chủ", hint: "" },
+  { cat: "tap-lam-chu", title: "Tập Làm Chủ", hint: "Mở tiệm, nuôi trại, làm chủ từ hai bàn tay trắng" },
   { cat: "duel",      title: "Đối Kháng", hint: "Rủ bạn vào phòng, chơi ngay trên trình duyệt" },
   { cat: "giai-do",   title: "Giải đố",   hint: "Thư giãn đầu óc, chơi một mình" },
   { cat: "hanh-dong", title: "Hành động", hint: "Nhanh tay, bấm là chơi" },

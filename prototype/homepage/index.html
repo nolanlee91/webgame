@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet" />
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
-  <link rel="stylesheet" href="styles.css?v=unified2" />
-  <link rel="stylesheet" href="portal.css?v=unified2" />
+  <link rel="stylesheet" href="styles.css?v=unified3" />
+  <link rel="stylesheet" href="portal.css?v=unified3" />
 </head>
 <body class="portal">
   <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <aside class="lobby px-panel" data-name="lobby" aria-labelledby="lobbyTitle">
+      <aside class="lobby px-panel" id="lobby" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
         </div>
@@ -74,6 +74,12 @@
         <ul class="rooms" id="rooms"></ul>
 
         <p class="lobby__note" id="roomStatus" role="status">Đang tải danh sách phòng…</p>
+
+        <!-- Mở phòng nhanh: lấp chỗ trống khi chưa có phòng công khai (desktop 2 hàng; có phòng thì 1 hàng; điện thoại ẩn) -->
+        <div class="lobby__quick" data-name="lobby-quick">
+          <h3 class="lobby__sub" id="quickTitle">Mở phòng nhanh</h3>
+          <div class="quick" id="quickGrid"></div>
+        </div>
       </aside>
     </section>
 
@@ -100,8 +106,8 @@
     </div>
   </footer>
 
-  <script src="games.js?v=unified2"></script>
-  <script src="app.js?v=unified2"></script>
+  <script src="games.js?v=unified3"></script>
+  <script src="app.js?v=unified3"></script>
   <script type="module" src="../games/_shared/feedback.js"></script>
 </body>
 </html>

@@ -120,6 +120,16 @@
     var note = status || (rooms.length ? "" : "Chưa có phòng công khai đang chờ người.");
     if ($("roomStatus").textContent !== note) $("roomStatus").textContent = note;
     $("roomStatus").hidden = !note;
+    var empty = !status && !rooms.length;
+    $("lobby").classList.toggle("is-empty", empty);
+    $("lobby").classList.toggle("has-rooms", rooms.length > 0);
+    $("quickTitle").textContent = empty ? "Chưa có phòng nào đang chờ · mở phòng nhanh" : "Mở phòng mới";
+  }
+  // Mở phòng nhanh: mỗi game đối kháng một ô ảnh, bấm là vào màn tạo phòng của game đó.
+  function renderQuick() {
+    $("quickGrid").innerHTML = duelIds.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
+      return '<a class="quick__item" href="' + href(g) + '"><span class="quick__art">' + imgHTML(g) + '</span><span class="quick__name">' + esc(g.name) + "</span></a>";
+    }).join("");
   }
   async function refreshRooms() {
     if (!document.hidden) {
@@ -318,7 +328,7 @@
   });
   showSound();
 
-  renderHero(); renderAll(); arm(); refreshRooms();
+  renderHero(); renderAll(); renderQuick(); arm(); refreshRooms();
   var invite = new URLSearchParams(location.search).get("room");
   if (invite && /^[A-Z0-9]{5}$/i.test(invite)) {
     inl.value = invite.toUpperCase();
