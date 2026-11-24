@@ -32,7 +32,7 @@ Detailed HD Pixel Art là chuẩn hình ảnh bắt buộc cho toàn bộ dòng 
 - **NPC, vật phẩm và hiệu ứng.** Giữ tỷ lệ nhân vật tự nhiên, dáng dễ nhận, đường biên bậc thang sắc và viền tối có chọn lọc. Icon nhỏ ưu tiên hình dáng và mảng màu đặc trưng của vật phẩm. Tạo chuyển sắc bằng cụm pixel hoặc dithering tiết chế. Tránh cọ mềm, viền anti-alias, gradient mịn, bloom và nhiễu hạt kiểu ảnh chụp.
 - **Khi đưa vào game.** Giữ góc nhìn, kích thước ô, tỷ lệ pixel, điểm neo, hướng sáng và thứ tự frame của atlas đích. Đặt asset mới cạnh nhân vật, công trình và vật phẩm cùng cảnh để kiểm tra độ đồng nhất. Giữ thân và điểm chạm đất ổn định giữa các frame, xuất sprite với alpha cứng và phóng nguyên bội bằng nearest-neighbor.
 - **Duyệt trước khi làm cả bộ.** Làm một cảnh mẫu và một cụm asset gồm nhân vật, đạo cụ hoặc vật phẩm, rồi đặt trực tiếp vào màn chơi ở kích thước thật. Duyệt đường biên, ánh sáng, độ chi tiết, khả năng đọc và sự nhất quán với ảnh mẫu trước khi mở rộng. Với thumbnail homepage, dùng 4:3, dựng 240 × 180 pixel nghệ thuật, phóng nearest-neighbor lên 480 × 360 và xuất WebP lossless. Kiểm tra cạnh `ma-soi.webp` và `ai-la-noi-gian.webp` ở kích thước thẻ desktop và mobile.
-- Homepage dùng UI Premium Modern Gaming Portal với nền dark navy, viền mảnh, góc bo vừa và điểm nhấn teal, vàng ấm. Quy tắc khung pixel-cut và bóng cứng ở các mục dưới dành cho HUD trong game.
+- Homepage giữ bố cục cổng game hiện đại với nền dark navy, điểm nhấn teal và vàng ấm, nhưng dùng chất liệu pixel V5: khung viền góc khuyết bậc pixel, bóng cứng lệch, không bo tròn, nút có vát sáng/tối (chủ dự án chọn ngày 23/11/2026, mã nguồn ở `prototype/homepage/portal-pixel.css`). HUD trong game vẫn theo tông gỗ ấm ở các mục dưới.
 
 ---
 

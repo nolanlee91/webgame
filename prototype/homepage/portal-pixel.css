@@ -1,0 +1,57 @@
+/* Trang chủ — lớp pixel phủ lên portal.css (bản B, chủ dự án chọn 2026-11-23): giữ bố cục + bảng màu navy/teal của cổng game hiện tại,
+   nhưng đổi chất liệu sang pixel V5: viền góc khuyết bậc pixel (4 box-shadow), bóng cứng lệch,
+   KHÔNG bo tròn, nút có vát sáng/tối, tiêu đề chữ đậm có bóng cứng. Ảnh game giữ nguyên. */
+.theme-b {
+  --nv-line: #0a111c; --nv-edge: #3c526d; --nv-edge-hi: #6b86a6;
+  --b-border: 0 -3px 0 0 var(--b, var(--nv-line)), 0 3px 0 0 var(--b, var(--nv-line)), -3px 0 0 0 var(--b, var(--nv-line)), 3px 0 0 0 var(--b, var(--nv-line));
+  --b-bevel: inset 0 2px 0 rgba(255, 255, 255, .08), inset 0 -2px 0 rgba(0, 0, 0, .35);
+  --b-drop: 4px 6px 0 0 #050a12, 6px 4px 0 0 #050a12;
+  background: var(--bg);
+  background-image: linear-gradient(#ffffff05 2px, transparent 2px), linear-gradient(90deg, #ffffff05 2px, transparent 2px);
+  background-size: 32px 32px;
+}
+
+/* Bề mặt: bỏ bo tròn + viền mảnh, thay bằng khung pixel */
+.theme-b .hero, .theme-b .lobby, .theme-b .tile, .theme-b .field, .theme-b .tabs, .theme-b .room,
+.theme-b .lobby__note, .theme-b .hero__viewport, .theme-b .lobby__head, .theme-b .quick__art, .theme-b .tab, .theme-b .count, .theme-b .badge { border-radius: 0 !important; }
+.theme-b .hero, .theme-b .lobby { border: 0; --b: var(--nv-line); box-shadow: var(--b-bevel), var(--b-border), var(--b-drop); }
+.theme-b .lobby__head { box-shadow: inset 0 -3px 0 var(--nv-line); background: #1d2c41; }
+.theme-b .lobby__title, .theme-b .section__title, .theme-b .shelf__title { text-shadow: 2px 2px 0 #050a12; }
+.theme-b .lobby__note { border: 0; --b: #2b3c53; box-shadow: var(--b-border); }
+.theme-b .field { border: 0; --b: var(--nv-edge); box-shadow: var(--b-border), inset 0 3px 0 rgba(0, 0, 0, .45); margin: 3px; }
+.theme-b .field:focus-within { --b: #80d9c7; box-shadow: var(--b-border), inset 0 3px 0 rgba(0, 0, 0, .45); }
+.theme-b .live { border-radius: 0; box-shadow: 0 0 0 2px #0a2a22; }
+
+/* Nút: khối pixel có vát + bóng cứng, nhấn thì lún */
+.theme-b .btn { border: 0; --b: var(--nv-line); box-shadow: var(--b-bevel), var(--b-border), 3px 4px 0 0 #050a12; text-transform: uppercase; letter-spacing: .04em; font-weight: 800; }
+.theme-b .btn:active { transform: translate(3px, 3px); box-shadow: var(--b-bevel), var(--b-border); }
+.theme-b .btn--gold { background: linear-gradient(#ffe2a4 0 3px, var(--px-gold) 3px); --b: #6b4a12; }
+.theme-b .btn--teal { background: linear-gradient(#b9f1e4 0 3px, #75d1bf 3px); --b: #1d4d45; }
+.theme-b .lobby__create { --b: #1d4d45; }
+
+/* Tab */
+.theme-b .tabs { border: 0; --b: var(--nv-line); box-shadow: var(--b-border); margin: 3px; }
+.theme-b .tab[aria-pressed="true"] { box-shadow: inset 0 2px 0 #7fb8ad, inset 0 -3px 0 #183836; }
+
+/* Thẻ game */
+.theme-b .tile { border: 0; --b: var(--nv-line); box-shadow: var(--b-border), 4px 5px 0 0 #050a12; }
+.theme-b a.tile:hover { transform: translate(-2px, -2px); --b: var(--nv-edge-hi); border: 0; }
+.theme-b a.tile:active { transform: translate(3px, 3px); box-shadow: var(--b-border); }
+.theme-b .tile__art { border-bottom: 0; box-shadow: inset 0 -3px 0 var(--nv-line); }
+.theme-b .badge { box-shadow: 0 0 0 2px #050a12; }
+.theme-b .count { border-radius: 0; box-shadow: 0 0 0 2px #0a111c; }
+
+/* Tiêu đề kệ: vạch pixel bên trái */
+.theme-b .shelf__title { padding-left: 16px; position: relative; }
+.theme-b .shelf__title::before { content: ""; position: absolute; left: 0; top: 4px; width: 6px; height: 22px; background: #75d1bf; box-shadow: 2px 2px 0 #050a12; }
+.theme-b .shelf__hint { padding-left: 0; }
+
+/* Mở phòng nhanh */
+.theme-b .quick__art { border: 0; --b: var(--nv-line); box-shadow: var(--b-border), 3px 3px 0 3px #050a12; margin: 3px; }
+.theme-b .quick__item:hover .quick__art { --b: var(--nv-edge-hi); transform: translate(-2px, -2px); }
+.theme-b .quick__item:hover img { transform: none; }
+
+.theme-b .footer { border-top: 0; box-shadow: inset 0 3px 0 var(--nv-line); }
+.theme-b .btn, .theme-b .hero__nav::before, .theme-b .hero__dot::before { border-radius: 0 !important; }
+.theme-b .lobby__create { background: linear-gradient(#2f6466 0 3px, #1b3c42 3px); color: #c6f7ea; }
+.theme-b .lobby__create:hover { background: linear-gradient(#3a7779 0 3px, #255059 3px); }
