@@ -166,7 +166,7 @@ test("một tag module ?v=m8 cho mọi import trong game (không lẫn bản cũ
   let count = 0;
   for (const f of files) {
     const src = readFileSync(f, "utf8");
-    for (const m of src.matchAll(/\.(?:m?js)\?v=([\w-]+)/g)) { count++; assert.equal(m[1], "m8", `${f}: ?v=${m[1]}`); }
+    for (const m of src.matchAll(/([\w./-]*)\.(?:m?js)\?v=([\w-]+)/g)) { if (m[1].includes("_shared/")) continue; count++; assert.equal(m[2], "m8", `${f}: ?v=${m[2]}`); }
     // import tĩnh / động của file .js trong game phải có tag (trừ ../_shared/ dùng chung toàn site)
     for (const m of src.matchAll(/(?:import\s[^"']*?from\s*|import\(\s*)["'](\.{1,2}\/[^"']+\.m?js)["']/g)) {
       if (m[1].includes("_shared/") || f.endsWith(".test.mjs") && /\.\/(harness|policy|sim|analysis|report|profiles|bugs|helpers)\.mjs$/.test(m[1])) continue;

@@ -1,5 +1,5 @@
 // Chữ trong vụ án: tách [[từ khoá]] để hiển thị, RNG có hạt (lưu trong state), chọn câu không lặp liên tiếp. Thuần, không DOM.
-import { lineOf } from "./validate.js?v=t6";
+import { lineOf } from "./validate.js?v=t7";
 
 const SEG_RE = /\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g;
 

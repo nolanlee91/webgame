@@ -1,11 +1,12 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
-import { h, icon, toast } from "./dom.js?v=t6";
-import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t6";
-import { renderText } from "./dialog.js?v=t6";
-import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t6";
-import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t6";
-import { pickEvidence, clueCard } from "./panels.js?v=t6";
-import { play as sfx } from "./sfx.js?v=t6";
+import { h, icon, toast } from "./dom.js?v=t7";
+import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t7";
+import { renderText } from "./dialog.js?v=t7";
+import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t7";
+import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t7";
+import { pickEvidence, clueCard } from "./panels.js?v=t7";
+import { play as sfx } from "./sfx.js?v=t7";
+import { shareResult } from "../../_shared/share.js?v=s1";
 
 const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */
@@ -318,6 +319,17 @@ export function finale(app) {
 }
 
 // ---------- kết vụ ----------
+/** Khoe kết quả phá án (ảnh 1080×1080 + bảng chia sẻ chung _shared/share.js). */
+function shareCase(c, s, res, rank) {
+  const total = Object.keys(c.clues || {}).length, found = (s.clues || []).length;
+  return shareResult({
+    game: "tham-tu-hem",
+    title: `Phá án ${res.stars}★`,
+    lines: [`Vụ ${c.no}: ${c.title}`, `Vật chứng: ${found}/${total}`, `Chốt sai: ${res.wrongBoard} lần · Gợi ý: ${res.hints}`, `Hạng: ${rank.name}`],
+    tagline: res.stars >= 3 ? "Conan gọi bằng sư phụ." : res.stars === 2 ? "Suýt soát thôi, thám tử tập sự!" : "Thủ phạm còn đang cười đó nha.",
+    theme: "wood",
+  });
+}
 export function result(app) {
   const { c, s, profile } = app.G;
   const res = s.result, rep = caseRep(c, s), pre = app.previewSolve();
@@ -349,7 +361,8 @@ export function result(app) {
         bonus.length ? h("div.bonus-box", h("h3.sec", "Câu hỏi phụ (+20 mỗi câu)"), bonus) : null,
         h("div.actions",
           h("button.btn.btn--primary.btn--big#backMap", { type: "button", onclick: () => app.leaveCase("map") }, "Về bản đồ"),
-          h("button.btn#replayCase", { type: "button", onclick: () => app.replayCase() }, "Chơi lại vụ"))),
+          h("button.btn#replayCase", { type: "button", onclick: () => app.replayCase() }, "Chơi lại vụ"),
+          h("button.btn#shareBtn", { type: "button", onclick: () => shareCase(c, s, res, r1) }, icon("heart", 16), " Khoe kết quả"))),
       h("div.phone.wall-phone", h("div.phone-top", h("span", "9:41"), h("b", c.social?.group || "Hẻm 47 Hóng Biến"), h("span", "4G")),
         h("div.viral", icon("heart", 16), " Bài phá án đang viral!"), wall)));
 }

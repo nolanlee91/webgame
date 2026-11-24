@@ -47,7 +47,13 @@ const ev = async (expr) => {
 await send("Runtime.enable"); await send("Log.enable"); await send("Page.enable");
 await send("Network.enable"); await send("Network.setCacheDisabled", { cacheDisabled: true });
 await send("Browser.grantPermissions", { origin: BASE, permissions: ["clipboardReadWrite", "clipboardSanitizedWrite"] });
-const nav = async (u, wait = 1500) => { await send("Page.navigate", { url: BASE + u }); await sleep(wait); };
+const nav = async (u, wait = 1500) => {
+  try { await ev("window.__oldPage = 1"); } catch {}
+  await send("Page.navigate", { url: BASE + u });
+  // chờ trang MỚI tải xong hẳn (máy nặng / tắt cache có khi > 1,5 s; mở lại cùng URL thì trang cũ cũng "complete"), rồi đợi thêm cho module dựng giao diện
+  for (let i = 0; i < 80; i++) { await sleep(250); try { if (await ev(`!window.__oldPage && document.readyState === "complete"`)) break; } catch {} }
+  await sleep(wait);
+};
 const view = (w, h, mobile) => send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile });
 const shot = async (name, full = false) => {
   const r = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: full });

@@ -1,10 +1,10 @@
 // Thoại kiểu visual novel: chân dung trái (thám tử, Tèo) / phải (người khác) đổi biểu cảm theo mood, gõ chữ dần, bấm để qua, nút Tua.
 // Phát hàng đợi `show` của engine: dòng thoại + thẻ (vật chứng mới, ghi lời khai, địa điểm mới, nhân vật mới).
 // Mỗi mục HIỆN RA thì gọi ctx.read(text) ⇒ nhặt [[từ khoá]]. Tua: chạy nhanh tới thẻ kế tiếp (thẻ vẫn hiện để không lỡ vật chứng), chữ bị tua vẫn tính là đã đọc.
-import { h, clear, icon } from "./dom.js?v=t6";
-import { segments, norm } from "../core/text.js?v=t6";
-import { portraitEl, setPortrait, portraitSize, accentOf } from "./art.js?v=t6";
-import { blip, play as sfx } from "./sfx.js?v=t6";
+import { h, clear, icon } from "./dom.js?v=t7";
+import { segments, norm } from "../core/text.js?v=t7";
+import { portraitEl, setPortrait, portraitSize, accentOf } from "./art.js?v=t7";
+import { blip, play as sfx } from "./sfx.js?v=t7";
 
 const LEFT = new Set(["me", "teo"]);
 const CPS = 46; // ký tự / giây

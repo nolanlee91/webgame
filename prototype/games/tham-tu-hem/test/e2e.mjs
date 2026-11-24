@@ -165,7 +165,7 @@ async function play(tag, desktop) {
   const stars = await S("s.result.stars");
   check(`${tag}: ★ theo phạt (uy tín 2 + chốt sai 1 + gợi ý 1 = 4 ⇒ 2★)`, stars === 2, String(stars));
   await sleep(600);
-  await screen(tag, "16-ket-vu", ["#backMap", "#replayCase", '[data-bonus="b1"][data-choice="0"]']);
+  await screen(tag, "16-ket-vu", ["#backMap", "#replayCase", "#shareBtn", '[data-bonus="b1"][data-choice="0"]']);
   await press('[data-bonus="b1"][data-choice="0"]'); await talkThrough();
   check(`${tag}: câu hỏi phụ đúng`, (await S("s.bonus.b1")) === 0);
   await press("#backMap");
@@ -191,7 +191,7 @@ async function play(tag, desktop) {
   }
 }
 
-const IGNORE = /data\/cases\/[\w-]+\.js\?v=t6/; // vụ chưa viết: 404 là bình thường ("Sắp ra mắt")
+const IGNORE = /data\/cases\/[\w-]+\.js\?v=t7/; // vụ chưa viết: 404 là bình thường ("Sắp ra mắt")
 try {
   await b.view(1366, 768, false, 1.25); mobile = false;
   await play("desk", true);
