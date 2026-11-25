@@ -76,6 +76,13 @@ async function play(tag, desktop) {
   await press('[data-case="mini"]');
   check(`${tag}: vào văn phòng, thoại tự phát`, (await waitFor("__game.screen==='office'&&__game.dialogOpen")));
   await sleep(200); await screen(tag, "03-van-phong-thoai", [".dlg-skip"]);
+  // TTH-01: khung thoại bắt đầu dưới thanh trên ⇒ suốt đoạn thoại vẫn bấm được Tắt tiếng / Về bản đồ (điện thoại không có phím M)
+  const barHit = await b.ev(`["#btnMute","#bar .back"].map(sel=>{const e=document.querySelector(sel);if(!e)return sel+' không có';const r=e.getBoundingClientRect();const t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return t&&e.contains(t)?'':sel+' bị che bởi '+(t?t.className||t.tagName:'null')}).filter(Boolean)`);
+  check(`${tag}: đang thoại, nút Tắt tiếng + Về bản đồ trên thanh trên không bị khung thoại che`, barHit.length === 0, barHit.join(" | "));
+  const mute0 = await b.ev("document.querySelector('#btnMute').getAttribute('aria-pressed')");
+  await press("#btnMute");
+  check(`${tag}: đang thoại bấm Tắt tiếng được, thoại vẫn mở`, (await b.ev("document.querySelector('#btnMute').getAttribute('aria-pressed')")) !== mute0 && (await b.ev("__game.dialogOpen")));
+  await press("#btnMute");
   check(`${tag}: chân dung đổi biểu cảm theo mood (shock)`, await b.ev("!!document.querySelector('.dlg-side.on .portrait[data-mood=\"shock\"]')"));
   check(`${tag}: nhặt từ khoá khi đọc tới`, (await S("s.words.includes('pate')")));
   await talkThrough(3000, true); // Space qua thoại

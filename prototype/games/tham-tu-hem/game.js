@@ -9,10 +9,10 @@ import { plain } from "./core/text.js?v=t10";
 import { makeSave, browserStorage } from "./save.js?v=t10";
 import { setManifest, registerSheets, preloadCaseArt } from "./ui/art.js?v=t10";
 import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t10";
-import { createDialog } from "./ui/dialog.js?v=t10";
+import { createDialog } from "./ui/dialog.js?v=t11";
 import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t10";
-import * as S from "./ui/screens.js?v=t10";
-import * as P from "./ui/panels.js?v=t10";
+import * as S from "./ui/screens.js?v=t11";
+import * as P from "./ui/panels.js?v=t11";
 import { stamp, shake, crackLens } from "./ui/fx.js?v=t10";
 
 const params = new URLSearchParams(location.search);
@@ -94,6 +94,7 @@ const app = {
   /** Kết vụ đã ghi ⇒ về bản đồ. */
   leaveCase(to = "map") {
     const prev = G.c ? seasonOf(G.cat.find((x) => x.id === G.c.id)) : null;
+    app.dialog?.cancel(); // TTH-01: thanh trên bấm được cả lúc đang thoại
     finalizeNow(); G.c = null; G.s = null;
     G.ui.season = app.seasonOpen(2) && !G.profile.flags.s2intro ? null : prev;
     app.show(to);
