@@ -73,3 +73,16 @@ Tỷ Phú `online.js?v=d3o`, Đặt Bom `app.js?v=d3o` + `style.css?v=d3o`, Ma S
 - Chưa giao diện mời ra lúc hết ván ở Caro/Vua/Tướng/Ô Ăn Quan/Cá Ngựa/Tỷ Phú/Ma Sói/Nội Gián (máy chủ cho phép; nút chỉ ở phòng chờ,
   trừ Đặt Bom + Nối Từ).
 - `confirm()` cũ (Hủy phòng, Rời ván…) để Đợt 4 thay bằng `pxConfirm`.
+
+## Kết quả chạy (25/11, sau khi merge master 86c0552)
+- `node --test --test-concurrency=1 games-server/*.test.mjs`: 96/96 đạt (gồm `kick.test.mjs` 12/12, disband, resume, client-ip).
+  Một lần chạy song song với `sound-press-e2e` (Chrome đang chạy) trượt 12 do máy bận; chạy lại riêng: đạt hết.
+- `test:ma-soi` 35, `test:ai-la-noi-gian` 32, `test:dat-bom` 21, `test:noi-tu` 14 (thêm test mời ra), `test:ws` 14, `test:esm` 18,
+  `test:account` 26, `test:static` 8: đạt hết.
+- Unit test game (`prototype/games/{co-caro,co-vua,co-tuong,o-an-quan,co-ca-ngua,co-ty-phu,noi-tu}/test`, `_shared/test/*.test.mjs`):
+  209/209 đạt (`net-resume.test.mjs` sửa để chấp nhận `sid`).
+- E2E: `kick-e2e.mjs` (Caro, Ma Sói, Cá Ngựa + tên dùng chung) đạt hết; `resume-e2e.mjs` 6 game đạt hết; `test:ma-soi:e2e`,
+  `test:ai-la-noi-gian:e2e`, `test:dat-bom:e2e`, `noi-tu/test/browser-e2e.mjs` đạt hết; `sound-press-e2e.mjs` không có FAIL.
+- `chat-off-e2e.mjs`: 9 game đạt hết; **Nối Từ chập chờn** (mỗi lần trượt 1–4 mục khác nhau: hết giờ chờ mã phòng / ô chat). Chạy
+  cùng test trên master 86c0552 cũng trượt y như vậy (1–4 lỗi) ⇒ có từ trước, không do nhánh này.
+- `node tools/cache-tags/check-tags.mjs master`: OK.
