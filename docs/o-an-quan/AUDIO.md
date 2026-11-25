@@ -41,3 +41,6 @@ Tất cả âm thanh được tổng hợp riêng bằng NumPy và SciPy. Hiệu
 | `draw.mp3` | 0.715 | Hiệu ứng |
 | `amb-yard.mp3` | 72.000 | Vòng lặp |
 | `music-game.mp3` | 70.244 | Vòng lặp |
+| `invalid.mp3` | 0.120 | Hiệu ứng |
+| `chat.mp3` | 0.250 | Hiệu ứng |
+| `pause.mp3` | 0.150 | Hiệu ứng |
