@@ -289,7 +289,8 @@ async function boot() {
 
   // ---------- bố cục ----------
   // mobile 390@3: hệ số 1,0 thiết bị cắt ~110 px ngang ⇒ dồn khung sang phải để thấy chỗ khách đứng chờ (mép phải) và mọi bàn
-  const narrow = matchMedia("(max-width: 760px)");
+  // máy tính bảng dọc ≤ 1024 dùng bố cục điện thoại (TLC2-02); khớp media query trong index.html
+  const narrow = matchMedia("(max-width: 639px), (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait)");
   function layout() { scene.layout(narrow.matches ? 1280 : 640, 360, 1); }
   addEventListener("resize", layout);
   new ResizeObserver(layout).observe($("#scene"));

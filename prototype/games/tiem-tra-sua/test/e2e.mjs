@@ -5,6 +5,7 @@
 // → kéo-thả trang trí → giữa ca tải lại giữ ly / phiếu → mobile chơi bằng chạm → sự kiện drama trong ca (390 px) → đơn hai ly (desktop).
 import { writeFileSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
+import { runLayout } from "./e2e-layout.mjs";
 import { LEVELS } from "../data/levels.js";
 const LV = LEVELS.map((L) => L.xp);
 
@@ -558,6 +559,8 @@ await waitFor("!!document.querySelector('#challengeBox')");
 check("M5 390: hộp hội chợ / thử thách / hạng tiệm không tràn ngang", await noOverflowX());
 await b.shot(OUT + "/25-mobile-thu-thach.png");
 
+// bố cục nhiều khung: nút bước không bị thanh hành động che, 0 lần tự cuộn (D2: TLC1-01)
+if (!process.env.SKIP_LAYOUT) await runLayout({ b, check, PORT, OUT });
 check("0 lỗi console / exception", b.errors.length === 0, b.errors.join(" | "));
 writeFileSync(OUT + "/e2e-ket-qua.txt", R.join("\n") + `\n\n${R.length - fails}/${R.length} PASS\n`);
 console.log(`\n${R.length - fails}/${R.length} PASS`);

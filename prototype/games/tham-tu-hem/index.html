@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/tham-tu-hem.jpg" />
   <!-- og:end -->
   <!-- PERF-03: tải song song cả cây module (không chờ từng tầng import) + manifest ảnh; file vụ KHÔNG ở đây (nạp khi mở vụ) -->
-  <link rel="modulepreload" href="game.js?v=t10ff" />
+  <link rel="modulepreload" href="game.js?v=t11" />
   <link rel="modulepreload" href="data/cases/index.js?v=t10" />
   <link rel="modulepreload" href="data/case-meta.js?v=t10" />
   <link rel="modulepreload" href="core/validate.js?v=t10" />
@@ -34,10 +34,10 @@
   <link rel="modulepreload" href="save.js?v=t10" />
   <link rel="modulepreload" href="ui/art.js?v=t10" />
   <link rel="modulepreload" href="ui/dom.js?v=t10" />
-  <link rel="modulepreload" href="ui/dialog.js?v=t10" />
+  <link rel="modulepreload" href="ui/dialog.js?v=t11" />
   <link rel="modulepreload" href="ui/sfx.js?v=t10" />
-  <link rel="modulepreload" href="ui/screens.js?v=t10f" />
-  <link rel="modulepreload" href="ui/panels.js?v=t10f" />
+  <link rel="modulepreload" href="ui/screens.js?v=t11" />
+  <link rel="modulepreload" href="ui/panels.js?v=t11" />
   <link rel="modulepreload" href="ui/fx.js?v=t10" />
   <link rel="modulepreload" href="../_shared/share.js?v=s2" />
   <link rel="modulepreload" href="../_shared/site.js" />
@@ -460,7 +460,8 @@
     @keyframes rise { 0% { transform: translateY(14px); opacity: 0; } 100% { transform: none; opacity: 1; } }
 
     /* ---------- thoại visual novel ---------- */
-    .dlg { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 10px 10px; background: rgba(10,8,7,.38); cursor: pointer; }
+    /* bắt đầu dưới thanh trên (TTH-01): suốt đoạn thoại vẫn bấm được ← / tắt tiếng (điện thoại không có phím M) */
+    .dlg { position: fixed; inset: var(--barH) 0 0 0; z-index: 50; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 10px 10px; background: rgba(10,8,7,.38); cursor: pointer; }
     .dlg-stage { width: min(1100px, 100%); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; margin-bottom: -10px; position: relative; z-index: 0; }
     .dlg-side { min-height: 10px; display: flex; align-items: flex-end; }
     .dlg-side .portrait { filter: brightness(.45) saturate(.6); box-shadow: var(--border); }
@@ -594,6 +595,6 @@
   <div id="fx" aria-live="assertive"></div>
   <div id="toasts" aria-live="polite"></div>
   <script type="module" src="../_shared/feedback.js?v=t11"></script>
-  <script type="module" src="game.js?v=t10ff"></script>
+  <script type="module" src="game.js?v=t11"></script>
 </body>
 </html>
