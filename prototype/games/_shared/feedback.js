@@ -46,7 +46,8 @@ function thump(f0, f1, dur, vol, type = "sine", delay = 0) {
 const SOUNDS = {
   click: () => { tone(1400, 700, 0.035, 0.07, "square"); tone(240, 160, 0.05, 0.08, "triangle"); },
   // Trang chủ (<html data-click-sfx="bup">): "bụp" trầm, mềm — khác tiếng "tách" trong game
-  bup: () => { thump(150, 62, 0.11, 0.22, "sine"); thump(320, 160, 0.035, 0.035, "triangle"); },
+  // Loa điện thoại gần như không phát < ~150 Hz ⇒ thân tiếng 300→120 Hz + lớp "bốp" 700→320 Hz cho nghe rõ mà vẫn tròn.
+  bup: () => { thump(300, 120, 0.12, 0.42, "sine"); thump(700, 320, 0.04, 0.14, "triangle"); },
   sent: () => { tone(500, 1500, 0.11, 0.08, "triangle"); tone(1500, 2100, 0.06, 0.05, "sine", 0.09); },
 };
 const lastPlay = {};
@@ -64,7 +65,26 @@ function clickFx(el) {
   const now = performance.now(); if (now - lastAt < 40) return; lastAt = now; // chạm + click giả không kêu 2 lần
   play(clickName());
 }
-addEventListener("pointerdown", (e) => { if (e.button === 0 || e.pointerType !== "mouse") clickFx(e.target.closest(BTN)); }, true);
+// Chuột: kêu ngay khi nhấn. Cảm ứng: kêu khi NHẤC tay, chỉ khi ngón chưa di quá 10 px, trang chưa cuộn và trình
+// duyệt chưa huỷ chạm (pointercancel = nó nhận cuộn) ⇒ lướt qua nút không kêu.
+let pend = null; // { el, id, x, y }
+addEventListener("pointerdown", (e) => {
+  if (e.pointerType === "mouse") { if (e.button === 0) clickFx(e.target.closest(BTN)); return; }
+  const el = e.target.closest(BTN);
+  pend = usable(el) ? { el, id: e.pointerId, x: e.clientX, y: e.clientY } : null;
+}, true);
+addEventListener("pointermove", (e) => {
+  if (pend && e.pointerId === pend.id && Math.hypot(e.clientX - pend.x, e.clientY - pend.y) > 10) pend = null;
+}, { capture: true, passive: true });
+addEventListener("pointercancel", () => { pend = null; }, true);
+addEventListener("scroll", () => { pend = null; }, { capture: true, passive: true });
+addEventListener("pointerup", (e) => {
+  if (!pend || e.pointerId !== pend.id) return;
+  const { el } = pend; pend = null;
+  if (el.closest("[data-nosfx]")) return;
+  const now = performance.now(); if (now - lastAt < 40) return; lastAt = now;
+  play(clickName()); // nút có thể vừa bị khoá/ẩn bởi chính lần bấm này ⇒ không kiểm usable lại
+}, true);
 addEventListener("keydown", (e) => {
   const el = document.activeElement;
   if ((e.key === "Enter" || e.key === " ") && el && el.matches?.(BTN) && !e.repeat) {

@@ -70,6 +70,16 @@
 /* Lún tức thì (chỉ nhả ra mới mượt): thẻ có transition .12–.15s, trang chuyển sau 130 ms ⇒ không kịp thấy nếu lún từ từ */
 .theme-b a.tile:active, .theme-b a.tile.is-pressing, .theme-b .dcard:active, .theme-b .dcard.is-pressing { transition-duration: 0s; }
 
+/* Màn cảm ứng: lướt qua thẻ không được lún. Trình duyệt bật :active/:hover ngay khi ngón chạm (kể cả lúc đang cuộn)
+   ⇒ tắt hiệu ứng :active/:hover của thẻ link; chỉ lún bằng .is-pressing do press-nav.js bật khi là cú chạm thật. */
+@media (hover: none) {
+  .theme-b a.tile:is(:hover, :active):not(.is-pressing) { transform: none; --b: var(--nv-line); box-shadow: var(--b-border), 4px 5px 0 0 #050a12; }
+  .theme-b .quick__item:is(:hover, :active):not(.is-pressing) .quick__art { transform: none; --b: var(--nv-line); box-shadow: var(--b-border), 3px 3px 0 3px #050a12; }
+  .theme-b a.slide:active:not(.is-pressing) .hero__art { transform: none; }
+  .theme-b a.slide:active:not(.is-pressing) .hero__art img { filter: none; }
+  .theme-b .dcard:is(:hover, :active):not(.is-pressing) { transform: none; --b: #0a111c; box-shadow: var(--b-bevel), var(--b-border), var(--b-drop); }
+}
+
 /* ---------- Giữ chỗ lúc tải (CLS — HOME-01 / PERF-02) ---------- */
 /* Tab lọc do app.js vẽ: giữ đúng chiều cao 1 hàng tab (tab 40/44 px + đệm 4 px) */
 .theme-b .tabs { min-height: 48px; }

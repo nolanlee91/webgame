@@ -97,6 +97,15 @@ export async function pressAudit(tab, { real = 1 } = {}) {
       else { it.dis = dis; await sleep(150); }
     }
     await tab.cmd("CSS.forcePseudoState", { nodeId, forcedPseudoClasses: [] });
+    // Màn cảm ứng: thẻ link trang chủ cố ý KHÔNG lún theo :active (lướt qua không lún); lún bằng .is-pressing
+    // do press-nav.js bật khi là cú chạm thật ⇒ cũng tính là lún.
+    if (r && !r.pressed) {
+      const base = await tab.ev(styleOf(it.i));
+      await tab.ev(`document.querySelector('[data-pa="${it.i}"]').classList.add("is-pressing")`); await sleep(60);
+      const viaClass = await tab.ev(styleOf(it.i));
+      await tab.ev(`document.querySelector('[data-pa="${it.i}"]').classList.remove("is-pressing")`);
+      if (viaClass !== base) r = { ...r, pressed: true, after: viaClass };
+    }
     if (r) res.push({ ...it, ...r });
   }
   // đối chiếu bằng chuột thật: nhấn giữ trên phần tử đầu (không phải vô hiệu), đo, kéo ra ngoài rồi thả (không kích click)

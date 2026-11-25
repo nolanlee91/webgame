@@ -1,26 +1,59 @@
 // Trang chủ: thẻ game / ô "Mở phòng nhanh" / slide nổi bật / thẻ Thử thách là LINK (không phải nút) nên
 // feedback.js chung không kêu, và bấm là trang chuyển ngay ⇒ không kịp thấy lún, tiếng bị cắt.
-// File này: chạm xuống ⇒ tiếng "tách" + lún (class is-pressing, chạy cả trên điện thoại nơi :active thất thường),
-// bấm ⇒ giữ lún ~130 ms rồi mới chuyển trang. Ctrl/⌘/Shift/chuột giữa / mở tab mới / link #trong trang: để trình duyệt tự xử lý.
+// Chuột: nhấn xuống ⇒ lún + tiếng ngay.
+// Cảm ứng: lướt qua thẻ KHÔNG lún, KHÔNG kêu. Chỉ lún sau ~70 ms nếu ngón tay đứng yên, và chỉ kêu khi nhấc tay
+// mà chưa di quá 10 px / trang chưa cuộn / trình duyệt chưa huỷ chạm (pointercancel khi nó nhận cuộn).
+// Bấm thật ⇒ giữ lún ~130 ms rồi mới chuyển trang. Ctrl/⌘/Shift/chuột giữa / mở tab mới / link #trong trang: để trình duyệt tự xử lý.
 // Vuốt slide: app.js chặn click (preventDefault ở pha capture) ⇒ ở đây thấy defaultPrevented thì bỏ qua.
-import { play, clickName } from "../games/_shared/feedback.js?v=f2"; // CÙNG địa chỉ với thẻ script trong index.html (khác ⇒ 2 bản, kêu 2 lần)
+import { play, clickName } from "../games/_shared/feedback.js?v=f3"; // CÙNG địa chỉ với thẻ script trong index.html (khác ⇒ 2 bản, kêu 2 lần)
 
 const NAV = "a.tile[href], a.slide[href], a.quick__item[href], a.dcard[href]";
 const HOLD_MS = 130;
+const TOUCH_PRESS_DELAY = 70; // ms đứng yên trước khi lún (lướt nhanh qua thì không lún)
+const SLOP = 10; // px di chuyển tối đa vẫn tính là chạm
 let navigating = false;
+let touch = null; // { a, id, x, y, timer, pressed }
 
 const press = (a) => a.classList.add("is-pressing");
-const release = (a) => setTimeout(() => a.classList.remove("is-pressing"), 90);
+const release = (a) => setTimeout(() => { if (!navigating) a.classList.remove("is-pressing"); }, 90);
+
+function cancelTouch() {
+  if (!touch) return;
+  clearTimeout(touch.timer);
+  touch.a.classList.remove("is-pressing");
+  touch = null;
+}
 
 addEventListener("pointerdown", (e) => {
-  if (e.pointerType === "mouse" && e.button !== 0) return;
   const a = e.target.closest(NAV);
   if (!a) return;
-  press(a);
+  if (e.pointerType === "mouse") {
+    if (e.button !== 0) return;
+    press(a);
+    play(clickName());
+    const up = () => { release(a); removeEventListener("pointerup", up, true); };
+    addEventListener("pointerup", up, true);
+    return;
+  }
+  cancelTouch();
+  touch = { a, id: e.pointerId, x: e.clientX, y: e.clientY, pressed: false };
+  touch.timer = setTimeout(() => { if (touch && touch.a === a) { touch.pressed = true; press(a); } }, TOUCH_PRESS_DELAY);
+}, true);
+
+addEventListener("pointermove", (e) => {
+  if (touch && e.pointerId === touch.id && Math.hypot(e.clientX - touch.x, e.clientY - touch.y) > SLOP) cancelTouch();
+}, { capture: true, passive: true });
+addEventListener("pointercancel", (e) => { if (touch && e.pointerId === touch.id) cancelTouch(); }, true);
+addEventListener("scroll", cancelTouch, { capture: true, passive: true }); // cả cuộn trang lẫn cuộn ngang trong kệ
+
+addEventListener("pointerup", (e) => {
+  if (!touch || e.pointerId !== touch.id) return;
+  const { a, timer } = touch;
+  clearTimeout(timer);
+  touch = null;
+  press(a); // chạm nhanh (< 70 ms) vẫn thấy lún
   play(clickName());
-  const up = () => { release(a); removeEventListener("pointerup", up, true); removeEventListener("pointercancel", up, true); };
-  addEventListener("pointerup", up, true);
-  addEventListener("pointercancel", up, true);
+  release(a);
 }, true);
 
 addEventListener("click", (e) => {
@@ -40,5 +73,6 @@ addEventListener("click", (e) => {
 // Quay lại bằng nút Back (bfcache) ⇒ bỏ trạng thái đang chuyển trang
 addEventListener("pageshow", () => {
   navigating = false;
+  touch = null;
   document.querySelectorAll(".is-pressing").forEach((el) => el.classList.remove("is-pressing"));
 });
