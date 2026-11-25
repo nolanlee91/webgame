@@ -6,6 +6,7 @@
 // Tua thời gian ca bằng __game.advance (không chờ thật). Yêu cầu 0 lỗi console.
 import { launch, sleep } from "./cdp.mjs";
 import { playM34 } from "./e2e-m34.mjs";
+import { runLayout } from "./e2e-layout.mjs";
 import { audioBeforeGesture, audioAfterGesture, audioInShift, coverChecks, queueChecks, m5Flows } from "./e2e-m5.mjs";
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8841;
@@ -169,7 +170,7 @@ async function playDay1(tag, shots) {
 }
 
 // ===== desktop 1366×768 dpr 1,25, chuột =====
-const MOBILE_ONLY = !!process.env.MOBILE_ONLY;
+const MOBILE_ONLY = !!process.env.MOBILE_ONLY || !!process.env.LAYOUT_ONLY;
 const ctx = { b, OUT, PORT, BASE, check, pressSel, S, waitFor, clearDialogs };
 await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
 if (!MOBILE_ONLY) await playDay1("desktop", true);
@@ -201,10 +202,14 @@ await m5Flows(ctx, "desktop");
 
 // ===== mobile 390×844 dpr 3, chạm =====
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
+if (!process.env.LAYOUT_ONLY) {
 await playDay1("mobile", true);
 await playM34(ctx, "mobile");
 await m5Flows(ctx, "mobile");
 check("mobile: cảnh hệ số bội 0,5 thiết bị", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio*2;return Math.abs(k-Math.round(k))<1e-6})()"), String(await b.ev("__game.sceneScale()")));
+}
+// bố cục nhiều khung: 0 lần tự cuộn mỗi đơn (390/360/412/768/320), không tràn ngang, máy tính bảng dọc (D2: TLC2-01/03/05)
+if (!process.env.SKIP_LAYOUT) await runLayout({ b, check, sleep, OUT, PORT, waitFor });
 check("0 lỗi console", b.errors.length === 0, b.errors.slice(0, 5).join(" | "));
 b.close();
 console.log(fails ? `\n${fails} FAIL` : "\nE2E ĐẠT");

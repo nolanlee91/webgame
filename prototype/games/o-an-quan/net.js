@@ -4,6 +4,8 @@
 // Đóng hẳn tab rồi mở lại link mời ?room=MÃ: token còn lưu trong localStorage "<SEAT_KEY>.<MÃ>" = { code, token, savedAt }
 // (hết hạn sau 30 phút không ở trong phòng; xoá khi rời / phòng bị hủy / mất ghế) ⇒ gửi "resume" thay cho "join",
 // máy chủ trả lại đúng ghế kể cả khi ván đang chơi. Tab cũ của cùng người (nếu còn mở) nhận "replaced" và thoát.
+import { sessionId, KICKED_TEXT, BANNED_TEXT } from "../_shared/online-kit.js?v=ok1"; // mã phiên (chặn người bị "Mời ra") + câu báo
+
 const SEAT_KEY = "wgp.o-an-quan.seat";
 export const CODE_RE = /^[A-HJKMNP-Z2-9]{5}$/;
 
@@ -61,7 +63,7 @@ export function createNet(on, { url } = {}) {
     const w = ws = new WebSocket(url);
     w.onopen = () => {
       opened = true;
-      w.send(JSON.stringify(pending || { t: "resume", code: seat.code, token: seat.token }));
+      w.send(JSON.stringify({ ...(pending || { t: "resume", code: seat.code, token: seat.token }), sid: sessionId() }));
       pingTimer = setInterval(() => w.readyState === 1 && w.send('{"t":"ping"}'), 20000);
     };
     w.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch { return; } onMsg(m); };
@@ -84,8 +86,9 @@ export function createNet(on, { url } = {}) {
     if (m.t === "left") { end(); on.left(); return; }
     if (m.t === "closed") { end(); on.closed(); return; }
     if (m.t === "replaced") { end(true); on.gone("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
-    if (m.t === "kicked") { end(); on.gone("Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
+    if (m.t === "kicked") { end(); on.gone(m.by === "host" ? KICKED_TEXT : "Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
     if (m.t === "err") {
+      if (m.code === "banned") { end(); on.gone(BANNED_TEXT); return; } // bị chủ phòng mời ra: 10 phút chưa vào lại được (kể cả resume)
       if (joinAfter && !inRoom && (m.code === "no-seat" || m.code === "no-room")) { const j = joinAfter; joinAfter = null; saveSeat(null); connect(j); return; }
       if (m.code === "no-seat" || (m.code === "no-room" && !pending)) { end(); on.gone("Chỗ ngồi cũ của bạn không còn trong phòng."); return; }
       if (!inRoom) { stop(); }

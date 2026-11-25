@@ -394,6 +394,42 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     }
   }
   function setLoafScale(s) { const v = crispScale(s); if (v !== loafScale) { loafScale = v; key = ""; } }
-  return { render, frame, setLoafScale, resetPicked: () => { picked = {}; key = ""; } };
+  /** Cuộn vùng cuộn (điện thoại / máy tính bảng: .app; máy tính: quầy ráp) để nút của bước hiện tại nằm trọn trong khung,
+   *  không bị thanh Hoàn tác / Đổ / Giao (dính đáy) che. Ưu tiên giữ phiếu (hoặc cảnh, khi chờ ghim phiếu) ở mép trên.
+   *  Chỉ gọi khi bước đổi (game.js) ⇒ không giành cuộn với người chơi.
+   *  keys: các bước cần thấy cùng lúc (bước đang làm + bước kế phiếu cần); không vừa khung thì ưu tiên bước cuối. */
+  function reveal(keys) {
+    const els = keys.map((k) => REVEAL_SEL[k] && [...document.querySelectorAll(REVEAL_SEL[k])].find((e) => !e.disabled && !e.closest("[hidden]") && e.getBoundingClientRect().height > 0)).filter(Boolean);
+    if (!els.length) return false;
+    const last = els[els.length - 1], sc = scrollerOf(last);
+    if (!sc) return false;
+    const acts = sc.querySelector(".acts");
+    if (acts?.contains(last)) { if (!onTop(last)) last.scrollIntoView({ block: "nearest" }); return true; }
+    const box = sc.getBoundingClientRect();
+    const top = Math.max(box.top, 0) + 6, bottom = Math.min(box.bottom, innerHeight) - 6 - (acts ? acts.offsetHeight : 0);
+    const span = (list) => { const rs = list.map((e) => e.getBoundingClientRect()); return [Math.min(...rs.map((r) => r.top)), Math.max(...rs.map((r) => r.bottom))]; };
+    const [t, bt] = span(els);
+    const lo = bt - bottom; // cuộn xuống d với lo ≤ d ≤ hi ⇒ cả cụm nằm trọn trong khung
+    let hi = t - top;
+    if (lo <= 0 && hi >= 0) return false;
+    if (lo > hi) { const d = Math.min(lo, last.getBoundingClientRect().top - top); sc.scrollTop += Math.round(d); return true; } // cụm quá cao: thấy trọn nhóm cuối + phần dưới (các ô) của nhóm đang làm
+    const anchor = keys[0] === "pin" ? document.querySelector("#world") : root.querySelector(".ticket");
+    let d = anchor ? anchor.getBoundingClientRect().top - top : lo > 0 ? lo : hi;
+    d = Math.max(lo, Math.min(hi, d));
+    sc.scrollTop += Math.round(d);
+    return true;
+  }
+  return { render, frame, setLoafScale, reveal, resetPicked: () => { picked = {}; key = ""; } };
+}
+const onTop = (e) => { const r = e.getBoundingClientRect(), t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!t && e.contains(t); };
+const REVEAL_SEL = { bake: '#bench [data-act="bake"]', pull: '#bench [data-act="pull"]', take: '#bench [data-act="take"]', toast: '#bench [data-act="toast"]', slice: '#bench [data-act="slice"]',
+  spread: "#bench .grp-spread", fill: "#bench .grp-fill", veg: "#bench .grp-veg", spice: "#bench .grp-spice", wrap: "#bench .grp-wrap", serve: '#bench [data-act="serve"]',
+  change: '#bench [data-act="autoChange"], #bench [data-act="giveChange"]', pin: "#rail .slip.hint, #rail .slip:not(:disabled):not(.on)" };
+function scrollerOf(el) {
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if ((o === "auto" || o === "scroll") && p.scrollHeight > p.clientHeight + 1) return p;
+  }
+  return null;
 }
 export { CRUST, RECIPE };

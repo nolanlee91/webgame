@@ -234,7 +234,9 @@ export function createHud(root, cb) {
       const canBot = v.lobby && o.host; // chủ phòng: ghế trống ⇒ "+ Bot", ghế bot ⇒ "✕" để bớt
       r.querySelector(".st").innerHTML = !p ? (canBot ? `<button class="px-btn mini" data-bot="add" type="button" aria-label="Thêm bot vào ghế trống">+ Bot</button>` : "Đang chờ…")
         : p.bot ? "Máy" + (canBot ? ` <button class="px-btn mini" data-bot="${p.idx}" type="button" aria-label="Bớt ${esc(p.name)}">✕</button>` : "")
-        : p.away ? `${ic("mat-ket-noi")} Mất kết nối` : `${ic("san-sang")} Sẵn sàng`;
+        : (p.away ? `${ic("mat-ket-noi")} Mất kết nối` : `${ic("san-sang")} Sẵn sàng`)
+          // chủ phòng: "Mời ra" người khác (online.js → _shared/online-kit.js lo hộp xác nhận + gửi lệnh)
+          + (canBot && !p.me ? ` <button class="px-btn mini" data-pxkick="${p.idx}" data-pxkick-name="${esc(p.name)}" type="button" aria-label="Mời ${esc(p.name)} ra khỏi phòng">Mời ra</button>` : "");
       r.querySelector(".st").classList.toggle("bad", !!(p && p.away));
     });
   }

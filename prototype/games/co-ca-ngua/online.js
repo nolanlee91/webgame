@@ -4,8 +4,9 @@
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
 //   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ.
-import { mount } from "./game.js?v=ls1";
+import { mount } from "./game.js?v=d3o";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
+import { sharedName, sessionId, initKick, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
 const SEAT_KEY = "wgp.co-ca-ngua.seat";
@@ -24,6 +25,8 @@ const ERR = {
   loading: "Máy chủ đang khởi động, thử lại sau giây lát.",
   server: "Máy chủ gặp lỗi, thử lại.",
   bad: "Yêu cầu không hợp lệ.",
+  banned: BANNED_TEXT,
+  target: KICK_ERR.target,
   long: "Tin nhắn dài quá (tối đa 200 ký tự).",
   "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
@@ -89,7 +92,9 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     if (inst) { inst.destroy(); inst = null; }
     chatOff();
     hideToast();
-    const name = localStorage.getItem(NAME_KEY) || "";
+    // tên dùng chung toàn site (tài khoản); người cũ có tên riêng của game (NAME_KEY) được chuyển sang một lần
+    const names = sharedName({ game: "co-ca-ngua", legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } } });
+    const name = names.get();
     const invite = CODE_RE.test(code);
     stage.innerHTML = `
       <div class="cn-table cn-entry-wrap">
@@ -120,11 +125,11 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     const busyUi = (on) => stage.querySelectorAll(".cn-entry .px-btn").forEach((b) => (b.disabled = on));
     codeIn.addEventListener("input", () => { codeIn.value = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
     const go = (kind) => {
-      const nm = nameIn.value.trim();
+      const nm = names.commit(nameIn.value); // sửa tên ở đây ⇒ mọi game + bảng xếp hạng cùng đổi
       if (kind === "bot") return startBots();
       if (kind === "fresh") { setRoomParam(""); return showEntry(); }
       if (!nm) { errEl.textContent = "Nhập tên của bạn trước nhé."; nameIn.focus(); return; }
-      localStorage.setItem(NAME_KEY, nm);
+      try { localStorage.setItem(NAME_KEY, nm); } catch {}
       if (kind === "join") {
         const c = codeIn.value.trim().toUpperCase();
         if (!CODE_RE.test(c)) { errEl.textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7M2Q."; codeIn.focus(); return; }
@@ -240,7 +245,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     const w = ws = new WebSocket(url);
     w.onopen = () => {
       opened = true;
-      w.send(JSON.stringify(pending || { t: "resume", code: seat.code, token: seat.token }));
+      w.send(JSON.stringify({ ...(pending || { t: "resume", code: seat.code, token: seat.token }), sid: sessionId() })); // sid: chặn người bị "Mời ra"
       pingTimer = setInterval(() => w.readyState === 1 && w.send('{"t":"ping"}'), 20000);
     };
     w.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch { return; } onMsg(m); };
@@ -276,9 +281,10 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       return;
     }
     if (m.t === "replaced") { saveSeat(null, true); showEntry("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
-    if (m.t === "kicked") { saveSeat(null); setRoomParam(""); showEntry("Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
+    if (m.t === "kicked") { saveSeat(null); setRoomParam(""); showEntry(m.by === "host" ? KICKED_TEXT : "Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
     if (m.t === "err") {
       const text = ERR[m.code] || "Có lỗi xảy ra (" + m.code + ").";
+      if (m.code === "banned") { saveSeat(null); setRoomParam(""); showEntry(BANNED_TEXT); return; } // bị mời ra: 10 phút chưa vào lại được
       if (!inst) { // đang vào phòng / nối lại thất bại
         if (joinAfter && (m.code === "no-seat" || m.code === "no-room")) { pending = joinAfter; joinAfter = null; saveSeat(null); connect(); return; }
         const code = pending && pending.code || seat && seat.code || "";
@@ -330,6 +336,8 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     if (ws && ws.readyState === 1) ws.send('{"t":"leave"}');
     else { saveSeat(null); setRoomParam(""); showEntry(); }
   }
+
+  initKick({ send }); // chủ phòng bấm "Mời ra" (hud.js vẽ nút) ⇒ hộp xác nhận pixel ⇒ { t:"kick", target, name }
 
   window.__net = {
     get ws() { return ws; }, get seat() { return seat; }, get joined() { return joinedOnce; },

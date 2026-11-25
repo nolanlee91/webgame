@@ -4,11 +4,13 @@
 // Danh tính = token ngẫu nhiên 128 bit do server cấp; một kết nối chỉ hành động được cho ĐÚNG ghế của token đó.
 "use strict";
 const crypto = require("crypto");
+const { clientIp } = require("../client-ip.js");
 const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { attachWs } = require("../ma-soi/ws");
 const { DEFAULT_NAME, cleanLine, cleanPlayerName, maskChat } = require("../moderation"); // bộ lọc dùng chung (games-server/MODERATION.md)
+const { KICK_BAN_MS, cleanSid, rememberSid, isBanned, addBan } = require("../kick"); // "Mời ra" + chặn vào lại 10 phút theo phiên
 
 const GAME_DIR = path.join(__dirname, "..", "..", "prototype", "games", "noi-tu");
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
@@ -54,7 +56,7 @@ function createNoiTuHost(server, opts = {}) {
   const RATE = { burst: 20, perSec: 6 };
   const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 4 };
   const trustProxy = opts.trustProxy ?? (process.env.MASOI_TRUST_PROXY === "1" || process.env.TRUST_PROXY === "1");
-  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
+  const ipOf = (req) => clientIp(req, trustProxy); // X-Forwarded-For cuối, hoặc CF-Connecting-IP khi hop đó là Cloudflare (client-ip.js)
   const ipConns = new Map();
   const rooms = new Map();   // code → { code, ip, seats:[{token,name}|null ×2], conns:Set, ref, idleTimer, graceTimers }
   const sockets = new Set();
@@ -132,8 +134,8 @@ function createNoiTuHost(server, opts = {}) {
     lobbyPush(e);
   }
 
-  function enter(conn, e, token) {
-    conn.entry = e; conn.token = token;
+  function enter(conn, e, token, sid) {
+    conn.entry = e; conn.token = token; rememberSid(e, token, sid);
     e.conns.add(conn); clearTimeout(e.idleTimer);
     const seat = seatOf(e, token);
     clearTimeout(e.graceTimers[seat]); e.graceTimers[seat] = null;
@@ -153,6 +155,7 @@ function createNoiTuHost(server, opts = {}) {
 
     if (m.t === "create" || m.t === "enter" || m.t === "resume") {
       if (conn.entry) return reply(conn, { t: "err", code: "already" });
+      const sid = cleanSid(m.sid); // mã phiên trình duyệt — chỉ để chặn người bị chủ phòng mời ra (games-server/kick.js)
       if (m.t === "create") {
         const name = cleanName(m.name); if (!name) return reply(conn, { t: "err", code: "name" });
         if (rooms.size >= maxRooms || [...rooms.values()].filter((x) => x.ip === conn.ip).length >= perIp.rooms) return reply(conn, { t: "err", code: "busy" });
@@ -160,25 +163,27 @@ function createNoiTuHost(server, opts = {}) {
         const e = { code, ip: conn.ip, public: m.public === undefined || m.public === true, seats: [{ token: crypto.randomBytes(16).toString("hex"), name }, null], conns: new Set(), ref: null, idleTimer: null, graceTimers: [null, null],
           chat: [], chatRate: [0, 1].map(() => ({ tok: CHAT.burst, at: Date.now() })) };
         rooms.set(code, e);
-        return enter(conn, e, e.seats[0].token);
+        return enter(conn, e, e.seats[0].token, sid);
       }
       const e = rooms.get(String(m.code || "").toUpperCase().trim().slice(0, 8));
       if (!e) return reply(conn, { t: "err", code: "no-room" });
       if (m.t === "resume") {
         const token = typeof m.token === "string" && /^[0-9a-f]{32}$/.test(m.token) ? m.token : "";
+        if (token && isBanned(e, Date.now(), { token, sid })) return reply(conn, { t: "err", code: "banned" }); // bị mời ra ⇒ không resume
         if (!token || seatOf(e, token) < 0) return reply(conn, { t: "err", code: "no-seat" });
         // một ghế chỉ một kết nối: kết nối cũ (tab cũ) bị thay
         for (const c of [...e.conns]) if (c.token === token) {
           reply(c, { t: "replaced" }); e.ref?.disconnect(c.id); e.conns.delete(c); c.entry = null; c.token = null; c.ws.close(4000);
         }
-        return enter(conn, e, token);
+        return enter(conn, e, token, sid);
       }
+      if (isBanned(e, Date.now(), { sid })) return reply(conn, { t: "err", code: "banned" });
       const name = cleanName(m.name, e.seats[0]?.name === DEFAULT_NAME ? DEFAULT_NAME + " 2" : DEFAULT_NAME); if (!name) return reply(conn, { t: "err", code: "name" });
       if (e.seats[1]) return reply(conn, { t: "err", code: "full" });
       if (name.toLowerCase() === e.seats[0].name.toLowerCase()) return reply(conn, { t: "err", code: "name-taken" });
       e.seats[1] = { token: crypto.randomBytes(16).toString("hex"), name };
       e.chatRate[1] = { tok: CHAT.burst, at: Date.now() };
-      enter(conn, e, e.seats[1].token);
+      enter(conn, e, e.seats[1].token, sid);
       startMatch(e);
       return;
     }
@@ -187,6 +192,7 @@ function createNoiTuHost(server, opts = {}) {
     if (!e || !conn.token) return reply(conn, { t: "err", code: "no-room" });
     if (m.t === "leave") { leave(conn, e); return reply(conn, { t: "left" }); }
     if (m.t === "chat") return chat(conn, e, m.text);
+    if (m.t === "kick") return kick(conn, e, m.target, m.name);
     if (!FORWARD.has(m.t)) return reply(conn, { t: "err", code: "bad" });
     if (!e.ref) return reply(conn, { t: "err", code: "not-started" });
     const msg = sanitize(m, conn.token); // token luôn lấy từ kết nối, không tin token client tự gửi kèm
@@ -208,6 +214,27 @@ function createNoiTuHost(server, opts = {}) {
       e.seats[seat] = null; e.chatRate[seat] = { tok: CHAT.burst, at: Date.now() }; lobbyPush(e);
     }
     checkIdle(e);
+  }
+
+  // Chủ phòng (ghế 0) "Mời ra" người kia — chỉ khi chưa có ván hoặc ván vừa xong (giữa ván thì đổi kết quả).
+  // Người bị mời ra không vào lại phòng này được trong 10 phút (theo token ghế + mã phiên, không theo IP).
+  // Phòng trở về phòng chờ, chủ phòng chờ người mới (ván cũ của trọng tài bỏ đi).
+  function kick(conn, e, target, name) {
+    const seat = seatOf(e, conn.token);
+    if (seat !== 0) return reply(conn, { t: "err", code: "not-host", req: "kick" });
+    if (target !== 1 || !e.seats[1] || (typeof name === "string" && name !== e.seats[1].name)) return reply(conn, { t: "err", code: "target", req: "kick" });
+    if (e.ref && !e.ref.state?.round?.over) return reply(conn, { t: "err", code: "phase", req: "kick" });
+    const token = e.seats[1].token;
+    addBan(e, Date.now(), opts.kickBanMs ?? KICK_BAN_MS, { token, sid: e.sids?.get(token) || "" });
+    e.sids?.delete(token);
+    for (const c of [...e.conns]) if (c.token === token) {
+      e.ref?.disconnect(c.id); e.conns.delete(c); c.entry = null; c.token = null;
+      reply(c, { t: "kicked", by: "host" });
+    }
+    clearTimeout(e.graceTimers[1]); e.graceTimers[1] = null;
+    if (e.ref) { e.ref.dispose(); e.ref = null; }
+    e.seats[1] = null; e.chatRate[1] = { tok: CHAT.burst, at: Date.now() };
+    lobbyPush(e); // chủ phòng nhận {t:"lobby", started:false} ⇒ về màn chờ người mới
   }
 
   attachWs(server, wsPath, (ws, req) => {

@@ -362,6 +362,8 @@
       .opt-name { font-size: 13px; }
       .opt kbd { display: none; }
       .acts { bottom: -8px; padding: 6px 0 2px; gap: 6px; }
+      /* dải bước + nút nguyên liệu ngay dưới phiếu; bếp topping xuống dưới nút (TLC1-01: cuối game bếp đẩy nút xuống dưới thanh Hoàn tác / Giao) */
+      .brew > .kitchen { order: 1; } .brew > .acts { order: 2; }
       .btn { padding: 8px 10px; font-size: 13px; }
       .prep-grid { grid-template-columns: 1fr; }
       .gear { grid-template-columns: 1fr; }
@@ -507,7 +509,7 @@
   <div id="overlay" class="overlay" hidden></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <p id="bootError" hidden></p>
-  <script type="module" src="game.js?v=m38f"></script>
+  <script type="module" src="game.js?v=m39"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

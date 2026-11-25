@@ -3,10 +3,12 @@
 // Danh tính = token ngẫu nhiên 128 bit do máy chủ cấp (không tin tên / số ghế client gửi lên).
 "use strict";
 const crypto = require("crypto");
+const { clientIp } = require("../client-ip.js");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { attachWs } = require("./ws");
 const { Room, MAX_PLAYERS } = require("./room");
+const { cleanSid, rememberSid, isBanned, kickFromRoom } = require("../kick");
 const { listPublicRooms } = require("../public-rooms");
 
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
@@ -23,7 +25,7 @@ function createCoTuongHost(server, opts = {}) {
   const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 3 };
   const trustProxy = opts.trustProxy ?? process.env.COTUONG_TRUST_PROXY === "1";
   const ipConns = new Map();
-  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
+  const ipOf = (req) => clientIp(req, trustProxy); // X-Forwarded-For cuối, hoặc CF-Connecting-IP khi hop đó là Cloudflare (client-ip.js)
 
   // logic.js + ai.js là ES module dùng chung với client → nạp bất đồng bộ một lần khi khởi động.
   let L = null, A = null;
@@ -98,17 +100,20 @@ function createCoTuongHost(server, opts = {}) {
         if (!entry) return reply(conn, { t: "err", code: "no-room" });
       }
       let token;
+      const sid = cleanSid(m.sid); // mã phiên trình duyệt — chỉ để chặn người bị chủ phòng mời ra (games-server/kick.js)
       if (m.t === "resume") {
         token = typeof m.token === "string" && /^[0-9a-f]{32}$/.test(m.token) ? m.token : "";
+        if (token && isBanned(entry, clock.now(), { token, sid })) return reply(conn, { t: "err", code: "banned" }); // bị mời ra ⇒ không resume
         if (!token || seatOf(entry, token) < 0) return reply(conn, { t: "err", code: "no-seat" });
         for (const c of entry.conns) if (c.token === token && c !== conn) { c.token = null; c.ws.send(JSON.stringify({ t: "replaced" })); c.ws.close(4000); }
       } else {
+        if (m.t === "join" && isBanned(entry, clock.now(), { sid })) return reply(conn, { t: "err", code: "banned" });
         token = crypto.randomBytes(16).toString("hex");
         let r; try { r = entry.room.join(m.name, token, conn.ip); } catch (e) { r = { err: "bad" }; }
         if (r.err) { if (m.t === "create") dropRoom(entry); return reply(conn, { t: "err", code: r.err }); }
         if (m.t === "create") entry.public = m.public === undefined || m.public === true;
       }
-      conn.entry = entry; conn.token = token; conn.last = null;
+      conn.entry = entry; conn.token = token; conn.last = null; rememberSid(entry, token, sid);
       entry.conns.add(conn); clearTimeout(entry.idleTimer);
       reply(conn, { t: "joined", code: entry.room.code, token });
       entry.room.setConnected(seatOf(entry, token), true);
@@ -125,6 +130,13 @@ function createCoTuongHost(server, opts = {}) {
       entry.room.leave(i);
       if (entry.room.closed) dropRoom(entry); else checkIdle(entry);
       return reply(conn, { t: "left" });
+    }
+    if (m.t === "kick") { // chủ phòng "Mời ra" một người (phòng chờ / hết ván) — kiểm chủ phòng + chặn vào lại 10 phút ở kick.js
+      const r = kickFromRoom(entry, i, m.target, clock.now(), { banMs: opts.kickBanMs, name: m.name });
+      if (r.err) return reply(conn, { t: "err", code: r.err, req: m.t });
+      for (const c of r.victims) reply(c, { t: "kicked", by: "host" });
+      if (entry.room.closed) return dropRoom(entry);
+      return push(entry);
     }
     if (m.t === "disband") { // chủ phòng hủy phòng (phòng chờ / ván đã xong): báo mọi người rồi đóng phòng
       const room = entry.room, host = room.hostSeat ?? room.host;

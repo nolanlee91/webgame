@@ -53,7 +53,7 @@ export function createBrew(root, atlas, dispatch) {
     dispatch({ type: "brew", step, id: step === "sugar" ? Number(raw) : raw });
   });
 
-  let lastKey = "", lastTicket = "", lastState = null, lastKitchen = "";
+  let lastKey = "", lastTicket = "", lastState = null, lastKitchen = "", lastReveal = "";
   const kitchenEl = $("#kitchen");
   kitchenEl.addEventListener("click", (e) => { const b = e.target.closest("button[data-cook]"); if (b && !b.disabled) dispatch({ type: "cook", size: Number(b.dataset.cook) }); });
   const avail = (state, step, ch) => (ch.kitchen ? (state.shift?.kitchen.ready || 0) >= 1 : hasStock(state, useOf(step, ch.id)));
@@ -216,6 +216,28 @@ export function createBrew(root, atlas, dispatch) {
     const left = c ? cupsLeft(c) : 0;
     sb.textContent = c && noLid ? `Giao luôn (chưa đóng nắp!)` : c ? (left > 1 ? `Ghép ly vào đơn ${c.name} (${c.items.length - left + 1}/${c.items.length})` : c.items.length > 1 ? `Giao đủ ${c.items.length} ly cho ${c.name}` : `Giao cho ${c.name}`) : "Giao ly";
     sb.classList.toggle("ready", !sb.disabled && !!cup?.sealed);
+    // bước / chỗ pha / khách đổi ⇒ cuộn quầy pha cho dải bước + nút nguyên liệu nằm trọn trên thanh Hoàn tác / Đổ / Giao (TLC1-01)
+    const rk = JSON.stringify([step, sh?.sel, cid, !!sh?.dialog]);
+    if (rk !== lastReveal) { lastReveal = rk; if (step && !sh.dialog) reveal(); }
+  }
+  /** Cuộn vùng cuộn của quầy pha (cả .brew trên máy tính lẫn trang trên điện thoại) tới cụm dải bước + nút nguyên liệu của bước hiện tại,
+   *  không để thanh hành động dính đáy che. Ưu tiên giữ phiếu + ly ở mép trên; cụm quá cao thì ưu tiên nút gợi ý (hoặc hàng nút đầu). */
+  function reveal() {
+    const first = optsEl.querySelector(".opt.hint") || optsEl.querySelector(".opt:not(:disabled)") || optsEl.firstElementChild;
+    if (!first) return;
+    const sc = scrollerOf(optsEl);
+    if (!sc) return;
+    const acts = root.querySelector(".acts");
+    const box = sc.getBoundingClientRect();
+    const top = Math.max(box.top, 0) + 6, bottom = Math.min(box.bottom, innerHeight) - 6 - (acts && sc.contains(acts) ? acts.offsetHeight : 0);
+    const span = (els) => { const rs = els.map((e) => e.getBoundingClientRect()); return [Math.min(...rs.map((r) => r.top)), Math.max(...rs.map((r) => r.bottom))]; };
+    let [t, bt] = span([stepsEl, optsEl]);
+    if (bt - t > bottom - top) [t, bt] = span([$("#optsTitle"), first]);
+    const lo = bt - bottom, hi = t - top; // cuộn xuống d (lo ≤ d ≤ hi) ⇒ cụm nằm trọn trong khung
+    if (lo <= 0 && hi >= 0) return;
+    const anchor = root.querySelector(".brew-top") || root;
+    const d = lo > hi ? hi : Math.max(lo, Math.min(hi, anchor.getBoundingClientRect().top - top));
+    sc.scrollTop += Math.round(d);
   }
   /** Chỗ pha song song (bàn pha đôi / ba): mỗi nút một chỗ, ghi khách + tiến độ ly. */
   function renderStations(state) {
@@ -240,4 +262,11 @@ export function createBrew(root, atlas, dispatch) {
   /** Cập nhật nhẹ mỗi khung (thanh kiên nhẫn trên phiếu). */
   function frame(state) { renderTicket(state); renderKitchen(state); renderOptions(state); renderStations(state); }
   return { render, frame, act: (w) => cupView.act(w), setCupScale: (s) => cupView.setScale(s) };
+}
+function scrollerOf(el) {
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if ((o === "auto" || o === "scroll") && p.scrollHeight > p.clientHeight + 1) return p;
+  }
+  return null;
 }
