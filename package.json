@@ -18,6 +18,7 @@
     "test:ws": "node --test games-server/ws-coalesce.test.mjs games-server/ws-heartbeat.test.mjs",
     "test:esm": "node --test games-server/esm-load.test.mjs",
     "test:account": "node --test games-server/account/test/*.test.mjs",
+    "test:static": "node --test server-static.test.mjs",
     "test:daily-board:e2e": "node prototype/games/_shared/test/daily-board-e2e.mjs",
     "test:disband": "node --test --test-concurrency=1 games-server/disband.test.mjs"
   },

@@ -17,6 +17,11 @@ const countEl = document.getElementById("dailyCount");
 let day = 0;
 let ranks = { day: 0, map: {}, asked: 0 }; // hạng đã lấy từ máy chủ (theo ngày)
 
+// Ảnh thẻ: bản nửa cỡ (assets/thumbs/half/, 360 px) cho thẻ nhỏ; bản gốc 720 chỉ khi màn mật độ cao cần. Cùng srcset/sizes với
+// 3 thẻ viết sẵn trong index.html ⇒ vẽ lại không tải ảnh mới.
+const half = (src) => src.replace("assets/thumbs/", "assets/thumbs/half/");
+const SIZES = "(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px";
+
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
 
 function render() {
@@ -32,7 +37,7 @@ function render() {
     const label = `${g.name}, thử thách #${day}: ${done ? "đã xong, " + D.short(c.id, st.result) : "chưa chơi"}. ${streak}.`
       + (done && ranks.day === day && ranks.map[c.id] ? ` Hạng ${ranks.map[c.id].rank} trên ${ranks.map[c.id].total} người.` : "");
     return `<a class="dcard${done ? " is-done" : ""}" data-game="${c.id}" href="../games/${g.path}/?daily=1" aria-label="${esc(label)}">
-      <span class="dcard__art"><img src="${c.thumb}" alt="" loading="lazy" width="384" height="288" /></span>
+      <span class="dcard__art"><img src="${half(c.thumb)}" srcset="${half(c.thumb)} 360w, ${c.thumb} 720w" sizes="${SIZES}" alt="" width="384" height="288" /></span>
       <span class="dcard__body">
         <span class="dcard__name">${esc(g.name)}</span>
         <span class="dcard__meta">${esc(c.meta)}</span>
