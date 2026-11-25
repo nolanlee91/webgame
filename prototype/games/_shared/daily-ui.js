@@ -2,6 +2,8 @@
 // Bảng kết quả tự mang CSS riêng (tiền tố .dly-), lấy màu từ biến của game (--panel, --gold…) nếu có,
 // theo Pixel UI V5 của HUD trong game: viền 3px, vát, bóng cứng, không bo tròn.
 // Dưới các nút là "Bảng xếp hạng hôm nay" (daily-board.js, nạp lười; máy chủ tắt bảng thì ẩn hẳn).
+// Bảng kết quả KHÔNG che thanh trên của game (link "← Trang chủ" vẫn bấm được — QCK-03), có nút "Về trang chủ",
+// dòng "Còn: Sudoku #N · 2048 #N" sang 2 thử thách còn lại (HOME-17), Esc = "Xem bàn".
 import * as D from "./daily.js?v=daily1";
 
 const CSS = `
@@ -32,7 +34,14 @@ const CSS = `
 .dly-btn--share{flex:1 1 100%;min-height:52px;font-size:17px;color:#2c1b05;background:linear-gradient(var(--gold-l,#ffe9a8) 0 3px,var(--gold,#ffc94a) 3px);
   box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 -3px 0 0 #5a3a08,0 3px 0 0 #5a3a08,-3px 0 0 0 #5a3a08,3px 0 0 0 #5a3a08,4px 6px 0 0 rgba(0,0,0,.6)}
 .dly-btn--share:hover{background:linear-gradient(#fff3c9 0 3px,#ffd466 3px)}
-.dly-btn--ghost{flex:1 1 140px}
+.dly-btn--ghost{flex:1 1 130px}
+.dly-more{margin:14px 0 0;font:600 14px/1.5 "Be Vietnam Pro",system-ui;color:var(--soft,#b9ad93)}
+.dly-more a{color:var(--ink,#f4ead2);font-weight:800;text-underline-offset:3px;white-space:nowrap;display:inline-block;padding:6px 2px;min-height:24px}
+.dly-more a:focus-visible{outline:2px dashed var(--gold,#ffc94a);outline-offset:2px}
+.dly-more b{color:#9be08a}
+.dly-lb__more{display:inline-block;margin-top:8px;padding:8px 0;font:700 13px/1.2 "Be Vietnam Pro",system-ui;color:var(--ink,#f4ead2);text-underline-offset:3px}
+.dly-name__err{margin:0;min-height:0;font:700 13px/1.35 "Be Vietnam Pro",system-ui;color:#ff9c8c}
+.dly-name__err:empty{display:none}
 .dly-reopen{position:fixed;right:16px;bottom:16px;z-index:40}
 .dly-lb{margin-top:18px;padding:12px 12px 10px;text-align:left;background:var(--panel2,#262019);box-shadow:0 0 0 3px #0a0807;margin-left:3px;margin-right:3px}
 .dly-lb[hidden]{display:none!important}
@@ -113,13 +122,35 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
         <button class="dly-btn dly-btn--share" id="dlyShare" type="button">Khoe kết quả</button>
         <a class="dly-btn dly-btn--ghost" id="dlyNormal" href="${normalUrl}">Chơi thường</a>
         <button class="dly-btn dly-btn--ghost" id="dlyView" type="button">Xem bàn</button>
+        <a class="dly-btn dly-btn--ghost" id="dlyHome" href="${homeUrl}">Về trang chủ</a>
       </div>
+      <p class="dly-more" id="dlyMore"></p>
       <section class="dly-lb" id="dlyLb" aria-live="polite" aria-label="Bảng xếp hạng hôm nay" hidden></section>
     </div>`;
   ov.querySelector("#dlyTitle").textContent = title;
   ov.querySelector("#dlyGrid").textContent = D.grid(game, result);
   ov.querySelector("#dlyDet").textContent = D.detail(game, result);
+  // "Còn: Sudoku #N · 2048 #N" — 2 thử thách kia chưa chơi hôm nay (đường dẫn tương đối từ /games/<game>/)
+  const more = ov.querySelector("#dlyMore");
+  const left = ["sudoku", "2048", "do-vui-nhanh"].filter((id) => id !== game && !D.isDone(id, day));
+  if (left.length) {
+    more.append("Còn: ");
+    left.forEach((id, i) => {
+      if (i) more.append(" · ");
+      const a = document.createElement("a");
+      a.href = `../${D.GAMES[id].path}/?daily=1`; a.textContent = `${D.GAMES[id].name} #${day}`; a.dataset.game = id;
+      more.append(a);
+    });
+  } else {
+    const b = document.createElement("b"); b.textContent = "Xong cả 3 thử thách hôm nay ✓"; more.append(b);
+  }
   document.body.appendChild(ov);
+  // Không che thanh trên của game (link "← Trang chủ"): lớp phủ bắt đầu dưới thanh đó nếu nó đang hiện ở đầu màn.
+  const fitTop = () => {
+    const bar = document.querySelector(".bar");
+    const r = bar && bar.getBoundingClientRect();
+    ov.style.top = r && r.bottom > 0 && r.top <= 1 && r.bottom < innerHeight * 0.4 ? Math.round(r.bottom) + "px" : "";
+  };
   const reopen = document.createElement("button");
   reopen.className = "dly-btn dly-reopen"; reopen.id = "dlyReopen"; reopen.type = "button"; reopen.hidden = true;
   reopen.textContent = `★ Kết quả #${day}`;
@@ -132,9 +163,11 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
     const how = await D.share(text);
     if (how === "copied") { shareBtn.textContent = "Đã chép ✓"; setTimeout(() => { shareBtn.textContent = "Khoe kết quả"; }, 2200); }
   });
-  const show = () => { ov.hidden = false; reopen.hidden = true; shareBtn.focus({ preventScroll: true }); };
+  const show = () => { fitTop(); ov.hidden = false; reopen.hidden = true; shareBtn.focus({ preventScroll: true }); };
   const hide = () => { ov.hidden = true; reopen.hidden = false; };
   ov.querySelector("#dlyView").addEventListener("click", hide);
+  ov.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); hide(); reopen.focus({ preventScroll: true }); } });
+  addEventListener("resize", () => { if (!ov.hidden) fitTop(); });
   reopen.addEventListener("click", show);
   const cnt = ov.querySelector("#dlyCount");
   const tick = () => {
@@ -148,7 +181,7 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
   // Bảng xếp hạng: nạp lười, lỗi gì cũng chỉ ẩn phần này (kết quả + nút Khoe vẫn dùng được).
   const lb = ov.querySelector("#dlyLb");
   if (board) {
-    import("./daily-board.js?v=board2")
+    import("./daily-board.js?v=name1")
       .then((m) => m.mountBoard(lb, { game, day, result }))
       .then((st) => { window.__dailyBoardState = st; })
       .catch(() => { lb.hidden = true; window.__dailyBoardState = "failed"; });

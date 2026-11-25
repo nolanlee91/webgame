@@ -3,7 +3,7 @@
 // máy chủ kiểm tra lại, sai thì gửi "fix" để kéo về. Người khác được nội suy giữa các khung 20 lần/giây.
 // Đồ hoạ trong bản đồ: sprite Pixel V5 của Codex ở assets/ (ô 64 px).
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
-import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
+import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 import * as L from "./logic.js";
 
 const $ = (id) => document.getElementById(id);

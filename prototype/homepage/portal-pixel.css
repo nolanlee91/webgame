@@ -100,3 +100,84 @@
     background: #0c1421; border-bottom: 1px solid #273950; }
   .topbar--search .field.search { width: auto; margin: 17px 12px 6px 18px; } /* = vị trí cũ trong ô mobile-search-slot (lề phải 12 như cũ) */
 }
+
+/* =====================================================================================================
+   D3 — trang chủ theo hướng chủ dự án (docs/audits/fixes/D3-home.md)
+   ===================================================================================================== */
+
+/* ---------- "Chơi ngay" (HOME-02): chỉ điện thoại, dải cuộn ngang 2 hàng × 3,25 ô dưới slide ---------- */
+.qp { display: none; }
+@media (max-width: 720px) {
+  .qp { display: block; min-width: 0; }
+  .qp__title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; margin: 0 0 8px 3px; font: 800 18px/1.2 var(--font-title); text-shadow: 2px 2px 0 #050a12; }
+  .qp__hint { font: 700 12px/1.2 var(--font-body); color: #75d1bf; text-shadow: none; }
+  .qp__row { display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: calc((100% - 24px - 20px) / 3.2); gap: 12px 10px;
+    margin: 0 -12px; padding: 3px 12px 9px 15px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; } /* không scroll-snap: snap tự chỉnh vị trí ngay lúc chạm ⇒ press-nav tưởng đang lướt */
+  .qp__row::-webkit-scrollbar { display: none; }
+  .qp__row .tile { box-shadow: var(--b-border), 3px 4px 0 0 #050a12; }
+  .qp__row .tile__body { padding: 5px 6px 6px; min-height: 0; }
+  .qp__row .card__name { display: block; height: 2.5em; font: 700 12px/1.25 var(--font-body); overflow: hidden; }
+}
+
+/* ---------- Sảnh trên điện thoại: một hàng [mã phòng][Vào phòng][+ Tạo phòng] (HOME-02) ---------- */
+.lobby__createTx2 { display: inline; }
+@media (max-width: 720px) {
+  .portal .lobby__head { padding: 10px 12px; }
+  .portal .lobby__title { font-size: 16px; }
+  .portal .lobby { gap: 10px; }
+  .portal .lobby__bar { position: relative; display: flex; flex-wrap: nowrap; align-items: flex-end; gap: 10px; padding: 24px 12px 0 15px; }
+  /* nhãn / dòng báo lỗi trải hết bề ngang sảnh (ô mã hẹp hơn vì chung hàng với 2 nút) — vẫn giữ chỗ cố định, không đẩy hàng nút */
+  .portal .pin__head { position: absolute; top: 0; left: 15px; right: 12px; margin: 0; }
+  .portal .lobby__bar .pin { flex: 1 1 auto; min-width: 0; }
+  .portal .pin__row { gap: 10px; }
+  .portal .pin__input { padding: 0 10px; letter-spacing: .14em; min-width: 0; width: 100%; }
+  .portal .pin__row .btn, .portal .lobby__bar .lobby__create { min-height: 48px; padding: 0 12px; flex: none; }
+  .lobby__createTx2 { display: none; }
+  .portal .lobby.is-empty { padding-bottom: 12px; }
+}
+@media (max-width: 360px) {
+  .portal .pin__row .btn, .portal .lobby__bar .lobby__create { padding: 0 9px; font-size: 13px; }
+}
+
+/* ---------- Nhãn "★ Thử thách" trên thẻ Sudoku / 2048 / Đố Vui (P-E): link riêng, nằm cạnh thẻ ---------- */
+.tile-wrap { position: relative; display: flex; min-width: 0; }
+.tile-wrap > .tile { flex: 1 1 auto; min-width: 0; }
+.tile__chal { position: absolute; left: 7px; top: 7px; z-index: 3; padding: 4px 7px 3px; white-space: nowrap; text-decoration: none;
+  font: 800 11px/1.2 var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: #30250f;
+  background: linear-gradient(#ffe2a4 0 2px, #f7c96d 2px); box-shadow: 0 0 0 2px #050a12, 2px 3px 0 1px #050a12; -webkit-tap-highlight-color: transparent; }
+.tile__chal::before { content: ""; position: absolute; inset: -9px -8px -12px -7px; } /* vùng chạm ~ 44 px quanh nhãn nhỏ */
+.tile__chal.is-done { color: #c6f7ea; background: linear-gradient(#2f6466 0 2px, #1b3c42 2px); }
+.tile__chal:hover { filter: brightness(1.08); }
+.tile__chal:active, .tile__chal.is-pressing { transform: translate(2px, 2px); box-shadow: 0 0 0 2px #050a12; transition-duration: 0s; }
+.tile__chal:focus-visible { outline: 2px solid var(--px-gold); outline-offset: 3px; }
+@media (hover: hover) { .tile-wrap:has(> a.tile:hover) .tile__chal { transform: translate(-2px, -2px); } }
+@media (max-width: 720px) { .tile__chal { left: 5px; top: 5px; padding: 3px 5px 2px; font-size: 10px; } }
+
+/* ---------- Thẻ "Tài trợ" cuối kệ (HOME-11): cùng cỡ thẻ game, hình vẽ bằng CSS ---------- */
+.tile--sponsor { color: inherit; }
+.sponsor__art { display: grid !important; place-content: center; justify-items: center; gap: 6px;
+  background: #1b3c42; background-image: linear-gradient(45deg, #ffffff08 25%, transparent 25% 75%, #ffffff08 75%), linear-gradient(45deg, #ffffff08 25%, transparent 25% 75%, #ffffff08 75%);
+  background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+.sponsor__bubble { position: relative; padding: 5px 10px 4px; font: 800 clamp(14px, 2vw, 20px)/1 var(--font-body); letter-spacing: .12em; color: #1d4d45; background: #f5f2e8;
+  box-shadow: 0 0 0 3px #0a111c, 3px 4px 0 3px #050a12; }
+.sponsor__bubble::after { content: ""; position: absolute; left: 12px; bottom: -9px; width: 8px; height: 6px; background: #f5f2e8; box-shadow: 0 3px 0 0 #0a111c, -3px 0 0 0 #0a111c, 3px 0 0 0 #0a111c; }
+.sponsor__brand { margin-top: 6px; font: 800 12px/1.1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: #c6f7ea; text-shadow: 2px 2px 0 #050a12; }
+.badge--sponsor { color: #2c1b05; background: #f5f2e8; }
+.theme-b .badge--sponsor { box-shadow: 0 0 0 2px #050a12; }
+.sponsor__meta { color: var(--px-soft); }
+article.tile--sponsor { cursor: default; }
+@media (max-width: 720px) { .tile--sponsor .sponsor__meta { display: none; } .sponsor__brand { font-size: 10px; } }
+
+/* ---------- Dòng nhắc chuỗi ngày (P-E): chỉ người đang có chuỗi ---------- */
+.streak { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: -10px 3px 30px; padding: 6px 14px; font: 700 14px/1.4 var(--font-body); color: var(--px-soft);
+  background: #172335; --b: #31445b; box-shadow: var(--b-border), 3px 4px 0 0 #050a12; }
+.streak__fire { font-weight: 800; color: #ffcf8a; }
+.streak__sep { color: #50637b; }
+.streak a { display: inline-block; padding: 8px 2px; font-weight: 800; color: #c6f7ea; text-underline-offset: 3px; }
+@media (max-width: 720px) { .streak { margin: -8px 3px 24px; padding: 4px 12px; font-size: 13px; } }
+
+/* ---------- Tìm kiếm rỗng (HOME-09) ---------- */
+.empty { padding: 8px 0 24px; }
+.empty__msg { margin: 0 0 4px; font-weight: 700; }
+.empty__sub { margin: 0 0 14px; font-size: 13px; color: var(--px-dim); }
+@media (max-width: 720px) { .pin__goTx2 { display: none; } }

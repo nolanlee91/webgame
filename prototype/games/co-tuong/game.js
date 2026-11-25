@@ -3,10 +3,10 @@
 import { W, RED, BLACK, START, parse, sideOf, typeOf, newMatch, newRound, nextRound, play, undo, replay, resign, agreeDraw,
   legalFrom, isAiTurn, other, moveName, REASON, findKing } from "./logic.js";
 import { bestMove, evaluate } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=kk1";
+import { createNet, CODE_RE } from "./net.js?v=kk1h3";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
-import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
+import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 
 const SAVE_KEY = "wgp.tuong.v1";
 const NAME_KEY = "wgp.tuong.name";

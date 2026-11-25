@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi" data-click-sfx="bup">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bảng xếp hạng Thử thách hôm nay — Lụm Kèo</title>
+  <meta name="description" content="Bảng xếp hạng Thử thách hôm nay của Lụm Kèo: Sudoku, 2048, Đố Vui. Cả nước chung một đề mỗi ngày, xem hạng hôm nay và hôm qua." />
+  <link rel="canonical" href="https://lumkeo.com/homepage/bang-xep-hang.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lụm Kèo" />
+  <meta property="og:locale" content="vi_VN" />
+  <meta property="og:title" content="Bảng xếp hạng Thử thách hôm nay — Lụm Kèo" />
+  <meta property="og:description" content="Sudoku, 2048, Đố Vui: cả nước chung một đề mỗi ngày. Vào chơi rồi xem bạn hạng mấy." />
+  <meta property="og:url" content="https://lumkeo.com/homepage/bang-xep-hang.html" />
+  <meta property="og:image" content="https://lumkeo.com/homepage/assets/og/home.jpg" />
+  <link rel="preload" href="../assets/fonts/be-vietnam-pro-800-latin.woff2?v=1" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/roboto-slab-700-800-latin.woff2?v=1" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/fonts/fonts.css?v=f1" />
+  <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
+  <link rel="stylesheet" href="styles.css?v=d3a" />
+  <link rel="stylesheet" href="portal.css?v=perf1" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d3b" />
+  <link rel="stylesheet" href="nav.css?v=d3b" />
+  <link rel="stylesheet" href="daily.css?v=board2" />
+  <link rel="stylesheet" href="bang-xep-hang.css?v=d3a" />
+</head>
+<body class="portal theme-b lb-page">
+  <a class="skip" href="#bang">Bỏ qua, tới bảng xếp hạng</a>
+
+  <!-- Thanh trên: giống trang chủ (nav.css + profile.js), không có ô tìm game -->
+  <header class="topbar topbar--search topbar--nav topbar--nosearch" data-name="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__row">
+        <a class="logo" href="./" aria-label="Lụm Kèo — Rủ bạn vào chơi. Về trang chủ">
+          <img class="logo__mark" src="assets/ui/icon-xuc-xac-6.png" alt="" width="32" height="32" />
+          <span class="logo__words"><span class="logo__text">Lụm Kèo</span><span class="logo__slogan">Rủ bạn vào chơi</span></span>
+        </a>
+        <div class="me" id="me" data-name="profile">
+          <button class="me__btn" id="meBtn" type="button" aria-expanded="false" aria-controls="mePop" aria-haspopup="dialog" data-board="bang-xep-hang.html">
+            <span class="me__av" id="meAv" aria-hidden="true"></span>
+            <span class="me__txt"><span class="sr-only">Hồ sơ của bạn: </span><span class="me__name" id="meName">&nbsp;</span></span>
+            <svg class="px-svg me__edit" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 1h3v1h1v3h-1v-1h-1v-1h-1v-1h-1zM10 3h2v2h1v2h-2v-1h-1v-1H9V4h1zM8 5h2v2h1v2H9V8H8V7H7V6h1zM6 7h2v2h1v2H7v-1H6V9H5V8h1zM4 9h2v2h1v2H5v-1H4v-1H3v-1h1zM2 11h1v1h1v1h1v1H1v-3z"/></svg>
+            <span class="sr-only"> — sửa tên</span>
+          </button>
+          <script>try { var _n = JSON.parse(localStorage.getItem("wgp.account.v1") || "null"); if (_n && _n.name) document.getElementById("meName").textContent = _n.name; } catch (e) {}</script>
+          <div class="me__pop" id="mePop" role="dialog" aria-labelledby="mePopTitle" hidden></div>
+        </div>
+      </div>
+      <nav class="mainnav" aria-label="Điều hướng chính" data-name="mainnav">
+        <a class="mainnav__a" href="./#games"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi</a>
+        <a class="mainnav__a" href="./#lobby"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/></svg><span>Phòng<span class="mainnav__l"> online</span></span></a>
+        <a class="mainnav__a" href="#thu-thach"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1h2v3H7zM6 4h4v2H6zM1 6h14v2H1zM3 8h10v2H3zM4 10h8v2H4zM3 12h4v2H3zM9 12h4v2H9zM2 14h3v1H2zM11 14h3v1h-3z"/></svg>Thử thách</a>
+        <a class="mainnav__a" href="#bang" aria-current="page"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h10v6H3zM1 2h2v1H1zM13 2h2v1h-2zM1 3h1v2H1zM14 3h1v2h-1zM2 5h1v1H2zM13 5h1v1h-1zM4 7h8v1H4zM6 8h4v2H6zM7 10h2v2H7zM5 12h6v1H5zM4 13h8v2H4z"/></svg><span class="mainnav__l">Bảng xếp hạng</span><span class="mainnav__s">Xếp hạng</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page lb">
+    <div class="lb__intro">
+      <h1 class="section__title lb__h1">Bảng xếp hạng</h1>
+      <p class="lb__lead">Mỗi ngày cả nước chung một đề Sudoku, 2048, Đố Vui. Đề mới sau <b id="lbCount">--:--:--</b></p>
+    </div>
+
+    <!-- Thử thách hôm nay: 3 thẻ (trạng thái Chơi ngay / Đã xong ✓, chuỗi ngày, hạng). Viết sẵn để giữ chỗ; bang-xep-hang.js vẽ lại theo dữ liệu máy. -->
+    <section class="daily lb__daily" id="thu-thach" data-name="daily" aria-labelledby="dailyTitle">
+      <div class="daily__head">
+        <h2 class="section__title daily__title" id="dailyTitle">Thử thách hôm nay<span class="daily__no" id="dailyNo"></span></h2>
+      </div>
+      <script>(function () { var t = Date.now() + 252e5, s = Math.ceil((864e5 - t % 864e5) / 1e3), p = function (x) { return (x < 10 ? "0" : "") + x; };
+        document.getElementById("dailyNo").textContent = "#" + Math.max(1, Math.floor((t - Date.UTC(2026, 10, 24)) / 864e5) + 1);
+        document.getElementById("lbCount").textContent = p(Math.floor(s / 3600)) + ":" + p(Math.floor(s % 3600 / 60)) + ":" + p(s % 60); })();</script>
+      <div class="daily__row" id="dailyCards">
+        <a class="dcard" data-game="sudoku" href="../games/sudoku/?daily=1" aria-label="Sudoku, thử thách hôm nay">
+          <span class="dcard__art"><img src="assets/thumbs/half/sudoku.webp" srcset="assets/thumbs/half/sudoku.webp 360w, assets/thumbs/sudoku.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
+          <span class="dcard__body"><span class="dcard__name">Sudoku</span><span class="dcard__meta">Một đề Vừa · cả nước chung đề</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
+        </a>
+        <a class="dcard" data-game="2048" href="../games/2048/?daily=1" aria-label="2048, thử thách hôm nay">
+          <span class="dcard__art"><img src="assets/thumbs/half/2048.webp" srcset="assets/thumbs/half/2048.webp 360w, assets/thumbs/2048.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
+          <span class="dcard__body"><span class="dcard__name">2048</span><span class="dcard__meta">150 nước · cùng chuỗi ô</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
+        </a>
+        <a class="dcard" data-game="do-vui-nhanh" href="../games/do-vui-nhanh/?daily=1" aria-label="Đố Vui, thử thách hôm nay">
+          <span class="dcard__art"><img src="assets/thumbs/half/do-vui.webp" srcset="assets/thumbs/half/do-vui.webp 360w, assets/thumbs/do-vui.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
+          <span class="dcard__body"><span class="dcard__name">Đố Vui</span><span class="dcard__meta">5 câu · 15 giây mỗi câu</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Bảng: 3 tab game × Hôm nay / Hôm qua (API /api/daily/:game/:day, account.js getBoard). Dòng của mình tô sáng. -->
+    <section class="lb__board px-panel" id="bang" data-name="board" aria-labelledby="bangTitle">
+      <div class="lb__head">
+        <h2 class="lb__title" id="bangTitle">Xếp hạng</h2>
+        <div class="lb__tabs" role="tablist" aria-label="Chọn game">
+          <button class="lb__tab" role="tab" type="button" id="tab-sudoku" data-game="sudoku" aria-controls="lbPanel" aria-selected="true">Sudoku</button>
+          <button class="lb__tab" role="tab" type="button" id="tab-2048" data-game="2048" aria-controls="lbPanel" aria-selected="false" tabindex="-1">2048</button>
+          <button class="lb__tab" role="tab" type="button" id="tab-do-vui-nhanh" data-game="do-vui-nhanh" aria-controls="lbPanel" aria-selected="false" tabindex="-1">Đố Vui</button>
+        </div>
+        <div class="lb__days" role="group" aria-label="Chọn ngày">
+          <button class="lb__day" type="button" data-day="0" aria-pressed="true">Hôm nay</button>
+          <button class="lb__day" type="button" data-day="1" aria-pressed="false">Hôm qua</button>
+        </div>
+      </div>
+      <div class="lb__panel" id="lbPanel" role="tabpanel" aria-labelledby="tab-sudoku" aria-live="polite" data-state="loading">
+        <p class="lb__msg is-wait">Đang tải bảng xếp hạng…</p>
+      </div>
+      <p class="lb__rule" id="lbRule"></p>
+    </section>
+  </main>
+
+  <footer class="footer" data-name="footer">
+    <div class="footer__inner">
+      <div class="footer__row">
+        <p class="footer__brand"><strong>Lụm Kèo</strong> · Rủ bạn vào chơi · © 2026 · <a class="footer__link" href="quyen-rieng-tu.html">Quyền riêng tư</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="bang-xep-hang.js?v=d3a"></script>
+  <script type="module" src="../games/_shared/feedback.js?v=f3"></script>
+  <script type="module" src="press-nav.js?v=d3b"></script>
+  <script type="module" src="profile.js?v=d3a"></script>
+</body>
+</html>

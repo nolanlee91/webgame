@@ -2,10 +2,10 @@
 // Ảnh bàn + quân: assets/board-grid.webp (576×576, viền 32px, ô 64px) và assets/pieces.png (atlas 6×2 khung 64px) do Codex vẽ.
 import * as L from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=kk1";
+import { createNet, CODE_RE } from "./net.js?v=kk1h3";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
-import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
+import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 
 const SAVE_KEY = "wgp.covua.v1";
 const NAME_KEY = "wgp.covua.name";

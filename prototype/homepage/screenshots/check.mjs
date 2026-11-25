@@ -81,7 +81,8 @@ const pinStable = async (tag, shotName) => {
   check(`${tag}: gõ lại mã đúng → dòng đỏ biến mất, hàng nút vẫn giữ chỗ`, await ev('document.getElementById("roomInlineError").textContent') === '' && await ev(pinRects) === before);
   await ev('(()=>{const c=document.getElementById("roomInlineCode");c.value="";c.dispatchEvent(new Event("input"))})()');
 };
-const cards = () => ev('document.querySelectorAll("#grid .card").length');
+// D3: thẻ "Tài trợ" (HOME-11) cũng là .card nhưng không phải game ⇒ không đếm
+const cards = () => ev('document.querySelectorAll("#grid .card:not(.tile--sponsor)").length');
 const setQ = v => ev(`(()=>{const q=document.getElementById("q");q.value=${JSON.stringify(v)};q.dispatchEvent(new Event("input"))})()`);
 const chip = c => ev(`document.querySelector('.tab[data-cat="${c}"]').click()`);
 
@@ -89,7 +90,7 @@ const chip = c => ev(`document.querySelector('.tab[data-cat="${c}"]').click()`);
 await view(1440, 900, false, 1);
 await nav(BASE + 'index.html'); await ev('localStorage.clear()'); await nav(BASE + 'index.html');
 const NG = await ev('GAMES.length');
-check('render đủ ' + NG + ' thẻ game (mỗi game 1 lần, không lặp giữa các kệ)', await cards() === NG && await ev('new Set([...document.querySelectorAll("#grid .card")].map(c=>c.dataset.id)).size') === NG);
+check('render đủ ' + NG + ' thẻ game (mỗi game 1 lần, không lặp giữa các kệ)', await cards() === NG && await ev('new Set([...document.querySelectorAll("#grid .card:not(.tile--sponsor)")].map(c=>c.dataset.id)).size') === NG);
 check('font Roboto Slab + Be Vietnam Pro tải được', await ev('document.fonts.ready.then(()=>document.fonts.check(\'800 20px "Roboto Slab"\') && document.fonts.check(\'600 16px "Be Vietnam Pro"\'))'));
 await ev('(async()=>{document.querySelectorAll("#grid img").forEach(i=>i.loading="eager");await Promise.all([...document.querySelectorAll("#grid img")].map(i=>i.decode().catch(()=>0)))})()'); await sleep(800);
 // Ảnh lưới chỉ gắn src khi sắp vào màn (IntersectionObserver) ⇒ cuộn qua cả lưới rồi chờ ảnh tải xong trước khi kiểm.
@@ -176,7 +177,7 @@ check('bấm thẻ Cờ Cá Ngựa → mở thẳng game thật (1 thao tác)', 
 await ev('document.querySelector("a[href*=homepage]").click()'); await sleep(1500);
 check('từ Cờ Cá Ngựa bấm "← Trang chủ" → về trang chủ', (await ev('location.pathname')).endsWith('/homepage/'), await ev('location.href'));
 await ev('localStorage.clear()');
-check('mỗi game chơi được có một link, thẻ Sắp ra mắt không nhận focus', await ev('[...document.querySelectorAll("#grid .card")].every(c=>(c.querySelector(".badge--soon")?c.tagName==="ARTICLE"&&c.tabIndex===-1:c.tagName==="A"&&c.tabIndex===0)&&!c.querySelector("a,button,[tabindex]"))'));
+check('mỗi game chơi được có một link, thẻ Sắp ra mắt không nhận focus', await ev('[...document.querySelectorAll("#grid .card:not(.tile--sponsor)")].every(c=>(c.querySelector(".badge--soon")?c.tagName==="ARTICLE"&&c.tabIndex===-1:c.tagName==="A"&&c.tabIndex===0)&&!c.querySelector("a,button,[tabindex]"))'));
 
 // ---------- Tablet ----------
 await view(820, 1180, true, 2); await nav(BASE + 'index.html');
@@ -193,7 +194,8 @@ for (const [w, h] of [[390, 844], [360, 740]]) {
   check(`mobile ${w}: Tất cả game 3 cột`, await ev('getComputedStyle(document.querySelector("#grid .tiles")).gridTemplateColumns.split(" ").length') === 3);
   check(`mobile ${w}: xếp dọc tiêu điểm → sảnh chờ (ô mã + Tạo phòng mới); phòng chờ là dải vuốt ngang`, await ev('(()=>{const h=document.querySelector("#featured .hero").getBoundingClientRect(),l=document.querySelector(".lobby").getBoundingClientRect(),c=document.getElementById("createRoom").getBoundingClientRect(),p=document.getElementById("rooms");return h.width>=innerWidth-30&&h.bottom<=l.top&&c.height>=40&&c.width>0&&getComputedStyle(p).overflowX==="auto"&&p.scrollWidth>p.clientWidth})()'));
   check(`mobile ${w}: logo + slogan vẫn hiện, không tràn`, await ev('document.querySelector(".logo__slogan").offsetHeight>0 && document.querySelector(".logo__words").getBoundingClientRect().right<=innerWidth'));
-  check(`mobile ${w}: thanh trên 1 hàng, ô tìm ở đầu trang`, await ev('(()=>{const l=document.querySelector(".topbar .logo").getBoundingClientRect(),s=document.querySelector(".search").getBoundingClientRect();return l.height<=58&&s.top>=l.bottom&&getComputedStyle(document.querySelector(".topbar .logo")).position==="sticky"})()'));
+  // D3: hàng dính đầu màn = logo + ô hồ sơ (.topbar__row); dưới là chip điều hướng + ô tìm
+  check(`mobile ${w}: thanh trên 1 hàng (logo + hồ sơ), ô tìm ở đầu trang`, await ev('(()=>{const r=document.querySelector(".topbar__row"),l=r.getBoundingClientRect(),s=document.querySelector(".search").getBoundingClientRect(),m=document.getElementById("meBtn").getBoundingClientRect();return l.height<=58&&s.top>=l.bottom&&getComputedStyle(r).position==="sticky"&&m.top>=l.top&&m.bottom<=l.bottom})()'));
   check(`mobile ${w}: nút "Chơi ngay" thấy ngay khi mở`, await ev('document.querySelector(".hero .btn--gold").getBoundingClientRect().bottom<=innerHeight'));
   const small = await ev('[...document.querySelectorAll("button,a.card,input,.search")].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.top<innerHeight&&(r.height<40||r.width<40)}).map(e=>(e.id||e.className)+":"+Math.round(e.getBoundingClientRect().width)+"x"+Math.round(e.getBoundingClientRect().height)).join(",")');
   check(`mobile ${w}: vùng chạm ≥ 40px`, small === '', small);

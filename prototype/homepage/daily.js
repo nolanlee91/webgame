@@ -1,97 +1,37 @@
-// Trang chủ — khu "Thử thách hôm nay": 3 thẻ (Sudoku, 2048, Đố Vui) với trạng thái Chơi ngay / Đã xong ✓, chuỗi ngày, đếm ngược.
-// Dữ liệu đọc từ localStorage "wgp.daily.v1" qua lõi chung games/_shared/daily.js (game ghi khi chơi xong).
-// Đã xong hôm nay ⇒ hỏi máy chủ hạng của mình ở cả 3 game trong MỘT request (sau khi trang rảnh, lỗi thì lặng lẽ bỏ qua)
-// và hiện "Hạng #N/M" trên thẻ. Chưa xong game nào thì không tải gì thêm.
+// Trang chủ — "Thử thách hôm nay" đã thu nhỏ (P-E, chủ dự án chốt 25/11/2026): không còn hàng thẻ lớn.
+//   • Nhãn "★ Thử thách" / "✓ Thử thách #N" trên thẻ Sudoku / 2048 / Đố Vui: app.js dựng cùng lưới game.
+//   • Một dòng nhắc cho người ĐANG CÓ chuỗi ngày (#streakLine): script nội tuyến trong index.html vẽ ngay lúc tải (không nhảy bố cục);
+//     file này vẽ lại khi quay về từ game (bfcache), tab khác ghi kết quả, hoặc qua 0h giờ VN (đề mới).
+//   • Bảng xếp hạng + 3 thẻ thử thách đầy đủ: trang bang-xep-hang.html.
+// Dữ liệu: localStorage "wgp.daily.v1" qua lõi chung games/_shared/daily.js.
 import * as D from "../games/_shared/daily.js?v=daily1";
 
-const CARDS = [
-  { id: "sudoku", thumb: "assets/thumbs/sudoku.webp", meta: "Một đề Vừa · cả nước chung đề" },
-  { id: "2048", thumb: "assets/thumbs/2048.webp", meta: "150 nước · cùng chuỗi ô" },
-  { id: "do-vui-nhanh", thumb: "assets/thumbs/do-vui.webp", meta: "5 câu · 15 giây mỗi câu" },
-];
+const ORDER = ["sudoku", "2048", "do-vui-nhanh"]; // thứ tự hiện (D.GAME_IDS để "2048" lên đầu vì khoá dạng số)
+const line = document.getElementById("streakLine");
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+let day = D.dayNumber();
 
-const root = document.getElementById("daily");
-const row = document.getElementById("dailyCards");
-const noEl = document.getElementById("dailyNo");
-const countEl = document.getElementById("dailyCount");
-let day = 0;
-let ranks = { day: 0, map: {}, asked: 0 }; // hạng đã lấy từ máy chủ (theo ngày)
-
-// Ảnh thẻ: bản nửa cỡ (assets/thumbs/half/, 360 px) cho thẻ nhỏ; bản gốc 720 chỉ khi màn mật độ cao cần. Cùng srcset/sizes với
-// 3 thẻ viết sẵn trong index.html ⇒ vẽ lại không tải ảnh mới.
-const half = (src) => src.replace("assets/thumbs/", "assets/thumbs/half/");
-const SIZES = "(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px";
-
-function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
-
-function render() {
-  if (!root || !row) return;
+export function render() {
+  if (!line) return;
   day = D.dayNumber();
-  if (noEl) noEl.textContent = "#" + day;
-  const cd = D.fmtCountdown(D.msUntilNext());
-  row.innerHTML = CARDS.map((c) => {
-    const g = D.GAMES[c.id], st = D.stats(c.id, day);
-    const done = st.doneToday;
-    const go = done ? `Đã xong ✓ · ${esc(D.short(c.id, st.result))}` : "▶ Chơi ngay";
-    const streak = st.streak > 0 ? `🔥 Chuỗi ${st.streak} ngày` : "Chưa có chuỗi";
-    const label = `${g.name}, thử thách #${day}: ${done ? "đã xong, " + D.short(c.id, st.result) : "chưa chơi"}. ${streak}.`
-      + (done && ranks.day === day && ranks.map[c.id] ? ` Hạng ${ranks.map[c.id].rank} trên ${ranks.map[c.id].total} người.` : "");
-    return `<a class="dcard${done ? " is-done" : ""}" data-game="${c.id}" href="../games/${g.path}/?daily=1" aria-label="${esc(label)}">
-      <span class="dcard__art"><img src="${half(c.thumb)}" srcset="${half(c.thumb)} 360w, ${c.thumb} 720w" sizes="${SIZES}" alt="" width="384" height="288" /></span>
-      <span class="dcard__body">
-        <span class="dcard__name">${esc(g.name)}</span>
-        <span class="dcard__meta">${esc(c.meta)}</span>
-        <span class="dcard__go">${go}</span>
-        <span class="dcard__foot"><span class="dcard__streak${st.streak > 0 ? " is-on" : ""}">${streak}</span>${done ? rankHtml(c.id) : ""}${done ? `<span class="dcard__cd">Đề mới <b data-cd>${cd}</b></span>` : ""}</span>
-      </span>
-    </a>`;
-  }).join("");
-  tick();
-  loadRanks();
-}
-
-function rankHtml(id) {
-  const r = ranks.day === day && ranks.map[id];
-  return r ? `<span class="dcard__rank" data-rank="${r.rank | 0}">🏆 Hạng #${r.rank | 0}/${r.total | 0}</span>` : "";
-}
-/** Lấy hạng cho các game đã xong hôm nay (tối đa 1 lần / 20 giây; lỗi mạng / máy chủ tắt bảng ⇒ im lặng). */
-function loadRanks() {
-  const doneIds = CARDS.map((c) => c.id).filter((id) => D.isDone(id, day));
-  if (!doneIds.length) return;
-  if (ranks.day === day && doneIds.every((id) => ranks.map[id])) return;
-  const t = Date.now();
-  if (ranks.day === day && t - ranks.asked < 20000) return;
-  ranks = { day, map: ranks.day === day ? ranks.map : {}, asked: t };
-  const want = day;
-  const go = async () => {
-    try {
-      const A = await import("../games/_shared/account.js?v=board2");
-      if ((await A.mode()) === "off") return;
-      const r = await A.getMyRanks(want);
-      if (want !== day || !r || !r.ranks) return;
-      ranks.map = r.ranks;
-      for (const [id, v] of Object.entries(r.ranks)) {
-        const card = row.querySelector(`.dcard[data-game="${id}"]`);
-        if (!card || !card.classList.contains("is-done") || card.querySelector(".dcard__rank")) continue;
-        const cd = card.querySelector(".dcard__cd");
-        cd.insertAdjacentHTML("beforebegin", rankHtml(id));
-        card.setAttribute("aria-label", card.getAttribute("aria-label") + ` Hạng ${v.rank} trên ${v.total} người.`);
-      }
-    } catch { /* bảng xếp hạng không bắt buộc */ }
-  };
-  (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(go, { timeout: 2500 });
-}
-
-function tick() {
-  if (D.dayNumber() !== day) return render(); // qua 0h VN ⇒ đề mới, vẽ lại
-  const cd = D.fmtCountdown(D.msUntilNext());
-  if (countEl) countEl.textContent = cd;
-  for (const el of row.querySelectorAll("[data-cd]")) el.textContent = cd;
+  let best = 0;
+  const left = [];
+  for (const id of ORDER) {
+    const st = D.stats(id, day);
+    best = Math.max(best, st.streak);
+    if (!st.doneToday) left.push(id);
+  }
+  if (!best) { line.hidden = true; line.textContent = ""; return; }
+  const sep = ' <span class="streak__sep">·</span> ';
+  const html = `<span class="streak__fire">🔥 Chuỗi ${best} ngày</span>` + (left.length
+    ? sep + "Hôm nay còn: " + left.map((id) => `<a href="../games/${D.GAMES[id].path}/?daily=1">${esc(D.GAMES[id].name)} #${day}</a>`).join(" · ")
+    : sep + 'Xong cả 3 thử thách hôm nay ✓ <a href="bang-xep-hang.html">Xem hạng</a>');
+  if (line.innerHTML !== html) line.innerHTML = html;
+  line.hidden = false;
 }
 
 render();
-setInterval(tick, 1000);
-// Quay lại từ game (bfcache / tab khác) hoặc tab khác ghi kết quả ⇒ cập nhật trạng thái
+setInterval(() => { if (D.dayNumber() !== day) render(); }, 30000); // qua 0h VN ⇒ đề mới
 window.addEventListener("pageshow", render);
 window.addEventListener("storage", (e) => { if (!e.key || e.key === D.STORE_KEY) render(); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
