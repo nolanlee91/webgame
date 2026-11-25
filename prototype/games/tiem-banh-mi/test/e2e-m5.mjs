@@ -81,6 +81,8 @@ export async function queueChecks(ctx, tag) {
 export async function m5Flows(ctx, tag, shots = true) {
   const { b, OUT, PORT, BASE, check, pressSel, S, waitFor } = ctx;
   await b.send("Page.navigate", { url: "about:blank" }); await sleep(300);
+  // chờ trang cũ dỡ hẳn (pagehide của game ghi bản lưu) rồi mới xoá localStorage — máy bận có lúc > 300 ms
+  for (let i = 0; i < 40 && (await b.ev("location.href").catch(() => "")) !== "about:blank"; i++) await sleep(100);
   await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
   await b.nav(BASE);
   await pressSel("#introGo");

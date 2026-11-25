@@ -71,14 +71,18 @@ Quyết định chủ dự án 25/11/2026: khung UI Tập Làm Chủ theo **pixe
 
 ## Kiểm thử
 
-- Unit:
+- Unit (`node --test`):
   - Trà Sữa 183/183;
   - Bánh Mì 121/121;
+  - Cơm Tấm 142 bài: lần 1 có 1 bài fail (máy bận), chạy lại 0 fail.
+- E2E (Chrome headless, server riêng):
+  - Trà Sữa **158/158**, gồm bố cục 7 khung × ngày 1 / cuối game: 0 lần tự cuộn, không tràn ngang, 0 lỗi console.
+  - Bánh Mì **129/129**.
+    - Hai lần đầu dừng ở `m5Flows` ("không thấy #introGo": bản lưu ngày 8 còn sau khi xoá localStorage).
+    - Nguyên nhân: test xoá localStorage 300 ms sau khi điều hướng sang about:blank. Máy bận thì trang cũ chưa dỡ xong, pagehide của game ghi lại bản lưu sau lệnh xoá.
+    - Sửa `test/e2e-m5.mjs`: chờ `location.href === "about:blank"` rồi mới xoá.
   - Cơm Tấm: xem báo cáo cuối.
-- E2E (Chrome headless, server riêng cổng 8953):
-  - Trà Sữa **158/158 PASS**, gồm bố cục 7 khung × ngày 1 / cuối game, 0 lần tự cuộn, 0 lỗi console;
-  - Bánh Mì, Cơm Tấm: xem báo cáo cuối.
-- `node tools/cache-tags/check-tags.mjs master`: OK.
+- `node tools/cache-tags/check-tags.mjs master`: OK, "3 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag" (file test không tính).
 - Ảnh trước / sau 390×844, 844×390 (Trà Sữa thêm 360×640, cuối game) ở thư mục tạm ngoài repo, không commit.
 
 ## Còn lại / cần chủ dự án
