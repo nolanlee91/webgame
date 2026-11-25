@@ -2,6 +2,10 @@
 // trừ khi server cho phép (người bị loại, hết ván, Nội Gián thấy Nội Gián). Không ghi state ra console.
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1";
+// Hộp hỏi lại kiểu pixel (thay confirm() của trình duyệt). Esc / bấm ra ngoài = Thôi.
+const askLeaveGame = () => pxConfirm({ title: "Rời ván đang chơi?", text: "Ghế của bạn sẽ ở lại như người mất kết nối.", ok: "Rời ván", cancel: "Thôi", danger: true });
+const askDisband = () => pxConfirm({ title: "Hủy phòng?", text: "Mọi người trong phòng sẽ bị đưa ra ngoài.", ok: "Hủy phòng", cancel: "Thôi", danger: true });
 const $ = (id) => document.getElementById(id);
 const SESS = "ai-la-noi-gian:sess";
 const LAST = "ai-la-noi-gian:last"; const GAME = "ai-la-noi-gian";
@@ -148,7 +152,7 @@ function connect() {
     if (sess) { $("net").hidden = false; setTimeout(connect, Math.min(8000, 500 * 2 ** retry++)); }
   };
 }
-function offline() { homeMsg("Máy chủ Ai Là Nội Gián chưa bật ở bản này. Khi chạy thử: node games-server/ai-la-noi-gian/dev.js"); }
+function offline() { homeMsg("Chưa kết nối được máy chủ. Kiểm tra mạng rồi tải lại trang nhé."); }
 function send(o) {
   if (o.t === "create" || o.t === "join" || o.t === "resume") o = { ...o, sid: sessionId() }; // sid: máy chủ chặn người bị "Mời ra" vào lại 10 phút
   if (["act", "vote", "repair", "jam", "verify", "dispatch"].includes(o.t)) sfx.play("tap", 0.8);
@@ -196,13 +200,17 @@ function leaveRoom() {
     send(solo ? { t: "disband" } : { t: "leave" });
   });
 }
+let homeLeaving = false;
 document.addEventListener("click", async (e) => {
   const a = e.target.closest?.("a[href]");
   if (!a || !v || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
   let url; try { url = new URL(a.href, location.href); } catch { return; }
   if (!/\/homepage\/(index\.html)?$/.test(url.pathname)) return;
   e.preventDefault();
-  if (v.phase !== "lobby" && v.phase !== "end" && !confirm("Rời ván đang chơi?")) return;
+  if (homeLeaving) return; // đang rời rồi: bấm lại không gửi lệnh thêm lần nữa
+  if (v.phase !== "lobby" && v.phase !== "end" && !(await askLeaveGame())) return;
+  if (homeLeaving) return;
+  homeLeaving = true;
   await leaveRoom();
   location.href = url.href;
 });
@@ -430,11 +438,13 @@ $("actRow").addEventListener("click", async (e) => {
   else if (a === "verify") send({ t: a });
   else if (a === "skip") send({ t: "vote", target: null });
   else if (a === "leave") {
-    if (v.phase !== "lobby" && v.phase !== "end" && !confirm("Rời ván đang chơi? Ghế của bạn sẽ ở lại như người mất kết nối.")) return;
+    if (v.phase !== "lobby" && v.phase !== "end" && !(await askLeaveGame())) return;
+    if (!v) return; // phòng đã đóng trong lúc đang hỏi
     send({ t: "leave" });
   }
   else if (a === "disband") {
-    if (othersHuman() && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+    if (othersHuman() && !(await askDisband())) return;
+    if (!v) return;
     send({ t: "disband" });
   }
   else if (a === "result") { endHidden = false; renderEnd(); }

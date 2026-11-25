@@ -4,6 +4,7 @@
 // Đồ hoạ trong bản đồ: sprite Pixel V5 của Codex ở assets/ (ô 64 px).
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1";
 import * as L from "./logic.js";
 
 const $ = (id) => document.getElementById(id);
@@ -100,7 +101,7 @@ function connect() {
     setTimeout(connect, Math.min(8000, 500 * 2 ** retry++));
   };
 }
-function offline() { homeMsg("Chưa kết nối được máy chủ Đặt Bom. Khi chạy thử trên máy: node games-server/dat-bom/dev.js"); $("pubList").innerHTML = '<li class="soft">Không tải được danh sách phòng.</li>'; }
+function offline() { homeMsg("Chưa kết nối được máy chủ. Kiểm tra mạng rồi tải lại trang nhé."); $("pubList").innerHTML = '<li class="soft">Không tải được danh sách phòng.</li>'; }
 function send(o) {
   if (o.t === "create" || o.t === "join") o = { ...o, sid: sessionId() }; // sid: máy chủ chặn người bị "Mời ra" vào lại 10 phút
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(o));
@@ -327,9 +328,10 @@ $("againBtn").onclick = () => send({ t: "again" });
 $("toLobbyBtn").onclick = () => send({ t: "lobby" });
 $("leaveBtn").onclick = () => send({ t: "leave" });
 // Chủ phòng hủy phòng (phòng chờ / hết ván): còn người khác thì hỏi lại; máy chủ báo "closed" cho cả phòng.
-function disbandRoom() {
+async function disbandRoom() {
   if (!isHost()) return;
-  if (humansIn() > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+  if (humansIn() > 1 && !(await pxConfirm({ title: "Hủy phòng?", text: "Mọi người trong phòng sẽ bị đưa ra ngoài.", ok: "Hủy phòng", cancel: "Thôi", danger: true }))) return;
+  if (!v || !isHost()) return; // phòng đã đóng / đã mất quyền chủ phòng trong lúc đang hỏi
   send({ t: "disband" });
 }
 $("disbandBtn").onclick = disbandRoom;
@@ -337,13 +339,16 @@ $("endDisbandBtn").onclick = disbandRoom;
 // Link sang trang khác (← Lụm Kèo…) khi đang ở trong phòng: rời phòng hẳn trước (chủ phòng còn một mình ⇒ hủy phòng)
 // để người khác thấy mình rời ngay; chờ máy chủ trả lời tối đa 400 ms. Đang chơi dở thì hỏi lại trước.
 let exiting = null;
-document.addEventListener("click", (e) => {
+document.addEventListener("click", async (e) => {
   const a = e.target.closest && e.target.closest("a[href]");
   if (!a || !sess || !v || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
   const u = new URL(a.href, location.href);
   if (u.origin === location.origin && u.pathname === location.pathname) return;
   e.preventDefault();
-  if (v.phase === "play" && !confirm("Rời ván đang chơi?")) return;
+  if (exiting) return; // đang rời rồi
+  if (v.phase === "play" && !(await pxConfirm({ title: "Rời ván đang chơi?", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
+  if (exiting) return;
+  if (!sess || !v) { location.href = u.href; return; } // phòng đã đóng trong lúc đang hỏi
   const alone = isHost() && humansIn() <= 1 && v.phase !== "play", live = ws && ws.readyState === 1;
   save(null);
   const go = () => { if (!exiting) return; exiting = null; clearTimeout(t); location.href = u.href; };
@@ -353,7 +358,7 @@ document.addEventListener("click", (e) => {
 }, true);
 $("copyBtn").onclick = async () => {
   const link = `${location.origin}${location.pathname}?p=${v.code}`;
-  try { await navigator.clipboard.writeText(link); banner("Đã chép đường mời"); } catch { banner(link); }
+  try { await navigator.clipboard.writeText(link); banner("Đã chép link mời"); } catch { banner(link); }
 };
 $("chatInp").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); $("chatInp").blur(); } }); // Esc: rời ô chat, phím về game
 $("chatForm").onsubmit = (e) => {

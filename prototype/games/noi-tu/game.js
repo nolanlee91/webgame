@@ -8,6 +8,7 @@ import { createLocalSession } from "./session/local.js";
 import { openOnline } from "./session/online.js";
 import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 import { guessWord } from "./core/input.js";
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
 
 const STORE_KEY = "noi-tu:local";
@@ -18,7 +19,7 @@ const ME = 0;                               // chơi với máy: người chơi 
 const CHAT_KEEP = 50;
 const CHAT_ERR = { "chat-slow": "Bạn nhắn nhanh quá — chờ một giây rồi gửi tiếp.", "chat-empty": "Tin nhắn trống." };
 const ONLINE_ERR = {
-  offline: "Không kết nối được máy chủ online (chế độ online có thể chưa bật trên máy chủ này).",
+  offline: "Không kết nối được máy chủ — kiểm tra mạng rồi thử lại nhé.",
   "no-room": "Không thấy phòng — kiểm tra lại mã (phòng bỏ trống 5 phút sẽ tự đóng).",
   "no-seat": "Phòng này không còn ghế của bạn nữa.",
   full: "Phòng đã đủ 2 người.",
@@ -32,7 +33,7 @@ const ONLINE_ERR = {
 const REASON = {
   "need-two-syllables": () => "Cần đúng một từ ghép 2 tiếng (vd: học tập).",
   "wrong-link": (r) => `Phải bắt đầu bằng “${r.need}”.`,
-  "not-in-dict": (r) => `“${r.key}” chưa có trong từ điển bản thử — thử từ khác nhé.`,
+  "not-in-dict": (r) => `“${r.key}” chưa có trong từ điển — thử từ khác nhé.`,
   "already-used": (r) => `“${r.key}” đã dùng trong ván này rồi.`,
   "dead-end": (r) => `“${r.key}” là từ cụt — ván này không cho phép.`,
   "not-your-turn": () => "Chưa tới lượt bạn.",
@@ -161,7 +162,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
       onError(code) {
         if (o !== online) return;
         online = null; ss.remove(ROOM_KEY); setBusyMenu(false); setChat(false);
-        closeSession(); mode = "online"; showMenu(ONLINE_ERR[code] || `Lỗi online (${code}).`, true);
+        closeSession(); mode = "online"; showMenu(ONLINE_ERR[code] || `Có lỗi khi chơi online (mã ${code}) — thử lại nhé.`, true);
       },
       onChatLog(items) { if (o !== online) return; chatItems = items.slice(-CHAT_KEEP); renderChat(); },
       onChat(m) {
@@ -593,12 +594,14 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   // "← Trang chủ" khi đang ở trong phòng online (phòng chờ hoặc đang đấu): báo máy chủ rời phòng rồi mới chuyển trang —
   // chủ phòng ở phòng chờ rời ⇒ phòng bị xoá; giữa ván ⇒ hỏi lại trước. Ngoài phòng thì link chạy bình thường.
   let exiting = false;
-  function onHomeClick(e) {
+  async function onHomeClick(e) {
     if (!online || e.defaultPrevented || e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     if (exiting) return;
-    if (session && mode === "online" && state?.round && !state.round.over && !confirm("Rời ván đang chơi?")) return;
     const href = e.currentTarget.href;
+    if (session && mode === "online" && state?.round && !state.round.over
+      && !(await pxConfirm({ title: "Rời ván đang chơi?", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
+    if (exiting) return;
     exiting = true; leaveRoom();
     setTimeout(() => { location.href = href; }, 150); // để lệnh "leave" kịp đi trước khi trang đóng kết nối
   }
