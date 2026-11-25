@@ -78,7 +78,7 @@ for (const id of ids) {
     check(`${id}: giải trọn qua giao diện ra 3★`, await b.ev("!!__game.state&&__game.state.phase==='done'&&__game.state.result.stars===3"), JSON.stringify(await b.ev("__game.state&&{ph:__game.state.phase,r:__game.state.result}")));
   } catch (e) { check(`${id}: kịch bản`, false, e.message); }
 }
-const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t10/.test(e));
+const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t\d+/.test(e));
 check("0 lỗi console", !errs.length, errs.slice(0, 5).join(" | "));
 b.close();
 console.log(fails ? `${fails} FAIL` : "E2E-BOT ĐẠT");

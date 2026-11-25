@@ -186,3 +186,43 @@ test("sanitizeRun: giữ tiến độ hợp lệ, bỏ id lạ, kẹp uy tín, b
   const f = sanitizeRun(mini, { ...raw, phase: "finale", solved: true });
   assert.equal(f.phase, "play", "chưa điền bảng thì không ở vạch mặt");
 });
+
+test("TTH-02: bản lưu cũ đang dở Vụ 1 (bảng 11 chỗ, từ khoá soi / từ khoá) vẫn đọc được, vụ giải tiếp ra 3★", async () => {
+  const { default: c1 } = await import("../data/cases/noi-thit-kho.js");
+  const { nextAction } = await import("../core/solver.js");
+  // bản lưu tạo bằng file vụ CŨ: có từ khoá đã bỏ + chỗ trống đã bỏ (moc-gio.a, tuan-noi-doi.a, ai-noi-doi.b/c, thu-pham.d)
+  const oldBoard = { "moc-gio": { a: "22h30", b: "23h30" }, "tuan-noi-doi": { a: "khong-xuong-bep", b: "sa-te" }, "ai-noi-doi": { a: "ongsau", b: "ngu-som", c: "23h52" }, "thu-pham": { a: "linh", b: "san-thuong", c: "quay-live", d: "cau-view" } };
+  const words = ["thit-kho", "9h-toi", "soi", "tu-khoa", "22h30", "23h30", "khong-xuong-bep", "sa-te", "ongsau", "ngu-som", "23h52", "linh", "san-thuong", "quay-live", "cau-view"];
+  const base = { v: 1, id: c1.id, loc: "rooftop", visited: ["kitchen", "hallway", "rooftop"], locs: ["kitchen", "hallway", "rooftop"], people: ["cohai", "tuan", "linh", "ongsau"], clues: ["vet-nuoc-mau"], words, stmts: [], broke: [], talk: [], seen: ["kitchen.bep-ga"], flags: [], hints: [],
+    cred: 5, credLost: 0, rescues: 0, wrongBoard: 0, wrongPresent: 0, finaleWrong: 0, fin: { step: 0 }, bonus: {}, result: null, rng: 7, pick: {} };
+  // đang điều tra, bảng điền dở
+  const s1 = sanitizeRun(c1, { ...base, phase: "play", board: oldBoard, solved: false });
+  assert.ok(s1, "đọc được");
+  assert.equal(s1.phase, "play");
+  assert.ok(!s1.words.includes("soi") && !s1.words.includes("tu-khoa"));
+  assert.deepEqual(s1.board, { "moc-gio": { b: "23h30" }, "tuan-noi-doi": { b: "sa-te" }, "ai-noi-doi": { a: "ongsau" }, "thu-pham": { a: "linh", b: "san-thuong", c: "quay-live" } });
+  assert.deepEqual(invariants(c1, s1), []);
+  // đã chốt bảng cũ, đang vạch mặt ⇒ giữ nguyên chỗ đang đứng
+  const s2 = sanitizeRun(c1, { ...base, phase: "finale", board: oldBoard, solved: true, fin: { step: 1 } });
+  assert.ok(s2 && s2.solved && s2.phase === "finale" && s2.fin.step === 1);
+  // đang nghe intro (bản cũ dài) ⇒ phát intro mới từ đầu
+  const s3 = sanitizeRun(c1, { ...base, phase: "intro", loc: "kitchen", locs: ["kitchen"], visited: [], board: {}, solved: false });
+  assert.ok(s3 && s3.phase === "intro");
+  // từ bản lưu dở vẫn giải trọn ra 3★
+  let s = s1;
+  for (let i = 0, a; i < 3000 && (a = nextAction(c1, s)); i++) {
+    const r = apply(c1, s, a); assert.equal(r.error, null, JSON.stringify(a));
+    s = r.s; const texts = r.show.map((it) => textOf(c1, it)).filter(Boolean); if (texts.length) s = apply(c1, s, { type: "read", texts }).s;
+  }
+  assert.equal(s.phase, "done"); assert.equal(s.result.stars, 3);
+});
+
+test("TTH-02: Vụ 1 bật sẵn Chế độ soi, bảng ≤ 6 chỗ trống, intro ≤ 6 dòng, không còn chip 'soi' / 'từ khoá'", async () => {
+  const { default: c1 } = await import("../data/cases/noi-thit-kho.js");
+  assert.equal(c1.soiOn, true);
+  const blanks = c1.deduction.reduce((n, d) => n + Object.keys(d.blanks).length, 0);
+  assert.ok(blanks >= 5 && blanks <= 6, "chỗ trống " + blanks);
+  assert.ok(c1.intro.length <= 6, "intro " + c1.intro.length);
+  assert.ok(c1.locations.kitchen.intro.length <= 1);
+  assert.ok(!c1.words.soi && !c1.words["tu-khoa"]);
+});

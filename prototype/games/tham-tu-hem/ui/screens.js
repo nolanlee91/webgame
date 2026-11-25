@@ -4,7 +4,7 @@ import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portrait
 import { renderText } from "./dialog.js?v=t11";
 import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
-import { pickEvidence, clueCard } from "./panels.js?v=t11";
+import { pickEvidence, clueCard } from "./panels.js?v=t12";
 import { play as sfx } from "./sfx.js?v=t10";
 import { shareResult } from "../../_shared/share.js?v=s2";
 
@@ -12,6 +12,8 @@ const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */
 export function afterRender(app) { const list = after.splice(0); for (const f of list) f(app); }
 const narrow = () => innerWidth < 900;
+/** Điện thoại xoay ngang (docs/mobile-landscape.md §1) — khớp media query trong index.html. */
+const landShort = () => matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
 const stars = (n, max = 3) => h("span.stars", { "aria-label": `${n} trên ${max} sao` }, Array.from({ length: max }, (_, i) => icon(i < n ? "star" : "starOff", 16)));
 
 /** Ảnh nền phủ khung (cover) mà vẫn nét: hệ số bội 0,5 px thiết bị, căn giữa, cắt mép. */
@@ -242,7 +244,10 @@ export function scene(app) {
   const rects = new Map(all.map((hs, i) => [hs.id, hotspotRect(file, hs, i, all.length)]));
   const real = hasFile(file);
   // cỡ cảnh: desktop vừa khung; điện thoại cao ~48% màn, cho kéo ngang
-  const availW = narrow() ? innerWidth * 1.8 : innerWidth - 340 - 40, availH = narrow() ? Math.min(innerHeight * 0.48, 420) : innerHeight - 52 - 120;
+  // TTH-03: điện thoại xoay ngang (màn thấp) ⇒ 2 cột: cảnh chiếm trọn chiều cao bên trái (kéo ngang nếu hẹp), địa điểm + người bên phải
+  const land = landShort(), barH = document.getElementById("bar")?.offsetHeight || 44;
+  const availW = land || narrow() ? innerWidth * 1.8 : innerWidth - 340 - 40;
+  const availH = land ? innerHeight - barH - 6 : narrow() ? Math.min(innerHeight * 0.48, 420) : innerHeight - 52 - 120;
   const { k, crisp } = crispScale(SCENE_W, SCENE_H, availW, availH);
   const W = SCENE_W * k, H = SCENE_H * k;
   const bg = real ? file : placeholderScene(c.id + "/" + s.loc, vis.map((hs) => rects.get(hs.id).r)); // chỉ vẽ đồ của điểm đang hiện (không lộ điểm ẩn)

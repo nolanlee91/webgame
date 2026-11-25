@@ -10,21 +10,14 @@ export default {
   tagline: "Sát Tết, nồi thịt kho trứng của cô Hai biến mất khỏi bếp chung. Cả xóm trọ ai cũng đáng nghi, kể cả cái nồi.",
   client: "cohai",
 
+  // TTH-02: vụ hướng dẫn cho trẻ ⇒ intro ngắn (5 dòng), cách chơi để Tèo nói lúc tới hiện trường; Chế độ soi bật sẵn (soiOn).
+  soiOn: true,
   intro: [
-    ["narr", "Sáng 28 Tết. Văn phòng thám tử nằm trên lầu tiệm sửa xe, mùi nhớt hoà mùi mai vàng."],
-    ["teo", "Sếp ơi sếp! Có khách! Mặt khách nhìn như vừa mất sổ đỏ!", "shock"],
-    ["cohai", "Thám tử ơi, cứu tui! Nồi [[thit-kho|thịt kho trứng]] của tui... bốc hơi rồi!", "shock"],
-    ["me", "Bình tĩnh cô. Thịt kho thì bốc hơi là chuyện bình thường, kho lâu nó cạn.", "neutral"],
-    ["cohai", "Không phải cạn! Mất NGUYÊN CÁI NỒI! Tui kho xong lúc [[9h-toi|9 giờ tối]] qua, để trên bếp chung cho thấm. Sáng ra chỉ còn cái bếp ga trơ trọi!", "angry"],
-    ["cohai", "Nồi đó tui để dành cúng ông bà ba ngày Tết. Hai chục trứng vịt, ba ký ba rọi, nước dừa xiêm...", "nervous"],
-    ["teo", "Hai chục trứng... Sếp, vụ này nghiêm trọng. Đây là án ăn uống cấp quận.", "neutral"],
-    ["me", "Cô ở đâu?"],
-    ["cohai", "Xóm trọ ông Sáu, Hẻm 47. Bếp chung ở tầng trệt, phòng ở trên lầu, trên cùng là sân thượng.", "neutral"],
-    ["teo", "Sếp! Vụ đầu năm mình nhận nè! Để em chỉ sếp quy trình nha: tới hiện trường, [[soi|soi]] mấy chỗ đáng nghi, nhặt vật chứng, hỏi chuyện từng người.", "happy"],
-    ["teo", "Mấy chữ có khung như [[thit-kho]] là [[tu-khoa|từ khoá]]. Đọc tới là tự vô sổ, cuối vụ mình xài để điền bảng suy luận đó sếp.", "smug"],
-    ["me", "Sao em rành vậy?"],
-    ["teo", "Em coi phim trinh thám Hàn hết ba mùa rồi sếp.", "smug"],
-    ["batu", "Khoan khoan! Nhóm Zalo Hẻm 47 Hóng Biến đang nổ tung vụ này nè! Thám tử coi đi!", "happy"],
+    ["narr", "Sáng 28 Tết. Văn phòng thám tử trên lầu tiệm sửa xe, mùi nhớt hoà mùi mai vàng. Tèo dẫn vô một vị khách mặt như vừa mất sổ đỏ."],
+    ["cohai", "Thám tử ơi, cứu tui! Nồi [[thit-kho|thịt kho trứng]] tui kho xong lúc [[9h-toi|9 giờ tối]] qua, để trên bếp chung cho thấm. Sáng ra mất NGUYÊN CÁI NỒI!", "angry"],
+    ["me", "Bình tĩnh cô. Thịt kho bốc hơi là do kho lâu. Còn bốc hơi nguyên cái nồi thì mới đáng điều tra.", "neutral"],
+    ["cohai", "Nồi đó tui để dành cúng ông bà! Hai chục trứng vịt, ba ký ba rọi! Bếp chung ở tầng trệt xóm trọ ông Sáu, Hẻm 47, trên cùng là sân thượng.", "nervous"],
+    ["teo", "Hai chục trứng... Án ăn uống cấp quận rồi sếp! Vụ đầu năm, sếp cứ đi, em coi phim trinh thám Hàn hết ba mùa rồi!", "smug"],
   ],
 
   social: {
@@ -59,8 +52,7 @@ export default {
     kitchen: {
       name: "Bếp chung", scene: "kitchen", start: true,
       intro: [
-        ["narr", "Bếp chung tầng trệt. Mùi thịt kho vẫn còn lảng vảng như hồn ma của nồi thịt."],
-        ["teo", "Sếp thấy mấy chỗ sáng sáng không? Bấm vào là soi. Có chỗ ra vật chứng, có chỗ ra... em nói nhảm. Soi hết cho chắc!", "happy"],
+        ["teo", "Bếp chung đây sếp, mùi thịt kho còn lảng vảng như hồn ma! Chỗ nào có khung sáng là soi được, bấm vô coi. Chữ đỏ như [[thit-kho]] là từ khoá, đọc tới là tự vô Sổ tay.", "happy"],
       ],
       hotspots: [
         {
@@ -344,8 +336,6 @@ export default {
     "o-trong-phong": { text: "live trong phòng", kind: "khac" },
     "tuoi-cay": { text: "tưới cây", kind: "khac" },
     "noi-rieng": { text: "nồi riêng mẹ gửi", kind: "khac" },
-    soi: { text: "soi", kind: "khac" },
-    "tu-khoa": { text: "từ khoá", kind: "khac" },
   },
 
   talks: {
@@ -678,8 +668,8 @@ export default {
   deduction: [
     {
       id: "moc-gio",
-      text: "Lúc {a} Tuấn còn thấy nồi thịt kho trên bếp. Buổi live 'thịt kho mẹ nấu' bắt đầu lúc {b}.",
-      blanks: { a: { answer: "22h30", kind: "luc" }, b: { answer: "23h30", kind: "luc" } },
+      text: "Lúc 22h30 Tuấn còn thấy nồi thịt kho trên bếp. Buổi live 'thịt kho mẹ nấu' bắt đầu lúc {b}.",
+      blanks: { b: { answer: "23h30", kind: "luc" } },
       explain: [
         ["me", "Nồi biến mất trong khoảng một tiếng: sau khi Tuấn nấu mì, trước khi buổi live lên sóng."],
         ["teo", "Vậy ai lên live đúng lúc đó, người đó đáng nghi nhất! Sếp ơi em thông minh ra rồi!", "happy"],
@@ -687,8 +677,8 @@ export default {
     },
     {
       id: "tuan-noi-doi",
-      text: "Tuấn nói dối là {a}: cậu xuống bếp nấu mì, và vết đỏ trên áo là {b}.",
-      blanks: { a: { answer: "khong-xuong-bep", kind: "khac" }, b: { answer: "sa-te", kind: "vat" } },
+      text: "Tuấn nói dối là không xuống bếp: cậu xuống bếp nấu mì, và vết đỏ trên áo là {b}.",
+      blanks: { b: { answer: "sa-te", kind: "vat" } },
       explain: [
         ["me", "Nồi mì trong bồn rửa, vỏ gói mì cấp độ 7, và hột ớt trên áo. Tuấn nói dối vì ngại, không phải vì ăn trộm."],
         ["tuan", "Em xin lỗi cả xóm. Em sẽ ăn mì gói một cách công khai từ nay về sau.", "nervous"],
@@ -696,8 +686,8 @@ export default {
     },
     {
       id: "ai-noi-doi",
-      text: "{a} khai là {b}, nhưng tài khoản của ông tặng hoa trong live lúc {c}.",
-      blanks: { a: { answer: "ongsau", kind: "ai" }, b: { answer: "ngu-som", kind: "khac" }, c: { answer: "23h52", kind: "luc" } },
+      text: "{a} khai là ngủ sớm, nhưng tài khoản của ông tặng hoa trong live lúc 23h52.",
+      blanks: { a: { answer: "ongsau", kind: "ai" } },
       explain: [
         ["me", "Ông Sáu nói dối, nhưng chỉ để giấu chuyện mình là fan cứng của Linh. Còn cái nồi ông xách lúc 5h là nồi cháo lòng."],
         ["teo", "Chủ trọ khó tính mà tặng hoa cho streamer. Tết này xóm mình nhiều drama ghê sếp.", "smug"],
@@ -705,12 +695,11 @@ export default {
     },
     {
       id: "thu-pham",
-      text: "Thủ phạm là {a}. Cô bưng nồi lên {b} để {c}, nhằm {d}.",
+      text: "Thủ phạm là {a}. Cô bưng nồi lên {b} để {c}, nhằm câu view dịp Tết.",
       blanks: {
         a: { answer: "linh", kind: "ai" },
         b: { answer: "san-thuong", kind: "o" },
         c: { answer: "quay-live", kind: "cach" },
-        d: { answer: "cau-view", kind: "vi" },
       },
       explain: [
         ["me", "Poster đặt mục tiêu 10K mắt. Phông nền là bồn nước sân thượng. Nồi trong live buộc dây thun đỏ, giờ đang úp trên sân thượng."],
