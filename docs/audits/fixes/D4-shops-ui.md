@@ -81,7 +81,7 @@ Quyết định chủ dự án 25/11/2026: khung UI Tập Làm Chủ theo **pixe
     - Hai lần đầu dừng ở `m5Flows` ("không thấy #introGo": bản lưu ngày 8 còn sau khi xoá localStorage).
     - Nguyên nhân: test xoá localStorage 300 ms sau khi điều hướng sang about:blank. Máy bận thì trang cũ chưa dỡ xong, pagehide của game ghi lại bản lưu sau lệnh xoá.
     - Sửa `test/e2e-m5.mjs`: chờ `location.href === "about:blank"` rồi mới xoá.
-  - Cơm Tấm: xem báo cáo cuối.
+  - Cơm Tấm **199/199** (gồm bố cục 768×1024, 844×390, 740×360, 1024×768, 360, 320).
 - `node tools/cache-tags/check-tags.mjs master`: OK, "3 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag" (file test không tính).
 - Ảnh trước / sau 390×844, 844×390 (Trà Sữa thêm 360×640, cuối game) ở thư mục tạm ngoài repo, không commit.
 
