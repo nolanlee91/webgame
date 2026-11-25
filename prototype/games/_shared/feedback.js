@@ -35,8 +35,18 @@ function tone(f0, f1, dur, vol, type = "square", delay = 0) {
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
 }
+/** Nốt "bụp" êm: vào tiếng 6 ms (không có tiếng tạch ở đầu), tắt dần, trượt tần số xuống. */
+function thump(f0, f1, dur, vol, type = "sine", delay = 0) {
+  const a = ctx(); if (!a) return;
+  const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
+}
 const SOUNDS = {
   click: () => { tone(1400, 700, 0.035, 0.07, "square"); tone(240, 160, 0.05, 0.08, "triangle"); },
+  // Trang chủ (<html data-click-sfx="bup">): "bụp" trầm, mềm — khác tiếng "tách" trong game
+  bup: () => { thump(150, 62, 0.11, 0.22, "sine"); thump(320, 160, 0.035, 0.035, "triangle"); },
   sent: () => { tone(500, 1500, 0.11, 0.08, "triangle"); tone(1500, 2100, 0.06, 0.05, "sine", 0.09); },
 };
 const lastPlay = {};
@@ -45,12 +55,14 @@ export function play(name) {
   if (!muted() && SOUNDS[name]) try { SOUNDS[name](); } catch {}
 }
 
+/** Tiếng bấm của trang: mặc định "click"; trang đặt <html data-click-sfx="bup"> để dùng tiếng khác. */
+export const clickName = () => (SOUNDS[document.documentElement.dataset.clickSfx] ? document.documentElement.dataset.clickSfx : "click");
 const usable = (el) => el && !el.disabled && el.getAttribute("aria-disabled") !== "true";
 let lastAt = 0;
 function clickFx(el) {
   if (!usable(el) || el.closest("[data-nosfx]")) return;
   const now = performance.now(); if (now - lastAt < 40) return; lastAt = now; // chạm + click giả không kêu 2 lần
-  play("click");
+  play(clickName());
 }
 addEventListener("pointerdown", (e) => { if (e.button === 0 || e.pointerType !== "mouse") clickFx(e.target.closest(BTN)); }, true);
 addEventListener("keydown", (e) => {

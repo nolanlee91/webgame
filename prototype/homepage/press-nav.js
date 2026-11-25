@@ -3,7 +3,7 @@
 // File này: chạm xuống ⇒ tiếng "tách" + lún (class is-pressing, chạy cả trên điện thoại nơi :active thất thường),
 // bấm ⇒ giữ lún ~130 ms rồi mới chuyển trang. Ctrl/⌘/Shift/chuột giữa / mở tab mới / link #trong trang: để trình duyệt tự xử lý.
 // Vuốt slide: app.js chặn click (preventDefault ở pha capture) ⇒ ở đây thấy defaultPrevented thì bỏ qua.
-import { play } from "../games/_shared/feedback.js";
+import { play, clickName } from "../games/_shared/feedback.js?v=f2"; // CÙNG địa chỉ với thẻ script trong index.html (khác ⇒ 2 bản, kêu 2 lần)
 
 const NAV = "a.tile[href], a.slide[href], a.quick__item[href], a.dcard[href]";
 const HOLD_MS = 130;
@@ -17,7 +17,7 @@ addEventListener("pointerdown", (e) => {
   const a = e.target.closest(NAV);
   if (!a) return;
   press(a);
-  play("click");
+  play(clickName());
   const up = () => { release(a); removeEventListener("pointerup", up, true); removeEventListener("pointercancel", up, true); };
   addEventListener("pointerup", up, true);
   addEventListener("pointercancel", up, true);
@@ -32,7 +32,7 @@ addEventListener("click", (e) => {
   e.preventDefault();
   if (navigating) return;
   navigating = true;
-  if (e.detail === 0) play("click"); // Enter trên bàn phím: không có pointerdown
+  if (e.detail === 0) play(clickName()); // Enter trên bàn phím: không có pointerdown
   press(a);
   setTimeout(() => { location.href = url.href; }, HOLD_MS);
 });

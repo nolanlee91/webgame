@@ -42,7 +42,7 @@ const QUAN_SVG = [pebbleSvg("#3fae98", "#8be3cf", "#0f3a33"), pebbleSvg("#c8452e
 
 // Âm thanh Codex (docs/o-an-quan/AUDIO.md): hiệu ứng mp3 ngắn giải mã vào WebAudio, nạp lười (sau lần chạm đầu hoặc
 // ~1,5 s rảnh) để không chặn lúc vào game; hai nền lặp (sân + nhạc) là <audio> nhỏ, chỉ bật sau lần chạm đầu. M tắt tất cả.
-const SFX = ["pebble-1", "pebble-2", "pebble-3", "pebble-4", "pick-up", "capture", "capture-quan", "chain", "borrow", "select", "turn", "win", "lose", "draw"];
+const SFX = ["pebble-1", "pebble-2", "pebble-3", "pebble-4", "pick-up", "capture", "capture-quan", "chain", "borrow", "select", "turn", "win", "lose", "draw", "invalid", "chat", "pause"]; // 3 tiếng cuối: Codex 11/2026
 const LOOPS = { "amb-yard": 0.22, "music-game": 0.14 };
 function makeAudio(dir, sdk) {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -422,7 +422,7 @@ export function mount(root, ctx = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) ui.chatLog.scrollTop = ui.chatLog.scrollHeight;
       const last = list.at(-1);
-      if (isNew && last && !last.mine) sfx.play("select", 0.7);
+      if (isNew && last && !last.mine) sfx.play("chat", 0.7);
       if (isNew && last && !last.mine && !chatOpen()) toast(last.name + ": " + last.text, 3500);
     }
     if (chatOpen()) chatSeen = top;
@@ -654,8 +654,8 @@ export function mount(root, ctx = {}) {
     ui.menuP.textContent = room ? "Rời phòng" : "Về menu";
     if (on) {
       ui.pSub.textContent = "Ván " + s.round + " · " + s.moves.length + " nước · điểm " + s.score[0] + " – " + s.score[1];
-      overlay("pause"); $("resumeBtn").focus({ preventScroll: true });
-    } else { overlay(null); cv.focus({ preventScroll: true }); }
+      overlay("pause"); $("resumeBtn").focus({ preventScroll: true }); sfx.play("pause", 0.6);
+    } else { overlay(null); cv.focus({ preventScroll: true }); sfx.play("pause", 0.6); }
     hud();
   }
 
@@ -668,7 +668,7 @@ export function mount(root, ctx = {}) {
     if (h && h.kind === "pit") {
       const mineRow = ROWS[myTeam()].includes(h.pit);
       if (mineRow && s.pits[h.pit] > 0) { board.selected = board.selected === h.pit ? null : h.pit; board.cursor = null; sfx.play("select", 0.7); }
-      else { board.flash = { pit: h.pit, t: performance.now() }; board.selected = null; }
+      else { board.flash = { pit: h.pit, t: performance.now() }; board.selected = null; sfx.play("invalid", 0.7); }
     } else board.selected = null;
     hud();
   }

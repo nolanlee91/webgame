@@ -14,6 +14,7 @@ export const SFX = {
   "paper-wrap": .31, "plastic-bag": .30, "change-count": .30, cashbox: .31,
   arrival: .30, "voice-happy": .31, "voice-annoyed": .31, "voice-surprised": .31,
   drama: .34, viral: .32, "level-up": .30, mission: .31, "shift-end": .33, error: .30,
+  discard: .30, decorate: .30, // Codex 11/2026: bỏ ổ hỏng vào thùng, đặt đồ trang trí
 };
 /** Vòng lặp: music = nhạc (tắt được riêng), còn lại là âm phố / lò (đi theo hiệu ứng). */
 export const LOOPS = {
@@ -22,7 +23,7 @@ export const LOOPS = {
   "dawn-street-loop": { gain: .14, duck: .06 },
   "gas-oven-loop": { gain: .09 },
 };
-/** File có thật trong assets/audio/ (28 file). Tên không có ở đây thì không tải, không phát. */
+/** File có thật trong assets/audio/ (30 file). Tên không có ở đây thì không tải, không phát. */
 export const AVAILABLE = new Set([...Object.keys(SFX), ...Object.keys(LOOPS)]);
 /** Tải sẵn ngay sau thao tác đầu tiên (mỗi file vài KB). */
 export const WARM = ["bread-slice", "pate-spread", "filling-place", "paper-wrap", "cashbox", "bread-ready", "arrival", "error"];
@@ -70,6 +71,8 @@ export function soundsFor(e) {
     case "bought": case "restocked": case "restockedToday": case "pateUp": return [["cashbox"]];
     case "helper": return e.on ? [["cashbox"]] : [];
     case "stockout": case "noGas": return [["error"]];
+    case "discarded": return [["discard"]];
+    case "placed": return [["decorate"]];
     case "shiftEnded": return [["shift-end"]];
     case "replied": return REPLY[e.outcome] || [];
     default: return [];

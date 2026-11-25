@@ -16,6 +16,7 @@ export const SFX = {
   "bill-key": .26, "cash-paper": .30,
   arrival: .29, "voice-call": .30, "voice-happy": .30, "voice-annoyed": .30, "voice-surprised": .30,
   drama: .33, viral: .31, "level-up": .30, mission: .30, "shift-end": .32, error: .28,
+  "chair-scrape": .28, marinate: .28, // Codex 11/2026: mời khách ngồi (kéo ghế nhựa), ướp sườn
 };
 /** Vòng lặp: music = nhạc (tắt được riêng), còn lại là âm phố / bếp / quán (đi theo hiệu ứng). duck = âm lượng khi hội thoại mở. */
 export const LOOPS = {
@@ -25,7 +26,7 @@ export const LOOPS = {
   "charcoal-grill-loop": { gain: .10 },
   "busy-dining-loop": { gain: .10, duck: .04 },
 };
-/** File có thật trong assets/audio/ (32 file). Tên không có ở đây thì không tải, không phát. */
+/** File có thật trong assets/audio/ (34 file). Tên không có ở đây thì không tải, không phát. */
 export const AVAILABLE = new Set([...Object.keys(SFX), ...Object.keys(LOOPS)]);
 /** Tải sẵn ngay sau thao tác đầu tiên (mỗi file vài KB). */
 export const WARM = ["pork-sizzle", "pork-flip", "plate-set", "rice-scoop", "cash-paper", "arrival", "error"];
@@ -69,6 +70,8 @@ export function soundsFor(e) {
     case "paid": case "debtPaid": return [["bill-key"], ["cash-paper", .12]];
     // khách
     case "arrive": return [["arrival"]];
+    case "seated": return [["chair-scrape"]];
+    case "marinated": return [["marinate"]];
     case "request": case "billCall": case "noTea": return [["voice-call"]];
     case "groupDone": return e.stars >= 4 ? [["voice-happy", .2]] : e.stars <= 2 ? [["voice-annoyed", .2]] : [];
     case "timeout": case "orderLate": return [["voice-annoyed"]];

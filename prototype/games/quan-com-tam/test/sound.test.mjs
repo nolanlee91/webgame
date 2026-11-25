@@ -6,10 +6,10 @@ import { soundsFor, loopsFor, AVAILABLE, play, MUTE_KEY, MUSIC_KEY, SFX, LOOPS, 
 
 const files = new Set(readdirSync(new URL("../assets/audio/", import.meta.url)).filter((f) => f.endsWith(".mp3")).map((f) => f.slice(0, -4)));
 
-test("âm thanh: 32 file Codex khớp bảng tên (27 hiệu ứng + 5 vòng lặp)", () => {
-  assert.equal(files.size, 32);
+test("âm thanh: 34 file Codex khớp bảng tên (29 hiệu ứng + 5 vòng lặp)", () => {
+  assert.equal(files.size, 34);
   assert.deepEqual([...AVAILABLE].sort(), [...files].sort());
-  assert.equal(Object.keys(SFX).length, 27);
+  assert.equal(Object.keys(SFX).length, 29);
   assert.equal(Object.keys(LOOPS).length, 5);
   for (const n of WARM) assert.ok(SFX[n], n);
   assert.equal(MUTE_KEY, "wgp.muted");
@@ -23,7 +23,7 @@ test("âm thanh: mọi sự kiện chính có tiếng và chỉ gọi tên có f
     { type: "cleaned", plates: 0 }, { type: "washed", n: 4 }, { type: "delivered", mistakes: [] }, { type: "delivered", mistakes: ["raw"] }, { type: "billOpen" }, { type: "paid", total: 60 },
     { type: "arrive" }, { type: "request", kind: "com" }, { type: "billCall" }, { type: "groupDone", stars: 5 }, { type: "groupDone", stars: 1 }, { type: "complaint" },
     { type: "drama" }, { type: "dramaResolved", rolled: "win" }, { type: "missionDone" }, { type: "levelUp" }, { type: "shiftEnded" }, { type: "stockout" }, { type: "restocked" },
-    { type: "plateDropped" }, { type: "timeout" }];
+    { type: "plateDropped" }, { type: "timeout" }, { type: "seated", gid: 1, tid: 2 }, { type: "marinated", n: 6 }];
   const used = new Set();
   for (const e of evs) { const out = soundsFor(e); assert.ok(out.length, e.type); for (const [n] of out) { assert.ok(files.has(n), `${e.type} → ${n}`); used.add(n); } }
   for (const n of Object.keys(SFX)) assert.ok(used.has(n), "chưa dùng: " + n);

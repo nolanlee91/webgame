@@ -65,9 +65,9 @@ test("chốt ca: lời vận hành = doanh thu − giá vốn − hao hụt − 
   assert.equal(s.day, 2);
 });
 
-test("âm thanh: 28 file Codex khớp bảng tên; mọi sự kiện chỉ gọi tên có file; chưa có thao tác ⇒ không phát", () => {
+test("âm thanh: 30 file Codex khớp bảng tên; mọi sự kiện chỉ gọi tên có file; chưa có thao tác ⇒ không phát", () => {
   const files = new Set(readdirSync(new URL("../assets/audio/", import.meta.url)).filter((f) => f.endsWith(".mp3")).map((f) => f.slice(0, -4)));
-  assert.equal(files.size, 28);
+  assert.equal(files.size, 30);
   assert.deepEqual([...AVAILABLE].sort(), [...files].sort());
   for (const n of [...Object.keys(SFX), ...Object.keys(LOOPS), ...WARM]) assert.ok(files.has(n), n);
   const evs = [{ type: "step", step: "slice" }, { type: "step", step: "spread" }, { type: "step", step: "fill", on: true }, { type: "step", step: "veg", on: true }, { type: "step", step: "spice" },
@@ -82,6 +82,8 @@ test("âm thanh: 28 file Codex khớp bảng tên; mọi sự kiện chỉ gọi
   assert.deepEqual(soundsFor({ type: "pateUp", tier: 1, price: 120 }), [["cashbox"]]); // nâng pate nhà làm = mua đồ
   assert.deepEqual(soundsFor({ type: "helper", on: true }), [["cashbox"]]);
   assert.deepEqual(soundsFor({ type: "helper", on: false }), []);
+  assert.deepEqual(soundsFor({ type: "discarded" }), [["discard"]]); // Codex 11/2026
+  assert.deepEqual(soundsFor({ type: "placed", id: "x" }), [["decorate"]]);
   assert.equal(play("cashbox"), false); // chưa có AudioContext (chưa thao tác) ⇒ không phát, không tải
   assert.equal(MUTE_KEY, "wgp.muted");
 });
