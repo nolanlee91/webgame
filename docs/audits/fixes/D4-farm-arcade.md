@@ -58,7 +58,13 @@ Sau: 0 nút / link thiếu vùng chạm ở cả 4 khung × 3 trạng thái, 7 g
 
 ## Kiểm thử
 
-KIEM_THU_PLACEHOLDER
+- Unit (`node --test`): Nông Trại 175/175 (gồm m5 kiểm một tag `m12`), Rắn 8/8, Xếp Gạch 18/18, Bắn Bóng 18/18, Ghép Kẹo 15/15, Đua Xe 19/19, Đào Vàng 22/22, Nối Thú 13/13.
+- E2E Nông Trại (server riêng của worktree): `e2e.mjs` 171/171 (lần chạy đầu 170/171: một lần "không thấy #buildOk" ở bước hàng rào M6, chạy lại 2 lần đều đạt ⇒ chập chờn do máy chạy nhiều agent), `e2e-cards.mjs` 44/44, `e2e-m4.mjs` ALL PASS.
+- `_shared/test/sound-press-e2e.mjs`: 245 PASS, 1 FAIL — `do-vui-nhanh 1366 đã trả lời: nút vô hiệu không lún` (game ngoài phạm vi, không sửa). Lần chạy đầu bị `timeout` cắt giữa chừng (213 PASS, 0 FAIL). Cả 7 game nhỏ đều đạt.
+- `levelup-share-e2e.mjs`: 63/64 — FAIL `quan-com-tam 1366` hết giờ chờ ảnh khoe (ngoài phạm vi); chạy lại riêng Cơm Tấm 24/24 ⇒ chập chờn. Nông Trại đạt.
+- `touch-scroll-e2e.mjs`: 22 đạt, 0 lỗi.
+- Đo tay (Chrome headless): vùng chạm 44×44 bằng `elementFromPoint` cho 8 game × 4 khung × 3 trạng thái ⇒ 0 thiếu; `scrollWidth ≤ innerWidth` ở 320/360/390/844/1366 cho cả 8 game; Nông Trại: chạm hạt ⇒ chạm ô ⇒ gieo được (390 và 844), mở/gập nhiệm vụ, mở Kho rồi về Hạt giống.
+- `node tools/cache-tags/check-tags.mjs master` ⇒ `OK: 66 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.`
 
 ## Chưa làm / đề xuất
 
