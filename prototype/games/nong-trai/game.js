@@ -1,16 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m10";
-import { browserStorage, farmSave } from "./save.js?v=m10";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m10";
-import { createMarketScene } from "./ui/scene-market.js?v=m10";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m10";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m10";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m10";
-import { createVillageScene } from "./ui/scene-village.js?v=m10";
-import { createTruck } from "./ui/truck.js?v=m10";
-import { farmShare } from "./ui/share-card.js?v=m10";
-import { shareResult } from "../_shared/share.js?v=s1";
+import * as L from "./logic.js?v=m11";
+import { browserStorage, farmSave } from "./save.js?v=m11";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m11";
+import { createMarketScene } from "./ui/scene-market.js?v=m11";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m11";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m11";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m11";
+import { createVillageScene } from "./ui/scene-village.js?v=m11";
+import { createTruck } from "./ui/truck.js?v=m11";
+import { farmShare } from "./ui/share-card.js?v=m11";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 const MUTE_KEY = "wgp.muted";
 const CEL_KEY = "wgp.nongtrai.cards"; // m7: thẻ chúc mừng đã xem (khoá riêng, không thuộc bản lưu)

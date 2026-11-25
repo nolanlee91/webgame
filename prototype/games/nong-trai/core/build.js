@@ -27,8 +27,8 @@
 //   ctx    = { level }   (cấp người chơi)
 // Hàm đổi trạng thái trả { ok: true, ... } hoặc { err: "<mã>" }; khi err thì KHÔNG đổi gì (b, wallet, inv).
 
-import { BUILDING, BUILDINGS, BUILDABLE_KINDS, DECOR_ITEM, DECOR_SLOT, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m10";
-import { WAREHOUSE } from "../data/warehouse.js?v=m10";
+import { BUILDING, BUILDINGS, BUILDABLE_KINDS, DECOR_ITEM, DECOR_SLOT, DECOR_BAG_MAX, maxLevel } from "../data/buildings.js?v=m11";
+import { WAREHOUSE } from "../data/warehouse.js?v=m11";
 
 export const ERR = Object.freeze({
   BAD: "bad", LOCKED: "locked", BUILT: "built", NOT_BUILT: "not-built", BUILDING: "building", MAX: "max",

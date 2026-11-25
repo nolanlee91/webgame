@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as G from "../core/progression.js?v=m10";
-import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m10";
-import { CROPS } from "../data/crops.js?v=m10";
+import * as G from "../core/progression.js?v=m11";
+import { LEVELS, MAX_LEVEL, CURRENT_MILESTONE } from "../data/levels.js?v=m11";
+import { CROPS } from "../data/crops.js?v=m11";
 import { farm, START } from "./helpers.mjs";
-import { loadSave, migrateV2, dump } from "../core/state.js?v=m10";
+import { loadSave, migrateV2, dump } from "../core/state.js?v=m11";
 
 test("đường XP (bảng data/levels.js XP_TO_NEXT, Milestone 5): tăng dần, ≈ 45·cấp², tổng tới cấp 20 ≈ 104 000 XP", () => {
   assert.equal(G.xpNeed(1), 50);

@@ -1,7 +1,7 @@
 // Nối Thú — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu tiến độ. Luật chơi nằm hết trong logic.js.
 import { LEVELS, newGame, nextLevel, retryLevel, pick, hint, shuffle, tick, remaining, H, W } from "./logic.js";
 import { TILES, renderAnimal } from "./sprites.js";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 const TILE_ART_SIZE = 64;
 const TILE_ART_COLUMNS = 6;

@@ -1,6 +1,6 @@
 // Rắn Săn Mồi — phần vẽ (canvas, khối pixel vẽ bằng code), điều khiển (phím, vuốt, nút), HUD, âm thanh, kỷ lục. Luật trong logic.js.
 import { N, START_LEN, GOLD_LIFE, newGame, step, turn, interval, speedLevel } from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 const SAVE_KEY = "wgp.ransanmoi.v1";
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';

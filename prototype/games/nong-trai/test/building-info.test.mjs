@@ -2,11 +2,11 @@
 // số trong gain lấy đúng từ data (đổi data ⇒ chữ đổi theo), nâng cấp có dòng "trước → sau".
 import test from "node:test";
 import assert from "node:assert/strict";
-import { about, statsOf, machineSlots, BUILDING_INFO, MACHINE_INFO } from "../data/building-info.js?v=m10";
-import { BUILDINGS, BUILDING, FAME_TITLES } from "../data/buildings.js?v=m10";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m10";
-import { ANIMAL } from "../data/animals.js?v=m10";
-import { MACHINES, MACHINE } from "../data/machines.js?v=m10";
+import { about, statsOf, machineSlots, BUILDING_INFO, MACHINE_INFO } from "../data/building-info.js?v=m11";
+import { BUILDINGS, BUILDING, FAME_TITLES } from "../data/buildings.js?v=m11";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m11";
+import { ANIMAL } from "../data/animals.js?v=m11";
+import { MACHINES, MACHINE } from "../data/machines.js?v=m11";
 
 const fmt = (n) => n.toLocaleString("vi-VN");
 const nonEmpty = (t) => typeof t === "string" && t.trim().length > 3;

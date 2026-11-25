@@ -1,6 +1,6 @@
 // Xếp Gạch — phần vẽ (canvas), điều khiển (phím, chạm, nút), HUD, âm thanh, lưu kỷ lục. Luật chơi nằm hết trong logic.js.
 import { W, H, HIDDEN, KINDS, SHAPES, CLEAR_TIME, SPRINT_LINES, newGame, step, move, rotate, softDrop, hardDrop, holdPiece, ghostY, cellsOf, stackHeight } from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 const SAVE_KEY = "wgp.xepgach.v1";
 // Màu gạch theo khối (index 1..7 = I O T S Z J L, 8 = gạch xám khi thua). [chính, gờ sáng, bóng tối]

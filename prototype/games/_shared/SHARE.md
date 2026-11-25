@@ -5,7 +5,7 @@ Module dùng chung để người chơi **khoe kết quả**: vẽ ảnh 1080×1
 ## API
 
 ```js
-import { shareResult, makeCard } from "../_shared/share.js?v=s1";
+import { shareResult, makeCard } from "../_shared/share.js?v=s2";
 
 shareResult({
   game: "o-an-quan",                 // id trong homepage/games.js (lấy tên game, thumbnail, link)
@@ -38,7 +38,7 @@ Domain khai **một chỗ**: `_shared/site.js` (`SITE_URL`). Tên game + thumbna
 2. Import và gọi với **số thật của ván**:
 
 ```js
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 shareBtn.addEventListener("click", () => {
   shareResult({
@@ -58,7 +58,7 @@ shareBtn.addEventListener("click", () => {
 - Màn kết thúc vụ án (chỗ hiện số sao / đánh giá phá án) — thêm nút "Khoe kết quả" cùng kiểu nút của màn đó:
 
 ```js
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 shareResult({
   game: "tham-tu-hem",
   title: `Phá án ${stars}★`,                       // vd "Phá án 3★"

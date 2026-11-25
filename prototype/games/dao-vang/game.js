@@ -3,7 +3,7 @@
 // Hình vẽ dùng asset thật trong ./assets (nền hang, thợ mỏ + tời + móc, 8 vật thể gộp 1 ảnh — cắt theo SPRITES).
 // Khi ảnh chưa tải xong hoặc lỗi, tự quay về hình khối tạm (vẫn chơi được).
 import { W, H, CFG, KINDS, createGame, step, fire, nextLevel, restart, tipOf, drainEvents } from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 const DT = 1 / 60;
 const SAVE_KEY = "wgp.daovang.v1"; // kỷ lục điểm (chỉ để khoe kết quả + hiện trên bảng "Hết giờ")

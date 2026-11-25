@@ -24,7 +24,7 @@ import { currentEvent } from "../core/drama.js?v=b6";
 import { PERSONAS } from "../data/lines-reply.js?v=b6";
 import { STALE } from "../data/lines-m3.js?v=b6";
 import { FILLINGS, NAMES } from "../data/economy.js?v=b6";
-import { shareResult } from "../../_shared/share.js?v=s1";
+import { shareResult } from "../../_shared/share.js?v=s2";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
 const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;

@@ -4,9 +4,9 @@ import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portrait
 import { renderText } from "./dialog.js?v=t10";
 import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
-import { pickEvidence, clueCard } from "./panels.js?v=t10";
+import { pickEvidence, clueCard } from "./panels.js?v=t10f";
 import { play as sfx } from "./sfx.js?v=t10";
-import { shareResult } from "../../_shared/share.js?v=s1";
+import { shareResult } from "../../_shared/share.js?v=s2";
 
 const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */

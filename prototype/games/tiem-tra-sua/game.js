@@ -3,7 +3,7 @@
 import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, DEFER_SHEETS, preload, dpr, icon } from "./render/atlas.js?v=m38";
 import { createScene } from "./render/scene.js?v=m38";
 import { createBrew } from "./ui/brew.js?v=m38";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m38";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m38f";
 import { createPanels } from "./ui/panels.js?v=m38";
 import { createStockout } from "./ui/stockout.js?v=m38";
 import { TIER_LINES } from "./data/lines-m5.js?v=m38";

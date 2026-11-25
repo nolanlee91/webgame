@@ -1,7 +1,7 @@
 // Ghép Kẹo — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
 // Kẹo thường và kẹo đặc biệt được vẽ bằng Canvas, với hình riêng cho từng màu.
 import * as L from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 
 const SAVE_KEY = "wgp.ghep-keo.v1";
 const IDLE_HINT = 6; // giây không thao tác thì tự gợi ý

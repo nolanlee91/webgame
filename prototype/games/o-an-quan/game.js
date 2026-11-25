@@ -5,7 +5,7 @@ import { bestMove } from "./ai.js";
 import { createBoard } from "./board.js?v=oaq2";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
 import { createNet, CODE_RE } from "./net.js?v=rs1";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 
 const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module

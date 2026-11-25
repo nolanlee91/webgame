@@ -4,7 +4,7 @@ import { W, RED, BLACK, START, parse, sideOf, typeOf, newMatch, newRound, nextRo
   legalFrom, isAiTurn, other, moveName, REASON, findKing } from "./logic.js";
 import { bestMove, evaluate } from "./ai.js";
 import { createNet, CODE_RE } from "./net.js?v=rs1";
-import { shareResult } from "../_shared/share.js?v=s1";
+import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 
 const SAVE_KEY = "wgp.tuong.v1";

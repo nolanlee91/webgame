@@ -1,5 +1,5 @@
 // Khoe kết quả — module chia sẻ dùng chung cho mọi game Lụm Kèo (ES module, không thư viện ngoài).
-//   import { shareResult } from "../_shared/share.js?v=s1";
+//   import { shareResult } from "../_shared/share.js?v=s2";
 //   shareResult({ game: "o-an-quan", title: "Thắng máy 38–12", lines: ["Quân ăn được: 38", "Số lượt: 21"], tagline: "Máy xin thua!" });
 // API + ví dụ: xem SHARE.md cùng thư mục.
 //   makeCard(opts)    → Promise<Blob>  ảnh PNG 1080×1080 (pixel V5: khung góc khuyết, bóng cứng, nền navy/gỗ, Be Vietnam Pro)
@@ -173,10 +173,11 @@ const assetUrl = (rel) => new URL(`../../${rel}`, import.meta.url).href; // rel 
 let fontReady = null;
 export function ensureFont() {
   if (fontReady) return fontReady;
-  if (!document.querySelector('link[href*="Be+Vietnam+Pro"]')) {
+  // Font tự host (assets/fonts/fonts.css, có Be Vietnam Pro 600–800); trang đã nạp (hoặc còn dùng Google Fonts) thì thôi.
+  if (!document.querySelector('link[href*="assets/fonts/fonts.css"], link[href*="Be+Vietnam+Pro"]')) {
     const l = document.createElement("link");
     l.rel = "stylesheet";
-    l.href = "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800&display=swap&subset=vietnamese";
+    l.href = assetUrl("assets/fonts/fonts.css?v=f1");
     document.head.appendChild(l);
   }
   const load = Promise.all(["600", "700", "800"].map((w) => document.fonts?.load(`${w} 40px "Be Vietnam Pro"`, "Lụm Kèo ★").catch(() => {})));

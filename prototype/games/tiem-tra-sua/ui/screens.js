@@ -19,7 +19,7 @@ import { personaCards, PERSONAS } from "./persona.js?v=m38";
 import { demandEstimate, menuStock, STOCKOUT } from "../core/stockout.js?v=m38";
 import { FAIR, fairAvailable, fairToday, nextFairDay, TIERS, tierOf, nextTier, shiftFee } from "../core/fair.js?v=m38";
 import { CHALLENGE_UNLOCK, challengeWeek, activeChallenge, CHALLENGE_REWARD } from "../core/challenge.js?v=m38";
-import { shareResult } from "../../_shared/share.js?v=s1";
+import { shareResult } from "../../_shared/share.js?v=s2";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 // TLC1-08: toLocaleString chậm (gọi mỗi khung cho HUD / quầy) ⇒ nhớ kết quả theo số
