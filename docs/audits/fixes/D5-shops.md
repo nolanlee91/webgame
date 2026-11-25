@@ -121,10 +121,23 @@ Ghi chú:
 
 ## Kiểm thử
 
-(xem mục cuối, cập nhật sau khi chạy)
+- Unit (`node --test`):
+  - Bánh Mì 122/122 (6 bài mới về bước gộp), cộng `tools/sim/sim.test.mjs` 4/4;
+  - Trà Sữa 179/179; Cơm Tấm 141/141.
+- E2E (Chrome headless, server riêng cổng 8951 / 8953):
+  - **Bánh Mì 144/144**, gồm `e2e-layout` 7 khung (thêm 844×390, 568×320): 2 đơn bằng chạm thật, 0 lần tự cuộn, HUD 1 hàng, thông báo dưới HUD.
+    - Ba lần chạy đầu ở khung ngang trượt "phải cuộn" (Phết bơ, Đủ rau dưa, Thối đúng); đã sửa logic tự cuộn (mục 1).
+  - **Cơm Tấm 199/199** (bố cục 768×1024, 844×390, 740×360, 1024×768, 360, 320 vẫn qua với nút 44 px).
+  - **Trà Sữa 157/158**, 2 lần. Bài trượt: "M5: sự kiện mưa (V15) ⇒ lớp mưa phủ cảnh".
+    - Chạy cùng bài e2e trên **bản gốc HEAD** (chưa sửa) cũng trượt đúng bài này (157/158), nên không do D5.
+    - Kiểm riêng (mở ca, ép V15) thì lớp mưa hiện đúng ở cả bản gốc lẫn bản sửa. Nghi do thời điểm khi máy bận; chưa sửa vì ngoài phạm vi.
+- Quét vùng chạm < 44 px (màn chào, mọi tab Chuẩn bị ca, trong ca, ghim phiếu, Tạm dừng × 844×390, 390×844, 568×320, 1366×768): Bánh Mì 0, Cơm Tấm 0.
+- `node tools/cache-tags/check-tags.mjs master`: **OK: 49 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.**
+- Ảnh trước / sau ở thư mục tạm ngoài repo, không commit.
 
 ## Còn lại / cần chủ dự án
 
 - fps Trà Sữa: đã giảm hơn nửa thời gian main thread, nhưng chưa xác nhận được ≥ 45 fps trên điện thoại tầm trung thật (máy đo đang bận). Nên đo lại trên máy thật.
+- Trà Sữa e2e "lớp mưa V15" trượt cả trên bản gốc ở máy này: nên xem lại bài test (chờ lớp mưa thay vì đọc ngay khi bảng sự kiện hiện).
 - Bánh Mì xoay ngang: quầy ráp vẫn cuộn trong cột (game tự cuộn tới bước kế, người chơi không phải cuộn). Muốn không cuộn hẳn thì phải bỏ bớt ổ cận cảnh ở màn thấp. Cần chủ dự án chọn.
 - Bánh Mì `avoidRects` (bong bóng tránh HUD) vẫn đọc `getBoundingClientRect` mỗi khung, tương tự lỗi `hudBottom` của Trà Sữa. Chưa đo fps Bánh Mì vì ngoài phạm vi TLC1-08.
