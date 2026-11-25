@@ -60,3 +60,12 @@
 .theme-b .btn, .theme-b .hero__nav::before, .theme-b .hero__dot::before { border-radius: 0 !important; }
 .theme-b .lobby__create { background: linear-gradient(#2f6466 0 3px, #1b3c42 3px); color: #c6f7ea; }
 .theme-b .lobby__create:hover { background: linear-gradient(#3a7779 0 3px, #255059 3px); }
+
+/* press-nav.js: lún khi chạm thẻ link (chạy cả trên điện thoại) + giữ lún lúc đang chuyển trang — y hệt :active */
+.theme-b a.tile.is-pressing { transform: translate(3px, 3px); box-shadow: var(--b-border); }
+.theme-b .quick__item.is-pressing .quick__art { --b: var(--nv-edge-hi); transform: translate(3px, 3px); box-shadow: var(--b-border); }
+.theme-b a.slide.is-pressing .hero__art { transform: translate(3px, 3px); }
+.theme-b a.slide.is-pressing .hero__art img { filter: brightness(.9); }
+.theme-b .dcard.is-pressing { transform: translate(3px, 3px); box-shadow: var(--b-bevel), var(--b-border); }
+/* Lún tức thì (chỉ nhả ra mới mượt): thẻ có transition .12–.15s, trang chuyển sau 130 ms ⇒ không kịp thấy nếu lún từ từ */
+.theme-b a.tile:active, .theme-b a.tile.is-pressing, .theme-b .dcard:active, .theme-b .dcard.is-pressing { transition-duration: 0s; }
