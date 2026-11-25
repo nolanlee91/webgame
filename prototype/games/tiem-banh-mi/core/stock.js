@@ -1,13 +1,13 @@
 // Kho, nhập hàng, đổi tiền lẻ, dự báo đầu ngày, gói ký gửi (ECONOMY §1, §4, §5). Thuần.
-import { STOCK, STOCK_IDS, CAPACITY, EXPRESS_MARKUP, EXCHANGE, CONSIGN, RECIPE, shiftFeeFor } from "../data/economy.js?v=b6";
-import { TUTORIAL, NORMAL_DAY } from "../data/shift.js?v=b6";
-import { spend, exchange as doExchange, sumBills, till } from "./money.js?v=b6";
-import { menuAt } from "./order.js?v=b6";
-import { modCost, today, modGuests, modSum, engineFlag } from "./flags.js?v=b6";
-import { trafficBonus } from "./reviews.js?v=b6";
-import { appeal, promoGuests, fairToday, rainMul } from "./progress.js?v=b6";
-import { FAIR } from "../data/equipment.js?v=b6";
-import { addLot } from "./expiry.js?v=b6";
+import { STOCK, STOCK_IDS, CAPACITY, EXPRESS_MARKUP, EXCHANGE, CONSIGN, RECIPE, shiftFeeFor } from "../data/economy.js?v=b8";
+import { TUTORIAL, NORMAL_DAY } from "../data/shift.js?v=b8";
+import { spend, exchange as doExchange, sumBills, till } from "./money.js?v=b8";
+import { menuAt } from "./order.js?v=b8";
+import { modCost, today, modGuests, modSum, engineFlag } from "./flags.js?v=b8";
+import { trafficBonus } from "./reviews.js?v=b8";
+import { appeal, promoGuests, fairToday, rainMul } from "./progress.js?v=b8";
+import { FAIR } from "../data/equipment.js?v=b8";
+import { addLot } from "./expiry.js?v=b8";
 
 export const stage = (s) => (s.shop ? (s.level >= 16 ? "famous" : "shop") : "cart");
 export const capacity = (s) => (stage(s) === "cart" ? CAPACITY.cart : s.owned?.fridge ? CAPACITY.fridge : CAPACITY.shop);

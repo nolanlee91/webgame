@@ -1,6 +1,6 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
 import { icon, dpr } from "../render/atlas.js?v=m38";
-import { ingIcon, headIcon } from "./brew.js?v=m39";
+import { ingIcon, headIcon } from "./brew.js?v=m41";
 import { RECIPE, RECIPES } from "../data/recipes.js?v=m38";
 import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m38";
 import { ARCHETYPES } from "../data/customers.js?v=m38";
@@ -145,14 +145,15 @@ export function createRail(root, atlas, onPin) {
         cards.set(c.id, n);
       }
       const p = patienceLeft(state, c);
-      setWidth(n.bar.firstChild, p * 100 + "%");
+      setWidth(n.bar.firstChild, Math.round(p * 200) / 2 + "%"); // bước 0,5 % (< 1 px): bớt vẽ lại mỗi khung
       const pc = "pbar" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
       if (n.bar.className !== pc) n.bar.className = pc;
       n.b.disabled = c.phase !== "wait";
       const act = activeCid(sh) === c.id, onAny = sh.stations.some((x) => x.cid === c.id);
       n.b.classList.toggle("on", act);
-      if (n.bd) n.bd.textContent = `${c.items.length - cupsLeft(c)}/${c.items.length}`;
-      n.st.textContent = c.phase === "enter" ? "Đang vào…" : act ? "Đang pha" : onAny ? "Ở chỗ pha khác" : p <= 0.35 ? "Sắp bỏ về!" : "Chạm để ghim";
+      // TLC1-08: ghi chữ chỉ khi đổi (dải phiếu vẽ mỗi khung)
+      if (n.bd) setText(n.bd, `${c.items.length - cupsLeft(c)}/${c.items.length}`);
+      setText(n.st, c.phase === "enter" ? "Đang vào…" : act ? "Đang pha" : onAny ? "Ở chỗ pha khác" : p <= 0.35 ? "Sắp bỏ về!" : "Chạm để ghim");
     }
     for (const [id, n] of cards) if (!live.has(id)) { n.b.remove(); cards.delete(id); }
   };

@@ -1,10 +1,10 @@
 // Chấm điểm (GAME-DESIGN §3.5): điểm 0–100 = công thức 50 (nhân 20, phết 8, rau dưa 8, gia vị 6, gói 4, nướng lại nếu phiếu cần 4)
 // + độ giòn 15 (≥ 85 đủ, < 50 còn 0) + thời gian 20 (giao trước nửa kiên nhẫn đủ 20, sát hạn còn 4) + kỳ vọng 15 (biến thể trên phiếu).
 // Mốc sao 1/2/3/4/5 tại 0/40/55/70/85. Lỗi đặc thù (data/lines-mistakes.js) đặt trần sao. Thuần.
-import { SPREADS, VEG_IDS, SAUCES, BACHUC, DISPLAY, TOASTER, FILLINGS } from "../data/economy.js?v=b6";
-import { MISTAKES } from "../data/lines-mistakes.js?v=b6";
-import { QUIRKS } from "../data/quirks.js?v=b6";
-import { bachucPrice } from "./order.js?v=b6";
+import { SPREADS, VEG_IDS, SAUCES, BACHUC, DISPLAY, TOASTER, FILLINGS } from "../data/economy.js?v=b8";
+import { MISTAKES } from "../data/lines-mistakes.js?v=b8";
+import { QUIRKS } from "../data/quirks.js?v=b8";
+import { bachucPrice } from "./order.js?v=b8";
 
 export const STAR_AT = [0, 40, 55, 70, 85];
 export const starsFor = (points) => { let st = 1; for (let i = 0; i < STAR_AT.length; i++) if (points >= STAR_AT[i]) st = i + 1; return st; };

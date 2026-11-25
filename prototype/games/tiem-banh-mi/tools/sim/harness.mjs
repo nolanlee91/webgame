@@ -2,24 +2,24 @@
 // Mọi thay đổi trạng thái đi qua core/apply.js (cùng cửa với trình duyệt: bản nháp, kiểm bất biến, lỗi thì không đổi gì).
 // Thời gian chơi thật = thời gian ca đã trôi (đồng hồ ca chạy theo thao tác: mỗi lần bấm tốn `tap` ms) + hội thoại (đồng hồ dừng)
 // + Chuẩn bị ca (kể cả canh mẻ đầu ngày, mỗi mẻ bằng số giây canh) + Chốt ca + màn chào.
-// Mọi import mang cùng tag ?v=b6 với luật để fit.mjs sửa tạm bảng cấp trong bộ nhớ có hiệu lực.
-import { apply } from "../../core/apply.js?v=b6";
-import { createState } from "../../core/state.js?v=b6";
-import { customer } from "../../core/shift.js?v=b6";
-import { board, sameLeft } from "../../core/board.js?v=b6";
-import { batchLevel, caseCap, bakingCount, prepMax, traySize } from "../../core/oven.js?v=b6";
-import { grillLevel, panSlots } from "../../core/cook.js?v=b6";
-import { currentEvent, affordable, choiceVisible } from "../../core/drama.js?v=b6";
-import { stockoutOptions, nochangeOptions } from "../../core/rescue.js?v=b6";
-import { consignAvailable, canMakeOne, costToMakeOne, demandEstimate, packPrice, packSize, capacity, stockUsed, maiOpen } from "../../core/stock.js?v=b6";
-import { makeChange, floatValue } from "../../core/money.js?v=b6";
-import { replyOptions } from "../../core/reviews.js?v=b6";
-import { preorderOffers, fairAvailable, canBuy } from "../../core/progress.js?v=b6";
-import { challengeToday } from "../../core/challenge.js?v=b6";
-import { menuFor } from "../../core/order.js?v=b6";
-import { EVENT } from "../../data/events.js?v=b6";
-import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, FAIR, HELPER, RENT } from "../../data/equipment.js?v=b6";
-import { SPREADS, VEG_IDS, SAUCES, RETAIL, BACHUC, STOCK, FILLINGS, LEVEL_USE } from "../../data/economy.js?v=b6";
+// Mọi import mang cùng tag ?v=b8 với luật để fit.mjs sửa tạm bảng cấp trong bộ nhớ có hiệu lực.
+import { apply } from "../../core/apply.js?v=b8";
+import { createState } from "../../core/state.js?v=b8";
+import { customer } from "../../core/shift.js?v=b8";
+import { board, sameLeft } from "../../core/board.js?v=b8";
+import { batchLevel, caseCap, bakingCount, prepMax, traySize } from "../../core/oven.js?v=b8";
+import { grillLevel, panSlots } from "../../core/cook.js?v=b8";
+import { currentEvent, affordable, choiceVisible } from "../../core/drama.js?v=b8";
+import { stockoutOptions, nochangeOptions } from "../../core/rescue.js?v=b8";
+import { consignAvailable, canMakeOne, costToMakeOne, demandEstimate, packPrice, packSize, capacity, stockUsed, maiOpen } from "../../core/stock.js?v=b8";
+import { makeChange, floatValue } from "../../core/money.js?v=b8";
+import { replyOptions } from "../../core/reviews.js?v=b8";
+import { preorderOffers, fairAvailable, canBuy } from "../../core/progress.js?v=b8";
+import { challengeToday } from "../../core/challenge.js?v=b8";
+import { menuFor } from "../../core/order.js?v=b8";
+import { EVENT } from "../../data/events.js?v=b8";
+import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, FAIR, HELPER, RENT } from "../../data/equipment.js?v=b8";
+import { SPREADS, VEG_IDS, SAUCES, RETAIL, BACHUC, STOCK, FILLINGS, LEVEL_USE } from "../../data/economy.js?v=b8";
 
 /** RNG riêng của người chơi giả (không đụng RNG của ván). */
 export function playerRng(seed) {

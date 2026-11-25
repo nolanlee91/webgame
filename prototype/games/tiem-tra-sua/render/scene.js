@@ -14,6 +14,19 @@ const lerp = (a, b, p) => a + (b - a) * p;
 const ease = (p) => p * p * (3 - 2 * p);
 
 function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; parent?.appendChild(e); return e; }
+// TLC1-08: cảnh vẽ lại mỗi khung cho mọi khách ⇒ chỉ ghi DOM khi giá trị đổi (n.w nhớ giá trị đã ghi). Ghi trùng (textContent, aria-label,
+// style) vẫn làm trình duyệt đánh dấu style / layout bẩn, cộng dồn ~6 khách × 20 thuộc tính mỗi khung.
+function wStyle(n, key, e, prop, v) { if (n.w[key] !== v) { n.w[key] = v; e.style[prop] = v; } }
+function wText(n, key, e, v) { if (n.w[key] !== v) { n.w[key] = v; e.textContent = v; } }
+function wClass(n, key, e, cls, on) { if (n.w[key] !== on) { n.w[key] = on; e.classList.toggle(cls, on); } }
+/** paint() + placeAt() nhưng bỏ qua khi frame / cỡ / vị trí không đổi. */
+function wSprite(n, key, e, f, x, y, scale, gen) {
+  const fk = f ? f.url + "|" + f.x + "|" + f.y + "|" + scale : "";
+  if (n.w[key] !== fk) { n.w[key] = fk; paint(e, f, scale); }
+  if (!f) return;
+  const px = x + "|" + y + "|" + gen; // gen: lưới bắt điểm (setSnap) đổi theo camera ⇒ đặt lại vị trí
+  if (n.w[key + "@"] !== px || n.w[key] !== fk) { n.w[key + "@"] = px; placeAt(e, f, x, y, scale); }
+}
 
 /** Frame cho một khách tại thời điểm ca t. Trả [frame, flip, bob]. */
 // Nhân vật (khách + chủ tiệm) hiển thị cao ~192 px cảnh. Sheet hiện tại ô 128 ⇒ ×1,5 (ô tranh 3×3, còn thô so với cảnh).
@@ -62,7 +75,7 @@ export function createScene(root, atlas, { onCustomer }) {
   const defaults = { "cup-sealer": put("equip", "cup-sealer", 222, 340, 0.42), "topping-stove": put("equip", "topping-stove", 452, 270, 0.42) };
   const STOVE = [452, 232];
   const backOwned = el("div", "owned", stage);
-  const barista = el("div", "spr barista", stage);
+  const barista = el("div", "spr barista", stage), baristaW = { w: {} };
   const fg = el("img", "layer", stage); fg.src = "assets/shop-counter-foreground.webp"; fg.alt = ""; fg.width = W; fg.height = H; fg.draggable = false;
   const frontOwned = el("div", "owned", stage);
   put("equip", "pearls-jar", 300, 428, 0.42);
@@ -84,6 +97,11 @@ export function createScene(root, atlas, { onCustomer }) {
   const ui = el("div", "scene-ui", root);
 
   const nodes = new Map();
+  // đáy HUD (toạ độ khung cảnh) cho bong bóng / tên khách: đọc một lần, cập nhật khi HUD đổi cỡ (đổi số, xoay máy) ⇒ không ép layout mỗi khung
+  let hudB = -1;
+  const hudEl = () => document.getElementById("hud");
+  const hudBottom = () => { if (hudB < 0) { const hd = hudEl(); hudB = hd ? hd.offsetTop + hd.offsetHeight + 4 : 0; } return hudB; };
+  if (typeof ResizeObserver === "function" && hudEl()) new ResizeObserver(() => { hudB = -1; }).observe(hudEl());
   let ownedKey = "", steamAt = 0, arranging = null, stoveTok = 0;
   /** Đặt thiết bị / trang trí đã mua vào cảnh (đồ trên sàn xếp theo y cùng khách). */
   function setOwned(state) {
@@ -167,12 +185,13 @@ export function createScene(root, atlas, { onCustomer }) {
     ownedKey = "";
   }
   let lastCupStage = "";
-  let k = 1, ox = 0, oy = 0;
+  let k = 1, ox = 0, oy = 0, camGen = 0, viewW = 0; // viewW: bề rộng khung nhớ từ layout() (đọc clientWidth mỗi khung ép tính style)
 
   /** Camera: phủ kín khung (cover) × zoom, canh giữa điểm (camX, camY) nhưng không lộ mép cảnh. */
   function layout(camX = 640, camY = 360, zoom = 1, exact = false) {
     const w = root.clientWidth, h = root.clientHeight;
     if (!w || !h) return;
+    viewW = w;
     // Tranh vẽ lưới 2× ⇒ nét đều khi k·dpr là bội của 0,5. Phóng lên bội gần nhất nếu chỉ phải cắt mép ≤ 25%;
     // xa hơn thì giữ pixel cứng (vẫn nét, ô hơi không đều). Chỉ lọc mượt khi nhỏ hơn nửa cỡ gốc. Gốc bắt lưới px thiết bị.
     const dpr = globalThis.devicePixelRatio || 1;
@@ -182,7 +201,7 @@ export function createScene(root, atlas, { onCustomer }) {
     ox = Math.round(Math.min(0, Math.max(w - W * k, w / 2 - camX * k)) * dpr) / dpr;
     oy = Math.round(Math.min(0, Math.max(h - H * k, h / 2 - camY * k)) * dpr) / dpr;
     stage.classList.toggle("smooth", k * dpr < 0.5);
-    setSnap(k * dpr);
+    setSnap(k * dpr); camGen++;
     stage.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
   }
   const toScreen = (x, y) => [ox + x * k, oy + y * k];
@@ -196,7 +215,7 @@ export function createScene(root, atlas, { onCustomer }) {
     const bubble = el("div", "bubble", ui); bubble.hidden = true;
     const bar = el("div", "pbar", ui); el("i", "", bar);
     const tag = el("div", "ctag", ui);
-    n = { b, bubble, bar, tag, sayAt: -1 };
+    n = { b, bubble, bar, tag, sayAt: -1, w: {} };
     nodes.set(c.id, n);
     return n;
   }
@@ -249,55 +268,60 @@ export function createScene(root, atlas, { onCustomer }) {
     const [fb, bob] = baristaFrame(t, busy, performance.now() < serveUntil);
     // chủ tiệm: cùng cỡ nhân vật với khách (charScale)
     const bs = charScale(fb);
-    paint(barista, fb, bs);
-    placeAt(barista, fb, BARISTA[0], BARISTA[1] + bob, bs);
-    barista.style.visibility = sh?.away ? "hidden" : ""; // chủ tiệm chạy đi mua hàng: quầy bỏ trống
+    wSprite(baristaW, "spr", barista, fb, BARISTA[0], BARISTA[1] + bob, bs, camGen);
+    wStyle(baristaW, "vis", barista, "visibility", sh?.away ? "hidden" : ""); // chủ tiệm chạy đi mua hàng: quầy bỏ trống
     drawMiniCups(sh?.stations || [{ cup: null }]);
     stoveAnim(!!sh?.kitchen?.batches.length, opts.reduced);
     if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
     const live = new Set();
-    // TLC1-03: bong bóng gọi món / tên khách không chui dưới HUD — đáy HUD đọc một lần mỗi khung (chỉ khi có khách)
-    let hudB = -1;
-    const hudBottom = () => { if (hudB < 0) { const hd = document.getElementById("hud"); hudB = hd ? hd.offsetTop + hd.offsetHeight + 4 : 0; } return hudB; };
+    // TLC1-03: bong bóng gọi món / tên khách không chui dưới HUD. TLC1-08: đáy HUD nhớ sẵn (ResizeObserver), không đọc offsetTop giữa lúc
+    // đang ghi DOM (trước đây mỗi khung một lần ép trình duyệt tính layout đồng bộ: ~13% thời gian JS khi đông khách).
+    const hudB = hudBottom();
+    const cw = viewW || root.clientWidth;
     for (const c of sh?.customers || []) {
       live.add(c.id);
       const n = node(c);
       const [f, flip, bob] = customerFrame(atlas, c, t);
       const [x, y, alpha] = customerPos(c, t);
       const cs = charScale(f);
-      paint(n.b, f, cs);
-      placeAt(n.b, f, x, y - bob * cs, cs);
-      n.b.style.zIndex = Math.round(y);
-      n.b.style.opacity = alpha;
-      n.b.classList.toggle("flip", flip);
+      wSprite(n, "spr", n.b, f, x, y - bob * cs, cs, camGen);
+      wStyle(n, "z", n.b, "zIndex", String(Math.round(y)));
+      wStyle(n, "op", n.b, "opacity", String(alpha));
+      wClass(n, "flip", n.b, "flip", !!flip);
       const act = sh.stations[sh.sel]?.cid === c.id;
-      n.b.classList.toggle("active", act);
-      n.b.classList.toggle("can-pin", c.phase === "wait" && !act);
-      n.b.disabled = c.phase !== "wait";
-      n.b.setAttribute("aria-label", `${c.name}${c.phase === "wait" ? ", đang chờ — chạm để ghim phiếu" : ""}`);
-      n.b.dataset.phase = c.phase; n.b.dataset.mood = c.mood;
+      wClass(n, "act", n.b, "active", act);
+      wClass(n, "pin", n.b, "can-pin", c.phase === "wait" && !act);
+      const dis = c.phase !== "wait";
+      if (n.w.dis !== dis) { n.w.dis = dis; n.b.disabled = dis; }
+      const aria = `${c.name}${c.phase === "wait" ? ", đang chờ — chạm để ghim phiếu" : ""}`;
+      if (n.w.aria !== aria) { n.w.aria = aria; n.b.setAttribute("aria-label", aria); }
+      if (n.w.phase !== c.phase) { n.w.phase = c.phase; n.b.dataset.phase = c.phase; }
+      if (n.w.mood !== c.mood) { n.w.mood = c.mood; n.b.dataset.mood = c.mood; }
       // UI trên đầu khách
       const [sx, sy] = toScreen(x, y - (f ? f.ay * cs : 116) - 16);
-      const showSay = c.say && t - c.say.at < BUBBLE_MS;
-      n.bubble.hidden = !showSay;
+      const showSay = !!c.say && t - c.say.at < BUBBLE_MS;
+      if (n.w.say !== showSay) { n.w.say = showSay; n.bubble.hidden = !showSay; }
       if (showSay) {
         if (n.sayAt !== c.say.at) { n.sayAt = c.say.at; n.bubble.textContent = c.say.text; n.bubble.classList.remove("pop"); void n.bubble.offsetWidth; n.bubble.classList.add("pop"); n.bh = n.bubble.offsetHeight; }
-        n.bubble.style.left = sx + "px"; n.bubble.style.top = Math.max(sy - 6, hudBottom() + (n.bh || 0) + 3) + "px";
-        n.bubble.classList.toggle("left", sx > root.clientWidth * 0.62);
+        wStyle(n, "bx", n.bubble, "left", sx + "px"); wStyle(n, "by", n.bubble, "top", Math.max(sy - 6, hudB + (n.bh || 0) + 3) + "px");
+        wClass(n, "bl", n.bubble, "left", sx > cw * 0.62);
       }
       const showBar = c.phase === "wait";
-      n.bar.hidden = !showBar;
+      if (n.w.bar !== showBar) { n.w.bar = showBar; n.bar.hidden = !showBar; }
       if (showBar) {
         const p = patienceLeft(state, c);
-        n.bar.firstChild.style.width = p * 100 + "%";
-        n.bar.className = "pbar" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
-        n.bar.style.left = sx + "px"; n.bar.style.top = sy + 8 + "px";
+        // bước 1 % (thanh 58 px ⇒ < 0,6 px mỗi bước): thanh đổi vài lần mỗi giây thay vì mỗi khung ⇒ bớt vẽ lại (paint / raster)
+        wStyle(n, "bw", n.bar.firstChild, "width", Math.round(p * 100) + "%");
+        const bc = "pbar" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
+        if (n.w.bc !== bc) { n.w.bc = bc; n.bar.className = bc; }
+        wStyle(n, "barx", n.bar, "left", sx + "px"); wStyle(n, "bary", n.bar, "top", sy + 8 + "px");
       }
-      n.tag.hidden = !(c.phase === "wait" || c.phase === "enter") || showSay;
-      n.tag.textContent = act ? "Đang pha" : c.items.length > 1 ? `${c.name} · ${c.items.length} ly` : c.name;
-      n.tag.classList.toggle("on", act);
-      n.tag.style.left = sx + "px"; n.tag.style.top = (n.tag.hidden ? sy - 16 : Math.max(sy - 16, hudBottom() + 20)) + "px";
-      n.tag.style.opacity = alpha;
+      const tagHidden = !(c.phase === "wait" || c.phase === "enter") || showSay;
+      if (n.w.th !== tagHidden) { n.w.th = tagHidden; n.tag.hidden = tagHidden; }
+      wText(n, "tt", n.tag, act ? "Đang pha" : c.items.length > 1 ? `${c.name} · ${c.items.length} ly` : c.name);
+      wClass(n, "ton", n.tag, "on", act);
+      wStyle(n, "tx", n.tag, "left", sx + "px"); wStyle(n, "ty", n.tag, "top", (tagHidden ? sy - 16 : Math.max(sy - 16, hudB + 20)) + "px");
+      wStyle(n, "top", n.tag, "opacity", String(alpha));
     }
     for (const [id, n] of nodes) if (!live.has(id)) { n.b.remove(); n.bubble.remove(); n.bar.remove(); n.tag.remove(); nodes.delete(id); }
   }

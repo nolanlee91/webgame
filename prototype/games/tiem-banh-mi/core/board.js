@@ -1,12 +1,12 @@
 // Dây chuyền ráp ổ trên thớt (GAME-DESIGN §3.2): lấy bánh → (nướng lại) → rạch → phết → nhân → rau dưa → gia vị → gói → giao + thối tiền.
 // Thứ tự một chiều: làm bước sau thì bước trước khoá lại (sửa được bước đang làm; Hoàn tác để quay lui). Nguyên liệu trừ ngay khi bỏ lên ổ;
 // bỏ ra / hoàn tác / đổ ổ thì phần đã dùng ghi hao hụt (không hoàn kho). Hết hàng ở bước nào thì mở hội thoại cứu (core/rescue.js).
-import { STOCK, LEVEL_USE, SPREADS, FILLINGS, VEG, VEG_IDS, SAUCES, WRAPS, TOASTER, QUE } from "../data/economy.js?v=b6";
-import { addWaste, toastResult } from "./oven.js?v=b6";
-import { modSum } from "./flags.js?v=b6";
-import { takeCooked } from "./cook.js?v=b6";
-import { freshLine } from "./text.js?v=b6";
-import { COOK_LINES } from "../data/lines-m5.js?v=b6";
+import { STOCK, LEVEL_USE, SPREADS, FILLINGS, VEG, VEG_IDS, SAUCES, WRAPS, TOASTER, QUE } from "../data/economy.js?v=b8";
+import { addWaste, toastResult } from "./oven.js?v=b8";
+import { modSum } from "./flags.js?v=b8";
+import { takeCooked } from "./cook.js?v=b8";
+import { freshLine } from "./text.js?v=b8";
+import { COOK_LINES } from "../data/lines-m5.js?v=b8";
 
 /** Ổ bánh hôm qua nướng lại tối đa 70 giòn (core/progress.js STALE_MAX). */
 const STALE_MAX = 70;
@@ -16,6 +16,11 @@ const specKey = (it) => JSON.stringify([it.recipe, it.spreads, it.fills, it.veg,
 
 export const STEPS = ["take", "toast", "slice", "spread", "fill", "veg", "spice", "wrap"];
 export const STEP_NAME = { take: "Lấy bánh", toast: "Nướng lại", slice: "Rạch bánh", spread: "Phết", fill: "Nhân", veg: "Rau dưa", spice: "Gia vị", wrap: "Gói" };
+/** Ngày 1–3 (TLC2-01, chủ dự án duyệt 25/11/2026): "Lấy" và "Rạch" gộp làm một bước, lấy bánh là rạch luôn. Từ ngày 4 tách lại. */
+export const MERGE_SLICE_DAYS = 3;
+export const mergedSlice = (s) => (s.day || 1) <= MERGE_SLICE_DAYS;
+/** Phiếu dặn "giòn giòn" mà ổ chưa đủ giòn ⇒ phải nướng lại trước khi rạch (bước gộp dừng ở "Lấy"). */
+export const needsToast = (it, l) => !!it?.crispy && l.crisp < TOASTER.minCrisp && !l.toasted;
 const IDX = Object.fromEntries(STEPS.map((s, i) => [s, i]));
 
 export const emptyBoard = (cid = null, item = 0) => ({ cid, item, loaf: null, step: -1, hist: [] });
@@ -109,6 +114,19 @@ export function take(s, loafId, ev, want = 1) {
   ev.push({ type: "step", step: "take", crisp: Math.round(l.crisp), n });
   return { ok: true };
 }
+/** Bước gộp ngày 1–3: lấy bánh rồi rạch luôn (cùng luật, cùng thời gian rạch như hai bước rời: dao thường O09 vẫn chậm).
+ *  Ổ cần nướng lại (phiếu "giòn giòn") thì chỉ lấy; lấy ra khỏi lò than mới rạch (toast(…, true)). Bánh que không rạch.
+ *  Lấy + rạch tính là một bước: Hoàn tác không tách đôi (giống ngay sau khi lấy bánh: đổ ổ để làm lại). Từ ngày 4: như take(). */
+export function takeSlice(s, loafId, ev, want = 1) {
+  const r = take(s, loafId, ev, want);
+  if (r.err || r.dialog || !mergedSlice(s)) return r;
+  const b = board(s), l = b.loaf;
+  if (!l || l.que || l.sliced) return r;
+  const it = s.shift.customers.find((x) => x.id === b.cid)?.items[b.item];
+  if (needsToast(it, l)) return r;
+  if (!slice(s, ev).err) b.hist = [];
+  return r;
+}
 /** Máy ráp định lượng (cấp 15): bước phết tự đặt đúng lượng theo phiếu. */
 export function autoSpread(s, ev) {
   if (!s.owned?.["auto-dose"]) return { err: "locked" };
@@ -122,8 +140,9 @@ export function autoSpread(s, ev) {
   }
   return did ? { ok: true } : { err: "same" };
 }
-/** Bước 2 (tuỳ chọn): nướng lại trên lò than. Gọi lần 1 = bỏ vào (tốn 1 lần than), lần 2 = lấy ra. */
-export function toast(s, ev) {
+/** Bước 2 (tuỳ chọn): nướng lại trên lò than. Gọi lần 1 = bỏ vào (tốn 1 lần than), lần 2 = lấy ra.
+ *  thenSlice (bước gộp ngày 1–3): lấy ra là rạch luôn (ổ cháy thì không rạch, để đổ). */
+export function toast(s, ev, thenSlice = false) {
   const g = guard(s, "toast"); if (g.err) return g;
   const sh = s.shift, l = g.b.loaf;
   if (l.toastT0 === null) {
@@ -141,6 +160,7 @@ export function toast(s, ev) {
   l.crisp = l.src === "stale" ? Math.min(r.crisp, STALE_MAX) : r.crisp; l.toastT0 = null; l.toasted = l.toasted || r.toasted;
   if (r.burnt) l.burnt = true;
   ev.push({ type: "step", step: "toast", on: false, crisp: Math.round(l.crisp), burnt: !!r.burnt });
+  if (thenSlice && mergedSlice(s) && !l.burnt && !l.sliced) slice(s, ev);
   return { ok: true };
 }
 export function slice(s, ev) {

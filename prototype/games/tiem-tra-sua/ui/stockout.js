@@ -5,7 +5,7 @@ import { STOCK } from "../data/ingredients.js?v=m38";
 import { customer } from "../core/shift.js?v=m38";
 import { stockoutOptions, menuStock, STOCKOUT } from "../core/stockout.js?v=m38";
 import { packPrice, packSize, capacity, stockUsed } from "../core/economy.js?v=m38";
-import { ingIcon } from "./brew.js?v=m39";
+import { ingIcon } from "./brew.js?v=m41";
 import { portrait } from "./panels.js?v=m38";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };

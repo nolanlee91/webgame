@@ -134,3 +134,69 @@ test("apply lỗi không đổi trạng thái (bản nháp)", () => {
   assert.equal(JSON.stringify(s), before);
   serveRight; // dùng ở test khác
 });
+
+// TLC2-01 (chủ dự án duyệt): ngày 1–3 "Lấy" + "Rạch" gộp một bước; từ ngày 4 tách lại. Bản lưu không đổi (vẫn loaf.sliced / step).
+test("ngày 1–3: Lấy + rạch một chạm (cùng ổ giòn nhất, cùng bước 2, cùng thời gian dao thường); Hoàn tác không tách đôi", () => {
+  const [s] = pinned();
+  assert.equal(s.day, 1);
+  s.shift.case[1].crisp = 99.5; s.shift.case[0].crisp = 70;
+  const t0 = s.shift.t;
+  const r = act(s, { type: "takeSlice" });
+  const b = board(s);
+  assert.ok(b.loaf.sliced && b.step === 2, "đã rạch, đứng ở bước Rạch");
+  assert.equal(Math.round(b.loaf.crisp), 100, "vẫn lấy ổ giòn nhất");
+  assert.deepEqual(r.events.filter((e) => e.type === "step").map((e) => e.step), ["take", "slice"]);
+  assert.equal(s.shift.t, t0, "không tốn thêm thời gian ca");
+  assert.equal(err(s, { type: "undo" }), "nothing", "Lấy + rạch là một bước: muốn làm lại thì đổ ổ");
+  act(s, { type: "spread", id: "pate", lvl: 2 });
+  act(s, { type: "undo" });
+  assert.ok(board(s).loaf.sliced, "hoàn tác bước phết vẫn giữ ổ đã rạch");
+});
+
+test("ngày 1–3: dao thường (O09) vẫn rạch chậm trong bước gộp", () => {
+  const [s] = pinned();
+  s.mods = [{ id: "o09-dao", until: s.day, sliceMs: 2000 }];
+  const slowA = (() => { const t = s.shift.t; act(s, { type: "takeSlice" }); return s.shift.t - t; })();
+  const [s2] = pinned();
+  s2.mods = structuredClone(s.mods);
+  const slowB = (() => { const t = s2.shift.t; act(s2, { type: "take" }); act(s2, { type: "slice" }); return s2.shift.t - t; })();
+  assert.ok(slowA >= 2000, "dao thường vẫn rạch chậm"); assert.equal(slowA, slowB, "gộp hay tách thì thời gian rạch như nhau");
+});
+
+test("ngày 1–3: phiếu giòn giòn chỉ lấy (chưa rạch), Lấy ra + rạch sau khi nướng lại; ổ cháy thì không rạch", async () => {
+  const { makeItem } = await import("../core/order.js");
+  const { advance } = await import("./helpers.mjs");
+  const [s, c] = pinned();
+  customer(s, c.id).items = [makeItem("pate-bo", ["gion-gion"])];
+  s.shift.case.forEach((l) => (l.crisp = 70));
+  act(s, { type: "takeSlice" });
+  assert.equal(board(s).loaf.sliced, false, "cần nướng lại trước khi rạch");
+  act(s, { type: "toast" });
+  advance(s, 4200);
+  act(s, { type: "toast", slice: true });
+  assert.ok(board(s).loaf.toasted && board(s).loaf.sliced, "lấy ra là rạch luôn");
+  act(s, { type: "discard" });
+  act(s, { type: "takeSlice" });
+  act(s, { type: "toast" });
+  advance(s, 10600);
+  act(s, { type: "toast", slice: true });
+  assert.ok(board(s).loaf.burnt && !board(s).loaf.sliced, "ổ cháy không rạch, để đổ");
+});
+
+test("từ ngày 4: Lấy và Rạch tách lại (takeSlice chỉ lấy bánh, Lấy ra không tự rạch)", () => {
+  const s = shop(); s.day = 4; openDay(s);
+  const c = untilWaiting(s);
+  act(s, { type: "pin", cid: c.id });
+  act(s, { type: "takeSlice" });
+  assert.ok(board(s).loaf && !board(s).loaf.sliced && board(s).step === 0);
+  act(s, { type: "slice" });
+  assert.ok(board(s).loaf.sliced);
+});
+
+test("bước gộp chấm điểm như hai bước rời: ổ đúng phiếu vẫn 5 sao", () => {
+  const [s, c] = pinned();
+  act(s, { type: "takeSlice" });
+  build(s, customer(s, c.id).items[0]);
+  act(s, { type: "serve" });
+  assert.equal(customer(s, c.id).score.stars, 5);
+});

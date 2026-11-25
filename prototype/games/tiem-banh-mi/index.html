@@ -45,12 +45,12 @@
       -webkit-tap-highlight-color: transparent; min-height: 100svh; display: flex; flex-direction: column; }
     button { font: inherit; color: inherit; }
     :focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
-    .top { flex: none; display: flex; align-items: center; gap: 12px; padding: 6px 14px; min-height: 52px; background: #0f161f; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255, 255, 255, .08); }
-    .top a { color: var(--cream3); text-decoration: none; font-weight: 700; padding: 10px 4px; }
+    .top { flex: none; display: flex; align-items: center; gap: 12px; padding: 4px 14px; min-height: 52px; background: #0f161f; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255, 255, 255, .08); }
+    .top a { color: var(--cream3); text-decoration: none; font-weight: 700; padding: 0 4px; min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
     .top h1 { margin: 0; font-size: 18px; font-weight: 800; }
     .top .shop { color: var(--amber-l); font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .top .tools { margin-left: auto; display: flex; gap: 8px; }
-    .tbtn { min-height: 40px; min-width: 44px; padding: 6px 12px; border: 0; background: #263649; --b: #050a12; cursor: pointer; font-weight: 700; font-size: 13px;
+    .tbtn { min-height: 44px; min-width: 44px; padding: 6px 12px; border: 0; background: #263649; --b: #050a12; cursor: pointer; font-weight: 700; font-size: 13px;
       box-shadow: inset 0 2px 0 rgba(255, 255, 255, .12), inset 0 -2px 0 rgba(0, 0, 0, .35), var(--px-border2), 2px 3px 0 0 #050a12; }
     #muteBtn { position: relative; z-index: 51; } /* nổi trên lớp phủ (.overlay z 50): tắt tiếng được cả lúc Chuẩn bị ca / Tạm dừng / Chốt ca, kể cả trên điện thoại không có phím M */
     .tbtn:hover { background: #2f4259; }
@@ -135,7 +135,6 @@
     .slip .pbar { position: static; transform: none; width: 100%; box-shadow: none; background: var(--cream3); margin-top: auto; }
     .slip .state { font-size: 12px; font-weight: 800; color: var(--moss); }
     .slip.pre, .ticket.pre { --b: #d9a520; } .slip .state.due { color: #8a5a10; }
-    .t-items.boards .t-item { min-height: 36px; }
     .opt.batch { background: var(--amber-l); } .opt.auto { background: var(--moss-l); }
     .billbtn.sug { --b: #d9a520; box-shadow: var(--px-bevel), var(--px-border2), inset 0 0 0 2px #d9a520, 2px 3px 0 0 rgba(128, 84, 58, .35); }
     .card-note { background: #fffaf0; padding: 8px 12px; margin: 8px 2px; --b: var(--cream3); box-shadow: inset 0 -3px 0 var(--cream2), var(--px-border2); }
@@ -191,12 +190,13 @@
     .bench > * { flex-shrink: 0; }
     .box { background: #fffaf0; padding: 6px 8px; --b: var(--caramel); box-shadow: inset 0 -3px 0 var(--cream2), var(--px-border2); }
     .oven-row { display: flex; align-items: center; gap: 8px; }
+    .oven-row + .oven-row { margin-top: 8px; } /* TLC2-11: các hàng lò cách nhau 8 px, khỏi bấm nhầm Rút hàng bên cạnh */
     .crust { position: relative; flex: 1; height: 18px; overflow: hidden; background: linear-gradient(90deg, var(--c-raw) 0 22%, #efd29a 22% 72%, var(--c-gold) 72% 89%, var(--c-dark) 89% 100%); box-shadow: inset 0 0 0 2px var(--cream3); }
     .crust .zone { position: absolute; top: 0; bottom: 0; border: 2px solid #3e9a5a; }
     .crust .zone::after { content: "Rút!"; position: absolute; top: -1px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: #1d4a2a; }
     .crust .mark { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: #222; box-shadow: 0 0 0 2px #fff; }
     .oven-lbl { min-width: 86px; font-size: 12px; font-weight: 800; }
-    .cook-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+    .cook-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
     .cook-item { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: var(--cream2); padding: 3px 4px 3px 8px; min-width: 0; }
     .cook-item .btn { flex: none; }
     .cook-lbl { min-width: 0; font-size: 12px; font-weight: 800; color: var(--ink2); line-height: 1.2; } .cook-lbl.golden { color: #1d6a3a; } .cook-lbl.burnt { color: #8a1f14; }
@@ -207,7 +207,7 @@
     .ticket.empty { display: grid; place-items: center; color: var(--ink2); font-weight: 600; text-align: center; }
     .t-head { display: flex; align-items: baseline; gap: 8px; } .t-head b { font-size: 16px; } .t-head .who { color: var(--ink2); font-size: 13px; flex: 1; } .t-head .price { font-weight: 800; color: var(--moss); }
     .t-items { display: flex; gap: 4px; flex-wrap: wrap; margin: 4px 0; }
-    .t-item { border: 0; padding: 2px 8px; font-size: 12px; font-weight: 800; background: var(--cream2); cursor: pointer; min-height: 30px; }
+    .t-item { border: 0; padding: 2px 10px; font-size: 12px; font-weight: 800; background: var(--cream2); cursor: pointer; min-height: 44px; min-width: 44px; }
     .t-item.on { background: var(--moss); color: #fff; } .t-item.done { background: var(--moss-l); color: #1d4a44; }
     .t-spec { font-size: 12px; color: var(--ink2); font-weight: 600; }
     .t-spec b { color: var(--ink); }
@@ -247,7 +247,7 @@
     .btn:active:not(:disabled) { box-shadow: var(--px-bevel), var(--px-border); }
     .btn.primary { background: var(--moss); color: #fff; --b: #10261f; flex: 1; }
     .btn.warn { background: var(--red); color: #fff; --b: #4a1611; }
-    .btn.small { min-height: 38px; padding: 4px 10px; font-size: 13px; }
+    .btn.small { min-height: 44px; min-width: 44px; padding: 4px 10px; font-size: 13px; }
     .btn:disabled { opacity: .45; cursor: not-allowed; }
     /* Bấm ⇒ lún (cùng kiểu _shared/feedback.js; game không nạp feedback.js để khỏi tiếng "tách" chồng tiếng game). Dùng translate/scale, không đụng transform. */
     :where(button, [role="button"], .btn):not(:disabled):not([aria-disabled="true"]) { transition: translate .07s ease-out, scale .07s ease-out, filter .07s ease-out; }
@@ -307,7 +307,7 @@
     .toast { background: rgba(22, 32, 45, .95); color: var(--cream); padding: 7px 12px; font-weight: 700; font-size: 14px; --b: #050a12; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .12), var(--px-border), var(--px-drop); animation: pop .25s steps(3); margin: 3px; }
     .toast.good { background: rgba(47, 90, 80, .97); } .toast.warn { background: rgba(160, 60, 50, .97); }
     .toast.has-act { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-right: 6px; }
-    .toast-act { pointer-events: auto; flex: none; min-height: 34px; padding: 4px 14px; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; background: var(--amber, #e8a040); color: #2a1a08; --b: #5a3608; box-shadow: var(--px-border2), 2px 3px 0 0 #2a1a08; }
+    .toast-act { pointer-events: auto; flex: none; min-height: 44px; min-width: 44px; padding: 4px 14px; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; background: var(--amber, #e8a040); color: #2a1a08; --b: #5a3608; box-shadow: var(--px-border2), 2px 3px 0 0 #2a1a08; }
     .toast-act:active { transform: translate(2px, 2px); box-shadow: var(--px-border2); }
     .boot-error { position: fixed; inset: auto 16px 16px; background: var(--red); color: #fff; padding: 12px; z-index: 99; --b: #4a1611; box-shadow: var(--px-border); }
     .kbd { font: 700 10px "Be Vietnam Pro", system-ui; opacity: .55; }
@@ -315,18 +315,15 @@
     @media (min-width: 761px) and (max-height: 820px) { .opt { min-height: 50px; } .loafwrap { min-height: 132px; } }
     /* mobile 390×844: cảnh trên, phiếu ngang, bàn ráp dưới (SCREENS.md). Máy tính bảng dọc ≤ 1024 cũng dùng bố cục này (TLC2-03:
        lưới 2 cột ở 768 co cảnh còn 312×176 và kéo phiếu cao 1500 px). Khớp matchMedia "mobile" trong game.js. */
-    @media (max-width: 760px), (max-width: 1024px) and (orientation: portrait) {
-      .top { padding: 4px 8px; gap: 6px; min-height: 48px; } .top h1 { font-size: 15px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait) {
+      .top { padding: 2px 8px; gap: 6px; min-height: 48px; } .top h1 { font-size: 15px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
       .top .tools { flex: none; gap: 4px; } .top .shop { display: none; }
       .top a { font-size: 0; padding: 10px 6px; } .top a::before { content: "‹"; font-size: 22px; }
-      .tbtn { padding: 4px 7px; font-size: 11px; min-width: 40px; white-space: nowrap; }
-      /* HUD gọn: giờ · tiền · lẻ; cấp / danh tiếng / theo dõi xem trong Sổ */
-      .hud .chip-level, .hud .chip-rep, .hud .chip-fol { display: none; }
-      .hud { top: 6px; left: 6px; right: 96px; gap: 3px; } .chip { padding: 1px 6px; gap: 4px; } .chip b { font-size: 12px; } .chip small { font-size: 9px; }
-      .pill { min-height: 36px; min-width: 0; padding: 2px 8px 2px 4px; } .pill .ring { width: 28px; height: 28px; } .pill.gas { min-height: 24px; font-size: 11px; }
+      .tbtn { padding: 4px 7px; font-size: 11px; min-width: 44px; white-space: nowrap; }
+      .pill { min-height: 44px; min-width: 0; padding: 2px 8px 2px 4px; } .pill .ring { width: 28px; height: 28px; } .pill.gas { min-height: 24px; font-size: 11px; }
       /* thông báo nằm dưới đáy cảnh (trên dock), không đè HUD / số liệu */
       /* thông báo nằm ở đáy khung cảnh (trong #world), không bao giờ đè nút Giao / Hoàn tác / dải bước / dock */
-      #toasts { position: absolute; top: auto; bottom: 8px; width: calc(100% - 16px); } .toast { font-size: 12px; padding: 5px 10px; } .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; } .toast-act { min-height: 30px; padding: 2px 12px; font-size: 12px; }
+      #toasts { position: absolute; top: auto; bottom: 8px; width: calc(100% - 16px); } .toast { font-size: 12px; padding: 5px 10px; } .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; } .toast-act { padding: 2px 12px; font-size: 12px; }
       .world:has(.hintbar:not([hidden])) #toasts { bottom: 46px; }
       .bubble { max-width: 180px; font-size: 12px; padding: 5px 9px; }
       .cook-row { grid-template-columns: 1fr; }
@@ -343,7 +340,6 @@
       .hintbar { left: 6px; right: 6px; bottom: 6px; font-size: 11px; padding: 4px 8px; line-height: 1.3; }
       .app { display: flex; flex-direction: column; flex: none; height: calc(100svh - 48px - 56px - env(safe-area-inset-bottom)); min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px; gap: 6px; }
       .world { aspect-ratio: auto; height: 300px; max-height: none; flex: none; }
-      .hud { right: 112px; gap: 4px; } .chip { padding: 2px 7px; } .chip b { font-size: 13px; } .chip small { font-size: 10px; }
       .pill { min-width: 100px; font-size: 12px; }
       .rail { flex: none; min-height: 96px; }
       .slip { width: 160px; min-height: 92px; }
@@ -361,6 +357,54 @@
       .opts { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
       .slip { width: 200px; }
     }
+    /* HUD 1 hàng (TLC2-04, cùng kiểu Trà Sữa TLC1-03) ở điện thoại dọc và xoay ngang: số gọn trên, nhãn 9 px dưới, ô co được nên không bao giờ
+       xuống dòng. Dọc: giờ · tiền · lẻ (cấp / danh tiếng / theo dõi xem trong Sổ); ngang đủ chỗ cho cả 6 ô. Khớp HUD_COMPACT trong ui/screens.js. */
+    @media (max-width: 760px), (max-width: 1024px) and (orientation: portrait), (orientation: landscape) and (max-height: 500px) {
+      .hud { flex-wrap: nowrap; gap: 4px; top: 5px; left: 5px; right: 108px; }
+      .chip { flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 2px 6px 3px; min-width: 0; flex: 0 1 auto; overflow: hidden; }
+      .chip b { order: -1; font-size: 13px; line-height: 1.15; white-space: nowrap; }
+      .chip small { font-size: 9px; line-height: 1.15; font-weight: 700; white-space: nowrap; }
+      .hud .chip-level, .hud .chip-rep, .hud .chip-fol { display: none; }
+    }
+    /* Điện thoại xoay ngang (TLC2-04, docs/mobile-landscape.md): cảnh + dải phiếu bên trái, quầy ráp bên phải (cuộn trong cột, game tự cuộn tới bước kế);
+       thanh đầu gọn, thông báo dưới HUD (không che cảnh / bong bóng), một thông báo một lúc, nút ≥ 44 px. Khớp matchMedia "short" trong game.js. */
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { height: 100svh; overflow: hidden; }
+      .top { min-height: 48px; padding: 2px max(8px, env(safe-area-inset-right)) 2px max(8px, env(safe-area-inset-left)); gap: 8px; }
+      .top h1 { font-size: 15px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      .top .shop { display: none; }
+      .top a { font-size: 0; } .top a::before { content: "‹"; font-size: 22px; }
+      .top .tools { flex: none; gap: 6px; }
+      .tbtn { padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+      .app { display: grid; grid-template-columns: minmax(0, 1fr) min(380px, 46vw); grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "world bench" "rail bench";
+        height: calc(100svh - 48px); padding: 6px max(6px, env(safe-area-inset-right)) 6px max(6px, env(safe-area-inset-left)); gap: 6px; overflow: hidden; }
+      .world { aspect-ratio: auto; height: 100%; max-height: none; min-height: 0; }
+      .hud .chip-level, .hud .chip-rep, .hud .chip-fol { display: flex; }
+      .pills { top: 5px; right: 5px; gap: 4px; }
+      .pill { min-height: 44px; min-width: 0; padding: 2px 8px 2px 4px; font-size: 12px; } .pill .ring { width: 28px; height: 28px; } .pill.gas { min-height: 22px; font-size: 11px; }
+      #toasts { top: 44px; bottom: auto; left: 5px; right: 108px; width: auto; transform: none; gap: 3px; }
+      .toast { font-size: 12px; padding: 4px 10px; } .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; }
+      .toast-act { padding: 2px 12px; font-size: 12px; }
+      .hintbar { left: 5px; right: 5px; bottom: 5px; font-size: 11px; line-height: 1.25; padding: 3px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .banner { top: 44px; font-size: 13px; padding: 4px 12px; }
+      .bubble { max-width: 170px; font-size: 11.5px; padding: 4px 8px; }
+      .rail { padding: 3px 7px 7px 3px; gap: 8px; }
+      .rail-empty { font-size: 13px; }
+      .slip { width: 150px; min-height: 0; padding: 4px 8px; gap: 1px; --px-drop: 2px 3px 0 0 rgba(5, 8, 14, .55); }
+      .slip b { font-size: 13px; } .slip .what { font-size: 12px; } .slip .state { font-size: 11px; }
+      .bench { padding: 6px 8px 8px; gap: 6px; scroll-padding-bottom: 64px; }
+      .ticket { padding: 6px 10px; min-height: 0; } .ticket::before { display: none; }
+      .loafwrap { min-height: 104px; } .loafwrap::after { height: 18px; } .loafview { margin-bottom: 6px; }
+      .opts { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; } .opt { min-height: 48px; font-size: 12px; } .opt small { font-size: 10px; }
+      .cook-row { grid-template-columns: 1fr; }
+      .billbtn { min-height: 48px; }
+      .btn { padding: 6px 10px; font-size: 13px; }
+      .acts { bottom: -8px; padding: 6px 0 0; }
+      .dock { display: none; }
+      .overlay { padding: 8px; } .sheet { padding: 12px 14px; }
+    }
+    /* xoay ngang hẹp (568×320): cảnh chỉ ~290 px ngang ⇒ HUD về 3 ô như điện thoại dọc */
+    @media (orientation: landscape) and (max-height: 500px) and (max-width: 700px) { .hud .chip-level, .hud .chip-rep, .hud .chip-fol { display: none; } }
     /* không tràn ngang ở 320–360 (TLC2-05): con của lưới / cột flex được co dưới bề rộng nội dung (dải bước, tab) */
     .app { overflow-x: clip; } .app > *, .bench > *, .sheet > * { min-width: 0; }
     .steps { min-width: 0; max-width: 100%; }
@@ -403,6 +447,6 @@
   <div class="decor-bar" id="decorBar" hidden></div>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div class="boot-error" id="bootError" hidden></div>
-  <script type="module" src="./game.js?v=b7"></script>
+  <script type="module" src="./game.js?v=b8"></script>
 </body>
 </html>

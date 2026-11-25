@@ -1,8 +1,8 @@
 // Đồ nấu theo mẻ (Milestone 5, ECONOMY §1, §3, §6): trứng ốp la chiên trên chảo (6 giây / trứng; chảo đôi chiên 2 trứng cùng lúc) và thịt nướng
 // trên bếp than (mẻ 5 phần, chín 25 giây, cháy sau 33 giây; thịt chín giữ ấm tới hết ca). Bước "Nhân" lấy trứng / thịt ĐÃ CHÍN; chưa có thì
 // tự bắc chảo / bỏ mẻ thịt (nếu còn hàng sống) và báo chờ. Dư cuối ca ghi hao hụt. Thuần: thời gian là ms ca (sh.t).
-import { STOCK } from "../data/economy.js?v=b6";
-import { addWaste } from "./oven.js?v=b6";
+import { STOCK } from "../data/economy.js?v=b8";
+import { addWaste } from "./oven.js?v=b8";
 
 export const COOK = { eggMs: 6000, grill: { n: 5, golden: 25000, burnt: 33000 } };
 export const panSlots = (s) => (s.owned?.["egg-pan-2"] ? 2 : s.owned?.["egg-pan"] ? 1 : 0);
