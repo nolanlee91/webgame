@@ -3,6 +3,7 @@
 // Mỗi kết nối chỉ nhận góc nhìn của CHÍNH ghế mình (room.viewFor), và chỉ khi góc nhìn đó đổi.
 "use strict";
 const crypto = require("crypto");
+const { clientIp } = require("../client-ip.js");
 const { attachWs } = require("../ma-soi/ws"); // dùng chung bản WebSocket tối giản của Ma Sói (không sửa)
 const { Room, MAX_PLAYERS } = require("./room");
 const { cleanSid, rememberSid, isBanned, kickFromRoom } = require("../kick");
@@ -26,7 +27,7 @@ function createNoiGianHost(server, opts = {}) {
   const trustProxy = opts.trustProxy ?? (process.env.NOIGIAN_TRUST_PROXY === "1" || process.env.MASOI_TRUST_PROXY === "1");
   const ipConns = new Map();
   // Lấy phần tử CUỐI của X-Forwarded-For (do proxy gần nhất ghi, client không giả được); phần đầu do client tự đặt.
-  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
+  const ipOf = (req) => clientIp(req, trustProxy); // X-Forwarded-For cuối, hoặc CF-Connecting-IP khi hop đó là Cloudflare (client-ip.js)
 
   const newCode = () => {
     for (let k = 0; k < 50; k++) {

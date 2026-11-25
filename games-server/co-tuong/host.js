@@ -3,6 +3,7 @@
 // Danh tính = token ngẫu nhiên 128 bit do máy chủ cấp (không tin tên / số ghế client gửi lên).
 "use strict";
 const crypto = require("crypto");
+const { clientIp } = require("../client-ip.js");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { attachWs } = require("./ws");
@@ -24,7 +25,7 @@ function createCoTuongHost(server, opts = {}) {
   const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 3 };
   const trustProxy = opts.trustProxy ?? process.env.COTUONG_TRUST_PROXY === "1";
   const ipConns = new Map();
-  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
+  const ipOf = (req) => clientIp(req, trustProxy); // X-Forwarded-For cuối, hoặc CF-Connecting-IP khi hop đó là Cloudflare (client-ip.js)
 
   // logic.js + ai.js là ES module dùng chung với client → nạp bất đồng bộ một lần khi khởi động.
   let L = null, A = null;

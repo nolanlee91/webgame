@@ -4,6 +4,7 @@
 // Danh tính = token ngẫu nhiên 128 bit do server cấp; một kết nối chỉ hành động được cho ĐÚNG ghế của token đó.
 "use strict";
 const crypto = require("crypto");
+const { clientIp } = require("../client-ip.js");
 const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
@@ -55,7 +56,7 @@ function createNoiTuHost(server, opts = {}) {
   const RATE = { burst: 20, perSec: 6 };
   const perIp = { conns: opts.maxConnsPerIp ?? 16, rooms: opts.maxRoomsPerIp ?? 4 };
   const trustProxy = opts.trustProxy ?? (process.env.MASOI_TRUST_PROXY === "1" || process.env.TRUST_PROXY === "1");
-  const ipOf = (req) => (trustProxy && String(req.headers["x-forwarded-for"] || "").split(",").map((x) => x.trim()).filter(Boolean).pop()) || req.socket.remoteAddress || "?";
+  const ipOf = (req) => clientIp(req, trustProxy); // X-Forwarded-For cuối, hoặc CF-Connecting-IP khi hop đó là Cloudflare (client-ip.js)
   const ipConns = new Map();
   const rooms = new Map();   // code → { code, ip, seats:[{token,name}|null ×2], conns:Set, ref, idleTimer, graceTimers }
   const sockets = new Set();
