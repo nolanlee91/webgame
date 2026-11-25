@@ -3,7 +3,7 @@
 // target: điều khiển giao diện cần chỉ (mũi tên + viền sáng). arrow: có hiện mũi tên không (vài bước đầu).
 export const QUEST_GIVER = "chi-ba";
 export const TUTORIAL = [
-  { id: "gieo-hat", title: "Gieo hạt đầu tiên", hint: "Chọn hạt cà rốt ở khay dưới, rồi chạm một ô đất trống.", event: "planted", count: 1, reward: { coins: 6, xp: 8 }, target: "plot-empty", arrow: true },
+  { id: "gieo-hat", title: "Gieo hạt đầu tiên", hint: "Chọn hạt cà rốt trong khay hạt giống, rồi chạm một ô đất trống.", event: "planted", count: 1, reward: { coins: 6, xp: 8 }, target: "plot-empty", arrow: true },
   { id: "tuoi-cay", title: "Tưới cây", hint: "Bấm “Tưới nước” rồi chạm cây đang lớn — cây lớn nhanh hơn 30%.", event: "watered", count: 1, reward: { coins: 6, xp: 8 }, target: "plot-growing", arrow: true },
   { id: "thu-hoach", title: "Thu hoạch 3 nông sản", hint: "Cây chín có viền vàng — chạm để cất vào kho.", event: "harvested", count: 3, reward: { coins: 10, xp: 12 }, target: "plot-ready", arrow: true },
   { id: "ban-hang", title: "Bán nông sản", hint: "Mở Kho (hoặc chạm Khu chợ trên bản đồ) rồi bấm Bán — giá theo chợ hôm nay.", event: "sold", count: 1, reward: { coins: 10, xp: 12 }, target: "sell", arrow: true },

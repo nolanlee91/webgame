@@ -1,7 +1,7 @@
 // Bản đồ nông trại (Milestone 3): vẽ công trình / bản vẽ / giàn giáo / trang trí theo core/levels-map.js mapLayout().
 // Chỉ hiển thị — mọi thay đổi trạng thái đi qua apply() ở game.js (onTap / onSlot gọi ra ngoài).
 // Toạ độ chuẩn hoá theo bản đồ 960 × 600 (data/buildings.js); bản đồ rộng EAST_W lần khi tới cấp 17 / mở Khu đất phía Đông.
-import { frame, sheet as sheetOf } from "./sprites.js?v=m11";
+import { frame, sheet as sheetOf } from "./sprites.js?v=m12";
 
 let MW = 960, MH = 640; // = data/buildings.js MAP_W / MAP_H (đọc lại từ L khi dựng)
 export const GARDEN = { house: [269, 184], market: [205, 190], fence: [229, 77] }; // kích thước gốc ảnh assets/garden (neo đáy-giữa)

@@ -128,13 +128,19 @@
       .wrap { padding: 6px 10px; gap: 6px; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; grid-template-areas: "hud tools" "stage stage"; }
       .hud { padding: 4px 8px; flex-wrap: nowrap; } .time { flex-basis: auto; order: 0; } .tools .btn { min-height: 36px; flex: none; } .tools .btn--icon { flex: none; }
     }
+
+    /* QCK-04 (D4): vùng chạm ≥ 44 × 44 px — link "← Trang chủ" mở rộng vùng chạm bằng ::after (chữ giữ cỡ cũ) */
+    .bar a { position: relative; z-index: 40; } /* trên lớp phủ menu (bắt đầu ngay dưới thanh) để phần vùng chạm thò xuống vẫn bấm được */
+    .bar a::after { content: ""; position: absolute; left: -6px; right: -6px; top: calc(50% - 22px); bottom: calc(50% - 22px); }
+    .btn--icon { min-width: 44px; }
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .tools .btn { min-height: 44px; } }
   </style>
 </head>
 <body>
   <header class="bar">
     <a href="../../homepage/">← Trang chủ</a>
     <h1>Nối Thú</h1>
-    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+    <span class="tag">Lụm Kèo</span>
   </header>
   <div class="wrap">
     <section class="hud" aria-label="Tiến độ">

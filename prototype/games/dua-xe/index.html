@@ -166,13 +166,21 @@
       .card { padding: 12px 14px 14px; } .card h2 { font-size: 22px; } .how { display: none; } .actions { margin-top: 12px; }
       .ups { margin-top: 8px; } .up { padding: 6px 6px 8px; gap: 4px; } .up canvas { width: 28px; height: 28px; }
     }
+
+    /* QCK-04 (D4): vùng chạm ≥ 44 × 44 px — link "← Trang chủ" mở rộng vùng chạm bằng ::after (chữ giữ cỡ cũ) */
+    .bar a { position: relative; z-index: 40; } /* trên lớp phủ menu (bắt đầu ngay dưới thanh) để phần vùng chạm thò xuống vẫn bấm được */
+    .bar a::after { content: ""; position: absolute; left: -6px; right: -6px; top: calc(50% - 22px); bottom: calc(50% - 22px); }
+    .up .btn { min-height: 44px; } /* nút "Mua · … xu" */
+    .tools .btn { min-width: 44px; }
+    @media (max-width: 760px) { .tools .btn { min-height: 44px; min-width: 44px; } }
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .tools .btn { min-height: 44px; min-width: 44px; } }
   </style>
 </head>
 <body class="is-menu">
   <header class="bar">
     <a href="../../homepage/">← Trang chủ</a>
     <h1>Đua Xe Vượt Đồi</h1>
-    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+    <span class="tag">Lụm Kèo</span>
   </header>
   <main class="stage" id="stage" tabindex="0" aria-label="Đường đồi. Giữ ga để chạy, giữ phanh để lùi hoặc chúi đầu xe. Giữ thăng bằng để không lật xe.">
     <canvas id="cv"></canvas>

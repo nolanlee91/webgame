@@ -1,11 +1,11 @@
 // Test core/m4-handlers.js (handler M4 để ghép vào apply) với bag / wallet / addXp thật trên trạng thái thật (createState).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bindM4, m4Sync, m4Track, m4InvariantError, ensureM4, M4_ACTIONS } from "../core/m4-handlers.js?v=m11";
-import { bag, wallet } from "../core/inventory.js?v=m11";
-import { addXp } from "../core/progression.js?v=m11";
-import { createState } from "../core/state.js?v=m11";
-import { TUTORIAL } from "../data/quests.js?v=m11";
+import { bindM4, m4Sync, m4Track, m4InvariantError, ensureM4, M4_ACTIONS } from "../core/m4-handlers.js?v=m12";
+import { bag, wallet } from "../core/inventory.js?v=m12";
+import { addXp } from "../core/progression.js?v=m12";
+import { createState } from "../core/state.js?v=m12";
+import { TUTORIAL } from "../data/quests.js?v=m12";
 
 const T0 = 1_000_000, MIN = 60_000;
 const deps = { bag, wallet, addXp };

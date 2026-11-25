@@ -1,15 +1,15 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m11";
-import { browserStorage, farmSave } from "./save.js?v=m11";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m11";
-import { createMarketScene } from "./ui/scene-market.js?v=m11";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m11";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m11";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m11";
-import { createVillageScene } from "./ui/scene-village.js?v=m11";
-import { createTruck } from "./ui/truck.js?v=m11";
-import { farmShare } from "./ui/share-card.js?v=m11";
+import * as L from "./logic.js?v=m12";
+import { browserStorage, farmSave } from "./save.js?v=m12";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m12";
+import { createMarketScene } from "./ui/scene-market.js?v=m12";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m12";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m12";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m12";
+import { createVillageScene } from "./ui/scene-village.js?v=m12";
+import { createTruck } from "./ui/truck.js?v=m12";
+import { farmShare } from "./ui/share-card.js?v=m12";
 import { shareResult } from "../_shared/share.js?v=s2";
 
 const MUTE_KEY = "wgp.muted";
@@ -173,6 +173,8 @@ export function mount(root, ctx = {}) {
     bookBtn: $("bookBtn"), ovBook: $("ovBook"), bookBody: $("bookBody"),
     quest: $("quest"), qFace: $("qFace"), qStep: $("qStep"), qTitle: $("qTitle"), qHint: $("qHint"), qBar: $("qBar"), qProg: $("qProg"), qReward: $("qReward"), qClaim: $("qClaim"),
   };
+  // D4 (TLC1-05): bố cục điện thoại dọc (khay dính đáy) — khớp media query trong index.html
+  const PORTRAIT = matchMedia("(max-width: 760px) and (orientation: portrait), (max-width: 760px) and (min-height: 501px)");
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-kim-cuong", "qua-man", "trung-da", "thang"], sdk);
 
   const first = save.initialize(now()); // di chuyển v2 → v3 (giữ backup) nếu cần
@@ -733,8 +735,10 @@ export function mount(root, ctx = {}) {
     const atEnd = f.scrollLeft + f.clientWidth >= f.scrollWidth - 8;
     const txt = atEnd ? "← Về ruộng" : fmap.bw > 1 ? "Phía Đông →" : "Xem thêm →";
     if (ui.pan.textContent !== txt) ui.pan.textContent = txt;
+    // D4: xoay ngang thì .farm-world là display:contents ⇒ khung chứa nút là .wrap; dùng offsetParent chung của bản đồ và nút
+    const box = ui.pan.offsetParent || f.parentElement;
     ui.pan.style.top = `${f.offsetTop + 8}px`;
-    ui.pan.style.right = `${Math.max(8, f.parentElement.clientWidth - f.offsetLeft - f.offsetWidth + 8)}px`;
+    ui.pan.style.right = `${Math.max(8, box.clientWidth - f.offsetLeft - f.offsetWidth + 8)}px`;
   }
   function setBuildMode(on, quiet) {
     buildMode = !!on;
@@ -1201,9 +1205,19 @@ export function mount(root, ctx = {}) {
       button.setAttribute("aria-pressed", String(key === mode));
     }
     for (const [key, el] of Object.entries(PANELS)) el.hidden = key !== mode;
+    document.body.dataset.panel = mode; // D4: điện thoại dọc — khay dính đáy khi gieo / tưới (index.html)
     render();
   }
-  const openPanel = (m) => { selectMode(m); sfx.play("buoc-nhay", 0.3, 1.2); };
+  const openPanel = (m) => {
+    const prev = mode;
+    selectMode(m); sfx.play("buoc-nhay", 0.3, 1.2);
+    // D4 (TLC1-05): điện thoại dọc — Kho / Đơn / Nâng cấp dài ⇒ khay thôi dính đáy, cuộn tới khay để bảng hiện ngay dưới nút;
+    // quay về Hạt giống / Tưới ⇒ cuộn lại lên ruộng (khay dính đáy trở lại)
+    if (!PORTRAIT.matches || scene !== "farm" || prev === m) return;
+    const docked = (x) => x === "seed" || x === "water";
+    if (!docked(m)) document.querySelector(".farm-controls")?.scrollIntoView({ block: "start" });
+    else if (!docked(prev)) window.scrollTo({ top: 0 });
+  };
   ui.grow.onclick = () => openPanel("seed");
   ui.water.onclick = () => openPanel("water");
   ui.depot.onclick = () => openPanel("stock");
@@ -1258,6 +1272,16 @@ export function mount(root, ctx = {}) {
     cancelArm = null;
     exec({ type: "cancelOrder", slot, id, rev });
   });
+  // D4 (TLC1-05): điện thoại / xoay ngang — thanh nhiệm vụ một dòng, chạm (hoặc nút mũi tên) để mở / gập chi tiết
+  const qMore = $("qMore");
+  const toggleQuest = () => {
+    const on = !ui.quest.classList.contains("open");
+    ui.quest.classList.toggle("open", on); qMore.setAttribute("aria-expanded", String(on));
+    qMore.setAttribute("aria-label", on ? "Thu gọn nhiệm vụ" : "Xem chi tiết nhiệm vụ");
+    sfx.play("buoc-nhay", 0.25, on ? 1.3 : 1.1);
+  };
+  qMore.onclick = (e) => { e.stopPropagation(); toggleQuest(); };
+  ui.quest.addEventListener("click", (e) => { if (!e.target.closest("button") && qMore.offsetParent) toggleQuest(); });
   ui.qClaim.onclick = () => exec(ui.qClaim.dataset.kind === "village" ? { type: "claimProgressQuest", id: ui.qClaim.dataset.id } : { type: "claimQuest", id: ui.qClaim.dataset.id }, { el: ui.qClaim });
   ui.upgrade.onclick = () => exec({ type: "upgradeFarm" });
   ui.all.addEventListener("click", () => exec({ type: "harvestAll" }));
@@ -1361,13 +1385,23 @@ export function mount(root, ctx = {}) {
   secTimer = setInterval(second, 1000);
   document.body.classList.add("nt-ready"); // đã vẽ xong lần đầu ⇒ hiện bố cục (index.html giữ ẩn trước đó, tránh nhảy bố cục)
   // khung hẹp: bản đồ rộng hơn màn ⇒ đặt ruộng vào giữa khung cuộn
-  requestAnimationFrame(() => fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2));
+  // D4: xoay ngang bản đồ có thể cao hơn khung ⇒ đặt ruộng vào giữa theo chiều dọc; xoay máy thì đặt lại
+  const centerField = () => {
+    if (scene !== "farm") return;
+    fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2);
+    const f = ui.farm, over = f.scrollHeight - f.clientHeight;
+    f.scrollTop = over > 4 ? Math.max(0, Math.min(over, (L.FIELD.y + L.FIELD.h / 2) * f.scrollHeight - f.clientHeight / 2)) : 0;
+  };
+  requestAnimationFrame(centerField);
+  const LANDSCAPE = matchMedia("(orientation: landscape) and (max-height: 500px)");
+  const onOrient = () => requestAnimationFrame(centerField);
+  LANDSCAPE.addEventListener?.("change", onOrient);
 
   return {
     destroy() {
       clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave(); truck?.destroy(); animals?.hide(); village?.hide();
       window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onVisibility); window.removeEventListener("pagehide", onLeave);
-      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); cancelAnimationFrame(panRaf);
+      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); LANDSCAPE.removeEventListener?.("change", onOrient); cancelAnimationFrame(panRaf);
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return s; },
