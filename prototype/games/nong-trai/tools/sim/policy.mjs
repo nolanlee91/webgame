@@ -3,10 +3,10 @@
 //   → bán dư → xây / nâng / mua theo danh sách ưu tiên → gieo (cây hợp với thời gian tới lần nhìn tiếp) → tưới.
 // Chỉ dùng hàm của harness (⇒ luật thật). Không đọc giờ thật.
 import { CROP, CROPS, ITEM, RECIPE, MACHINE, ANIMAL, BUILDING, QUESTS, MARKET, plots, orders, P, A, V, B } from "./harness.mjs";
-import * as fair from "../../core/fair.js?v=m9";
-import * as book from "../../core/collection.js?v=m9";
-import { RECIPES } from "../../data/recipes.js?v=m9";
-import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m9";
+import * as fair from "../../core/fair.js?v=m10";
+import * as book from "../../core/collection.js?v=m10";
+import { RECIPES } from "../../data/recipes.js?v=m10";
+import { VILLAGERS, REPEATABLE_BY_ID } from "../../data/village.js?v=m10";
 
 export const XP_WORTH = 2;          // 1 XP ≈ 2 xu khi chọn cây (người chơi muốn lên cấp)
 export const STALE_ORDER_MS = 30 * 60_000; // đơn không giao được sau 30 phút CHƠI ⇒ bỏ

@@ -2,8 +2,8 @@
 // Công thức 45 (đúng món 20 · đủ lớp 15 · đúng biến thể 10) · Nướng 20 · Thời gian 20 (chấm lúc dĩa xuống bàn)
 // · Phục vụ 15 (trà đá 5 · bàn sạch 4 · canh 3 · tính tiền nhanh 3, chấm lúc trả tiền).
 // Sao 1–5 tại 0 / 40 / 55 / 70 / 85, rồi kẹp theo trần lỗi. Lỗi 5 (sườn sống) và 13 (chay dính mặn) luôn mở hội thoại xin lỗi nghiêm túc.
-import { STAR_CUTS, GRILL } from "../data/economy.js?v=c5";
-import { targetOf } from "./plate.js?v=c5";
+import { STAR_CUTS, GRILL } from "../data/economy.js?v=c6";
+import { targetOf } from "./plate.js?v=c6";
 
 /** 13 kiểu lỗi: trần sao + có phải lỗi món (mở khiếu nại khi giao) không. */
 export const MISTAKES = {

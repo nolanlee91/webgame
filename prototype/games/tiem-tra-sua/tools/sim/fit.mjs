@@ -2,7 +2,7 @@
 // rồi đặt XP mỗi cấp = XP mà người chơi trung bình có ở phút mục tiêu của cấp đó. Lặp vài vòng vì mở khoá theo cấp đổi tốc độ XP.
 // node tools/sim/fit.mjs  ⇒ in bảng XP đề xuất (chép vào data/levels.js).
 // cùng bản mô-đun mà core/progression.js nạp (tag ?v=), sửa tạm trong bộ nhớ có hiệu lực với luật
-import { LEVELS } from "../../data/levels.js?v=m37";
+import { LEVELS } from "../../data/levels.js?v=m38";
 import { runSim } from "./sim.mjs";
 
 /** Phút chơi mục tiêu tới từng cấp (PLAYBOOK §6: 4 ≈ 10, 7 ≈ 40, 10 ≈ 120, 20 ≈ 660). */

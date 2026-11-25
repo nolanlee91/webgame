@@ -2,18 +2,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, prepDay, until, home, openWithOrder, cookedPiece } from "./helpers.mjs";
-import { LEVELS, DISHES, GRILL, FAIR, CHALLENGE, DECOR, START_STOCK } from "../data/economy.js?v=c5";
-import { loadSave, dump, createState, SAVE_VERSION, LEVELS_V2, rescaleXp } from "../core/state.js?v=c5";
-import { shopSave, KEY, backupKey } from "../save.js?v=c5";
-import { levelForXp, xpToNext } from "../core/progress.js?v=c5";
-import { judge, scorePlate } from "../core/score.js?v=c5";
-import { slotOf } from "../core/plate.js?v=c5";
-import { isVegSlot, onGrill2, hottestFree, zoneOf } from "../core/grill.js?v=c5";
-import { debtTotal } from "../core/progression.js?v=c5";
-import { ticketPrice } from "../core/bill.js?v=c5";
-import { stockoutOptions } from "../core/rescue.js?v=c5";
-import * as EX from "../core/extras.js?v=c5";
-import * as LM from "../data/lines-m5.js?v=c5";
+import { LEVELS, DISHES, GRILL, FAIR, CHALLENGE, DECOR, START_STOCK } from "../data/economy.js?v=c6";
+import { loadSave, dump, createState, SAVE_VERSION, LEVELS_V2, rescaleXp } from "../core/state.js?v=c6";
+import { shopSave, KEY, backupKey } from "../save.js?v=c6";
+import { levelForXp, xpToNext } from "../core/progress.js?v=c6";
+import { judge, scorePlate } from "../core/score.js?v=c6";
+import { slotOf } from "../core/plate.js?v=c6";
+import { isVegSlot, onGrill2, hottestFree, zoneOf } from "../core/grill.js?v=c6";
+import { debtTotal } from "../core/progression.js?v=c6";
+import { ticketPrice } from "../core/bill.js?v=c6";
+import { stockoutOptions } from "../core/rescue.js?v=c6";
+import * as EX from "../core/extras.js?v=c6";
+import * as LM from "../data/lines-m5.js?v=c6";
 
 const atLevel = (lv, { seed = 5, stage = "street", money = 3000 } = {}) => {
   const s = newGame(seed);

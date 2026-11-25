@@ -113,7 +113,7 @@ check("nút Tiếng lần 3: bật lại hết, nhạc chạy tiếp", await wai
 await b.ev("localStorage.setItem('wgp.muted','1');dispatchEvent(new StorageEvent('storage',{key:'wgp.muted'}))");
 const startsMuted = await b.ev("__game.sound().started");
 check("tắt tiếng ở tab khác: nút đổi sang tắt, vòng lặp dừng, hiệu ứng không phát", await waitFor("document.querySelector('#muteBtn').dataset.mode==='off'&&__game.sound().loops.length===0", 2000) &&
-  (await b.ev("import('/games/tiem-tra-sua/ui/sfx.js?v=m37').then(m=>m.play('coin'))")) === false && (await b.ev("__game.sound().started")) === startsMuted);
+  (await b.ev("import('/games/tiem-tra-sua/ui/sfx.js?v=m38').then(m=>m.play('coin'))")) === false && (await b.ev("__game.sound().started")) === startsMuted);
 await b.ev("localStorage.setItem('wgp.muted','0');dispatchEvent(new StorageEvent('storage',{key:'wgp.muted'}))");
 check("bật lại ở tab khác: nhạc chạy lại", await waitFor("document.querySelector('#muteBtn').dataset.mode==='all'&&__game.sound().loops.includes('counter-rhythm')", 3000));
 await pressSel("#pauseBtn");
@@ -190,7 +190,7 @@ await b.shot(OUT + "/07-desktop-chot-ca.png");
 check("M4: chốt ca có nút Nhật Ký và Trả lời review", await visible("#journalBtn") && await visible("#replyBtn"));
 // ----- Nhật Ký Làm Chủ -----
 await pressSel("#journalBtn");
-check("M4: Nhật Ký: thẻ canvas 1080×1350 vẽ trên journal-card.png", await waitFor("!!document.querySelector('#journalCanvas')&&document.querySelector('#journalCanvas').dataset.drawn>='1'") &&
+check("M4: Nhật Ký: thẻ canvas 1080×1350 vẽ trên journal-card.webp", await waitFor("!!document.querySelector('#journalCanvas')&&document.querySelector('#journalCanvas').dataset.drawn>='1'") &&
   await b.ev("(()=>{const c=document.querySelector('#journalCanvas');return c.width===1080&&c.height===1350})()"));
 const px = await b.ev("(()=>{const c=document.querySelector('#journalCanvas').getContext('2d');const a=c.getImageData(540,700,1,1).data,t=c.getImageData(60,1100,1,1).data;return [a[0],a[1],a[2],t[0],t[1],t[2]]})()");
 check("M4: Nhật Ký: có ảnh nền (giữa thẻ không phải màu kem trơn) và vùng chữ kem", !(px[0] > 240 && px[1] > 230 && px[2] > 200) && px[3] > 200, px.join(","));

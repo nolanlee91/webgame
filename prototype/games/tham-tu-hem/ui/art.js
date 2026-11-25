@@ -1,7 +1,7 @@
 // Hình: đọc data/asset-manifest.json (bản chép của docs/tham-tu-hem/asset-manifest.json — test kiểm khớp).
 // Có frame / file thật thì dùng, không có thì vẽ thay bằng canvas (cảnh tối có hoạ tiết, chân dung pixel chữ cái đầu) — game luôn chơi trọn được.
 // Crisp (PLAYBOOK §2): hệ số hiển thị = px thiết bị / px file luôn là bội 0,5. Cảnh lưới 2× (960×540), chân dung HD lưới 1× (ô 256).
-import { h } from "./dom.js?v=t9";
+import { h } from "./dom.js?v=t10";
 
 export const SCENE_W = 960, SCENE_H = 540, CELL = 256;
 let M = { items: [], hotspots: {} };
@@ -146,16 +146,45 @@ export function setPortrait(el, pid, mood, caseId, size, smooth, name = "") {
   el.dataset.mood = mood || "neutral";
   if (f) {
     const k = size / CELL;
-    st.backgroundImage = `url("${f.url}")`;
-    st.backgroundSize = `${f.sw * k}px ${f.sh * k}px`;
-    st.backgroundPosition = `${-f.x * k}px ${-f.y * k}px`;
+    const real = () => {
+      st.backgroundImage = `url("${f.url}")`;
+      st.backgroundSize = `${f.sw * k}px ${f.sh * k}px`;
+      st.backgroundPosition = `${-f.x * k}px ${-f.y * k}px`;
+    };
+    real();
     el.classList.toggle("smooth", smooth);
     el.classList.remove("ph");
+    // sheet chân dung chưa tải xong (1–2 MB): chân dung vẽ thay nằm dưới lớp thật cho tới khi ảnh về (không ô trống), rồi bỏ lớp dưới
+    if (globalThis.Image && !LOADED.has(f.url)) {
+      const tok = el.dataset.ptok = f.url + "#" + f.x + "," + f.y;
+      st.backgroundImage += `, url("${placeholderPortrait(pid, mood, name)}")`;
+      st.backgroundSize += `, ${size}px ${size}px`; st.backgroundPosition += ", 0 0";
+      preload(f.url).then(() => { if (el.dataset.ptok === tok) real(); });
+    } else delete el.dataset.ptok;
   } else {
     st.backgroundImage = `url("${placeholderPortrait(pid, mood, name)}")`;
     st.backgroundSize = `${size}px ${size}px`; st.backgroundPosition = "0 0";
     el.classList.toggle("smooth", (size * dpr()) % 32 !== 0); el.classList.add("ph");
   }
+}
+
+/** Tải một ảnh (một lần cho mỗi url). */
+const READY = new Map(), LOADED = new Set();
+export function preload(url) {
+  let p = READY.get(url);
+  if (!p) {
+    p = new Promise((ok) => { const i = new Image(); i.onload = () => { LOADED.add(url); ok(true); }; i.onerror = () => ok(false); i.src = url; });
+    READY.set(url, p);
+  }
+  return p;
+}
+/** Ảnh cần ngay khi mở vụ: nền văn phòng + sheet chân dung của người nói trong thoại mở đầu (PERF-03 / TTH-05). */
+export function preloadCaseArt(c) {
+  const urls = new Set();
+  if (hasFile("assets/scenes/office.webp")) urls.add("assets/scenes/office.webp");
+  const who = new Set([c.client, ...(c.intro || []).map((l) => l?.[0])].filter((p) => p && p !== "narr"));
+  for (const pid of who) { const f = portraitFrame(pid, "neutral", c.id); if (f) urls.add(f.url); }
+  return Promise.all([...urls].map(preload));
 }
 
 // ---------- cảnh ----------

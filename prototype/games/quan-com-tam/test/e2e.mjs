@@ -60,7 +60,7 @@ async function tendGrill() {
     if (st && (await b.ev("__game.ownerFree()"))) await pressSel(`.gchip[data-slot="${i}"]`);
   }
 }
-const step = () => b.ev(`(async()=>{const m=await import('./core/plate.js?v=c5');return m.nextStep(__game.state)})()`);
+const step = () => b.ev(`(async()=>{const m=await import('./core/plate.js?v=c6');return m.nextStep(__game.state)})()`);
 
 async function playDay1(tag, shots) {
   await b.send("Page.navigate", { url: "about:blank" }); await sleep(300); await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" }); await b.nav(BASE);

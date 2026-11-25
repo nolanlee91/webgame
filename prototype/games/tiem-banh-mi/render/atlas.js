@@ -85,5 +85,18 @@ export function icon(atlas, ref, px = 40, cls = "ico") {
   st.backgroundImage = `url("${f.url}")`;
   st.backgroundSize = `${f.sw * scale}px ${f.sh * scale}px`;
   st.backgroundPosition = `${-f.x * scale}px ${-f.y * scale}px`;
+  // sheet chưa tải xong (tải khi cần): ô giữ đúng cỡ, nền mờ nhấp nháy nhẹ tới khi ảnh về (CSS .ico.loading)
+  if (globalThis.Image && f.url && !f.url.startsWith("data:") && !LOADED.has(f.url)) { el.classList.add("loading"); preload(f.url).then(() => el.classList.remove("loading")); }
   return el;
+}
+
+/** Tải một ảnh (một lần cho mỗi url): màn đầu, tải nền, tải trước màn kế tiếp, trạng thái "đang tải" của icon. */
+const READY = new Map(), LOADED = new Set();
+export function preload(url) {
+  let p = READY.get(url);
+  if (!p) {
+    p = new Promise((ok) => { const i = new Image(); i.onload = () => { LOADED.add(url); ok(true); }; i.onerror = () => ok(false); i.src = url; });
+    READY.set(url, p);
+  }
+  return p;
 }

@@ -2,7 +2,7 @@
 // Hội chợ: trả phí gian hàng trước ca ⇒ ca hôm nay là ca hội chợ: dài hơn, đông hơn (+6 khách), giá +15%, khách kém kiên nhẫn hơn,
 // nhiều đơn nhóm kết hợp (mỗi người một món, tới 3 ly cả nhóm khách nào). Mỗi FAIR.every ngày một lần.
 // Hạng tiệm: 8 bậc mua bằng tiền (mở theo cấp), mỗi bậc +1 khách đi ngang mỗi ca và +2% kiên nhẫn; tiền thuê ca tăng theo cấp.
-import { DRAMA } from "../data/shift.js?v=m37";
+import { DRAMA } from "../data/shift.js?v=m38";
 
 export const FAIR = { unlock: 18, fee: 150, every: 4, duration: 240000, lastAt: 222000, guests: 6, priceMul: 1.15, patienceMul: 0.9, two: 0.45, three: 0.25 };
 

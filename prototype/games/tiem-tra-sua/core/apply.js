@@ -2,18 +2,18 @@
 // Chạy trên bản nháp (structuredClone): lỗi ⇒ trạng thái không đổi. Kiểm bất biến một chỗ trước khi ghi:
 // tiền ≥ 0 (số nguyên), kho là số nguyên ≥ 0 và không vượt sức chứa vì hàng mới, danh tiếng 0–100, cấp khớp XP.
 // Bấm lặp / tải lại không cộng hai lần: giao chỉ hợp lệ khi khách còn đang chờ, giải quyết chỉ khi còn hội thoại, bước pha phải đúng thứ tự.
-import * as shift from "./shift.js?v=m37";
-import { restock, stockUsed, capacity } from "./economy.js?v=m37";
-import { levelForXp } from "./progression.js?v=m37";
-import { buy } from "./equipment.js?v=m37";
-import { place, resetPlace } from "./decor.js?v=m37";
-import { choose } from "./drama.js?v=m37";
-import { reply, setPersona } from "./reviews.js?v=m37";
-import { consign, promo } from "./business.js?v=m37";
-import { STOCK_IDS } from "../data/ingredients.js?v=m37";
-import { restockToday, resolveStockout } from "./stockout.js?v=m37";
-import { joinFair, buyTier } from "./fair.js?v=m37";
-import { joinChallenge, checkBadges } from "./challenge.js?v=m37";
+import * as shift from "./shift.js?v=m38";
+import { restock, stockUsed, capacity } from "./economy.js?v=m38";
+import { levelForXp } from "./progression.js?v=m38";
+import { buy } from "./equipment.js?v=m38";
+import { place, resetPlace } from "./decor.js?v=m38";
+import { choose } from "./drama.js?v=m38";
+import { reply, setPersona } from "./reviews.js?v=m38";
+import { consign, promo } from "./business.js?v=m38";
+import { STOCK_IDS } from "../data/ingredients.js?v=m38";
+import { restockToday, resolveStockout } from "./stockout.js?v=m38";
+import { joinFair, buyTier } from "./fair.js?v=m38";
+import { joinChallenge, checkBadges } from "./challenge.js?v=m38";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),

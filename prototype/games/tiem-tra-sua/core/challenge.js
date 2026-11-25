@@ -1,10 +1,10 @@
 // Milestone 5: lịch ca thử thách (cấp 20, tuỳ chọn) và huy hiệu. Thuần.
 // Mỗi ngày lịch treo tường có một thử thách (xoay vòng 5 loại theo số ngày). Tham gia trước ca, miễn phí.
 // Đạt mục tiêu ⇒ thưởng tiền + XP, lần đầu có huy hiệu riêng. Huy hiệu xét lúc chốt ca (s.badges = { id: ngày nhận }).
-import { DRAMA } from "../data/shift.js?v=m37";
-import { CHALLENGE_WIN, CHALLENGE_FAIL, BADGE_LINES } from "../data/lines-m5.js?v=m37";
-import { pick } from "./rng.js?v=m37";
-import { fill } from "./text.js?v=m37";
+import { DRAMA } from "../data/shift.js?v=m38";
+import { CHALLENGE_WIN, CHALLENGE_FAIL, BADGE_LINES } from "../data/lines-m5.js?v=m38";
+import { pick } from "./rng.js?v=m38";
+import { fill } from "./text.js?v=m38";
 
 export const CHALLENGE_UNLOCK = 20;
 /** mods: extraGuests, patienceMul, noUndo, stations (ép số chỗ pha), archs (chỉ các nhóm khách này). goal(sum) ⇒ đạt hay không. */

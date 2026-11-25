@@ -1,11 +1,11 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
-import { h, icon, toast } from "./dom.js?v=t9";
-import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t9";
-import { renderText } from "./dialog.js?v=t9";
-import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t9";
-import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t9";
-import { pickEvidence, clueCard } from "./panels.js?v=t9";
-import { play as sfx } from "./sfx.js?v=t9";
+import { h, icon, toast } from "./dom.js?v=t10";
+import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t10";
+import { renderText } from "./dialog.js?v=t10";
+import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
+import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
+import { pickEvidence, clueCard } from "./panels.js?v=t10";
+import { play as sfx } from "./sfx.js?v=t10";
 import { shareResult } from "../../_shared/share.js?v=s1";
 
 const after = [];
@@ -19,7 +19,9 @@ const stars = (n, max = 3) => h("span.stars", { "aria-label": `${n} trên ${max}
 function coverImg(file, fallbackUrl, W, H, fw = SCENE_W, fh = SCENE_H, fx = 0.5) {
   const d = dpr(), m = Math.ceil(Math.max(W / fw, H / fh) * d * 2), k = m / 2 / d;
   const w = fw * k, hh = fh * k, left = Math.min(0, Math.max(W - w, W / 2 - fx * w));
-  return h("img.cover-img", { src: hasFile(file) ? file : fallbackUrl, alt: "", draggable: "false", style: { width: w + "px", height: hh + "px", left: left + "px", top: (H - hh) / 2 + "px" } });
+  // ảnh thật chưa về: nền vẽ thay (canvas) nằm dưới <img> ⇒ không có khung đen trong lúc tải
+  return h("img.cover-img", { src: hasFile(file) ? file : fallbackUrl, alt: "", draggable: "false", style: { width: w + "px", height: hh + "px", left: left + "px", top: (H - hh) / 2 + "px",
+    ...(hasFile(file) && fallbackUrl ? { backgroundImage: `url("${fallbackUrl}")`, backgroundSize: "100% 100%" } : {}) } });
 }
 /** Máy tính: ảnh nền 960×540 chỉ vẽ gần cỡ gốc (≤ 1,5 px thiết bị mỗi px ảnh, bội 0,5) trong khung poster — không kéo tràn
  *  màn hình nữa (kéo 2–3× làm vỡ hạt). Khi Codex giao bản HD 1920×1080 (file *-hd.webp) thì dùng bản HD và được tràn màn hình. */
@@ -35,10 +37,14 @@ function posterImg(file, fallbackUrl, W, H, x0 = 0, fx = 0.5) {
 }
 /** Bản HD là tranh chi tiết (không phải lưới 2×): phủ vừa khít màn hình theo tỉ lệ thật, lọc mượt — không làm tròn lên bậc
  *  0,5 (1920 px mà làm tròn lên thành 1,5× là cắt mất nửa tranh và lại vỡ hạt). */
+// PERF-03: tranh hiện ≤ 960 px thiết bị (điện thoại dpr ≤ 2, băng tựa 390 px…) thì bản 960 px (`base`) đã đủ nét như bản HD
+// (cả hai đều bị thu nhỏ, lọc mượt) ⇒ không tải bản 1920 px (1,1 MB). Lớn hơn mới dùng bản HD.
+const LO = Object.fromEntries(Object.entries(HD).map(([lo, hi]) => [hi, lo]));
 function hdCover(file, W, H, fx = 0.5) {
   const k = Math.max(W / (SCENE_W * 2), H / (SCENE_H * 2)), w = Math.ceil(SCENE_W * 2 * k), hh = Math.ceil(SCENE_H * 2 * k);
   const left = Math.round(Math.min(0, Math.max(W - w, W / 2 - fx * w)));
-  return h("img.cover-img.hd-img", { src: file, alt: "", draggable: "false", style: { width: w + "px", height: hh + "px", left: left + "px", top: Math.round((H - hh) / 2) + "px" } });
+  const lo = LO[file], src = lo && hasFile(lo) && w * dpr() <= SCENE_W ? lo : file;
+  return h("img.cover-img.hd-img", { src, alt: "", draggable: "false", style: { width: w + "px", height: hh + "px", left: left + "px", top: Math.round((H - hh) / 2) + "px" } });
 }
 /** Điện thoại dọc: ảnh mở đầu thành băng ngang trên cùng (đủ chiều cao ảnh, sáng rõ, không phủ tối), chữ nằm dưới. */
 const TITLE_FOCUS = 0.66; // Thám tử + Tèo nằm lệch phải ảnh title-art
@@ -93,7 +99,8 @@ export function map(app) {
   const pins = [];
   G.cat.filter((e) => seasonOf(e) === season).forEach((e) => {
     const solved = p.solved[e.id], run = p.runs[e.id];
-    const state = !e.c ? (e.status === "broken" ? "fix" : e.status === "pending" || e.status === "loading" ? "lock" : "soon") : !e.open ? "lock" : solved ? "done" : run && run.phase !== "intro" ? "wip" : "new";
+    // "lazy": có file vụ nhưng chưa nạp (nạp khi bấm mở) ⇒ thẻ như vụ đã nạp
+    const state = !e.c && e.status !== "lazy" ? (e.status === "broken" ? "fix" : e.status === "pending" || e.status === "loading" ? "lock" : "soon") : !e.open ? "lock" : solved ? "done" : run && run.phase !== "intro" ? "wip" : "new";
     const label = { soon: "Sắp ra mắt", fix: "Đang sửa", lock: "Khoá", done: "Đã phá", wip: "Đang điều tra", new: "Mới" }[state];
     const can = state !== "soon" && state !== "lock" && state !== "fix";
     cards.append(h("button.case-card.st-" + state, { type: "button", data: { case: e.id }, disabled: !can, onclick: () => { sfx("map-select"); app.openCase(e.id); }, "aria-label": `Hồ sơ số ${e.no}: ${e.title}. ${label}` },

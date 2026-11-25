@@ -1,15 +1,15 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m9";
-import { browserStorage, farmSave } from "./save.js?v=m9";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m9";
-import { createMarketScene } from "./ui/scene-market.js?v=m9";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m9";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m9";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m9";
-import { createVillageScene } from "./ui/scene-village.js?v=m9";
-import { createTruck } from "./ui/truck.js?v=m9";
-import { farmShare } from "./ui/share-card.js?v=m9";
+import * as L from "./logic.js?v=m10";
+import { browserStorage, farmSave } from "./save.js?v=m10";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m10";
+import { createMarketScene } from "./ui/scene-market.js?v=m10";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m10";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m10";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m10";
+import { createVillageScene } from "./ui/scene-village.js?v=m10";
+import { createTruck } from "./ui/truck.js?v=m10";
+import { farmShare } from "./ui/share-card.js?v=m10";
 import { shareResult } from "../_shared/share.js?v=s1";
 
 const MUTE_KEY = "wgp.muted";
@@ -148,6 +148,7 @@ function faceHtml(npcId, cls = "") {
 }
 
 export function mount(root, ctx = {}) {
+  let lastPanSig = "", panRaf = 0; // nút cuộn bản đồ (placePan): chữ ký lần đặt trước + khung hình đã hẹn
   const sdk = ctx.sdk || { sound: { muted: false } };
   const now = ctx.now || (() => Date.now());
   const storage = ctx.storage ?? browserStorage();
@@ -672,7 +673,10 @@ export function mount(root, ctx = {}) {
     ui.wsTool.textContent = fin ? `Xưởng (${fin})` : "Xưởng";
     ui.buildBtn.setAttribute("aria-pressed", String(buildMode));
     ui.buildBar.hidden = !buildMode || scene !== "farm";
-    placePan();
+    // PERF-06: không đọc bố cục mỗi giây (long task ở CPU yếu) — chỉ đặt lại nút cuộn khi cảnh / bề rộng bản đồ / thanh Xây đổi;
+    // cuộn, đổi cỡ cửa sổ / khung bản đồ do listener + ResizeObserver lo
+    const panSig = `${scene}|${fmap.bw}|${buildMode}`;
+    if (panSig !== lastPanSig) { lastPanSig = panSig; schedulePan(); }
     if (cardFor && !ui.ovBuild.hidden) renderBuildCard(t, true);
     return layout;
   }
@@ -720,6 +724,8 @@ export function mount(root, ctx = {}) {
     goScene("village");
   }
   /** Bản đồ rộng hơn khung (khung hẹp / đã mở phía Đông): nút cuộn nhanh sang Đông / về ruộng, nằm ở mép phải khung. */
+  /** Gộp các lần cần đặt lại nút cuộn vào một khung hình (đọc bố cục một lần, sau khi DOM đã ghi xong). */
+  function schedulePan() { if (!panRaf) panRaf = requestAnimationFrame(() => { panRaf = 0; placePan(); }); }
   function placePan() {
     const f = ui.farm, wide = f.scrollWidth > f.clientWidth + 8;
     ui.pan.hidden = !wide || scene !== "farm";
@@ -1214,8 +1220,11 @@ export function mount(root, ctx = {}) {
     sfx.play("buoc-nhay", 0.3, 1.2);
     if (atEnd) fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2, true); else f.scrollTo({ left: f.scrollWidth, behavior: "smooth" });
   };
-  ui.farm.addEventListener("scroll", () => placePan(), { passive: true });
-  window.addEventListener("resize", placePan);
+  ui.farm.addEventListener("scroll", schedulePan, { passive: true });
+  window.addEventListener("resize", schedulePan);
+  // khung / bản đồ đổi cỡ (mở Khu đất phía Đông, thanh công cụ xuống dòng…) ⇒ đặt lại nút cuộn
+  const panRO = typeof ResizeObserver === "function" ? new ResizeObserver(schedulePan) : null;
+  if (panRO) for (const el of [ui.farm, ui.farm.parentElement, ui.farmMap]) if (el) panRO.observe(el);
   ui.buildEnter.onclick = () => { const e = enterOf(cardFor); ui.ovBuild.hidden = true; cardFor = null; e?.go(); };
   ui.buildCancel.onclick = closeBuild;
   ui.buildOk.onclick = confirmBuild;
@@ -1350,6 +1359,7 @@ export function mount(root, ctx = {}) {
     }
   });
   secTimer = setInterval(second, 1000);
+  document.body.classList.add("nt-ready"); // đã vẽ xong lần đầu ⇒ hiện bố cục (index.html giữ ẩn trước đó, tránh nhảy bố cục)
   // khung hẹp: bản đồ rộng hơn màn ⇒ đặt ruộng vào giữa khung cuộn
   requestAnimationFrame(() => fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2));
 
@@ -1357,7 +1367,7 @@ export function mount(root, ctx = {}) {
     destroy() {
       clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave(); truck?.destroy(); animals?.hide(); village?.hide();
       window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onVisibility); window.removeEventListener("pagehide", onLeave);
-      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", placePan);
+      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); cancelAnimationFrame(panRaf);
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return s; },

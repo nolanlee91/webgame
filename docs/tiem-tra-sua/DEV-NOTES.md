@@ -135,5 +135,6 @@ Cùng chuẩn Phase 2: WebP lossless, alpha cứng, lưới 2×. Ghi rect, ancho
 - Đổi chỗ hai ly trong đơn nhóm hiếm xảy ra vì ly tự ghép vào ô hợp nhất; lỗi này chủ yếu đến từ sự kiện O05 / V23.
 - Một vài hậu quả sự kiện hẹn "later" tới sự kiện không phải chain chỉ mở nếu điều kiện vẫn đúng trong 3 ngày.
 - Bộ mô phỏng là một chính sách tất định, không phải người thật: ba hồ sơ khác nhau chủ yếu ở tỉ lệ sai và cách nhập hàng nên mốc cấp khá gần nhau. Sau cấp 20 tiền tích luỹ lại (đã hết bậc hạng tiệm) — chỗ tiêu tiếp theo nên là nội dung mới (menu theo mùa, chi nhánh 2).
-- Tag module trong `tools/sim/fit.mjs` và `harness.mjs` (nạp `?v=m37` để sửa tạm bảng cấp trong bộ nhớ) phải đổi cùng tag game.
-- Mọi import (và `index.html`) dùng chung tag `?v=m37`; đổi nội dung mô-đun thì tăng tag ở tất cả.
+- Tag module trong `tools/sim/fit.mjs` và `harness.mjs` (nạp `?v=m38` để sửa tạm bảng cấp trong bộ nhớ) phải đổi cùng tag game.
+- Mọi import (và `index.html`) dùng chung tag `?v=m38`; đổi nội dung mô-đun thì tăng tag ở tất cả.
+- **Tải ảnh (PERF-01, `?v=m38`)**: không còn tải nền LAZY_SHEETS. Sheet lười tải khi màn của nó hiện (nền CSS / `<img>`, icon đang chờ có lớp `.ico.loading`), tải trước đúng màn kế: mở ca ⇒ chân dung hội thoại + thời tiết, hết ca ⇒ `journal-card.webp` (đổi từ PNG, lossless, pixel giống hệt). Người chơi mới ở màn chào chỉ chờ sheet màn đầu; DEFER_SHEETS (khách, quầy pha, hiệu ứng, đồ nâng cấp) tải khi bấm "Nhận tiệm". `icon()` dùng bản thường thay `-hd` khi hình hiện < 1,5 px thiết bị mỗi px bản thường (vd chân dung 150 px trên màn dpr 1). Chi tiết: `docs/audits/fixes/D1-games.md`.

@@ -2,22 +2,22 @@
 // khi một món cần hàng đã hết (sh.dialog kind "stockout") — không bao giờ kẹt: luôn có lựa chọn miễn phí (mượn Hẻm Bên,
 // đóng cửa sớm) và gói ký gửi Dì Ba được đưa lên đầu khi không đủ tiền cho lựa chọn trả tiền.
 // Thuần, đổi trạng thái chỉ qua apply() (core/apply.js).
-import { STOCK, STOCK_IDS } from "../data/ingredients.js?v=m37";
-import { RECIPE } from "../data/recipes.js?v=m37";
-import { ARCHETYPES } from "../data/customers.js?v=m37";
-import { SHIFT_FEE, NORMAL_DAY, TUTORIAL_DAY, MULTI_CUP, DRAMA } from "../data/shift.js?v=m37";
-import { PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m37";
+import { STOCK, STOCK_IDS } from "../data/ingredients.js?v=m38";
+import { RECIPE } from "../data/recipes.js?v=m38";
+import { ARCHETYPES } from "../data/customers.js?v=m38";
+import { SHIFT_FEE, NORMAL_DAY, TUTORIAL_DAY, MULTI_CUP, DRAMA } from "../data/shift.js?v=m38";
+import { PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m38";
 import { STOCK_KIND, LOW_LINES, OUT_LINES, CHOICE_SAY, AWAY_SAY, BACK_LINES, SWAP_YES_SAY, SWAP_YES_REVIEW, SWAP_NO_SAY, SWAP_NO_REVIEW,
-  CLOSE_SAY, CLOSE_REVIEW, TEO_RIGHT, TEO_WRONG, LUA_GLOAT, CHOICE_SAY as SAY } from "../data/lines-stockout.js?v=m37";
-import { useOfSpec, packSize, packPrice, capacity, stockUsed, costOfUse, cupCost } from "./economy.js?v=m37";
-import { recipesAt } from "./progression.js?v=m37";
-import { appeal } from "./equipment.js?v=m37";
-import { trafficBonus } from "./reviews.js?v=m37";
-import { promoGuests } from "./business.js?v=m37";
-import { next } from "./rng.js?v=m37";
-import { shiftFee } from "./fair.js?v=m37";
-import { fill } from "./text.js?v=m37";
-import { customer, waiting, lineCtx, freshLine, say, review, addRep, orderSpec } from "./shift.js?v=m37";
+  CLOSE_SAY, CLOSE_REVIEW, TEO_RIGHT, TEO_WRONG, LUA_GLOAT, CHOICE_SAY as SAY } from "../data/lines-stockout.js?v=m38";
+import { useOfSpec, packSize, packPrice, capacity, stockUsed, costOfUse, cupCost } from "./economy.js?v=m38";
+import { recipesAt } from "./progression.js?v=m38";
+import { appeal } from "./equipment.js?v=m38";
+import { trafficBonus } from "./reviews.js?v=m38";
+import { promoGuests } from "./business.js?v=m38";
+import { next } from "./rng.js?v=m38";
+import { shiftFee } from "./fair.js?v=m38";
+import { fill } from "./text.js?v=m38";
+import { customer, waiting, lineCtx, freshLine, say, review, addRep, orderSpec } from "./shift.js?v=m38";
 
 /** Nhắc khi còn ≤ LOW_AT phần. Chạy đi mua: +30%, quầy bỏ trống RUN_MS (đồng hồ vẫn chạy, kiên nhẫn tụt nhanh hơn AWAY_DRAIN).
  *  Anh Tèo: +15% + tiền tip, tới sau SHIP_MS, SHIP_WRONG khả năng mua nhầm. Mượn Hẻm Bên: BORROW_N phần, miễn phí, một lần mỗi ngày, hẹn đòi nợ. */
@@ -312,5 +312,5 @@ export function stockoutTick(s, dt, events) {
     sh.deliveries = sh.deliveries.filter((x) => x.at > sh.t);
   }
 }
-export { RUN_REVIEW } from "../data/lines-stockout.js?v=m37";
+export { RUN_REVIEW } from "../data/lines-stockout.js?v=m38";
 export { runPrice, shipPrice };

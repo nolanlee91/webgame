@@ -1,20 +1,20 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, icon } from "./render/atlas.js?v=m37";
-import { createScene } from "./render/scene.js?v=m37";
-import { createBrew } from "./ui/brew.js?v=m37";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m37s";
-import { createPanels } from "./ui/panels.js?v=m37";
-import { createStockout } from "./ui/stockout.js?v=m37";
-import { TIER_LINES } from "./data/lines-m5.js?v=m37";
-import { apply } from "./core/apply.js?v=m37";
-import { customer } from "./core/shift.js?v=m37";
-import { currentEvent, openEvent } from "./core/drama.js?v=m37";
-import { PLACE_REASON } from "./core/decor.js?v=m37";
-import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m37";
-import { EQUIPMENT } from "./data/equipment.js?v=m37";
-import { shopSave, browserStorage } from "./save.js?v=m37";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=m37";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, DEFER_SHEETS, preload, dpr, icon } from "./render/atlas.js?v=m38";
+import { createScene } from "./render/scene.js?v=m38";
+import { createBrew } from "./ui/brew.js?v=m38";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m38";
+import { createPanels } from "./ui/panels.js?v=m38";
+import { createStockout } from "./ui/stockout.js?v=m38";
+import { TIER_LINES } from "./data/lines-m5.js?v=m38";
+import { apply } from "./core/apply.js?v=m38";
+import { customer } from "./core/shift.js?v=m38";
+import { currentEvent, openEvent } from "./core/drama.js?v=m38";
+import { PLACE_REASON } from "./core/decor.js?v=m38";
+import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m38";
+import { EQUIPMENT } from "./data/equipment.js?v=m38";
+import { shopSave, browserStorage } from "./save.js?v=m38";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=m38";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -26,21 +26,27 @@ async function boot() {
   const atlas = makeAtlas(manifest);
   // chỉ tải sheet có trong manifest (sheet Codex đang vẽ sẽ tự được dùng khi thêm vào manifest)
   const files = new Set((manifest.items || []).map((i) => i.filename));
-  // sheet có bản HD thì tải bản HD thay bản thường; biểu cảm HD (lớn, dùng muộn) tải nền, không chờ
-  const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
-  const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
+  // sheet có bản HD thì tải bản HD thay bản thường (trừ chỗ hình hiện nhỏ: icon() tự lấy bản thường, xem render/atlas.js)
+  const load = preload;
+  // chân dung chỉ hiện qua icon() ở ~120–150 px: màn dpr < 1,5 thì icon() lấy bản thường ⇒ tải trước bản thường cho khớp
+  const lowDpr = dpr() < 1.5, ICON_ONLY = new Set(["portraits", "faces"]);
+  const hdOn = Object.entries(HD_SHEETS).filter(([al, f]) => files.has(f) && !(lowDpr && ICON_ONLY.has(al) && files.has(SHEETS[al])));
   const replaced = new Set(hdOn.map(([al]) => SHEETS[al]));
-  // tải lười (render/atlas.js LAZY_SHEETS): biểu cảm HD, chân dung NPC, thời tiết, thẻ Nhật Ký, ảnh phố — không cần trong 10 giây đầu;
-  // tải nền khi trình duyệt rảnh sau khi tiệm hiện ra. Sheet tuỳ chọn (OPTIONAL_SHEETS) chỉ tải khi manifest có.
   const want = [...Object.values(SHEETS).filter((src) => files.has(src) && !replaced.has(src)), ...hdOn.map(([, f]) => f)];
-  const later = want.filter((src) => LAZY_SHEETS.has(src));
-  await Promise.all(want.filter((src) => !LAZY_SHEETS.has(src)).map(load));
-  const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 1200));
-  idle(() => later.forEach(load));
-
+  // Không tải nền (PERF-01): sheet lười (LAZY_SHEETS: biểu cảm HD, chân dung NPC, thời tiết, thẻ Nhật Ký, ảnh phố) tải khi màn của nó hiện,
+  // và tải trước đúng màn kế tiếp: mở ca ⇒ chân dung hội thoại + thời tiết; hết ca ⇒ thẻ Nhật Ký.
+  // Người chơi mới (màn chào) chỉ chờ sheet màn đầu; sheet trong tiệm (DEFER_SHEETS) tải khi bấm "Nhận tiệm".
   const store = shopSave(browserStorage());
   const seed = params.has("seed") ? Number(params.get("seed")) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
   const loaded = store.read(seed);
+  const deferred = want.filter((src) => DEFER_SHEETS.has(src) && !LAZY_SHEETS.has(src));
+  const first = want.filter((src) => !LAZY_SHEETS.has(src) && !DEFER_SHEETS.has(src));
+  await Promise.all((loaded.state.introSeen ? [...first, ...deferred] : first).map(load));
+  const prefetch = (list) => list.forEach((src) => files.has(src) && load(src));
+  const prefetchShop = () => prefetch(deferred);
+  const prefetchShift = () => prefetch([HD_SHEETS.drama, (lowDpr ? SHEETS.faces : HD_SHEETS.faces), SHEETS.weather]);
+  const prefetchJournal = () => prefetch([SHEETS.journal]);
+
   let state = loaded.state;
   let paused = false, lastSave = 0, dirty = false, restarting = false;
 
@@ -60,7 +66,7 @@ async function boot() {
   let panels;
   const overlays = createOverlays($("#overlay"), atlas, (a) => act(a), {
     state: () => state,
-    afterIntro: () => { store.snapshotDay(state); overlays.prep(state); },
+    afterIntro: () => { prefetchShop(); store.snapshotDay(state); overlays.prep(state); },
     resume: () => { paused = false; },
     restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
     // "Chơi lại ngày hôm nay": ảnh đầu ngày (save.js DAY_KEY), bản hiện tại cất sang REPLAY_BACKUP_KEY trước
@@ -150,7 +156,7 @@ async function boot() {
         case "timeout": say(`${e.name} bỏ về vì chờ lâu. −1 review 1 sao.`, "warn"); break;
         case "levelUp": { const real = e.unlocks.filter((u) => u.kind !== "note"); say(`Lên cấp ${e.level}!${real.length ? " Mở: " + real.map((u) => u.name).join(", ") : ""}`, "good"); break; }
         case "restocked": say(`Nhập ${e.n} phần ${STOCK[e.id].name} (−${fmtK(e.price)}${e.express ? ", giao gấp" : ""}${e.supplier === "si" ? ", vựa sỉ" : ""})`); break;
-        case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
+        case "shiftEnded": prefetchJournal(); setTimeout(() => overlays.summary(state), reduced() ? 0 : 600); break;
         case "cooking": say("Bắt đầu nấu mẻ " + e.size + " phần trân châu."); break;
         case "batchDone": say("Mẻ trân châu " + e.size + " phần đã chín!", "good"); break;
         case "fairJoined": play("level"); say(`Đã thuê gian hàng hội chợ (−${fmtK(e.fee)}). Hôm nay đông lắm, nhập dư hàng nha!`, "good"); break;
@@ -162,7 +168,7 @@ async function boot() {
         case "promoted": say(e.line, "good"); break;
         case "replied": say(`${e.label}: ${e.fx.slice(0, 2).join(" · ")}`, e.outcome === "phot" || e.outcome === "annoyed" ? "warn" : "good"); break;
         case "persona": if (e.switches >= 3) say(`Đổi tính lần thứ ${e.switches} trong ngày. Cư dân mạng bắt đầu để ý…`, "warn"); break;
-        case "shiftStarted": if (params.get("calm") === "1" && state.shift) state.shift.drama.max = 0; say(`Mở cửa ngày ${e.day}! ${e.guests} khách dự kiến.`, "good"); break;
+        case "shiftStarted": prefetchShop(); prefetchShift(); if (params.get("calm") === "1" && state.shift) state.shift.drama.max = 0; say(`Mở cửa ngày ${e.day}! ${e.guests} khách dự kiến.`, "good"); break;
         default: break;
       }
     }

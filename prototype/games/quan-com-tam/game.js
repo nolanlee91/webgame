@@ -1,30 +1,30 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=c5";
-import { placeholderFallback } from "./render/placeholder.js?v=c5";
-import { createScene } from "./render/scene.js?v=c5";
-import { configureScene } from "./core/placements.js?v=c5";
-import { createGrillbar } from "./ui/grillbar.js?v=c5";
-import { createColumn } from "./ui/column.js?v=c5";
-import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c5";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c6";
+import { placeholderFallback } from "./render/placeholder.js?v=c6";
+import { createScene } from "./render/scene.js?v=c6";
+import { configureScene } from "./core/placements.js?v=c6";
+import { createGrillbar } from "./ui/grillbar.js?v=c6";
+import { createColumn } from "./ui/column.js?v=c6";
+import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c6";
 import { shareResult } from "../_shared/share.js?v=s1";
-import { createDrama } from "./ui/drama.js?v=c5"; // B: drama
-import { createBigGrill } from "./ui/bigrill.js?v=c5"; // V: bếp lớn HD
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c5";
-import { apply } from "./core/apply.js?v=c5";
-import { hint } from "./core/tutorial.js?v=c5";
-import { layerStrip } from "./core/plate.js?v=c5";
-import { tableJob, groupById } from "./core/tables.js?v=c5";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c5";
-import { itemName } from "./core/rescue.js?v=c5";
-import { MISTAKES } from "./core/score.js?v=c5";
-import { shopSave, browserStorage } from "./save.js?v=c5";
-import { DISHES, LEVELS } from "./data/economy.js?v=c5";
-import { setJournalBg } from "./ui/journal.js?v=c5"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c5"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c5"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c5"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c5";
+import { createDrama } from "./ui/drama.js?v=c6"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c6"; // V: bếp lớn HD
+import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c6";
+import { apply } from "./core/apply.js?v=c6";
+import { hint } from "./core/tutorial.js?v=c6";
+import { layerStrip } from "./core/plate.js?v=c6";
+import { tableJob, groupById } from "./core/tables.js?v=c6";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c6";
+import { itemName } from "./core/rescue.js?v=c6";
+import { MISTAKES } from "./core/score.js?v=c6";
+import { shopSave, browserStorage } from "./save.js?v=c6";
+import { DISHES, LEVELS } from "./data/economy.js?v=c6";
+import { setJournalBg } from "./ui/journal.js?v=c6"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c6"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c6"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c6"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c6";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -33,12 +33,12 @@ const reduced = () => reducedMQ.matches;
 const TASK_NAME = { visit: "châm trà, lấy phiếu", deliver: "bưng dĩa", bill: "tính tiền", clean: "dọn bàn", wash: "rửa chén", rice: "bưng chén cơm", moHanh: "làm mỡ hành", marinate: "ướp sườn" };
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=c5")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=c6")).json();
   configureScene(manifest.placements || {});
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
   if (files.has("assets/journal-card.webp")) setJournalBg("assets/journal-card.webp"); // C:
-  const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
+  const load = preload;
   const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
   const replaced = new Set(hdOn.filter(([al]) => !KEEP_BASE.has(al)).map(([al]) => SHEETS[al]));
   const want = [...Object.entries(SHEETS).filter(([al, src]) => files.has(src) && !replaced.has(src) && !(OPTIONAL_SHEETS.has(al) && !files.has(src))).map(([, s]) => s), ...hdOn.map(([, f]) => f)];
@@ -50,8 +50,18 @@ async function boot() {
   const first = new Set([st0 ? SHEETS.quan : SHEETS.street, st0 ? SHEETS.quanFg : SHEETS.streetFg, SHEETS.owner, SHEETS.grill, SHEETS.grillItems, SHEETS.equip, SHEETS.tables, SHEETS.tableItems]);
   await Promise.race([Promise.all(want.filter((src) => first.has(src)).map(load)), new Promise((ok) => setTimeout(ok, 2500))]);
   const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 300));
-  const rest = want.filter((src) => !first.has(src)).sort((a, b) => Number(LAZY_SHEETS.has(a)) - Number(LAZY_SHEETS.has(b)));
-  idle(() => { let i = 0; const nextBatch = () => { const part = rest.slice(i, i + 3); i += 3; if (part.length) Promise.all(part.map(load)).then(() => idle(nextBatch)); }; nextBatch(); });
+  // PERF-01: chỉ tải nền sprite thường của cảnh (khách, đồ, hiệu ứng). Sheet lớn LAZY_SHEETS (chân dung / biểu cảm / NPC HD, cận cảnh HD,
+  // thời tiết, thẻ Nhật Ký, ảnh tựa) KHÔNG tải nền: trình duyệt tải khi màn của nó hiện (nền CSS), game tải trước đúng màn kế tiếp:
+  // mở ca ⇒ sheet trong ca (hội thoại, cận cảnh), hết ca ⇒ thẻ Nhật Ký. Icon đang chờ sheet hiện ô mờ giữ cỗ (atlas.js .loading).
+  const rest = want.filter((src) => !first.has(src) && !LAZY_SHEETS.has(src));
+  // người chơi mới đang ở màn chào: sprite trong quán chưa cần ⇒ bắt đầu tải khi bấm qua màn chào (hooks.afterIntro)
+  let restOn = false;
+  const startRest = () => { if (restOn) return; restOn = true; idle(() => { let i = 0; const nextBatch = () => { const part = rest.slice(i, i + 3); i += 3; if (part.length) Promise.all(part.map(load)).then(() => idle(nextBatch)); }; nextBatch(); }); };
+  if (loaded.state.introSeen) startRest();
+  const lazyWant = want.filter((src) => LAZY_SHEETS.has(src) && !first.has(src));
+  const notShift = new Set([SHEETS.journal, SHEETS.title, SHEETS.quan, SHEETS.quanFg]); // cảnh tiệm lớn: tải khi đổi cảnh (đã nằm trong first nếu đang ở đó)
+  const prefetchShift = () => lazyWant.filter((src) => !notShift.has(src)).forEach(load);
+  const prefetchJournal = () => { if (files.has(SHEETS.journal)) load(SHEETS.journal); };
 
   let state = loaded.state;
   let paused = false, lastSave = 0, dirty = false, restarting = false;
@@ -81,7 +91,7 @@ async function boot() {
   const toPrep = (tab) => { if (needPersona(state)) return overlays.personaAsk(state, () => toPrep(tab)); /* C: bản lưu cũ hỏi tính cách một lần */ store.snapshotDay(state); overlays.prep(state, tab); if (!state.shift && state.drama?.pending) drama.open(() => overlays.prep(state, tab)); /* B: sự kiện giữa hai ngày hiện trên Chuẩn bị */ };
   const overlays = createOverlays($("#overlay"), $("#sheet"), atlas, (a) => act(a), {
     state: () => state,
-    afterIntro: () => { if (state.shift) { paused = true; overlays.pause(); } else if (state.lastSummary && !state.lastSummary.seen) overlays.summary(state); else toPrep(); },
+    afterIntro: () => { startRest(); if (state.shift) { paused = true; overlays.pause(); } else if (state.lastSummary && !state.lastSummary.seen) overlays.summary(state); else toPrep(); },
     afterSummary: () => toPrep("buy"),
     resume: () => { paused = false; openDialog(); },
     restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
@@ -199,8 +209,8 @@ async function boot() {
         case "bought": say(`Đã mua ${e.name} (−${e.price}k).`, "good"); break;
         case "lit": say("Đã nhóm bếp than.", "good"); break;
         case "complaint": case "overcharge": case "stockout": case "drama": setTimeout(() => openDialog(), reduced() ? 0 : 250); break;
-        case "shiftStarted": setDock("plate"); say(`Mở quán ngày ${e.day}! Khoảng ${e.guests} khách.${e.tutorial ? " Làm theo dải gợi ý màu xanh." : ""}`, "good"); break;
-        case "shiftEnded": setTimeout(() => overlays.summary(state), reduced() ? 0 : 500); break;
+        case "shiftStarted": startRest(); prefetchShift(); setDock("plate"); say(`Mở quán ngày ${e.day}! Khoảng ${e.guests} khách.${e.tutorial ? " Làm theo dải gợi ý màu xanh." : ""}`, "good"); break;
+        case "shiftEnded": prefetchJournal(); setTimeout(() => overlays.summary(state), reduced() ? 0 : 500); break;
         case "newDay": if (e.expired || Object.keys(e.spoiled || {}).length) say(`Sang ngày mới: bỏ ${e.expired ? e.expired + " miếng sườn ướp cũ" : ""}${Object.keys(e.spoiled || {}).length ? " và hàng tươi quá hạn" : ""}.`, "warn"); break;
         default: { const x = PU.toastFor(e); if (x) say(x[0], x[1]); break; } // A:
       }

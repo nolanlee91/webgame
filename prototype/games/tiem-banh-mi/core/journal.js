@@ -1,11 +1,11 @@
 // Nhật Ký Làm Chủ (DRAMA.md §6, chép core/journal.js Trà Sữa): câu chốt ca kiểu meme theo dữ kiện ca + nội dung thẻ 1080×1350
 // (ui/journal.js vẽ lên journal-card.webp khi có, không thì nền canvas dự phòng). Thuần: test kiểm câu chọn đúng tình huống, thẻ đủ dòng.
-import { CAPTIONS } from "../data/lines-m3.js?v=b5";
-import { CAPTIONS_M5 } from "../data/lines-m5.js?v=b5";
-import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b5";
-import { STOCK } from "../data/economy.js?v=b5";
-import { fill } from "./text.js?v=b5";
-import { int } from "./rng.js?v=b5";
+import { CAPTIONS } from "../data/lines-m3.js?v=b6";
+import { CAPTIONS_M5 } from "../data/lines-m5.js?v=b6";
+import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b6";
+import { STOCK } from "../data/economy.js?v=b6";
+import { fill } from "./text.js?v=b6";
+import { int } from "./rng.js?v=b6";
 
 const PLAIN = new Set(["good", "few", "perfect"]);
 const ALL = { ...CAPTIONS, ...CAPTIONS_M5, replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip };

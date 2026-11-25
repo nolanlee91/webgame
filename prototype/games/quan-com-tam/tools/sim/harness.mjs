@@ -2,25 +2,25 @@
 // Mọi thay đổi trạng thái đi qua core/apply.js (cùng cửa với trình duyệt: bản nháp, kiểm bất biến, lỗi thì không đổi gì).
 // Thời gian chơi thật = thời gian ca đã trôi (đồng hồ ca chạy theo thao tác: mỗi lần bấm tốn `tap` ms; cô chủ đi bộ trong cảnh tốn giờ ca)
 // + hội thoại (đồng hồ dừng) + Chuẩn bị (đầu ngày, giữa hai ca) + Chốt ca + màn chào.
-// Mọi import mang cùng tag ?v=c5 với luật để fit.mjs sửa tạm bảng cấp trong bộ nhớ có hiệu lực.
-import { apply } from "../../core/apply.js?v=c5";
+// Mọi import mang cùng tag ?v=c6 với luật để fit.mjs sửa tạm bảng cấp trong bộ nhớ có hiệu lực.
+import { apply } from "../../core/apply.js?v=c6";
 import { readFileSync } from "node:fs";
-import { configureScene } from "../../core/placements.js?v=c5";
+import { configureScene } from "../../core/placements.js?v=c6";
 // toạ độ cảnh thật (manifest của Codex), như game.js lúc mở
 try { configureScene(JSON.parse(readFileSync(new URL("../../data/asset-manifest.json", import.meta.url), "utf8")).placements || {}); } catch { /* dự phòng data/scene.js */ }
-import { createState } from "../../core/state.js?v=c5";
-import { itemResult, isCooked, zoneOf, freeWarm, heatMul, onGrill2, isVegSlot } from "../../core/grill.js?v=c5";
-import { tableJob, groupById, canSeat, patienceLeft } from "../../core/tables.js?v=c5";
-import { nextStep, slotOf, targetOf, bestPiece } from "../../core/plate.js?v=c5";
-import { stockoutOptions } from "../../core/rescue.js?v=c5";
-import { ownerFree, walkMs, pointsOf } from "../../core/walker.js?v=c5";
-import { canAutoBill } from "../../core/bill.js?v=c5";
-import { canMakeOne, consignAvailable, forecast, stockUsed, capacity } from "../../core/stock.js?v=c5";
-import { currentEvent, pickFree } from "../../core/drama.js?v=c5";
-import { replyOptions } from "../../core/reviews.js?v=c5";
-import { orderOffers, gearBlock, staffToday } from "../../core/progression.js?v=c5";
-import { GRILL, GEAR, DECOR, STAFF, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, RENT, DISHES, LATE, dishParts } from "../../data/economy.js?v=c5";
-import * as EX from "../../core/extras.js?v=c5";
+import { createState } from "../../core/state.js?v=c6";
+import { itemResult, isCooked, zoneOf, freeWarm, heatMul, onGrill2, isVegSlot } from "../../core/grill.js?v=c6";
+import { tableJob, groupById, canSeat, patienceLeft } from "../../core/tables.js?v=c6";
+import { nextStep, slotOf, targetOf, bestPiece } from "../../core/plate.js?v=c6";
+import { stockoutOptions } from "../../core/rescue.js?v=c6";
+import { ownerFree, walkMs, pointsOf } from "../../core/walker.js?v=c6";
+import { canAutoBill } from "../../core/bill.js?v=c6";
+import { canMakeOne, consignAvailable, forecast, stockUsed, capacity } from "../../core/stock.js?v=c6";
+import { currentEvent, pickFree } from "../../core/drama.js?v=c6";
+import { replyOptions } from "../../core/reviews.js?v=c6";
+import { orderOffers, gearBlock, staffToday } from "../../core/progression.js?v=c6";
+import { GRILL, GEAR, DECOR, STAFF, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, RENT, DISHES, LATE, dishParts } from "../../data/economy.js?v=c6";
+import * as EX from "../../core/extras.js?v=c6";
 
 /** RNG riêng của người chơi giả (không đụng RNG của ván). */
 export function playerRng(seed) {

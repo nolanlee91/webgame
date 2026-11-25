@@ -84,7 +84,7 @@ async function payClicks(manual) {
   if (!(await S("s.shift&&s.shift.paying!==null"))) return "none";
   await waitFor("!!document.querySelector('#change')", 3000);
   if (manual) {
-    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b5');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
+    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b6');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
     if (bills) { for (const [d, n] of Object.entries(bills)) for (let i = 0; i < n; i++) await pressSel(`[data-bill="${d}"]`); await pressSel('[data-act="giveChange"]'); return "manual"; }
   }
   await pressSel('[data-act="autoChange"]');

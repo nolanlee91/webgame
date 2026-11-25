@@ -1,5 +1,5 @@
 // Hiệu ứng riêng của game: tem mực đóng dấu (đỏ = đúng / bể, xám = trật), rung màn, kính lúp nứt. Chỉ CSS + DOM, tôn trọng giảm chuyển động.
-import { h } from "./dom.js?v=t9";
+import { h } from "./dom.js?v=t10";
 
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));

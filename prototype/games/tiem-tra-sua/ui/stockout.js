@@ -1,12 +1,12 @@
 // Hết hàng giữa ca: hội thoại kiểu Drama (chân dung khách + nhân viên, lựa chọn có chi phí hiện trước, bảng hậu quả)
 // và bảng "Nhập gấp" mở từ ô Kho trên HUD (giao gấp +15% khi hàng sắp hết, trước khi hết hẳn).
-import { icon } from "../render/atlas.js?v=m37";
-import { STOCK } from "../data/ingredients.js?v=m37";
-import { customer } from "../core/shift.js?v=m37";
-import { stockoutOptions, menuStock, STOCKOUT } from "../core/stockout.js?v=m37";
-import { packPrice, packSize, capacity, stockUsed } from "../core/economy.js?v=m37";
-import { ingIcon } from "./brew.js?v=m37";
-import { portrait } from "./panels.js?v=m37";
+import { icon } from "../render/atlas.js?v=m38";
+import { STOCK } from "../data/ingredients.js?v=m38";
+import { customer } from "../core/shift.js?v=m38";
+import { stockoutOptions, menuStock, STOCKOUT } from "../core/stockout.js?v=m38";
+import { packPrice, packSize, capacity, stockUsed } from "../core/economy.js?v=m38";
+import { ingIcon } from "./brew.js?v=m38";
+import { portrait } from "./panels.js?v=m38";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 

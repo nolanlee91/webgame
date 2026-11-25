@@ -1,28 +1,33 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
-import { icon, dpr } from "../render/atlas.js?v=m37";
-import { ingIcon, headIcon } from "./brew.js?v=m37";
-import { RECIPE, RECIPES } from "../data/recipes.js?v=m37";
-import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m37";
-import { ARCHETYPES } from "../data/customers.js?v=m37";
-import { COMPLAINT } from "../data/lines.js?v=m37";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m37";
-import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m37";
-import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m37";
-import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m37";
-import { owns, stationCount, appealCap } from "../core/equipment.js?v=m37";
-import { xpProgress, unlocksAt } from "../core/progression.js?v=m37";
-import { fill } from "../core/text.js?v=m37";
-import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m37";
-import { appeal } from "../core/equipment.js?v=m37";
-import { portrait as portraitOf } from "./panels.js?v=m37";
-import { personaCards, PERSONAS } from "./persona.js?v=m37";
-import { demandEstimate, menuStock, STOCKOUT } from "../core/stockout.js?v=m37";
-import { FAIR, fairAvailable, fairToday, nextFairDay, TIERS, tierOf, nextTier, shiftFee } from "../core/fair.js?v=m37";
-import { CHALLENGE_UNLOCK, challengeWeek, activeChallenge, CHALLENGE_REWARD } from "../core/challenge.js?v=m37";
+import { icon, dpr } from "../render/atlas.js?v=m38";
+import { ingIcon, headIcon } from "./brew.js?v=m38";
+import { RECIPE, RECIPES } from "../data/recipes.js?v=m38";
+import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m38";
+import { ARCHETYPES } from "../data/customers.js?v=m38";
+import { COMPLAINT } from "../data/lines.js?v=m38";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m38";
+import { patienceLeft, customer, cupsLeft, activeCid } from "../core/shift.js?v=m38";
+import { capacity, stockUsed, packPrice, packSize, recipeCost, SUPPLIERS } from "../core/economy.js?v=m38";
+import { consignAvailable, needsBailout, CONSIGN_KIT, PROMOS, PROMO_UNLOCK } from "../core/business.js?v=m38";
+import { owns, stationCount, appealCap } from "../core/equipment.js?v=m38";
+import { xpProgress, unlocksAt } from "../core/progression.js?v=m38";
+import { fill } from "../core/text.js?v=m38";
+import { EQUIPMENT, EQUIPMENT_IDS } from "../data/equipment.js?v=m38";
+import { appeal } from "../core/equipment.js?v=m38";
+import { portrait as portraitOf } from "./panels.js?v=m38";
+import { personaCards, PERSONAS } from "./persona.js?v=m38";
+import { demandEstimate, menuStock, STOCKOUT } from "../core/stockout.js?v=m38";
+import { FAIR, fairAvailable, fairToday, nextFairDay, TIERS, tierOf, nextTier, shiftFee } from "../core/fair.js?v=m38";
+import { CHALLENGE_UNLOCK, challengeWeek, activeChallenge, CHALLENGE_REWARD } from "../core/challenge.js?v=m38";
 import { shareResult } from "../../_shared/share.js?v=s1";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
-const k = (n) => `${n.toLocaleString("vi-VN")}k`;
+// TLC1-08: toLocaleString chậm (gọi mỗi khung cho HUD / quầy) ⇒ nhớ kết quả theo số
+const K_CACHE = new Map();
+const k = (n) => { let v = K_CACHE.get(n); if (v === undefined) { v = `${n.toLocaleString("vi-VN")}k`; if (K_CACHE.size > 500) K_CACHE.clear(); K_CACHE.set(n, v); } return v; };
+/** Ghi chữ / bề rộng chỉ khi đổi (HUD vẽ mỗi khung; ghi DOM trùng giá trị vẫn làm trình duyệt tính lại style). */
+const setText = (el, v) => { v = String(v); if (el.textContent !== v) el.textContent = v; };
+const setWidth = (el, v) => { if (el.style.width !== v) el.style.width = v; };
 const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const drinkIcon = (r) => (r.add === "sua" || r.add === "kem-sua" || r.base === "sua-tuoi" ? ["cupui", "served-milk-tea"] : ["cupui", "tea-mid"]);
 
@@ -60,24 +65,24 @@ export function createHud(root, atlas) {
   const xpBar = h("div", "xpbar"); xpBar.appendChild(h("i")); items.hLevel.d.appendChild(xpBar);
   return function render(state) {
     const sh = state.shift;
-    items.hMoney.b.textContent = k(state.money); items.hMoney.sm.textContent = "Tiền";
+    setText(items.hMoney.b, k(state.money)); setText(items.hMoney.sm, "Tiền");
     if (sh) {
       const left = sh.duration - sh.t;
-      items.hClock.b.textContent = left > 0 ? mmss(left) : "Hết giờ";
-      items.hClock.sm.textContent = `Ngày ${sh.day}`;
+      setText(items.hClock.b, left > 0 ? mmss(left) : "Hết giờ");
+      setText(items.hClock.sm, `Ngày ${sh.day}`);
       items.hClock.d.classList.toggle("warn", left > 0 && left < 20000);
-    } else { items.hClock.b.textContent = "Đóng cửa"; items.hClock.sm.textContent = `Ngày ${state.day}`; items.hClock.d.classList.remove("warn"); }
-    items.hRep.b.textContent = state.rep; items.hRep.sm.textContent = "Danh tiếng";
+    } else { setText(items.hClock.b, "Đóng cửa"); setText(items.hClock.sm, `Ngày ${state.day}`); items.hClock.d.classList.remove("warn"); }
+    setText(items.hRep.b, state.rep); setText(items.hRep.sm, "Danh tiếng");
     const f = state.followers || 0;
-    items.hFans.b.textContent = f >= 1000 ? (f / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "k" : String(f);
-    items.hFans.sm.textContent = state.rating ? `${state.rating.toLocaleString("vi-VN")}★` : "theo dõi";
+    setText(items.hFans.b, f >= 1000 ? (f / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "k" : String(f));
+    setText(items.hFans.sm, state.rating ? `${state.rating.toLocaleString("vi-VN")}★` : "theo dõi");
     const xp = xpProgress(state);
-    items.hLevel.b.textContent = `Cấp ${state.level}`; items.hLevel.sm.textContent = xp.need ? `${xp.into}/${xp.need} XP` : "Tối đa";
-    xpBar.firstChild.style.width = (xp.need ? Math.min(100, (xp.into / xp.need) * 100) : 100) + "%";
-    items.hStock.b.textContent = `${stockUsed(state)}/${capacity(state)}`;
+    setText(items.hLevel.b, `Cấp ${state.level}`); setText(items.hLevel.sm, xp.need ? `${xp.into}/${xp.need} XP` : "Tối đa");
+    setWidth(xpBar.firstChild, (xp.need ? Math.min(100, (xp.into / xp.need) * 100) : 100) + "%");
+    setText(items.hStock.b, `${stockUsed(state)}/${capacity(state)}`);
     // huy hiệu đỏ: món trên menu còn ≤ 2 phần (giữa ca), bấm ô Kho để nhập gấp
     const low = sh ? [...menuStock(state)].filter((id) => (state.stock[id] || 0) <= STOCKOUT.LOW_AT).length : 0;
-    items.hStock.sm.textContent = low ? `${low} món sắp hết` : "Kho";
+    setText(items.hStock.sm, low ? `${low} món sắp hết` : "Kho");
     items.hStock.d.classList.toggle("low", low > 0);
   };
 }
@@ -102,7 +107,7 @@ export function createRail(root, atlas, onPin) {
       for (const m of ms) { const li = h("span", "goal" + (m.done ? " done" : ""), `${m.done ? "✓ " : ""}${m.text} · ${m.prog}/${m.n}`); goals.appendChild(li); }
     }
     empty.hidden = list.length > 0;
-    empty.textContent = !sh ? "Phiếu gọi món sẽ hiện ở đây khi tiệm mở cửa." : sh.schedule.length ? "Chưa có khách. Khách kế tiếp sắp tới…" : "Hết khách trong ca.";
+    setText(empty, !sh ? "Phiếu gọi món sẽ hiện ở đây khi tiệm mở cửa." : sh.schedule.length ? "Chưa có khách. Khách kế tiếp sắp tới…" : "Hết khách trong ca.");
     const live = new Set();
     for (const c of list) {
       live.add(c.id);
@@ -125,8 +130,9 @@ export function createRail(root, atlas, onPin) {
         cards.set(c.id, n);
       }
       const p = patienceLeft(state, c);
-      n.bar.firstChild.style.width = p * 100 + "%";
-      n.bar.className = "pbar" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
+      setWidth(n.bar.firstChild, p * 100 + "%");
+      const pc = "pbar" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : "");
+      if (n.bar.className !== pc) n.bar.className = pc;
       n.b.disabled = c.phase !== "wait";
       const act = activeCid(sh) === c.id, onAny = sh.stations.some((x) => x.cid === c.id);
       n.b.classList.toggle("on", act);
