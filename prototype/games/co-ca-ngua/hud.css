@@ -229,8 +229,8 @@
   .cn-table.is-lobby .cn-status { padding-right: 160px; }
   .cn-table.is-lobby .cn-lobby { width: auto; max-height: calc(100svh - 44px - 56px); overflow-y: auto; }
 }
-/* Phòng chờ trên màn hẹp / thấp: nút CHƠI ghim đáy (sticky) — luôn thấy mà không phải cuộn hết phần chọn màu, chỗ ngồi, luật. */
-@media (max-width: 980px), (orientation: landscape) and (max-height: 500px) {
+/* Phòng chờ trên màn hẹp / thấp (cả laptop 1366×768): nút CHƠI ghim đáy (sticky) — luôn thấy mà không phải cuộn hết phần chọn màu, chỗ ngồi, luật. */
+@media (max-width: 980px), (max-height: 860px) {
   .cn-table.is-lobby .cn-lobby .act { display: contents; }
   .cn-table.is-lobby .cn-lobby #playBtn { position: sticky; bottom: max(8px, env(safe-area-inset-bottom)); z-index: 3; display: flex; margin: 16px 17px 0; width: calc(100% - 34px); }
   .cn-table.is-lobby .cn-lobby .act > .note { margin: 12px 17px 0; }

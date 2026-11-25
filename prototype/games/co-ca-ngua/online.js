@@ -32,7 +32,7 @@ const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ 
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=ls1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=ls2", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
   }
   if (!document.querySelector("link[data-cn-online]")) {
     const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=chat1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
