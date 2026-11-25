@@ -2,7 +2,8 @@
 // Máy chủ (games-server/co-ca-ngua/) giữ ván, gieo xúc xắc và xác thực lượt; file này chỉ:
 //   • cho tạo phòng / nhập mã phòng / chọn "Chơi với máy" (đấu với 1–3 máy, không cần mạng),
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
-//   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi).
+//   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
+//   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ.
 import { mount } from "./game.js?v=snd1";
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
@@ -38,11 +39,29 @@ function addCss() {
 }
 const icon = (n) => `<img class="px-ic" src="${new URL("assets/icon-" + n + ".png", import.meta.url).href}" alt="" draggable="false">`;
 const load = (k, store) => { try { return JSON.parse(store.getItem(k)); } catch { return null; } };
+// Ghế lưu qua việc đóng tab: localStorage "<SEAT_KEY>.<MÃ>" = { code, token, savedAt } — hết hạn sau 30 phút không ở trong phòng
+const KEEP_MS = 30 * 60 * 1000;
+const keepKey = (code) => SEAT_KEY + "." + code;
+function kept(code) {
+  try {
+    for (let k = localStorage.length - 1; k >= 0; k--) { // dọn ghế hết hạn
+      const key = localStorage.key(k);
+      if (key && key.startsWith(SEAT_KEY + ".")) { const s = load(key, localStorage); if (!s || !(Date.now() - s.savedAt < KEEP_MS)) localStorage.removeItem(key); }
+    }
+    const s = load(keepKey(code), localStorage);
+    return s && s.code === code && typeof s.token === "string" ? { code, token: s.token } : null;
+  } catch { return null; }
+}
+function loadSeat() { // ghế của tab này (F5); mở link mời phòng khác ⇒ ghế đã lưu cho phòng đó (nếu còn hạn)
+  let s = null; try { s = load(SEAT_KEY, sessionStorage); } catch {}
+  const c = String(new URLSearchParams(location.search).get("room") || "").toUpperCase();
+  return (CODE_RE.test(c) && (!s || s.code !== c) && kept(c)) || s;
+}
 
 export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   addCss();
   const url = wsUrl || (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/co-ca-ngua";
-  let ws = null, inst = null, seat = load(SEAT_KEY, sessionStorage), joinedOnce = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
+  let ws = null, inst = null, seat = loadSeat(), joinedOnce = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
   let toastEl = null, toastTimer = 0, exiting = null; // exiting: đang rời phòng để sang trang khác (bấm "← Trang chủ")
 
   function toast(text, ms = 2600) {
@@ -52,7 +71,16 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   }
   const hideToast = () => { if (toastEl) toastEl.hidden = true; clearTimeout(toastTimer); };
   const setRoomParam = (code) => { const u = new URL(location.href); if (code) u.searchParams.set("room", code); else u.searchParams.delete("room"); history.replaceState(null, "", u.href); };
-  const saveSeat = (s) => { seat = s; if (s) sessionStorage.setItem(SEAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SEAT_KEY); };
+  let touched = 0, joinAfter = null; // joinAfter: vào bằng mã mà còn ghế đã lưu ⇒ thử resume trước, ghế hết thì join như thường
+  // keepLocal: bị tab khác của mình thay chỗ ⇒ chỉ xoá ghế của tab này, giữ bản localStorage cho tab mới
+  const saveSeat = (s, keepLocal) => {
+    const old = seat; seat = s; touched = Date.now();
+    try { if (s) sessionStorage.setItem(SEAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SEAT_KEY); } catch {}
+    try {
+      if (s) localStorage.setItem(keepKey(s.code), JSON.stringify({ code: s.code, token: s.token, savedAt: touched }));
+      else if (old && old.code && !keepLocal && load(keepKey(old.code), localStorage)?.token === old.token) localStorage.removeItem(keepKey(old.code));
+    } catch {}
+  };
 
   // ---------- Màn vào phòng ----------
   function showEntry(err = "", code = "") {
@@ -99,7 +127,10 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       if (kind === "join") {
         const c = codeIn.value.trim().toUpperCase();
         if (!CODE_RE.test(c)) { errEl.textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7M2Q."; codeIn.focus(); return; }
-        pending = { t: "join", code: c, name: nm };
+        const k = kept(c);
+        pending = k ? null : { t: "join", code: c, name: nm };
+        joinAfter = k ? { t: "join", code: c, name: nm } : null;
+        if (k) seat = k;
       } else pending = { t: "create", name: nm, public: !$("#privateRoom").checked };
       errEl.textContent = "Đang kết nối…"; busyUi(true);
       connect();
@@ -223,13 +254,13 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
 
   function onMsg(m) {
     if (m.t === "joined") {
-      retry = 0; joinedOnce = true; pending = null;
+      retry = 0; joinedOnce = true; pending = joinAfter = null;
       saveSeat({ code: m.code, token: m.token });
       setRoomParam(m.code); hideToast();
       if (!inst) { stage.innerHTML = ""; inst = mount(stage, { ...baseCtx, lobby: true, online: { send, leave, disband } }); window.__game = inst; }
       return;
     }
-    if (m.t === "state") { if (inst) { m.v.skew = m.now - Date.now(); inst.netState(m.v); renderChat(m.v); } return; }
+    if (m.t === "state") { if (inst) { if (seat && Date.now() - touched > 60000) saveSeat(seat); m.v.skew = m.now - Date.now(); inst.netState(m.v); renderChat(m.v); } return; } // còn trong phòng ⇒ gia hạn ghế đã lưu
     if (m.t === "pong") return;
     if (m.t === "left" || m.t === "closed") {
       if (exiting) return exiting(); // đang sang trang khác: không vẽ lại màn vào phòng
@@ -239,11 +270,12 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       leaveSfx(); showEntry(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng.");
       return;
     }
-    if (m.t === "replaced") { saveSeat(null); showEntry("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
+    if (m.t === "replaced") { saveSeat(null, true); showEntry("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); return; }
     if (m.t === "kicked") { saveSeat(null); setRoomParam(""); showEntry("Bạn không còn trong phòng (đã quá lâu không quay lại phòng chờ)."); return; }
     if (m.t === "err") {
       const text = ERR[m.code] || "Có lỗi xảy ra (" + m.code + ").";
       if (!inst) { // đang vào phòng / nối lại thất bại
+        if (joinAfter && (m.code === "no-seat" || m.code === "no-room")) { pending = joinAfter; joinAfter = null; saveSeat(null); connect(); return; }
         const code = pending && pending.code || seat && seat.code || "";
         if (m.code === "no-seat" || m.code === "no-room") saveSeat(null);
         showEntry(text, m.code === "no-room" ? code : (CODE_RE.test(code) ? code : ""));

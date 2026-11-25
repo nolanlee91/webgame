@@ -4,7 +4,7 @@ import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, 
 import { bestMove } from "./ai.js";
 import { createBoard } from "./board.js?v=oaq2";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
-import { createNet, CODE_RE } from "./net.js?v=oaq2";
+import { createNet, CODE_RE } from "./net.js?v=rs1";
 import { shareResult } from "../_shared/share.js?v=s1";
 
 const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module
@@ -741,6 +741,7 @@ export function mount(root, ctx = {}) {
   {
     const q = new URLSearchParams(location.search), code = String(q.get("room") || "").toUpperCase();
     const seat = net.seat;
+    if (CODE_RE.test(code)) ui.codeIn.value = code; // vào lại thất bại (ghế hết hạn / phòng đã hết) ⇒ ô mã vẫn điền sẵn
     if (seat && seat.code && (!code || code === seat.code)) { net.resume(); ui.mErr.textContent = "Đang vào lại phòng " + seat.code + "…"; }
     else if (CODE_RE.test(code)) {
       ui.codeIn.value = code;

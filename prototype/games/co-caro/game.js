@@ -1,7 +1,7 @@
 // Cờ Caro — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu ván. Luật chơi ở logic.js, máy chơi ở ai.js.
 import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, other } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=snd1";
+import { createNet, CODE_RE } from "./net.js?v=rs1";
 import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.caro.v1";
@@ -769,6 +769,7 @@ export function mount(root, ctx = {}) {
   {
     const q = new URLSearchParams(location.search), code = String(q.get("room") || "").toUpperCase();
     const seat = net.seat;
+    if (CODE_RE.test(code)) ui.codeIn.value = code; // vào lại thất bại (ghế hết hạn / phòng đã hết) ⇒ ô mã vẫn điền sẵn
     if (seat && seat.code && (!code || code === seat.code)) { net.resume(); ui.mErr.textContent = "Đang vào lại phòng " + seat.code + "…"; }
     else if (CODE_RE.test(code)) {
       ui.codeIn.value = code;

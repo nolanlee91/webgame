@@ -3,7 +3,7 @@
 import { W, RED, BLACK, START, parse, sideOf, typeOf, newMatch, newRound, nextRound, play, undo, replay, resign, agreeDraw,
   legalFrom, isAiTurn, other, moveName, REASON, findKing } from "./logic.js";
 import { bestMove, evaluate } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=leave1";
+import { createNet, CODE_RE } from "./net.js?v=rs1";
 import { shareResult } from "../_shared/share.js?v=s1";
 
 const SAVE_KEY = "wgp.tuong.v1";
@@ -911,6 +911,7 @@ export function mount(root, ctx = {}) {
   {
     const q = new URLSearchParams(location.search), code = String(q.get("room") || "").toUpperCase();
     const seat = net.seat;
+    if (CODE_RE.test(code)) ui.codeIn.value = code; // vào lại thất bại (ghế hết hạn / phòng đã hết) ⇒ ô mã vẫn điền sẵn
     if (seat && seat.code && (!code || code === seat.code)) { net.resume(); ui.mErr.textContent = "Đang vào lại phòng " + seat.code + "…"; }
     else if (CODE_RE.test(code)) {
       ui.codeIn.value = code;
