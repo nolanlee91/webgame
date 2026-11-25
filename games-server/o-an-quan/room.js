@@ -6,10 +6,12 @@
 "use strict";
 const { Chat } = require("../co-caro/chat");
 const { cleanName } = require("../co-caro/room");
+const { Rematch, AGAIN_MS } = require("../rematch");
 
 const DEFAULT_TIMINGS = {
   turn: 60000,   // người đang có lượt không đi → máy chủ đi thay (máy khó) để ván không treo
   away: 15000,   // người có lượt đang mất kết nối → đi thay sớm hơn
+  again: AGAIN_MS, // hết ván: một người bấm "Ván tiếp" ⇒ đếm ngược rồi mới mở ván mới (cả phòng bấm ⇒ mở ngay) — ../rematch.js
 };
 
 class Room {
@@ -30,6 +32,7 @@ class Room {
     this.deadline = 0; this.actAt = null; this.timer = null;
     this.closed = false;
     this.chat = new Chat(clock);
+    this.rematch = new Rematch(clock, this.t.again);
   }
 
   get hostSeat() { return this.players.length ? 0 : -1; }
@@ -48,6 +51,7 @@ class Room {
     if (!this.players[i]) return;
     this.chat.forget(this.players[i].token);
     this.players.splice(i, 1);
+    this.rematch.reset();
     if (!this.players.length) return this.close();
     if (this.phase !== "lobby") { this.phase = "lobby"; this.s = null; this.gid++; this.seq = 0; this.lastAct = null; this.oppLeft = true; }
     this.schedule();
@@ -62,6 +66,7 @@ class Room {
   }
 
   newGame(first) {
+    this.rematch.reset();
     this.s = this.L.newMatch({ rule: this.rule, mode: "pvp", first: this.startSeat % 2 });
     if (first) this.s = { ...this.s, tally: first.tally.slice(), round: first.round + 1 };
     this.seat = this.startSeat;
@@ -85,17 +90,11 @@ class Room {
         if (i !== this.hostSeat) return { err: "not-host" };
         if (m.rule !== "quan-non" && m.rule !== "thuong") return { err: "bad" };
         this.rule = m.rule; this.changed(); return { ok: true };
-      case "again": {
+      case "again": // "tôi sẵn sàng ván tiếp": cả phòng sẵn sàng ⇒ mở ngay, không thì đếm ngược (../rematch.js)
         if (this.phase !== "over") return { err: "phase" };
         if (this.players.length < this.max) return { err: "need-all" };
-        // đội thua đi trước (hòa: đổi đội); trong đội lần lượt từng người
-        const prev = this.s, loser = prev.winner === 0 ? 1 : prev.winner === 1 ? 0 : 1 - (this.startSeat % 2);
-        let k = (this.startSeat + 1) % this.max;
-        while (k % 2 !== loser) k = (k + 1) % this.max;
-        this.startSeat = k;
-        this.newGame(prev);
+        if (this.rematch.vote(this.players[i].token, this.players, () => this.nextRound()) === "wait") this.changed();
         return { ok: true };
-      }
       case "move": {
         if (this.phase !== "play") return { err: "phase" };
         if (this.seat !== i) return { err: "not-turn" };
@@ -110,6 +109,17 @@ class Room {
       }
       default: return { err: "bad" };
     }
+  }
+
+  /** Mở ván tiếp (rematch.js gọi khi cả phòng sẵn sàng hoặc hết đếm ngược) — kiểm lại pha / đủ người. */
+  nextRound() {
+    if (this.closed || this.phase !== "over" || this.players.length < this.max) return;
+    // đội thua đi trước (hòa: đổi đội); trong đội lần lượt từng người
+    const prev = this.s, loser = prev.winner === 0 ? 1 : prev.winner === 1 ? 0 : 1 - (this.startSeat % 2);
+    let k = (this.startSeat + 1) % this.max;
+    while (k % 2 !== loser) k = (k + 1) % this.max;
+    this.startSeat = k;
+    this.newGame(prev);
   }
 
   doMove(pit, dir, auto) {
@@ -148,7 +158,7 @@ class Room {
 
   changed() { if (!this.closed) this.onChange(); }
 
-  close() { this.closed = true; this.clock.clearTimeout(this.timer); this.timer = null; }
+  close() { this.closed = true; this.clock.clearTimeout(this.timer); this.timer = null; this.rematch.reset(); }
 
   /** Góc nhìn gửi cho người thứ i. Không có thông tin ẩn — chỉ bỏ token. Nước đi đủ để client dựng lại ván + hoạt cảnh. */
   viewFor(i) {
@@ -157,6 +167,7 @@ class Room {
       code: this.code, phase: this.phase, you: i, host: this.hostSeat, max: this.max, rule: this.rule,
       gid: this.gid, seq: this.seq, act: this.lastAct, seat: this.seat, startSeat: this.startSeat, deadline: this.deadline, oppLeft: !!this.oppLeft,
       players: this.players.map((p) => ({ name: p.name, connected: p.connected })),
+      again: this.rematch.flags(this.players), againDeadline: this.rematch.deadline, // hết ván: ai đã bấm "Ván tiếp" + hạn tự mở ván mới
       chat: this.chat.view(this.players[i]?.token),
       game: s && { first: s.first, round: s.round, tally: s.tally, turn: s.turn, moves: s.moves, pits: s.pits, quan: s.quan, score: s.score, debt: s.debt, eaten: s.eaten, quanBy: s.quanBy, winner: s.winner, final: s.final, quanNon: s.quanNon },
     };

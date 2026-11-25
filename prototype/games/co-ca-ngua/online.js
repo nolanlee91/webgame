@@ -4,7 +4,8 @@
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
 //   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ.
-import { mount } from "./game.js?v=d3o";
+import { mount } from "./game.js?v=d4b";
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import { sharedName, sessionId, initKick, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 
@@ -31,14 +32,16 @@ const ERR = {
   "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
 const SEAT_HEX = ["#e0483d", "#3a7bd5", "#f2b632", "#3fae4a"]; // đỏ, xanh dương, vàng, xanh lá — trùng màu ghế trên bàn (hud.js)
+const NAME_MAX = 16; // máy chủ (games-server/moderation.js) và account.js cùng giới hạn 16 ký tự
+const nameLen = (v) => [...String(v || "").replace(/\s+/g, " ").trim()].length;
 const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ chưa bật hoặc mạng có vấn đề). Bạn vẫn có thể chơi với máy.";
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=ls2", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=d4b", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
   }
   if (!document.querySelector("link[data-cn-online]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=chat1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=d4b", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
   }
 }
 const icon = (n) => `<img class="px-ic" src="${new URL("assets/icon-" + n + ".png", import.meta.url).href}" alt="" draggable="false">`;
@@ -101,8 +104,8 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
         <section class="px-panel cn-entry" aria-label="Vào phòng Cờ Cá Ngựa">
           <div class="ttl"><h2 class="px-h">Cờ Cá Ngựa · Rủ bạn vào chơi</h2></div>
           <div class="body">
-            <label class="lb" for="cnName">Tên của bạn</label>
-            <input class="px-input" id="cnName" maxlength="16" autocomplete="nickname" placeholder="Ví dụ: Tí Ngựa" value="">
+            <div class="lbrow"><label class="lb" for="cnName">Tên của bạn</label><span class="nm-count" id="cnNameCount" aria-live="polite"></span></div>
+            <input class="px-input" id="cnName" maxlength="40" autocomplete="nickname" placeholder="Ví dụ: Tí Ngựa" value="" aria-describedby="cnNameCount">
             ${invite ? "" : `<button class="px-btn primary big" data-e="create" type="button">Tạo phòng online</button>
             <label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
             <div class="or"><span>hoặc vào phòng của bạn bè</span></div>`}
@@ -122,12 +125,22 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     const nameIn = $("#cnName"), codeIn = $("#cnCode"), errEl = $(".err");
     nameIn.value = name; codeIn.value = code;
     errEl.textContent = err;
+    // Bộ đếm ký tự tên (BRD-08): thấy trước khi quá dài thay vì bị cắt im lặng giữa chữ
+    const countEl = $("#cnNameCount");
+    const showCount = () => {
+      const n = nameLen(nameIn.value), over = n > NAME_MAX;
+      countEl.textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : "");
+      countEl.classList.toggle("over", over);
+    };
+    nameIn.addEventListener("input", showCount); showCount();
     const busyUi = (on) => stage.querySelectorAll(".cn-entry .px-btn").forEach((b) => (b.disabled = on));
     codeIn.addEventListener("input", () => { codeIn.value = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
     const go = (kind) => {
-      const nm = names.commit(nameIn.value); // sửa tên ở đây ⇒ mọi game + bảng xếp hạng cùng đổi
+      const len = nameLen(nameIn.value), tooLong = len > NAME_MAX;
+      const nm = tooLong ? "" : names.commit(nameIn.value); // sửa tên ở đây ⇒ mọi game + bảng xếp hạng cùng đổi (tên quá dài: không lưu)
       if (kind === "bot") return startBots();
       if (kind === "fresh") { setRoomParam(""); return showEntry(); }
+      if (tooLong) { errEl.textContent = "Tên tối đa " + NAME_MAX + " ký tự — bớt " + (len - NAME_MAX) + " ký tự nhé."; nameIn.focus(); return; }
       if (!nm) { errEl.textContent = "Nhập tên của bạn trước nhé."; nameIn.focus(); return; }
       try { localStorage.setItem(NAME_KEY, nm); } catch {}
       if (kind === "join") {
@@ -304,16 +317,20 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   }
   const humansIn = (r) => (r && r.players ? r.players.filter((p) => !p.bot && !p.left).length : 0);
   // Chủ phòng hủy phòng (phòng chờ / ván đã xong): còn người khác thì hỏi lại trước; máy chủ báo "closed" cho cả phòng.
-  function disband() {
+  async function disband() {
     const r = inst && inst.room;
-    if (humansIn(r) > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+    if (humansIn(r) > 1 && !(await pxConfirm({ title: "Hủy phòng?", text: "Mọi người trong phòng sẽ bị đưa ra ngoài.", ok: "Hủy phòng", cancel: "Thôi", danger: true }))) return;
     send({ t: "disband" });
   }
   // Bấm link sang trang khác (← Trang chủ…) khi đang ở trong phòng: rời phòng hẳn (chủ phòng chỉ còn một mình ⇒ hủy phòng)
   // rồi mới đi, để người khác thấy mình rời ngay; chờ máy chủ trả lời tối đa 400 ms.
-  function exitTo(href) {
-    const r = inst && inst.room, phase = r && r.phase;
-    if (phase === "play" && !confirm("Rời ván đang chơi?")) return;
+  async function exitTo(href) {
+    let r = inst && inst.room, phase = r && r.phase;
+    if (phase === "play") {
+      if (!(await pxConfirm({ title: "Rời ván đang chơi?", text: "Máy chủ sẽ đi thay phần của bạn.", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
+      if (!inst || !seat) { location.href = href; return; } // trong lúc hỏi đã ra khỏi phòng (bị hủy / mất ghế)
+      r = inst.room; phase = r && r.phase;
+    }
     const go = () => { if (!exiting) return; exiting = null; clearTimeout(t); location.href = href; };
     const alone = r && r.you === r.host && humansIn(r) <= 1 && phase !== "play";
     clearTimeout(retryTimer); retryTimer = 0;

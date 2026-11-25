@@ -160,6 +160,8 @@ test('chiếu bí kết thúc ván + cộng điểm đúng người (máy chủ 
   assert.deepEqual(r.score, [1, 0]);
   assert.deepEqual(r.handle(1, { t: 'move', f: sq('d9'), to: sq('e9') }), { err: 'phase' });
   r.handle(1, { t: 'again' });
+  assert.equal(r.phase, 'over', 'một người bấm Ván tiếp: chưa mở ván (chờ người kia / đếm ngược)');
+  r.handle(0, { t: 'again' });
   assert.equal(r.redSeat, 1); assert.equal(r.round, 2);
   r.close();
 });
@@ -174,7 +176,9 @@ test('xin thua: ván kết thúc, điểm cộng cho đối thủ (theo người
     assert.deepEqual(a.v.score, [1, 0]); assert.deepEqual(a.v.endBy, { kind: 'resign', seat: 1 });
     assert.equal(await a.tryCmd({ t: 'resign' }), 'phase', 'không xin thua khi ván đã xong');
     assert.equal(await a.tryCmd({ t: 'move', f: sq('b2'), to: sq('e2') }), 'phase');
-    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'play' && v.round === 2));
+    // BRD-09: một người bấm ⇒ người kia thấy "đối thủ muốn chơi tiếp" + hạn đếm ngược; ván chưa mở (thẻ kết quả còn đó)
+    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'over' && v.again[1] === true));
+    a.send({ t: 'again' }); await a.next(st((v) => v.phase === 'play' && v.round === 2));
     assert.equal(a.v.redSeat, 1, 'ván 2: B cầm Đỏ');
     assert.equal(await a.tryCmd({ t: 'move', f: sq('b2'), to: sq('e2') }), 'not-turn', 'A (đang cầm Đen) không đi trước');
     await mv(b, [a, b], 'b2', 'e2');
@@ -383,7 +387,8 @@ test('review: lệnh xin thua / cầu hòa / nước đi gửi từ ván cũ kh�
     const [a, b] = await started(S.url);
     const oldGid = a.v.gid;
     b.send({ t: 'resign', gid: oldGid }); await a.next(st((v) => v.phase === 'over'));
-    b.send({ t: 'again', gid: oldGid }); await a.next(st((v) => v.phase === 'play' && v.gid !== oldGid));
+    b.send({ t: 'again', gid: oldGid }); await a.next(st((v) => v.phase === 'over' && v.again[1] === true));
+    a.send({ t: 'again', gid: oldGid }); await a.next(st((v) => v.phase === 'play' && v.gid !== oldGid));
     await b.next(st((v) => v.phase === 'play' && v.gid !== oldGid));
     assert.equal(await a.tryCmd({ t: 'resign', gid: oldGid }), 'stale');
     assert.equal(await a.tryCmd({ t: 'draw', gid: oldGid }), 'stale');

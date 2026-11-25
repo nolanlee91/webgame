@@ -238,3 +238,18 @@
   .cn-table.is-lobby .cn-lobby .act > .px-btn[hidden] { display: none; }
   .cn-table.is-lobby .cn-lobby .act > a { display: block; width: fit-content; margin: 12px auto 0; }
 }
+
+/* ---------- Tên người chơi (BRD-08 / BRD-16) ----------
+   Không viết hoa tên người (dấu chồng "Nguyễn" bị cắt), dòng cao 1.35; tên dài xuống tối đa 2 dòng thay vì "N…". */
+.cn-card .nm, .cn-row .nm, .cn-result td.n { text-transform: none; letter-spacing: .01em; line-height: 1.35; }
+.cn-card .nm .me { color: var(--px-gold); font-size: .85em; white-space: nowrap; }
+.cn-table.is-online .cn-card .nm, .cn-row .nm { white-space: normal; overflow: hidden; text-overflow: clip; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+
+/* ---------- Nút ≥ 44px trên điện thoại / màn cảm ứng / máy xoay ngang ---------- */
+@media (pointer: coarse), (max-width: 980px), (max-height: 500px) {
+  .cn-table .px-btn, .cn-table .px-btn.seg { min-height: 44px; }
+  .cn-table .px-btn.icon { width: 44px; min-height: 44px; }
+  .cn-table .cn-tray .lbl .px-btn { min-height: 44px; }
+  .cn-row .st .px-btn.mini { min-height: 44px; min-width: 44px; }
+}

@@ -2,6 +2,8 @@
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
 import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d3oh3";
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
+import { shareResult } from "../_shared/share.js?v=s2"; // "Khoe kết quả" ở bảng tổng kết
 import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 
 const $ = (s) => document.querySelector(s);
@@ -11,6 +13,8 @@ const K = (v) => (v < 0 ? "−" : "") + Math.abs(v).toLocaleString("vi-VN") + "K
 const pct = (v) => (v / 1024 * 100) + "%";
 const TURN_SECONDS = 15;          // chơi với máy
 const ONLINE_TURN_SECONDS = 25;   // online — khớp DEFAULT_TIMINGS.turn ở games-server/co-ty-phu/room.js
+const NAME_MAX = 16; // máy chủ (games-server/moderation.js) và account.js cùng giới hạn 16 ký tự
+const nameLen = (v) => [...String(v || "").replace(/\s+/g, " ").trim()].length;
 const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // ---------- Âm thanh retro (WebAudio, tự tạo) ----------
@@ -91,7 +95,7 @@ function renderPlayers() {
     const rp = mode === "online" && room ? room.players[k] : null;
     const status = rp ? (rp.left ? '<span class="off">Đã rời</span>' : !rp.connected ? '<span class="off">Mất kết nối</span>' : "") : "";
     el.innerHTML = `<i class="tok spr tk tk${p.token}" aria-hidden="true"></i>
-      <span class="nm">${esc(p.name)}${mode === "online" && k === room.you ? " (Bạn)" : ""} · ${tk.name}</span>
+      <span class="nm">${mode === "online" && k === room.you ? '<b class="me">Bạn · </b>' : ""}${esc(p.name)} · ${tk.name}</span>
       <span class="cash"><i class="ic ic-money" aria-hidden="true"></i>${p.bankrupt ? "Phá sản" : K(shownCash[k] ?? p.cash)}</span>
       <span class="meta"><span title="Số ô đất">🏠 ${lands} ô</span><span title="Tổng tài sản">💰 ${K(p.bankrupt ? 0 : netWorth(g, p.id))}</span>${p.jailed ? '<i class="ic ic-jail" title="Đang ở tù"></i>' : ""}${status}</span>
       ${g.turn === k && (mode === "online" || !p.bot) && g.phase !== "over" && timeLeft > 0 ? `<span class="timer" style="width:${Math.min(100, timeLeft / turnSec() * 100)}%"></span>` : ""}`;
@@ -324,6 +328,26 @@ function showEnd() {
   $("#endOv").hidden = false; $("#again").focus();
   if (iWon) { SFX.win(); confetti(); } else SFX.bad();
 }
+// "Khoe kết quả": ảnh 1080×1080 với số thật của ván (hạng, tài sản, số ô đất / nhà, số vòng, đối thủ).
+function shareEnd() {
+  if (!g || g.phase !== "over" || !g.ranking) return;
+  const mi = myIdx(), me = g.players[mi], n = g.players.length;
+  const k = g.ranking.findIndex((r) => r.pid === mi), worth = me.bankrupt ? 0 : (g.ranking[k] ? g.ranking[k].worth : netWorth(g, mi));
+  const lands = ownedBy(g, mi), houses = lands.reduce((a, i) => a + (g.props[i].level || 0), 0);
+  const win = g.players[g.winner];
+  const title = k === 0 ? "Đại Phú Lụm Kèo — " + K(worth) : me.bankrupt ? "Phá sản ở vòng " + g.round : "Hạng " + (k + 1) + "/" + n + " — " + K(worth);
+  const tagline = k === 0 ? (g.endReason === "rounds" ? "Đất đai phủ kín phố, tiền thuê chảy về như suối!" : "Cả bàn phá sản, chỉ mình ta trụ lại!")
+    : me.bankrupt ? "Kèo thối dồn dập, ván sau làm lại từ hai bàn tay trắng!" : "Suýt thành Đại Phú, ván sau thâu tóm cả phố!";
+  shareResult({
+    game: "co-ty-phu", title, tagline,
+    lines: [
+      "Tổng tài sản: " + K(worth),
+      "Đất: " + lands.length + " ô · nhà: " + houses + " cấp",
+      g.endReason === "rounds" ? "Hết " + g.rules.maxRounds + " vòng" : "Kết thúc ở vòng " + g.round + " · " + win.name + " trụ lại",
+      mode === "online" ? "Phòng " + n + " người" : "Đấu với " + (n - 1) + " máy",
+    ],
+  });
+}
 function confetti() {
   const box = $("#confetti"), cols = ["#ffc94a", "#e0483d", "#3d7be0", "#3fae4a", "#f4ead2"];
   for (let i = 0; i < 70; i++) { const c = document.createElement("i"); c.style.left = Math.random() * 100 + "vw"; c.style.background = cols[i % 5];
@@ -372,9 +396,10 @@ function hostBtns() {
   $("#endDisband").hidden = !host;
   if (mode === "online") { $("#endLeave").textContent = leaveTxt; if (!$("#vRoom").hidden) $("#backBtn").textContent = leaveTxt; }
 }
-function disbandRoom() {
+async function disbandRoom() {
   if (!amHost()) return;
-  if (humansIn(room) > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+  if (humansIn(room) > 1 && !(await pxConfirm({ title: "Hủy phòng?", text: "Mọi người trong phòng sẽ bị đưa ra ngoài.", ok: "Hủy phòng", cancel: "Thôi", danger: true }))) return;
+  if (!amHost()) return; // trong lúc hỏi đã không còn là chủ phòng / đã ra khỏi phòng
   net.disband();
 }
 
@@ -392,13 +417,24 @@ function setConnecting(on) {
   $("#mkRoom").textContent = on ? "Đang kết nối…" : "Tạo phòng online";
 }
 function showEntry(msg = "", code = "") {
-  mode = "solo"; room = null; chat.show(false); $("#quitBtn").hidden = true; clearBoard(); setConnecting(false);
+  mode = "solo"; room = null; chat.show(false); $("#quitBtn").hidden = true; clearBoard(); setConnecting(false); showNameCount();
   $("#tagline").textContent = "Lụm Kèo Đại Phú · 2–4 người";
   $("#entryErr").textContent = msg; if (code) $("#codeIn").value = code;
   lobbyView("entry");
 }
 let names = null; // tên dùng chung toàn site (_shared/online-kit.js) — gắn khi trang khởi động
 function readName() { const n = names ? names.commit($("#nmIn").value) : $("#nmIn").value.trim(); try { localStorage.setItem(NAME_KEY, n); } catch {} return n; }
+// Bộ đếm ký tự tên (BRD-08): "12/16", quá 16 thì đỏ + không cho vào phòng — thay cho việc ô nhập cắt im lặng giữa chữ.
+function showNameCount() {
+  const el = $("#nmCount"); if (!el) return;
+  const n = nameLen($("#nmIn").value), over = n > NAME_MAX;
+  el.textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : ""); el.classList.toggle("over", over);
+}
+function nameTooLong() {
+  const n = nameLen($("#nmIn").value); if (n <= NAME_MAX) return false;
+  $("#entryErr").textContent = "Tên tối đa " + NAME_MAX + " ký tự — bớt " + (n - NAME_MAX) + " ký tự nhé."; $("#nmIn").focus();
+  return true;
+}
 function showRoom() {
   const v = room, n = v.players.length, host = v.you === v.host;
   lobbyView("room");
@@ -485,30 +521,37 @@ $("#disbandBtn").onclick = disbandRoom;
 $("#endDisband").onclick = disbandRoom;
 // Link sang trang khác (← Trang chủ…) khi đang ở trong phòng online: rời phòng hẳn trước (chủ phòng còn một mình ⇒ hủy phòng)
 // để người khác thấy mình rời ngay. Đang chơi dở thì hỏi lại trước.
-document.addEventListener("click", (e) => {
+document.addEventListener("click", async (e) => {
   const a = e.target.closest && e.target.closest("a[href]");
   if (!a || mode !== "online" || !net || !net.seat || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === "_blank") return;
   const u = new URL(a.href, location.href);
   if (u.origin === location.origin && u.pathname === location.pathname) return;
   e.preventDefault();
-  const phase = room && room.phase;
-  if (phase === "play" && !confirm("Rời ván đang chơi?")) return;
+  let phase = room && room.phase;
+  if (phase === "play") {
+    if (!(await pxConfirm({ title: "Rời ván đang chơi?", text: "Máy sẽ đi thay phần của bạn.", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
+    if (mode !== "online" || !net.seat) { location.href = u.href; return; } // trong lúc hỏi đã ra khỏi phòng
+    phase = room && room.phase;
+  }
   net.exitTo(u.href, amHost() && humansIn(room) <= 1 && phase !== "play");
 }, true);
-$("#quitBtn").onclick = () => {
-  if (room?.phase === "play" && !confirm("Rời ván đang chơi? Máy sẽ đi thay phần của bạn.")) return;
+$("#quitBtn").onclick = async () => {
+  if (room?.phase === "play" && !(await pxConfirm({ title: "Rời ván đang chơi?", text: "Máy sẽ đi thay phần của bạn.", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
+  if (mode !== "online") return; // trong lúc hỏi đã ra khỏi phòng
   net.leave();
 };
 $("#goSolo").onclick = () => { $("#entryErr").textContent = ""; lobbyView("solo"); renderLobby(); };
-$("#mkRoom").onclick = () => { $("#entryErr").textContent = ""; setConnecting(true); net.create(readName(), !$("#privateRoom").checked); };
+$("#shareBtn").onclick = shareEnd;
+$("#mkRoom").onclick = () => { $("#entryErr").textContent = ""; if (nameTooLong()) return; setConnecting(true); net.create(readName(), !$("#privateRoom").checked); };
 function joinRoom() {
   const code = $("#codeIn").value.trim().toUpperCase();
   if (!CODE_RE.test(code)) { $("#entryErr").textContent = "Mã phòng gồm 5 ký tự (chữ và số), ví dụ K7QX2."; $("#codeIn").focus(); return; }
-  $("#entryErr").textContent = ""; setConnecting(true); net.join(code, readName());
+  $("#entryErr").textContent = ""; if (nameTooLong()) return; setConnecting(true); net.join(code, readName());
 }
 $("#joinRoom").onclick = joinRoom;
 $("#codeIn").addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") joinRoom(); });
 $("#nmIn").addEventListener("keydown", (e) => e.stopPropagation());
+$("#nmIn").addEventListener("input", showNameCount);
 $("#copyLink").onclick = async () => {
   const u = new URL(location.href); u.search = "?room=" + room.code;
   try { await navigator.clipboard.writeText(u.href); toast("Đã sao chép link mời — gửi cho bạn bè nhé!"); }
@@ -519,7 +562,9 @@ $("#copyLink").onclick = async () => {
   await loadManifest();
   buildBoard(); renderLobby(); setDice([5, 6]);
   // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (NAME_KEY) được chuyển sang một lần.
-  names = sharedName({ game: "co-ty-phu", input: $("#nmIn"), legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } } });
+  names = sharedName({ game: "co-ty-phu", input: $("#nmIn"), legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } },
+    onChange: (n) => { if (document.activeElement !== $("#nmIn") && n) $("#nmIn").value = n; showNameCount(); } });
+  showNameCount();
   chat = createChat({ box: $("#chat"), button: $("#chatBtn"), send: (o) => net.send(o), onNew: () => SFX.msg(),
     colorOf: (name) => { const p = room && room.players.find((x) => x.name === name); return p ? TOKENS[p.tok].color : ""; } });
   net = createNet({
