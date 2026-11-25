@@ -23,25 +23,29 @@
   <meta name="twitter:description" content="Cổng game miễn phí ngay trên trình duyệt: Cờ Cá Ngựa, Ô Ăn Quan, Cờ Caro, Tiệm Trà Sữa, Nông Trại và hơn 20 game. Rủ bạn vào chơi, không cần tải." />
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/home.jpg" />
   <!-- og:end -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <!-- Hỏi danh sách phòng ngay khi có HTML, trước khi ảnh tranh băng thông (app.js dùng lại kết quả này) -->
+  <script>try { window.__lobbyP = fetch("/api/lobby", window.AbortSignal && AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {}).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); window.__lobbyP.catch(function () {}); } catch (e) {}</script>
+  <!-- Font tự host (../assets/fonts/fonts.css): nạp trước 2 file chữ thấy ngay ở màn đầu (logo/nút Be Vietnam Pro 800, tiêu đề Roboto Slab) -->
+  <link rel="preload" href="../assets/fonts/be-vietnam-pro-800-latin.woff2?v=1" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/roboto-slab-700-800-latin.woff2?v=1" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/fonts/fonts.css?v=f1" />
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
-  <link rel="stylesheet" href="styles.css?v=unified4" />
-  <link rel="stylesheet" href="portal.css?v=unified6" />
-  <link rel="stylesheet" href="portal-pixel.css?v=unified7" />
+  <link rel="stylesheet" href="styles.css?v=perf1" />
+  <link rel="stylesheet" href="portal.css?v=perf1" />
+  <link rel="stylesheet" href="portal-pixel.css?v=perf1" />
 </head>
 <body class="portal theme-b">
   <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
 
   <!-- HEADER: logo + slogan · tìm game. Tạo phòng / Vào phòng bằng mã chỉ có MỘT chỗ: khung Sảnh chờ trực tiếp. -->
-  <header class="topbar" data-name="topbar">
+  <header class="topbar topbar--search" data-name="topbar">
     <div class="topbar__inner">
       <a class="logo" href="./" aria-label="Lụm Kèo — Rủ bạn vào chơi. Về trang chủ">
         <img class="logo__mark" src="assets/ui/icon-xuc-xac-6.png" alt="" width="32" height="32" />
         <span class="logo__words"><span class="logo__text">Lụm Kèo</span><span class="logo__slogan">Rủ bạn vào chơi</span></span>
       </a>
 
+      <!-- Điện thoại (≤720 px): CSS đưa ô tìm xuống dưới thanh logo (thanh trên chỉ 1 hàng, ô tìm cuộn theo trang) — không di chuyển bằng JS nữa -->
       <label class="field search" for="q">
         <svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 1h5v1H5zM3 2h2v1H3zM10 2h2v1h-2zM2 3h1v2H2zM12 3h1v2h-1zM1 5h1v5H1zM13 5h1v5h-1zM2 10h1v2H2zM12 10h1v1h-1zM3 12h2v1H3zM10 11h2v1h-2zM5 13h5v1H5zM11 12h2v1h-2zM12 13h2v1h-2zM13 14h2v1h-2z"/></svg>
         <span class="sr-only">Tìm game</span>
@@ -52,21 +56,22 @@
   </header>
 
   <main class="page">
-    <!-- Mobile: ô tìm kiếm nằm đầu trang để thanh trên chỉ 1 hàng -->
-    <div class="mobile-search-slot" id="mobileSearchSlot"></div>
-
     <!-- TẦNG 1: Hero trượt nhiều game (gọn, bên trái) + Sảnh chờ trực tiếp (rộng, bên phải) -->
     <section class="arena" id="featuredSection" data-name="arena" aria-label="Game nổi bật và sảnh chờ">
       <div id="featured" class="arena__hero">
-        <div class="hero px-panel" role="region" aria-roledescription="băng chuyền" aria-label="Game nổi bật" data-name="hero">
-          <div class="hero__viewport"><div class="hero__track" id="heroTrack" aria-live="off"></div></div>
+        <div class="hero px-panel is-loading" role="region" aria-roledescription="băng chuyền" aria-label="Game nổi bật" data-name="hero">
+          <div class="hero__viewport"><div class="hero__track" id="heroTrack" aria-live="off">
+            <!-- Slide 1 viết sẵn trong HTML (= đúng slideHTML() của app.js cho HERO_SLIDES[0]) để ảnh LCP được tải ngay và khung hero có
+                 chiều cao thật trước khi JS chạy (CLS). Đổi slide đầu trong games.js thì sửa cả khối này; lệch id ⇒ app.js vẽ lại từ đầu. -->
+            <a class="card slide" href="../games/co-ca-ngua/" data-id="co-ca-ngua" role="group" aria-roledescription="trang" aria-label="1 / 5: Cờ Cá Ngựa"><span class="hero__art"><img src="assets/thumbs/co-ca-ngua.webp" srcset="assets/thumbs/half/co-ca-ngua.webp 360w, assets/thumbs/co-ca-ngua.webp 720w" sizes="(max-width: 720px) 45vw, 720px" alt="" decoding="async" fetchpriority="high" /></span><span class="hero__info"><span class="hero__tags"><span class="kicker">Tựa game của tuần</span><span class="badge badge--hot">Hot</span></span><h3 class="hero__name">Cờ Cá Ngựa</h3><span class="hero__text">Gieo xúc xắc, xuất chuồng và đua ngựa về lầu giữa. Rủ 2–4 người cùng chơi.</span><span class="hero__row"><span class="btn btn--gold" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span><span class="hero__stats"><p class="meta meta--multi"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/></svg><span>2–4 người<span class="sr-only">, chơi cùng bạn được</span></span></p></span></span></span></a>
+          </div></div>
           <button class="hero__nav hero__nav--prev" id="heroPrev" type="button" aria-label="Game trước"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2h2v2h-2zM8 4h2v2H8zM6 6h2v4H6zM8 10h2v2H8zM10 12h2v2h-2z"/></svg></button>
           <button class="hero__nav hero__nav--next" id="heroNext" type="button" aria-label="Game tiếp theo"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h2v2H4zM6 4h2v2H6zM8 6h2v4H8zM6 10h2v2H6zM4 12h2v2H4z"/></svg></button>
           <div class="hero__dots" id="heroDots" role="group" aria-label="Chọn game nổi bật"></div>
         </div>
       </div>
 
-      <aside class="lobby px-panel" id="lobby" data-name="lobby" aria-labelledby="lobbyTitle">
+      <aside class="lobby px-panel is-loading" id="lobby" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
         </div>
@@ -97,7 +102,7 @@
         <!-- Mở phòng nhanh: lấp chỗ trống khi chưa có phòng công khai (desktop 2 hàng; có phòng thì 1 hàng; điện thoại ẩn) -->
         <div class="lobby__quick" data-name="lobby-quick">
           <h3 class="lobby__sub" id="quickTitle">Mở phòng nhanh</h3>
-          <div class="quick" id="quickGrid"></div>
+          <div class="quick" id="quickGrid"><!-- ô giữ chỗ (không ảnh) — app.js thay bằng ô thật khi màn > 720 px --><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span></div>
         </div>
       </aside>
     </section>
@@ -109,9 +114,28 @@
         <h2 class="section__title daily__title" id="dailyTitle">Thử thách hôm nay<span class="daily__no" id="dailyNo"></span></h2>
         <p class="daily__sub"><span class="daily__lead">Mọi người chung một đề, chơi xong khoe kết quả.</span> Đề mới sau <b id="dailyCount">--:--:--</b></p>
       </div>
-      <div class="daily__row" id="dailyCards"></div>
+      <!-- Số đề + đếm ngược điền ngay (cùng công thức dayNumber / msUntilNext của games/_shared/daily.js, ngày ra mắt 24/11/2026 giờ VN)
+           để tiêu đề không đổi bề rộng / xuống dòng khi daily.js (module, chạy sau) vẽ — CLS -->
+      <script>(function () { var t = Date.now() + 252e5, s = Math.ceil((864e5 - t % 864e5) / 1e3), p = function (x) { return (x < 10 ? "0" : "") + x; };
+        document.getElementById("dailyNo").textContent = "#" + Math.max(1, Math.floor((t - Date.UTC(2026, 10, 24)) / 864e5) + 1);
+        document.getElementById("dailyCount").textContent = p(Math.floor(s / 3600)) + ":" + p(Math.floor(s % 3600 / 60)) + ":" + p(s % 60); })();</script>
+      <!-- 3 thẻ viết sẵn (trạng thái "chưa chơi") để giữ đúng chỗ trước khi daily.js (module, chạy sau) vẽ lại theo dữ liệu máy -->
+      <div class="daily__row" id="dailyCards">
+        <a class="dcard" data-game="sudoku" href="../games/sudoku/?daily=1" aria-label="Sudoku, thử thách hôm nay">
+          <span class="dcard__art"><img src="assets/thumbs/half/sudoku.webp" srcset="assets/thumbs/half/sudoku.webp 360w, assets/thumbs/sudoku.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
+          <span class="dcard__body"><span class="dcard__name">Sudoku</span><span class="dcard__meta">Một đề Vừa · cả nước chung đề</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
+        </a>
+        <a class="dcard" data-game="2048" href="../games/2048/?daily=1" aria-label="2048, thử thách hôm nay">
+          <span class="dcard__art"><img src="assets/thumbs/half/2048.webp" srcset="assets/thumbs/half/2048.webp 360w, assets/thumbs/2048.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
+          <span class="dcard__body"><span class="dcard__name">2048</span><span class="dcard__meta">150 nước · cùng chuỗi ô</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
+        </a>
+        <a class="dcard" data-game="do-vui-nhanh" href="../games/do-vui-nhanh/?daily=1" aria-label="Đố Vui, thử thách hôm nay">
+          <span class="dcard__art"><img src="assets/thumbs/half/do-vui.webp" srcset="assets/thumbs/half/do-vui.webp 360w, assets/thumbs/do-vui.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
+          <span class="dcard__body"><span class="dcard__name">Đố Vui</span><span class="dcard__meta">5 câu · 15 giây mỗi câu</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
+        </a>
+      </div>
     </section>
-    <script type="module" src="daily.js?v=board2"></script>
+    <script type="module" src="daily.js?v=perf1"></script>
 
     <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng; tab lọc = đúng các kệ) -->
     <section class="shelves" id="games" data-name="games" aria-labelledby="gamesTitle">
@@ -159,8 +183,8 @@
     </style>
   </footer>
 
-  <script src="games.js?v=unified4"></script>
-  <script src="app.js?v=unified4"></script>
+  <script src="games.js?v=perf1"></script>
+  <script src="app.js?v=perf1"></script>
   <script type="module" src="../games/_shared/feedback.js?v=f2"></script>
   <script type="module" src="press-nav.js?v=p3"></script>
 </body>

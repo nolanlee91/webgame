@@ -69,3 +69,24 @@
 .theme-b .dcard.is-pressing { transform: translate(3px, 3px); box-shadow: var(--b-bevel), var(--b-border); }
 /* Lún tức thì (chỉ nhả ra mới mượt): thẻ có transition .12–.15s, trang chuyển sau 130 ms ⇒ không kịp thấy nếu lún từ từ */
 .theme-b a.tile:active, .theme-b a.tile.is-pressing, .theme-b .dcard:active, .theme-b .dcard.is-pressing { transition-duration: 0s; }
+
+/* ---------- Giữ chỗ lúc tải (CLS — HOME-01 / PERF-02) ---------- */
+/* Tab lọc do app.js vẽ: giữ đúng chiều cao 1 hàng tab (tab 40/44 px + đệm 4 px) */
+.theme-b .tabs { min-height: 48px; }
+/* Sảnh lúc đang hỏi /api/lobby: trên màn ≤ 1023 px (sảnh cao theo nội dung) trông y như lúc "chưa có phòng" — trường hợp hay gặp nhất —
+   để danh sách game bên dưới không bị kéo lên khi kết quả về. Màn rộng: sảnh cao bằng hero nên vẫn hiện "Đang tải…". */
+.portal .quick__item--skel { pointer-events: none; }
+@media (max-width: 1023px) {
+  .portal .lobby.is-loading .lobby__subrow, .portal .lobby.is-loading .lobby__note { display: none; }
+}
+
+/* ---------- Điện thoại: ô tìm kiếm đặt bằng CSS ----------
+   Thanh trên chỉ còn logo (dính đầu màn), ô tìm nằm ngay dưới và cuộn theo trang — y hệt bố cục cũ placeSearch() dựng bằng JS
+   (chuyển ô tìm vào <main>), nhưng có ngay từ lần vẽ đầu. display: contents bỏ hộp của header ⇒ logo dính theo cả trang. */
+@media (max-width: 720px) {
+  .theme-b .tabs { min-height: 52px; }
+  .topbar--search, .topbar--search .topbar__inner { display: contents; }
+  .topbar--search .logo { position: sticky; top: 0; z-index: 20; display: flex; min-height: 55px; padding: 8px 12px;
+    background: #0c1421; border-bottom: 1px solid #273950; }
+  .topbar--search .field.search { width: auto; margin: 17px 12px 6px 18px; } /* = vị trí cũ trong ô mobile-search-slot (lề phải 12 như cũ) */
+}

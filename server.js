@@ -4,6 +4,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { createStatic } = require("./server-static");
 
 const ROOT = path.join(__dirname, "prototype");
 const PORT = Number(process.env.PORT) || 8080;
@@ -80,16 +81,11 @@ function sendJson(res, status, body) {
   });
 }
 
+// File tĩnh: nén gzip/br + ETag/304 + Cache-Control theo ?v= + Range — xem server-static.js.
+const staticFiles = createStatic({ types: TYPES });
 function serveFile(file, req, res, st) {
-  const go = (s) => {
-    const type = TYPES[path.extname(file).toLowerCase()] || "application/octet-stream";
-    const cache = type.startsWith("text/html") ? "no-cache" : "public, max-age=300";
-    res.writeHead(200, { "Content-Type": type, "Content-Length": s.size, "Cache-Control": cache });
-    if (req.method === "HEAD") return res.end();
-    fs.createReadStream(file).on("error", () => res.destroy()).pipe(res);
-  };
-  if (st) return go(st);
-  fs.stat(file, (err, s) => (err || !s.isFile() ? send(res, 404, "Not Found") : go(s)));
+  if (st) return staticFiles.serve(file, req, res, st);
+  fs.stat(file, (err, s) => (err || !s.isFile() ? send(res, 404, "Not Found") : staticFiles.serve(file, req, res, s)));
 }
 
 // Chốt an toàn WebSocket: kết nối tới đường không có game nào nhận (vd game online đang tắt) trước đây bị bỏ treo không có

@@ -29,9 +29,26 @@
   var P2 = '<path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/>';
   function pxIcon(path) { return '<svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true">' + path + "</svg>"; }
 
-  function imgHTML(g, src) {
-    return '<img src="' + (src || g.thumb) + '" alt="" loading="lazy" decoding="async" />';
+  // Ảnh thumb: srcset bản nửa cỡ (assets/thumbs/half/, 360w hoặc 240w) + bản gốc ⇒ thẻ nhỏ / điện thoại tải bản nhẹ.
+  function halfSrc(src) { return src.replace("assets/thumbs/", "assets/thumbs/half/"); }
+  function srcsetOf(g) { var w = g.tw || 720; return halfSrc(g.thumb) + " " + (w / 2) + "w, " + g.thumb + " " + w + "w"; }
+  // Ảnh lưới game / Mở phòng nhanh: chưa gắn src (data-src) — IntersectionObserver gắn khi ảnh sắp vào màn (≤ 300 px),
+  // thay cho loading="lazy" của trình duyệt (tải trước tới 1.250–2.500 px ⇒ điện thoại tải gần hết lưới ngay lúc đầu).
+  // sizes: bề rộng ô thật theo bố cục styles.css (6/5/4/3 cột).
+  var TILE_SIZES = "(max-width: 720px) 34vw, (max-width: 1023px) 25vw, (max-width: 1180px) 20vw, 200px";
+  function imgHTML(g, sizes, eager) {
+    if (eager) return '<img src="' + halfSrc(g.thumb) + '" srcset="' + srcsetOf(g) + '" sizes="' + sizes + '" alt="" loading="lazy" decoding="async" />';
+    return '<img data-src="' + halfSrc(g.thumb) + '" data-srcset="' + srcsetOf(g) + '" sizes="' + sizes + '" alt="" decoding="async" />';
   }
+  function showImg(img) {
+    if (img.dataset.srcset) { img.srcset = img.dataset.srcset; img.removeAttribute("data-srcset"); }
+    if (img.dataset.src) { img.src = img.dataset.src; img.removeAttribute("data-src"); }
+  }
+  var io = "IntersectionObserver" in window ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); showImg(e.target); } });
+  }, { rootMargin: "300px 0px" }) : null;
+  function lazyIn(root) { [].forEach.call(root.querySelectorAll("img[data-src]"), function (img) { if (io) io.observe(img); else showImg(img); }); }
+  function unlazyIn(root) { if (io) [].forEach.call(root.querySelectorAll("img[data-src]"), function (img) { io.unobserve(img); }); }
   function badgeHTML(g) {
     if (soon(g)) return SOON;
     if (!g.badge) return "";
@@ -47,7 +64,10 @@
   var slides = SLIDES.map(function (s) { var g = byId(s.id); return g ? { g: g, s: s } : null; }).filter(Boolean);
   function slideHTML(x, i) {
     var g = x.g, s = x.s;
-    var img = '<img src="' + g.thumb + '" alt="" decoding="async"' + (i ? ' loading="lazy"' : ' fetchpriority="high"') + " />";
+    // Slide 1 tải ngay (ưu tiên cao); slide sau chỉ gắn src khi sắp tới lượt (loadSlide) để không tranh băng thông lúc đầu.
+    var set = srcsetOf(g), sizes = "(max-width: 720px) 45vw, 720px";
+    var img = i ? '<img data-src="' + g.thumb + '" data-srcset="' + set + '" sizes="' + sizes + '" alt="" decoding="async" />'
+      : '<img src="' + g.thumb + '" srcset="' + set + '" sizes="' + sizes + '" alt="" decoding="async" fetchpriority="high" />';
     return '<a class="card slide' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '" role="group" aria-roledescription="trang" aria-label="' + (i + 1) + " / " + slides.length + ": " + g.name + '">' +
       '<span class="hero__art">' + img + "</span>" +
       '<span class="hero__info">' +
@@ -62,16 +82,36 @@
   }
   var track = $("heroTrack"), dots = $("heroDots"), heroEl = document.querySelector(".hero");
   function renderHero() {
-    track.innerHTML = slides.map(slideHTML).join("");
+    // Slide 1 đã viết sẵn trong index.html (ảnh LCP tải sớm, giữ chỗ) ⇒ giữ nguyên node đó, chỉ nối các slide sau.
+    var pre = track.querySelector(".slide");
+    if (slides.length && pre && pre.dataset.id === slides[0].g.id && track.children.length === 1) {
+      pre.setAttribute("aria-label", "1 / " + slides.length + ": " + slides[0].g.name);
+      track.insertAdjacentHTML("beforeend", slides.slice(1).map(function (x, i) { return slideHTML(x, i + 1); }).join(""));
+    } else {
+      track.innerHTML = slides.map(slideHTML).join("");
+    }
     dots.innerHTML = slides.map(function (x, i) {
       return '<button type="button" class="hero__dot" data-i="' + i + '" aria-label="' + x.g.name + '"></button>';
     }).join("");
     heroEl.classList.toggle("is-single", slides.length < 2);
+    heroEl.classList.remove("is-loading"); // hiện nút ‹ › (ẩn tới khi có slide để khỏi đè tiêu đề sảnh)
     goSlide(0, true);
   }
+  // Gắn ảnh cho slide i, và slide kế tiếp khi trang đã tải xong (chuẩn bị cho lần tự chuyển / vuốt).
+  var pageLoaded = document.readyState === "complete";
+  function loadSlide(i) {
+    var el = track.children[i], img = el && el.querySelector("img[data-src]");
+    if (img) showImg(img);
+  }
+  function loadAround(i) {
+    loadSlide(i);
+    if (pageLoaded && slides.length > 1) loadSlide((i + 1) % slides.length);
+  }
+  if (!pageLoaded) window.addEventListener("load", function () { pageLoaded = true; loadAround(state.slide); });
   function goSlide(i, instant) {
     var n = slides.length; if (!n) return;
     state.slide = (i + n) % n;
+    loadAround(state.slide);
     track.classList.toggle("no-anim", !!instant);
     track.style.transform = "translateX(" + (-100 * state.slide) + "%)";
     [].forEach.call(track.children, function (el, k) {
@@ -121,26 +161,40 @@
     if ($("roomStatus").textContent !== note) $("roomStatus").textContent = note;
     $("roomStatus").hidden = !note;
     var empty = !status && !rooms.length;
+    $("lobby").classList.remove("is-loading");
     $("lobby").classList.toggle("is-empty", empty);
     $("lobby").classList.toggle("has-rooms", rooms.length > 0);
     $("quickTitle").textContent = empty ? "Chưa có phòng nào đang chờ · mở phòng nhanh" : "Mở phòng mới";
   }
   // Mở phòng nhanh: mỗi game đối kháng một ô ảnh, bấm là vào màn tạo phòng của game đó.
+  // Điện thoại (≤ 720 px) khối này bị ẩn ⇒ không dựng, không tải ảnh; màn rộng ra (xoay ngang / kéo cửa sổ) thì dựng lúc đó.
+  var mqPhone = window.matchMedia("(max-width: 720px)"), quickDone = false;
   function renderQuick() {
-    $("quickGrid").innerHTML = duelIds.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
-      return '<a class="quick__item" href="' + href(g) + '"><span class="quick__art">' + imgHTML(g) + '</span><span class="quick__name">' + esc(g.name) + "</span></a>";
+    if (quickDone || mqPhone.matches) return;
+    quickDone = true;
+    var box = $("quickGrid");
+    box.innerHTML = duelIds.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
+      return '<a class="quick__item" href="' + href(g) + '"><span class="quick__art">' + imgHTML(g, "(max-width: 1180px) 130px, 150px") + '</span><span class="quick__name">' + esc(g.name) + "</span></a>";
     }).join("");
+    lazyIn(box);
   }
+  if (mqPhone.addEventListener) mqPhone.addEventListener("change", renderQuick); else mqPhone.addListener(renderQuick);
+  function fetchLobby() {
+    return fetch("/api/lobby", { signal: AbortSignal.timeout(8000) }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+  }
+  // Lần đầu dùng request đã gửi từ <head> (window.__lobbyP); lỗi ⇒ thử lại 1 lần sau 1 giây rồi mới báo lỗi.
+  var firstLobby = window.__lobbyP || null;
   async function refreshRooms() {
     if (!document.hidden) {
       try {
-        var response = await fetch("/api/lobby", { signal: AbortSignal.timeout(8000) });
-        if (!response.ok) throw new Error(response.status);
-        var data = await response.json();
+        var data;
+        try { data = await (firstLobby || fetchLobby()); }
+        catch (e) { firstLobby = null; await new Promise(function (r) { setTimeout(r, 1000); }); data = await fetchLobby(); }
         renderRooms(data.rooms.filter(function (r) { return duelIds.includes(r.game); }));
       } catch {
         renderRooms([], "Tạm thời không tải được danh sách phòng.");
       }
+      firstLobby = null;
     }
     setTimeout(refreshRooms, 5000);
   }
@@ -155,7 +209,7 @@
   function roomHTML(r) {
     var g = byId(r.game); if (!g) return "";
     return '<li class="room' + soonCls(g) + '">' +
-      '<span class="room__art">' + imgHTML(g) + "</span>" +
+      '<span class="room__art">' + imgHTML(g, "56px", true) + "</span>" +
       '<span class="room__info"><span class="room__name">' + g.name + ' <span class="room__no">#' + esc(r.code) + "</span></span>" +
         '<span class="room__meta"><span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" />' + esc(r.host) + "</span>" +
         '<span class="room__side">' + seatsHTML(r) + '<span class="room__cnt">' + r.have + "/" + r.max + '<span class="sr-only"> người</span></span></span></span></span>' +
@@ -171,7 +225,7 @@
     var badge = upcoming ? '<span class="badge badge--soon" aria-hidden="true">Sắp ra mắt</span>' : badgeHTML(g);
     var detail = upcoming ? '<p class="meta sr-only">Sắp ra mắt</p>' : metaHTML(g);
     return "<" + tag + ' class="card tile" data-id="' + g.id + '"' + link + ">" +
-      '<span class="tile__art">' + imgHTML(g) + badge + "</span>" +
+      '<span class="tile__art">' + imgHTML(g, TILE_SIZES) + badge + "</span>" +
       '<span class="tile__body"><h3 class="card__name">' + g.name + "</h3>" + detail + "</span></" + tag + ">";
   }
   // Game chơi được lên trước, game "Đang cập nhật" xuống cuối (giữ thứ tự gốc trong từng nhóm).
@@ -219,7 +273,9 @@
     } else if (list.length) {
       html = '<div class="shelf shelf--flat">' + tileGridHTML(list) + "</div>";
     }
+    unlazyIn(grid);
     grid.innerHTML = html;
+    lazyIn(grid);
     count.textContent = list.length;
     var label = CATS.filter(function (c) { return c.id === state.cat; })[0].label;
     $("gamesTitle").firstChild.textContent = (state.q ? "Kết quả tìm kiếm " : state.cat === "all" ? "Tất cả game " : label + " ");
@@ -243,15 +299,8 @@
     $("q").value = ""; state.q = ""; state.cat = "all";
     renderAll();
   });
-  // Mobile: chuyển ô tìm kiếm từ thanh trên xuống đầu trang để thanh trên chỉ còn 1 hàng gọn.
-  var searchEl = document.querySelector(".search"), topInner = document.querySelector(".topbar__inner");
-  var mq = window.matchMedia("(max-width: 720px)");
-  function placeSearch() {
-    if (mq.matches) $("mobileSearchSlot").appendChild(searchEl);
-    else topInner.appendChild(searchEl);
-  }
-  (mq.addEventListener ? mq.addEventListener("change", placeSearch) : mq.addListener(placeSearch));
-  placeSearch();
+  // Điện thoại: ô tìm kiếm nằm dưới thanh logo — đặt bằng CSS (.topbar--search trong portal-pixel.css), không di chuyển bằng JS
+  // (trước đây placeSearch() chạy sau lần vẽ đầu ⇒ ô tìm ép logo xuống 2 dòng rồi nhảy, góp phần CLS).
 
   // Mã phòng gồm 5 ký tự ở tất cả game multiplayer.
   function cleanCode(input) {
