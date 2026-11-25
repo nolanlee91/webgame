@@ -1,7 +1,7 @@
 # Thám Tử Hẻm: ghi chú dev
 
 Hợp đồng chung (vòng chơi, dàn nhân vật, 6 vụ, định dạng vụ): `docs/tham-tu-hem/DESIGN.md`. Asset: `docs/tham-tu-hem/asset-spec.json`.
-Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache thống nhất: **`?v=t4`** cho mọi import và `<script src>`.
+Code: `prototype/games/tham-tu-hem/` (JS module thuần, không build). Tag cache: `?v=t10`–`t12` theo từng file (xem README); file vụ dùng chung tag trong `game.js` (`loadCase`, `prefetchNextCase`), sửa file vụ nào cũng phải tăng tag đó.
 
 ## 1. Kiến trúc
 
@@ -44,6 +44,8 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs, e2e-sea
 
 `needs` phủ định `"!x:y"`, `stmts.<id>.break.also`, `hints[].done`, `finale.steps[].hint`, `teoRescue`, `people.<pid>.sheet` (mùa 2, phải là id vụ trong danh mục). Bộ kiểm cảnh báo từ khoá không bao giờ nhặt được.
 
+`soiOn: true` (cấp vụ, không qua engine): mở vụ là Chế độ soi đã bật (viền + nhãn mọi điểm soi). Chỉ Vụ 1 (vụ hướng dẫn) dùng, TTH-02; người chơi vẫn tắt được.
+
 ### Bản lưu
 
 - `wgp.tham-tu-hem.v1` = `{ v, name, rep, solved: {id: {stars, rep, times, last}}, runs: {id: state vụ đang dở}, flags: {s2intro} }`.
@@ -57,7 +59,8 @@ test/                   node --test (*.test.mjs) + e2e.mjs, e2e-bot.mjs, e2e-sea
 - HUD V5: khung pixel-cut (box-shadow 3px), vát, bóng cứng lệch, không bo tròn, Be Vietnam Pro, panel `#1d1a16`, chữ `#f4ead2`. Vàng chỉ cho nút chính của màn.
 - Chất liệu hồ sơ: thẻ vụ / folder giấy kraft, lời khai và câu chối trên giấy ghi chú, bảng suy luận = bảng bần (dither) + ghim + dây đỏ (SVG), tem mực "ĐÃ PHÁ".
 - Tem riêng của game (không chép game thương mại nào): bấm vạch ⇒ tem đỏ "MÂU THUẪN!" + rung màn, rồi "BỂ!" (đỏ) hoặc "TRẬT!" (xám, kính lúp nứt).
-- Crisp (PLAYBOOK §2): cảnh 960×540 hiện với px thiết bị / px file là bội 0,5 (`crispScale`). Điện thoại: cảnh cao ~48% màn, kéo ngang. Chân dung HD 1×: bội 128 px thiết bị (ảnh đại diện nhỏ thì lọc mượt).
+- Crisp (PLAYBOOK §2): cảnh 960×540 hiện với px thiết bị / px file là bội 0,5 (`crispScale`). Điện thoại: cảnh cao ~48% màn, kéo ngang. Điện thoại xoay ngang (`(orientation: landscape) and (max-height: 500px)`, TTH-03): thanh trên 44 px, cảnh cao trọn khung bên trái (844×390 và 568×320 ⇒ 480×270, hẹp thì kéo ngang), địa điểm + Chế độ soi + người trong vụ ở cột phải.
+- Thanh trên trong vụ: Sổ tay / Bảng / Tèo dưới 1100 px là icon + nhãn chữ 10 px bên dưới (`.btn--tool .tl`), nút ≥ 44×44; ≤ 400 px kính lúp co 14 px để loa không bị cắt ở 320. Chân dung HD 1×: bội 128 px thiết bị (ảnh đại diện nhỏ thì lọc mượt).
 - Toạ độ điểm soi: `manifest.hotspots["assets/scenes/<case>/<scene>.webp"][id]` → `rect` trong vụ → tự xếp lưới.
 - Chân dung: frame `<pid>-<mood>` tìm ở `portraits-<people.pid.sheet>.webp` (nếu có), rồi `portraits-<case>.webp`, rồi `portraits-cast.webp`, rồi bất kỳ sheet chân dung (khách mời vụ 6). Thiếu mood ⇒ neutral. Thiếu hết ⇒ chân dung pixel vẽ bằng canvas (màu theo người, chữ cái đầu, biểu cảm theo mood).
 - Chưa có cảnh ⇒ cảnh vẽ thay (tường / sàn dither, đèn, khối đồ vật ở vị trí điểm soi đang hiện) và luôn bật nhãn điểm soi.
@@ -99,7 +102,7 @@ PORT=8871 node prototype/games/tham-tu-hem/test/e2e-season.mjs <thư mục ảnh
 - Ảnh: 18 cảnh, chân dung cast + 6 vụ, title, office, hem-map, 93 icon vật chứng (`assets/clues-<vụ>.webp`, ô 96, lưới 2×, frame = id vật chứng), `manifest.hotspots` đủ.
 - Manifest: `data/asset-manifest.json` là bản chép `docs/tham-tu-hem/asset-manifest.json` (test kiểm khớp). Codex sửa manifest thì chép lại và đổi tag `?v=`.
 - Điểm soi lồng nhau (chi tiết nằm trong đồ vật lớn, ví dụ `hop-qua-lac` trong `dong-ho-qua-lac`, `nut-gain` trong `ban-mixer`): điểm nhỏ vẽ sau nên nằm trên; nhãn điểm nhỏ đặt phía trên ô.
-- Vùng chạm tối thiểu: `.hs::before` nở đều quanh tâm cho đủ 36×36 px css (điểm soi nhỏ như `cong-usb`, `nut-gain`, `thu-nhat` trên điện thoại cảnh co 0,5–0,67). Điểm đủ lớn giữ nguyên khung. Vì vậy không cần phóng to rect cho dễ bấm.
+- Vùng chạm tối thiểu: `.hs::before` nở đều quanh tâm cho đủ 44×44 px css (trước TTH-03 là 36) (điểm soi nhỏ như `cong-usb`, `nut-gain`, `thu-nhat` trên điện thoại cảnh co 0,5–0,67). Điểm đủ lớn giữ nguyên khung. Vì vậy không cần phóng to rect cho dễ bấm.
 
 ### Sửa toạ độ điểm soi chồng nhau (dev, 2026-11)
 

@@ -11,8 +11,8 @@ import { setManifest, registerSheets, preloadCaseArt } from "./ui/art.js?v=t10";
 import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t10";
 import { createDialog } from "./ui/dialog.js?v=t11";
 import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t10";
-import * as S from "./ui/screens.js?v=t11";
-import * as P from "./ui/panels.js?v=t11";
+import * as S from "./ui/screens.js?v=t12";
+import * as P from "./ui/panels.js?v=t12";
 import { stamp, shake, crackLens } from "./ui/fx.js?v=t10";
 
 const params = new URLSearchParams(location.search);
@@ -85,7 +85,7 @@ const app = {
       if (v == null) return;
       if (v === "redo") s = null;
     }
-    G.c = e.c; G.s = s || createRun(e.c, (Math.random() * 2 ** 31) >>> 0); G.ui.mood = {}; G.ui.soi = false; G.ui.sceneScroll = 0; G.ui.solvedSfx = false; G.ui.slot = null; G.ui.chip = null; G.ui.boardMsg = "";
+    G.c = e.c; G.s = s || createRun(e.c, (Math.random() * 2 ** 31) >>> 0); G.ui.mood = {}; G.ui.soi = !!e.c.soiOn; /* TTH-02: vụ hướng dẫn bật sẵn Chế độ soi */ G.ui.sceneScroll = 0; G.ui.solvedSfx = false; G.ui.slot = null; G.ui.chip = null; G.ui.boardMsg = "";
     app.save();
     const ph = G.s.phase;
     app.show(ph === "intro" ? "office" : ph === "finale" ? "finale" : ph === "done" ? "result" : "scene");
@@ -166,9 +166,9 @@ function renderBar() {
     for (let i = 0; i < MAX_CRED; i++) cred.append(h("span.lens" + (i < G.s.cred ? "" : ".off"), icon(i < G.s.cred ? "lens" : "lensOff", 16)));
     b.append(cred);
     tools.append(...[
-      h("button.btn.btn--icon", { type: "button", id: "btnNotebook", title: "Sổ tay (N)", onclick: () => toggleOverlay("notebook") }, icon("book", 16), h("span.hide-sm", "Sổ tay"), h("span.dot", { hidden: true })),
-      G.screen === "scene" ? h("button.btn.btn--icon", { type: "button", id: "btnBoard", title: "Bảng suy luận (B)", onclick: () => toggleOverlay("board") }, icon("board", 16), h("span.hide-sm", "Bảng")) : null,
-      h("button.btn.btn--icon", { type: "button", id: "btnHint", title: "Gợi ý của Tèo (trừ điểm sao)", onclick: () => app.hint() }, icon("bulb", 16), h("span.hide-sm", "Tèo"))].filter(Boolean));
+      h("button.btn.btn--icon.btn--tool", { type: "button", id: "btnNotebook", title: "Sổ tay (N)", onclick: () => toggleOverlay("notebook") }, icon("book", 16), h("span.tl", "Sổ tay"), h("span.dot", { hidden: true })),
+      G.screen === "scene" ? h("button.btn.btn--icon.btn--tool", { type: "button", id: "btnBoard", title: "Bảng suy luận (B)", onclick: () => toggleOverlay("board") }, icon("board", 16), h("span.tl", "Bảng")) : null,
+      h("button.btn.btn--icon.btn--tool", { type: "button", id: "btnHint", title: "Gợi ý của Tèo (trừ điểm sao)", onclick: () => app.hint() }, icon("bulb", 16), h("span.tl", "Tèo"))].filter(Boolean));
   }
   if (!muted()) tools.append(h("button.btn.btn--icon.hide-xs", { type: "button", id: "btnMusic", title: musicOn() ? "Tắt nhạc (giữ tiếng)" : "Bật nhạc", "aria-pressed": musicOn() ? "true" : "false", onclick: () => { setMusic(!musicOn()); renderBar(); } }, icon(musicOn() ? "note" : "noteOff", 16)));
   tools.append(h("button.btn.btn--icon", { type: "button", id: "btnMute", title: muted() ? "Bật tiếng (M)" : "Tắt tiếng (M)", "aria-pressed": muted() ? "true" : "false", onclick: () => { setMuted(!muted()); renderBar(); } }, icon(muted() ? "mute" : "sound", 16)));
@@ -257,10 +257,10 @@ async function ensureCase(e) {
 function prefetchNextCase() {
   const real = G.cat.filter((x) => !x.dev && x.open && x.status === "lazy");
   const next = real.find((x) => { const r = G.profile.runs[x.id]; return r && r.phase && r.phase !== "intro"; }) || real.find((x) => !G.profile.solved[x.id]);
-  if (next) import(`./data/cases/${next.id}.js?v=t10`).catch(() => {});
+  if (next) import(`./data/cases/${next.id}.js?v=t12`).catch(() => {});
 }
 async function loadCase(entry) {
-  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t10" : `./data/cases/${entry.id}.js?v=t10`;
+  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t10" : `./data/cases/${entry.id}.js?v=t12`;
   try {
     const c = (await import(url)).default;
     const v = validateCase(c);

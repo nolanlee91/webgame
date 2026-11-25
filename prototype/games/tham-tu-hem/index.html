@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/tham-tu-hem.jpg" />
   <!-- og:end -->
   <!-- PERF-03: tải song song cả cây module (không chờ từng tầng import) + manifest ảnh; file vụ KHÔNG ở đây (nạp khi mở vụ) -->
-  <link rel="modulepreload" href="game.js?v=t11" />
+  <link rel="modulepreload" href="game.js?v=t12" />
   <link rel="modulepreload" href="data/cases/index.js?v=t10" />
   <link rel="modulepreload" href="data/case-meta.js?v=t10" />
   <link rel="modulepreload" href="core/validate.js?v=t10" />
@@ -36,8 +36,8 @@
   <link rel="modulepreload" href="ui/dom.js?v=t10" />
   <link rel="modulepreload" href="ui/dialog.js?v=t11" />
   <link rel="modulepreload" href="ui/sfx.js?v=t10" />
-  <link rel="modulepreload" href="ui/screens.js?v=t11" />
-  <link rel="modulepreload" href="ui/panels.js?v=t11" />
+  <link rel="modulepreload" href="ui/screens.js?v=t12" />
+  <link rel="modulepreload" href="ui/panels.js?v=t12" />
   <link rel="modulepreload" href="ui/fx.js?v=t10" />
   <link rel="modulepreload" href="../_shared/share.js?v=s2" />
   <link rel="modulepreload" href="../_shared/site.js" />
@@ -280,8 +280,8 @@
     .scene { position: relative; background: #101418; }
     .scene-img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; pointer-events: none; }
     .hs { all: unset; position: absolute; cursor: zoom-in; touch-action: manipulation; }
-    /* vùng chạm tối thiểu 36×36 px css (điểm soi nhỏ trên điện thoại): ::before nở đều quanh tâm, điểm đủ lớn thì giữ nguyên khung */
-    .hs::before { content: ""; position: absolute; inset: min(0px, calc(50% - 18px)); }
+    /* vùng chạm tối thiểu 44×44 px css (điểm soi nhỏ trên điện thoại, TTH-03): ::before nở đều quanh tâm, điểm đủ lớn thì giữ nguyên khung */
+    .hs::before { content: ""; position: absolute; inset: min(0px, calc(50% - 22px)); }
     .hs:hover, .hs:focus-visible { outline: 3px dashed var(--ink); outline-offset: -3px; background: rgba(244,234,210,.10); }
     .soi .hs { outline: 3px dashed rgba(244,234,210,.92); outline-offset: -3px; background: rgba(244,234,210,.06); }
     .soi .hs:not(.seen) { animation: soi 1.2s steps(2) infinite; }
@@ -515,7 +515,12 @@
     .toast.out { opacity: 0; transition: opacity .3s; }
 
     /* ---------- điện thoại ---------- */
-    @media (max-width: 1100px) { .hide-sm { display: none !important; } }
+    @media (max-width: 1100px) {
+      .hide-sm { display: none !important; }
+      /* TTH-02: Sổ tay / Bảng / Tèo: nhãn chữ ngắn dưới icon (title không hiện trên cảm ứng), vùng chạm ≥ 44 px */
+      .btn--tool { flex-direction: column; gap: 1px; min-width: 44px; min-height: 44px; padding: 4px 6px 3px; }
+      .btn--tool .tl { font: 800 10px/1.05 "Be Vietnam Pro"; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+    }
     @media (max-width: 899px) {
       .scene-screen { display: flex; flex-direction: column; padding: 8px 8px 16px; gap: 10px; }
       .scene-main { align-items: stretch; }
@@ -551,6 +556,8 @@
       .cred { padding: 3px 4px; gap: 0; }
       .cred .lens { width: 18px; height: 18px; } .cred .lens .ico { width: 16px; height: 16px; }
       .btn--icon { padding: 6px 7px; margin: 2px 3px 4px 2px; min-height: 38px; min-width: 38px; }
+      .btn--tool { padding: 4px 4px 3px; margin: 1px 2px 3px 1px; min-height: 44px; min-width: 44px; }
+      .tools { gap: 2px; }
       .title-logo b { font-size: 46px; } .title-logo b.l2 { padding-left: 28px; }
       .title-col { padding: 18px 16px; }
       .dlg { padding: 0 4px 6px; }
@@ -563,6 +570,41 @@
       .big-stamp { font-size: 42px; }
       .folder h2 { font-size: 22px; }
       .case-card { margin-right: 4px; }
+    }
+    /* 320–400: thanh trên trong vụ vừa ← + 5 kính lúp + Sổ tay / Bảng / Tèo + loa (TTH-04: trước đó loa bị cắt) */
+    @media (max-width: 400px) {
+      .bar { gap: 4px; padding: 0 2px; }
+      .bar .back { padding: 6px 4px; }
+      .cred { padding: 3px 2px; }
+      .cred .lens { width: 14px; height: 18px; } .cred .lens .ico { width: 14px; height: 14px; }
+      .bar .btn--icon:not(.btn--tool) { padding: 6px 4px; min-width: 34px; margin: 2px 2px 4px 1px; }
+    }
+    /* TTH-03: điện thoại xoay ngang (docs/mobile-landscape.md): thanh trên gọn 44 px, hiện trường 2 cột —
+       cảnh cao trọn khung bên trái (screens.js tính cỡ theo chiều cao, hẹp thì kéo ngang), địa điểm + Chế độ soi + người bên phải */
+    @media (orientation: landscape) and (max-height: 500px) {
+      :root { --barH: 44px; }
+      .bar { padding: 0 max(4px, env(safe-area-inset-right)) 0 max(4px, env(safe-area-inset-left)); gap: 6px; }
+      .bar.in-case h1 { display: none; }
+      .bar .btn--icon { margin: 0 2px; min-height: 40px; }
+      .bar .btn--tool { min-height: 44px; margin: 0 2px; padding: 3px 5px 2px; }
+      .bar .back { min-height: 40px; padding: 4px 6px; }
+      .scene-screen { display: grid; height: 100%; min-height: 0; overflow: hidden; gap: 6px 10px;
+        grid-template-columns: minmax(0, auto) minmax(170px, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "scene loc" "scene tools" "scene side";
+        padding: 3px max(6px, env(safe-area-inset-right)) 3px max(6px, env(safe-area-inset-left)); }
+      .scene-main { display: contents; }
+      .scene-wrap { grid-area: scene; align-self: center; margin: 0; max-width: 100%; }
+      .locbar { grid-area: loc; align-self: start; margin: 3px 3px 0; flex-wrap: wrap; overflow: visible; }
+      .loc { flex: 1 1 auto; min-height: 40px; padding: 6px 10px; font-size: 12px; justify-content: center; box-shadow: inset -3px 0 0 var(--line), inset 0 -3px 0 var(--line); }
+      .loc.on { box-shadow: inset 0 3px 0 var(--teal-l), inset 0 -3px 0 var(--teal-d), inset -3px 0 0 var(--line); }
+      .scene-tools { grid-area: tools; justify-content: flex-start; gap: 4px 10px; }
+      .scene-tools .tip { display: none; }
+      .scene-tools .btn { margin: 3px 6px 6px 3px; min-height: 44px; }
+      .side { grid-area: side; min-height: 0; overflow-y: auto; align-self: stretch; margin: 3px 3px 3px 3px; padding: 8px; gap: 4px; }
+      .side .sec { margin-bottom: 2px; }
+      .people { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; }
+      .person { padding: 4px 8px 4px 4px; }
+      .side-cta { margin-top: 4px; }
+      .side-cta .btn--big { min-height: 44px; font-size: 14px; padding: 8px 12px; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition: none !important; } }
     /* màn tựa tĩnh (HTML/CSS, hiện trước khi JS xong — PERF-03); game.js gỡ khi màn tựa thật sẵn sàng */
@@ -595,6 +637,6 @@
   <div id="fx" aria-live="assertive"></div>
   <div id="toasts" aria-live="polite"></div>
   <script type="module" src="../_shared/feedback.js?v=t11"></script>
-  <script type="module" src="game.js?v=t11"></script>
+  <script type="module" src="game.js?v=t12"></script>
 </body>
 </html>
