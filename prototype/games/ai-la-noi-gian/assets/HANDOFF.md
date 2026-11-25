@@ -45,3 +45,12 @@ Không có tên vai, chữ tiêu đề, bộ đếm hoặc nút được vẽ c�
 Đã mở xem 8 ảnh AI và contact sheet sau xuất; kiểm tra đủ 8 file chính, đúng kích thước/tỷ lệ, PNG RGBA có alpha, 4 thumbnail đúng 192×256. File WebP dùng lossless; đóng gói bằng fit/crop theo tỷ lệ và resize nearest-neighbor, không vẽ đè nội dung bằng code. Không dùng CLI/API fallback.
 
 `asset-manifest.json` có byte size, mode, kích thước và SHA-256 của từng ảnh chính. Có thể kiểm tra bằng PowerShell: `Get-FileHash -Algorithm SHA256 <tên-file>` rồi so với trường `sha256`. Các ảnh gốc còn tại đường dẫn được ghi trong prompt log.
+
+## Chân dung người chơi
+
+- `avatars.webp`: 768×96, 8 ô 96×96 từ ghế 0 đến 7. WebP lossless, alpha cứng và lưới 2×.
+- `avatars-x4-preview.png`: bản soi 3072×384, phóng nearest 4×. Đã soi chân dung trên màu ghế ở 36 px và kiểm đường viền, hàng mắt và phụ kiện.
+- PTY-10: dùng 8 lượt image_gen, mỗi người một lượt, 0 lượt làm lại. Prompt thực tế nằm dưới mục `avatars` trong `generation-prompts.json`. Các nguồn trong log dùng tên file.
+- Bộ kiểm asset chạy với spec tạm theo CODEX-AVATARS.md và dữ liệu frame của atlas: 0 lỗi, 0 cảnh báo — ĐẠT, giao được.
+
+Commit avatar: f7e63ce.
