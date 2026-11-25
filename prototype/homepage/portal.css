@@ -73,7 +73,7 @@
 .portal .hero__nav { opacity: 1; color: #f6f0e5; }
 .portal .hero__nav::before { inset: 5px; border-radius: 50%; border: 1px solid #ffffff35; background: #101b2cef; box-shadow: none; }
 .portal .hero__nav:hover::before { background: #2c415b; }
-.portal .hero__dots { padding: 0 0 7px; }
+.portal .hero__dots { padding: 0 0 7px; min-height: 31px; } /* = chấm 24 px + đệm 7: giữ chỗ trước khi app.js vẽ chấm (CLS) */
 .portal .hero__dot::before { width: 6px; height: 6px; background: #65768c; border-radius: 999px; box-shadow: none; }
 .portal .hero__dot[aria-current="true"]::before { width: 18px; background: var(--px-gold); }
 
