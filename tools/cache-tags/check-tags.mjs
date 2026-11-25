@@ -24,6 +24,7 @@ const changed = new Set(
 if (!changed.size) { console.log('Không có file tĩnh nào đổi so với', base); process.exit(0); }
 
 const REF = /([\w./-]+\.(?:m?js|css|webp|png|jpe?g|gif|svg|json|mp3|ogg|wav|m4a|woff2?))\?v=([\w.-]+)/g;
+const TPL = /([\w./-]*)\$\{[^}]+\}([\w.-]*)\.(m?js|css|json|webp|png)\?v=([\w.-]+)/g;
 const SKIP = new Set(['node_modules', 'test', 'screenshots']);
 
 function* walk(dir) {
@@ -61,6 +62,17 @@ for (const file of walk(PROTO)) {
     if (!changed.has(target)) continue;
     const old = baseText(rel);
     if (old && old.includes(m[0])) stale.push({ rel, target, ref: m[0] });
+  }
+  // Đường dẫn ghép động: `./data/cases/${id}.js?v=t12` ⇒ khớp mọi file cùng thư mục / đuôi đã đổi
+  for (const m of text.matchAll(TPL)) {
+    const [whole, pre, post, ext] = m;
+    const dir = resolveRef(file, (pre || "./") + "x").replace(/x$/, "");
+    const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp("^" + esc(dir) + "[^/]+" + esc(post) + "\\." + ext + "$");
+    const hits = [...changed].filter((f) => re.test(f));
+    if (!hits.length) continue;
+    const old = baseText(rel);
+    if (old && old.includes(whole)) stale.push({ rel, target: hits.join(", "), ref: whole });
   }
 }
 
