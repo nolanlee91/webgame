@@ -36,7 +36,8 @@ addEventListener("pointerdown", (e) => {
     return;
   }
   cancelTouch();
-  touch = { a, id: e.pointerId, x: e.clientX, y: e.clientY, pressed: false };
+  const r = a.getBoundingClientRect();
+  touch = { a, id: e.pointerId, x: e.clientX, y: e.clientY, rx: r.left, ry: r.top, pressed: false };
   touch.timer = setTimeout(() => { if (touch && touch.a === a) { touch.pressed = true; press(a); } }, TOUCH_PRESS_DELAY);
 }, true);
 
@@ -44,7 +45,13 @@ addEventListener("pointermove", (e) => {
   if (touch && e.pointerId === touch.id && Math.hypot(e.clientX - touch.x, e.clientY - touch.y) > SLOP) cancelTouch();
 }, { capture: true, passive: true });
 addEventListener("pointercancel", (e) => { if (touch && e.pointerId === touch.id) cancelTouch(); }, true);
-addEventListener("scroll", cancelTouch, { capture: true, passive: true }); // cả cuộn trang lẫn cuộn ngang trong kệ
+// Cuộn trang / cuộn ngang trong kệ ⇒ huỷ, nhưng chỉ khi thẻ đang chạm THỰC SỰ dịch > SLOP px (dải "Chơi ngay" có scroll-snap:
+// trình duyệt có thể chỉnh vị trí vài px ngay lúc chạm — không phải người dùng đang lướt).
+addEventListener("scroll", () => {
+  if (!touch) return;
+  const r = touch.a.getBoundingClientRect();
+  if (Math.abs(r.left - touch.rx) > SLOP || Math.abs(r.top - touch.ry) > SLOP) cancelTouch();
+}, { capture: true, passive: true });
 
 addEventListener("pointerup", (e) => {
   if (!touch || e.pointerId !== touch.id) return;

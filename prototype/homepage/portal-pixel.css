@@ -112,9 +112,9 @@
   .qp__title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; margin: 0 0 8px 3px; font: 800 18px/1.2 var(--font-title); text-shadow: 2px 2px 0 #050a12; }
   .qp__hint { font: 700 12px/1.2 var(--font-body); color: #75d1bf; text-shadow: none; }
   .qp__row { display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: calc((100% - 24px - 20px) / 3.2); gap: 12px 10px;
-    margin: 0 -12px; padding: 3px 12px 9px 15px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding-left: 15px; scrollbar-width: none; }
+    margin: 0 -12px; padding: 3px 12px 9px 15px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; } /* không scroll-snap: snap tự chỉnh vị trí ngay lúc chạm ⇒ press-nav tưởng đang lướt */
   .qp__row::-webkit-scrollbar { display: none; }
-  .qp__row .tile { scroll-snap-align: start; box-shadow: var(--b-border), 3px 4px 0 0 #050a12; }
+  .qp__row .tile { box-shadow: var(--b-border), 3px 4px 0 0 #050a12; }
   .qp__row .tile__body { padding: 5px 6px 6px; min-height: 0; }
   .qp__row .card__name { display: block; height: 2.5em; font: 700 12px/1.25 var(--font-body); overflow: hidden; }
 }

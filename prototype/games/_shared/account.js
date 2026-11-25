@@ -9,6 +9,7 @@
 //                                   Từ tục KHÔNG kiểm ở đây (danh sách nằm ở máy chủ): máy chủ phòng online / bảng xếp hạng vẫn lọc
 //                                   (games-server/moderation.js). Muốn hỏi máy chủ trước khi lưu ⇒ saveName().
 //   isGenerated()        → boolean  Tên hiện tại là tên tự sinh (người chơi chưa tự đặt).
+//   hasCustomName()      → boolean  = !isGenerated(): người chơi tự đặt/sửa tên (online-kit.js dùng hàm này).
 //   onNameChange(cb)     → () => void (huỷ đăng ký)  Gọi cb(name) khi tên đổi: ở trang này (setName / saveName / rerollName /
 //                                   tên sinh lần đầu / máy chủ trả tên đã làm sạch) VÀ khi tab khác đổi (sự kiện "storage").
 //   saveName(name, {syncBoard=true}?) → Promise<{ ok, name, error }>  Như setName nhưng hỏi bộ lọc máy chủ trước (POST /api/name/check), rồi đổi
@@ -19,7 +20,7 @@
 //   avatarSvg(name, px?) → string   Avatar pixel 8×8 (SVG) sinh từ tên — cùng tên ⇒ cùng avatar.
 //   NAME_MIN = 2, NAME_MAX = 16, DEFAULT_NAME = "Người chơi" (tên máy chủ dùng khi tên bị lọc).
 // Lưu ở localStorage "wgp.account.v1" { v:1, name, gen, asked, devId, sent } — bản lưu cũ (chưa có gen) vẫn đọc được, tên cũ giữ nguyên.
-// Địa chỉ import hiện tại: "../_shared/account.js?v=name1" (sửa file này ⇒ tăng ?v= ở MỌI chỗ import).
+// Địa chỉ import hiện tại: "../_shared/account.js?v=name2" (sửa file này ⇒ tăng ?v= ở MỌI chỗ import).
 // =================================================================================================================================
 //
 // Bảng xếp hạng (giai đoạn 1):
@@ -135,6 +136,8 @@ export function getName() {
   return st.name;
 }
 export function isGenerated() { getName(); return !!load().gen; }
+/** Người chơi TỰ đặt tên (gõ ở ô hồ sơ / game / tên cũ trong game) — ngược với isGenerated(). Sinh tên tự động KHÔNG bật cờ asked. */
+export function hasCustomName() { return !isGenerated(); }
 /** Đã hỏi tên lần nào chưa (bản cũ hỏi tên ở bảng kết quả Thử thách; giờ tên tự sinh nên không hỏi nữa). */
 export function wasAsked() { return !!load().asked; }
 export function setName(name) {

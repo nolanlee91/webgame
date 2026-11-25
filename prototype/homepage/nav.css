@@ -20,6 +20,7 @@
 .mainnav__a[aria-current="page"] { color: #ffe3a5; box-shadow: inset 0 -3px 0 #f7c96d; }
 .mainnav__a[aria-current="page"] .px-svg { color: #f7c96d; }
 .mainnav__a:focus-visible { outline: 2px solid var(--px-gold); outline-offset: -2px; }
+.mainnav__a:active { transform: translate(2px, 2px); } /* lún khi bấm như mọi nút pixel V5 */
 
 .mainnav__s { display: none; }
 @media (max-width: 720px) { .mainnav__s { display: inline; } }
