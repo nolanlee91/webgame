@@ -1,0 +1,17 @@
+/* Lụm Kèo — quy ước khung thấp dùng chung (xem docs/mobile-landscape.md).
+   Gắn class "ss-cta" vào hàng nút chính của thẻ menu nằm trong lớp phủ cuộn được (.ov { overflow: auto }):
+   khi thẻ dài hơn khung (điện thoại xoay ngang, laptop 768px) hàng nút ghim đáy lớp phủ ⇒ nút "Bắt đầu" luôn thấy,
+   người chơi không phải cuộn qua phần luật. Khung đủ cao thì sticky không "dính", nút nằm đúng chỗ cũ.
+   Biến tuỳ chọn: --ss-ov-pad (lề trong của lớp phủ, mặc định 12px), --panel / --line (màu nền thẻ / viền). */
+@media (max-height: 860px) {
+  .ss-cta.ss-cta { position: sticky; bottom: calc(-1 * var(--ss-ov-pad, 12px)); z-index: 3;
+    padding-top: 12px; padding-bottom: var(--ss-ov-pad, 12px);
+    background: var(--panel, #1d1a16); box-shadow: 0 -3px 0 0 var(--line, #0a0807); }
+}
+/* (class nhân đôi: thắng .ov / .actions của game vì file này nạp TRƯỚC <style> của game) */
+/* Điện thoại xoay ngang: lớp phủ menu / tạm dừng / kết thúc (class "ss-ov") phủ cả khung từ dưới thanh đầu trang
+   (--ss-bar-h, mặc định 0) thay vì bị ép trong khung bàn chơi hẹp giữa HUD và nút. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .ss-ov.ss-ov { position: fixed; inset: var(--ss-bar-h, 0px) 0 0 0; z-index: 30; --ss-ov-pad: 8px;
+    padding: 8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); }
+}

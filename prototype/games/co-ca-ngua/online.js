@@ -4,7 +4,7 @@
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
 //   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ.
-import { mount } from "./game.js?v=chat1";
+import { mount } from "./game.js?v=ls1";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
@@ -32,7 +32,7 @@ const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ 
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=chat1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=ls2", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
   }
   if (!document.querySelector("link[data-cn-online]")) {
     const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=chat1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);

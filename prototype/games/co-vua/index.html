@@ -278,6 +278,32 @@
       body.is-online #newBtn[disabled] { display: none; }
       .mid { min-width: 64px; max-width: 96px; }
     }
+    /* ---------- Điện thoại xoay ngang (BRD-05 — quy ước chung: docs/mobile-landscape.md) ----------
+       Bàn vuông chỉ dùng phần giữa; hai bên còn ~280px ⇒ thẻ 2 người chơi xếp dọc ở cột trái, nút công cụ xếp dọc ở cột phải.
+       Đặt cuối để thắng các khối max-width: 760px phía trên (568×320 khớp cả hai). */
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+      .wrap, body.has-chat .wrap { padding: 8px max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left)); gap: 8px 12px;
+        grid-template-columns: minmax(140px, 1fr) auto minmax(120px, 1fr); grid-template-rows: minmax(0, 1fr);
+        grid-template-areas: "hud stage tools"; }
+      body.has-chat .wrap { grid-template-columns: minmax(140px, 1fr) auto minmax(170px, 1fr); grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas: "hud stage tools" "hud stage chat"; }
+      /* cột giữa vừa đúng cạnh bàn: chiều cao khung − thanh trên (≈44px); hai cột bên ≥ 140 / 120px */
+      .stage { width: min(calc(100svh - 44px), calc(100vw - 310px)); }
+      body.has-chat .stage { width: min(calc(100svh - 44px), calc(100vw - 360px)); }
+      .hud { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 14px; margin: 3px; }
+      .pl, .pl--b { flex-direction: row; text-align: left; padding: 8px 10px; }
+      .pl--b .turn { left: 10px; right: auto; }
+      .pl--b .caps { justify-content: flex-start; }
+      .pl .who { min-width: 0; flex: 1; }
+      .pl .who small { display: block; }
+      .pl .who b { font-size: 14px; }
+      .pl .sc, .pl--b .sc { margin: 0 0 0 auto; font-size: 22px; }
+      .mid { max-width: none; justify-self: stretch; } .mid b { white-space: normal; }
+      .tools { flex-direction: column; align-items: stretch; justify-content: center; gap: 12px; margin: 3px 7px 7px 3px; }
+      .tools .btn, .tools .btn--icon { flex: none; min-height: 40px; padding: 6px 8px; font-size: 12px; }
+      body.has-chat .tools { justify-content: flex-start; flex-flow: row wrap; }
+      body.has-chat .tools .btn { flex: 1 1 70px; }
+    }
   </style>
 </head>
 <body>

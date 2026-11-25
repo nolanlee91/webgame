@@ -24,12 +24,13 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/ran-san-moi.jpg" />
   <!-- og:end -->
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link href="../_shared/short-screen.css?v=ss1" rel="stylesheet" /><!-- khung thấp: nút Bắt đầu ghim đáy (docs/mobile-landscape.md) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%222%22 y=%229%22 width=%2210%22 height=%223%22 fill=%22%233fae4a%22/%3E%3Crect x=%229%22 y=%224%22 width=%223%22 height=%225%22 fill=%22%233fae4a%22/%3E%3Crect x=%229%22 y=%223%22 width=%224%22 height=%223%22 fill=%22%238be08f%22/%3E%3Crect x=%223%22 y=%223%22 width=%223%22 height=%223%22 fill=%22%23e0483d%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Nối Thú / Đào Vàng / Cờ Cá Ngựa: viền 3px (box-shadow),
        vát 2px, bóng cứng lệch, không bo tròn, không mờ. Vàng CHỈ cho nút chính (Bắt đầu). Rắn, mồi, bàn đều vẽ bằng code (khối pixel), không dùng ảnh. */
     :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
-      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
+      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6); --ss-bar-h: 31px; /* chiều cao thanh đầu trang khi xoay ngang — _shared/short-screen.css */
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d;
       --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
       --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
@@ -181,7 +182,7 @@
     <div class="stage" id="stage">
       <canvas id="cv" tabindex="0" aria-label="Bàn chơi Rắn Săn Mồi. Phím mũi tên để đổi hướng."></canvas>
 
-      <div class="ov" id="ovMenu">
+      <div class="ov ss-ov" id="ovMenu">
         <div class="card">
           <h2>Rắn Săn Mồi</h2>
           <p class="sub">Điều khiển chú rắn ăn mồi để lớn dần. Đừng cắn vào thân mình!</p>
@@ -196,16 +197,16 @@
             <button class="mode on" type="button" role="radio" aria-checked="true" data-mode="classic"><b>Cổ điển</b><small>Bàn có tường đá bao quanh — đụng tường hay đụng thân là thua.</small></button>
             <button class="mode" type="button" role="radio" aria-checked="false" data-mode="wrap"><b>Xuyên tường</b><small>Đi ra mép này sẽ hiện ở mép đối diện. Chỉ thua khi tự cắn thân.</small></button>
           </div>
-          <div class="actions"><button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button></div>
+          <div class="actions ss-cta"><button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button></div>
           <div class="best" id="mBest"></div>
         </div>
       </div>
 
-      <div class="ov" id="ovPause" hidden>
+      <div class="ov ss-ov" id="ovPause" hidden>
         <div class="card">
           <h2>Tạm dừng</h2>
           <p class="sub">Rắn đang đứng yên chờ bạn.</p>
-          <div class="actions">
+          <div class="actions ss-cta">
             <button class="btn btn--big btn--primary" id="resumeBtn" type="button">▶ Chơi tiếp</button>
             <button class="btn btn--big" id="retryBtnP" type="button">Chơi lại</button>
             <button class="btn btn--big" id="menuBtnP" type="button">Về menu</button>
@@ -213,13 +214,13 @@
         </div>
       </div>
 
-      <div class="ov" id="ovEnd" hidden>
+      <div class="ov ss-ov" id="ovEnd" hidden>
         <div class="card">
           <h2 id="eTitle">Rắn đã ngã!</h2>
           <p class="sub" id="eSub"></p>
           <div class="result" id="eResult"></div>
           <div id="eRecord"></div>
-          <div class="actions">
+          <div class="actions ss-cta">
             <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
             <button class="btn btn--big" id="shareBtnE" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Về menu</button>

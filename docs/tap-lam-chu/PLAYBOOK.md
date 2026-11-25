@@ -100,6 +100,7 @@ Các quy tắc đã cài trong `prototype/games/tiem-tra-sua/render/atlas.js` v�
 - **Không** dùng `object-fit: cover` co nhỏ tranh. Tự tính cỡ phủ khung theo bội 0,5 (màn chào Trà Sữa).
 - `charScale(f)`: chiều cao nhân vật mục tiêu 192 px cảnh. Ô cũ 128 thì ×1,5; ô mới 192 thì ×1, tự nét khi Codex giao bản lớn.
 - Luôn test ở **1366×768, phóng 125% (dpr 1,25)**, cấu hình laptop phổ biến và là nơi lộ lỗi mờ. Kèm 1920×1080 dpr 1 và mobile 390×844 dpr 3.
+- Điện thoại xoay ngang / khung thấp (≤ 500 px cao): theo quy ước `docs/mobile-landscape.md` (breakpoint, công thức cạnh bàn, nút chính luôn thấy, `_shared/short-screen.css`). Test thêm 844×390 và 568×320.
 
 ---
 

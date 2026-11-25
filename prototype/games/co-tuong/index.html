@@ -115,8 +115,9 @@
     /* TẦNG 1 — bàn cờ */
     .stage { grid-area: stage; position: relative; min-height: 0; }
     .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: manipulation; outline: none; }
-    .tip { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--ink);
-      background: rgba(12, 10, 8, .88); box-shadow: 0 0 0 2px var(--line); pointer-events: none; white-space: nowrap; z-index: 1; }
+    /* Gợi ý chạm (BRD-13): nằm NGOÀI bàn — trong cột phải trên biên bản; màn dọc thì nằm dưới đáy khung bàn (khoảng trống dưới bàn). */
+    .tip { flex: none; margin: 3px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: var(--ink); text-align: center;
+      background: #2a2216; box-shadow: 0 0 0 2px var(--gold-d); pointer-events: none; }
     .offer { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; max-width: calc(100% - 12px);
       background: var(--panel); box-shadow: var(--bevel), 0 -3px 0 var(--gold), 0 3px 0 var(--gold), -3px 0 0 var(--gold), 3px 0 0 var(--gold), var(--drop); font-weight: 700; font-size: 14px; }
     .offer .btn { min-height: 38px; padding: 6px 12px; font-size: 13px; }
@@ -227,6 +228,7 @@
       .wrap { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "hud" "stage" "tools"; padding: 14px 10px 12px; gap: 10px; }
       .side { display: contents; }
       .log { display: none; }
+      .tip { grid-area: stage; align-self: end; justify-self: center; z-index: 2; margin: 0 0 2px; padding: 4px 10px; white-space: nowrap; background: rgba(12, 10, 8, .9); box-shadow: 0 0 0 2px var(--line); }
       .tools { grid-area: tools; display: flex; justify-content: space-between; gap: 10px; margin: 3px 7px 7px 3px; }
       .tools > .btn { flex: 1; min-width: 0; padding: 8px 4px; font-size: 12px; letter-spacing: .02em; } /* minmax(0,1fr) + min-width 0: hàng nút không được kéo giãn trang quá bề rộng màn hình */
       .tools .icons { flex: none; gap: 10px; }
@@ -275,6 +277,7 @@
       .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; }
       .wrap { padding: 10px 10px 6px; gap: 8px; grid-template-columns: minmax(0, 1fr) 250px; grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "hud side" "stage side"; }
       .side { display: flex; gap: 8px; } .log { display: flex; }
+      .tip { align-self: stretch; white-space: normal; margin: 3px; padding: 6px 8px; background: #2a2216; box-shadow: 0 0 0 2px var(--gold-d); }
       .tools { display: grid; gap: 8px; } .tools > .btn, .tools .icons .btn { min-height: 36px; font-size: 12px; padding: 6px; flex: 1; }
       body.live .tools #newBtn { display: inline-flex; }
       .pl { padding: 3px 8px; }
@@ -305,6 +308,7 @@
           <button class="btn btn--icon" id="muteBtn" type="button" aria-pressed="false" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img id="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /></button>
         </div>
       </div>
+      <div class="tip" id="tip" role="status" hidden>Chạm vào chấm sáng để đi quân</div>
       <section class="log" aria-label="Biên bản nước đi">
         <div class="log-hd"><b>Biên bản</b><span class="kb" id="logN"></span></div>
         <ol class="log-list" id="logList"></ol>
@@ -318,7 +322,6 @@
     </aside>
     <div class="stage" id="stage">
       <canvas id="cv" tabindex="0" aria-label="Bàn Cờ Tướng. Chạm vào quân của bạn để xem nước đi, chạm vào ô sáng để đi. Bàn phím: mũi tên để di chuyển, Enter để chọn."></canvas>
-      <div class="tip" id="tip" hidden>Chạm vào chấm sáng để đi quân</div>
       <div class="offer" id="offer" hidden><span id="offerT">Đối thủ cầu hòa</span><button class="btn btn--primary" id="offerYes" type="button">Đồng ý</button><button class="btn" id="offerNo" type="button">Từ chối</button></div>
 
       <div class="ov" id="ovMenu">
@@ -408,7 +411,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=d0";
+    import { mount } from "./game.js?v=ls1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

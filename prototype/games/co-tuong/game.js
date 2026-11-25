@@ -122,6 +122,8 @@ export function mount(root, ctx = {}) {
     logList: $("logList"), logN: $("logN"),
     chat: $("chat"), chatLog: $("chatLog"), chatF: $("chatF"), chatIn: $("chatIn"), chatBtn: $("chatBtn"), chatN: $("chatN"), chatX: $("chatX"),
   };
+  const TIP_KEY = "wgp.co-tuong.tip", TIP_MAX = 3;
+  let tipCount = 0; try { tipCount = Number(localStorage.getItem(TIP_KEY)) || 0; } catch {}
   root.querySelectorAll(".pcR").forEach((e) => { e.innerHTML = pieceHtml("K"); });
   root.querySelectorAll(".pcB").forEach((e) => { e.innerHTML = pieceHtml("k"); });
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "do-xuc-xac", "thang", "thua", "qua-man", "tin-nhan"], sdk);
@@ -407,7 +409,11 @@ export function mount(root, ctx = {}) {
     ui.next.disabled = !!room && live;
     ui.next.classList.toggle("btn--primary", !live);
     ui.next.firstChild.textContent = live ? "Ván mới" : "Ván tiếp ▶";
-    ui.tip.hidden = !(sel >= 0 && dests.length && matchMedia("(pointer: coarse)").matches);
+    // BRD-13: gợi ý chỉ hiện 3 lần chọn quân đầu tiên (nhớ qua các lần chơi), nằm ngoài bàn (cột biên bản / dưới bàn) — không che hàng quân nhà
+    const wantTip = sel >= 0 && dests.length > 0 && matchMedia("(pointer: coarse)").matches;
+    const showTip = wantTip && (!ui.tip.hidden || tipCount < TIP_MAX);
+    if (showTip && ui.tip.hidden) { tipCount++; try { localStorage.setItem(TIP_KEY, String(tipCount)); } catch {} }
+    ui.tip.hidden = !showTip;
   }
   function showMute() {
     const m = !!sdk.sound.muted;
