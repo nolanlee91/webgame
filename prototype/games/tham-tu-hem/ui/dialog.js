@@ -124,6 +124,8 @@ export function createDialog(root, ctx) {
       return new Promise((r) => { resolve = r; showItem(queue[0]); layer.focus?.(); });
     },
     next, ff,
+    /** Rời vụ giữa đoạn thoại (nút Về bản đồ trên thanh trên, TTH-01): đóng khung thoại, KHÔNG chạy tiếp phần sau lời thoại. */
+    cancel() { if (!resolve) return; clearInterval(typing); typing = null; layer.hidden = true; document.body.classList.remove("dlg-open"); resolve = null; queue = []; idx = 0; clear(left); clear(right); sides.left = sides.right = null; },
     get open() { return !!resolve; },
   };
 }

@@ -3,14 +3,14 @@
 import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b6";
 import { placeholderFallback } from "./render/placeholder.js?v=b6";
 import { createScene } from "./render/scene.js?v=b6";
-import { createBench } from "./ui/bench.js?v=b6";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b6f";
+import { createBench } from "./ui/bench.js?v=b7";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b7";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { apply } from "./core/apply.js?v=b6";
 import { customer } from "./core/shift.js?v=b6";
 import { hint } from "./core/tutorial.js?v=b6";
 import { itemName } from "./core/rescue.js?v=b6";
-import { STEP_NAME } from "./core/board.js?v=b6";
+import { STEP_NAME, STEPS } from "./core/board.js?v=b6";
 import { STOCK, NAMES } from "./data/economy.js?v=b6";
 import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b6";
 import { shopSave, browserStorage } from "./save.js?v=b6";
@@ -234,6 +234,7 @@ async function boot() {
     { const n = (state.feed || []).filter((r) => !r.reply).length; for (const b of document.querySelectorAll("#bookBtn, #dock button[data-dock=book]")) { if (n) b.dataset.count = n > 9 ? "9+" : String(n); else delete b.dataset.count; } }
     bench.render(state, hn);
     bench.frame(state);
+    revealStep(sh, hn);
     hintbar.hidden = !hn;
     if (hn && hintbar.textContent !== hn.text) hintbar.textContent = hn.text;
     away.hidden = !sh?.away;
@@ -243,8 +244,34 @@ async function boot() {
     requestAnimationFrame(frame);
   }
 
+  // Bước đổi ⇒ cuộn tới nút của bước đó (TLC2-01: trên điện thoại trước đây mỗi đơn phải tự cuộn 2–4 lần).
+  // Không tự cuộn khi đang ráp mà lò chín (nút Rút ở viên thuốc trên cảnh), khi chờ lò / nướng lại, hoặc khi có bảng phủ.
+  let revealKey = "";
+  const BUILD = ["spread", "fill", "veg", "spice", "wrap"];
+  function revealStep(sh, hn) {
+    if (!sh || sh.dialog || overlays.current) { revealKey = ""; return; }
+    const b = sh.boards[sh.sel];
+    let h = hn || hint(state);
+    if (h?.key === "pull" && b?.loaf) h = null;
+    let keys = h && !["waitOven", "idle", "toasting"].includes(h.key) ? [h.key] : [];
+    // đang ráp: thấy cùng lúc nhóm đang làm (còn bấm thêm được) và nhóm kế mà phiếu thật sự cần (bỏ qua nhóm phiếu không có)
+    if (keys.length && BUILD.includes(h.key) && b?.loaf && b.cid !== null) {
+      const it = customer(state, b.cid)?.items[b.item];
+      if (it) {
+        const need = { spread: Object.values(it.spreads).some(Boolean), fill: it.fills.length > 0, veg: Object.values(it.veg).some(Boolean), spice: it.ot > 0 || Object.values(it.sauces).some(Boolean), wrap: true };
+        const cur = STEPS[b.step], next = STEPS.slice(Math.max(b.step + 1, 3)).find((x) => need[x]) || "wrap";
+        keys = BUILD.includes(cur) && cur !== next ? [cur, next] : [next];
+      }
+    }
+    const k = JSON.stringify([keys, sh.sel, b?.cid, b?.item, sh.paying]);
+    if (k === revealKey) return;
+    revealKey = k;
+    if (keys.length) bench.reveal(keys);
+  }
+
   // ---------- bố cục ----------
-  const mobile = matchMedia("(max-width: 760px)");
+  // điện thoại + máy tính bảng dọc (≤ 1024, TLC2-03) dùng bố cục xếp dọc; phải khớp media query trong index.html
+  const mobile = matchMedia("(max-width: 760px), (max-width: 1024px) and (orientation: portrait)");
   let camQueue = false, sceneMode = state.shop ? "shop" : "cart";
   function layout() {
     // mobile: luôn thấy từ chủ tiệm sau xe tới hàng chờ (cắt bớt bầu trời / lòng đường)
