@@ -3,7 +3,7 @@
 // ngay tại chỗ (elementFromPoint ở tâm = chính nút) — game tự cuộn tới bước kế. Kèm: không tràn ngang (360, 320 cả màn chào / Chuẩn bị ca),
 // máy tính bảng 768: bố cục xếp dọc (cảnh ≥ 700 px ngang, phiếu ≤ 140 px cao, 1 thông báo).
 // Gọi từ e2e.mjs (cuối phần mobile) hoặc riêng: LAYOUT_ONLY=1 PORT=… node prototype/games/tiem-banh-mi/test/e2e.mjs <thư mục ảnh>
-const VIEWS = [[390, 844], [360, 800], [412, 915], [768, 1024], [320, 568]];
+const VIEWS = [[390, 844], [360, 800], [412, 915], [768, 1024], [320, 568], [844, 390], [568, 320]]; // D5: + điện thoại xoay ngang (TLC2-04)
 const CYCLE = [0, 2, 3, 1];
 const clicksTo = (cur, want) => { let i = CYCLE.indexOf(cur), n = 0; while (CYCLE[i % 4] !== want && n < 4) { i++; n++; } return n; };
 
@@ -52,9 +52,9 @@ export async function runLayout({ b, check, sleep, OUT, PORT, waitFor }) {
       if ((await S("s.shift.case.length")) < 2) { await b.ev("__game.act({type:'bake',slot:0});__game.advance(28500);__game.act({type:'pull',slot:0})"); await clearDialogs(); }
       await press(`#rail .slip[data-cid="${cid}"]`);
       const it = await S("JSON.stringify((()=>{const b=s.shift.boards[0];return s.shift.customers.find(c=>c.id===b.cid).items[b.item]})())").then(JSON.parse);
-      await press('[data-act="take"]');
-      if (it.crispy && (await S("s.shift.boards[0].loaf.crisp")) < 85) { await press('[data-act="toast"]'); await b.ev("__game.advance(4400)"); await press('[data-act="toast"]'); }
-      await press('[data-act="slice"]');
+      await press('[data-act="take"]'); // ngày 1–3: "Lấy + rạch" một chạm
+      if (it.crispy && (await S("s.shift.boards[0].loaf.crisp")) < 85 && !(await S("s.shift.boards[0].loaf.sliced"))) { await press('[data-act="toast"]'); await b.ev("__game.advance(4400)"); await press('[data-act="toast"]'); }
+      if (!(await S("s.shift.boards[0].loaf.sliced"))) await press('[data-act="slice"]');
       for (const id of ["pate", "bo", "mayo"]) for (let k = clicksTo(0, it.spreads[id] || 0); k > 0; k--) await press(`[data-spread="${id}"]`);
       for (const id of it.fills) await press(`[data-fill="${id}"]`);
       const vegs = ["do-chua", "dua-leo", "rau-mui", "hanh-la"], on = vegs.filter((x) => it.veg[x]);
@@ -74,6 +74,11 @@ export async function runLayout({ b, check, sleep, OUT, PORT, waitFor }) {
       const g = await b.ev("JSON.stringify({world:document.querySelector('#world').getBoundingClientRect().width,slip:(document.querySelector('#rail .slip')||{getBoundingClientRect:()=>({height:0})}).getBoundingClientRect().height,toasts:[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none').length})").then(JSON.parse);
       check(`${tag}: máy tính bảng dọc dùng bố cục xếp dọc (cảnh ≥ 700 px, phiếu ≤ 140 px, ≤ 1 thông báo)`, g.world >= 700 && g.slip <= 140 && g.toasts <= 1, JSON.stringify(g));
     }
+    // TLC2-04: HUD 1 hàng ở mọi khung (cả số cuối game); xoay ngang: thông báo nằm dưới HUD, không đè ô HUD
+    await b.ev("(()=>{const s=__game.state;s.money=123456;s.followers=12345;s.xp=Math.max(s.xp,0)})()"); await b.ev("__game.advance(100)"); await sleep(250);
+    const hud = await b.ev(`JSON.stringify((()=>{const cs=[...document.querySelectorAll('#hud .chip')].filter(e=>e.getBoundingClientRect().width>0).map(e=>e.getBoundingClientRect());
+      const t=document.querySelector('#toasts').getBoundingClientRect();return {n:cs.length,rows:new Set(cs.map(r=>Math.round(r.top))).size,hudB:Math.round(Math.max(...cs.map(r=>r.bottom))),toastT:Math.round(t.top)}})())`).then(JSON.parse);
+    check(`${tag}: HUD 1 hàng (cả số lớn cuối game)${h <= 500 ? ", thông báo dưới HUD" : ""}`, hud.rows === 1 && (h > 500 || hud.toastT >= hud.hudB), JSON.stringify(hud));
     await b.shot(`${OUT}/layout-${w}x${h}.png`);
   }
 }

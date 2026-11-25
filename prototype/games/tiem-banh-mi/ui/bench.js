@@ -1,19 +1,19 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b6";
-import { loafLayers } from "../render/loafview.js?v=b6";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b6";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b6";
-import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b6";
-import { sumBills, makeChange } from "../core/money.js?v=b6";
-import { sameLeft, batchMax } from "../core/board.js?v=b6";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b6";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b6";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b8";
+import { loafLayers } from "../render/loafview.js?v=b8";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b8";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b8";
+import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b8";
+import { sumBills, makeChange } from "../core/money.js?v=b8";
+import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b8";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b8";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b8";
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
-import { QUIRKS } from "../data/quirks.js?v=b6";
-import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b6";
+import { QUIRKS } from "../data/quirks.js?v=b8";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b8";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -176,9 +176,16 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     return wrap;
   }
 
-  function stepsStrip(b) {
+  function stepsStrip(b, merged = false) {
     const ul = h("ol", "steps");
-    STEPS.forEach((s, i) => { const li = h("li", "", STEP_NAME[s]); if (b.loaf && i <= b.step) li.className = "done"; if (b.loaf && i === b.step + 1) li.className = "now"; ul.appendChild(li); });
+    // ngày 1–3: "Lấy + rạch" là một bước (ô Rạch gộp vào ô Lấy)
+    STEPS.forEach((s, i) => {
+      if (merged && s === "slice") return;
+      const li = h("li", "", merged && s === "take" ? "Lấy + rạch" : STEP_NAME[s]);
+      if (b.loaf && i <= b.step) li.className = "done"; if (b.loaf && i === b.step + 1) li.className = "now";
+      if (merged && s === "take" && b.loaf && !b.loaf.sliced && !b.loaf.que) li.className = "now";
+      ul.appendChild(li);
+    });
     return ul;
   }
 
@@ -202,17 +209,21 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const wrap = h("div", "stack"); wrap.id = "opts";
     if (!c) return wrap;
     const want = (cond) => (tut && cond ? "want" : "");
+    const merged = mergedSlice(state);
     if (!l) {
-      const [g, o] = group("Lấy bánh", "grp-take");
       if (it.recipe === "que") {
+        const [g, o] = group("Lấy bánh", "grp-take");
         o.appendChild(opt("Lấy một bịch que", `${sh.que || 0} que đã nướng`, { act: "take" }, () => dispatch({ type: "take" })));
         wrap.appendChild(g);
         return wrap;
       }
-      o.appendChild(opt("Lấy ổ giòn nhất", sh.case.length ? `${sh.case.length} ổ trong tủ` : "Tủ trống", { act: "take" }, () => dispatch({ type: "take" })));
+      // ngày 1–3: lấy bánh là rạch luôn (một chạm); phiếu "giòn giòn" thì rạch sau khi nướng lại
+      const type = merged ? "takeSlice" : "take";
+      const [g, o] = group(merged ? "Lấy bánh + rạch" : "Lấy bánh", "grp-take");
+      o.appendChild(opt(merged ? "Lấy + rạch" : "Lấy ổ giòn nhất", sh.case.length ? (merged ? `ổ giòn nhất · ${sh.case.length} ổ` : `${sh.case.length} ổ trong tủ`) : "Tủ trống", { act: "take" }, () => dispatch({ type })));
       const nb = Math.min(batchMax(state), sameLeft(state, b), sh.case.length);
-      if (nb > 1) o.appendChild(opt(`Ráp ×${nb}`, `${nb} ổ giống nhau một lượt`, { act: "takeBatch", n: nb }, () => dispatch({ type: "take", n: nb }), "batch"));
-      sh.case.slice().sort((a, b2) => a.crisp - b2.crisp).slice(0, 5).forEach((lf) => o.appendChild(opt(`Giòn ${Math.round(lf.crisp)}`, lf.src === "si" ? "bánh sỉ" : lf.crisp < 50 ? "ỉu" : "", { loaf: lf.id }, () => dispatch({ type: "take", loaf: lf.id }))));
+      if (nb > 1) o.appendChild(opt(`Ráp ×${nb}`, `${nb} ổ giống nhau một lượt`, { act: "takeBatch", n: nb }, () => dispatch({ type, n: nb }), "batch"));
+      sh.case.slice().sort((a, b2) => a.crisp - b2.crisp).slice(0, 5).forEach((lf) => o.appendChild(opt(`Giòn ${Math.round(lf.crisp)}`, lf.src === "si" ? "bánh sỉ" : lf.crisp < 50 ? "ỉu" : "", { loaf: lf.id }, () => dispatch({ type, loaf: lf.id }))));
       wrap.appendChild(g);
       return wrap;
     }
@@ -231,7 +242,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     if (!l.sliced || l.toastT0 !== null) {
       const [g, o] = group("Chuẩn bị", "grp-prep");
       const toasting = l.toastT0 !== null;
-      o.appendChild(opt(toasting ? "Lấy ra" : "Nướng lại", toasting ? "lò than" : `giòn ≥ ${TOASTER.minCrisp}`, { act: "toast" }, () => dispatch({ type: "toast" }), want(it.crispy && !toasting)));
+      o.appendChild(opt(toasting ? (merged ? "Lấy ra + rạch" : "Lấy ra") : "Nướng lại", toasting ? "lò than" : `giòn ≥ ${TOASTER.minCrisp}`, { act: "toast" }, () => dispatch({ type: "toast", slice: merged && toasting }), want(it.crispy && !toasting)));
       if (!toasting) o.appendChild(opt("Rạch bánh", "dao răng cưa", { act: "slice" }, () => dispatch({ type: "slice" })));
       wrap.appendChild(g);
       return wrap;
@@ -345,7 +356,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     if (sh.paying !== null) root.appendChild(changePanel(state));
     else {
       root.appendChild(loafView(state));
-      root.appendChild(stepsStrip(b));
+      root.appendChild(stepsStrip(b, mergedSlice(state)));
       root.appendChild(options(state, sh.tutorial));
       root.appendChild(acts(state));
     }
@@ -412,7 +423,8 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const lo = bt - bottom; // cuộn xuống d với lo ≤ d ≤ hi ⇒ cả cụm nằm trọn trong khung
     let hi = t - top;
     if (lo <= 0 && hi >= 0) return false;
-    if (lo > hi) { const d = Math.min(lo, last.getBoundingClientRect().top - top); sc.scrollTop += Math.round(d); return true; } // cụm quá cao: thấy trọn nhóm cuối + phần dưới (các ô) của nhóm đang làm
+    // cụm quá cao (khung thấp, điện thoại xoay ngang): nhóm đang làm còn việc ⇒ thấy trọn nhóm đó trước; nhóm kế hiện khi làm xong (game.js đổi keys)
+    if (lo > hi) { const d = els.length > 1 ? hi : Math.min(lo, last.getBoundingClientRect().top - top); sc.scrollTop += Math.round(d); return true; }
     const anchor = keys[0] === "pin" ? document.querySelector("#world") : root.querySelector(".ticket");
     let d = anchor ? anchor.getBoundingClientRect().top - top : lo > 0 ? lo : hi;
     d = Math.max(lo, Math.min(hi, d));
@@ -424,7 +436,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
 const onTop = (e) => { const r = e.getBoundingClientRect(), t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!t && e.contains(t); };
 const REVEAL_SEL = { bake: '#bench [data-act="bake"]', pull: '#bench [data-act="pull"]', take: '#bench [data-act="take"]', toast: '#bench [data-act="toast"]', slice: '#bench [data-act="slice"]',
   spread: "#bench .grp-spread", fill: "#bench .grp-fill", veg: "#bench .grp-veg", spice: "#bench .grp-spice", wrap: "#bench .grp-wrap", serve: '#bench [data-act="serve"]',
-  change: '#bench [data-act="autoChange"], #bench [data-act="giveChange"]', pin: "#rail .slip.hint, #rail .slip:not(:disabled):not(.on)" };
+  change: "#bench #change > .row", pin: "#rail .slip.hint, #rail .slip:not(:disabled):not(.on)" };
 function scrollerOf(el) {
   for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
     const o = getComputedStyle(p).overflowY;

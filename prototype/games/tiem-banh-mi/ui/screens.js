@@ -1,29 +1,30 @@
 // HUD, viên Lò / Gas, dải phiếu, thông báo, và các bảng phủ: chào, Chuẩn bị ca (nhập hàng, tiền lẻ, mẻ đầu, dự báo), Cách chơi,
 // Tạm dừng (Chơi lại từ đầu có xác nhận + backup), Chốt ca (lời lỗ), khiếu nại, hết hàng, hết tiền lẻ.
-import { icon } from "../render/atlas.js?v=b6";
-import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b6";
-import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b6";
-import { floatValue, sumBills } from "../core/money.js?v=b6";
-import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b6";
-import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b6";
-import { orderText, loafName, menuAt } from "../core/order.js?v=b6";
-import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b6";
-import { MISTAKES } from "../data/lines-mistakes.js?v=b6";
-import { PHASES } from "../data/shift.js?v=b6";
-import { quirkChips } from "./bench.js?v=b7";
-import { personaCards } from "./persona.js?v=b6";
-import { buildEvent } from "./drama.js?v=b6";
-import { buildNotebook } from "./notebook.js?v=b6";
-import { drawJournal, download, share } from "./journal.js?v=b6";
-import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b6";
-import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b6";
-import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b6";
-import { expiringOn } from "../core/expiry.js?v=b6";
-import { maiOpen, MAI } from "../core/stock.js?v=b6";
-import { currentEvent } from "../core/drama.js?v=b6";
-import { PERSONAS } from "../data/lines-reply.js?v=b6";
-import { STALE } from "../data/lines-m3.js?v=b6";
-import { FILLINGS, NAMES } from "../data/economy.js?v=b6";
+import { icon } from "../render/atlas.js?v=b8";
+import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b8";
+import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b8";
+import { floatValue, sumBills } from "../core/money.js?v=b8";
+import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b8";
+import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b8";
+import { orderText, loafName, menuAt } from "../core/order.js?v=b8";
+import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b8";
+import { MISTAKES } from "../data/lines-mistakes.js?v=b8";
+import { PHASES } from "../data/shift.js?v=b8";
+import { quirkChips } from "./bench.js?v=b8";
+import { personaCards } from "./persona.js?v=b8";
+import { buildEvent } from "./drama.js?v=b8";
+import { buildNotebook } from "./notebook.js?v=b8";
+import { drawJournal, download, share } from "./journal.js?v=b8";
+import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b8";
+import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b8";
+import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b8";
+import { expiringOn } from "../core/expiry.js?v=b8";
+import { maiOpen, MAI } from "../core/stock.js?v=b8";
+import { currentEvent } from "../core/drama.js?v=b8";
+import { MERGE_SLICE_DAYS } from "../core/board.js?v=b8";
+import { PERSONAS } from "../data/lines-reply.js?v=b8";
+import { STALE } from "../data/lines-m3.js?v=b8";
+import { FILLINGS, NAMES } from "../data/economy.js?v=b8";
 import { shareResult } from "../../_shared/share.js?v=s2";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
@@ -69,31 +70,44 @@ export function toast(box, text, kind = "", action = null) {
 }
 
 // ---------- HUD + viên Lò / Gas ----------
+// HUD 1 hàng (TLC2-04, cùng kiểu Trà Sữa TLC1-03): ô dựng một lần, mỗi khung chỉ ghi chữ khi đổi. Điện thoại / màn thấp (xoay ngang):
+// số gọn (148k · 1,2tr · 12k) trên, nhãn 9 px dưới, không xuống dòng (khối CSS "HUD 1 hàng" trong index.html); ô Tiền có title ghi số đủ.
+const short1 = (v) => (v >= 10 ? String(Math.floor(v)) : (Math.floor(v * 10) / 10).toLocaleString("vi-VN", { maximumFractionDigits: 1 }));
+export function shortMoney(kNum) {
+  const s = kNum < 0 ? "−" : "", n = Math.abs(Math.round(kNum));
+  return s + (n < 1000 ? `${n}k` : n < 1e6 ? `${short1(n / 1000)}tr` : `${short1(n / 1e6)} tỷ`);
+}
+export const shortCount = (n) => (n < 1000 ? String(n) : n < 1e6 ? `${short1(n / 1000)}k` : `${short1(n / 1e6)}tr`);
+const setText = (el, v) => { v = String(v); if (el.textContent !== v) el.textContent = v; };
+/** Cùng điều kiện với khối CSS "HUD 1 hàng" trong index.html. */
+const HUD_COMPACT = "(max-width: 760px), (max-width: 1024px) and (orientation: portrait), (orientation: landscape) and (max-height: 500px)";
 export function createHud(root, pills, atlas, dispatch) {
-  let key = "";
+  const compact = typeof matchMedia === "function" ? matchMedia(HUD_COMPACT) : { matches: false };
+  const chips = {};
+  for (const id of ["time", "money", "float", "level", "rep", "fol"]) {
+    const c = h("div", "chip chip-" + id), sm = h("small"), b = h("b");
+    c.append(sm, b); root.appendChild(c); chips[id] = { c, sm, b };
+  }
   const ovenPill = h("button", "pill oven-pill"); ovenPill.type = "button"; ovenPill.dataset.act = "ovenPill";
   const ring = h("span", "ring"), olbl = h("span", "", "Lò");
   ovenPill.append(ring, olbl);
   const gasPill = h("div", "pill gas");
   pills.append(ovenPill, gasPill);
-  let pillAction = null;
+  let pillAction = null, moneyTitle = null;
   ovenPill.addEventListener("click", () => pillAction && dispatch(pillAction));
+  const set = (id, label, val) => { setText(chips[id].sm, label); setText(chips[id].b, val); };
   return (state) => {
     const sh = state.shift;
     pills.hidden = !sh;
-    const chips = [
-      ["Ngày " + state.day, sh ? clockOf(sh.t) : "--:--", "time"],
-      ["Tiền", fmtK(state.money), "money"],
-      ["Lẻ", fmtK(floatValue(state.float)), "float"],
-      ["Cấp " + state.level, `${state.xp}/${LEVELS[state.level] ?? "max"}`, "level"],
-      ["Danh tiếng", String(Math.round(state.rep)), "rep"],
-      ["Theo dõi", String(state.followers || 0), "fol"],
-    ];
-    const k = JSON.stringify(chips) + (state.stock.phoi <= 2);
-    if (k !== key) {
-      key = k; root.textContent = "";
-      chips.forEach(([a, b, id]) => { const c = h("div", "chip chip-" + id + (id === "float" && floatValue(state.float) < 10 ? " low" : "")); c.appendChild(h("small", "", a)); c.appendChild(h("b", "", b)); root.appendChild(c); });
-    }
+    const sm = compact.matches, fl = floatValue(state.float);
+    set("time", "Ngày " + state.day, sh ? clockOf(sh.t) : "--:--");
+    set("money", "Tiền", sm ? shortMoney(state.money) : fmtK(state.money));
+    if (moneyTitle !== state.money) { moneyTitle = state.money; chips.money.c.title = "Tiền: " + fmtK(state.money); }
+    set("float", "Lẻ", sm ? shortMoney(fl) : fmtK(fl));
+    chips.float.c.classList.toggle("low", fl < 10);
+    set("level", sm ? "Cấp" : "Cấp " + state.level, sm ? state.level : `${state.xp}/${LEVELS[state.level] ?? "max"}`);
+    set("rep", "Danh tiếng", Math.round(state.rep));
+    set("fol", "Theo dõi", sm ? shortCount(state.followers || 0) : state.followers || 0);
     if (!sh) return;
     const O = ovenOf(state);
     const b = sh.oven.find(Boolean), slot = sh.oven.indexOf(b);
@@ -444,7 +458,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
   const STEPS_HELP = [
     ["Lò", "Bỏ mẻ phôi vào lò. Vỏ đổi màu: vàng nhạt → vàng óng (vùng xanh “Rút!”) → xém → cháy. Rút đúng vùng chín: giòn 100."],
     ["Tủ kính", "Bánh ra lò nguội dần (−1 giòn mỗi 2,5 giây). Dưới 50 là bánh ỉu. Phiếu “giòn giòn nha” cần ≥ 85: nướng lại ở lò than 4 giây (quá 10 giây là cháy)."],
-    ["Ráp ổ", "Ghim phiếu (chạm khách) → lấy bánh → (nướng lại) → rạch → phết → nhân → rau dưa → gia vị → gói → Giao. Làm bước sau thì bước trước khoá lại; Hoàn tác để sửa."],
+    ["Ráp ổ", `Ghim phiếu (chạm khách) → lấy bánh → (nướng lại) → rạch → phết → nhân → rau dưa → gia vị → gói → Giao. Ngày 1–${MERGE_SLICE_DAYS}: “Lấy + rạch” là một bước. Làm bước sau thì bước trước khoá lại; Hoàn tác để sửa.`],
     ["Thối tiền", `Khách đưa tờ lớn: chọn tờ trong quỹ lẻ cho đủ số cần thối. Thối thiếu là lỗi (tối đa 2 sao), thối dư là mất tiền. Ngày 1–${AUTO_CHANGE_DAYS} có nút “Thối đúng”.`],
     ["Buổi", "Cao điểm sáng đông và gấp, trưa vắng để nướng bánh, chiều tối có đơn nhiều ổ. Hết hàng giữa ca luôn có cách cứu (mượn, chạy chợ, ký gửi)."],
   ];

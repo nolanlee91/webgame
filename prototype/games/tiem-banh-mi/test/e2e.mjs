@@ -58,15 +58,18 @@ async function tendOven(minCase = 2) {
     if (await S("!!s.shift&&!!s.shift.oven[0]")) await pressSel('[data-act="pull"]');
   }
 }
+const mergeSeen = [];
 /** Ráp đúng ổ đang chọn trên thớt bằng nút thật; trả các stage ổ sau mỗi bước. */
 async function buildClicks(shotPrefix = null) {
   const it = await S("JSON.stringify((()=>{const b=s.shift.boards[0];return s.shift.customers.find(c=>c.id===b.cid).items[b.item]})())").then(JSON.parse);
   const stages = [];
   await pressSel('[data-act="take"]'); stages.push(await stage());
-  if (it.crispy && (await S("s.shift.boards[0].loaf.crisp")) < 85) {
+  // ngày 1–3 (TLC2-01): "Lấy + rạch" một chạm; phiếu "giòn giòn" thì "Lấy ra + rạch" sau khi nướng lại
+  if (!it.crispy && (await S("s.day<=3"))) mergeSeen.push(await S("s.shift.boards[0].loaf.sliced"));
+  if (it.crispy && (await S("s.shift.boards[0].loaf.crisp")) < 85 && !(await S("s.shift.boards[0].loaf.sliced"))) {
     await pressSel('[data-act="toast"]'); await b.ev("__game.advance(4400)"); await pressSel('[data-act="toast"]');
   }
-  await pressSel('[data-act="slice"]'); stages.push(await stage());
+  if (!(await S("s.shift.boards[0].loaf.sliced"))) { await pressSel('[data-act="slice"]'); stages.push(await stage()); }
   for (const id of ["pate", "bo", "mayo"]) { const want = it.spreads[id] || 0; for (let k = clicksTo(0, want); k > 0; k--) await pressSel(`[data-spread="${id}"]`); }
   stages.push(await stage());
   if (shotPrefix) await b.shot(`${OUT}/${shotPrefix}-ra-p-phet.png`);
@@ -85,7 +88,7 @@ async function payClicks(manual) {
   if (!(await S("s.shift&&s.shift.paying!==null"))) return "none";
   await waitFor("!!document.querySelector('#change')", 3000);
   if (manual) {
-    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b6');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
+    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b8');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
     if (bills) { for (const [d, n] of Object.entries(bills)) for (let i = 0; i < n; i++) await pressSel(`[data-bill="${d}"]`); await pressSel('[data-act="giveChange"]'); return "manual"; }
   }
   await pressSel('[data-act="autoChange"]');
@@ -153,6 +156,8 @@ async function playDay1(tag, shots) {
   for (let i = 0; i < 200 && (await S("!!s.shift")); i++) { await b.ev("__game.advance(2000)"); await clearDialogs(); }
   check(`${tag}: phục vụ cả ngày 1 bằng nút thật`, served >= 8, `${served} khách`);
   check(`${tag}: ổ bánh đổi lớp ở từng bước (loaf-layers)`, layersOk);
+  check(`${tag}: ngày 1 "Lấy + rạch" một chạm (ổ đã rạch ngay sau khi lấy)`, mergeSeen.length > 0 && mergeSeen.every(Boolean), JSON.stringify(mergeSeen));
+  mergeSeen.length = 0;
   check(`${tag}: phiếu "giòn giòn" được nướng lại ở lò than (≥ 85)`, toastOk !== false, String(toastOk));
   check(`${tag}: thối tiền cả nút Thối đúng lẫn chọn tờ tay`, autoDone >= 1 && manualDone >= 1, `${autoDone} tự động · ${manualDone} tay`);
   check(`${tag}: bảng chốt ca hiện lời lỗ`, await waitFor("__game.overlay==='summary'", 5000));
@@ -181,7 +186,7 @@ await pressSel("#openShop");
 await b.ev("__game.act({type:'bake',slot:0});__game.advance(28500);__game.act({type:'pull',slot:0})");
 let cid = null;
 for (let i = 0; i < 200 && cid === null; i++) { cid = await S("(s.shift.customers.find(c=>c.phase==='wait')||{}).id??null"); if (cid === null) await b.ev("__game.advance(400)"); }
-await pressSel(`#rail .slip[data-cid="${cid}"]`); await pressSel('[data-act="take"]'); await pressSel('[data-act="slice"]');
+await pressSel(`#rail .slip[data-cid="${cid}"]`); await pressSel('[data-act="take"]'); if (!(await S("s.shift.boards[0].loaf.sliced"))) await pressSel('[data-act="slice"]');
 await b.ev("__game.act({type:'spread',id:'pate',lvl:2})");
 const before = await S("JSON.stringify([s.shift.boards[0].loaf.spreads,s.stock.pate,s.money])");
 await b.nav(BASE);

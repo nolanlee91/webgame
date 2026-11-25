@@ -87,3 +87,15 @@ test("âm thanh: 30 file Codex khớp bảng tên; mọi sự kiện chỉ gọi
   assert.equal(play("cashbox"), false); // chưa có AudioContext (chưa thao tác) ⇒ không phát, không tải
   assert.equal(MUTE_KEY, "wgp.muted");
 });
+
+test("ngày 1–3 gợi ý theo bước gộp “Lấy + rạch” (TLC2-01); lời gợi ý khớp nút", () => {
+  const s = shop(); act(s, { type: "startShift" });
+  act(s, { type: "bake", slot: 0 }); advance(s, 27000); act(s, { type: "pull", slot: 0 });
+  const c = untilWaiting(s);
+  act(s, { type: "pin", cid: c.id });
+  const h = hint(s);
+  assert.equal(h.key, "take");
+  assert.match(h.text, /Lấy \+ rạch/);
+  act(s, { type: "takeSlice" });
+  assert.equal(hint(s).key, "spread", "lấy xong là rạch luôn, bước kế là phết");
+});

@@ -1,24 +1,24 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b6";
-import { placeholderFallback } from "./render/placeholder.js?v=b6";
-import { createScene } from "./render/scene.js?v=b6";
-import { createBench } from "./ui/bench.js?v=b7";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b7";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b8";
+import { placeholderFallback } from "./render/placeholder.js?v=b8";
+import { createScene } from "./render/scene.js?v=b8";
+import { createBench } from "./ui/bench.js?v=b8";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b8";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { apply } from "./core/apply.js?v=b6";
-import { customer } from "./core/shift.js?v=b6";
-import { hint } from "./core/tutorial.js?v=b6";
-import { itemName } from "./core/rescue.js?v=b6";
-import { STEP_NAME, STEPS } from "./core/board.js?v=b6";
-import { STOCK, NAMES } from "./data/economy.js?v=b6";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b6";
-import { shopSave, browserStorage } from "./save.js?v=b6";
-import { setJournalBg } from "./ui/journal.js?v=b6";
-import { currentEvent, openEvent } from "./core/drama.js?v=b6";
-import { DECOR } from "./data/equipment.js?v=b6";
-import { PLACE_REASON } from "./core/progress.js?v=b6";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b6";
+import { apply } from "./core/apply.js?v=b8";
+import { customer } from "./core/shift.js?v=b8";
+import { hint } from "./core/tutorial.js?v=b8";
+import { itemName } from "./core/rescue.js?v=b8";
+import { STEP_NAME, STEPS } from "./core/board.js?v=b8";
+import { STOCK, NAMES } from "./data/economy.js?v=b8";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b8";
+import { shopSave, browserStorage } from "./save.js?v=b8";
+import { setJournalBg } from "./ui/journal.js?v=b8";
+import { currentEvent, openEvent } from "./core/drama.js?v=b8";
+import { DECOR } from "./data/equipment.js?v=b8";
+import { PLACE_REASON } from "./core/progress.js?v=b8";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b8";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -252,7 +252,9 @@ async function boot() {
     if (!sh || sh.dialog || overlays.current) { revealKey = ""; return; }
     const b = sh.boards[sh.sel];
     let h = hn || hint(state);
-    if (h?.key === "pull" && b?.loaf) h = null;
+    if (!h && sh.paying !== null) h = { key: "change" }; // đang chạy đi đổi lẻ (gợi ý tắt): khay thối tiền vẫn phải nằm trong khung
+    // lò chín giữa lúc ráp / thối tiền: nút Rút có sẵn ở viên Lò trên cảnh ⇒ vẫn cuộn tới bước đang làm (khay thối tiền)
+    if (h?.key === "pull" && (b?.loaf || sh.paying !== null)) h = sh.paying !== null ? { key: "change" } : null;
     let keys = h && !["waitOven", "idle", "toasting"].includes(h.key) ? [h.key] : [];
     // đang ráp: thấy cùng lúc nhóm đang làm (còn bấm thêm được) và nhóm kế mà phiếu thật sự cần (bỏ qua nhóm phiếu không có)
     if (keys.length && BUILD.includes(h.key) && b?.loaf && b.cid !== null) {
@@ -260,7 +262,11 @@ async function boot() {
       if (it) {
         const need = { spread: Object.values(it.spreads).some(Boolean), fill: it.fills.length > 0, veg: Object.values(it.veg).some(Boolean), spice: it.ot > 0 || Object.values(it.sauces).some(Boolean), wrap: true };
         const cur = STEPS[b.step], next = STEPS.slice(Math.max(b.step + 1, 3)).find((x) => need[x]) || "wrap";
-        keys = BUILD.includes(cur) && cur !== next ? [cur, next] : [next];
+        // nhóm đang làm đã đủ theo phiếu ⇒ chỉ cần thấy nhóm kế (khung thấp như điện thoại xoay ngang không chứa nổi cả hai nhóm)
+        const l = b.loaf, curDone = cur === "spread" ? Object.keys({ ...it.spreads, ...l.spreads }).every((id) => (it.spreads[id] || 0) === (l.spreads[id] || 0))
+          : cur === "fill" ? it.fills.every((id) => l.fills.includes(id)) : cur === "veg" ? Object.keys({ ...it.veg, ...l.veg }).every((id) => !!it.veg[id] === !!l.veg[id])
+          : cur === "spice" ? it.ot === l.ot && Object.keys({ ...it.sauces, ...l.sauces }).every((id) => !!it.sauces[id] === !!l.sauces[id]) : false;
+        keys = BUILD.includes(cur) && cur !== next && !curDone ? [cur, next] : [next];
       }
     }
     const k = JSON.stringify([keys, sh.sel, b?.cid, b?.item, sh.paying]);
@@ -271,12 +277,14 @@ async function boot() {
 
   // ---------- bố cục ----------
   // điện thoại + máy tính bảng dọc (≤ 1024, TLC2-03) dùng bố cục xếp dọc; phải khớp media query trong index.html
-  const mobile = matchMedia("(max-width: 760px), (max-width: 1024px) and (orientation: portrait)");
+  const mobile = matchMedia("(max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait)");
+  // điện thoại xoay ngang (TLC2-04): bố cục 2 cột riêng (khối cuối index.html); cảnh nhỏ ⇒ khung theo vùng như mobile, ổ cận cảnh nhỏ lại
+  const short = matchMedia("(orientation: landscape) and (max-height: 500px)");
   let camQueue = false, sceneMode = state.shop ? "shop" : "cart";
   function layout() {
     // mobile: luôn thấy từ chủ tiệm sau xe tới hàng chờ (cắt bớt bầu trời / lòng đường)
-    if (mobile.matches) { const r = scene.region(camQueue ? "queue" : "work"); scene.layoutFit(r[0], r[1], r[2], r[3]); } else scene.layout(660, 400, 1);
-    bench.setLoafScale(mobile.matches ? 1 : innerHeight < 820 ? 0.75 : 1);
+    if (mobile.matches || short.matches) { const r = scene.region(camQueue ? "queue" : "work"); scene.layoutFit(r[0], r[1], r[2], r[3]); } else scene.layout(660, 400, 1);
+    bench.setLoafScale(mobile.matches ? 1 : short.matches ? 0.5 : innerHeight < 820 ? 0.75 : 1);
   }
   addEventListener("resize", layout);
   new ResizeObserver(layout).observe($("#scene"));

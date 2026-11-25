@@ -11,6 +11,7 @@ import { cupSpec } from "../core/score.js?v=m38";
 import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m38";
 import { kitchenSlots, owns } from "../core/equipment.js?v=m38";
 
+const setW = (el, v) => { if (el.style.width !== v) el.style.width = v; }; // TLC1-08: ghi bề rộng thanh chỉ khi đổi
 const CROP = { cupui: [8, 52, 144, 132] };
 export const ingIcon = (atlas, ref, px) => icon(atlas, ref, px, "ico", ref && CROP[ref[0]] && !/cup|tea-|milk-high|served|dome/.test(ref[1]) ? CROP[ref[0]] : null);
 // mặt cắt từ dáng chờ; vùng cắt tính theo ô gốc 96×128, nhân theo cỡ ô thật (sheet nhân vật mới ô 144×192)
@@ -89,7 +90,8 @@ export function createBrew(root, atlas, dispatch) {
       kitchenEl.appendChild(btns);
     }
     const bars = kitchenEl.querySelectorAll(".k-bars .pbar");
-    k.batches.forEach((b, i) => { if (bars[i]) bars[i].firstChild.style.width = Math.min(100, (1 - (b.doneAt - sh.t) / b.ms) * 100) + "%"; });
+    // TLC1-08: bước 0,5 % và chỉ ghi khi đổi (thanh nấu vẽ mỗi khung)
+    k.batches.forEach((b, i) => { if (bars[i]) setW(bars[i].firstChild, Math.round(Math.min(100, (1 - (b.doneAt - sh.t) / b.ms) * 100) * 2) / 2 + "%"); });
   }
 
   function renderTicket(state) {
@@ -148,7 +150,7 @@ export function createBrew(root, atlas, dispatch) {
     }
     if (c) {
       const bar = ticketEl.querySelector(".pbar"), p = patienceLeft(state, c);
-      if (bar) { bar.firstChild.style.width = p * 100 + "%"; bar.className = "pbar wide" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : ""); }
+      if (bar) { setW(bar.firstChild, Math.round(p * 400) / 4 + "%"); const cn = "pbar wide" + (p <= 0.35 ? " low" : p <= 0.6 ? " mid" : ""); if (bar.className !== cn) bar.className = cn; }
     }
   }
 

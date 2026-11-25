@@ -1,5 +1,5 @@
 // Chọn tính cách chủ tiệm (data/lines-reply.js PERSONAS): thẻ lớn ở màn chào / hỏi một lần ở Chuẩn bị ca, hàng nút gọn trên bảng trả lời review.
-import { PERSONAS, PERSONA_IDS } from "../data/lines-reply.js?v=b6";
+import { PERSONAS, PERSONA_IDS } from "../data/lines-reply.js?v=b8";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 

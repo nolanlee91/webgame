@@ -35,7 +35,7 @@
       --px-bevel: inset 0 2px 0 rgba(255, 255, 255, .55), inset 0 -3px 0 rgba(122, 74, 48, .16);
       --m-raw: #D9887A; --m-half: #C26A4E; --m-done: #A4522A; --m-char: #4A2210; --m-burnt: #231410;
       --t1: #f2c94c; --t2: #3fb8a8; --t3: #e0559a; --t4: #a99be0; --t5: #ee8a3c;
-      --colW: 342px; --gbH: 112px; --hudH: 40px;
+      --colW: 342px; --gbH: 112px; --hudH: 48px;
     }
     @media (min-width: 1700px) and (min-height: 960px) { :root { --colW: 400px; --gbH: 140px; } }
     * { box-sizing: border-box; }
@@ -53,7 +53,7 @@
 
     /* ---------- HUD ---------- */
     .top { height: var(--hudH); display: flex; align-items: center; gap: 10px; padding: 0 10px; background: #0f0e22; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255, 255, 255, .08); }
-    .top a.back { color: var(--cream3); text-decoration: none; font-weight: 700; font-size: 13px; padding: 8px 2px; white-space: nowrap; }
+    .top a.back { color: var(--cream3); text-decoration: none; font-weight: 700; font-size: 13px; padding: 0 4px; white-space: nowrap; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
     .top h1 { margin: 0; font-size: 16px; font-weight: 800; white-space: nowrap; }
     .top .shop { color: var(--amber-l); font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
     .chips { display: flex; gap: 6px; align-items: center; min-width: 0; overflow: hidden; }
@@ -62,7 +62,7 @@
     .chip small { font-size: 11px; color: var(--ink2); }
     .chip.warn { background: var(--ember-l); }
     .tools { margin-left: auto; display: flex; gap: 6px; }
-    .tbtn { min-height: 32px; min-width: 44px; padding: 4px 10px; border: 0; background: #2b2a52; --b: #07061a; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;
+    .tbtn { min-height: 44px; min-width: 44px; padding: 4px 10px; border: 0; background: #2b2a52; --b: #07061a; cursor: pointer; font-weight: 700; font-size: 12px; white-space: nowrap;
       box-shadow: inset 0 2px 0 rgba(255, 255, 255, .12), inset 0 -2px 0 rgba(0, 0, 0, .35), var(--px-border2), 2px 2px 0 0 #07061a; }
     #muteBtn { position: relative; z-index: 51; } /* nổi trên lớp phủ (.overlay z 50): tắt tiếng được cả lúc Chuẩn bị ca / Tạm dừng / Chốt ca, kể cả trên điện thoại không có phím M */
     .tbtn:hover { background: rgba(255, 242, 220, .16); }
@@ -98,7 +98,7 @@
     .bigrill[hidden] { display: none; }
     .bg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12.5px; }
     .bg-head .bg-info { flex: 1; opacity: .85; font-weight: 600; }
-    .bg-close { min-height: 32px; border: 0; padding: 2px 10px; background: var(--cream); color: var(--ink); font-weight: 800; cursor: pointer; }
+    .bg-close { min-height: 44px; min-width: 44px; border: 0; padding: 2px 10px; background: var(--cream); color: var(--ink); font-weight: 800; cursor: pointer; }
     .bg-stage { position: relative; overflow: hidden; background: radial-gradient(120% 90% at 50% 100%, #6a3a22 0%, #3a2430 55%, #241a2c 100%); }
     .bg-stage .spr { image-rendering: pixelated; }
     .bg-slot { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; display: flex; align-items: flex-end; justify-content: center; touch-action: manipulation; }
@@ -144,7 +144,7 @@
     .toast { background: rgba(255, 250, 240, .98); color: var(--ink); padding: 6px 12px; font-weight: 700; font-size: 13px; --b: var(--ink); box-shadow: var(--px-border2), 3px 4px 0 0 rgba(0, 0, 0, .45); max-width: 100%; animation: pop .2s steps(3); }
     .toast.good { background: #e3f4e6; } .toast.warn { background: #ffe7dc; } .toast.phase { background: #2b2a5c; color: var(--cream); --b: var(--cream3); }
     .toast.has-act { display: flex; align-items: center; gap: 10px; padding-right: 5px; }
-    .toast-act { pointer-events: auto; flex: none; min-height: 32px; padding: 3px 14px; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; background: var(--indigo2); color: #fff; --b: #141a3c; box-shadow: var(--px-border2), 2px 3px 0 0 #141a3c; touch-action: manipulation; }
+    .toast-act { pointer-events: auto; flex: none; min-height: 44px; min-width: 44px; padding: 3px 14px; border: 0; cursor: pointer; font: inherit; font-weight: 800; font-size: 13px; background: var(--indigo2); color: #fff; --b: #141a3c; box-shadow: var(--px-border2), 2px 3px 0 0 #141a3c; touch-action: manipulation; }
     .toast-act:active { transform: translate(2px, 2px); box-shadow: var(--px-border2); }
     @keyframes pop { from { opacity: 0; translate: 0 6px; } }
 
@@ -188,7 +188,7 @@
     .work { flex: 1; min-height: 0; overflow-y: auto; padding: 0 10px 10px; display: flex; flex-direction: column; gap: 8px; }
     .tk-head { background: var(--cream); color: var(--ink); padding: 6px 10px; font-size: 12.5px; box-shadow: inset 0 0 0 3px var(--tc, #ccc); }
     .tk-head b { font-size: 13px; } .tk-head .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-    .tk-head .void { font-size: 11px; padding: 2px 8px; min-height: 28px; border: 0; background: var(--ember-l); color: #7a2a22; font-weight: 800; cursor: pointer; }
+    .tk-head .void { font-size: 11px; padding: 2px 8px; min-height: 44px; min-width: 44px; border: 0; background: var(--ember-l); color: #7a2a22; font-weight: 800; cursor: pointer; }
     .plate-wrap { display: flex; justify-content: center; align-items: flex-end; min-height: 120px; background: radial-gradient(60% 50% at 50% 70%, #4a3a52, transparent); position: relative; }
     .plate-view { position: relative; }
     .plate-view .spr { position: absolute; left: 0; top: 0; }
@@ -205,7 +205,7 @@
     .btn:active:not(:disabled) { box-shadow: var(--px-bevel), var(--px-border2); }
     .btn.primary { background: var(--indigo2); color: #fff; --b: #141a3c; }
     .btn.danger { background: var(--ember-l); color: #7a2a22; --b: #7a2a22; }
-    .btn.small { min-height: 36px; padding: 4px 10px; font-size: 12.5px; }
+    .btn.small { min-height: 44px; min-width: 44px; padding: 4px 10px; font-size: 12.5px; }
     .btn:disabled { opacity: .45; cursor: default; }
     /* Bấm ⇒ lún (cùng kiểu _shared/feedback.js; game không nạp feedback.js để khỏi tiếng "tách" chồng tiếng game). Dùng translate/scale, không đụng transform. */
     :where(button, [role="button"], .btn):not(:disabled):not([aria-disabled="true"]) { transition: translate .07s ease-out, scale .07s ease-out, filter .07s ease-out; }
@@ -287,12 +287,12 @@
        Máy tính bảng dọc ≤ 1024 cũng dùng bố cục này (TLC2-02: ở 768 lưới 2 cột ép thanh bếp còn 426 px, nút +Than / Quạt / Nấu cơm
        bị cột dĩa đè). Điện thoại xoay ngang ≥ 640 thì dùng tầng ngang 2 cột ở cuối file. Khớp matchMedia "narrow" trong game.js. */
     @media (max-width: 639px), (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait) {
-      :root { --hudH: 36px; --gbH: 104px; }
+      :root { --hudH: 46px; --gbH: 108px; }
       body { overflow: hidden; }
       .top { padding: 0 6px; gap: 6px; }
       .top h1, .top .shop, .top a.back span { display: none; }
       .chip { padding: 1px 6px; font-size: 12px; } .chip.lv, .chip.rep { display: none; }
-      .tbtn { min-width: 40px; padding: 2px 6px; font-size: 11px; } .tbtn[data-desk] { display: none; }
+      .tbtn { min-width: 44px; padding: 2px 6px; font-size: 11px; } .tbtn[data-desk] { display: none; }
       .app { display: flex; flex-direction: column; height: calc(100svh - var(--hudH) - 56px); overflow-y: auto; overflow-x: hidden; }
       .left { flex: none; }
       .world { aspect-ratio: auto; height: 240px; }
@@ -302,7 +302,7 @@
       .gchip { width: 56px; height: 56px; }
       .gchip .lbl { font-size: 9px; }
       .gctl { flex-wrap: nowrap; gap: 4px; justify-content: space-between; }
-      .gbtn2 { min-width: 0; flex: 1; min-height: 40px; padding: 2px 4px; font-size: 11px; gap: 3px; flex-direction: column; }
+      .gbtn2 { min-width: 0; flex: 1; min-height: 44px; padding: 2px 4px; font-size: 11px; gap: 2px; flex-direction: column; }
       .gbtn2 .meter { width: 40px; height: 6px; }
       .gbtn2[data-desk] { display: none; }
       .col { flex: 1; border-left: 0; min-height: 360px; }
@@ -337,7 +337,7 @@
       .hintbar:not([hidden]) ~ .toasts { top: 26px; }
       .toast { font-size: 11px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; }
-      .toast.has-act { overflow: visible; padding: 2px 3px 2px 8px; gap: 8px; } .toast.has-act > span { overflow: hidden; text-overflow: ellipsis; } .toast-act { min-height: 28px; padding: 1px 12px; font-size: 12px; }
+      .toast.has-act { overflow: visible; padding: 2px 3px 2px 8px; gap: 8px; } .toast.has-act > span { overflow: hidden; text-overflow: ellipsis; } .toast-act { padding: 1px 12px; font-size: 12px; }
       .banner { font-size: 12px; top: 4px; }
     }
     /* máy tính bảng dọc 761–1024: cảnh cao hơn (16:9 theo bề ngang, tối đa 44% màn) */
@@ -356,17 +356,17 @@
     /* điện thoại xoay ngang (docs/mobile-landscape.md): giữ bố cục 2 cột nhưng thanh đầu, thanh bếp, phiếu gọn;
        thanh bếp 2 hàng (vỉ / nút), nút dư thì vuốt ngang; Giao dính đáy cột dĩa; một thông báo một lúc */
     @media (orientation: landscape) and (max-height: 500px) {
-      :root { --hudH: 34px; --colW: 300px; --gbH: 98px; }
+      :root { --hudH: 46px; --colW: 300px; --gbH: 100px; }
       .top { padding: 0 max(6px, env(safe-area-inset-right)) 0 max(6px, env(safe-area-inset-left)); gap: 6px; }
       .top h1, .top .shop, .top a.back span { display: none; }
       .chip { padding: 1px 6px; font-size: 12px; } .chip.lv, .chip.rep { display: none; }
-      .tbtn { min-height: 30px; padding: 2px 8px; font-size: 11px; }
+      .tbtn { padding: 2px 8px; font-size: 11px; }
       .grillbar { flex-direction: column; gap: 4px; padding: 4px 6px; }
       .zone > small { display: none; }
       .gchips { gap: 4px; } .zone .row { gap: 3px; }
-      .gchip { width: 42px; height: 42px; } .gchip .lbl { font-size: 8.5px; } .gchip .ring { inset: 3px; } .gchip .ring::after { inset: 5px; }
+      .gchip { width: 44px; height: 44px; } .gchip .lbl { font-size: 8.5px; } .gchip .ring { inset: 3px; } .gchip .ring::after { inset: 5px; }
       .gctl { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 4px; align-content: stretch; }
-      .gbtn2 { flex: 1 0 auto; min-width: 0; min-height: 40px; padding: 2px 6px; font-size: 11px; gap: 1px; flex-direction: column; justify-content: center; line-height: 1.1; }
+      .gbtn2 { flex: 1 0 auto; min-width: 44px; min-height: 44px; padding: 2px 6px; font-size: 11px; gap: 1px; flex-direction: column; justify-content: center; line-height: 1.1; }
       .gbtn2 small { font-size: 10px; }
       .gbtn2 .meter { width: 32px; height: 6px; }
       .rail { height: 64px; padding: 4px 6px; } .slip { width: 88px; height: 56px; padding: 3px 6px; } .slip .q { display: none; }
@@ -374,7 +374,7 @@
       .plate-row { display: flex; gap: 6px; align-items: flex-start; }
       .plate-row .plate-wrap { flex: none; width: 104px; min-height: 104px; }
       .plate-row .strip { flex: 1; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-      .lay { min-height: 40px; font-size: 11px; } .acts .btn { min-height: 42px; }
+      .lay { min-height: 44px; font-size: 11px; } .acts .btn { min-height: 44px; }
       .acts { position: sticky; bottom: 0; background: #241f33; padding: 4px 0 6px; z-index: 2; }
       .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .toasts { top: 3px; left: 3px; right: 3px; } .hintbar:not([hidden]) ~ .toasts { top: 26px; }
