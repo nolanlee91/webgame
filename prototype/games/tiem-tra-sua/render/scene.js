@@ -256,6 +256,9 @@ export function createScene(root, atlas, { onCustomer }) {
     stoveAnim(!!sh?.kitchen?.batches.length, opts.reduced);
     if (sh?.kitchen?.batches.length && !opts.reduced && performance.now() - steamAt > 1300) { steamAt = performance.now(); burst("cupfx", "steam", STOVE[0], STOVE[1] + 40, 0.4); }
     const live = new Set();
+    // TLC1-03: bong bóng gọi món / tên khách không chui dưới HUD — đáy HUD đọc một lần mỗi khung (chỉ khi có khách)
+    let hudB = -1;
+    const hudBottom = () => { if (hudB < 0) { const hd = document.getElementById("hud"); hudB = hd ? hd.offsetTop + hd.offsetHeight + 4 : 0; } return hudB; };
     for (const c of sh?.customers || []) {
       live.add(c.id);
       const n = node(c);
@@ -278,8 +281,8 @@ export function createScene(root, atlas, { onCustomer }) {
       const showSay = c.say && t - c.say.at < BUBBLE_MS;
       n.bubble.hidden = !showSay;
       if (showSay) {
-        if (n.sayAt !== c.say.at) { n.sayAt = c.say.at; n.bubble.textContent = c.say.text; n.bubble.classList.remove("pop"); void n.bubble.offsetWidth; n.bubble.classList.add("pop"); }
-        n.bubble.style.left = sx + "px"; n.bubble.style.top = sy - 6 + "px";
+        if (n.sayAt !== c.say.at) { n.sayAt = c.say.at; n.bubble.textContent = c.say.text; n.bubble.classList.remove("pop"); void n.bubble.offsetWidth; n.bubble.classList.add("pop"); n.bh = n.bubble.offsetHeight; }
+        n.bubble.style.left = sx + "px"; n.bubble.style.top = Math.max(sy - 6, hudBottom() + (n.bh || 0) + 3) + "px";
         n.bubble.classList.toggle("left", sx > root.clientWidth * 0.62);
       }
       const showBar = c.phase === "wait";
@@ -293,7 +296,7 @@ export function createScene(root, atlas, { onCustomer }) {
       n.tag.hidden = !(c.phase === "wait" || c.phase === "enter") || showSay;
       n.tag.textContent = act ? "Đang pha" : c.items.length > 1 ? `${c.name} · ${c.items.length} ly` : c.name;
       n.tag.classList.toggle("on", act);
-      n.tag.style.left = sx + "px"; n.tag.style.top = sy - 16 + "px";
+      n.tag.style.left = sx + "px"; n.tag.style.top = (n.tag.hidden ? sy - 16 : Math.max(sy - 16, hudBottom() + 20)) + "px";
       n.tag.style.opacity = alpha;
     }
     for (const [id, n] of nodes) if (!live.has(id)) { n.b.remove(); n.bubble.remove(); n.bar.remove(); n.tag.remove(); nodes.delete(id); }
