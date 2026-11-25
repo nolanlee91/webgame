@@ -150,23 +150,70 @@
 
   // ---------- TẦNG 1: sảnh chờ trực tiếp ----------
   var roomQueryP = new Set(["ma-soi", "ai-la-noi-gian", "noi-tu", "dat-bom"]);
-  var lastRoomHTML = "";
-  function renderRooms(rooms, status) {
+  var lastRoomHTML = "", lastLiveHTML = "";
+  // P-F: "N người đang chơi" chỉ hiện khi đủ đông — sảnh vắng (3 người) trông như site chết, nên ẩn hẳn.
+  var ONLINE_MIN = 20, lobbyTab = "wait", tabPicked = false;
+  function renderRooms(rooms, status, live) {
     var html = rooms.map(roomHTML).join("");
     if (html !== lastRoomHTML) {
       $("rooms").innerHTML = html;
       lastRoomHTML = html;
     }
+    // Đang diễn ra: mỗi game một dòng (số bàn + số người). Không có mã phòng (đang chơi thì không vào giữa ván được).
+    var playing = status ? [] : ((live && live.playing) || []).filter(function (p) { var g = byId(p.game); return g && !soon(g) && duelIds.includes(p.game) && p.rooms > 0; });
+    var lhtml = playing.map(liveHTML).join("");
+    if (lhtml !== lastLiveHTML) { $("liveRooms").innerHTML = lhtml; lastLiveHTML = lhtml; }
     $("roomCount").textContent = status ? "" : rooms.length;
-    var note = status || (rooms.length ? "" : "Chưa có phòng công khai đang chờ người.");
+    $("liveCount").textContent = status ? "" : playing.reduce(function (n, p) { return n + p.rooms; }, 0);
+    var players = !status && live && typeof live.players === "number" ? live.players : 0;
+    var on = $("lobbyOnline");
+    on.hidden = players < ONLINE_MIN;
+    if (!on.hidden) on.innerHTML = "<strong>" + players.toLocaleString("vi-VN") + "</strong> người đang chơi";
+    // chưa tự chọn tab: không có phòng chờ mà có ván đang chơi ⇒ mở sẵn tab Đang diễn ra
+    if (!tabPicked && !status) setLobbyTab(!rooms.length && playing.length ? "live" : "wait");
+    var note = status || (lobbyTab === "live" ? (playing.length ? "" : "Chưa có ván nào đang diễn ra. Tạo phòng rủ bạn vào chơi nhé!")
+      : (rooms.length ? "" : "Chưa có phòng công khai đang chờ người."));
     if ($("roomStatus").textContent !== note) $("roomStatus").textContent = note;
     $("roomStatus").hidden = !note;
-    var empty = !status && !rooms.length;
+    var empty = !status && !rooms.length && !playing.length;
     $("lobby").classList.remove("is-loading");
     $("lobby").classList.toggle("is-empty", empty);
-    $("lobby").classList.toggle("has-rooms", rooms.length > 0);
+    $("lobby").classList.toggle("has-rooms", rooms.length > 0 || playing.length > 0);
     $("quickTitle").textContent = empty ? "Chưa có phòng nào đang chờ · mở phòng nhanh" : "Mở phòng mới";
+    lastLobby = { rooms: rooms, status: status, live: live };
   }
+  var lastLobby = null;
+  function liveHTML(p) {
+    var g = byId(p.game);
+    return '<li class="room room--live">' +
+      '<span class="room__art">' + imgHTML(g, "56px", true) + "</span>" +
+      '<span class="room__info"><span class="room__name">' + esc(g.name) + "</span>" +
+        '<span class="room__meta"><span class="room__host"><span class="live" aria-hidden="true"></span>' + p.rooms + " bàn đang chơi</span>" +
+        '<span class="room__cnt">' + p.n + " người</span></span></span>" +
+      '<a class="btn btn--teal btn--sm room__go" href="' + esc(href(g)) + '" aria-label="Chơi ' + esc(g.name) + ": " + p.rooms + " bàn đang chơi, " + p.n + ' người">Chơi</a>' +
+    "</li>";
+  }
+  // Tab "Phòng chờ / Đang diễn ra" (ARIA tabs: ← → Home End, chỉ tab đang chọn nhận Tab)
+  function setLobbyTab(t) {
+    lobbyTab = t;
+    [["wait", "ltabWait", "rooms"], ["live", "ltabLive", "liveRooms"]].forEach(function (x) {
+      var on = x[0] === t, b = $(x[1]);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+      $(x[2]).hidden = !on;
+    });
+  }
+  [].forEach.call(document.querySelectorAll(".ltab"), function (b) {
+    b.addEventListener("click", function () {
+      tabPicked = true; setLobbyTab(b.dataset.ltab);
+      if (lastLobby) renderRooms(lastLobby.rooms, lastLobby.status, lastLobby.live);
+    });
+    b.addEventListener("keydown", function (e) {
+      var k = e.key, to = k === "ArrowRight" || k === "End" ? "ltabLive" : k === "ArrowLeft" || k === "Home" ? "ltabWait" : null;
+      if (!to) return;
+      e.preventDefault(); $(to).focus(); $(to).click();
+    });
+  });
   // Mở phòng nhanh: mỗi game đối kháng một ô ảnh, bấm là vào màn tạo phòng của game đó.
   // Điện thoại (≤ 720 px) khối này bị ẩn ⇒ không dựng, không tải ảnh; màn rộng ra (xoay ngang / kéo cửa sổ) thì dựng lúc đó.
   var mqPhone = window.matchMedia("(max-width: 720px)"), quickDone = false;
@@ -191,7 +238,7 @@
         var data;
         try { data = await (firstLobby || fetchLobby()); }
         catch (e) { firstLobby = null; await new Promise(function (r) { setTimeout(r, 1000); }); data = await fetchLobby(); }
-        renderRooms(data.rooms.filter(function (r) { return duelIds.includes(r.game); }));
+        renderRooms(data.rooms.filter(function (r) { return duelIds.includes(r.game); }), "", { players: data.players, playing: data.playing });
       } catch {
         renderRooms([], "Tạm thời không tải được danh sách phòng.");
       }
@@ -236,11 +283,12 @@
     return chal ? '<div class="tile-wrap">' + tileInner(g) + chal + "</div>" : tileInner(g);
   }
   // Thẻ "Tài trợ" (HOME-11): cùng cỡ thẻ game, nhãn "Tài trợ" rõ ràng, cuối kệ cuối cùng. Hình vẽ bằng CSS (không cần ảnh mới).
+  // D5: chỉ hiện khi SPONSOR.url (games.js) là link https:// thật — chưa có link thì ẩn hẳn; điền link là thẻ tự hiện (đọc lúc vẽ kệ).
   function sponsorHTML() {
-    if (!SPONSOR || !SPONSOR.name) return "";
-    var url = /^https:\/\/\S+$/i.test(SPONSOR.url || "") ? SPONSOR.url : "";
-    var tag = url ? "a" : "article";
-    var link = url ? ' href="' + esc(url) + '" target="_blank" rel="sponsored noopener"' : "";
+    var url = SPONSOR && SPONSOR.name && /^https:\/\/[^\s"'<>]+\.[^\s"'<>]+$/i.test(String(SPONSOR.url || "").trim()) ? String(SPONSOR.url).trim() : "";
+    if (!url) return "";
+    var tag = "a";
+    var link = ' href="' + esc(url) + '" target="_blank" rel="sponsored noopener"';
     return "<" + tag + ' class="card tile tile--sponsor" data-id="sponsor"' + link + ' aria-label="Tài trợ: ' + esc(SPONSOR.name) + " — " + esc(SPONSOR.text) + '">' +
       '<span class="tile__art sponsor__art" aria-hidden="true"><span class="badge badge--sponsor">Tài trợ</span>' +
         '<span class="sponsor__bubble">ABC</span><span class="sponsor__brand">' + esc(SPONSOR.name) + "</span></span>" +

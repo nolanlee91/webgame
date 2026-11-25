@@ -118,3 +118,15 @@
   .topbar--nav .logo__text { font-size: 16px; }
 }
 @media (hover: none) { .mainnav__a:not([aria-current]):hover { background: #172335; color: #c0cedd; } .me__btn:hover { --b: #31445b; background: #172335; } }
+
+/* ---------- D5: điện thoại xoay ngang 721–1023 px (844×390, 740×360): thanh trên gọn và KHÔNG dính
+   (dính thì ~115 px trên 390 px bị chiếm suốt lúc cuộn) — logo · tìm · hồ sơ một hàng, điều hướng hàng 2 cao 44 px ---------- */
+@media (orientation: landscape) and (max-height: 500px) and (min-width: 721px) and (max-width: 1023px) {
+  .topbar { position: static; }
+  .portal .topbar__inner { min-height: 0; }
+  .topbar--nav .topbar__inner { padding: 4px max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left)); gap: 0 12px; }
+  .topbar--nav .logo__slogan { display: none; }
+  .topbar--nav .logo__text { font-size: 18px; }
+  .topbar--nav .mainnav { margin: 0 -12px; }
+  .me__btn { width: 190px; }
+}

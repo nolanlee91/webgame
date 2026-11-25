@@ -32,8 +32,8 @@
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
   <link rel="stylesheet" href="styles.css?v=d3a" />
   <link rel="stylesheet" href="portal.css?v=perf1" />
-  <link rel="stylesheet" href="portal-pixel.css?v=d3b" />
-  <link rel="stylesheet" href="nav.css?v=d3b" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d5a" />
+  <link rel="stylesheet" href="nav.css?v=d5a" />
 </head>
 <body class="portal theme-b">
   <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
@@ -107,6 +107,8 @@
       <aside class="lobby px-panel is-loading" id="lobby" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
+          <!-- P-F: chỉ hiện khi đủ đông (app.js ONLINE_MIN) — sảnh vắng không bị lộ "3 người đang chơi" -->
+          <span class="lobby__stat" id="lobbyOnline" hidden></span>
         </div>
 
         <div class="lobby__bar">
@@ -125,10 +127,15 @@
           <a class="btn btn--teal lobby__create" href="#duel" id="createRoom" aria-label="Tạo phòng mới"><span class="btn__plus" aria-hidden="true">+</span><span>Tạo phòng<span class="lobby__createTx2"> mới</span></span></a>
         </div>
 
+        <!-- P-F: tab kiểu Đấu Trí — Phòng chờ (vào được) / Đang diễn ra (số bàn + số người mỗi game, từ /api/lobby .playing) -->
         <div class="lobby__subrow">
-          <h3 class="lobby__sub">Phòng công khai đang chờ <span class="count" id="roomCount"></span></h3>
+          <div class="ltabs" role="tablist" aria-label="Phòng online">
+            <button class="ltab" type="button" role="tab" id="ltabWait" aria-selected="true" aria-controls="rooms" data-ltab="wait">Phòng chờ <span class="count" id="roomCount"></span></button>
+            <button class="ltab" type="button" role="tab" id="ltabLive" aria-selected="false" aria-controls="liveRooms" data-ltab="live" tabindex="-1">Đang diễn ra <span class="count" id="liveCount"></span></button>
+          </div>
         </div>
-        <ul class="rooms" id="rooms"></ul>
+        <ul class="rooms" id="rooms" role="tabpanel" aria-labelledby="ltabWait"></ul>
+        <ul class="rooms rooms--live" id="liveRooms" role="tabpanel" aria-labelledby="ltabLive" hidden></ul>
 
         <p class="lobby__note" id="roomStatus" role="status">Đang tải danh sách phòng…</p>
 
@@ -205,8 +212,8 @@
     </style>
   </footer>
 
-  <script src="games.js?v=d3a"></script>
-  <script src="app.js?v=d3a"></script>
+  <script src="games.js?v=d5a"></script>
+  <script src="app.js?v=d5a"></script>
   <script type="module" src="../games/_shared/feedback.js?v=f3"></script>
   <script type="module" src="press-nav.js?v=d3b"></script>
   <script type="module" src="profile.js?v=d3a"></script>

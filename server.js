@@ -5,6 +5,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { createStatic } = require("./server-static");
+const { lobbyPulse } = require("./games-server/public-rooms");
 
 const ROOT = path.join(__dirname, "prototype");
 const PORT = Number(process.env.PORT) || 8080;
@@ -48,7 +49,9 @@ const server = http.createServer((req, res) => {
   if (urlPath === "/api/lobby") {
     const rooms = [...gameHosts].flatMap(([game, host]) =>
       (host.publicList?.() ?? []).map(({ code, host: name, n, max }) => ({ game, code, host: name, have: n, max })));
-    return sendJson(res, 200, { rooms });
+    // P-F: thêm số đếm cho tab "Đang diễn ra" + "N người đang chơi" (trường mới, khách cũ chỉ đọc rooms ⇒ không ảnh hưởng)
+    const { players, playing } = lobbyPulse(gameHosts);
+    return sendJson(res, 200, { rooms, players, playing });
   }
   if (urlPath.startsWith("/api/lobby/rooms/")) {
     const code = urlPath.slice("/api/lobby/rooms/".length);

@@ -4,11 +4,13 @@ import { portraitEl, accentOf, clueSprite } from "./art.js?v=t10";
 import { renderText } from "./dialog.js?v=t11";
 import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t10";
 import { KINDS } from "../core/validate.js?v=t10";
-import { accuse } from "./screens.js?v=t12";
+import { accuse } from "./screens.js?v=t13";
 import { play as sfx } from "./sfx.js?v=t10";
 
 export const KIND_NAME = { ai: "Ai", luc: "Lúc nào", o: "Ở đâu", vat: "Vật gì", cach: "Cách nào", vi: "Vì sao", khac: "Khác" };
 const narrow = () => innerWidth < 900;
+/** Điện thoại xoay ngang — khớp media query trong index.html (docs/mobile-landscape.md). */
+const landShort = () => matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
 
 // ---------- thẻ dùng chung ----------
 const hue = (id) => { let x = 7; for (const ch of String(id)) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return x % 360; };
@@ -82,7 +84,7 @@ export function talk(app, pid) {
   const { c, s, ui } = app.G, p = c.people[pid];
   const topics = topicsOf(c, s, pid), stmts = stmtList(c, s, pid);
   if (p.bio) app.read(p.bio);
-  const big = narrow() ? 120 : Math.min(300, innerHeight - 300);
+  const big = landShort() ? 96 : narrow() ? 120 : Math.min(300, innerHeight - 300);
   return panel(p.name, () => app.closeOverlay(),
     h("div.talk-body", { data: { pid } },
       h("div.talk-left", portraitEl(pid, ui.mood[pid] || "neutral", c.id, big, p.name, "big"),
@@ -142,7 +144,7 @@ export function notebook(app) {
   } else {
     body = h("div.nb-people", peopleList(c, s).map((pid) => { const p = c.people[pid]; if (p.bio) app.read(p.bio); return h("div.pcard2", portraitEl(pid, "neutral", c.id, 72, p.name), h("div", h("b", p.name), p.suspect ? h("span.tag", "Nghi phạm") : null, h("small", p.role || ""), p.bio ? h("p", renderText(p.bio, c.words)) : null)); }));
   }
-  return panel("Sổ tay", () => app.closeOverlay(), ".full", tabs, h("div.nb-body", body));
+  return panel("Sổ tay", () => app.closeOverlay(), ".full.nb-panel", tabs, h("div.nb-body", body));
 }
 
 // ---------- bảng suy luận ----------
@@ -188,7 +190,7 @@ export function board(app) {
       } }, "Chốt bảng"));
   const cork = h("div.cork", h("svg.string", { "aria-hidden": "true" }), notes);
   requestAnimationFrame(() => drawString(cork));
-  return panel("Bảng suy luận", () => app.closeOverlay(), ".full", cork, tray, foot);
+  return panel("Bảng suy luận", () => app.closeOverlay(), ".full.bd-panel", cork, tray, foot);
 }
 function drawString(cork) {
   const svg = cork.querySelector("svg.string"); if (!svg || !cork.isConnected) return;
