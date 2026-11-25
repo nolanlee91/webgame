@@ -1,7 +1,7 @@
 // Ai Là Nội Gián — client. Chỉ hiển thị góc nhìn server gửi cho ghế mình; client không bao giờ biết vai người khác
 // trừ khi server cho phép (người bị loại, hết ván, Nội Gián thấy Nội Gián). Không ghi state ra console.
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
-import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
+import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 const $ = (id) => document.getElementById(id);
 const SESS = "ai-la-noi-gian:sess";
 const LAST = "ai-la-noi-gian:last"; const GAME = "ai-la-noi-gian";

@@ -4,7 +4,7 @@
 //   link Bảng xếp hạng. Esc / bấm ra ngoài / Tab ra khỏi popover ⇒ đóng, trả focus về nút.
 // Tên đổi ở tab khác (game online, bảng xếp hạng) ⇒ cập nhật ngay (onNameChange nghe cả sự kiện storage).
 // Không gọi API nào khi chỉ xem trang; hạng hôm nay chỉ hỏi máy chủ khi mở popover VÀ đã xong ít nhất 1 thử thách.
-import * as A from "../games/_shared/account.js?v=name1";
+import * as A from "../games/_shared/account.js?v=name2";
 import * as D from "../games/_shared/daily.js?v=daily1";
 
 const ORDER = ["sudoku", "2048", "do-vui-nhanh"]; // thứ tự hiện (D.GAME_IDS để "2048" lên đầu vì khoá dạng số)

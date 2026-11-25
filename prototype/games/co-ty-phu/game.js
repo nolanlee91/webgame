@@ -2,7 +2,7 @@
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
 import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d3o";
-import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
+import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;

@@ -6,7 +6,7 @@
 import { createDict } from "./core/dict.js";
 import { createLocalSession } from "./session/local.js";
 import { openOnline } from "./session/online.js";
-import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
+import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
 import { guessWord } from "./core/input.js";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
 
