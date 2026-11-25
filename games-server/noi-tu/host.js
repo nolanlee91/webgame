@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { attachWs } = require("../ma-soi/ws");
+const { DEFAULT_NAME, cleanLine, cleanPlayerName, maskChat } = require("../moderation"); // bộ lọc dùng chung (games-server/MODERATION.md)
 
 const GAME_DIR = path.join(__dirname, "..", "..", "prototype", "games", "noi-tu");
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
@@ -16,18 +17,17 @@ const INTENTS = new Set(["submit", "resign", "rematch"]);
 // Chat trong phòng: đi qua máy chủ (lọc + giới hạn) rồi phát lại cho các ghế — 2 máy không bao giờ nói chuyện trực tiếp.
 const CHAT = { max: 200, keep: 50, burst: 5, perSec: 1 }; // ≤200 ký tự/tin; mỗi ghế dồn tối đa 5 tin, hồi 1 tin/giây
 
-/** Tin nhắn: bỏ ký tự điều khiển/định hướng/vô hình, gộp khoảng trắng, tối đa CHAT.max ký tự. */
+/** Tin nhắn: bỏ ký tự điều khiển/định hướng/vô hình, gộp khoảng trắng, tối đa CHAT.max ký tự; từ tục ⇒ ***, link ⇒ [link]. */
 function cleanChat(raw) {
   if (typeof raw !== "string") return "";
-  const s = raw.normalize("NFC").replace(/[\p{C}\p{Zl}\p{Zp}]/gu, " ").replace(/\s+/g, " ").trim();
-  return [...s].slice(0, CHAT.max).join("");
+  return maskChat(cleanLine(raw, CHAT.max));
 }
 
-/** Tên hiển thị: bỏ ký tự điều khiển/định hướng/vô hình, gộp khoảng trắng, tối đa 16 ký tự. */
-function cleanName(raw) {
-  if (typeof raw !== "string") return "";
-  const s = raw.normalize("NFC").replace(/[\p{C}\p{Zl}\p{Zp}]/gu, "").replace(/\s+/g, " ").trim();
-  return [...s].slice(0, 16).join("");
+/** Tên hiển thị: bỏ ký tự điều khiển/định hướng/vô hình, gộp khoảng trắng, tối đa 16 ký tự thật.
+ *  Rỗng ⇒ "" (báo lỗi "name"); dính từ tục / link ⇒ `fallback` (không bao giờ lưu / phát tên gốc). */
+function cleanName(raw, fallback = DEFAULT_NAME) {
+  if (typeof raw !== "string" || !cleanLine(raw, 16, { stripInvisible: true, stripAngles: true })) return "";
+  return cleanPlayerName(raw, fallback);
 }
 
 /** Chỉ cho đi qua đúng hình dạng thông điệp trọng tài cần — mọi trường lạ bị bỏ. */
@@ -173,7 +173,7 @@ function createNoiTuHost(server, opts = {}) {
         }
         return enter(conn, e, token);
       }
-      const name = cleanName(m.name); if (!name) return reply(conn, { t: "err", code: "name" });
+      const name = cleanName(m.name, e.seats[0]?.name === DEFAULT_NAME ? DEFAULT_NAME + " 2" : DEFAULT_NAME); if (!name) return reply(conn, { t: "err", code: "name" });
       if (e.seats[1]) return reply(conn, { t: "err", code: "full" });
       if (name.toLowerCase() === e.seats[0].name.toLowerCase()) return reply(conn, { t: "err", code: "name-taken" });
       e.seats[1] = { token: crypto.randomBytes(16).toString("hex"), name };
@@ -230,7 +230,7 @@ function createNoiTuHost(server, opts = {}) {
   function publicList() {
     return [...rooms.values()]
       .filter((e) => e.public && !e.ref && !e.seats[1] && [...e.conns].some((c) => c.ws.open && c.token === e.seats[0].token))
-      .map((e) => ({ code: e.code, host: e.seats[0].name, n: 1, max: 2 }));
+      .map((e) => ({ code: e.code, host: cleanPlayerName(e.seats[0].name), n: 1, max: 2 })); // lọc lại (phòng thủ 2 lớp)
   }
 
   return { rooms, publicList, ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };

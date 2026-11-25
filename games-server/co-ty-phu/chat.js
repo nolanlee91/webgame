@@ -4,6 +4,8 @@
 // Chỉ giữ CHAT.keep tin gần nhất trong bộ nhớ của phòng — phòng đóng là mất, không lưu đâu cả.
 "use strict";
 
+const { maskChat } = require("../moderation"); // che từ tục bằng ***, link thành [link] (games-server/MODERATION.md)
+
 const CHAT = { maxLen: 200, keep: 40, burst: 4, perSec: 0.7 };
 // ký tự điều khiển, ký tự vô hình / đảo chiều chữ (đủ nhóm Bidi_Control: U+061C, 200E–200F, 202A–202E, 2066–2069) — dựng từ mã số
 // để file không chứa ký tự vô hình
@@ -26,6 +28,7 @@ class Chat {
     const text = raw.replace(BAD, " ").replace(/\s+/g, " ").trim();
     if (!text) return { err: "bad" };
     if ([...text].length > CHAT.maxLen) return { err: "long" };
+    const shown = maskChat(text);
     const now = this.clock.now(), k = Math.max(1, seats | 0);
     const b = Chat.refill(this.buckets.get(p.token) || { n: CHAT.burst, at: now }, now);
     this.buckets.set(p.token, b);
@@ -37,7 +40,7 @@ class Chat {
     }
     if (b.n < 1 || (ib && ib.n < 1)) return { err: "chat-slow" };
     b.n -= 1; if (ib) ib.n -= 1;
-    this.list.push({ id: ++this.id, tok: p.token, name: p.name, text, at: now });
+    this.list.push({ id: ++this.id, tok: p.token, name: p.name, text: shown, at: now });
     if (this.list.length > CHAT.keep) this.list.shift();
     return { ok: true };
   }

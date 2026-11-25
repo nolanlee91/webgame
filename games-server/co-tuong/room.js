@@ -11,14 +11,10 @@ const DEFAULT_TIMINGS = {
   away: 15000,    // người có lượt đang mất kết nối → đi thay sớm hơn
 };
 
-// ký tự điều khiển, ký tự vô hình / đảo chiều chữ (bidi) và dấu < > — dựng từ mã số để file không chứa ký tự vô hình
-const hex4 = (c) => "\\" + "u" + c.toString(16).padStart(4, "0");
-const BAD_CHARS = new RegExp("[" + [[0, 0x1f], [0x7f, 0x9f], [0x61c, 0x61c], [0x200b, 0x200f], [0x2028, 0x202e], [0x2060, 0x2069], [0xfeff, 0xfeff]].map(([a, b]) => hex4(a) + "-" + hex4(b)).join("") + "<>]", "g");
-function cleanName(raw, fallback) {
-  if (typeof raw !== "string") return fallback; // chỉ nhận chuỗi — object có toString lạ không được làm máy chủ ném lỗi
-  const s = raw.replace(BAD_CHARS, "").replace(/\s+/g, " ").trim();
-  return [...s].slice(0, 16).join("") || fallback;
-}
+// Tên: bộ lọc dùng chung games-server/moderation.js — bỏ ký tự điều khiển / vô hình / bidi và < >, cắt 16 ký tự thật
+// (không cắt đôi emoji), dính từ tục hoặc link ⇒ dùng tên thay thế `fallback` (không bao giờ lưu / phát tên gốc).
+const { cleanPlayerName } = require("../moderation");
+function cleanName(raw, fallback) { return cleanPlayerName(raw, fallback); }
 const GAME_CMDS = new Set(["move", "resign", "draw", "draw-no", "again"]);
 const isSq = (k) => Number.isInteger(k) && k >= 0 && k < 90;
 
