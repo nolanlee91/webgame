@@ -134,6 +134,7 @@ body.is-touch .keys { display: none; }
 .ppl__list li.off { opacity: .55; }
 .ppl__list li.dead .ppl__nm { text-decoration: line-through; color: var(--dim); }
 .ppl__nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppl__list li:has(.pxk) { grid-template-columns: 14px minmax(0, 1fr) auto auto; } /* chủ phòng: nút "Mời ra" (_shared/online-kit.js) */
 .ppl__list .tag { font-size: 11px; color: var(--soft); font-weight: 700; white-space: nowrap; }
 .ppl__list .tag b { color: var(--gold); }
 .ppl__leave { margin: 8px 13px 0; min-height: 36px; padding: 6px 12px; font-size: 12px; }

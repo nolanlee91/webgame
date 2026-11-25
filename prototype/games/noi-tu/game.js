@@ -6,6 +6,7 @@
 import { createDict } from "./core/dict.js";
 import { createLocalSession } from "./session/local.js";
 import { openOnline } from "./session/online.js";
+import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
 import { guessWord } from "./core/input.js";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
 
@@ -25,6 +26,7 @@ const ONLINE_ERR = {
   name: "Nhập tên của bạn trước đã.",
   busy: "Máy chủ đang bận (hoặc bạn mở quá nhiều phòng). Thử lại sau chút nữa.",
   loading: "Máy chủ đang khởi động — thử lại sau vài giây.",
+  banned: BANNED_TEXT,
 };
 
 const REASON = {
@@ -147,7 +149,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     el.mNote.textContent = action.t === "resume" ? "Đang vào lại phòng…" : "Đang kết nối máy chủ…";
     setBusyMenu(true);
     const o = online = openOnline({
-      dict, url, action,
+      dict, url, action, sid: sessionId(),
       onRoom(room) {
         if (o !== online) return;
         ss.set(ROOM_KEY, { code: room.code, token: room.token });
@@ -175,7 +177,13 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
       onEnd(reason) {
         if (o !== online) return;
         online = null; setChat(false); closeSession(); mode = "online";
-        showMenu(reason === "replaced" ? "Bạn đã mở ván này ở tab/máy khác — tab này dừng lại." : "Đã rời phòng.", true);
+        if (reason === "kicked") ss.remove(ROOM_KEY);
+        showMenu(reason === "replaced" ? "Bạn đã mở ván này ở tab/máy khác — tab này dừng lại." : reason === "kicked" ? KICKED_TEXT : "Đã rời phòng.", true);
+      },
+      onReset(room) { // mình (chủ phòng) vừa mời người kia ra ⇒ bỏ ván cũ, về màn chờ người mới (vẫn giữ phòng + mã)
+        if (o !== online) return;
+        session = null; closeSession(); state = null; hide(el.ovEnd);
+        showLobby(room);
       },
     });
   }
@@ -231,7 +239,8 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   function flashChatNote(s) { el.chatNote.textContent = s; clearTimeout(noteT); noteT = setTimeout(() => { el.chatNote.textContent = ""; }, 3000); }
 
   function setBusyMenu(on) { for (const b of [el.create, el.enter]) b.setAttribute("aria-disabled", on ? "true" : "false"); }
-  function myName() { const n = el.oName.value.trim(); prefs.name = n; savePrefs(); return n; }
+  // tên dùng chung toàn site (_shared/online-kit.js): sửa ở đây ⇒ mọi game + bảng xếp hạng cùng đổi; prefs.name vẫn ghi (bản cũ)
+  function myName() { const n = names.commit(el.oName.value); prefs.name = n; savePrefs(); return n; }
 
   function closeSession() {
     for (const off of offs) off();
@@ -398,6 +407,9 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     c0.children[0].textContent = "Bạn"; c0.children[1].textContent = String(state.score[me]);
     c1.children[0].textContent = opp(); c1.children[1].textContent = String(state.score[1 - me]);
     el.eNext.textContent = nextLine(r, me);
+    // chủ phòng (ghế 0) online: "Mời ra" người kia khi ván đã xong (máy chủ kiểm lại quyền + ván xong)
+    el.ovEnd.querySelector(".pxk")?.remove();
+    if (mode === "online" && me === 0 && state.seats[1]?.kind === "human") el.next.parentElement.insertAdjacentHTML("beforeend", kickButtonHTML(1, opp()));
     show(el.ovEnd);
     setTimeout(() => { if (!el.ovEnd.hidden) el.next.focus({ preventScroll: true }); }, 50);
   }
@@ -553,7 +565,10 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   el.next2.addEventListener("click", rematch);
   el.view.addEventListener("click", () => { viewing = true; hide(el.ovEnd); el.next2.focus({ preventScroll: true }); });
   el.menuBtn.addEventListener("click", () => (el.ovMenu.hidden ? showMenu() : (session ? (hide(el.ovMenu), setInert(false)) : null)));
-  el.oName.value = prefs.name || ""; el.oCode.value = invite;
+  // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (prefs.name) được chuyển sang một lần.
+  const names = sharedName({ game: "noi-tu", input: el.oName, legacy: () => prefs.name || "" });
+  el.oCode.value = invite;
+  initKick({ send: (o) => !!online?.send(o) });
   el.solo.addEventListener("click", () => { if (!el.solo.disabled) showSolo(); });
   el.soloBack.addEventListener("click", () => { showEntry(); setTimeout(() => el.solo.focus({ preventScroll: true }), 40); });
   const needName = () => { const n = myName(); if (!n) { el.mNote.textContent = ONLINE_ERR.name; el.oName.focus(); } return n; };

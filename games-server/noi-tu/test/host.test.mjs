@@ -389,3 +389,37 @@ test('lọc tục: tên tục ⇒ "Người chơi" (cả ở danh sách phòng c
     assert.equal((await b.next((m) => m.t === 'chat')).text, 'các bạn ơi lớn lên đi chợ mua lồng đèn');
   } finally { await S.stop(); }
 });
+
+test('mời ra: chỉ chủ phòng, chỉ khi ván xong; người bị mời ra không vào lại / resume được (theo phiên), chủ phòng về phòng chờ', async () => {
+  const S = await startServer({ kickBanMs: 600 });
+  const SB = 'b'.repeat(32);
+  try {
+    const a = await new P(S.url, 'A').open(), b = await new P(S.url, 'B').open();
+    a.send({ t: 'create', name: 'An', sid: 'a'.repeat(32) }); await a.next((m) => m.t === 'room');
+    b.send({ t: 'enter', code: a.code, name: 'Bình', sid: SB }); await b.next((m) => m.t === 'room');
+    await a.next((m) => m.t === 'lobby' && m.started); await b.next((m) => m.t === 'lobby' && m.started);
+    await a.join(); await b.join();
+    b.send({ t: 'kick', target: 0 });
+    assert.equal((await b.next((m) => m.t === 'err' && m.req === 'kick')).code, 'not-host');
+    a.send({ t: 'kick', target: 0 });
+    assert.equal((await a.next((m) => m.t === 'err' && m.req === 'kick')).code, 'target');
+    a.send({ t: 'kick', target: 1 });
+    assert.equal((await a.next((m) => m.t === 'err' && m.req === 'kick')).code, 'phase', 'giữa ván không mời ra');
+    assert.equal((await b.intent({ type: 'resign' })).ok, true); // ván xong
+    await a.next((m) => m.t === 'event' && m.ev.type === 'roundEnded');
+    a.send({ t: 'kick', target: 1 });
+    assert.equal((await b.next((m) => m.t === 'kicked' && m.by === 'host')).by, 'host');
+    const lob = await a.next((m) => m.t === 'lobby' && !m.started);
+    assert.deepEqual(lob.names, ['An', null]);
+    assert.equal(b.ws.readyState, 1, 'kết nối người bị mời ra vẫn mở');
+    // cùng phiên: vào lại / resume ⇒ banned; phiên khác vào được và ván mới bắt đầu
+    b.send({ t: 'enter', code: a.code, name: 'Bình', sid: SB });
+    assert.equal((await b.next((m) => m.t === 'err')).code, 'banned');
+    const b2 = await new P(S.url, 'B2').open();
+    b2.send({ t: 'resume', code: a.code, token: b.token });
+    assert.equal((await b2.next((m) => m.t === 'err')).code, 'banned');
+    const c = await new P(S.url, 'C').open();
+    c.send({ t: 'enter', code: a.code, name: 'Chi', sid: 'c'.repeat(32) }); await c.next((m) => m.t === 'room');
+    assert.deepEqual((await a.next((m) => m.t === 'lobby' && m.started)).names, ['An', 'Chi']);
+  } finally { await S.stop(); }
+});

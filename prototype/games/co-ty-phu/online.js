@@ -6,6 +6,8 @@
 //   • vẽ khung chat (tên người gửi do máy chủ gắn theo ghế; nội dung chèn bằng text node, không dùng innerHTML).
 // Cùng khuôn với prototype/games/co-ca-ngua/online.js, bản độc lập cho game này.
 
+import { sessionId, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // mã phiên (chặn người bị "Mời ra") + câu báo
+
 export const NAME_KEY = "wgp.co-ty-phu.name";
 const SEAT_KEY = "wgp.co-ty-phu.seat";
 export const CODE_RE = /^[A-HJKMNP-Z2-9]{5}$/;
@@ -24,6 +26,8 @@ export const ERR = {
   loading: "Máy chủ đang khởi động, thử lại sau giây lát.",
   server: "Máy chủ gặp lỗi, thử lại.",
   bad: "Yêu cầu không hợp lệ.",
+  banned: BANNED_TEXT,
+  target: KICK_ERR.target,
   long: "Tin nhắn dài quá (tối đa 200 ký tự).",
   "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
@@ -88,7 +92,7 @@ export function createNet(h, { wsUrl } = {}) {
     const w = ws = new WebSocket(url);
     w.onopen = () => {
       opened = true;
-      w.send(JSON.stringify(pending || { t: "resume", code: seat.code, token: seat.token }));
+      w.send(JSON.stringify({ ...(pending || { t: "resume", code: seat.code, token: seat.token }), sid: sessionId() })); // sid: chặn người bị "Mời ra"
       pingTimer = setInterval(() => w.readyState === 1 && w.send('{"t":"ping"}'), 20000);
     };
     w.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch { return; } onMsg(m); };
@@ -117,9 +121,10 @@ export function createNet(h, { wsUrl } = {}) {
     if (m.t === "left") { saveSeat(null); setRoomParam(""); return exit(); }
     if (m.t === "closed") { const msg = (h.onClosed && h.onClosed()) || "Chủ phòng đã hủy phòng."; saveSeat(null); setRoomParam(""); return exit(msg); }
     if (m.t === "replaced") { saveSeat(null, true); return exit("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); }
-    if (m.t === "kicked") { saveSeat(null); setRoomParam(""); return exit("Bạn không còn trong phòng (quá lâu không quay lại phòng chờ)."); }
+    if (m.t === "kicked") { saveSeat(null); setRoomParam(""); return exit(m.by === "host" ? KICKED_TEXT : "Bạn không còn trong phòng (quá lâu không quay lại phòng chờ)."); }
     if (m.t === "err") {
       const text = ERR[m.code] || "Có lỗi xảy ra (" + m.code + ").";
+      if (m.code === "banned") { saveSeat(null); setRoomParam(""); return exit(BANNED_TEXT); } // bị mời ra: 10 phút chưa vào lại được
       if (!inRoom) {
         if (joinAfter && (m.code === "no-seat" || m.code === "no-room")) { pending = joinAfter; joinAfter = null; saveSeat(null); connect(); return; }
         const code = (pending && pending.code) || (seat && seat.code) || "";

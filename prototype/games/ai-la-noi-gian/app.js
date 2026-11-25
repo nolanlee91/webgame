@@ -1,6 +1,7 @@
 // Ai Là Nội Gián — client. Chỉ hiển thị góc nhìn server gửi cho ghế mình; client không bao giờ biết vai người khác
 // trừ khi server cho phép (người bị loại, hết ván, Nội Gián thấy Nội Gián). Không ghi state ra console.
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
+import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
 const $ = (id) => document.getElementById(id);
 const SESS = "ai-la-noi-gian:sess";
 const LAST = "ai-la-noi-gian:last"; const GAME = "ai-la-noi-gian";
@@ -23,6 +24,7 @@ const PHASE = {
   verdict: ["Phán quyết", "Kết quả bỏ phiếu"], end: ["Hết ván", ""],
 };
 const ERR = {
+  banned: BANNED_TEXT,
   started: "Ván đã bắt đầu, không vào được nữa.", full: "Phòng đã đủ 8 người.", name: "Hãy nhập mật danh (tối đa 16 ký tự).",
   "name-taken": "Mật danh này đã có người dùng trong phòng.", phase: "Chưa tới lúc làm việc này.", "not-host": "Chỉ chủ phòng mới làm được.",
   "need-players": "Cần ít nhất 6 người để bắt đầu.", dead: "Bạn đã bị loại, chỉ được xem.", target: "Không chọn được người này.",
@@ -147,6 +149,7 @@ function connect() {
 }
 function offline() { homeMsg("Máy chủ Ai Là Nội Gián chưa bật ở bản này. Khi chạy thử: node games-server/ai-la-noi-gian/dev.js"); }
 function send(o) {
+  if (o.t === "create" || o.t === "join" || o.t === "resume") o = { ...o, sid: sessionId() }; // sid: máy chủ chặn người bị "Mời ra" vào lại 10 phút
   if (["act", "vote", "repair", "jam", "verify", "dispatch"].includes(o.t)) sfx.play("tap", 0.8);
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(o));
   else if (o.t === "create" || o.t === "join") { pending = o; if (!ws) connect(); }
@@ -164,9 +167,11 @@ function onMsg(m) {
       render(); soundFor(prev, v); break;
     }
     case "err":
+      if (m.code === "banned") { save(null); v = null; showHome(); homeMsg(BANNED_TEXT); leaveDone(); break; } // bị mời ra: 10 phút chưa vào lại được
+      if (m.code === "target" && m.req === "kick") { toast(KICK_ERR.target); break; }
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); break; }
       toast(ERR[m.code] || "Có lỗi xảy ra."); sfx.play("err", 0.7); break;
-    case "kicked": case "left": save(null); v = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); leaveDone(); break;
+    case "kicked": case "left": save(null); v = null; showHome(); homeMsg(m.t === "kicked" ? (m.by === "host" ? KICKED_TEXT : "Bạn đã rời phòng.") : ""); leaveDone(); break;
     case "closed": { // chủ phòng hủy phòng ⇒ server gửi cho mọi người (cả chủ phòng), xoá phòng, giữ kết nối
       const wasHost = v && v.host === v.seat;
       save(null); v = null; vsBots = false; showHome(); history.replaceState(null, "", location.pathname);
@@ -205,10 +210,12 @@ document.addEventListener("click", async (e) => {
 function homeMsg(t) { $("homeMsg").textContent = t; }
 function showHome() { $("home").hidden = false; $("game").hidden = true; $("barCode").hidden = true; $("ovEnd").hidden = true; $("ovReveal").hidden = true; lastPhase = null; setTheme("day"); }
 function needName() {
-  const n = $("nameInp").value.trim(); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; }
+  const n = myName.commit($("nameInp").value); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } // sửa tên ở đây ⇒ mọi game cùng đổi
   try { localStorage.setItem(NAME, n); } catch {} return n;
 }
-try { $("nameInp").value = localStorage.getItem(NAME) || ""; } catch {}
+// Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (NAME) được chuyển sang một lần.
+const myName = sharedName({ game: "ai-la-noi-gian", input: $("nameInp"), legacy: () => { try { return localStorage.getItem(NAME) || ""; } catch { return ""; } } });
+initKick({ send: (o) => { send(o); return true; } }); // chủ phòng "Mời ra" người khác ở phòng chờ — hộp xác nhận pixel
 const qp = new URLSearchParams(location.search).get("p"); if (qp) $("codeInp").value = qp.toUpperCase().slice(0, 5);
 let vsBots = false; // bấm "Chơi với máy" ⇒ tự tạo phòng kín, thêm bot, bắt đầu luôn (dùng bot của máy chủ)
 $("botBtn").onclick = () => { const n = needName(); if (n) { vsBots = true; homeMsg("Đang dọn bàn với máy…"); send({ t: "create", name: n, public: false }); } };
@@ -462,6 +469,7 @@ function renderLobby() {
     if (p.bot) chips.push(`<span class="chip chip--bot">Bot</span>`);
     else chips.push(p.connected ? `<span class="chip chip--ok">Sẵn sàng</span>` : `<span class="chip chip--off">Mất kết nối</span>`);
     if (p.bot && iHost) chips.push(`<button type="button" class="chip chip--x" data-kick="${p.seat}" aria-label="Bớt ${esc(p.name)}">✕</button>`);
+    else if (iHost && p.seat !== v.seat) chips.push(kickButtonHTML(p.seat, p.name)); // chủ phòng "Mời ra" người thật
     return `<li class="prow${p.connected ? "" : " prow--off"}${p.seat === v.seat ? " prow--me" : ""}">
       ${avatar(p, "av av--sm")}
       <span class="prow__name">${esc(p.name)}${p.seat === v.seat ? ` <i>(bạn)</i>` : ""}</span>

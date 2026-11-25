@@ -1,7 +1,8 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
-import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d0";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d3o";
+import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;
@@ -396,7 +397,8 @@ function showEntry(msg = "", code = "") {
   $("#entryErr").textContent = msg; if (code) $("#codeIn").value = code;
   lobbyView("entry");
 }
-function readName() { const n = $("#nmIn").value.trim(); try { localStorage.setItem(NAME_KEY, n); } catch {} return n; }
+let names = null; // tên dùng chung toàn site (_shared/online-kit.js) — gắn khi trang khởi động
+function readName() { const n = names ? names.commit($("#nmIn").value) : $("#nmIn").value.trim(); try { localStorage.setItem(NAME_KEY, n); } catch {} return n; }
 function showRoom() {
   const v = room, n = v.players.length, host = v.you === v.host;
   lobbyView("room");
@@ -409,10 +411,12 @@ function showRoom() {
   }).join("");
   $("#rPick").querySelectorAll("button").forEach((b) => (b.onclick = () => { if (!b.disabled && b.getAttribute("aria-pressed") !== "true") net.send({ t: "token", tok: +b.dataset.t }); }));
   const bots = v.players.map((p, k) => [p, k]).filter(([p]) => p.bot);
+  const others = v.players.map((p, k) => [p, k]).filter(([p, k]) => !p.bot && k !== v.you); // chủ phòng "Mời ra" người khác
   $("#botRow").hidden = !host;
   $("#botRow").innerHTML = (n < 4 ? `<button class="btn" type="button" data-bot="add">+ Thêm bot</button>` : "")
-    + bots.map(([p, k]) => `<button class="btn" type="button" data-bot="${k}" aria-label="Bớt ${esc(p.name)}">✕ ${esc(p.name)}</button>`).join("");
-  $("#botRow").querySelectorAll("button").forEach((b) => (b.onclick = () => net.send(b.dataset.bot === "add" ? { t: "add-bot" } : { t: "kick-bot", seat: +b.dataset.bot })));
+    + bots.map(([p, k]) => `<button class="btn" type="button" data-bot="${k}" aria-label="Bớt ${esc(p.name)}">✕ ${esc(p.name)}</button>`).join("")
+    + others.map(([p, k]) => kickButtonHTML(k, p.name).replace(">Mời ra<", `>Mời ra: ${esc(p.name)}<`)).join("");
+  $("#botRow").querySelectorAll("button[data-bot]").forEach((b) => (b.onclick = () => net.send(b.dataset.bot === "add" ? { t: "add-bot" } : { t: "kick-bot", seat: +b.dataset.bot })));
   $("#rNote").textContent = `${n}/4 người trong phòng. ` + (host ? (n < 2 ? "Gửi mã hoặc link mời cho bạn bè, hoặc bấm “Thêm bot” — cần ít nhất 2 người." : "Đủ người rồi, bấm Bắt đầu!") : "Đang chờ chủ phòng bấm Bắt đầu…") + " Bấm linh vật trống để đổi quân.";
   $("#start").disabled = !host || n < 2;
   $("#start").textContent = host ? "Bắt đầu" : "Chờ chủ phòng";
@@ -514,7 +518,8 @@ $("#copyLink").onclick = async () => {
 (async () => {
   await loadManifest();
   buildBoard(); renderLobby(); setDice([5, 6]);
-  try { $("#nmIn").value = localStorage.getItem(NAME_KEY) || ""; } catch {}
+  // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (NAME_KEY) được chuyển sang một lần.
+  names = sharedName({ game: "co-ty-phu", input: $("#nmIn"), legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } } });
   chat = createChat({ box: $("#chat"), button: $("#chatBtn"), send: (o) => net.send(o), onNew: () => SFX.msg(),
     colorOf: (name) => { const p = room && room.players.find((x) => x.name === name); return p ? TOKENS[p.tok].color : ""; } });
   net = createNet({
@@ -523,6 +528,7 @@ $("#copyLink").onclick = async () => {
     onExit: (msg, code) => showEntry(msg, code),
     onClosed: () => { SFX.leave(); return amHost() ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."; },
   });
+  initKick({ send: (o) => net.send(o) }); // chủ phòng bấm "Mời ra" ⇒ hộp xác nhận pixel ⇒ máy chủ kiểm quyền
   showEntry();
   const param = (new URLSearchParams(location.search).get("room") || "").toUpperCase();
   if (net.seat && (!param || param === net.seat.code)) { setConnecting(true); net.resume(); }

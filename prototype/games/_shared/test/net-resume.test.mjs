@@ -23,6 +23,8 @@ class FakeWS {
   close() { this.readyState = 3; }
   recv(o) { this.onmessage?.({ data: JSON.stringify(o) }); }
 }
+// create / join / resume gửi kèm mã phiên trình duyệt (sid, _shared/online-kit.js) — kiểm hình dạng rồi bỏ ra khi so
+const noSid = ({ sid, ...o }) => { assert.match(sid, /^[0-9a-f]{32}$/); return o; };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const handlers = (log = []) => new Proxy({}, { get: (_, k) => (...a) => log.push([k, ...a]) });
 
@@ -46,7 +48,7 @@ for (const [game, KEY] of GAMES) {
     const local = new Store(); tab(local);
     const net = createNet(handlers(), { url: "ws://x" });
     net.join(CODE, "An"); await tick();
-    assert.deepEqual(sockets[0].sent[0], { t: "join", code: CODE, name: "An" });
+    assert.deepEqual(noSid(sockets[0].sent[0]), { t: "join", code: CODE, name: "An" });
     sockets[0].recv({ t: "joined", code: CODE, token: TOKEN });
     assert.deepEqual(JSON.parse(sessionStorage.getItem(KEY)), { code: CODE, token: TOKEN });
     const kept = JSON.parse(local.getItem(KEY + "." + CODE));
@@ -59,7 +61,7 @@ for (const [game, KEY] of GAMES) {
     const net = createNet(handlers(), { url: "ws://x" });
     assert.deepEqual(net.seat, { code: CODE, token: TOKEN });
     assert.equal(net.resume(), true); await tick();
-    assert.deepEqual(sockets[0].sent[0], { t: "resume", code: CODE, token: TOKEN });
+    assert.deepEqual(noSid(sockets[0].sent[0]), { t: "resume", code: CODE, token: TOKEN });
     // link phòng khác ⇒ không dùng ghế này
     tab(local, "?room=ABCDE");
     assert.equal(createNet(handlers(), { url: "ws://x" }).seat, null);
@@ -103,9 +105,9 @@ for (const [game, KEY] of GAMES) {
     tab(local);
     const log = [], net = createNet(handlers(log), { url: "ws://x" });
     net.join(CODE, "An"); await tick();
-    assert.deepEqual(sockets[0].sent[0], { t: "resume", code: CODE, token: TOKEN });
+    assert.deepEqual(noSid(sockets[0].sent[0]), { t: "resume", code: CODE, token: TOKEN });
     sockets[0].recv({ t: "err", code: "no-seat" }); await tick();
-    assert.deepEqual(sockets[1].sent[0], { t: "join", code: CODE, name: "An" });
+    assert.deepEqual(noSid(sockets[1].sent[0]), { t: "join", code: CODE, name: "An" });
     assert.equal(local.getItem(KEY + "." + CODE), null);
     assert.ok(!log.some(([k]) => k === "gone"), "không báo mất ghế khi còn đường join");
     sockets[1].recv({ t: "joined", code: CODE, token: "b".repeat(32) });

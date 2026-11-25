@@ -4,9 +4,10 @@ import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, 
 import { bestMove } from "./ai.js";
 import { createBoard } from "./board.js?v=oaq2";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
-import { createNet, CODE_RE } from "./net.js?v=rs1";
+import { createNet, CODE_RE } from "./net.js?v=kk1";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
+import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
 
 const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module
 const SAVE_KEY = "wgp.o-an-quan.v1", NAME_KEY = "wgp.o-an-quan.name";
@@ -25,6 +26,8 @@ const ERR = {
   loading: "Máy chủ đang khởi động, thử lại sau giây lát.",
   server: "Máy chủ gặp lỗi, thử lại.",
   bad: "Yêu cầu không hợp lệ.",
+  banned: BANNED_TEXT,
+  target: KICK_ERR.target,
   long: "Tin nhắn dài quá (tối đa 200 ký tự).",
   "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
@@ -359,7 +362,7 @@ export function mount(root, ctx = {}) {
   }, { url: ctx.wsUrl });
   function busyMenu(on) { ui.ovMenu.querySelectorAll(".btn").forEach((b) => (b.disabled = on)); }
   function goOnline(kind) {
-    const nm = ui.nameIn.value.trim();
+    const nm = myName.commit(ui.nameIn.value); // tên dùng chung toàn site (_shared/online-kit.js): sửa ở đây ⇒ mọi game cùng đổi
     if (!nm) { if (view !== "entry") menuView("entry"); ui.mErr.textContent = "Nhập tên của bạn trước nhé."; ui.nameIn.focus(); return; }
     try { localStorage.setItem(NAME_KEY, nm); } catch {}
     if (kind === "create") { menuView("create"); return; }
@@ -375,7 +378,9 @@ export function mount(root, ctx = {}) {
   const onEnter = (e) => { if (e.key === "Enter") { e.preventDefault(); goOnline(e.target === ui.codeIn || ui.codeIn.value ? "join" : "create"); } };
   ui.nameIn.addEventListener("keydown", onEnter); ui.codeIn.addEventListener("keydown", onEnter);
   ui.nameIn.addEventListener("input", () => { if (ui.mErr.textContent === "Nhập tên của bạn trước nhé.") ui.mErr.textContent = ""; });
-  try { ui.nameIn.value = localStorage.getItem(NAME_KEY) || ""; } catch {}
+  // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (NAME_KEY) được chuyển sang một lần.
+  const myName = sharedName({ game: "o-an-quan", input: ui.nameIn, legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } } });
+  initKick({ send: (o) => net.send(o) }); // chủ phòng "Mời ra" (hộp xác nhận pixel → máy chủ kiểm quyền)
 
   function showRoom(v) {
     const n = v.players.length, host = v.you === v.host;
@@ -385,7 +390,7 @@ export function mount(root, ctx = {}) {
     ui.rSeats.innerHTML = [...Array(v.max).keys()].map((i) => {
       const p = v.players[i], team = i % 2, tag = `<span class="team${team ? " b" : ""}">${team ? "Đội B" : "Đội A"}${v.max === 4 ? (i < 2 ? "1" : "2") : ""}</span>`;
       if (!p) return `<div class="seat off"><span class="pc">${TEAM_SVG[team]}</span>${tag}<b>Đang chờ người chơi…</b><em>Chỗ trống</em></div>`;
-      return `<div class="seat"><span class="pc">${TEAM_SVG[team]}</span>${tag}<b>${esc(p.name)}${i === v.you ? " (Bạn)" : ""}</b><em class="${p.connected ? "ok" : "bad"}">${i === v.host ? "Chủ phòng · " : ""}${p.connected ? "Sẵn sàng" : "Mất kết nối"}</em></div>`;
+      return `<div class="seat"><span class="pc">${TEAM_SVG[team]}</span>${tag}<b>${esc(p.name)}${i === v.you ? " (Bạn)" : ""}</b><em class="${p.connected ? "ok" : "bad"}">${i === v.host ? "Chủ phòng · " : ""}${p.connected ? "Sẵn sàng" : "Mất kết nối"}</em>${host && i !== v.you ? kickButtonHTML(i, p.name) : ""}</div>`;
     }).join("");
     ui.rStart.textContent = host ? "▶ Bắt đầu" : "Chờ chủ phòng";
     ui.rStart.disabled = !host || n < v.max;

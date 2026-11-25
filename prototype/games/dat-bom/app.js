@@ -3,6 +3,7 @@
 // máy chủ kiểm tra lại, sai thì gửi "fix" để kéo về. Người khác được nội suy giữa các khung 20 lần/giây.
 // Đồ hoạ trong bản đồ: sprite Pixel V5 của Codex ở assets/ (ô 64 px).
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
+import { sharedName, sessionId, initKick, kickButtonHTML, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok1"; // tên dùng chung + "Mời ra"
 import * as L from "./logic.js";
 
 const $ = (id) => document.getElementById(id);
@@ -17,6 +18,7 @@ const ERR = {
   "no-room": "Không tìm thấy phòng này (có thể đã đóng).", "no-seat": "Phiên chơi cũ đã hết.", busy: "Máy chủ đang bận, thử lại sau ít phút.",
   "chat-slow": "Nhắn chậm lại một chút nhé.", long: "Tin nhắn dài quá (tối đa 200 ký tự).", bad: "Yêu cầu không hợp lệ.",
   loading: "Máy chủ đang khởi động, thử lại sau giây lát.", server: "Máy chủ gặp lỗi, thử lại nhé.", already: "Bạn đang ở trong một phòng.",
+  banned: BANNED_TEXT, target: KICK_ERR.target,
 };
 
 let ws = null, retry = 0, pending = null, v = null, f = null, offset = 0;
@@ -85,7 +87,7 @@ function connect() {
   let opened = false;
   ws.onopen = () => {
     opened = true; retry = 0; $("net").hidden = true;
-    if (sess) send({ t: "resume", code: sess.code, token: sess.token });
+    if (sess) send({ t: "resume", code: sess.code, token: sess.token, sid: sessionId() });
     else if (pending) { send(pending); pending = null; }
     else send({ t: "list" });
   };
@@ -100,6 +102,7 @@ function connect() {
 }
 function offline() { homeMsg("Chưa kết nối được máy chủ Đặt Bom. Khi chạy thử trên máy: node games-server/dat-bom/dev.js"); $("pubList").innerHTML = '<li class="soft">Không tải được danh sách phòng.</li>'; }
 function send(o) {
+  if (o.t === "create" || o.t === "join") o = { ...o, sid: sessionId() }; // sid: máy chủ chặn người bị "Mời ra" vào lại 10 phút
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(o));
   else if (o.t === "create" || o.t === "join") { pending = o; if (!ws) connect(); }
 }
@@ -112,6 +115,7 @@ function onMsg(m) {
     case "fix": if (me && m.alive !== false) { me = { x: m.x, y: m.y }; sent = { ...me }; } break;
     case "list": renderPub(m.rooms); break;
     case "err":
+      if (m.code === "banned") { save(null); v = null; f = null; showHome(); homeMsg(BANNED_TEXT); send({ t: "list" }); break; } // bị mời ra: 10 phút chưa vào lại được
       if (m.code === "no-seat" || (m.code === "no-room" && !v)) { save(null); showHome(); if (m.code === "no-room") homeMsg(ERR["no-room"]); send({ t: "list" }); break; }
       if (m.code === "no-bomb" || m.code === "slow") break;
       toast(ERR[m.code] || "Có lỗi xảy ra."); break;
@@ -120,7 +124,7 @@ function onMsg(m) {
       const wasHost = isHost();
       save(null); v = null; f = null; showHome(); homeMsg(wasHost ? "Đã hủy phòng." : "Chủ phòng đã hủy phòng."); sfx.play("leave", 0.8); send({ t: "list" }); break;
     }
-    case "kicked": case "left": if (exiting && m.t === "left") return exiting(); save(null); v = null; f = null; showHome(); homeMsg(m.t === "kicked" ? "Bạn đã rời phòng." : ""); send({ t: "list" }); break;
+    case "kicked": case "left": if (exiting && m.t === "left") return exiting(); save(null); v = null; f = null; showHome(); homeMsg(m.t === "kicked" ? (m.by === "host" ? KICKED_TEXT : "Bạn đã rời phòng.") : ""); send({ t: "list" }); break;
     case "replaced": save(null); v = null; f = null; showHome(); homeMsg("Phòng này đang mở ở tab khác."); break;
   }
 }
@@ -129,11 +133,13 @@ function onMsg(m) {
 function homeMsg(t) { $("homeMsg").textContent = t; }
 function showHome() { $("home").hidden = false; $("game").hidden = true; $("barCode").hidden = true; history.replaceState(null, "", location.pathname); }
 function needName() {
-  const n = $("nameInp").value.trim(); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; }
+  const n = myName.commit($("nameInp").value); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } // sửa tên ở đây ⇒ mọi game cùng đổi
   try { localStorage.setItem(NAME, n); } catch {}
   return n;
 }
-try { $("nameInp").value = localStorage.getItem(NAME) || ""; } catch {}
+// Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game ("dat-bom:name") được chuyển sang một lần.
+const myName = sharedName({ game: "dat-bom", input: $("nameInp"), legacy: () => { try { return localStorage.getItem(NAME) || ""; } catch { return ""; } } });
+initKick({ send: (o) => { send(o); return true; } }); // chủ phòng "Mời ra" (phòng chờ / hết ván) — hộp xác nhận pixel
 $("createBtn").onclick = () => { const name = needName(); if (name) { homeMsg("Đang tạo phòng…"); send({ t: "create", name, public: !$("privateRoom").checked }); } };
 function joinCode(code) {
   const name = needName(); if (!name) return;
@@ -197,7 +203,8 @@ function render(prev) {
     if (p.left) tags.push("đã rời"); else if (!p.connected) tags.push("mất mạng");
     if (p.wins) tags.push(`<b>${p.wins}</b> thắng`);
     return `<li class="${p.connected ? "" : "off"} ${dead ? "dead" : ""}"><span class="sw" style="background:${COLORS[i]}" title="${CNAME[i]}"></span>` +
-      `<span class="ppl__nm">${esc(p.name)}${i === v.you ? " (bạn)" : ""}</span><span class="tag">${tags.join(" · ")}</span></li>`;
+      `<span class="ppl__nm">${esc(p.name)}${i === v.you ? " (bạn)" : ""}</span><span class="tag">${tags.join(" · ")}</span>` +
+      (v.you === v.host && i !== v.you && !p.left && v.phase !== "play" ? kickButtonHTML(i, p.name) : "") + `</li>`;
   }).join("");
   // chat
   const log = $("chatLog");
