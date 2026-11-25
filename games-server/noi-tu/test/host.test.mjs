@@ -368,3 +368,24 @@ test('chat: qua máy chủ, phát cho cả 2 ghế kèm tên do server gắn; l�
     assert.equal(log.items.length, 6); assert.equal(log.items[0].text, 'chào bạn');
   } finally { await S.stop(); }
 });
+
+test('lọc tục: tên tục ⇒ "Người chơi" (cả ở danh sách phòng công khai), người vào trùng tên thay thế ⇒ "Người chơi 2", chat tục ⇒ ***, link ⇒ [link]', async () => {
+  const S = await startServer();
+  try {
+    assert.equal(cleanName('Cặc Bự'), 'Người chơi');
+    assert.equal(cleanName('đụ m', 'Khách'), 'Khách');
+    assert.equal(cleanName('Lâm 👨‍👩‍👧'), 'Lâm 👨‍👩‍👧');
+    const a = await new P(S.url, 'A').open(), b = await new P(S.url, 'B').open();
+    a.send({ t: 'create', name: '👑 địt mẹ mày' }); await a.next((m) => m.t === 'room');
+    assert.deepEqual(S.host.publicList().map((r) => r.host), ['Người chơi']);
+    b.send({ t: 'enter', code: a.code, name: 'Fuck You' }); await b.next((m) => m.t === 'room');
+    const lob = await b.next((m) => m.t === 'lobby' && m.started);
+    assert.deepEqual(lob.names, ['Người chơi', 'Người chơi 2']);
+    await a.next((m) => m.t === 'lobby' && m.started);
+    await a.join(); await b.join();
+    a.send({ t: 'chat', text: 'mày ngu vcl, vào zalo.me/123 nhé' });
+    assert.equal((await b.next((m) => m.t === 'chat')).text, 'mày ngu ***, vào [link] nhé');
+    a.send({ t: 'chat', text: 'các bạn ơi lớn lên đi chợ mua lồng đèn' });
+    assert.equal((await b.next((m) => m.t === 'chat')).text, 'các bạn ơi lớn lên đi chợ mua lồng đèn');
+  } finally { await S.stop(); }
+});

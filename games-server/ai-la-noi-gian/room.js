@@ -42,10 +42,12 @@ function roleSet(n, variant = 0) {
   return roles;
 }
 
+// Làm sạch dòng chữ (NFC, bỏ ký tự điều khiển / vô hình / bidi, gộp khoảng trắng, cắt `max` ký tự thật — không cắt đôi emoji).
+// Lọc từ tục: tên qua cleanPlayerName, chat qua maskChat — bộ lọc dùng chung games-server/moderation.js.
+const { cleanLine, cleanPlayerName, maskChat } = require("../moderation");
 function cleanText(s, max) {
   if (s !== undefined && s !== null && typeof s !== "string") return ""; // object/array lạ ⇒ coi như rỗng, không ép kiểu
-  return String(s ?? "").normalize("NFC").replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁦-⁩]/g, " ")
-    .replace(/\s+/g, " ").trim().slice(0, max);
+  return cleanLine(s, max);
 }
 
 class Room {
@@ -100,13 +102,19 @@ class Room {
   join(name, token) {
     if (this.phase !== "lobby") return { err: "started" };
     if (this.players.length >= MAX_PLAYERS) return { err: "full" };
-    const nm = cleanText(name, 16);
-    if (!nm) return { err: "name" };
+    const raw = cleanText(name, 16);
+    if (!raw) return { err: "name" };
+    const nm = cleanPlayerName(raw, this._freeName()); // dính từ tục ⇒ "Người chơi N" (không lưu / phát tên gốc)
     if (this.players.some((p) => p.name.toLowerCase() === nm.toLowerCase())) return { err: "name-taken" };
     const p = this._addPlayer(nm, token, false);
     if (this.host === null) this.host = p.seat;
     this._changed();
     return { seat: p.seat };
+  }
+  /** Tên thay thế chưa ai dùng: "Người chơi 1", "Người chơi 2"… */
+  _freeName() {
+    const taken = new Set(this.players.map((p) => p.name.toLowerCase()));
+    for (let k = 1; ; k++) if (!taken.has(("Người chơi " + k).toLowerCase())) return "Người chơi " + k;
   }
   _reseat() { this.players.forEach((p, i) => (p.seat = i)); }
   _pickHost() {
@@ -127,9 +135,11 @@ class Room {
   setConnected(seat, on) {
     const p = this.players[seat]; if (!p || p.bot || p.connected === on) return;
     p.connected = on;
-    if (!on && this.phase === "lobby" && this.host === seat) {
+    // Chủ phòng mất kết nối ở BẤT KỲ pha nào ⇒ chuyển cho người thật còn kết nối (PTY-03: trước đây chỉ ở phòng chờ, hết ván
+    // không ai bấm "Chơi ván mới" được). Chủ phòng đang vắng mà có người quay lại ⇒ người đó cầm phòng.
+    if (!on && this.host === seat) {
       const next = this.players.find((q) => q.connected && !q.bot); if (next) this.host = next.seat;
-    }
+    } else if (on && !this.players[this.host]?.connected) this.host = seat;
     this._changed();
   }
 
@@ -195,7 +205,7 @@ class Room {
 
   _again(seat) {
     if (this.phase !== "end") return { err: "phase" };
-    if (seat !== this.host) return { err: "not-host" };
+    if (seat !== this.host && this.players[this.host]?.connected) return { err: "not-host" }; // chủ phòng đã đi ⇒ ai cũng mở ván mới được
     // bỏ người đã rời hẳn (bot luôn "có mặt"), về phòng chờ
     this.players = this.players.filter((p) => p.connected);
     this.players.forEach((p, i) => { p.seat = i; p.role = null; p.alive = true; p.botSeen = null; });
@@ -273,7 +283,7 @@ class Room {
     if (this.dispatch) return { err: "spent" };
     const recipient = this._target(target);
     if (!recipient || recipient === p || recipient.bot) return { err: "target" };
-    const body = cleanText(text, CHAT_MAX);
+    const body = maskChat(cleanText(text, CHAT_MAX)); // "Gửi riêng" 1-1 cũng qua bộ lọc
     if (!body) return { err: "empty" };
     this.dispatch = { from: p.seat, to: recipient.seat, text: body };
     this._changed();
@@ -292,7 +302,7 @@ class Room {
   }
 
   _chat(p, text) {
-    const s = cleanText(text, CHAT_MAX);
+    const s = maskChat(cleanText(text, CHAT_MAX)); // từ tục ⇒ ***, link ⇒ [link]
     if (!s) return { err: "empty" };
     if (!p.alive) return { err: "dead" };
     const now = this.clock.now();
