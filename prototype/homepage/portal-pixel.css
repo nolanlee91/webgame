@@ -195,7 +195,9 @@ article.tile--sponsor { cursor: default; }
 .ltab:active { transform: translate(2px, 2px); }
 .ltab .count:empty { display: none; }
 .rooms[hidden] { display: none; }
-.lobby__stat strong { color: #c4faed; }
+.lobby__online { font-size: 12px; font-weight: 700; color: var(--px-soft); white-space: nowrap; }
+.lobby__online strong { color: #c4faed; }
+.lobby__online[hidden] { display: none; }
 .room--live .room__host .live { width: 6px; height: 6px; margin-right: 2px; }
 @media (hover: none) { .ltab:not([aria-selected="true"]):hover { color: #c0cedd; background: transparent; } }
 
