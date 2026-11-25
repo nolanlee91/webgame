@@ -160,6 +160,12 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 .chat__form { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 4px 8px 0; }
 .chat__form input { min-width: 0; }
 .chat--off .chat__form, .chat--off .quick { opacity: .45; pointer-events: none; }
+.chat__tabs .chat__tg { flex: none; padding: 6px 12px; font-size: 12px; color: var(--soft); }
+.chat__tabs .chat__tg[aria-pressed="true"] { color: var(--gold); }
+.chat__offnote { margin: 0; padding: 2px 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 6px; color: var(--dim); font-size: 12px; font-weight: 700; text-align: center; }
+.chat__on { all: unset; box-sizing: border-box; cursor: pointer; min-height: 44px; padding: 0 8px; display: inline-flex; align-items: center; color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+.chat__on:focus-visible { outline: 2px dashed var(--gold); outline-offset: 2px; }
+.chat__form input:disabled { cursor: not-allowed; }
 
 /* ---------- phòng chờ ---------- */
 /* .game không được co (flex-shrink 0): khung cảnh overflow:hidden có min-content = 0 nên nếu co, hàng lưới của nó

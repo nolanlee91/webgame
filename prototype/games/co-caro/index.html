@@ -192,6 +192,15 @@
     .chat-log li.mine { align-self: flex-end; background: #233a35; }
     .chat-log li.mine b { color: var(--teal-l); }
     .chat-log .empty { align-self: center; background: none; box-shadow: none; color: var(--dim); font-size: 13px; text-align: center; }
+    .chat-hd-r { display: flex; gap: 10px; align-items: center; }
+    .chat-hd .chat-tg { display: inline-flex; min-height: 44px; padding: 6px 10px; font-size: 12px; }
+    .chat-hd .chat-tg[aria-pressed="true"] { color: var(--gold); }
+    .chat-offnote { flex: 1; min-height: 0; margin: 0; padding: 10px 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 6px; color: var(--dim); font-size: 13px; font-weight: 700; text-align: center; }
+    .chat-on { all: unset; box-sizing: border-box; cursor: pointer; min-height: 44px; padding: 0 8px; display: inline-flex; align-items: center; color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+    .chat-on:focus-visible { outline: 2px dashed var(--gold); outline-offset: 2px; }
+    .chat-f .inp:disabled { opacity: .55; cursor: not-allowed; }
+    .room-chk { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin: 6px 3px 0; font-size: 14px; font-weight: 700; color: var(--soft); cursor: pointer; }
+    .room-chk input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--gold); cursor: pointer; }
     .chat-f { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px 12px 7px; box-shadow: inset 0 3px 0 var(--line); }
     .chat-f .inp { font-size: 15px; min-height: 42px; }
     .chat-f .btn { min-height: 42px; padding: 8px 12px; margin-right: 7px; }
@@ -271,8 +280,9 @@
       <button class="btn btn--icon" id="muteBtn" type="button" aria-pressed="false" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img id="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /></button>
     </div>
     <aside class="chat" id="chat" hidden aria-label="Trò chuyện trong phòng">
-      <div class="chat-hd"><b>Trò chuyện</b><button class="btn" id="chatX" type="button">Đóng</button></div>
-      <ol class="chat-log" id="chatLog" aria-live="polite"></ol>
+      <div class="chat-hd"><b>Trò chuyện</b><span class="chat-hd-r"><button class="btn chat-tg" type="button" data-chat-toggle aria-pressed="false">Tắt chat</button><button class="btn" id="chatX" type="button">Đóng</button></span></div>
+      <ol class="chat-log" id="chatLog" aria-live="polite" data-chat-hide></ol>
+      <p class="chat-offnote" data-chat-offnote>Đã tắt chat ·<button class="chat-on" type="button" data-chat-on>Bật lại</button></p>
       <form class="chat-f" id="chatF" autocomplete="off"><input class="inp" id="chatIn" maxlength="200" placeholder="Nhắn cho đối thủ…" enterkeyhint="send" aria-label="Nội dung tin nhắn" /><button class="btn btn--primary" type="submit">Gửi</button></form>
     </aside>
     <!-- Cảm ứng: chạm ô để chọn, bấm Đặt để xác nhận (chỉ hiện trên máy cảm ứng khi đang trong ván) -->
@@ -344,6 +354,7 @@
           <p class="sub" id="rOpts"></p>
           <div class="seats" id="rSeats"></div>
           <p class="sub" id="rNote" style="margin-top:12px"></p>
+          <label class="room-chk"><input type="checkbox" data-chat-check /> Tắt chat · không nhận tin nhắn</label>
           <div class="actions">
             <button class="btn btn--big btn--primary" id="rStart" type="button">▶ Bắt đầu</button>
             <button class="btn btn--big" id="rCopy" type="button">Chép link mời</button>
@@ -383,7 +394,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=rs1";
+    import { mount } from "./game.js?v=d0";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

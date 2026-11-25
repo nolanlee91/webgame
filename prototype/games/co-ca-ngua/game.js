@@ -4,9 +4,9 @@
 // Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
-import { createHud } from "./hud.js?v=snd1";
+import { createHud } from "./hud.js?v=chat1";
 import { botMove, makeRng } from "./ai.js";
-import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=snd1";
+import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=chat1";
 
 export const W = 832, H = 832;
 const N = 13, C = 64, BX = 0, BY = 0;   // canvas = đúng ảnh board-v5 (13×13 ô 64px); HUD nằm ngoài (hud.js)

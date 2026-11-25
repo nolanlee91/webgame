@@ -1,7 +1,7 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
-import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=rs1";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d0";
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;

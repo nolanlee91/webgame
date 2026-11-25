@@ -143,6 +143,14 @@ body.is-touch .keys { display: none; }
 .chat__log .mine b { color: #7fd6c9; }
 .chat__log .msg { padding: 3px 0 2px; border-bottom: 1px solid rgba(0,0,0,.28); }
 .chat__log .sys { color: var(--soft); font-style: italic; }
+.chat__hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-right: 8px; }
+.chat__tg { min-height: 44px; padding: 6px 10px; font-size: 12px; }
+.chat__tg[aria-pressed="true"] { color: var(--gold); }
+.chat__off { margin: 0; padding: 8px 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 6px; color: var(--dim); font-size: 13px; font-weight: 700; text-align: center; }
+.chat__on { all: unset; box-sizing: border-box; cursor: pointer; min-height: 44px; padding: 0 8px; display: inline-flex; align-items: center; color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+.chat__on:focus-visible { outline: 2px dashed var(--gold); outline-offset: 2px; }
+.chat__form input:disabled { opacity: .55; cursor: not-allowed; }
+.check--chat { min-height: 44px; }
 .chat__form { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 4px 8px 0; }
 .chat__form input { min-width: 0; }
 

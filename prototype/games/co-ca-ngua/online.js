@@ -4,7 +4,8 @@
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
 //   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ.
-import { mount } from "./game.js?v=snd1";
+import { mount } from "./game.js?v=chat1";
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 
 const NAME_KEY = "wgp.co-ca-ngua.name";
 const SEAT_KEY = "wgp.co-ca-ngua.seat";
@@ -31,10 +32,10 @@ const OFFLINE = "Chưa kết nối được máy chủ chơi online (máy chủ 
 
 function addCss() {
   if (!document.querySelector("link[data-cn-hud]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=snd1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("hud.css?v=chat1", import.meta.url).href; l.dataset.cnHud = ""; document.head.appendChild(l);
   }
   if (!document.querySelector("link[data-cn-online]")) {
-    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=snd1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = new URL("online.css?v=chat1", import.meta.url).href; l.dataset.cnOnline = ""; document.head.appendChild(l);
   }
 }
 const icon = (n) => `<img class="px-ic" src="${new URL("assets/icon-" + n + ".png", import.meta.url).href}" alt="" draggable="false">`;
@@ -166,8 +167,9 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     chatEl.className = "cn-table cn-chat"; chatEl.setAttribute("aria-label", "Trò chuyện trong phòng");
     chatEl.innerHTML = `
       <div class="px-panel cn-chat-box">
-        <div class="hd"><h2 class="px-h">Trò chuyện</h2><button class="px-btn seg" data-c="close" type="button">Đóng</button></div>
-        <ol class="log" aria-live="polite"></ol>
+        <div class="hd"><h2 class="px-h">Trò chuyện</h2><button class="px-btn seg cn-chat-tg" type="button" data-chat-toggle aria-pressed="false">Tắt chat</button><button class="px-btn seg" data-c="close" type="button">Đóng</button></div>
+        <ol class="log" aria-live="polite" data-chat-hide></ol>
+        <p class="cn-chat-offnote" data-chat-offnote>Đã tắt chat ·<button class="cn-chat-reon" type="button" data-chat-on>Bật lại</button></p>
         <form class="f" autocomplete="off"><input class="px-input" maxlength="200" placeholder="Nhắn cho cả phòng…" enterkeyhint="send" aria-label="Nội dung tin nhắn"><button class="px-btn primary" type="submit">Gửi</button></form>
       </div>`;
     stage.after(chatEl);
@@ -179,7 +181,7 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
     chatEl.querySelector('[data-c="close"]').onclick = () => setChatOpen(false);
     chatEl.querySelector("form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const text = input.value.trim(); if (!text) return;
+      const text = input.value.trim(); if (!text || isChatOff()) return;
       if (send({ t: "chat", text })) input.value = "";
     });
     addChatBtn();
@@ -206,6 +208,8 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
   }
   function renderChat(v) {
     chatOn(); addChatBtn(); lastView = v;
+    const off = isChatOff(), input = chatEl.querySelector("input"), sendBtn = chatEl.querySelector('[type="submit"]');
+    input.disabled = off; sendBtn.disabled = off; input.placeholder = off ? "Chat đang tắt" : "Nhắn cho cả phòng…";
     const log = chatEl.querySelector(".log"), list = v.chat || [], top = list.length ? list[list.length - 1].id : 0;
     if (top !== chatLast) {
       const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40, isNew = chatLast >= 0 && top > chatLast;
@@ -220,14 +224,15 @@ export function startOnline(stage, baseCtx, { wsUrl } = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) log.scrollTop = log.scrollHeight;
       const last = list.at(-1);
-      if (isNew && last && !last.mine && inst && inst.chatSfx) inst.chatSfx(); // tin mới từ người khác
-      if (isNew && last && !last.mine && !chatVisible()) toast(last.name + ": " + last.text, 3500);
+      if (isNew && last && !last.mine && !off && inst && inst.chatSfx) inst.chatSfx(); // tin mới từ người khác
+      if (isNew && last && !last.mine && !off && !chatVisible()) toast(last.name + ": " + last.text, 3500);
     }
-    if (chatVisible()) chatSeen = top;
+    if (chatVisible() || off) chatSeen = top;
     const unread = list.filter((c) => c.id > chatSeen && !c.mine).length, n = chatBtn && chatBtn.querySelector(".n");
     if (n) { n.hidden = !unread; n.textContent = unread > 9 ? "9+" : String(unread); }
   }
   addEventListener("resize", () => { if (lastView) renderChat(lastView); });
+  initChatOff((off) => { if (off) hideToast(); if (lastView && chatEl) renderChat(lastView); }); // "Tắt chat" chung toàn trang
 
   function connect() {
     stopNet();
