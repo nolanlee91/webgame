@@ -55,7 +55,8 @@ const me = () => v?.players[v.seat];
 const isMole = (p) => p?.role === "mole" || p?.role === "jammer";
 const won = (p) => p?.role && isMole(p) === (v.winner === "mole");
 const initial = (n) => { const m = String(n).replace(/^Bot\s+/i, "").trim(); return esc((m[0] || "?").toUpperCase()); };
-const avatar = (p, cls = "av") => `<span class="${cls}" style="--c:${SEAT_COLOR[p.avatar % 8]}"><b>${initial(p.name)}</b>${p.bot ? "<i>BOT</i>" : ""}</span>`;
+// Chân dung pixel theo ghế (assets/avatars.webp, 8 ô 96×96, ô i = ghế i) trên nền màu ghế; chữ cái đầu giữ cho trình đọc màn hình.
+const avatar = (p, cls = "av") => `<span class="${cls} av--pic" style="--c:${SEAT_COLOR[p.avatar % 8]};--i:${p.avatar % 8}"><b>${initial(p.name)}</b>${p.bot ? "<i>BOT</i>" : ""}</span>`;
 
 // ---------------- âm thanh: tổng hợp bằng WebAudio (không cần file), dùng chung khoá tắt tiếng "wgp.muted" ----------------
 // Mọi tiếng đều suy ra từ góc nhìn CỦA CHÍNH ghế này ⇒ không lộ thêm gì về vai người khác.

@@ -100,6 +100,9 @@ body.is-day .stage.shift .crt { animation-name: crtOff; }
   color: #111; font: 800 clamp(13px, 1.6vw, 22px)/1 "Be Vietnam Pro", system-ui; text-shadow: 1px 1px 0 rgba(255,255,255,.35);
   --b: var(--line); box-shadow: var(--bevel), var(--border), 3px 4px 0 0 var(--shadow); }
 .av b { font: inherit; }
+/* Chân dung pixel (Codex, PTY-10): sprite 8 ô ngang, nền màu ghế, viền như cũ; chữ cái ẩn trực quan */
+.av--pic { padding: 0; background: url(assets/avatars.webp) calc(var(--i, 0) * 100% / 7) 100% / 800% auto no-repeat, linear-gradient(0deg, rgba(0,0,0,.22) 0 30%, transparent 30%), var(--c, #555); image-rendering: pixelated; }
+.av--pic b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .av i { position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); font: 800 8px/1 system-ui; font-style: normal; letter-spacing: .06em;
   background: #0b0e14; color: var(--phos); padding: 2px 3px; box-shadow: 0 0 0 1px #000; }
 .av--sm { padding-top: 4px; }
