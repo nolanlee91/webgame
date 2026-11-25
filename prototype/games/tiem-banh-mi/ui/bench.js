@@ -1,19 +1,19 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b5";
-import { loafLayers } from "../render/loafview.js?v=b5";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b5";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b5";
-import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b5";
-import { sumBills, makeChange } from "../core/money.js?v=b5";
-import { sameLeft, batchMax } from "../core/board.js?v=b5";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b5";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b5";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b6";
+import { loafLayers } from "../render/loafview.js?v=b6";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b6";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b6";
+import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b6";
+import { sumBills, makeChange } from "../core/money.js?v=b6";
+import { sameLeft, batchMax } from "../core/board.js?v=b6";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b6";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b6";
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
-import { QUIRKS } from "../data/quirks.js?v=b5";
-import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b5";
+import { QUIRKS } from "../data/quirks.js?v=b6";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b6";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không

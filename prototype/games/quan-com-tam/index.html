@@ -330,6 +330,10 @@
       .banner { font-size: 12px; top: 4px; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    /* sheet tải khi cần (chân dung hội thoại, cận cảnh HD…): ô giữ đúng cỡ, nền mờ nhấp nháy tới khi ảnh về (render/atlas.js icon) */
+    .ico.loading { background-color: rgba(120, 86, 52, .16); border-radius: 8px; animation: icoLoad .9s ease-in-out infinite alternate; }
+    @keyframes icoLoad { from { opacity: .45; } to { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .ico.loading { animation: none; } }
   </style>
 </head>
 <body>
@@ -371,6 +375,6 @@
   </nav>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="bootError" hidden></div>
-  <script type="module" src="game.js?v=c5"></script>
+  <script type="module" src="game.js?v=c6"></script>
 </body>
 </html>

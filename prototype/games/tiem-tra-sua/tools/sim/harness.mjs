@@ -11,8 +11,8 @@ import { recipesAt } from "../../core/progression.js";
 import { replyOptions } from "../../core/reviews.js";
 import { stockoutOptions, demandEstimate, menuStock } from "../../core/stockout.js";
 // hội chợ (cấp 18) và ca thử thách (cấp 20): nạp mềm để bộ mô phỏng chạy được cả trên bản trước Milestone 5 (số "trước")
-const FAIRM = await import("../../core/fair.js?v=m37").catch(() => null);
-const CHALM = await import("../../core/challenge.js?v=m37").catch(() => null);
+const FAIRM = await import("../../core/fair.js?v=m38").catch(() => null);
+const CHALM = await import("../../core/challenge.js?v=m38").catch(() => null);
 const TIERS = FAIRM?.TIERS || [];
 import { EVENT } from "../../data/events.js";
 import { CHOICES, STOCK, STEPS, choice } from "../../data/ingredients.js";

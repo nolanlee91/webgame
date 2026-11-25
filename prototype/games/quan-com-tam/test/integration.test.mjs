@@ -3,14 +3,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, prepDay, playShift, seeded, botStep } from "./helpers.mjs";
-import { shopSave, KEY, backupKey } from "../save.js?v=c5";
-import { loadSave, dump, SAVE_VERSION, createState, LEVELS_V2 } from "../core/state.js?v=c5";
-import { LEVELS } from "../data/economy.js?v=c5";
-import { EVENT } from "../data/events.js?v=c5";
-import * as PG from "../core/progression.js?v=c5";
-import { pushReview, replyOptions } from "../core/reviews.js?v=c5";
-import { pickFree, currentEvent } from "../core/drama.js?v=c5";
-import { engineFlag, hasFlag } from "../core/flags.js?v=c5";
+import { shopSave, KEY, backupKey } from "../save.js?v=c6";
+import { loadSave, dump, SAVE_VERSION, createState, LEVELS_V2 } from "../core/state.js?v=c6";
+import { LEVELS } from "../data/economy.js?v=c6";
+import { EVENT } from "../data/events.js?v=c6";
+import * as PG from "../core/progression.js?v=c6";
+import { pushReview, replyOptions } from "../core/reviews.js?v=c6";
+import { pickFree, currentEvent } from "../core/drama.js?v=c6";
+import { engineFlag, hasFlag } from "../core/flags.js?v=c6";
 
 const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }; };
 const atLevel = (lv, { seed = 5, stage = "street", money = 3000 } = {}) => {
@@ -189,7 +189,7 @@ test("nâng bản lưu v1 → v2 (→ v3): chép nguyên văn .bak-v1 một lầ
 });
 
 test("chảo đôi (cấp 8): chiên trứng thứ hai khi trứng đầu còn trên chảo, gắp lần lượt; chảo đơn vẫn báo bận", async () => {
-  const { freshRice, startEgg, takeEgg, eggState } = await import("../core/rice.js?v=c5");
+  const { freshRice, startEgg, takeEgg, eggState } = await import("../core/rice.js?v=c6");
   const s = atLevel(8);
   s.stock.trung = 5;
   const one = { egg: null, egg2: null, cap: 1 };
@@ -209,8 +209,8 @@ test("chảo đôi (cấp 8): chiên trứng thứ hai khi trứng đầu còn t
 });
 
 test("Nhập + ướp đủ ở vỉa hè cấp 6 (kho 80): chia chỗ theo menu, có đủ bì / chả / trứng thay vì để sườn + gạo + một món chiếm hết", async () => {
-  const { addNewDishes } = await import("../core/progress.js?v=c5");
-  const { stockUsed, capacity } = await import("../core/stock.js?v=c5");
+  const { addNewDishes } = await import("../core/progress.js?v=c6");
+  const { stockUsed, capacity } = await import("../core/stock.js?v=c6");
   const s = atLevel(6, { money: 2000 });
   for (const id of ["egg-pan", "steamer", "ban-3"]) s.owned[id] = true;
   addNewDishes(s);

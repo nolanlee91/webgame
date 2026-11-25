@@ -1,18 +1,19 @@
 // Nối mọi thứ: manifest → bản lưu → danh mục vụ (nạp động, thiếu file ⇒ "Sắp ra mắt") → màn hình.
 // Trạng thái vụ chỉ đổi qua apply() (core/engine.js). Giao diện đọc state + sự kiện để chạy hiệu ứng, âm thanh, thoại.
-import { CASES } from "./data/cases/index.js?v=t9";
-import { validateCase } from "./core/validate.js?v=t9";
-import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t9";
-import { recordSolve, displayName, unlocked as isUnlocked, SEASONS, seasonOf, seasonUnlocked, pickSeason } from "./core/progress.js?v=t9";
-import { plain } from "./core/text.js?v=t9";
-import { makeSave, browserStorage } from "./save.js?v=t9";
-import { setManifest, registerSheets } from "./ui/art.js?v=t9";
-import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t9";
-import { createDialog } from "./ui/dialog.js?v=t9";
-import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t9";
-import * as S from "./ui/screens.js?v=t9";
-import * as P from "./ui/panels.js?v=t9";
-import { stamp, shake, crackLens } from "./ui/fx.js?v=t9";
+import { CASES } from "./data/cases/index.js?v=t10";
+import { CASE_META } from "./data/case-meta.js?v=t10";
+import { validateCase } from "./core/validate.js?v=t10";
+import { createRun, apply, sanitizeRun, textOf, nextHint, MAX_CRED } from "./core/engine.js?v=t10";
+import { recordSolve, displayName, unlocked as isUnlocked, SEASONS, seasonOf, seasonUnlocked, pickSeason } from "./core/progress.js?v=t10";
+import { plain } from "./core/text.js?v=t10";
+import { makeSave, browserStorage } from "./save.js?v=t10";
+import { setManifest, registerSheets, preloadCaseArt } from "./ui/art.js?v=t10";
+import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t10";
+import { createDialog } from "./ui/dialog.js?v=t10";
+import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t10";
+import * as S from "./ui/screens.js?v=t10";
+import * as P from "./ui/panels.js?v=t10";
+import { stamp, shake, crackLens } from "./ui/fx.js?v=t10";
 
 const params = new URLSearchParams(location.search);
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -55,7 +56,7 @@ const app = {
     app.refresh();
     return r;
   },
-  show(screen) { G.screen = screen; G.overlays = []; renderAll(); },
+  show(screen) { G.screen = screen; G.overlays = []; renderAll(); if (screen === "map") prefetchNextCase(); },
   refresh() { renderAll(); },
   async openOverlay(name, arg) { G.overlays.push({ name, arg }); renderAll(); },
   closeOverlay() { G.overlays.pop(); renderAll(); },
@@ -64,8 +65,18 @@ const app = {
   textOf: (it) => textOf(G.c, it),
   stamp, shake, crackLens,
   async openCase(id) {
-    const e = G.cat.find((x) => x.id === id);
-    if (!e || !e.c || !e.open) return;
+    let e = G.cat.find((x) => x.id === id);
+    if (!e || !e.open || e.busy) return;
+    if (!e.c) {
+      // PERF-03: file vụ chỉ nạp khi mở vụ; kèm tải trước nền văn phòng + chân dung người nói (tối đa ~2,5 giây) để thoại mở đầu không chạy trên nền đen
+      if (e.status !== "lazy") return;
+      const card = document.querySelector(`.case-card[data-case="${id}"]`);
+      e.busy = true; card?.setAttribute("aria-busy", "true"); card?.classList.add("is-loading");
+      e = await ensureCase(e);
+      card?.removeAttribute("aria-busy"); card?.classList.remove("is-loading");
+      if (!e.c) { toast(e.status === "broken" ? "Vụ này đang được sửa, quay lại sau nha." : "Vụ này sắp ra mắt.", "bad"); renderAll(); return; }
+    }
+    await Promise.race([preloadCaseArt(e.c), new Promise((ok) => setTimeout(ok, 2500))]);
     const raw = G.profile.runs[id];
     let s = raw ? sanitizeRun(e.c, raw) : null;
     if (s && s.phase !== "intro") {
@@ -230,8 +241,25 @@ let rz = 0;
 addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (!app.dialog?.open) renderAll(); }, 150); });
 
 // ---------- khởi động ----------
+/** Mục danh mục chưa nạp file vụ: tên / số / câu dẫn lấy từ data/case-meta.js (sinh từ file vụ), status "lazy" = có file, mở là nạp. */
+const lazyEntry = (e) => { const m = CASE_META[e.id]; return m ? { ...e, c: null, status: "lazy", title: m.title || e.title, no: m.no ?? e.no, tagline: m.tagline || "" } : { ...e, c: null, status: "soon" }; };
+/** Nạp file vụ của mục (một lần), thay vào G.cat, giữ cờ mở khoá. */
+async function ensureCase(e) {
+  if (e.c) return e;
+  const d = await loadCase(e);
+  const i = G.cat.findIndex((x) => x.id === e.id);
+  const out = { ...d, open: i >= 0 ? G.cat[i].open : e.open };
+  if (i >= 0) G.cat[i] = out;
+  return out;
+}
+/** Bản đồ hiện ra ⇒ nạp trước file vụ người chơi gần như chắc sẽ mở (vụ đang dở, không thì vụ mới nhất đã mở mà chưa phá). */
+function prefetchNextCase() {
+  const real = G.cat.filter((x) => !x.dev && x.open && x.status === "lazy");
+  const next = real.find((x) => { const r = G.profile.runs[x.id]; return r && r.phase && r.phase !== "intro"; }) || real.find((x) => !G.profile.solved[x.id]);
+  if (next) import(`./data/cases/${next.id}.js?v=t10`).catch(() => {});
+}
 async function loadCase(entry) {
-  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t9" : `./data/cases/${entry.id}.js?v=t9`;
+  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t10" : `./data/cases/${entry.id}.js?v=t10`;
   try {
     const c = (await import(url)).default;
     const v = validateCase(c);
@@ -241,7 +269,7 @@ async function loadCase(entry) {
   } catch { return { ...entry, c: null, status: "soon" }; }
 }
 async function boot() {
-  try { setManifest(await (await fetch("data/asset-manifest.json?v=t9")).json()); } catch { setManifest(null); }
+  try { setManifest(await (await fetch("data/asset-manifest.json?v=t10")).json()); } catch { setManifest(null); }
   const r = store.read();
   G.profile = r.profile;
   if (r.corrupt) setTimeout(() => toast("Bản lưu bị hỏng nên đã mở hồ sơ mới (bản cũ vẫn được cất trong máy).", "bad"), 400);
@@ -249,9 +277,11 @@ async function boot() {
   if (DEV_CASE === "__mini") list.unshift({ id: "mini", no: 0, title: "Vụ mẫu", difficulty: 0, dev: true });
   // mùa còn khoá thì chưa nạp file vụ (status "pending"): người chơi mùa 1 không phải tải / gặp 404 các vụ chưa ra
   const realList = list.filter((x) => !x.dev);
-  G.cat = await Promise.all(list.map((e) => (e.dev || seasonUnlocked(G.profile, realList, seasonOf(e)) ? loadCase(e) : { ...e, c: null, status: "pending" })));
+  // PERF-03: không nạp file vụ lúc mở game (12 vụ × 60–90 KB): thẻ bản đồ dùng data/case-meta.js, file vụ nạp khi mở vụ (openCase)
+  G.cat = await Promise.all(list.map((e) => (e.dev ? loadCase(e) : seasonUnlocked(G.profile, realList, seasonOf(e)) ? lazyEntry(e) : { ...e, c: null, status: "pending" })));
   G.cat.forEach((e, i) => { e.open = e.dev || isUnlocked(G.profile, G.cat.filter((x) => !x.dev), G.cat.filter((x) => !x.dev).indexOf(e)); });
-  // vụ đã xong nhưng chưa ghi (đóng trang ở màn kết) ⇒ ghi bây giờ
+  // vụ đã xong nhưng chưa ghi (đóng trang ở màn kết) ⇒ nạp đúng các vụ đó rồi ghi bây giờ
+  for (const [i, e] of G.cat.entries()) if (e.status === "lazy" && G.profile.runs[e.id]?.phase === "done") G.cat[i] = await ensureCase(e);
   for (const e of G.cat) {
     const raw = G.profile.runs[e.id];
     if (e.c && raw?.phase === "done") { const s = sanitizeRun(e.c, raw); if (s?.phase === "done") G.profile = recordSolve(G.profile, e.c, s).p; else delete G.profile.runs[e.id]; }
@@ -261,15 +291,12 @@ async function boot() {
   app.refreshCatalog = () => {
     const real = app.real();
     G.cat.forEach((e) => { e.open = e.dev || isUnlocked(G.profile, real, real.indexOf(e)); });
-    // mùa vừa mở khoá ⇒ nạp file vụ của mùa đó rồi vẽ lại
-    const todo = G.cat.filter((e) => e.status === "pending" && seasonUnlocked(G.profile, real, seasonOf(e)));
-    if (todo.length) Promise.all(todo.map((e) => { e.status = "loading"; return loadCase(e); })).then((done) => {
-      for (const d of done) { const i = G.cat.findIndex((x) => x.id === d.id); if (i >= 0) G.cat[i] = { ...d, open: G.cat[i].open }; }
-      app.refreshCatalog(); if (!app.dialog?.open) renderAll();
-    });
+    // mùa vừa mở khoá ⇒ thẻ vụ của mùa đó hiện (file vụ vẫn chỉ nạp khi mở vụ)
+    G.cat.forEach((e, i) => { if (e.status === "pending" && seasonUnlocked(G.profile, real, seasonOf(e))) G.cat[i] = { ...lazyEntry(e), open: e.open }; });
   };
   app.show("title");
   $("#app").classList.add("ready");
+  setTimeout(() => document.getElementById("bootShell")?.remove(), 250); // màn tựa tĩnh (index.html) nhường chỗ sau khi #app hiện xong
   window.__game = {
     get state() { return G.s; }, get profile() { return G.profile; }, get screen() { return G.screen; }, get overlay() { return app.top; },
     get dialogOpen() { return !!app.dialog.open; }, get caseData() { return G.c; }, catalog: () => G.cat.map((e) => ({ id: e.id, status: e.status, open: e.open, season: seasonOf(e) })), get season() { return app.season(); },

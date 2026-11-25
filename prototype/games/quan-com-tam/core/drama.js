@@ -5,18 +5,18 @@
 // (shift.tick không chạy khi có hội thoại). Không chen lúc cô chủ đang bưng dĩa / đi chợ / đang tính tiền: chờ dĩa xuống bàn rồi mới mở.
 // Giữa hai ngày (nextDay): tối đa 1 sự kiện (s.drama.pending), hiện trên bảng Chuẩn bị. Mỗi lựa chọn lưu một khoảnh khắc Nhật Ký
 // (s.drama.moments) + lịch sử (s.drama.history). Chạm trạng thái hệ khác chỉ qua cờ (s.flags) hoặc khoá đọc có optional chaining.
-import { EVENTS, EVENT } from "../data/events.js?v=c5";
-import { NPCS, npcByName } from "../data/npcs.js?v=c5";
-import { ARCHETYPES } from "../data/customers.js?v=c5";
-import { STOCK, GEAR, SHIFTS } from "../data/economy.js?v=c5";
-import { next, int, pick, weighted } from "./rng.js?v=c5";
-import { fill } from "./text.js?v=c5";
-import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c5";
-import { gainXp } from "./progress.js?v=c5";
-import { sendAway } from "./walker.js?v=c5";
-import { addLot } from "./stock.js?v=c5"; // S: lô hàng có hạn
-import { dramaDebt, grantDramaDecor } from "./extras.js?v=c5"; // S: sổ nợ chung, trang trí Drama
-import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c5"; // A: đơn mâm thật, sổ nợ thật
+import { EVENTS, EVENT } from "../data/events.js?v=c6";
+import { NPCS, npcByName } from "../data/npcs.js?v=c6";
+import { ARCHETYPES } from "../data/customers.js?v=c6";
+import { STOCK, GEAR, SHIFTS } from "../data/economy.js?v=c6";
+import { next, int, pick, weighted } from "./rng.js?v=c6";
+import { fill } from "./text.js?v=c6";
+import { FLAG_DAYS, freshDrama, today, liveFlags, flagIn, flagNum, dropFlag, expireFlags, addMod, modGuests, modPatience, pruneMods } from "./flags.js?v=c6";
+import { gainXp } from "./progress.js?v=c6";
+import { sendAway } from "./walker.js?v=c6";
+import { addLot } from "./stock.js?v=c6"; // S: lô hàng có hạn
+import { dramaDebt, grantDramaDecor } from "./extras.js?v=c6"; // S: sổ nợ chung, trang trí Drama
+import { openDramaOrder, payDebt, oldestDebtor, debtTotal } from "./progression.js?v=c6"; // A: đơn mâm thật, sổ nợ thật
 
 export { freshDrama };
 export const DRAMA = {

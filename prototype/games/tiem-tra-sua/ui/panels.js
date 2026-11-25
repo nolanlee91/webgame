@@ -1,15 +1,15 @@
 // Bảng phủ Milestone 3–4: hội thoại sự kiện Drama (chân dung + lựa chọn + hậu quả), Sổ quản lý (review, nhật ký, sự kiện, nhiệm vụ),
 // Nhật Ký Làm Chủ (thẻ ảnh, lưu / chia sẻ), thanh xếp chỗ trang trí. Dùng chung khung open/close của ui/screens.js.
-import { icon } from "../render/atlas.js?v=m37";
-import { EVENT } from "../data/events.js?v=m37";
-import { RECIPE } from "../data/recipes.js?v=m37";
-import { currentEvent, textOf, affordable, fxSummary, byPersona } from "../core/drama.js?v=m37";
-import { customer } from "../core/shift.js?v=m37";
-import { replyOptions, optionHint, personaOf, PERSONAS, OUTCOME_LABEL } from "../core/reviews.js?v=m37";
-import { personaSwitch } from "./persona.js?v=m37";
-import { EQUIPMENT } from "../data/equipment.js?v=m37";
-import { drawJournal, download, share } from "./journal.js?v=m37";
-import { BADGES } from "../core/challenge.js?v=m37";
+import { icon } from "../render/atlas.js?v=m38";
+import { EVENT } from "../data/events.js?v=m38";
+import { RECIPE } from "../data/recipes.js?v=m38";
+import { currentEvent, textOf, affordable, fxSummary, byPersona } from "../core/drama.js?v=m38";
+import { customer } from "../core/shift.js?v=m38";
+import { replyOptions, optionHint, personaOf, PERSONAS, OUTCOME_LABEL } from "../core/reviews.js?v=m38";
+import { personaSwitch } from "./persona.js?v=m38";
+import { EQUIPMENT } from "../data/equipment.js?v=m38";
+import { drawJournal, download, share } from "./journal.js?v=m38";
+import { BADGES } from "../core/challenge.js?v=m38";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const GROUP_LABEL = { khach: "Khách", mang: "Trên mạng", "van-hanh": "Vận hành", "dac-biet": "Đặc biệt", doi: "Đời thường" };

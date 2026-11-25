@@ -9,13 +9,13 @@
 //                     của stats đã tự có, không lặp lại).
 //   next              1 câu hành động.
 //   verb?             "xây" (mặc định) | "mở" | "lắp" — tiêu đề "Bạn vừa <verb> <tên>!".
-import { BUILDING, FAME_TITLES } from "./buildings.js?v=m9";
-import { WAREHOUSE, OVERFLOW_MAX } from "./warehouse.js?v=m9";
-import { ANIMAL } from "./animals.js?v=m9";
-import { MACHINES, MACHINE, BASE_SLOTS } from "./machines.js?v=m9";
-import { recipesOf } from "./recipes.js?v=m9";
-import { ITEM } from "./catalog.js?v=m9";
-import { CROP } from "./crops.js?v=m9";
+import { BUILDING, FAME_TITLES } from "./buildings.js?v=m10";
+import { WAREHOUSE, OVERFLOW_MAX } from "./warehouse.js?v=m10";
+import { ANIMAL } from "./animals.js?v=m10";
+import { MACHINES, MACHINE, BASE_SLOTS } from "./machines.js?v=m10";
+import { recipesOf } from "./recipes.js?v=m10";
+import { ITEM } from "./catalog.js?v=m10";
+import { CROP } from "./crops.js?v=m10";
 
 const eff = (id, lv) => BUILDING[id]?.levels[Math.max(0, lv - 1)]?.effect || {};
 const lower = (t) => t.charAt(0).toLowerCase() + t.slice(1);

@@ -2,22 +2,22 @@
 // → gọi thêm (thêm cơm, khăn lạnh) → gọi tính tiền → trả tiền → về, để lại bàn dơ → dọn + lau → bàn sạch. Dĩa dơ vào thau, rửa mới có dĩa sạch.
 // Mọi việc của cô chủ ở bàn đi qua hàng đợi việc (core/walker.js): tốn thời gian đi + làm, trong lúc đó bếp vẫn chạy.
 // Thuần: không DOM; câu thoại chọn bằng freshLine; số liệu ở data/economy.js (SERVICE) và data/customers.js.
-import { SERVICE, DISHES, EXTRAS, STOCK, GEAR, TABLE_GEAR, XP_SHARE } from "../data/economy.js?v=c5";
-import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c5";
-import { guestIn, guestToSeat, guestOut, shipperIn, shipperOut, pathLen, dist } from "./placements.js?v=c5";
-import { enqueue, pointsOf } from "./walker.js?v=c5";
-import { next, int } from "./rng.js?v=c5";
-import { freshLine } from "./text.js?v=c5";
-import { pool, ORDER, ARRIVE, WAIT_LONG, SEATED_WAIT, TEA_CALL, FOOD_LATE, REQUEST, BILL_CALL, HAPPY, UNHAPPY, TIMEOUT, SOLD_OUT, NHU_CU } from "../data/lines.js?v=c5";
-import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c5";
-import { REVIEWS, TIMEOUT_REVIEW, SOLD_OUT_REVIEW } from "../data/lines-reviews.js?v=c5";
-import { makeBill, settle, ticketPrice } from "./bill.js?v=c5";
-import { scorePlate, servicePoints, finalStars, worstMistake, MISTAKES } from "./score.js?v=c5";
-import { addWaste } from "./plate.js?v=c5";
-import { takeRice } from "./rice.js?v=c5";
-import { gainXp } from "./progress.js?v=c5";
-import { pushReview, reviewPool } from "./reviews.js?v=c5"; // C: sổ review + lý do review
-import * as PG from "./progression.js?v=c5"; // A: bàn quán theo đồ mua, ghép bàn, chỗ chờ, cơm chiên, nồi canh
+import { SERVICE, DISHES, EXTRAS, STOCK, GEAR, TABLE_GEAR, XP_SHARE } from "../data/economy.js?v=c6";
+import { ARCHETYPES, QUIRKS } from "../data/customers.js?v=c6";
+import { guestIn, guestToSeat, guestOut, shipperIn, shipperOut, pathLen, dist } from "./placements.js?v=c6";
+import { enqueue, pointsOf } from "./walker.js?v=c6";
+import { next, int } from "./rng.js?v=c6";
+import { freshLine } from "./text.js?v=c6";
+import { pool, ORDER, ARRIVE, WAIT_LONG, SEATED_WAIT, TEA_CALL, FOOD_LATE, REQUEST, BILL_CALL, HAPPY, UNHAPPY, TIMEOUT, SOLD_OUT, NHU_CU } from "../data/lines.js?v=c6";
+import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=c6";
+import { REVIEWS, TIMEOUT_REVIEW, SOLD_OUT_REVIEW } from "../data/lines-reviews.js?v=c6";
+import { makeBill, settle, ticketPrice } from "./bill.js?v=c6";
+import { scorePlate, servicePoints, finalStars, worstMistake, MISTAKES } from "./score.js?v=c6";
+import { addWaste } from "./plate.js?v=c6";
+import { takeRice } from "./rice.js?v=c6";
+import { gainXp } from "./progress.js?v=c6";
+import { pushReview, reviewPool } from "./reviews.js?v=c6"; // C: sổ review + lý do review
+import * as PG from "./progression.js?v=c6"; // A: bàn quán theo đồ mua, ghép bàn, chỗ chờ, cơm chiên, nồi canh
 
 export const groupById = (s, gid) => s.shift.groups.find((g) => g.id === gid) || null;
 export const tableById = (s, tid) => s.shift.tables.find((t) => t.id === tid) || null;

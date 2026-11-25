@@ -2,21 +2,21 @@
 // và hẹn quay lại ngày sau (later → s.drama.queue). Trong ca: tối đa 1–2 sự kiện, đồng hồ dừng khi hội thoại mở (sh.dialog kind "event").
 // Giữa hai ca: tối đa 1 sự kiện (s.drama.pending), hiện sau bảng chốt ca. Mỗi lựa chọn lưu một khoảnh khắc cho Nhật Ký Làm Chủ.
 // Thuần, RNG của ván ⇒ cùng hạt + cùng thao tác ⇒ cùng sự kiện.
-import { EVENTS, EVENT } from "../data/events.js?v=m37";
-import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m37";
-import { ARCHETYPES } from "../data/customers.js?v=m37";
-import { RECIPE } from "../data/recipes.js?v=m37";
-import { STOCK } from "../data/ingredients.js?v=m37";
-import { EQUIPMENT } from "../data/equipment.js?v=m37";
-import { next, int, pick, weighted } from "./rng.js?v=m37";
-import { fill } from "./text.js?v=m37";
-import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m37";
-import { stockUsed, capacity } from "./economy.js?v=m37";
-import { owns } from "./equipment.js?v=m37";
-import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say, freshLine } from "./shift.js?v=m37";
-import { PERSONA_ASIDE } from "../data/lines-reply.js?v=m37";
-import { missionsOnDrama } from "./missions.js?v=m37";
-import { ratingOf } from "./reviews.js?v=m37";
+import { EVENTS, EVENT } from "../data/events.js?v=m38";
+import { DRAMA, NORMAL_DAY, WALK_MS, REP_BY_STARS } from "../data/shift.js?v=m38";
+import { ARCHETYPES } from "../data/customers.js?v=m38";
+import { RECIPE } from "../data/recipes.js?v=m38";
+import { STOCK } from "../data/ingredients.js?v=m38";
+import { EQUIPMENT } from "../data/equipment.js?v=m38";
+import { next, int, pick, weighted } from "./rng.js?v=m38";
+import { fill } from "./text.js?v=m38";
+import { gainXp, recipesAt, archetypesFor } from "./progression.js?v=m38";
+import { stockUsed, capacity } from "./economy.js?v=m38";
+import { owns } from "./equipment.js?v=m38";
+import { customer, waiting, lineCtx, scheduleGuest, guestItem, addRep, say, freshLine } from "./shift.js?v=m38";
+import { PERSONA_ASIDE } from "../data/lines-reply.js?v=m38";
+import { missionsOnDrama } from "./missions.js?v=m38";
+import { ratingOf } from "./reviews.js?v=m38";
 
 export const FX_KEYS = new Set(["money", "rep", "followers", "buzz", "xp", "stock", "patience", "whoPatience", "delaySpawn", "sealMs", "guests", "group",
   "nextGuests", "demand", "flag", "unflag", "review", "kitchen", "swapTopping", "priceWho", "leaveWho", "moment"]);

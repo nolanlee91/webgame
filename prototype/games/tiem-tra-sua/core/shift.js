@@ -3,34 +3,34 @@
 // Thuần, chạy theo "thời gian ca" sh.t (ms) do action tick cộng dồn.
 // Chỗ pha: sh.stations = [{ cup, cid, item }], sh.sel = chỗ đang chọn. Khách: items = [{ recipe, order, price }], filled = ly đã ghép.
 // c.recipe / c.order là ly đầu (để thoại), c.price là tổng đơn.
-import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m37";
-import { RECIPE } from "../data/recipes.js?v=m37";
-import { ARCHETYPES } from "../data/customers.js?v=m37";
+import { STEPS, CHOICES, choice, choiceName, useOf } from "../data/ingredients.js?v=m38";
+import { RECIPE } from "../data/recipes.js?v=m38";
+import { ARCHETYPES } from "../data/customers.js?v=m38";
 import {
   SHIFT_FEE, QUEUE_MAX, WALK_MS, REACT_MS, IMPATIENT_AT, REMAKE_PATIENCE_MS, SPAWN_RETRY_MS,
   TUTORIAL_DAY, NORMAL_DAY, SPOTS, REP_BY_STARS, REP_CAP_PER_SHIFT, MULTI_CUP,
-} from "../data/shift.js?v=m37";
-import * as L from "../data/lines.js?v=m37";
-import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m37";
-import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m37";
-import { next, int, pick, weighted } from "./rng.js?v=m37";
-import { fill, pickLine } from "./text.js?v=m37";
-import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m37";
-import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m37";
-import { scoreServe, starsFor } from "./score.js?v=m37";
-import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m37";
-import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m37";
-import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m37";
-import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m37";
-import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m37";
-import { promoGuests, consignRepay } from "./business.js?v=m37";
-import { caption } from "./journal.js?v=m37";
-import { openStockout, missingFor, lowCheck, stockoutTick, RUN_REVIEW } from "./stockout.js?v=m37";
-import { SWAP_YES_REVIEW } from "../data/lines-stockout.js?v=m37";
-import { PEARL_RAW as RAW } from "../data/equipment.js?v=m37";
-import { FAIR, fairToday, fairDone, shiftFee, tierOf, TIER_GUESTS, TIER_PATIENCE } from "./fair.js?v=m37";
-import { activeChallenge, finishChallenge, checkBadges } from "./challenge.js?v=m37";
-import { FAIR_ORDER, FAIR_REVIEW, CHALLENGE_REVIEW, DUAL_SPOUT_LINES, DUAL_SPOUT_REVIEW } from "../data/lines-m5.js?v=m37";
+} from "../data/shift.js?v=m38";
+import * as L from "../data/lines.js?v=m38";
+import { MISTAKE_SAY, MISTAKE_REVIEW, REVIEW_BY_STARS, mistakeOf } from "../data/lines-mistakes.js?v=m38";
+import { ORDER_MULTI, MULTI_REVIEW, MULTI_SAY, BARISTA_PARALLEL, REVIEW_DECOR, PROMO_REVIEW, CONSIGN_DONE } from "../data/lines-m3.js?v=m38";
+import { next, int, pick, weighted } from "./rng.js?v=m38";
+import { fill, pickLine } from "./text.js?v=m38";
+import { cupCost, costOfUse, hasStock, takeStock, operatingProfit } from "./economy.js?v=m38";
+import { recipesAt, archetypesFor, choiceUnlocked, gainXp, xpForServe } from "./progression.js?v=m38";
+import { scoreServe, starsFor } from "./score.js?v=m38";
+import { BATCHES, PEARL_RAW, TUTORIAL_PRECOOKED } from "../data/equipment.js?v=m38";
+import { appeal, owns, kitchenSlots, stationCount, patienceBonus, SEAL_BONUS_MS } from "./equipment.js?v=m38";
+import { trafficBonus, archiveShift, returningGuests } from "./reviews.js?v=m38";
+import { startMissions, missionsOnServe, missionsOnEnd } from "./missions.js?v=m38";
+import { maybeTrigger, startDrama, endDrama } from "./drama.js?v=m38";
+import { promoGuests, consignRepay } from "./business.js?v=m38";
+import { caption } from "./journal.js?v=m38";
+import { openStockout, missingFor, lowCheck, stockoutTick, RUN_REVIEW } from "./stockout.js?v=m38";
+import { SWAP_YES_REVIEW } from "../data/lines-stockout.js?v=m38";
+import { PEARL_RAW as RAW } from "../data/equipment.js?v=m38";
+import { FAIR, fairToday, fairDone, shiftFee, tierOf, TIER_GUESTS, TIER_PATIENCE } from "./fair.js?v=m38";
+import { activeChallenge, finishChallenge, checkBadges } from "./challenge.js?v=m38";
+import { FAIR_ORDER, FAIR_REVIEW, CHALLENGE_REVIEW, DUAL_SPOUT_LINES, DUAL_SPOUT_REVIEW } from "../data/lines-m5.js?v=m38";
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const isOpen = (s) => !!(s.shift && s.shift.status === "open");

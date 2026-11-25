@@ -44,18 +44,18 @@ const GAMES = {
     await t.go(`${base}/games/tiem-banh-mi/?seed=777&prepSpeed=8`);
     await t.waitFor("!!window.__game && !!document.querySelector('#introGo')", 30000);
     await t.ev("document.querySelector('#introGo').click()");
-    await t.ev(`(async()=>{const L=await import('./data/economy.js?v=b5');const s=__game.state;s.level=5;s.xp=L.LEVELS[4];s.money=2500;s.day=6;s.tutorialDone=true;s.rep=62;s.followers=37;s.shopName="Bánh Mì Cô Út";s.drama.pending=null;__game.act({type:"consign"});__game.act({type:"restockToday"});__game.act({type:"firstBatch",sec:28});__game.save();__game.overlays.prep(s);return true})()`);
+    await t.ev(`(async()=>{const L=await import('./data/economy.js?v=b6');const s=__game.state;s.level=5;s.xp=L.LEVELS[4];s.money=2500;s.day=6;s.tutorialDone=true;s.rep=62;s.followers=37;s.shopName="Bánh Mì Cô Út";s.drama.pending=null;__game.act({type:"consign"});__game.act({type:"restockToday"});__game.act({type:"firstBatch",sec:28});__game.save();__game.overlays.prep(s);return true})()`);
     await t.waitFor("__game.overlay==='prep' && !!document.querySelector('#openShop')");
     await t.ev("document.querySelector('#openShop').click()");
     await t.waitFor("!!__game.state.shift && !__game.overlay", 20000);
-    await t.ev(`(async()=>{const s=__game.state;s.shift.drama.max=0;const L=await import('./data/economy.js?v=b5');s.xp=L.LEVELS[s.level]-1;return true})()`);
+    await t.ev(`(async()=>{const s=__game.state;s.shift.drama.max=0;const L=await import('./data/economy.js?v=b6');s.xp=L.LEVELS[s.level]-1;return true})()`);
     await t.ev(`(()=>{for(let i=0;i<200&&!__game.state.shift.customers.some(c=>c.phase==='wait'&&!c.pre);i++)__game.advance(400);return true})()`);
     const r = await t.ev("JSON.stringify(__game.openEvent('X01'))");
     await t.waitFor("__game.overlay==='event' && !!document.querySelector('#sheet .choice[data-choice=book]')", 8000).catch(() => { throw new Error("không mở được sự kiện X01 " + r); });
     await t.ev("document.querySelector('#sheet .choice[data-choice=book]').click()");
     for (let i = 0; i < 10 && (await t.ev("__game.overlay==='event'")); i++) { await sleep(150); await t.ev(`(document.querySelector('#sheet [data-act=eventNext],#sheet [data-act=eventDone]')||document.querySelector('#sheet .choice:not(:disabled)'))?.click()`); }
     return { level: await t.ev("__game.state.level"), endShift: async () => { await t.ev("__game.state.shift.closeNow=true"); await t.waitFor("__game.overlay==='summary'", 20000); await sleep(300); },
-      summaryCard: () => t.ev(`import('./ui/screens.js?v=b5').then(m=>JSON.stringify(m.summaryShare(__game.state.lastSummary)))`).then(JSON.parse),
+      summaryCard: () => t.ev(`import('./ui/screens.js?v=b6').then(m=>JSON.stringify(m.summaryShare(__game.state.lastSummary)))`).then(JSON.parse),
       note: '[data-card="levelUp"]', clock: "__game.state.shift.t" };
   },
   async "quan-com-tam"(t, tag, mobile, W) {
@@ -67,14 +67,14 @@ const GAMES = {
     await t.waitFor("!!document.querySelector('#openShop')");
     await t.ev("document.querySelector('#openShop').click()");
     await t.waitFor("!!__game.state.shift && !__game.overlay && !__game.dramaOpen", 20000);
-    await t.ev(`(async()=>{const s=__game.state;if(s.shift.drama)s.shift.drama.max=0;const L=await import('./data/economy.js?v=c5');s.xp=L.LEVELS[s.level]-1;return true})()`);
+    await t.ev(`(async()=>{const s=__game.state;if(s.shift.drama)s.shift.drama.max=0;const L=await import('./data/economy.js?v=c6');s.xp=L.LEVELS[s.level]-1;return true})()`);
     const r = await t.ev("JSON.stringify(__game.openEvent('G01'))");
     await t.waitFor("!!document.querySelector('.choice[data-choice=thanks]')", 8000).catch(() => { throw new Error("không mở được sự kiện G01 " + r); });
     await t.ev("document.querySelector('.choice[data-choice=thanks]').click()");
     for (let i = 0; i < 10 && (await t.ev("__game.dramaOpen")); i++) { await sleep(150); await t.ev(`(document.querySelector('[data-act=eventNext],[data-act=eventDone]')||document.querySelector('.choice:not(:disabled)'))?.click()`); }
     return { level: await t.ev("__game.state.level"),
-      endShift: async () => { await t.ev(`import('./core/shift.js?v=c5').then(m=>{m.endShift(__game.state,[]);__game.overlays.summary(__game.state);return true})`); await t.waitFor("__game.overlay==='summary'"); await sleep(300); },
-      summaryCard: () => t.ev(`import('./ui/overlays.js?v=c5').then(m=>JSON.stringify(m.summaryShare(__game.state.lastSummary)))`).then(JSON.parse),
+      endShift: async () => { await t.ev(`import('./core/shift.js?v=c6').then(m=>{m.endShift(__game.state,[]);__game.overlays.summary(__game.state);return true})`); await t.waitFor("__game.overlay==='summary'"); await sleep(300); },
+      summaryCard: () => t.ev(`import('./ui/overlays.js?v=c6').then(m=>JSON.stringify(m.summaryShare(__game.state.lastSummary)))`).then(JSON.parse),
       note: '[data-s="level-up"]', clock: "__game.state.shift.t" };
   },
 };

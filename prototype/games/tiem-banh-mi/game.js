@@ -1,24 +1,24 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE } from "./render/atlas.js?v=b5";
-import { placeholderFallback } from "./render/placeholder.js?v=b5";
-import { createScene } from "./render/scene.js?v=b5";
-import { createBench } from "./ui/bench.js?v=b5";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b5";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b6";
+import { placeholderFallback } from "./render/placeholder.js?v=b6";
+import { createScene } from "./render/scene.js?v=b6";
+import { createBench } from "./ui/bench.js?v=b6";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b6";
 import { shareResult } from "../_shared/share.js?v=s1";
-import { apply } from "./core/apply.js?v=b5";
-import { customer } from "./core/shift.js?v=b5";
-import { hint } from "./core/tutorial.js?v=b5";
-import { itemName } from "./core/rescue.js?v=b5";
-import { STEP_NAME } from "./core/board.js?v=b5";
-import { STOCK, NAMES } from "./data/economy.js?v=b5";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b5";
-import { shopSave, browserStorage } from "./save.js?v=b5";
-import { setJournalBg } from "./ui/journal.js?v=b5";
-import { currentEvent, openEvent } from "./core/drama.js?v=b5";
-import { DECOR } from "./data/equipment.js?v=b5";
-import { PLACE_REASON } from "./core/progress.js?v=b5";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b5";
+import { apply } from "./core/apply.js?v=b6";
+import { customer } from "./core/shift.js?v=b6";
+import { hint } from "./core/tutorial.js?v=b6";
+import { itemName } from "./core/rescue.js?v=b6";
+import { STEP_NAME } from "./core/board.js?v=b6";
+import { STOCK, NAMES } from "./data/economy.js?v=b6";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b6";
+import { shopSave, browserStorage } from "./save.js?v=b6";
+import { setJournalBg } from "./ui/journal.js?v=b6";
+import { currentEvent, openEvent } from "./core/drama.js?v=b6";
+import { DECOR } from "./data/equipment.js?v=b6";
+import { PLACE_REASON } from "./core/progress.js?v=b6";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b6";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -27,10 +27,10 @@ const reduced = () => reducedMQ.matches;
 const pickOf = (list, i) => list[i % list.length];
 
 async function boot() {
-  const manifest = await (await fetch("data/asset-manifest.json?v=b5")).json();
+  const manifest = await (await fetch("data/asset-manifest.json?v=b6")).json();
   const atlas = makeAtlas(manifest, "", { fallback: placeholderFallback() });
   const files = new Set((manifest.items || []).map((i) => i.filename));
-  const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; });
+  const load = preload;
   const hdOn = Object.entries(HD_SHEETS).filter(([, f]) => files.has(f));
   const replaced = new Set(hdOn.filter(([al]) => !KEEP_BASE.has(al)).map(([al]) => SHEETS[al]));
   const want = [...Object.entries(SHEETS).filter(([al, src]) => files.has(src) && !replaced.has(src) && !(OPTIONAL_SHEETS.has(al) && !files.has(src))).map(([, s]) => s), ...hdOn.map(([, f]) => f)];
@@ -42,8 +42,18 @@ async function boot() {
   const first = new Set([loaded.state.shop ? SHEETS.shop : SHEETS.cart, loaded.state.shop ? SHEETS.shopFg : SHEETS.cartFg, SHEETS.baker, SHEETS.chars, SHEETS.ovens, SHEETS.equip, SHEETS.icons, SHEETS.ingr]);
   await Promise.race([Promise.all(want.filter((src) => first.has(src)).map(load)), new Promise((ok) => setTimeout(ok, 2500))]);
   const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 300));
-  const rest = want.filter((src) => !first.has(src)).sort((a, b) => Number(LAZY_SHEETS.has(a)) - Number(LAZY_SHEETS.has(b)));
-  idle(() => { let i = 0; const nextBatch = () => { const part = rest.slice(i, i + 3); i += 3; if (part.length) Promise.all(part.map(load)).then(() => idle(nextBatch)); }; nextBatch(); });
+  // PERF-01: chỉ tải nền sprite thường của cảnh (khách, đồ, hiệu ứng). Sheet lớn LAZY_SHEETS (chân dung / biểu cảm / NPC HD, cận cảnh HD,
+  // thời tiết, thẻ Nhật Ký, ảnh tựa) KHÔNG tải nền: trình duyệt tải khi màn của nó hiện (nền CSS), game tải trước đúng màn kế tiếp:
+  // mở ca ⇒ sheet trong ca (hội thoại, cận cảnh), hết ca ⇒ thẻ Nhật Ký. Icon đang chờ sheet hiện ô mờ giữ cỗ (atlas.js .loading).
+  const rest = want.filter((src) => !first.has(src) && !LAZY_SHEETS.has(src));
+  // người chơi mới đang ở màn chào: sprite trong quán chưa cần ⇒ bắt đầu tải khi bấm qua màn chào (hooks.afterIntro)
+  let restOn = false;
+  const startRest = () => { if (restOn) return; restOn = true; idle(() => { let i = 0; const nextBatch = () => { const part = rest.slice(i, i + 3); i += 3; if (part.length) Promise.all(part.map(load)).then(() => idle(nextBatch)); }; nextBatch(); }); };
+  if (loaded.state.introSeen) startRest();
+  const lazyWant = want.filter((src) => LAZY_SHEETS.has(src) && !first.has(src));
+  const notShift = new Set([SHEETS.journal, SHEETS.title, SHEETS.shop, SHEETS.shopFg]); // cảnh tiệm lớn: tải khi đổi cảnh (đã nằm trong first nếu đang ở đó)
+  const prefetchShift = () => lazyWant.filter((src) => !notShift.has(src)).forEach(load);
+  const prefetchJournal = () => { if (files.has(SHEETS.journal)) load(SHEETS.journal); };
 
   if (files.has("assets/journal-card.webp")) setJournalBg("assets/journal-card.webp");
   let state = loaded.state;
@@ -69,7 +79,7 @@ async function boot() {
   const toPrep = (tab) => { if (state.drama?.pending) overlays.event(state, () => toPrep(tab)); else { store.snapshotDay(state); overlays.prep(state, tab); } };
   const overlays = createOverlays($("#overlay"), $("#sheet"), atlas, (a) => act(a), {
     state: () => state,
-    afterIntro: () => toPrep(),
+    afterIntro: () => { startRest(); toPrep(); },
     afterSummary: (tab) => toPrep(tab),
     resume: () => { paused = false; openDialog(); },
     restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
@@ -176,8 +186,8 @@ async function boot() {
         case "restockedToday": say(`Đã nhập đủ cho hôm nay (−${fmtK(e.spent)}).`, "good"); break;
         case "consigned": say(`Bà Tư ký gửi một gói hàng (${fmtK(e.owed)}, bán tới đâu trả tới đó).`, "good"); break;
         case "exchanged": say(`Cô Sáu đổi ${e.value}k tiền lẻ.`, "good"); break;
-        case "shiftStarted": dock(); say(`Mở hàng ngày ${e.day}! Khoảng ${e.guests} khách. Phí ca ${e.fee}k.`, "good"); break;
-        case "shiftEnded": setTimeout(() => { dock(); overlays.summary(state); }, reduced() ? 0 : 600); break;
+        case "shiftStarted": startRest(); prefetchShift(); dock(); say(`Mở hàng ngày ${e.day}! Khoảng ${e.guests} khách. Phí ca ${e.fee}k.`, "good"); break;
+        case "shiftEnded": prefetchJournal(); setTimeout(() => { dock(); overlays.summary(state); }, reduced() ? 0 : 600); break;
         default: break;
       }
     }

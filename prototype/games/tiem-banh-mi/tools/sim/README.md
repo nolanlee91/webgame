@@ -36,6 +36,6 @@ Cấp 4 ≈ 10 phút, 7 ≈ 40 phút, 10 ≈ 2 giờ, 20 ≈ 10–12 giờ. Ti�
 
 - Chính sách tất định, không phải người thật; xu hướng đáng tin hơn con số tuyệt đối. Người chơi giả chỉ dùng một thớt (thớt đôi / ba không làm nhanh hơn trong sim).
 - Mốc cấp tính lúc chốt ca (độ phân giải một ngày ≈ 6–8 phút).
-- `fit.mjs` và `harness.mjs` nạp module có tag `?v=b5` (cùng bản với luật) để sửa tạm bảng cấp trong bộ nhớ — đổi tag cùng game.
+- `fit.mjs` và `harness.mjs` nạp module có tag `?v=b6` (cùng bản với luật) để sửa tạm bảng cấp trong bộ nhớ — đổi tag cùng game.
 
 Kết quả trước / sau Milestone 5: `report.md` (cuối file) và `docs/tiem-banh-mi/ECONOMY.md` mục "Cân bằng M5".

@@ -59,3 +59,9 @@ test("mọi vụ thật trong data/cases đạt bộ kiểm", async () => {
     assert.ok(c.difficulty >= 1, f + ": vụ thật phải có độ khó 1–3");
   }
 });
+
+test("data/case-meta.js khớp file vụ (thẻ bản đồ không cần tải file vụ) — lệch thì chạy tools/gen-case-meta.mjs", async () => {
+  const { CASE_META } = await import("../data/case-meta.js");
+  const { buildMeta } = await import("../tools/gen-case-meta.mjs");
+  assert.deepEqual(CASE_META, await buildMeta());
+});

@@ -91,8 +91,8 @@ await pressSel("#allBtn");
 check("Thu hết → 3 cà rốt vào kho, kho 3/60, NV3 xong", (await S("s.inv['ca-rot']")) === 3 && (await text("#hStore")) === "3/60" && await visible("#qClaim"));
 // Đường XP 60·cấp²: 3 cà rốt + thưởng NV1–3 chưa đủ cấp 2 ⇒ đặt XP thiếu đúng phần thưởng NV3 (như đã cày thêm vài vụ), nhận thưởng ⇒ lên cấp 2.
 check("3 vụ đầu chưa đủ lên cấp 2 (đường XP mới)", (await S("s.level")) === 1);
-const need1 = await ev("import('./core/progression.js?v=m9').then(m=>m.xpNeed(1))");
-const nv3Xp = await ev("import('./data/quests.js?v=m9').then(m=>m.TUTORIAL[2].reward.xp)");
+const need1 = await ev("import('./core/progression.js?v=m10').then(m=>m.xpNeed(1))");
+const nv3Xp = await ev("import('./data/quests.js?v=m10').then(m=>m.TUTORIAL[2].reward.xp)");
 await ev(`(()=>{const s=__game.state;s.xp=${need1 - nv3Xp};__game.state=s})()`);
 await claim();
 check("lên cấp 2 (toast báo mở khoá Dâu tây)", (await S("s.level")) === 2);
@@ -115,7 +115,7 @@ const c0 = await S("s.coins");
 await pressSel('#slips [data-act="deliver"][data-slot="0"]');
 check("Giao đơn đầu: trừ 2 cà rốt, +" + order0.coins + " xu, NV5 xong", (await S("s.coins")) === c0 + order0.coins && !(await S("s.inv['ca-rot']")) && await visible("#qClaim"));
 check("giao lại đơn cũ (id+rev) bị chặn", (await ev(`(()=>{const L=__game;return null})()`)) === null &&
-  (await ev(`import('./logic.js?v=m9').then(L=>L.apply(__game.state,{type:'deliver',slot:0,id:${order0.id},rev:${order0.rev}},Date.now()+(window.__ntOffset||0)).err)`)) === "order-changed");
+  (await ev(`import('./logic.js?v=m10').then(L=>L.apply(__game.state,{type:'deliver',slot:0,id:${order0.id},rev:${order0.rev}},Date.now()+(window.__ntOffset||0)).err)`)) === "order-changed");
 await claim();
 // bỏ đơn
 const slot1 = await S("s.orders.slots[1].order.id");
@@ -143,7 +143,7 @@ await claim();
 check("NV7 lên cấp 3 đang mở (M3: Nhà kho xây từ cấp 3)", (await questId()) === "len-cap-3");
 await ev(`(()=>{const s=__game.state;s.level=3;s.xp=0;__game.state=s})()`);
 await sleep(300);
-await ev(`import('./logic.js?v=m9').then(L=>{const r=L.apply(__game.state,{type:'tick'},Date.now()+(window.__ntOffset||0));__game.state=__game.state})`);
+await ev(`import('./logic.js?v=m10').then(L=>{const r=L.apply(__game.state,{type:'tick'},Date.now()+(window.__ntOffset||0));__game.state=__game.state})`);
 await claim();
 check("NV8 xây Nhà kho: chỉ vào lô bản vẽ Nhà kho trên bản đồ", (await questId()) === "xay-nha-kho" && await ev("document.querySelector('.bld[data-id=\"nha-kho\"]').classList.contains('qhl')"));
 await pressSel('.bld[data-id="nha-kho"]');
@@ -262,12 +262,12 @@ check("chạm ô xong ⇒ +1 Mứt dâu, +8 XP (qua cấp), hiệu ứng fx lap-
 const uid2 = await S("s.production.machines['bep-sen'].queue[0].uid");
 await pressSel(".slot--done");
 check("nhận ô thứ 2; nhận lại ô cũ bị chặn (not-found)", (await S("s.inv['mut-dau']")) === 2 &&
-  (await ev(`import('./logic.js?v=m9').then(L=>L.apply(__game.state,{type:'collect',machine:'bep-sen',uid:${uid2}},Date.now()+(window.__ntOffset||0)).err)`)) === "not-found");
+  (await ev(`import('./logic.js?v=m10').then(L=>L.apply(__game.state,{type:'collect',machine:'bep-sen',uid:${uid2}},Date.now()+(window.__ntOffset||0)).err)`)) === "not-found");
 await claim();
 await shot("m2-06-nhan-mut.png");
 // đơn kết hợp có thành phẩm (cấp 5): sinh tự nhiên bằng luật (bỏ đơn → đơn mới sau 2 phút)
 await ev(`(()=>{const s=__game.state;s.level=5;s.xp=0;__game.state=s})()`);
-const comboSlot = await ev(`import('./logic.js?v=m9').then(L=>{const s=__game.state;for(let k=0;k<400;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.type==='ket-hop'&&x.order.items['mut-dau']);if(i>=0){__game.state=s;return i}
+const comboSlot = await ev(`import('./logic.js?v=m10').then(L=>{const s=__game.state;for(let k=0;k<400;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.type==='ket-hop'&&x.order.items['mut-dau']);if(i>=0){__game.state=s;return i}
   const j=k%s.orders.slots.length,x=s.orders.slots[j],t=Date.now()+(window.__ntOffset||0);if(x.order)L.apply(s,{type:'cancelOrder',slot:j,id:x.order.id,rev:x.rev},t);window.__ntOffset=(window.__ntOffset||0)+121000;L.apply(s,{type:'tick'},Date.now()+window.__ntOffset)}__game.state=s;return -1})`);
 check("cấp 5: Bác Tư đặt đơn kết hợp có Mứt dâu (sinh theo luật, chỉ món làm được)", comboSlot >= 0, String(comboSlot));
 const combo = await S(`s.orders.slots[${comboSlot}].order`);
@@ -290,7 +290,7 @@ check("chạm sạp trên bản đồ ⇒ cảnh Khu chợ: gian quầy + Cô Ha
 const mutLeft = await S("s.inv['mut-dau']||0");
 if (!mutLeft) await ev(`(()=>{const s=__game.state;s.inv['sot-ca-chua']=1;__game.state=s})()`); // dự phòng nếu đơn đòi hết mứt
 const prodId = mutLeft ? "mut-dau" : "sot-ca-chua";
-const want = await ev(`import('./logic.js?v=m9').then(L=>({p:L.priceOf('${prodId}',Date.now()+(window.__ntOffset||0)),t:L.MARKET.trend('${prodId}',Date.now()+(window.__ntOffset||0))}))`);
+const want = await ev(`import('./logic.js?v=m10').then(L=>({p:L.priceOf('${prodId}',Date.now()+(window.__ntOffset||0)),t:L.MARKET.trend('${prodId}',Date.now()+(window.__ntOffset||0))}))`);
 check("kệ Bán: thành phẩm hiện giá hôm nay + mũi tên xu hướng", new RegExp(`${want.p} xu ${want.t === "·" ? "·" : want.t}`).test(await text("#mkSell")));
 await shot("m2-08-khu-cho.png");
 const c1 = await S("s.coins");
@@ -302,7 +302,7 @@ check("Mua thức ăn gia súc (cấp 7): −72 xu (giá M6), vào kho", (await 
 check("hạt giống ghi 'trả khi gieo' + nút Gieo; món khoá hiện cấp", /trả khi gieo/.test(await text("#mkBuy")) && /Cấp \d+/.test(await text("#mkBuy")));
 // Nhà kho dùng cùng giá chợ
 await pressSel("#marketScene [data-back]"); await pressSel("#stockTool");
-const whOk = await ev(`import('./logic.js?v=m9').then(L=>{const s=__game.state,t=Date.now()+(window.__ntOffset||0),q=s.inv['ca-chua'];const b=document.querySelector('#whBody [data-act=sellN][data-id="ca-chua"]');return !!b&&b.textContent.includes((q*L.priceOf('ca-chua',t)).toLocaleString('vi-VN')+' xu')})`);
+const whOk = await ev(`import('./logic.js?v=m10').then(L=>{const s=__game.state,t=Date.now()+(window.__ntOffset||0),q=s.inv['ca-chua'];const b=document.querySelector('#whBody [data-act=sellN][data-id="ca-chua"]');return !!b&&b.textContent.includes((q*L.priceOf('ca-chua',t)).toLocaleString('vi-VN')+' xu')})`);
 check("Nhà kho 'Bán hết' tính theo giá chợ hôm nay (một nguồn giá)", whOk);
 // tải lại giữ mọi thứ
 const snapM2 = await S("JSON.stringify({c:s.coins,l:s.level,inv:s.inv,p:s.production,b:s.buildings,q:s.quests,d:s.decor})");
@@ -365,7 +365,7 @@ check("tua 5 phút ⇒ Nhà kính xong (sprite nha-kinh), báo xây xong", /^(do
 await pressSel("#buildExit");
 check("thoát chế độ Xây", !(await visible("#buildBar")) && !(await ev("document.getElementById('farm').classList.contains('building')")));
 check("khay hạt ruộng chính không có Mía; luật chặn mía ở ô thường", await ev("!document.querySelector('#seeds [data-id=mia]')") &&
-  (await ev(`import('./logic.js?v=m9').then(L=>L.apply(structuredClone(__game.state),{type:'plant',i:12,crop:'mia'},Date.now()+(window.__ntOffset||0)).err)`)) === "greenhouse-only");
+  (await ev(`import('./logic.js?v=m10').then(L=>L.apply(structuredClone(__game.state),{type:'plant',i:12,crop:'mia'},Date.now()+(window.__ntOffset||0)).err)`)) === "greenhouse-only");
 await pressSel(bld("nha-kinh"));
 check("chạm Nhà kính ⇒ bảng Nhà kính: 6 ô, hạt Mía chọn sẵn", await visible("#ovGreenhouse") && (await ev("[...document.querySelectorAll('#ghGrid .plot')].filter(b=>!b.hidden).length")) === 6 &&
   await ev("document.querySelector('#ghSeeds [data-id=mia]').getAttribute('aria-checked')==='true'"));
@@ -446,7 +446,7 @@ await pressSel("#helpOk");
 await ev(`(()=>{const s=__game.state;s.level=9;s.xp=0;s.coins=5000;s.quests.tut=13;s.quests.progress=0;s.inv={'thuc-an-gia-suc':4,'ngo':6};__game.state=s})()`);
 await sleep(500);
 const tnow = () => "Date.now()+(window.__ntOffset||0)";
-const QLEN = await ev("import('./data/quests.js?v=m9').then(m=>m.QUESTS.length)");
+const QLEN = await ev("import('./data/quests.js?v=m10').then(m=>m.QUESTS.length)");
 check("M4 seed: sổ M1/M2 đã xong (" + QLEN + " nhiệm vụ) ⇒ thanh nhiệm vụ hiện tiến trình Chăn nuôi 1/6 'Xây chuồng gà'", QLEN === 13 && await visible("#quest") && /Chăn nuôi 1\/6/.test(await text("#qStep")) && /Xây chuồng gà/.test(await text("#qTitle")), await text("#quest"));
 check("M4: nút điều hướng 'Chăn nuôi' + 'Làng' mở (không khoá), biển Làng hiện trên bản đồ và chạm được",
   await visible("#animalsTool") && !(await ev("document.getElementById('animalsTool').classList.contains('is-locked')")) && /^Làng/.test(await text("#villageTool")) &&
@@ -458,7 +458,7 @@ check("chạm bản vẽ chuồng gà ⇒ thẻ xây 300 xu / 2:00", await visib
 await pressSel("#buildOk");
 await sleep(300);
 check("xây chuồng gà ⇒ giàn giáo + đồng hồ, −300 xu; chưa mua gà được khi đang xây", /^building\|scaffold\|Đang xây/.test(await bstat("chuong-ga")) && (await S("s.coins")) === 4700 &&
-  (await ev(`import('./logic.js?v=m9').then(L=>L.apply(structuredClone(__game.state),{type:'buyAnimal',kind:'ga'},${tnow()}).err)`)) === "no-housing");
+  (await ev(`import('./logic.js?v=m10').then(L=>L.apply(structuredClone(__game.state),{type:'buyAnimal',kind:'ga'},${tnow()}).err)`)) === "no-housing");
 await shot("m4-02-chuong-ga-gian-giao.png");
 await advance(121_000); await sleep(1300);
 check("tua 2 phút ⇒ chuồng gà xong (sprite chuong-ga), nhiệm vụ 'Xây chuồng gà' xong (nút Nhận)", /^(done|upgradeable)\|built\|Chuồng gà/.test(await bstat("chuong-ga")) && await visible("#qClaim"), await bstat("chuong-ga"));
@@ -486,7 +486,7 @@ await pressSel('#animalsScene .an-tap[data-uid="1"]');
 check("chạm bong bóng ⇒ +1 trứng gà vào kho, +2 XP, gà đói lại; nhiệm vụ 'Thu quả trứng đầu tiên' xong", (await S("s.inv['trung-ga']")) === 1 && (await S("s.xp")) === xpEgg + 2 && (await ev('document.querySelector(\'#animalsScene .an-tap[data-uid="1"]\').dataset.state')) === "hungry" && await visible("#qClaim"));
 await claim();
 // đơn có trứng: bộ sinh đơn thật đòi trứng khi đã có gà (bỏ đơn → đơn mới sau 2 phút)
-const eggSlot = await ev(`import('./logic.js?v=m9').then(L=>{const s=__game.state;for(let k=0;k<600;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.items['trung-ga']&&x.order.items['trung-ga']<=(s.inv['trung-ga']||0));if(i>=0){__game.state=s;return i}
+const eggSlot = await ev(`import('./logic.js?v=m10').then(L=>{const s=__game.state;for(let k=0;k<600;k++){const i=s.orders.slots.findIndex(x=>x.order&&x.order.items['trung-ga']&&x.order.items['trung-ga']<=(s.inv['trung-ga']||0));if(i>=0){__game.state=s;return i}
   const j=k%s.orders.slots.length,x=s.orders.slots[j],t=Date.now()+(window.__ntOffset||0);if(x.order)L.apply(s,{type:'cancelOrder',slot:j,id:x.order.id,rev:x.rev},t);window.__ntOffset=(window.__ntOffset||0)+121000;L.apply(s,{type:'tick'},Date.now()+window.__ntOffset)}__game.state=s;return -1})`);
 check("có gà ⇒ bảng đơn đòi trứng gà (sinh theo luật, đúng số trứng của đàn)", eggSlot >= 0, String(eggSlot));
 const eggOrder = await S(`s.orders.slots[${eggSlot}].order`);
@@ -545,9 +545,9 @@ check("chạm Cô Hai ⇒ trò chuyện: câu thoại đầu hiện trong thẻ 
 await shotFull("m4-07-lang-tro-chuyen.png");
 // một ô bảng đã đủ tiến độ (như đã giao 3 đơn) ⇒ nút Nhận thưởng
 const slot0 = await S("JSON.stringify(s.village.board.slots[0])");
-await ev(`import('./data/village.js?v=m9').then(V=>{const s=__game.state;const sl=s.village.board.slots[0];sl.progress=V.REPEATABLE_BY_ID[sl.tpl].count;__game.state=s})`);
+await ev(`import('./data/village.js?v=m10').then(V=>{const s=__game.state;const sl=s.village.board.slots[0];sl.progress=V.REPEATABLE_BY_ID[sl.tpl].count;__game.state=s})`);
 await sleep(400);
-const bReward = await ev(`import('./data/village.js?v=m9').then(V=>V.REPEATABLE_BY_ID[__game.state.village.board.slots[0].tpl].reward)`);
+const bReward = await ev(`import('./data/village.js?v=m10').then(V=>V.REPEATABLE_BY_ID[__game.state.village.board.slots[0].tpl].reward)`);
 const cB = await S("s.coins"), uid0 = JSON.parse(slot0).uid;
 check("Làng: huy hiệu '!' khi có nhiệm vụ chờ nhận", /!/.test(await text("#villageTool")));
 await pressSel(`#villageScene [data-act="claimBoard"][data-uid="${uid0}"]`);
@@ -573,7 +573,7 @@ const truckPainted = await ev("(()=>{const c=document.querySelector('#truckLane 
 check("xe vẽ từ buildings.webp ở cổng (canvas có pixel)", truckPainted);
 await shot("m4-08-xe-giao-hang.png");
 check("sau ~4,4 giây xe chạy đi (idle), xe đứng yên hiện lại", await waitFor("document.querySelector('#truckLane canvas').dataset.phase==='idle'&&document.getElementById('farmMap').dataset.truck===''", 7000),
-  await ev(`import('./core/village.js?v=m9').then(V=>document.querySelector('#truckLane canvas').dataset.phase+' / '+document.getElementById('farmMap').dataset.truck+' / '+JSON.stringify(V.truckVisit(Date.now()+(window.__ntOffset||0),__game.state.lastDeliveryAt,{level:__game.state.level}))+' / '+__game.state.lastDeliveryAt+' / '+(Date.now()+(window.__ntOffset||0)))`));
+  await ev(`import('./core/village.js?v=m10').then(V=>document.querySelector('#truckLane canvas').dataset.phase+' / '+document.getElementById('farmMap').dataset.truck+' / '+JSON.stringify(V.truckVisit(Date.now()+(window.__ntOffset||0),__game.state.lastDeliveryAt,{level:__game.state.level}))+' / '+__game.state.lastDeliveryAt+' / '+(Date.now()+(window.__ntOffset||0)))`));
 // mobile 390×844: hai cảnh, chạm
 await view(390, 844, true, 2); await touch(true); press = tap;
 await reload("#chan-nuoi");
@@ -670,15 +670,15 @@ check("M6: nhà bậc ★1 vẽ nha-bac-1 từ house-tiers.webp (asset Codex) + 
 await ev(`document.querySelector('${bld("hang-rao")}').scrollIntoView({block:'center'})`); await sleep(200);
 await shot("m6-02-ban-do-hang-rao-da.png");
 // Phiên chợ: tua tới giờ phiên kế tiếp
-const fairStart = await ev("import('./core/fair.js?v=m9').then(F=>F.nextFair(Date.now()+(window.__ntOffset||0)).startAt)");
+const fairStart = await ev("import('./core/fair.js?v=m10').then(F=>F.nextFair(Date.now()+(window.__ntOffset||0)).startAt)");
 await ev(`window.__ntOffset=(window.__ntOffset||0)+(${fairStart}-(Date.now()+(window.__ntOffset||0)))+60000`);
 await reload();
 check("M6 Phiên chợ: nút Chợ có huy hiệu 'Hội', sạp có cờ + nhãn 'Phiên chợ!'", /Hội/.test(await text("#marketTool")) && await ev(`!!document.querySelector('${bld("sap-cho")} .fair-flag')`) && /Phiên chợ/.test(await text(`${bld("sap-cho")} .market-tag`)));
-const hot = await ev("import('./core/fair.js?v=m9').then(F=>F.activeFair(__game.state,Date.now()+(window.__ntOffset||0)).hot[0])");
+const hot = await ev("import('./core/fair.js?v=m10').then(F=>F.activeFair(__game.state,Date.now()+(window.__ntOffset||0)).hot[0])");
 await ev(`(()=>{const s=__game.state;s.inv['${hot}']=12;__game.state=s})()`);
 await pressSel("#marketTool");
 check("M6: Khu chợ hiện băng Phiên chợ đang diễn ra + hàng săn", await visible("#mkFair.on") && /đang diễn ra/.test(await text("#mkFair")) && /hàng săn: còn 10/.test(await text("#mkSell")), await text("#mkFair"));
-const quote12 = await ev(`import('./core/fair.js?v=m9').then(F=>F.quote(__game.state,'${hot}',12,Date.now()+(window.__ntOffset||0)).coins)`);
+const quote12 = await ev(`import('./core/fair.js?v=m10').then(F=>F.quote(__game.state,'${hot}',12,Date.now()+(window.__ntOffset||0)).coins)`);
 const coinsFair = await S("s.coins");
 await pressSel(`#mkSell [data-act=sell][data-id="${hot}"][data-n="12"]`);
 check("M6: bán 12 hàng săn ⇒ 10 món giá rưỡi + 2 món giá thường, hạn mức lưu", (await S("s.coins")) - coinsFair === quote12 && (await S(`s.fair.sold['${hot}']`)) === 10, `${(await S("s.coins")) - coinsFair} vs ${quote12}`);

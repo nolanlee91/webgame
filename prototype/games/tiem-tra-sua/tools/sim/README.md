@@ -36,7 +36,7 @@ Cấp 4 ≈ 10 phút, 7 ≈ 40 phút, 10 ≈ 2 giờ, 20 ≈ 10–12 giờ. Ti�
 
 - Chính sách tất định, không phải người thật; xu hướng đáng tin hơn con số tuyệt đối. Ba hồ sơ khác nhau chủ yếu ở tỉ lệ sai và nhập hàng.
 - Mốc cấp tính lúc chốt ca (độ phân giải một ngày ≈ 5 phút).
-- `fit.mjs` và `harness.mjs` nạp module có tag `?v=m37` (cùng bản với luật) để sửa tạm bảng cấp trong bộ nhớ — đổi tag cùng game.
+- `fit.mjs` và `harness.mjs` nạp module có tag `?v=m38` (cùng bản với luật) để sửa tạm bảng cấp trong bộ nhớ — đổi tag cùng game.
 
 ## Trước / sau Milestone 5 (seed 12345, phút chơi)
 

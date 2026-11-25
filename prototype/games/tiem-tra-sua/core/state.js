@@ -5,22 +5,22 @@
 // nhiệm vụ ngày, vị trí trang trí, quảng bá, gói ký gửi.
 // v3: tính cách chủ tiệm (owner), câu trả lời review lưu nguyên văn + hậu quả + câu đáp lại (feed[].reply là object),
 // khách quay lại nhờ câu trả lời (returning), bộ nhớ chống lặp câu giữa hai ca (usedDay).
-import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m37";
-import { RECIPE } from "../data/recipes.js?v=m37";
-import { ARCHETYPES } from "../data/customers.js?v=m37";
-import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m37";
-import { levelForXp } from "./progression.js?v=m37";
-import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m37";
-import { capacityFor, stationCount } from "./equipment.js?v=m37";
-import { EVENT } from "../data/events.js?v=m37";
-import { MISSION } from "../data/missions.js?v=m37";
-import { PROMOS } from "./business.js?v=m37";
-import { placeError } from "./decor.js?v=m37";
-import { freshDrama } from "./drama.js?v=m37";
-import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m37";
-import { LEVELS } from "../data/levels.js?v=m37";
-import { CHALLENGE, BADGE } from "./challenge.js?v=m37";
-import { TIERS } from "./fair.js?v=m37";
+import { STOCK, STOCK_IDS, START_CAPACITY, START_STOCK, STEPS, choice } from "../data/ingredients.js?v=m38";
+import { RECIPE } from "../data/recipes.js?v=m38";
+import { ARCHETYPES } from "../data/customers.js?v=m38";
+import { START_MONEY, START_REP, SPOTS, MULTI_CUP } from "../data/shift.js?v=m38";
+import { levelForXp } from "./progression.js?v=m38";
+import { EQUIPMENT, BATCHES, PEARL_RAW } from "../data/equipment.js?v=m38";
+import { capacityFor, stationCount } from "./equipment.js?v=m38";
+import { EVENT } from "../data/events.js?v=m38";
+import { MISSION } from "../data/missions.js?v=m38";
+import { PROMOS } from "./business.js?v=m38";
+import { placeError } from "./decor.js?v=m38";
+import { freshDrama } from "./drama.js?v=m38";
+import { PERSONAS, LEGACY_REPLY, OUTCOME_LABEL } from "../data/lines-reply.js?v=m38";
+import { LEVELS } from "../data/levels.js?v=m38";
+import { CHALLENGE, BADGE } from "./challenge.js?v=m38";
+import { TIERS } from "./fair.js?v=m38";
 
 export const SAVE_VERSION = 4;
 /** Bảng XP tích luỹ trước Milestone 5 (v1–v3). v4 kéo dài đường cong (bộ mô phỏng tools/sim), MIGRATIONS[3] quy đổi XP cũ

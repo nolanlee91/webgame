@@ -24,6 +24,8 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/nong-trai.jpg" />
   <!-- og:end -->
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <!-- PERF-06: tải sẵn các nét chữ dùng ở bảng Cách chơi / thẻ (chỉ hiện sau khi JS chạy) ⇒ chữ không đổi font giữa chừng làm nhảy bố cục -->
+  <script>try { for (const w of [500, 700, 800]) document.fonts.load(w + ' 16px "Be Vietnam Pro"', "Aa Ăă Đđ Ệệ Ữữ"); } catch (e) {}</script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%235a3a22%22/%3E%3Crect x=%227%22 y=%226%22 width=%222%22 height=%227%22 fill=%22%233fae4a%22/%3E%3Crect x=%223%22 y=%224%22 width=%224%22 height=%223%22 fill=%22%238be08f%22/%3E%3Crect x=%229%22 y=%223%22 width=%224%22 height=%223%22 fill=%22%233fae4a%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Rắn Săn Mồi / Đào Vàng: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
@@ -46,6 +48,9 @@
     .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
     .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
 
+    /* PERF-06: bố cục tĩnh trước khi game.js vẽ lần đầu khác hẳn (nhiệm vụ Chị Ba hiện, nút khoá ẩn, số liệu điền vào) ⇒ giữ chỗ nhưng ẩn
+       tới khi mount() vẽ xong lần đầu (body.nt-ready), không cho người chơi thấy khối nhảy (CLS) */
+    body:not(.nt-ready) .wrap { visibility: hidden; }
     .wrap { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 14px 16px 18px;
       display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "quest" "world"; gap: 12px; align-content: start; }
 
@@ -815,7 +820,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m9";
+    import { mount } from "./game.js?v=m10";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

@@ -1,10 +1,10 @@
 // Test luật Xưởng (core/production.js). Chạy: node --test prototype/games/nong-trai/test/production.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as P from "../core/production.js?v=m9";
-import { MACHINES, MACHINE, BASE_SLOTS, MAX_SLOTS } from "../data/machines.js?v=m9";
-import { RECIPES, RECIPE } from "../data/recipes.js?v=m9";
-import { ITEM } from "../data/catalog.js?v=m9";
+import * as P from "../core/production.js?v=m10";
+import { MACHINES, MACHINE, BASE_SLOTS, MAX_SLOTS } from "../data/machines.js?v=m10";
+import { RECIPES, RECIPE } from "../data/recipes.js?v=m10";
+import { ITEM } from "../data/catalog.js?v=m10";
 
 const T0 = 1_700_000_000_000, MIN = 60_000, HOUR = 3600_000;
 

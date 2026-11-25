@@ -1,15 +1,15 @@
 // Quầy pha: phiếu đang ghim, ly lớn đổi hình theo từng bước, dải 7 bước, lựa chọn nguyên liệu (hình từ atlas + chữ + tồn kho), hành động.
 // Chỉ gửi action qua dispatch() — không tự đổi trạng thái.
-import { icon, crisp } from "../render/atlas.js?v=m37";
-import { createCupView } from "../render/cup.js?v=m37";
-import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js?v=m37";
-import { RECIPE } from "../data/recipes.js?v=m37";
-import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js?v=m37";
-import { cupNotes } from "../core/cupview.js?v=m37";
-import { hasStock } from "../core/economy.js?v=m37";
-import { cupSpec } from "../core/score.js?v=m37";
-import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m37";
-import { kitchenSlots, owns } from "../core/equipment.js?v=m37";
+import { icon, crisp } from "../render/atlas.js?v=m38";
+import { createCupView } from "../render/cup.js?v=m38";
+import { STEPS, STEP_LABEL, STEP_VERB, STEP_ICON, CHOICES, choiceName, useOf } from "../data/ingredients.js?v=m38";
+import { RECIPE } from "../data/recipes.js?v=m38";
+import { customer, nextStep, patienceLeft, curCup, curStation, activeCid, orderAt, cupsLeft } from "../core/shift.js?v=m38";
+import { cupNotes } from "../core/cupview.js?v=m38";
+import { hasStock } from "../core/economy.js?v=m38";
+import { cupSpec } from "../core/score.js?v=m38";
+import { BATCHES, PEARL_RAW } from "../data/equipment.js?v=m38";
+import { kitchenSlots, owns } from "../core/equipment.js?v=m38";
 
 const CROP = { cupui: [8, 52, 144, 132] };
 export const ingIcon = (atlas, ref, px) => icon(atlas, ref, px, "ico", ref && CROP[ref[0]] && !/cup|tea-|milk-high|served|dome/.test(ref[1]) ? CROP[ref[0]] : null);
