@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Đào Vàng — bản chơi thử</title>
+  <title>Đào Vàng — Lụm Kèo</title>
   <!-- og:start — sinh bởi tools/og/gen-og.mjs, đừng sửa tay -->
   <meta name="description" content="Thả móc kéo vàng, kim cương, né đá tảng. Đủ chỉ tiêu là qua màn — Đào Vàng huyền thoại, chơi ngay." />
   <link rel="canonical" href="https://lumkeo.com/games/dao-vang/" />
@@ -77,13 +77,19 @@
       .row .btn { font-size: 11px; padding: 6px 4px; gap: 5px; letter-spacing: .02em; text-align: center; } .row .kb { display: none; }
       .legend-box { justify-self: stretch; } table.legend { font-size: 12px; } }
     @media (max-height: 500px) { .bar { padding: 4px 12px; } .bar h1 { font-size: 16px; } main { padding: 6px 10px; } .stage { max-width: min(calc(100% - 10px), calc((100svh - 50px) * 1.6)); } .menu { padding: 20px 16px; } }
+
+    /* QCK-04 (D4): vùng chạm ≥ 44 × 44 px — link "← Trang chủ" mở rộng vùng chạm bằng ::after (chữ giữ cỡ cũ); nút điều khiển 40 ⇒ 44 px */
+    .bar a { position: relative; z-index: 40; } /* trên lớp phủ menu (bắt đầu ngay dưới thanh) để phần vùng chạm thò xuống vẫn bấm được */
+    .bar a::after { content: ""; position: absolute; left: -6px; right: -6px; top: calc(50% - 22px); bottom: calc(50% - 22px); }
+    .btn { min-height: 44px; }
+    .btn--big { min-height: 52px; }
   </style>
 </head>
 <body>
   <header class="bar">
     <a href="../../homepage/">← Trang chủ</a>
     <h1>Đào Vàng</h1>
-    <span class="tag">Bản chơi thử · pixel art V5</span>
+    <span class="tag">Lụm Kèo</span>
   </header>
   <main>
     <div class="stage" id="stage">

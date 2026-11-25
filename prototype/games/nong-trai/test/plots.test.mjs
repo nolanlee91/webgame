@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m11";
-import * as P from "../core/plots.js?v=m11";
-import { CROPS } from "../data/crops.js?v=m11";
-import { START_COINS } from "../core/state.js?v=m11";
-import { xpNeed } from "../core/progression.js?v=m11";
+import { apply } from "../core/apply.js?v=m12";
+import * as P from "../core/plots.js?v=m12";
+import { CROPS } from "../data/crops.js?v=m12";
+import { START_COINS } from "../core/state.js?v=m12";
+import { xpNeed } from "../core/progression.js?v=m12";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 test("ruộng mới: 25 ô (+ 9 ô phía Đông + 9 ô Nhà kính đóng — Milestone 3), mở 9, xu khởi đầu, 3 hạt cà rốt tặng", () => {

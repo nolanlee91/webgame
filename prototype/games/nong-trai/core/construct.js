@@ -4,14 +4,14 @@
 // - Trang trí: placeDecor / removeDecor (túi s.decor ⇄ ô DECOR_SLOTS trên bản đồ).
 // - sync: build.tick (công trình xây xong khi offline cũng báo đúng một lần) + applyEffects.
 // - applyEffects: mọi thứ suy ra từ công trình — s.warehouse = mốc kho (inventory.capacity đọc nó), mở ô Nhà kính / phía Đông.
-import * as B from "./build.js?v=m11";
-import { BUILDING, DECOR_ITEM, maxLevel } from "../data/buildings.js?v=m11";
-import { LEVELS, CURRENT_MILESTONE } from "../data/levels.js?v=m11";
-import { WAREHOUSE } from "../data/warehouse.js?v=m11";
-import { MACHINES_NOW } from "./workshop.js?v=m11";
-import { grantMachine } from "./production.js?v=m11";
-import { bag, wallet } from "./inventory.js?v=m11";
-import { EAST_FIRST, EAST_COUNT, GH_FIRST, GH_COUNT, blankPlot } from "./plots.js?v=m11";
+import * as B from "./build.js?v=m12";
+import { BUILDING, DECOR_ITEM, maxLevel } from "../data/buildings.js?v=m12";
+import { LEVELS, CURRENT_MILESTONE } from "../data/levels.js?v=m12";
+import { WAREHOUSE } from "../data/warehouse.js?v=m12";
+import { MACHINES_NOW } from "./workshop.js?v=m12";
+import { grantMachine } from "./production.js?v=m12";
+import { bag, wallet } from "./inventory.js?v=m12";
+import { EAST_FIRST, EAST_COUNT, GH_FIRST, GH_COUNT, blankPlot } from "./plots.js?v=m12";
 
 const MILESTONE_OF_FEATURE = Object.fromEntries(LEVELS.flatMap((l) => l.unlocks).filter((u) => u.kind === "feature").map((u) => [u.id, u.milestone]));
 /** Bản (milestone) đưa công trình vào game: theo tính năng của mốc xây đầu tiên trong data/levels.js. */

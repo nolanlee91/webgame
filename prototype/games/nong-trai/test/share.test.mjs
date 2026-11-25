@@ -1,9 +1,9 @@
 // Khoe kết quả (ui/share-card.js): lên cấp, danh hiệu Sổ sưu tập, danh hiệu Nhà (nâng Nhà ⇒ danh hiệu danh tiếng mới).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createState } from "../core/state.js?v=m11";
-import { BUILDING, FAME_TITLES } from "../data/buildings.js?v=m11";
-import { farmShare } from "../ui/share-card.js?v=m11";
+import { createState } from "../core/state.js?v=m12";
+import { BUILDING, FAME_TITLES } from "../data/buildings.js?v=m12";
+import { farmShare } from "../ui/share-card.js?v=m12";
 
 test("thẻ khoe danh hiệu Nhà: tên danh hiệu đúng bậc, bậc ★, phần xu đơn hàng trả thêm, ≤ 4 dòng, tiêu đề ≤ 40 ký tự", () => {
   const s = createState(); s.level = 14; s.stats.earned = 123456;

@@ -195,13 +195,20 @@
       .keys { display: none; }
       .lvs { grid-template-columns: repeat(7, 1fr); }
     }
+
+    /* QCK-04 (D4): vùng chạm ≥ 44 × 44 px — link "← Trang chủ" mở rộng vùng chạm bằng ::after (chữ giữ cỡ cũ) */
+    .bar a { position: relative; z-index: 40; } /* trên lớp phủ menu (bắt đầu ngay dưới thanh) để phần vùng chạm thò xuống vẫn bấm được */
+    .bar a::after { content: ""; position: absolute; left: -6px; right: -6px; top: calc(50% - 22px); bottom: calc(50% - 22px); }
+    .lvb.free { min-height: 44px; }
+    .mini .btn { min-width: 44px; } /* nút âm thanh cạnh HUD (điện thoại dọc): 36 ⇒ 44 px ngang */
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .acts .btn { min-height: 44px; } }
   </style>
 </head>
 <body class="is-menu">
   <header class="bar">
     <a href="../../homepage/">← Trang chủ</a>
     <h1>Bắn Bóng Khủng Long</h1>
-    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+    <span class="tag">Lụm Kèo</span>
   </header>
   <div class="wrap">
     <aside class="hud" aria-label="Tiến độ">
