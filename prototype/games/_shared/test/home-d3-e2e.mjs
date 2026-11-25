@@ -100,6 +100,9 @@ try {
     logoTop: Math.round(document.querySelector(".logo").getBoundingClientRect().top), navTop: Math.round(document.querySelector(".mainnav a").getBoundingClientRect().top) })`));
   check("P-D desktop: 4 mục Chơi · Phòng online · Thử thách · Bảng xếp hạng trên CÙNG hàng logo; có 1 h1",
     N.h1 === 1 && N.links.join() === "Chơi>#games,Phòng online>#lobby,Thử thách>bang-xep-hang.html#thu-thach,Bảng xếp hạng>bang-xep-hang.html" && N.row && Math.abs(N.logoTop - N.navTop) < 30, JSON.stringify(N));
+  // D5: chưa có link https:// thật ⇒ thẻ ẩn; điền link ⇒ thẻ tự hiện (vẽ lại kệ) — xem home-d5-e2e.mjs
+  check("HOME-11/D5 thẻ 'Tài trợ' ẩn khi SPONSOR.url trống", await T.ev(`!document.querySelector("#grid .tile--sponsor") && !window.SPONSOR.url`));
+  await T.ev(`(() => { window.SPONSOR.url = "https://example.com/speakup"; document.querySelector('#chips .tab[data-cat="all"]').click(); })()`); await sleep(150);
   check("HOME-11 thẻ 'Tài trợ' SpeakUp Kids cuối kệ, cùng cỡ thẻ game", await T.ev(`(() => { const s = document.querySelector("#grid .tile--sponsor"); if (!s) return false;
     const tiles = s.parentElement.querySelectorAll(".tile"); const a = s.querySelector(".tile__art").getBoundingClientRect(), b = tiles[0].querySelector(".tile__art").getBoundingClientRect();
     return tiles[tiles.length - 1] === s && s.closest(".shelf") === [...document.querySelectorAll("#grid .shelf")].pop() && /Tài trợ/.test(s.textContent) && /SpeakUp Kids/.test(s.textContent)

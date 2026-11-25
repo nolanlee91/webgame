@@ -11,8 +11,8 @@ import { setManifest, registerSheets, preloadCaseArt } from "./ui/art.js?v=t10";
 import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t10";
 import { createDialog } from "./ui/dialog.js?v=t11";
 import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t10";
-import * as S from "./ui/screens.js?v=t12";
-import * as P from "./ui/panels.js?v=t12";
+import * as S from "./ui/screens.js?v=t13";
+import * as P from "./ui/panels.js?v=t13";
 import { stamp, shake, crackLens } from "./ui/fx.js?v=t10";
 
 const params = new URLSearchParams(location.search);

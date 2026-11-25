@@ -75,6 +75,6 @@ window.SEARCH_WORDS = {
   multi: "nhieu nguoi choi cung ban",
 };
 
-// Thẻ "Tài trợ" cuối kệ game (HOME-11, chủ dự án chốt 25/11/2026). url trống ⇒ thẻ không bấm được (chưa có link chính thức).
-// Điền url (https://…) là thẻ thành link mở tab mới, rel="sponsored noopener".
+// Thẻ "Tài trợ" cuối kệ game (HOME-11, chủ dự án chốt 25/11/2026). url trống / không phải https:// ⇒ thẻ ẨN (D5: chưa có link chính thức).
+// Điền url (https://…) là thẻ tự hiện, thành link mở tab mới, rel="sponsored noopener".
 window.SPONSOR = { name: "SpeakUp Kids", text: "Tiếng Anh cho bé qua trò chơi", url: "" };

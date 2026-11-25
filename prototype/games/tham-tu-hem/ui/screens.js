@@ -4,7 +4,7 @@ import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portrait
 import { renderText } from "./dialog.js?v=t11";
 import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
-import { pickEvidence, clueCard } from "./panels.js?v=t12";
+import { pickEvidence, clueCard } from "./panels.js?v=t13";
 import { play as sfx } from "./sfx.js?v=t10";
 import { shareResult } from "../../_shared/share.js?v=s2";
 
@@ -14,6 +14,8 @@ export function afterRender(app) { const list = after.splice(0); for (const f of
 const narrow = () => innerWidth < 900;
 /** Điện thoại xoay ngang (docs/mobile-landscape.md §1) — khớp media query trong index.html. */
 const landShort = () => matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
+/** Chiều cao thanh trên thật (52 desktop, 48 điện thoại dọc, 44 xoay ngang). */
+const barH = () => document.getElementById("bar")?.offsetHeight || 52;
 const stars = (n, max = 3) => h("span.stars", { "aria-label": `${n} trên ${max} sao` }, Array.from({ length: max }, (_, i) => icon(i < n ? "star" : "starOff", 16)));
 
 /** Ảnh nền phủ khung (cover) mà vẫn nét: hệ số bội 0,5 px thiết bị, căn giữa, cắt mép. */
@@ -57,19 +59,27 @@ function titleBanner(file, fallbackUrl, W) {
   return h("div.title-bg.title-banner", { style: { height: BH + "px" } }, coverImg(file, fallbackUrl, W, BH, SCENE_W, SCENE_H, TITLE_FOCUS));
 }
 
+/** Xoay ngang: tranh phủ kín khung (bản HD nếu có, không thì bản lưới 2× phóng bội 0,5 cho nét). */
+function landCover(file, fallbackUrl, W, H, fx) {
+  const hd = HD[file];
+  return hd && hasFile(hd) ? hdCover(hd, W, H, fx) : coverImg(file, fallbackUrl, W, H, SCENE_W, SCENE_H, fx);
+}
+
 // ---------- màn mở ----------
 export function title(app) {
-  const p = app.G.profile, W = innerWidth, H = innerHeight - 52;
+  const p = app.G.profile, W = innerWidth, H = innerHeight - barH();
   const hasRun = Object.keys(p.solved).length || Object.keys(p.runs).length || p.created;
   const r = rankOf(p.rep);
   const input = h("input.inp#detName", { type: "text", maxlength: "24", placeholder: DEFAULT_NAME, value: p.name, autocomplete: "off", "aria-label": "Tên thám tử" });
   const go = () => { app.setName(cleanName(input.value)); app.show("map"); };
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); go(); } });
-  const banner = W < 720;
+  // D5: xoay ngang (màn thấp) không dùng băng ảnh trên cùng (568×320: băng cao trọn màn, thẻ tên bị đẩy xuống dưới) ⇒ ảnh phủ nền, chữ + thẻ tên cột trái
+  const land = landShort(), banner = W < 720 && !land;
   return h("section.title-screen" + (banner ? ".title-screen--banner" : ""),
     banner ? titleBanner("assets/title-art.webp", placeholderScene("title", [], "title"), W)
+      : land ? h("div.title-bg", landCover("assets/title-art.webp", placeholderScene("title", [], "title"), W, H, TITLE_FOCUS))
       : h("div.title-bg.title-poster", posterImg("assets/title-art.webp", placeholderScene("title", [], "title"), W, H, Math.min(520, W * 0.42), 0.6)),
-    banner || !hasFile(HD["assets/title-art.webp"]) ? null : h("div.title-shade"),
+    !land && (banner || !hasFile(HD["assets/title-art.webp"])) ? null : h("div.title-shade"),
     h("div.title-col",
       h("div.title-logo", h("small", "Hẻm 47 · Sài Gòn"), h("b", "Thám Tử"), h("b.l2", "Hẻm"), h("span.title-tag", "Phá những vụ án dở khóc dở cười trong xóm")),
       h("div.card.title-card",
@@ -124,14 +134,16 @@ export function map(app) {
       open ? null : icon("lock", 16), h("span", x.tab));
   }));
   // bản đồ (desktop: lớn bên trái; mobile: dải trên cùng)
-  const W = narrow() ? innerWidth - 32 : innerWidth - 420, H = narrow() ? 220 : innerHeight - 52 - 170;
+  // D5 xoay ngang: bản đồ cột trái dưới thẻ thám tử + tab mùa (cao còn lại), danh sách hồ sơ cột phải cuộn riêng
+  const land = landShort();
+  const W = land ? innerWidth * 0.5 - 24 : narrow() ? innerWidth - 32 : innerWidth - 420, H = land ? innerHeight - barH() - 132 : narrow() ? 220 : innerHeight - 52 - 170;
   const { k, crisp } = crispScale(SCENE_W, SCENE_H, W, H);
   const mapBox = h("div.map-box" + (crisp ? "" : ".smooth"), { style: { width: SCENE_W * k + "px", height: SCENE_H * k + "px" } },
     h("img.map-img", { src: hasFile(S0.map) ? S0.map : placeholderScene(season === 1 ? "hem-map" : "hem-map-" + season, [], season === 1 ? "map" : "map2"), alt: S0.title, draggable: "false" }),
     pins.map(({ e, pt, state, can }) => h("button.map-pin.st-" + state, { type: "button", tabindex: "-1", disabled: !can, title: e.title, style: { left: pt[0] * k + "px", top: pt[1] * k + "px" }, onclick: () => app.openCase(e.id) }, icon(state === "lock" || state === "soon" ? "lock" : "pin", 16), h("span", e.no))));
   return h("section.map-screen.season-" + season,
     h("div.map-head",
-      h("div.det-card", h("div.det-ava", portraitEl("me", "smug", "", 56, displayName(p))),
+      h("div.det-card", h("div.det-ava", portraitEl("me", "smug", "", land ? 44 : 56, displayName(p))),
         h("div.det-info", h("small", r.name), h("b", displayName(p)),
           h("div.rep-bar", { title: r.next ? `Còn ${r.toNext} danh tiếng để lên ${r.next.name}` : "Hạng cao nhất" }, h("i", { style: { width: Math.round(r.pct * 100) + "%" } })),
           h("span.rep-txt", `${p.rep} danh tiếng` + (r.next ? ` · còn ${r.toNext} lên ${r.next.name}` : "")))),
@@ -309,7 +321,7 @@ export function finale(app) {
   const { c, s, ui } = app.G, F = c.finale, cul = F.culprit;
   const st = F.steps[Math.min(s.fin.step, F.steps.length - 1)];
   const claim = [...(st?.claim || [])].map((l) => (Array.isArray(l) ? { who: l[0], text: l[1] } : l)).reverse().find((l) => l.who === cul) || (st?.claim?.[0] && (Array.isArray(st.claim[0]) ? { text: st.claim[0][1] } : st.claim[0]));
-  const big = narrow() ? 150 : Math.min(320, innerHeight - 260);
+  const big = landShort() ? Math.max(96, Math.min(160, innerHeight - barH() - 150)) : narrow() ? 150 : Math.min(320, innerHeight - 260);
   return h("section.finale-screen",
     h("div.finale-stage",
       h("div.finale-left", portraitEl(cul, ui.mood[cul] || "angry", c.id, big, app.name(cul), "big"), h("div.nameplate", app.name(cul), h("small", "Nghi phạm chính"))),

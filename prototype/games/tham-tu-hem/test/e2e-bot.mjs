@@ -1,7 +1,7 @@
 // E2E "bot qua giao diện": mỗi vụ có file trong data/cases được giải trọn bằng BẤM THẬT (chuột / chạm), bước kế tiếp lấy từ core/solver.js nextAction.
 // Kiểm: đi hết vụ ra 3★, không lỗi console, nút bấm không bị che; chụp ảnh từng địa điểm + bài đăng + bảng suy luận + vạch mặt + kết vụ để soi bố cục.
 // Chạy: PORT=8871 node server.js  rồi  PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh> [id vụ…] (mặc định: mọi vụ có file, cả mùa 2; vụ chưa có file ⇒ SKIP)
-// VIEW=mob ⇒ 390×844 dpr 3 (chạm). Mặc định 1366×768 dpr 1,25.
+// VIEW=mob ⇒ 390×844 dpr 3 (chạm). VIEW=land ⇒ 844×390 dpr 2 (chạm, điện thoại xoay ngang — D5). Mặc định 1366×768 dpr 1,25.
 import { readdirSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
 import { CASES } from "../data/cases/index.js";
@@ -12,9 +12,9 @@ const have = new Set(readdirSync(new URL("../data/cases/", import.meta.url)).map
 const want = process.argv.slice(3).length ? process.argv.slice(3) : CASES.map((c) => c.id);
 for (const id of want.filter((id) => !have.has(id))) console.log("SKIP " + id + " — chưa có data/cases/" + id + ".js");
 const ids = want.filter((id) => have.has(id));
-const mob = process.env.VIEW === "mob", V = mob ? "m" : "d";
+const land = process.env.VIEW === "land", mob = process.env.VIEW === "mob" || land, V = land ? "l" : mob ? "m" : "d";
 const b = await launch(OUT, Number(process.env.CDP_PORT) || 9671);
-await b.view(mob ? 390 : 1366, mob ? 844 : 768, mob, mob ? 3 : 1.25);
+await b.view(land ? 844 : mob ? 390 : 1366, land ? 390 : mob ? 844 : 768, mob, land ? 2 : mob ? 3 : 1.25);
 if (mob) await b.touch(true);
 let fails = 0;
 const check = (n, c, d = "") => { console.log((c ? "PASS " : "FAIL ") + n + (d ? " — " + d : "")); if (!c) fails++; };
