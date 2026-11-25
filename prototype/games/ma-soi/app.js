@@ -1,5 +1,6 @@
 // Ma Sói — client. Chỉ hiển thị góc nhìn server gửi cho ghế mình; client không bao giờ biết vai người khác
 // trừ khi server cho phép (người chết, hết ván, Sói thấy Sói). Không ghi state ra console.
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 const $ = (id) => document.getElementById(id);
 const SESS = "ma-soi:sess";
 
@@ -106,7 +107,7 @@ function soundFor(a, b) {
     if (join) sfx.play("buoc-nhay", 0.7); else if (gone) sfx.play("trung-da", 0.35);
   }
   const fresh = (x, y) => { const t = x?.length ? x[x.length - 1].ts : -1; return (y || []).some((c) => c.ts > t && c.seat !== b.seat); };
-  if (fresh(a.chat, b.chat) || fresh(a.wolfChat, b.wolfChat)) sfx.play("tin-nhan", 0.7);
+  if (!isChatOff() && (fresh(a.chat, b.chat) || fresh(a.wolfChat, b.wolfChat))) sfx.play("tin-nhan", 0.7);
 }
 
 // ---------------- kết nối ----------------
@@ -454,25 +455,30 @@ const hhmm = (ts) => { const d = new Date(ts); return `${String(d.getHours()).pa
 const msgLi = (c, color) => `<li class="msg"><span><b style="color:${color || SEAT_COLOR[c.seat % 8]}">${esc(nameOf(c.seat))}</b>: ${esc(c.text)}</span>${c.ts ? `<time>${hhmm(c.ts)}</time>` : ""}</li>`;
 let lastLogKey = "";
 function renderChat() {
+  // "Tắt chat" (chung toàn trang): giấu lời người chơi gõ, vẫn giữ sự kiện của ván và câu nói nhanh có sẵn
+  const off = isChatOff(), said = (c) => !off || v.quick.includes(c.text);
   const wolf = me()?.role === "wolf" && !!v.wolfChat;
   $("tabWolf").hidden = !wolf; if (!wolf && tab === "wolf") tab = "village";
   if (wolf && v.phase === "night" && lastRoundSeen !== v.round) { tab = "wolf"; lastRoundSeen = v.round; }
   $("tabVillage").setAttribute("aria-selected", tab === "village"); $("tabWolf").setAttribute("aria-selected", tab === "wolf");
   // kênh Làng: lời nói + sự kiện (chết/treo) xếp theo thời gian vòng
   let items;
-  if (tab === "wolf") items = (v.wolfChat || []).map((c) => msgLi(c, "var(--red)"));
+  if (tab === "wolf") items = (v.wolfChat || []).filter(said).map((c) => msgLi(c, "var(--red)"));
   else {
     items = v.events.map((e) => `<li class="sys">${e.kind === "bite" ? `Đêm ${e.round}: <b>${esc(nameOf(e.seat))}</b> bị Sói cắn — là ${ROLE[e.role].name}.` : e.kind === "hunt" ? esc(huntText(e)) : e.kind === "peace" ? `Đêm ${e.round}: bình yên.` : e.kind === "hang" ? `Ngày ${e.round}: ${e.byMayor ? "Trưởng Làng đã phân xử. " : ""}<b>${esc(nameOf(e.seat))}</b> bị treo cổ — là ${ROLE[e.role].name}.` : `Ngày ${e.round}: không ai bị treo cổ.`}</li>`);
-    items = items.concat(v.chat.map((c) => msgLi(c)));
+    items = items.concat(v.chat.filter(said).map((c) => msgLi(c)));
   }
-  const key = tab + items.join("");
+  const key = tab + off + items.join("");
   if (key !== lastLogKey) { lastLogKey = key; const log = $("chatLog"); log.innerHTML = items.join("") || `<li class="sys">Chưa có ai nói gì.</li>`; log.scrollTop = log.scrollHeight; }
   const my = me(), ph = v.phase;
   const canTalk = my?.alive && (tab === "wolf" ? ph === "night" : ph !== "night" && ph !== "reveal");
   document.querySelector(".chat").classList.toggle("chat--off", !canTalk);
-  $("chatInp").placeholder = !my?.alive ? "Người đã bị loại không được nói" : tab === "wolf" ? "Thì thầm với bầy Sói…" : canTalk ? "Nói gì đó với cả làng…" : "Ban đêm cả làng im lặng";
+  // người đã bị loại / đêm im lặng: khoá thật ô nhập (không chỉ làm mờ) để bàn phím cũng không gửi được
+  $("chatInp").disabled = !canTalk || off; $("chatBtn").disabled = !canTalk || off;
+  $("chatInp").placeholder = !my?.alive ? "Người đã bị loại không được nói" : off ? "Chat đang tắt" : tab === "wolf" ? "Thì thầm với bầy Sói…" : canTalk ? "Nói gì đó với cả làng…" : "Ban đêm cả làng im lặng";
   const q = $("quick");
   if (!q.childElementCount) q.innerHTML = v.quick.map((s, i) => `<button type="button" data-q="${i}">${esc(s)}</button>`).join("");
+  q.querySelectorAll("button").forEach((b) => { b.disabled = !canTalk; });
   q.hidden = tab === "wolf";
 }
 $("tabVillage").onclick = () => { tab = "village"; render(); };
@@ -483,9 +489,10 @@ $("chatFold").onclick = () => {
   $("chatFold").setAttribute("aria-expanded", open); $("chatFold").textContent = open ? "Thu gọn ▼" : "Mở rộng ▲";
   const log = $("chatLog"); log.scrollTop = log.scrollHeight;
 };
+initChatOff(() => { if (v) renderChat(); });
 $("quick").addEventListener("click", (e) => { const b = e.target.closest("[data-q]"); if (b) send({ t: "quick", id: +b.dataset.q }); });
 $("chatForm").addEventListener("submit", (e) => {
-  e.preventDefault(); const t = $("chatInp").value.trim(); if (!t) return;
+  e.preventDefault(); const t = $("chatInp").value.trim(); if (!t || $("chatInp").disabled) return;
   send({ t: "chat", text: t }); $("chatInp").value = "";
 });
 

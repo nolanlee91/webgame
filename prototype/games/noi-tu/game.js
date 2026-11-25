@@ -6,7 +6,8 @@
 import { createDict } from "./core/dict.js";
 import { createLocalSession } from "./session/local.js";
 import { openOnline } from "./session/online.js";
-import { guessWord } from "./core/input.js";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
+import { guessWord } from "./core/input.js";
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";   // trợ giúp nhập liệu (Telex/VNI thô, không dấu) — không phải luật
 
 const STORE_KEY = "noi-tu:local";
 const PREFS_KEY = "noi-tu:prefs";
@@ -165,7 +166,7 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
         if (o !== online) return;
         chatItems.push(m); if (chatItems.length > CHAT_KEEP) chatItems.shift();
         renderChat();
-        if (m.seat !== online.room?.seat) {
+        if (m.seat !== online.room?.seat && !isChatOff()) {
           sfx.play("tin-nhan", 0.6);
           if (!chatVisible()) { unread++; showUnread(); }
         }
@@ -212,6 +213,11 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
     el.chatWho.textContent = other ? `với ${other}` : "chờ bạn kia vào…";
   }
   function renderChat() {
+    const off = isChatOff(), send = el.chatForm.querySelector('[type="submit"]');
+    el.chatInp.disabled = off; if (send) send.disabled = off;
+    if (!el.chatInp.dataset.ph) el.chatInp.dataset.ph = el.chatInp.placeholder;
+    el.chatInp.placeholder = off ? "Chat đang tắt" : el.chatInp.dataset.ph;
+    if (off && unread) { unread = 0; showUnread(); }
     if (el.chat.hidden) return;
     const mine = online?.room?.seat;
     el.chatLog.replaceChildren(...(chatItems.length ? chatItems.map((m) => {
@@ -584,11 +590,12 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   const homeLinks = [...document.querySelectorAll('a[href*="homepage"]')];
   homeLinks.forEach((a) => a.addEventListener("click", onHomeClick));
   el.muteBtn.addEventListener("click", toggleMute);
+  initChatOff(() => renderChat()); // "Tắt chat" chung toàn trang
   el.chatBtn.addEventListener("click", () => openChat(!el.wrap.classList.contains("chat-open")));
   el.chatClose.addEventListener("click", () => openChat(false));
   el.chatForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const text = el.chatInp.value.trim(); if (!text || !online) return;
+    const text = el.chatInp.value.trim(); if (!text || !online || isChatOff()) return;
     if (online.chat(text)) el.chatInp.value = ""; else flashChatNote("Mất kết nối — đang nối lại, gửi lại sau nhé.");
   });
   el.resume.addEventListener("click", () => openSession(false));

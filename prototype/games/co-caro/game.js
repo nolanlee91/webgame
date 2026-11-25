@@ -3,6 +3,7 @@ import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, o
 import { bestMove } from "./ai.js";
 import { createNet, CODE_RE } from "./net.js?v=snd1";
 import { shareResult } from "../_shared/share.js?v=s1";
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 
 const SAVE_KEY = "wgp.caro.v1";
 const C = {
@@ -471,6 +472,10 @@ export function mount(root, ctx = {}) {
     const on = !!v;
     document.body.classList.toggle("has-chat", on); ui.chat.hidden = !on;
     if (!on) { document.body.classList.remove("chat-open"); chatSeen = 0; chatLast = -1; ui.chatLog.replaceChildren(); ui.chatN.hidden = true; ui.chatIn.value = ""; return; }
+    const off = isChatOff(), send = ui.chatF.querySelector('[type="submit"]');
+    ui.chatIn.disabled = off; if (send) send.disabled = off;
+    if (!ui.chatIn.dataset.ph) ui.chatIn.dataset.ph = ui.chatIn.placeholder;
+    ui.chatIn.placeholder = off ? "Chat đang tắt" : ui.chatIn.dataset.ph;
     const list = v.chat || [], top = list.length ? list[list.length - 1].id : 0;
     if (top !== chatLast) {
       const atEnd = ui.chatLog.scrollHeight - ui.chatLog.scrollTop - ui.chatLog.clientHeight < 40;
@@ -485,10 +490,10 @@ export function mount(root, ctx = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào đối thủ một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) ui.chatLog.scrollTop = ui.chatLog.scrollHeight;
       const last = list.at(-1);
-      if (isNew && last && !last.mine) sfx.play("tin-nhan", 0.6); // có tin mới từ người khác: kêu cả khi đang mở khung chat
-      if (isNew && last && !last.mine && !chatOpen()) toast(last.name + ": " + last.text, 3500);
+      if (isNew && last && !last.mine && !off) sfx.play("tin-nhan", 0.6); // có tin mới từ người khác: kêu cả khi đang mở khung chat
+      if (isNew && last && !last.mine && !off && !chatOpen()) toast(last.name + ": " + last.text, 3500);
     }
-    if (chatOpen()) chatSeen = top;
+    if (chatOpen() || off) chatSeen = top;
     const unread = list.filter((c) => c.id > chatSeen && !c.mine).length;
     ui.chatN.hidden = !unread; ui.chatN.textContent = unread > 9 ? "9+" : String(unread);
   }
@@ -497,12 +502,14 @@ export function mount(root, ctx = {}) {
     if (on) { hideToast(); if (room) renderChat(room); ui.chatLog.scrollTop = ui.chatLog.scrollHeight; ui.chatIn.focus({ preventScroll: true }); }
     else if (!ui.ovRoom.hidden) ui.rLeave.focus({ preventScroll: true }); else cv.focus({ preventScroll: true });
   }
+  // "Tắt chat" (chung toàn trang): đổi ⇒ vẽ lại khung chat, tắt luôn toast tin nhắn đang hiện
+  initChatOff((off) => { if (off) hideToast(); if (room) renderChat(room); });
   ui.chatBtn.onclick = () => setChatOpen(!document.body.classList.contains("chat-open"));
   ui.chatX.onclick = () => setChatOpen(false);
   ui.chatIn.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); setChatOpen(false); } });
   ui.chatF.addEventListener("submit", (e) => {
     e.preventDefault();
-    const text = ui.chatIn.value.trim(); if (!text) return;
+    const text = ui.chatIn.value.trim(); if (!text || isChatOff()) return;
     if (net.send({ t: "chat", text })) ui.chatIn.value = ""; else toast("Đang nối lại máy chủ — chưa gửi được tin.");
   });
 
@@ -594,7 +601,7 @@ export function mount(root, ctx = {}) {
     ui.eTitle.innerHTML = s.winner === 3 ? t : `<span class="pc">${pieceSvg(s.winner)}</span>${t}`;
     ui.eSub.textContent = s.winner === 3 ? "Bàn đã kín mà chưa ai xếp được 5 quân." :
       nm[s.winner] + " xếp 5 quân theo " + DIR_NAME(s.line) + " sau " + s.moves.length + " nước. Ván sau " + nm[other(s.winner)] + " đi trước.";
-    ui.eResult.innerHTML = `<div class="rx"><small>${nm[1]} · X</small><b>${s.score[1]}</b></div><div><small>Hòa</small><b>${s.score.draw}</b></div><div class="ro"><small>${nm[2]} · O</small><b>${s.score[2]}</b></div>`;
+    ui.eResult.innerHTML = `<div class="rx"><small>${esc(nm[1])} · X</small><b>${s.score[1]}</b></div><div><small>Hòa</small><b>${s.score.draw}</b></div><div class="ro"><small>${esc(nm[2])} · O</small><b>${s.score[2]}</b></div>`;
     ui.menuE.textContent = online() ? "Rời phòng" : "Trận mới";
     ui.eDisband.hidden = !(room && room.you === room.host);
     overlay("end");

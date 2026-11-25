@@ -25,7 +25,7 @@
   <!-- og:end -->
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%232c221b%22/%3E%3Crect x=%224%22 y=%225%22 width=%228%22 height=%228%22 fill=%22%23111%22/%3E%3Crect x=%225%22 y=%226%22 width=%222%22 height=%222%22 fill=%22%23555%22/%3E%3Crect x=%229%22 y=%223%22 width=%222%22 height=%222%22 fill=%22%23a8741a%22/%3E%3Crect x=%2211%22 y=%221%22 width=%222%22 height=%222%22 fill=%22%23f5d77f%22/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="style.css?v=snd1" />
+  <link rel="stylesheet" href="style.css?v=chat1" />
 </head>
 <body>
   <header class="bar">
@@ -104,6 +104,7 @@
             <div class="wait__btns">
               <button class="btn btn--teal" id="copyBtn" type="button">Chép đường mời</button>
               <label class="check" id="pubWrap"><input type="checkbox" id="pubToggle" /> Phòng công khai</label>
+              <label class="check check--chat"><input type="checkbox" data-chat-check /> Tắt chat</label>
             </div>
             <button class="btn btn--gold wait__start" id="startBtn" type="button">Bắt đầu</button>
             <p class="soft wait__note" id="lobNote"></p>
@@ -132,8 +133,9 @@
         <button class="btn btn--red ppl__leave" id="leaveBtn" type="button">Rời phòng</button>
       </section>
       <section class="chat px-panel" aria-labelledby="chatH">
-        <h2 class="side__h" id="chatH">Trò chuyện</h2>
-        <ol class="chat__log" id="chatLog" aria-live="polite"></ol>
+        <div class="chat__hd"><h2 class="side__h" id="chatH">Trò chuyện</h2><button class="btn chat__tg" type="button" data-chat-toggle aria-pressed="false">Tắt chat</button></div>
+        <ol class="chat__log" id="chatLog" aria-live="polite" data-chat-hide></ol>
+        <p class="chat__off" data-chat-offnote>Đã tắt chat ·<button class="chat__on" type="button" data-chat-on>Bật lại</button></p>
         <form class="chat__form" id="chatForm" autocomplete="off">
           <input id="chatInp" maxlength="200" placeholder="Nhắn cả phòng…" aria-label="Tin nhắn" />
           <button class="btn btn--teal" id="chatBtn">Gửi</button>
@@ -142,7 +144,7 @@
     </aside>
   </main>
 
-  <script type="module" src="app.js?v=snd1"></script>
+  <script type="module" src="app.js?v=chat1"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

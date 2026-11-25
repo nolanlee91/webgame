@@ -125,6 +125,8 @@ export function createNet(h, { wsUrl } = {}) {
   };
 }
 
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
+
 // ---------- Trò chuyện trong phòng ----------
 // Máy rộng: khung nằm ở cột phải giữa 2 thẻ người chơi. Màn hẹp: nút "Chat" trên thanh đầu trang mở bảng trượt từ dưới lên.
 export function createChat({ box, button, send, colorOf, onNew }) {
@@ -136,7 +138,7 @@ export function createChat({ box, button, send, colorOf, onNew }) {
   input.addEventListener("keyup", (e) => e.stopPropagation());
   box.querySelector("form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const text = input.value.trim(); if (!text) return;
+    const text = input.value.trim(); if (!text || isChatOff()) return;
     if (send({ t: "chat", text })) input.value = "";
   });
   box.querySelector(".close").onclick = () => open(false);
@@ -148,6 +150,8 @@ export function createChat({ box, button, send, colorOf, onNew }) {
   }
   function render(v) {
     view = v;
+    const off = isChatOff(), sendBtn = box.querySelector('[type="submit"]');
+    input.disabled = off; sendBtn.disabled = off; input.placeholder = off ? "Chat đang tắt" : "Nhắn cho cả phòng…";
     const list = v.chat || [], top = list.length ? list[list.length - 1].id : 0;
     if (top !== last) {
       const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40, isNew = last >= 0 && top > last;
@@ -161,14 +165,15 @@ export function createChat({ box, button, send, colorOf, onNew }) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) log.scrollTop = log.scrollHeight;
       const lt = list.at(-1);
-      if (isNew && lt && !lt.mine && onNew) onNew(); // tin mới từ người khác: kêu cả khi đang mở khung chat
-      if (isNew && lt && !lt.mine && !visible()) toast(lt.name + ": " + lt.text, 3500);
+      if (isNew && lt && !lt.mine && !off && onNew) onNew(); // tin mới từ người khác: kêu cả khi đang mở khung chat
+      if (isNew && lt && !lt.mine && !off && !visible()) toast(lt.name + ": " + lt.text, 3500);
     }
-    if (visible()) seen = top;
+    if (visible() || off) seen = top;
     const unread = list.filter((c) => c.id > seen && !c.mine).length;
     badge.hidden = !unread; badge.textContent = unread > 9 ? "9+" : String(unread);
   }
   addEventListener("resize", () => view && render(view));
+  initChatOff((off) => { if (off) hideToast(); if (view) render(view); }); // "Tắt chat" chung toàn trang
   return {
     render, open,
     show(on) { box.hidden = !on; button.hidden = !on; document.body.classList.toggle("online", on); if (!on) { document.body.classList.remove("chat-open"); last = -1; seen = 0; view = null; } },
