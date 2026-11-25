@@ -236,7 +236,7 @@ export function createHud(root, cb) {
         : p.bot ? "Máy" + (canBot ? ` <button class="px-btn mini" data-bot="${p.idx}" type="button" aria-label="Bớt ${esc(p.name)}">✕</button>` : "")
         : (p.away ? `${ic("mat-ket-noi")} Mất kết nối` : `${ic("san-sang")} Sẵn sàng`)
           // chủ phòng: "Mời ra" người khác (online.js → _shared/online-kit.js lo hộp xác nhận + gửi lệnh)
-          + (canBot && !p.me ? ` <button class="px-btn mini" data-kick="${p.idx}" data-kick-name="${esc(p.name)}" type="button" aria-label="Mời ${esc(p.name)} ra khỏi phòng">Mời ra</button>` : "");
+          + (canBot && !p.me ? ` <button class="px-btn mini" data-pxkick="${p.idx}" data-pxkick-name="${esc(p.name)}" type="button" aria-label="Mời ${esc(p.name)} ra khỏi phòng">Mời ra</button>` : "");
       r.querySelector(".st").classList.toggle("bad", !!(p && p.away));
     });
   }

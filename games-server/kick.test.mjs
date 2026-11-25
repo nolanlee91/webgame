@@ -71,9 +71,11 @@ for (const [game, fn] of GAMES) {
         a.send({ t: "kick", target: bad });
         assert.equal((await a.next((m) => m.t === "err" && m.req === "kick")).code, "target", "ghế lạ " + JSON.stringify(bad));
       }
+      a.send({ t: "kick", target: 1, name: "Ai Do" }); // ghế đã đổi người (tên không khớp) ⇒ không mời nhầm
+      assert.equal((await a.next((m) => m.t === "err" && m.req === "kick")).code, "target", "tên không khớp");
       assert.deepEqual(names(S, code), ["Chu", "Khach"], "chưa ai bị mời ra");
 
-      a.send({ t: "kick", target: 1 });
+      a.send({ t: "kick", target: 1, name: "Khach" });
       assert.equal((await b.next((m) => m.t === "kicked")).by, "host");
       await sleep(50);
       assert.deepEqual(names(S, code), ["Chu"], "khách đã ra khỏi phòng");

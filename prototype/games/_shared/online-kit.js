@@ -118,7 +118,7 @@ function ensureKickCss() {
 /** HTML nút "Mời ra" cho ghế `seat` (tên `name`) — game tự quyết khi nào vẽ (mình là chủ phòng, ghế người khác, không phải bot). */
 export function kickButtonHTML(seat, name) {
   ensureKickCss();
-  return `<button type="button" class="pxk" data-kick="${seat | 0}" data-kick-name="${escAttr(name)}" aria-label="Mời ${escAttr(name)} ra khỏi phòng" title="Mời ra khỏi phòng">Mời ra</button>`;
+  return `<button type="button" class="pxk" data-pxkick="${seat | 0}" data-pxkick-name="${escAttr(name)}" aria-label="Mời ${escAttr(name)} ra khỏi phòng" title="Mời ra khỏi phòng">Mời ra</button>`;
 }
 /** Gắn xử lý bấm nút "Mời ra" cho cả trang. send(msg) → gửi lệnh tới máy chủ (trả false nếu mất kết nối). */
 export function initKick({ send, confirm: ask } = {}) {
@@ -126,10 +126,10 @@ export function initKick({ send, confirm: ask } = {}) {
   if (kickSend) { kickSend = send; return; }
   kickSend = send;
   document.addEventListener("click", async (e) => {
-    const b = e.target.closest?.("[data-kick]");
+    const b = e.target.closest?.("[data-pxkick]");
     if (!b || b.disabled) return;
     e.preventDefault(); e.stopPropagation();
-    const target = Number(b.dataset.kick), name = b.dataset.kickName || "";
+    const target = Number(b.dataset.pxkick), name = b.dataset.pxkickName || "";
     const { pxConfirm } = await import("./px-confirm.js?v=pc1");
     const ok = await (ask || pxConfirm)({
       title: `Mời ${name || "người này"} ra khỏi phòng?`,
