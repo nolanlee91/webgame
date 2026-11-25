@@ -23,12 +23,12 @@ button, input { font: inherit; color: inherit; }
 .px-h { margin: 0; font: 800 20px/1.2 "Be Vietnam Pro", system-ui; text-shadow: 2px 2px 0 #000; }
 
 .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #0c0f14; box-shadow: inset 0 -3px 0 #000; }
-.bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
+.bar a { color: var(--soft); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin-block: -6px; } /* vùng chạm ≥ 44 px */
 .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
 .bar__code { margin-left: auto; color: var(--soft); font-size: 13px; }
 .bar__code b { color: var(--accent); letter-spacing: .12em; font-size: 15px; }
 .net { color: var(--red); font-weight: 700; font-size: 13px; }
-.bar__snd { margin-left: auto; display: inline-grid; place-items: center; width: 40px; height: 36px; padding: 0; border: 0; cursor: pointer; color: var(--ink);
+.bar__snd { margin-left: auto; display: inline-grid; place-items: center; width: 44px; height: 44px; margin-block: -4px; padding: 0; border: 0; cursor: pointer; color: var(--ink);
   background: var(--panel2); --b: var(--line); box-shadow: var(--bevel), var(--border); }
 .bar__code:not([hidden]) ~ .bar__snd { margin-left: 8px; }
 .bar__snd .snd-off, .bar__snd.is-off .snd-on { display: none; }
@@ -55,6 +55,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed
 .home__body { padding: 22px; display: grid; gap: 14px; align-content: start; }
 .home__body p { margin: 0; }
 .home__opt { display: grid; gap: 8px; }
+.home__opt > label { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; } /* ô "Phòng kín": vùng chạm ≥ 44 px */
 .home__step { margin: 0; font-size: 13px; color: var(--soft); }
 .home__step b { color: var(--ink); }
 .home__create { width: calc(100% - 6px); min-height: 52px; font-size: 16px; }
@@ -156,7 +157,7 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 .chat__log .sys { color: var(--soft); font-style: italic; }
 .chat__log .sys b { color: var(--ink); }
 .quick { display: flex; gap: 4px; overflow-x: auto; padding: 6px 10px 2px; }
-.quick button { flex: none; border: 0; background: var(--panel2); padding: 6px 10px; min-height: 36px; font-size: 12px; font-weight: 700; cursor: pointer; --b: var(--line); box-shadow: var(--border); margin: 3px; }
+.quick button { flex: none; border: 0; background: var(--panel2); padding: 6px 12px; min-height: 44px; font-size: 12px; font-weight: 700; cursor: pointer; --b: var(--line); box-shadow: var(--border); margin: 3px; }
 .chat__form { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 4px 8px 0; }
 .chat__form input { min-width: 0; }
 .chat--off .chat__form, .chat--off .quick { opacity: .45; pointer-events: none; }

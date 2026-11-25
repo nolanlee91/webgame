@@ -41,7 +41,7 @@
       display: flex; flex-direction: column; height: 100svh; overflow: hidden; -webkit-tap-highlight-color: transparent;
       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
     .bar { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #1d1a16; box-shadow: inset 0 -3px 0 #000, inset 0 2px 0 rgba(255,255,255,.08); }
-    .bar a { color: var(--soft); text-decoration: none; font-weight: 700; }
+    .bar a { color: var(--soft); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin-block: -8px; } /* vùng chạm ≥ 44 px, thanh không cao thêm */
     .bar a:focus-visible { outline: 2px dashed var(--gold); outline-offset: 3px; }
     .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
     .tag { margin-left: auto; font-size: 12px; color: var(--soft); }
@@ -155,7 +155,7 @@
     .record { display: inline-block; margin-top: 12px; padding: 3px 10px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
       background: var(--teal-d); color: var(--teal-l); box-shadow: 0 0 0 3px var(--line); }
     .best { margin-top: 12px; font-size: 13px; color: var(--soft); }
-    .daily-link { display: inline-block; margin-top: 12px; padding: 6px 12px; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--gold); text-decoration: none; box-shadow: 0 0 0 3px #4a4036; }
+    .daily-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 12px; padding: 6px 12px; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--gold); text-decoration: none; box-shadow: 0 0 0 3px #4a4036; }
     .daily-link:hover { background: var(--panel2); } .daily-link:active { transform: translate(3px, 3px); background: var(--panel2); } .daily-link:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
     .is-daily #undoBtn, .is-daily #endUndoBtn { display: none !important; }
     .bigtile { width: 84px; height: 84px; margin: 6px auto 12px; position: relative; --cs: 84px; --px: 4px; --fs: 26px; }
@@ -190,7 +190,7 @@
     @media (max-width: 380px) { .stat small { font-size: 9px; letter-spacing: .04em; } .stat b, .stat.best b, .stat.main b { font-size: 15px; } .modes { grid-template-columns: 1fr; } }
     /* Điện thoại xoay ngang: HUD + nút bên trái, bàn bên phải */
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
-      .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .bar { padding: 4px 12px; } .bar a { margin-block: -12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
       .wrap { padding: 6px 12px; gap: 8px 16px; grid-template-columns: 230px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hud stage" "acts stage" ". stage"; }
       .stats { padding: 6px 10px; gap: 4px; grid-template-columns: 1fr 1fr; } .stat.main b { font-size: 20px; } .stat b { font-size: 15px; } .hsep, .stat.time, .goal .px-bar { display: none; }
       .acts { gap: 10px; } .acts .btn { min-height: 38px; font-size: 12px; }
@@ -202,7 +202,7 @@
   <header class="bar">
     <a href="../../homepage/">← Trang chủ</a>
     <h1>2048</h1>
-    <span class="tag">Lụm Kèo · bản chơi thử · pixel V5</span>
+    <span class="tag">Lụm Kèo</span>
   </header>
   <div class="wrap">
     <aside class="hud" aria-label="Tiến độ">
