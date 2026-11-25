@@ -174,3 +174,28 @@ body.is-touch .keys { display: none; }
 
 /* poster 960×640 luôn bị thu nhỏ khi hiện ⇒ vẽ mượt (pixelated khi thu nhỏ làm ảnh lởm chởm) */
 .home__poster { image-rendering: auto; }
+
+/* ---------- Điện thoại xoay ngang (PTY-04 — quy ước chung: docs/mobile-landscape.md) ----------
+   Bản đồ cao theo khung (100dvh − thanh trên − HUD ≈ 100px); D-pad ghim mép trái, nút BOM ghim mép phải (fixed, chừa safe-area),
+   nằm trong hai dải trống hai bên bản đồ ⇒ không đè sân chơi. Cột người chơi / chat xuống dưới (cuộn xuống mới thấy). */
+@media (orientation: landscape) and (max-height: 500px) {
+  .bar { padding: 3px max(12px, env(safe-area-inset-right)) 3px max(12px, env(safe-area-inset-left)); }
+  .bar h1 { font-size: 14px; }
+  .bar__snd { height: 32px; }
+  .game { grid-template-columns: minmax(0, 1fr); padding: 4px max(4px, env(safe-area-inset-right)) 8px max(4px, env(safe-area-inset-left)); gap: 8px; }
+  .stage { padding: 4px; gap: 4px; }
+  .hud { gap: 8px; } .hud__time { font-size: 18px; min-width: 48px; }
+  .hud__me { gap: 2px; font-size: 12px; } .hud__me span { padding: 1px 5px; }
+  .board { width: min(100%, calc((100dvh - 100px) * 13 / 11)); max-width: none; }
+  .keys { display: none; }
+  body.is-touch .stage { padding-left: 0; padding-right: 0; }
+  /* chừa 2 dải ≥ 150px hai bên cho D-pad / BOM */
+  body.is-touch .board { width: min(calc(100vw - 2 * 152px - env(safe-area-inset-left) - env(safe-area-inset-right)), calc((100dvh - 100px) * 13 / 11)); }
+  body.is-touch .hud { margin: 0 auto; width: min(100%, calc(100vw - 2 * 152px)); flex-wrap: nowrap; white-space: nowrap; }
+  body.is-touch .hud__me span { margin: 1px; }
+  body.is-touch .pad { position: fixed; z-index: 4; left: 0; right: 0; bottom: 0; top: 40px; pointer-events: none; align-items: flex-end; justify-content: space-between;
+    padding: 0 max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+  body.is-touch .dpad, body.is-touch .bombBtn { pointer-events: auto; }
+  .dpad { grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px); } .dpad button { margin: 1px; } /* nút 44×44 */
+  .bombBtn { width: 84px; height: 84px; margin-bottom: 26px; }
+}

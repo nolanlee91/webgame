@@ -319,7 +319,7 @@
           </section>
           <section class="view" id="vSolo" hidden aria-labelledby="vSoloH">
             <h3 class="vh" id="vSoloH">Chơi với máy</h3>
-            <p class="sub">Bạn giữ hàng dưới (đội A) và đi trước. Ván sau đội thua được đi trước.</p>
+            <p class="sub">Bạn giữ <b id="mySide">hàng dưới</b> (đội A — 5 ô dân phía gần bạn) và đi trước. Ván sau đội thua được đi trước.</p>
             <div class="opts">
               <div class="opt"><span>Máy</span><div class="seg" role="radiogroup" aria-label="Độ khó của máy" data-k="aiLevel">
                 <button type="button" role="radio" data-v="easy">Dễ</button><button type="button" role="radio" data-v="medium">Vừa</button><button type="button" role="radio" data-v="hard">Khó</button></div></div>
@@ -406,7 +406,7 @@
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="module">
-    import { mount } from "./game.js?v=d0";
+    import { mount } from "./game.js?v=ls1";
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
       reportScore: (s) => { window.__lastScore = s; },

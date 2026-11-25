@@ -24,12 +24,13 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/ban-bong.jpg" />
   <!-- og:end -->
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet" />
+  <link href="../_shared/short-screen.css?v=ss1" rel="stylesheet" /><!-- khung thấp: nút Bắt đầu ghim đáy (docs/mobile-landscape.md) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%224%22 y=%222%22 width=%228%22 height=%2212%22 fill=%22%23fff4e0%22/%3E%3Crect x=%223%22 y=%224%22 width=%2210%22 height=%228%22 fill=%22%23fff4e0%22/%3E%3Crect x=%226%22 y=%226%22 width=%222%22 height=%222%22 fill=%22%233f9a45%22/%3E%3Crect x=%229%22 y=%229%22 width=%222%22 height=%222%22 fill=%22%233f9a45%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Ghép Kẹo / 2048 / Sudoku: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
        không bo tròn, không mờ. Vàng CHỈ cho nút chính và sao đánh giá. Nền sân và khủng long có ảnh riêng; các ký hiệu bóng được vẽ bằng Canvas. */
     :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
-      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
+      --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6); --ss-bar-h: 31px; /* chiều cao thanh đầu trang khi xoay ngang — _shared/short-screen.css */
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --leaf: #3f9a45; --leaf-l: #7fd47f;
       --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
       --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
@@ -238,7 +239,7 @@
       <div class="frame" id="frame"><div class="board" id="board"><canvas id="cv"></canvas></div></div>
       <div class="hint-tx" id="hintTx">Chạm kéo để ngắm · thả tay để bắn · chạm bệ để đổi viên</div>
 
-      <div class="ov" id="ovMenu">
+      <div class="ov ss-ov" id="ovMenu">
         <div class="card">
           <h2>Bắn Bóng Khủng Long</h2>
           <p class="sub">Bắn bóng lên trần, ghép <b>3 bóng cùng màu</b> để nổ — giải cứu những quả <b>trứng khủng long</b> bị kẹt trong đám bóng!</p>
@@ -253,14 +254,14 @@
           </div>
           <div class="lvs" id="lvs" role="radiogroup" aria-label="Chọn màn"></div>
           <div class="pick" id="pick"></div>
-          <div class="actions">
+          <div class="actions ss-cta">
             <button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button>
             <button class="btn btn--big" id="freshBtn" type="button" hidden>Chơi lại từ đầu</button>
           </div>
         </div>
       </div>
 
-      <div class="ov" id="ovWin" hidden>
+      <div class="ov ss-ov" id="ovWin" hidden>
         <div class="card">
           <div class="bigstars" id="wStars"><i></i><i></i><i></i></div>
           <h2 class="gold" id="wTitle">Qua màn 1!</h2>
@@ -268,7 +269,7 @@
           <div class="hatched" id="wEggs"></div>
           <div class="result" id="wResult"></div>
           <div id="wRecord"></div>
-          <div class="actions">
+          <div class="actions ss-cta">
             <button class="btn btn--big btn--primary" id="nextBtn" type="button">▶ Màn tiếp</button>
             <button class="btn btn--big" id="replayBtn" type="button">Chơi lại</button>
             <button class="btn btn--big" id="shareBtnW" type="button">Khoe kết quả</button>
@@ -277,14 +278,14 @@
         </div>
       </div>
 
-      <div class="ov" id="ovLose" hidden>
+      <div class="ov ss-ov" id="ovLose" hidden>
         <div class="card">
           <h2 id="lTitle">Hết viên!</h2>
           <p class="sub" id="lSub"></p>
           <div class="miss" id="lMiss"></div>
           <div class="result" id="lResult"></div>
           <div id="lRecord"></div>
-          <div class="actions">
+          <div class="actions ss-cta">
             <button class="btn btn--big btn--primary" id="retryBtn" type="button">▶ Chơi lại</button>
             <button class="btn btn--big" id="shareBtnL" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnL" type="button">Menu</button>

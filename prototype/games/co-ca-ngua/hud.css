@@ -193,3 +193,48 @@
   .cn-tray .tag { white-space: normal; text-align: center; justify-content: center; line-height: 1.15; max-width: 100%; }
   .cn-tray .lbl .px-btn { max-width: 100%; white-space: normal; line-height: 1.1; }
 }
+
+/* ---------- Khung hẹp / thấp (BRD-03 — quy ước chung: docs/mobile-landscape.md) ----------
+   Cạnh bàn = min(bề rộng còn lại, chiều cao khung − phần cố định): cả ván (trạng thái, 4 thẻ, khay, bàn) nằm gọn một màn,
+   không phải cuộn khi đang chơi. Cột lưới minmax(0, …) để thẻ tên co lại thay vì đẩy bàn tràn ngang ở 320 px. */
+@media (max-width: 980px) {
+  .cn-arena { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .cn-seat { min-width: 0; }
+  /* 310px = thanh đầu trang + dòng trạng thái + 2 hàng thẻ (trên/dưới bàn) + khoảng cách */
+  .cn-board { width: min(100%, max(272px, calc(100svh - 310px))); justify-self: center; }
+  .cn-card .tab { white-space: nowrap; }
+  .cn-table.is-lobby .cn-arena { grid-template-columns: minmax(0, 1fr); }
+  .cn-lobby .segs { flex-wrap: wrap; }
+}
+/* 320–360px: bỏ ảnh đại diện trong thẻ để tên + số ngựa về đích còn đủ chỗ đọc */
+@media (max-width: 360px) { .cn-card canvas.av { display: none; } }
+/* Điện thoại xoay ngang (thấp ≤ 500px): bố cục như máy tính — 2 thẻ bên trái, bàn giữa, 2 thẻ bên phải.
+   .cn-arena / .cn-top "display: contents" để trạng thái, nút, thẻ, bàn cùng nằm trên một lưới 3 cột. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .cn-table { display: grid; column-gap: 14px; row-gap: 6px; align-items: start;
+    grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr); grid-template-rows: auto 1fr 1fr;
+    grid-template-areas: "status board tools" "s0 board s3" "s1 board s2"; }
+  .cn-arena, .cn-top { display: contents; }
+  .cn-status { grid-area: status; align-self: center; white-space: normal; font-size: 13px; line-height: 1.3; }
+  .cn-tools { grid-area: tools; justify-self: end; align-self: center; gap: 10px; }
+  /* 44px = thanh đầu trang gọn (index.html) + lề trên/dưới; 2×150px cột thẻ + khoảng cách */
+  .cn-board { width: min(calc(100svh - 44px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), calc(100vw - 2 * 150px - 2 * 14px - 2 * max(12px, env(safe-area-inset-left)))); min-width: 0; }
+  .cn-seat { align-self: start; padding-top: 18px; }
+  .cn-seat[data-seat="1"], .cn-seat[data-seat="2"] { align-self: end; padding: 0 0 18px; }
+  .cn-card { padding: 9px 7px 6px; }
+  .cn-tray { flex: 0 0 60px; width: 60px; } .cn-tray .pit { width: 52px; }
+  .cn-table.is-lobby { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr;
+    grid-template-areas: "board status" "board lobby"; }
+  .cn-table.is-lobby .cn-tools { grid-area: status; }
+  .cn-table.is-lobby .cn-status { padding-right: 160px; }
+  .cn-table.is-lobby .cn-lobby { width: auto; max-height: calc(100svh - 44px - 56px); overflow-y: auto; }
+}
+/* Phòng chờ trên màn hẹp / thấp: nút CHƠI ghim đáy (sticky) — luôn thấy mà không phải cuộn hết phần chọn màu, chỗ ngồi, luật. */
+@media (max-width: 980px), (orientation: landscape) and (max-height: 500px) {
+  .cn-table.is-lobby .cn-lobby .act { display: contents; }
+  .cn-table.is-lobby .cn-lobby #playBtn { position: sticky; bottom: max(8px, env(safe-area-inset-bottom)); z-index: 3; display: flex; margin: 16px 17px 0; width: calc(100% - 34px); }
+  .cn-table.is-lobby .cn-lobby .act > .note { margin: 12px 17px 0; }
+  .cn-table.is-lobby .cn-lobby .act > .px-btn { display: flex; width: fit-content; margin: 12px auto 0; }
+  .cn-table.is-lobby .cn-lobby .act > .px-btn[hidden] { display: none; }
+  .cn-table.is-lobby .cn-lobby .act > a { display: block; width: fit-content; margin: 12px auto 0; }
+}

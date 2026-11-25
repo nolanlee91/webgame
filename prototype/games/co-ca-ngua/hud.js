@@ -14,7 +14,7 @@ let cssAdded = false;
 function addCss() {
   if (cssAdded || document.querySelector("link[data-cn-hud]")) return;
   const l = document.createElement("link");
-  l.rel = "stylesheet"; l.href = new URL("hud.css?v=chat1", import.meta.url).href; l.dataset.cnHud = "";
+  l.rel = "stylesheet"; l.href = new URL("hud.css?v=ls1", import.meta.url).href; l.dataset.cnHud = "";
   document.head.appendChild(l); cssAdded = true;
 }
 
@@ -106,6 +106,13 @@ export function createHud(root, cb) {
     seatEl(s).querySelector(".pit").addEventListener("pointerdown", (e) => { e.preventDefault(); cb.onTray(s); });
     seatEl(s).querySelector(".lbl").addEventListener("click", (e) => { if (e.target.closest("[data-roll]")) cb.onTray(s); });
   }
+  // Vào ván: cả bàn chơi vừa một màn ⇒ cuộn về đầu trang; không vừa ⇒ cuộn tới mép trên bàn chơi (dòng trạng thái).
+  function showBoard() {
+    requestAnimationFrame(() => {
+      const top = root.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top + root.offsetHeight <= window.innerHeight ? 0 : Math.max(0, top - 6), behavior: "instant" });
+    });
+  }
   function flash(el, text) { const t = el.title; el.title = text; status.textContent = text; setTimeout(() => (el.title = t), 1500); }
 
   let lastKey = "", lastActive = -2, avatarsDone = false, online = null;
@@ -150,7 +157,9 @@ export function createHud(root, cb) {
     if (key === lastKey) return;
     lastKey = key;
     online = v.online ? { ...v.online, over: !!v.over } : null;
+    const wasLobby = root.classList.contains("is-lobby");
     root.classList.toggle("is-lobby", v.lobby);
+    if (wasLobby && !v.lobby) showBoard(); // BRD-02: bấm Chơi khi đang cuộn xuống phòng chờ ⇒ đưa bàn + khay xúc xắc về trong màn
     root.classList.toggle("is-online", !!v.online);
     lobbyOnline(v);
     // chủ phòng online: nút "Hủy phòng" (phòng chờ + bảng kết quả); "Rời phòng" của chủ ghi rõ là nhường quyền chủ phòng

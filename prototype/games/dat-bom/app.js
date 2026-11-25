@@ -182,6 +182,9 @@ function render(prev) {
     if (v.phase === "over" && v.result) sfx.play(v.result.winner === v.you ? "win" : v.result.winner < 0 ? "go" : "lose"); // hoà ⇒ tiếng trung tính
     if (v.phase === "lobby" && lastPhase === "over") sfx.play("join", 0.6); // về phòng chờ
     if (v.phase !== "play") f = v.phase === "over" ? f : null;
+    // PTY-05: vào ván (đếm ngược) ⇒ trả bàn phím cho game — ô chat / nút ở phòng chờ đang giữ focus thì mũi tên không đi, Space gõ vào chat
+    if (v.phase === "play" && document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+    if (v.phase === "play") window.scrollTo({ top: 0, behavior: "instant" }); // PTY-04: đang cuộn xuống chat ⇒ đưa bản đồ + D-pad về trong màn
     lastPhase = v.phase;
   }
   // người chơi
@@ -273,7 +276,8 @@ function onFrame(m) {
 const held = [];      // hướng đang giữ (phím nhấn sau cùng được ưu tiên)
 let touchDir = null;
 const KEYMAP = { ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", ArrowDown: "d", a: "l", d: "r", w: "u", s: "d", A: "l", D: "r", W: "u", S: "d" };
-const typing = () => { const a = document.activeElement; return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"); };
+// chỉ nhường phím khi đang GÕ chữ (ô chat); ô tích "Tắt chat" / "Phòng công khai" có focus thì phím vẫn điều khiển game
+const typing = () => { const a = document.activeElement; return !!a && a.matches("textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit])"); };
 const inGame = () => !$("game").hidden && v && v.phase === "play";
 window.addEventListener("keydown", (e) => {
   if (typing() || !inGame()) return;
@@ -344,6 +348,7 @@ $("copyBtn").onclick = async () => {
   const link = `${location.origin}${location.pathname}?p=${v.code}`;
   try { await navigator.clipboard.writeText(link); banner("Đã chép đường mời"); } catch { banner(link); }
 };
+$("chatInp").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); $("chatInp").blur(); } }); // Esc: rời ô chat, phím về game
 $("chatForm").onsubmit = (e) => {
   e.preventDefault();
   const t = $("chatInp").value.trim(); if (!t || isChatOff()) return;

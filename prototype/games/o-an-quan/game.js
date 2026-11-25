@@ -194,7 +194,8 @@ export function mount(root, ctx = {}) {
   })();
 
   // ---------- Bố cục
-  function layout() { board.layout(); }
+  // OAQ-02: màn dọc hẹp thì bàn xoay 90° (board.info.rot) ⇒ hàng của mình thành cột bên phải — chữ hướng dẫn đổi theo
+  function layout() { board.layout(); const side = $("mySide"); if (side) side.textContent = board.info.rot ? "cột bên phải" : "hàng dưới"; }
   const ro = new ResizeObserver(() => { layout(); board.draw(performance.now()); });
   ro.observe(stage);
 
