@@ -20,6 +20,7 @@ description: Làm (hoặc tiếp tục) một game quản lý cửa hàng "Tập
 - **Code:**
   - Làm trong worktree `.claude/worktrees/<id>`, branch `claude/<id>`. Thêm `.claude/worktrees/` vào `.git/info/exclude`.
   - Chép khung từ Trà Sữa: `render/atlas.js` (crisp, snap), `render/scene.js` (camera bội 0,5, charScale), `core/text.js` (freshLine), `save.js` (backup + chơi lại), `test/cdp.mjs`, `test/e2e.mjs`.
+  - Khung UI theo **pixel V5 như Nông Trại** (PLAYBOOK §2.1): không bo tròn, viền 4 box-shadow góc khuyết, bóng cứng lệch, nút lún khi ấn. Chép khối biến `--px-border` / `--px-bevel` / `--px-drop` từ `index.html` của Trà Sữa. HUD điện thoại tối đa 1 hàng, có nhãn ngắn.
 - **M1–M5** theo PLAYBOOK §4. Nội dung tối thiểu theo PLAYBOOK §5: mỗi cơ chế mới phải đi kèm kịch bản và review riêng.
 - **Mỗi milestone:**
   - Chạy unit, e2e và mô phỏng cân bằng (nếu có).

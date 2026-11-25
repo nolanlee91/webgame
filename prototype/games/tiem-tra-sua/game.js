@@ -1,9 +1,9 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
 import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, DEFER_SHEETS, preload, dpr, icon } from "./render/atlas.js?v=m38";
-import { createScene } from "./render/scene.js?v=m38";
+import { createScene } from "./render/scene.js?v=m40";
 import { createBrew } from "./ui/brew.js?v=m39";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m39";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m40";
 import { createPanels } from "./ui/panels.js?v=m38";
 import { createStockout } from "./ui/stockout.js?v=m39";
 import { TIER_LINES } from "./data/lines-m5.js?v=m38";

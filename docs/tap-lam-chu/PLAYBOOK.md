@@ -102,6 +102,35 @@ Các quy tắc đã cài trong `prototype/games/tiem-tra-sua/render/atlas.js` v�
 - Luôn test ở **1366×768, phóng 125% (dpr 1,25)**, cấu hình laptop phổ biến và là nơi lộ lỗi mờ. Kèm 1920×1080 dpr 1 và mobile 390×844 dpr 3.
 - Điện thoại xoay ngang / khung thấp (≤ 500 px cao): theo quy ước `docs/mobile-landscape.md` (breakpoint, công thức cạnh bàn, nút chính luôn thấy, `_shared/short-screen.css`). Test thêm 844×390 và 568×320.
 
+### 2.1 Khung UI: pixel V5 như Nông Trại (chủ dự án chốt 25/11/2026, TLC1-04)
+
+Khung bảng, nút, ô HUD, phiếu, hộp thoại, thông báo của mọi game tiệm theo art bible V5, cùng ngôn ngữ với Nông Trại và `_shared/px-confirm.js`. **Không** dùng kiểu bo tròn 12–18 px + bóng mờ cũ của Trà Sữa.
+
+- **Không `border-radius`** ở bất kỳ đâu (kể cả vòng đếm giờ: dùng bát giác `clip-path` bậc, hoặc thanh).
+- **Viền = 4 box-shadow lệch 3 px** (2 px cho nút nhỏ, ô HUD, ô trong bảng) ⇒ bốn góc khuyết thành bậc pixel. Không dùng `0 0 0 Npx` cho viền ngoài (ra góc vuông kín).
+- **Bóng cứng lệch**, blur 0: `3px 4px 0 0 rgba(…, .55)` cho bảng / phiếu, `6px 8px 0 0` cho hộp thoại. Không `0 6px 18px` mờ.
+- **Vát trong**: `inset 0 2px 0` sáng + `inset 0 -3px 0` tối.
+- **Ấn nút ⇒ lún**: `translate` 2–3 px và bỏ bóng đổ.
+- Nhấp nháy, gợi ý: đổi màu viền theo `steps()`, không dùng quầng mờ.
+
+Mẫu CSS (Trà Sữa / Bánh Mì / Cơm Tấm `index.html` đều có, chép nguyên):
+
+```css
+:root { --line: #2a1a10; --px-drop: 3px 4px 0 0 rgba(5, 8, 14, .55);
+  --px-bevel: inset 0 2px 0 rgba(255, 255, 255, .55), inset 0 -3px 0 rgba(128, 84, 58, .16); }
+/* --b tính tại từng phần tử (khai trên *), nên .on / .low / :hover chỉ cần đổi --b */
+* { --px-border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
+  --px-border2: 0 -2px 0 0 var(--b, var(--line)), 0 2px 0 0 var(--b, var(--line)), -2px 0 0 0 var(--b, var(--line)), 2px 0 0 0 var(--b, var(--line)); }
+.sheet { --b: var(--line); box-shadow: var(--px-bevel), var(--px-border), 6px 8px 0 0 rgba(0, 0, 0, .5); }
+.btn { --b: var(--line); box-shadow: var(--px-bevel), var(--px-border), 3px 3px 0 0 rgba(42, 26, 16, .4); }
+.btn:active { transform: translate(3px, 3px); box-shadow: var(--px-bevel), var(--px-border); }
+.btn.primary { --b: #0e2a27; }  .slip.on { --b: var(--teal); }
+```
+
+- Bẫy: khai `--border: … var(--b)` **trên `:root`** thì `var(--b)` bị tính một lần ở `:root`, đổi `--b` ở phần tử con không ăn. Phải khai biến viền trên `*` (như trên) hoặc viết thẳng `var(--b)` trong `box-shadow` của phần tử.
+- Viền vẽ ra **ngoài** hộp 2–3 px: vùng cuộn chứa phiếu / ô (`overflow: auto`) cần đệm ≥ 3 px (cộng bóng đổ ở cạnh phải, dưới), khe giữa hai ô ≥ 2 × độ dày viền.
+- HUD điện thoại: tối đa **1 hàng** ở 360×640 và 390×844, kể cả cuối game. Mỗi ô = icon + số gọn (`148k`, `1,2tr`, `12k`) + nhãn ngắn 9–10 px dưới số; `flex-wrap: nowrap`. Bong bóng thoại / tên khách kẹp xuống dưới đáy HUD, thông báo nằm dưới HUD (Trà Sữa `ui/screens.js` createHud, `render/scene.js`).
+
 ---
 
 ## 3. Kiến trúc code (chép từ Trà Sữa)

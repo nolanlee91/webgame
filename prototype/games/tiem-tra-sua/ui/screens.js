@@ -47,42 +47,57 @@ export function summaryShare(S) {
 }
 
 // ---------- HUD ----------
+/** Số gọn cho HUD (TLC1-03): tiền tính theo nghìn ⇒ 148k · 1,2tr · 12tr · 1,5 tỷ; người theo dõi 950 · 1,2k · 12k. */
+const short1 = (v) => (v >= 10 ? String(Math.floor(v)) : (Math.floor(v * 10) / 10).toLocaleString("vi-VN", { maximumFractionDigits: 1 }));
+export function shortMoney(kNum) {
+  const s = kNum < 0 ? "−" : "", n = Math.abs(kNum);
+  return s + (n < 1000 ? `${n}k` : n < 1e6 ? `${short1(n / 1000)}tr` : `${short1(n / 1e6)} tỷ`);
+}
+export const shortCount = (n) => (n < 1000 ? String(n) : n < 1e6 ? `${short1(n / 1000)}k` : `${short1(n / 1e6)}tr`);
+
+// HUD 1 hàng (TLC1-03): mỗi ô = icon + số + nhãn ngắn (.lb, hiện ở điện thoại / màn thấp, chữ nhỏ dưới số) + chú thích dài (small, màn rộng).
 export function createHud(root, atlas) {
   const items = {};
-  const add = (id, ico, title) => {
+  const add = (id, ico, title, label) => {
     const d = h("div", "chip"); d.title = title; d.id = id;
     d.appendChild(icon(atlas, ["icons", ico], 26));
     const b = h("b"); d.appendChild(b);
+    const lb = h("i", "lb", label); d.appendChild(lb);
     const sm = h("small"); d.appendChild(sm);
-    root.appendChild(d); items[id] = { b, sm, d };
+    root.appendChild(d); items[id] = { b, sm, lb, d };
   };
-  add("hMoney", "coin", "Tiền mặt");
-  add("hClock", "clock", "Thời gian ca");
-  add("hRep", "review-star", "Danh tiếng");
-  add("hFans", "customer", "Người theo dõi · đánh giá");
-  add("hLevel", "upgrade", "Cấp tiệm");
-  add("hStock", "storage", "Kho");
+  add("hMoney", "coin", "Tiền mặt", "Tiền");
+  add("hClock", "clock", "Thời gian ca", "Ngày 1");
+  add("hRep", "review-star", "Danh tiếng", "Danh tiếng");
+  add("hFans", "customer", "Người theo dõi · đánh giá", "theo dõi");
+  add("hLevel", "upgrade", "Cấp tiệm", "Cấp");
+  add("hStock", "storage", "Kho", "Kho");
   const xpBar = h("div", "xpbar"); xpBar.appendChild(h("i")); items.hLevel.d.appendChild(xpBar);
+  // cùng điều kiện với khối CSS "HUD 1 hàng" trong index.html: ô Kho gọn = số món sắp hết + nhãn "sắp hết"
+  const compact = typeof matchMedia === "function" ? matchMedia("(max-width: 760px), (max-height: 520px)") : { matches: false };
   return function render(state) {
     const sh = state.shift;
-    setText(items.hMoney.b, k(state.money)); setText(items.hMoney.sm, "Tiền");
+    setText(items.hMoney.b, shortMoney(state.money)); setText(items.hMoney.sm, "Tiền");
+    if (items.hMoney.k !== state.money) { items.hMoney.k = state.money; items.hMoney.d.title = `Tiền mặt: ${k(state.money)}`; }
+    const day = sh ? sh.day : state.day;
     if (sh) {
       const left = sh.duration - sh.t;
       setText(items.hClock.b, left > 0 ? mmss(left) : "Hết giờ");
-      setText(items.hClock.sm, `Ngày ${sh.day}`);
       items.hClock.d.classList.toggle("warn", left > 0 && left < 20000);
-    } else { setText(items.hClock.b, "Đóng cửa"); setText(items.hClock.sm, `Ngày ${state.day}`); items.hClock.d.classList.remove("warn"); }
+    } else { setText(items.hClock.b, "Đóng"); items.hClock.d.classList.remove("warn"); }
+    setText(items.hClock.sm, `Ngày ${day}`); setText(items.hClock.lb, `Ngày ${day}`);
     setText(items.hRep.b, state.rep); setText(items.hRep.sm, "Danh tiếng");
     const f = state.followers || 0;
-    setText(items.hFans.b, f >= 1000 ? (f / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "k" : String(f));
-    setText(items.hFans.sm, state.rating ? `${state.rating.toLocaleString("vi-VN")}★` : "theo dõi");
+    setText(items.hFans.b, shortCount(f));
+    const fl = state.rating ? `${state.rating.toLocaleString("vi-VN")}★` : "theo dõi";
+    setText(items.hFans.sm, fl); setText(items.hFans.lb, fl);
     const xp = xpProgress(state);
-    setText(items.hLevel.b, `Cấp ${state.level}`); setText(items.hLevel.sm, xp.need ? `${xp.into}/${xp.need} XP` : "Tối đa");
+    setText(items.hLevel.b, state.level); setText(items.hLevel.sm, xp.need ? `cấp · ${xp.into}/${xp.need} XP` : "cấp · tối đa");
     setWidth(xpBar.firstChild, (xp.need ? Math.min(100, (xp.into / xp.need) * 100) : 100) + "%");
-    setText(items.hStock.b, `${stockUsed(state)}/${capacity(state)}`);
     // huy hiệu đỏ: món trên menu còn ≤ 2 phần (giữa ca), bấm ô Kho để nhập gấp
     const low = sh ? [...menuStock(state)].filter((id) => (state.stock[id] || 0) <= STOCKOUT.LOW_AT).length : 0;
-    setText(items.hStock.sm, low ? `${low} món sắp hết` : "Kho");
+    setText(items.hStock.b, low && compact.matches ? low : `${stockUsed(state)}/${capacity(state)}`);
+    setText(items.hStock.sm, low ? `${low} món sắp hết` : "Kho"); setText(items.hStock.lb, low ? "sắp hết" : "Kho");
     items.hStock.d.classList.toggle("low", low > 0);
   };
 }
