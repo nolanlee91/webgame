@@ -46,6 +46,11 @@ const Q = (s) => JSON.stringify(s);
 // số lần phát tiếng: lớp đếm WebAudio/<audio> + nhật ký window.__sfx.log (Đặt Bom, Ma Sói, Nội Gián ghi tên tiếng kể cả khi AudioContext chưa mở)
 const SND = "window.__snd + (window.__sfx?.log?.length || 0)";
 
+// Kiểm trước máy chủ ở BASE có đủ trang các game (chạy nhầm cổng của bản cũ / server khác ⇒ báo ngay, khỏi chờ hết giờ từng ô)
+for (const g of GAMES) {
+  const r = await fetch(`${BASE}/games/${g.id}/`).catch((e) => ({ ok: false, status: e.message }));
+  if (!r.ok) { console.error(`Máy chủ ${BASE} không phục vụ /games/${g.id}/ (${r.status}). Chạy: PORT=… node server.js ở gốc repo rồi đặt BASE.`); process.exit(2); }
+}
 const chrome = await launchChrome();
 async function tab(name, w, h, mobile) {
   const ctx = await chrome.newContext();
@@ -63,9 +68,12 @@ async function sendChat(t, g, text) {
   await fill(t, g.chatIn, text);
   await t.ev(`document.querySelector(${Q(g.chatForm)}).requestSubmit()`);
 }
+// Tên khách giờ tự sinh (_shared/account.js: getName() không bao giờ rỗng) ⇒ ô tên luôn điền sẵn, người chơi bấm Tạo / Vào phòng luôn.
+// Test đi đúng luồng đó: chỉ chờ ô tên hiện + có tên sẵn, không bắt buộc gõ. (Vẫn ghi đè tên riêng cho A / B để ảnh chụp dễ đọc.)
+const nameReady = (g) => `(${visible(g.name)}) && document.querySelector(${Q(g.name)}).value.trim().length > 0`;
 async function create(t, g, priv) {
   await t.go(`${BASE}/games/${g.id}/`);
-  await t.waitFor(visible(g.name));
+  await t.waitFor(nameReady(g), 15000);
   await fill(t, g.name, "An" + g.id.slice(0, 3));
   await t.ev(`(() => { const c = document.querySelector(${Q(g.priv)}); c.checked = ${priv}; return true; })()`);
   for (const s of g.create) { await t.waitFor(visible(s)); await t.ev(`document.querySelector(${Q(s)}).click()`); await sleep(200); }
@@ -89,10 +97,9 @@ for (const g of GAMES) {
     try {
       const code = await create(A, g, false);
       check(`${tag}: phòng mặc định (công khai như cũ) có trong /api/lobby`, (await lobby()).some((r) => r.code === code && r.game === g.id));
-      // B vào
+      // B vào: giữ nguyên tên khách tự sinh (luồng mặc định của người mới), chỉ nhập mã phòng
       await B.go(`${BASE}/games/${g.id}/`);
-      await B.waitFor(visible(g.name));
-      await fill(B, g.name, "Binh" + g.id.slice(0, 2));
+      await B.waitFor(nameReady(g), 15000);
       await fill(B, g.codeIn, code);
       await B.ev(`document.querySelector(${Q(g.join)}).click()`);
       await B.waitFor(`!!document.querySelector(${Q(g.chatIn)}) && document.querySelector(${Q(g.chatIn)}).isConnected && !document.querySelector(${Q(g.chatIn)}).closest("[hidden]")`, 15000);
@@ -136,7 +143,7 @@ for (const g of GAMES) {
       const back = await B.ev(`!!document.querySelector(${Q(g.chatIn)}) && !document.querySelector(${Q(g.chatIn)}).closest("[hidden]") && getComputedStyle(document.querySelector(${Q(g.chatIn)})).display !== "none"`);
       console.log(`      (sau khi tải lại B ${back ? "tự vào lại phòng" : "về màn vào phòng"})`);
       if (!back) {
-        await B.waitFor(visible(g.name)); await fill(B, g.name, "Binh" + g.id.slice(0, 2)); await fill(B, g.codeIn, code);
+        await B.waitFor(nameReady(g), 15000); await fill(B, g.codeIn, code);
         await B.ev(`document.querySelector(${Q(g.join)}).click()`);
         await B.waitFor(`!!document.querySelector(${Q(g.chatIn)}) && !document.querySelector(${Q(g.chatIn)}).closest("[hidden]")`, 15000).catch(() => {});
         await sleep(600);

@@ -112,8 +112,16 @@ try {
   await A.waitFor(`!/Đang tải/.test(document.getElementById('pubList').textContent)`);
   ok(await A.visible('.home__poster') && await A.ev(`document.querySelector('.home__poster').naturalWidth>0`), 'màn đầu: poster tải được');
   await A.shot('01-home-desktop.png');
+  // tên khách giờ tự sinh (_shared/account.js) ⇒ ô tên luôn điền sẵn; kiểm tra hợp lệ khi người chơi sửa tên
+  const autoName = await A.ev(`document.getElementById('nameInp').value`);
+  ok(autoName.trim().length > 0 && autoName.length <= 16, `người mới: ô tên điền sẵn tên khách tự sinh (“${autoName}”)`);
+  ok(await A.ev(`document.getElementById('nameInp').maxLength`) === 16, 'ô tên giới hạn 16 ký tự (không gõ được tên quá dài)');
+  await A.ev(`document.getElementById('nameInp').value='   '`);
   await A.click('#createBtn');
-  ok(/Nhập tên|tên/i.test(await A.ev(`document.getElementById('homeMsg').textContent`)), 'không nhập tên ⇒ nhắc nhập tên');
+  await sleep(300);
+  ok(/Nhập tên|tên/i.test(await A.ev(`document.getElementById('homeMsg').textContent`)) && await A.ev(`document.getElementById('game').hidden`),
+    'xoá trắng tên rồi bấm Tạo phòng ⇒ nhắc nhập tên, không tạo phòng');
+  ok(await A.ev(`document.activeElement===document.getElementById('nameInp')`), 'tên trống ⇒ con trỏ về ô tên');
   await A.ev(`document.getElementById('nameInp').value='Tèo'`);
   await A.click('#createBtn');
   await A.waitFor(`!document.getElementById('game').hidden && !document.getElementById('ovLobby').hidden`);

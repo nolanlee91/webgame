@@ -192,15 +192,27 @@
     @media (max-aspect-ratio: 1/1) and (max-width: 760px) and (min-height: 780px) { .pad .btn { min-height: 64px; font-size: 28px; } .tools .btn { min-height: 54px; } }
     /* Điện thoại xoay ngang: HUD + nút bên trái, bàn giữa, công cụ + phím số cột phải */
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
-      .bar { padding: 4px 12px; } .bar a { margin-block: -12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .bar a { margin-block: 0; min-height: 0; align-self: stretch; position: relative; z-index: 2; }
+      .bar a::after { content: ""; position: absolute; left: -12px; right: -8px; top: -4px; height: 44px; } /* vùng chạm 44 px tính từ mép trên màn, không thò ra ngoài */
       .wrap { padding: 6px 12px; gap: 8px 16px; grid-template-columns: 200px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hud stage" "acts stage" ". stage"; }
       .stats { padding: 6px 10px; gap: 4px; grid-template-columns: 1fr 1fr; } .stat.main b { font-size: 20px; } .stat b { font-size: 15px; } .hsep, .stat.fill, .stat.best { display: none; }
-      .acts { gap: 10px; } .acts .btn { min-height: 36px; font-size: 12px; padding: 6px 8px; }
+      .acts { gap: 10px; } .acts .btn { min-height: 44px; font-size: 12px; padding: 6px 8px; } /* nút ≥ 44 px cả khi xoay ngang */
       .keys { display: none; }
+      /* Khung ngang hẹp (≤ 760 px, vd 740×360) cũng dính luật "cầm dọc" ở trên ⇒ trả về đúng bố cục ngang (cột nút trái, không dùng .mini) */
+      .wrap { max-width: none; }
+      .stats { grid-auto-flow: row; align-items: start; } .stat.hints { display: grid; }
+      .mini { display: none; } .acts { display: grid; }
       .stage { flex-direction: row; gap: 16px; }
       .ctrl { width: 190px; gap: 8px; }
-      .tools { grid-template-columns: 1fr 1fr; gap: 8px; } .tools .btn { min-height: 36px; font-size: 11px; }
+      .tools { grid-template-columns: 1fr 1fr; gap: 8px; } .tools .btn { min-height: 44px; font-size: 11px; flex-direction: row; gap: 4px; padding: 4px; }
       .pad { grid-template-columns: repeat(3, 1fr); gap: 6px; } .pad .btn { min-height: 44px; font-size: 20px; } .pad .btn small { display: none; }
+    }
+    /* Ngang rất hẹp (vd 568×320): thu 2 cột bên để không tràn ngang */
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) and (max-width: 640px) {
+      .wrap { grid-template-columns: 168px minmax(0, 1fr); gap: 8px 10px; padding: 6px 8px; } .stage { gap: 10px; }
+      .ctrl { width: 156px; } .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pad { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .tools .btn { font-size: 10px; letter-spacing: .02em; white-space: normal; line-height: 1.1; } .acts .btn { font-size: 11px; }
     }
   </style>
 </head>
