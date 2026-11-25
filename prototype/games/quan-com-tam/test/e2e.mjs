@@ -9,6 +9,7 @@ import { launch, sleep } from "./cdp.mjs";
 import { runM3A, runM3AMobile } from "./e2e-m3a.mjs"; // A: M3 tiến trình + kinh tế
 import { runM5V } from "./e2e-m5v.mjs"; // V: M5 hình + tiếng
 import { runM5 } from "./e2e-m5.mjs"; // S: M5 vỉ chay, hội chợ, thử thách, huy hiệu
+import { runLayout } from "./e2e-layout.mjs"; // D2: bố cục 768×1024, 844×390, 740×360, 1024×768, 360, 320
 
 const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8851;
 const BASE = `http://127.0.0.1:${PORT}/games/quan-com-tam/?seed=777`;
@@ -239,7 +240,8 @@ async function replyFlow(tag, shots) {
 const MOBILE_ONLY = !!process.env.MOBILE_ONLY;
 await b.view(1366, 768, false, 1.25); await b.touch(false); press = b.click;
 const M5V = { b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT }; // V:
-if (process.env.M5_ONLY) await runM5({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // S: chỉ chạy phần M5
+if (process.env.LAYOUT_ONLY) await runLayout({ b, check, sleep, OUT, BASE, PORT, waitFor }); // D2: chỉ chạy phần bố cục nhiều khung
+else if (process.env.M5_ONLY) await runM5({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // S: chỉ chạy phần M5
 else if (process.env.M3_ONLY) await runM3A({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "desktop" }); // A: chỉ chạy phần M3
 else if (process.env.M5V_ONLY) { if (!MOBILE_ONLY) await runM5V({ ...M5V, tag: "desktop" }); } // V: chỉ chạy phần M5 hình + tiếng
 else if (!MOBILE_ONLY) {
@@ -313,7 +315,7 @@ else if (!MOBILE_ONLY) {
 }
 
 // ===== mobile 390×844 dpr 3, chạm ===== (DESKTOP_ONLY=1 bỏ qua; chạy tách hai lần cho vừa giới hạn thời gian)
-if (!process.env.DESKTOP_ONLY && !process.env.M5_ONLY) {
+if (!process.env.DESKTOP_ONLY && !process.env.M5_ONLY && !process.env.LAYOUT_ONLY) {
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 if (process.env.M5V_ONLY) await runM5V({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "mobile" }); // V:
 else {
@@ -323,6 +325,7 @@ check("mobile: cảnh hệ số bội 0,5 thiết bị (390@3 ⇒ 1,0, thấy m�
 check("mobile: thấy đủ mọi bàn trong khung cảnh", await b.ev(`(()=>{const w=document.querySelector('#scene').getBoundingClientRect();return [...document.querySelectorAll('.tbtn-scene')].every(e=>{const r=e.getBoundingClientRect();return r.left>=w.left-2&&r.right<=w.right+2&&r.top>=w.top-2&&r.bottom<=w.bottom+2})})()`));
 if (!process.env.SKIP_M5V) await runM5V({ b, check, S, pressSel, at, waitFor, sleep, OUT, BASE, PORT, tag: "mobile" }); // V:
 }
+if (!process.env.SKIP_LAYOUT && !process.env.M5V_ONLY) await runLayout({ b, check, sleep, OUT, BASE, PORT, waitFor }); // D2: bố cục nhiều khung
 }
 const errs = b.errors.filter((e) => !/favicon\.ico/.test(e)); // favicon: chỉ do trang JSON phụ trong bước ghi bản lưu hỏng
 check("0 lỗi console", errs.length === 0, errs.slice(0, 5).join(" | "));

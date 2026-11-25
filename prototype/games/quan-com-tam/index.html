@@ -215,7 +215,7 @@
     .bill .total { font-size: 22px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
     .kpanel { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
-    @media (min-width: 761px) { .w-kitchen { display: none; } }
+    @media (min-width: 640px) and (max-height: 500px) and (orientation: landscape), (min-width: 761px) and (orientation: landscape), (min-width: 1025px) { .w-kitchen { display: none; } }
     /* ---------- dock (mobile) ---------- */
     .dock { display: none; }
 
@@ -274,8 +274,10 @@
     .help-cards .card h4 { margin: 0 0 4px; }
     #bootError { position: fixed; inset: auto 12px 12px; background: var(--ember-l); color: #5a1a10; padding: 10px; border-radius: 10px; z-index: 99; }
 
-    /* ---------- mobile 390×844: HUD 36 · Cảnh 240 · Thanh Bếp 104 · Thanh phiếu 64 · Vùng làm việc · Dock 56 ---------- */
-    @media (max-width: 760px) {
+    /* ---------- mobile 390×844: HUD 36 · Cảnh 240 · Thanh Bếp 104 · Thanh phiếu 64 · Vùng làm việc · Dock 56 ----------
+       Máy tính bảng dọc ≤ 1024 cũng dùng bố cục này (TLC2-02: ở 768 lưới 2 cột ép thanh bếp còn 426 px, nút +Than / Quạt / Nấu cơm
+       bị cột dĩa đè). Điện thoại xoay ngang ≥ 640 thì dùng tầng ngang 2 cột ở cuối file. Khớp matchMedia "narrow" trong game.js. */
+    @media (max-width: 639px), (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait) {
       :root { --hudH: 36px; --gbH: 104px; }
       body { overflow: hidden; }
       .top { padding: 0 6px; gap: 6px; }
@@ -329,6 +331,49 @@
       .toast.has-act { overflow: visible; padding: 2px 3px 2px 8px; gap: 8px; } .toast.has-act > span { overflow: hidden; text-overflow: ellipsis; } .toast-act { min-height: 28px; padding: 1px 12px; font-size: 12px; }
       .banner { font-size: 12px; top: 4px; }
     }
+    /* máy tính bảng dọc 761–1024: cảnh cao hơn (16:9 theo bề ngang, tối đa 44% màn) */
+    @media (min-width: 761px) and (max-width: 1024px) and (orientation: portrait) {
+      .world { height: min(56.25vw, 44svh); }
+    }
+    /* điện thoại hẹp 320–380: 6 vỉ vừa một hàng (trước đây vỉ thứ 6 lọt ra mép phải ở 360) */
+    @media (max-width: 380px) { .gchip { width: calc((100vw - 52px) / 6); height: calc((100vw - 52px) / 6); } .gchips { gap: 2px; } }
+    /* máy tính bảng ngang / laptop hẹp: thanh bếp gọn để vỉ + nút nằm trọn trong thanh, không tràn lên cảnh (TLC2-02, 1024×768) */
+    @media (min-width: 761px) and (max-width: 1180px) and (min-height: 501px) {
+      .gchip { width: 60px; height: 60px; }
+      .grillbar { height: auto; min-height: var(--gbH); }
+      .gctl { gap: 4px; } .gbtn2 { min-width: 56px; padding: 3px 8px; font-size: 11.5px; gap: 2px; flex-direction: column; justify-content: center; line-height: 1.15; } .gbtn2 .meter { width: 40px; }
+    }
+    @media (min-width: 761px) and (max-width: 940px) and (min-height: 501px) { .grillbar { flex-direction: column; gap: 6px; } .zone > small { display: none; } }
+    /* điện thoại xoay ngang (docs/mobile-landscape.md): giữ bố cục 2 cột nhưng thanh đầu, thanh bếp, phiếu gọn;
+       thanh bếp 2 hàng (vỉ / nút), nút dư thì vuốt ngang; Giao dính đáy cột dĩa; một thông báo một lúc */
+    @media (orientation: landscape) and (max-height: 500px) {
+      :root { --hudH: 34px; --colW: 300px; --gbH: 98px; }
+      .top { padding: 0 max(6px, env(safe-area-inset-right)) 0 max(6px, env(safe-area-inset-left)); gap: 6px; }
+      .top h1, .top .shop, .top a.back span { display: none; }
+      .chip { padding: 1px 6px; font-size: 12px; } .chip.lv, .chip.rep { display: none; }
+      .tbtn { min-height: 30px; padding: 2px 8px; font-size: 11px; }
+      .grillbar { flex-direction: column; gap: 4px; padding: 4px 6px; }
+      .zone > small { display: none; }
+      .gchips { gap: 4px; } .zone .row { gap: 3px; }
+      .gchip { width: 42px; height: 42px; border-radius: 10px; } .gchip .lbl { font-size: 8.5px; } .gchip .ring { inset: 3px; } .gchip .ring::after { inset: 5px; }
+      .gctl { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 4px; align-content: stretch; }
+      .gbtn2 { flex: 1 0 auto; min-width: 0; min-height: 40px; padding: 2px 6px; font-size: 11px; gap: 1px; flex-direction: column; justify-content: center; line-height: 1.1; }
+      .gbtn2 small { font-size: 10px; }
+      .gbtn2 .meter { width: 32px; height: 6px; }
+      .rail { height: 64px; padding: 4px 6px; } .slip { width: 88px; height: 56px; padding: 3px 6px; } .slip .q { display: none; }
+      .work { padding: 0 6px 0; gap: 6px; }
+      .plate-row { display: flex; gap: 6px; align-items: flex-start; }
+      .plate-row .plate-wrap { flex: none; width: 104px; min-height: 104px; }
+      .plate-row .strip { flex: 1; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+      .lay { min-height: 40px; font-size: 11px; } .acts .btn { min-height: 42px; }
+      .acts { position: sticky; bottom: 0; background: #241f33; padding: 4px 0 6px; z-index: 2; }
+      .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .toasts { top: 3px; left: 3px; right: 3px; } .hintbar:not([hidden]) ~ .toasts { top: 26px; }
+      .toast { font-size: 11px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+      .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; }
+      .bubble { max-width: 170px; font-size: 11.5px; padding: 4px 8px; }
+      .overlay { padding: 40px 8px 6px; } .sheet { max-height: calc(100svh - 46px); }
+    }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
     /* sheet tải khi cần (chân dung hội thoại, cận cảnh HD…): ô giữ đúng cỡ, nền mờ nhấp nháy tới khi ảnh về (render/atlas.js icon) */
     .ico.loading { background-color: rgba(120, 86, 52, .16); border-radius: 8px; animation: icoLoad .9s ease-in-out infinite alternate; }
@@ -375,6 +420,6 @@
   </nav>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="bootError" hidden></div>
-  <script type="module" src="game.js?v=c6"></script>
+  <script type="module" src="game.js?v=c7"></script>
 </body>
 </html>
