@@ -304,9 +304,11 @@
     .kbd { font: 700 10px "Be Vietnam Pro", system-ui; opacity: .55; }
 
     @media (min-width: 761px) and (max-height: 820px) { .opt { min-height: 50px; } .loafwrap { min-height: 132px; } }
-    /* mobile 390×844: cảnh trên, phiếu ngang, bàn ráp dưới (SCREENS.md) */
-    @media (max-width: 760px) {
-      .top { padding: 4px 8px; gap: 6px; min-height: 48px; } .top h1 { font-size: 15px; white-space: nowrap; } .top .shop { display: none; }
+    /* mobile 390×844: cảnh trên, phiếu ngang, bàn ráp dưới (SCREENS.md). Máy tính bảng dọc ≤ 1024 cũng dùng bố cục này (TLC2-03:
+       lưới 2 cột ở 768 co cảnh còn 312×176 và kéo phiếu cao 1500 px). Khớp matchMedia "mobile" trong game.js. */
+    @media (max-width: 760px), (max-width: 1024px) and (orientation: portrait) {
+      .top { padding: 4px 8px; gap: 6px; min-height: 48px; } .top h1 { font-size: 15px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      .top .tools { flex: none; gap: 4px; } .top .shop { display: none; }
       .top a { font-size: 0; padding: 10px 6px; } .top a::before { content: "‹"; font-size: 22px; }
       .tbtn { padding: 4px 7px; font-size: 11px; min-width: 40px; white-space: nowrap; }
       /* HUD gọn: giờ · tiền · lẻ; cấp / danh tiếng / theo dõi xem trong Sổ */
@@ -344,6 +346,16 @@
       .overlay { padding: 8px; place-items: end center; }
       .hintbar { font-size: 12px; padding: 6px 10px; }
     }
+    /* máy tính bảng dọc (761–1024): cảnh cao hơn, ô nguyên liệu nhiều cột hơn */
+    @media (min-width: 761px) and (max-width: 1024px) and (orientation: portrait) {
+      .world { height: clamp(300px, 40svh, 440px); }
+      .opts { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .slip { width: 200px; }
+    }
+    /* không tràn ngang ở 320–360 (TLC2-05): con của lưới / cột flex được co dưới bề rộng nội dung (dải bước, tab) */
+    .app { overflow-x: clip; } .app > *, .bench > *, .sheet > * { min-width: 0; }
+    .steps { min-width: 0; max-width: 100%; }
+    .sheet { overflow-x: hidden; }
     /* sheet tải khi cần (chân dung hội thoại, cận cảnh HD…): ô giữ đúng cỡ, nền mờ nhấp nháy tới khi ảnh về (render/atlas.js icon) */
     .ico.loading { background-color: rgba(120, 86, 52, .16); border-radius: 8px; animation: icoLoad .9s ease-in-out infinite alternate; }
     @keyframes icoLoad { from { opacity: .45; } to { opacity: 1; } }
@@ -382,6 +394,6 @@
   <div class="decor-bar" id="decorBar" hidden></div>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div class="boot-error" id="bootError" hidden></div>
-  <script type="module" src="./game.js?v=b6"></script>
+  <script type="module" src="./game.js?v=b7"></script>
 </body>
 </html>
