@@ -99,7 +99,7 @@ Không có phần tử nào ngoài danh sách bị đổi. Đã xem ảnh so sá
   - Nối Từ: offline 80/80, online xong không lỗi.
   - Nông Trại: `e2e.mjs` 171/171, `e2e-cards.mjs` 44/44, `e2e-m4.mjs` đạt hết.
 - So ảnh màn dọc trước và sau (390×844, 360×740, màn đầu 2048 / Sudoku / Nối Từ): chỉ khác tên khách tự sinh và ảnh nền ngẫu nhiên, bố cục y hệt.
-- `node tools/cache-tags/check-tags.mjs master`: xem cuối file.
+- `node tools/cache-tags/check-tags.mjs master` (sau commit 5758f6a): `OK: 2 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.`
 
 ## Câu hỏi mở
 
