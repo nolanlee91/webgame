@@ -7,9 +7,14 @@ import { createNet, CODE_RE } from "./net.js?v=kk1h3";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel thay confirm() của trình duyệt (BRD-11)
 
 const SAVE_KEY = "wgp.tuong.v1";
 const NAME_KEY = "wgp.tuong.name";
+// Tên tối đa 16 ký tự thật — đúng giới hạn máy chủ (games-server/moderation.js) và account.js. Ô nhập không cắt im lặng giữa chữ:
+// có bộ đếm "n/16", quá 16 thì báo và không cho vào phòng (BRD-08).
+const NAME_MAX = 16;
+const nameLen = (v) => [...String(v || "").replace(/\s+/g, " ").trim()].length;
 const C = {
   frame: "#6b4426", frameHi: "#93623a", frameD: "#3e2412", line: "#0a0807",
   paperA: "#ecdcb4", paperB: "#e3cf9f", grid: "#7a5a30", river: "#d9c48f", riverInk: "#8a6a3a",
@@ -118,7 +123,7 @@ export function mount(root, ctx = {}) {
     ovMenu: $("ovMenu"), ovPause: $("ovPause"), ovEnd: $("ovEnd"), mResume: $("mResume"), mNote: $("mNote"),
     vEntry: $("vEntry"), vSolo: $("vSolo"), createBtn: $("createBtn"), soloBtn: $("soloBtn"), resumeGame: $("resumeGameBtn"), startBtn: $("startBtn"),
     eTitle: $("eTitle"), eSub: $("eSub"), eResult: $("eResult"), pSub: $("pSub"),
-    nameIn: $("nameIn"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
+    nameIn: $("nameIn"), nameCount: $("nameCount"), eAgain: $("eAgain"), codeIn: $("codeIn"), joinBtn: $("joinBtn"), mErr: $("mErr"),
     ovRoom: $("ovRoom"), rCode: $("rCode"), rSeats: $("rSeats"), rNote: $("rNote"), rStart: $("rStart"), rCopy: $("rCopy"), rLeave: $("rLeave"), rDisband: $("rDisband"), eDisband: $("eDisband"),
     toast: $("toast"), menuP: $("menuBtnP"), menuE: $("menuBtnE"),
     offer: $("offer"), offerT: $("offerT"), offerYes: $("offerYes"), offerNo: $("offerNo"),
@@ -368,9 +373,13 @@ export function mount(root, ctx = {}) {
     ui.nR.textContent = nm[1]; ui.nB.textContent = nm[2];
     document.body.classList.toggle("is-online", !!room);
     document.body.classList.toggle("live", !!s && !s.winner);
-    const tag = (side) => "Quân " + SIDE[side] + (online() && mySide() === side ? " · Bạn" : "") +
-      (online() && room.players[seatOfSide(side)] && !room.players[seatOfSide(side)].connected ? " · mất kết nối" : "");
-    ui.gR.textContent = tag(RED); ui.gB.textContent = tag(BLACK);
+    // Nhãn dưới tên: "Quân Đỏ · Bạn · mất kết nối" — máy hẹp chỉ còn "Bạn" / "mất kết nối" (BRD-08, BRD-10)
+    for (const [side, sm, pl] of [[RED, ui.gR, ui.plR], [BLACK, ui.gB, ui.plB]]) {
+      const p = online() ? room.players[seatOfSide(side)] : null, me = online() && mySide() === side, off = !!p && !p.connected;
+      sm.innerHTML = '<span class="sd">Quân ' + SIDE[side] + "</span>" + (me ? '<span class="me">Bạn</span>' : "") + (off ? '<span class="off">mất kết nối</span>' : "");
+      sm.classList.toggle("has-x", me || off); pl.classList.toggle("away", off);
+    }
+    againUi();
     renderLog();
     ui.offer.hidden = !(online() && !s.winner && room.drawOffer === 1 - room.you);
     if (!s) {
@@ -409,7 +418,7 @@ export function mount(root, ctx = {}) {
       ui.drawBtn.disabled = !live || !s.moves.length || (s.mode === "ai" && (drawAsked === s.moves.length || thinking));
       ui.drawBtn.textContent = "Cầu hòa";
     }
-    ui.next.disabled = !!room && live;
+    ui.next.disabled = !!room && (live || !!(room.again && room.again[room.you]));
     ui.next.classList.toggle("btn--primary", !live);
     ui.next.firstChild.textContent = live ? "Ván mới" : "Ván tiếp ▶";
     // BRD-13: gợi ý chỉ hiện 3 lần chọn quân đầu tiên (nhớ qua các lần chơi), nằm ngoài bàn (cột biên bản / dưới bàn) — không che hàng quân nhà
@@ -481,7 +490,7 @@ export function mount(root, ctx = {}) {
     overlay("menu");
     s = null; resetSel(); cursor = null; fx = { move: null, bad: null, check: 0 };
     hud(); layout(); draw(performance.now());
-    menuView("entry"); ui.mErr.textContent = err;
+    menuView("entry"); ui.mErr.textContent = err; nameCount();
   }
   ui.soloBtn.onclick = () => menuView("solo");
   ui.resumeGame.onclick = () => { if (pendingResume) start(pendingResume); };
@@ -515,6 +524,8 @@ export function mount(root, ctx = {}) {
   }, { url: ctx.wsUrl });
   function busyMenu(on) { ui.ovMenu.querySelectorAll(".btn").forEach((b) => (b.disabled = on)); }
   function goOnline(kind) {
+    const len = nameLen(ui.nameIn.value);
+    if (len > NAME_MAX) { if (view !== "entry") menuView("entry"); ui.mErr.textContent = "Tên tối đa " + NAME_MAX + " ký tự — bớt " + (len - NAME_MAX) + " ký tự nhé."; ui.nameIn.focus(); return; }
     const nm = myName.commit(ui.nameIn.value); // tên dùng chung toàn site (_shared/online-kit.js): sửa ở đây ⇒ mọi game cùng đổi
     if (!nm) { if (view !== "entry") menuView("entry"); ui.mErr.textContent = "Nhập tên của bạn trước nhé."; ui.nameIn.focus(); return; }
     try { localStorage.setItem(NAME_KEY, nm); } catch {}
@@ -529,9 +540,16 @@ export function mount(root, ctx = {}) {
   ui.codeIn.addEventListener("input", () => { ui.codeIn.value = ui.codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
   const onEnter = (e) => { if (e.key === "Enter") { e.preventDefault(); goOnline(e.target === ui.codeIn || ui.codeIn.value ? "join" : "create"); } };
   ui.nameIn.addEventListener("keydown", onEnter); ui.codeIn.addEventListener("keydown", onEnter);
-  ui.nameIn.addEventListener("input", () => { if (ui.mErr.textContent === "Nhập tên của bạn trước nhé.") ui.mErr.textContent = ""; });
+  ui.nameIn.addEventListener("input", () => { nameCount(); if (/^(Nhập tên|Tên tối đa)/.test(ui.mErr.textContent) && nameLen(ui.nameIn.value) <= NAME_MAX) ui.mErr.textContent = ""; });
+  function nameCount() {
+    const n = nameLen(ui.nameIn.value), over = n > NAME_MAX;
+    ui.nameCount.textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : "");
+    ui.nameCount.classList.toggle("over", over);
+  }
   // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (NAME_KEY) được chuyển sang một lần.
-  const myName = sharedName({ game: "co-tuong", input: ui.nameIn, legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } } });
+  const myName = sharedName({ game: "co-tuong", input: ui.nameIn, legacy: () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } },
+    onChange: (n) => { if (document.activeElement !== ui.nameIn && n) { ui.nameIn.value = n; nameCount(); } } }); // đổi tên ở game / tab khác
+  nameCount();
   initKick({ send: (o) => net.send(o) }); // chủ phòng "Mời ra" (hộp xác nhận pixel → máy chủ kiểm quyền)
 
   function showRoom(v) {
@@ -617,9 +635,40 @@ export function mount(root, ctx = {}) {
     });
     if (join) sfx.play("buoc-nhay", 0.6); else if (gone) sfx.play("trung-da", 0.4);
   }
+  // Báo cho người chơi biết chuyện xảy ra với đối thủ (BRD-10, BRD-09): rớt mạng / quay lại, máy chủ đi thay khi quá hạn,
+  // đối thủ đã bấm "Ván tiếp" trong lúc mình đang xem bàn cờ (thẻ kết quả đang đóng).
+  function netNotices(prev, v) {
+    if (!prev || prev.code !== v.code || v.phase === "lobby") return;
+    const nm = (k) => (v.players[k] && v.players[k].name) || "Đối thủ";
+    v.players.forEach((p, k) => {
+      const o = prev.players[k];
+      if (k === v.you || !o || !p || o.name !== p.name) return;
+      if (o.connected && !p.connected) toast(nm(k) + " mất kết nối — chờ quay lại, quá hạn máy sẽ đi thay.", 4000);
+      else if (!o.connected && p.connected) toast(nm(k) + " đã quay lại.", 2500);
+    });
+    const a = v.act;
+    if (a && a.auto && prev.gid === v.gid && v.seq > prev.seq) {
+      const k = a.p === RED ? v.redSeat : 1 - v.redSeat;
+      toast(k === v.you ? "Hết giờ — máy đã đi thay bạn một nước." : nm(k) + (v.players[k] && !v.players[k].connected ? " mất kết nối" : " hết giờ") + " — máy đi thay.", 3500);
+    }
+    const oppReady = (x) => !!x && x.phase === "over" && Array.isArray(x.again) && x.again.some((r, k) => r && k !== x.you);
+    if (oppReady(v) && !oppReady(prev) && !v.again[v.you] && ui.ovEnd.hidden) toast("Đối thủ muốn chơi tiếp — bấm Ván tiếp để vào ván mới ngay.", 4000);
+  }
+  // Thẻ kết quả online: "Ván tiếp" = sẵn sàng. Cả phòng sẵn sàng ⇒ ván mới ngay; không thì máy chủ đếm ngược 10 giây (BRD-09).
+  // Máy chủ cũ không gửi `again` ⇒ giữ nguyên như trước (bấm là sang ván mới).
+  function againUi() {
+    const v = room, flags = v && v.phase === "over" && Array.isArray(v.again) ? v.again : null;
+    const mine = !!flags && !!flags[v.you], opp = !!flags && flags.some((r, k) => r && k !== v.you);
+    const left = flags && v.againDeadline ? Math.max(0, Math.ceil((v.againDeadline - (Date.now() + skew)) / 1000)) : 0;
+    const sec = left ? " · ván mới sau " + left + " giây" : "";
+    const txt = mine && !opp ? "Đã sẵn sàng — chờ đối thủ" + sec : opp && !mine ? "Đối thủ muốn chơi tiếp" + sec : mine ? "Chờ cả phòng sẵn sàng" + sec : "";
+    if (ui.eAgain.textContent !== txt) ui.eAgain.textContent = txt;
+    const nb = $("nextBtn"), label = mine ? "Đã sẵn sàng ✓" : opp ? "Chơi tiếp ngay ▶" : "Ván tiếp ▶";
+    nb.disabled = mine; if (nb.textContent !== label) nb.textContent = label;
+  }
   function netState(v) {
     const prev = room; room = v;
-    renderChat(v); presenceSfx(prev, v);
+    renderChat(v); presenceSfx(prev, v); netNotices(prev, v);
     if (v.phase === "lobby") {
       clearTimers(); s = null; sent = false; resetSel(); fx = { move: null, bad: null, check: 0 };
       if (v.oppLeft && prev && prev.phase !== "lobby") toast("Đối thủ đã rời phòng — gửi mã cho người khác vào chơi tiếp.", 4000);
@@ -638,7 +687,7 @@ export function mount(root, ctx = {}) {
       if (!prev || prev.phase === "lobby" || prev.gid !== v.gid) { sfx.play("qua-man", 0.5); if (v.round > 1 || !prev || prev.phase !== "lobby") toast("Ván " + v.round + ": bạn cầm quân " + SIDE[mySide()] + (mySide() === RED ? " (đi trước)" : "") + ".", 2600); }
     } else if (s.moves.length === before + 1) {
       const m = s.moves[s.moves.length - 1];
-      afterMove(m, !!(v.act && v.act.auto && v.act.p === mySide()));
+      afterMove(m, false); // "máy đi thay" (cả cho mình lẫn đối thủ) do netNotices() báo
     }
     if (s.winner && !wasOver) {
       hideToast(); endSound();
@@ -652,28 +701,32 @@ export function mount(root, ctx = {}) {
     const mine = online() ? mySide() : s.mode === "ai" ? RED : 0;
     sfx.play(s.winner === 3 ? "qua-man" : !mine || s.winner === mine ? "thang" : "thua", 0.8);
   }
-  function leaveRoom() {
-    if (online() && !s.winner && !confirm("Rời ván đang chơi? Đối thủ sẽ phải chờ người mới.")) return;
-    net.leave();
+  const LEAVE_ASK = { title: "Rời ván đang chơi?", text: "Đối thủ sẽ phải chờ người mới vào phòng.", ok: "Rời ván", cancel: "Thôi", danger: true };
+  async function leaveRoom() {
+    if (online() && !s.winner && !(await pxConfirm(LEAVE_ASK))) return;
+    if (room) net.leave();
   }
   ui.rStart.onclick = () => net.send({ t: "start" });
   ui.rLeave.onclick = () => net.leave();
   // Hủy phòng: chỉ chủ phòng, ở phòng chờ hoặc khi ván đã xong — máy chủ gửi "closed" cho cả phòng.
-  function disbandRoom() {
+  async function disbandRoom() {
     if (!room || room.you !== room.host) return;
-    if (room.players.length > 1 && !confirm("Hủy phòng? Mọi người trong phòng sẽ bị đưa ra ngoài.")) return;
+    if (room.players.length > 1 && !(await pxConfirm({ title: "Hủy phòng?", text: "Mọi người trong phòng sẽ bị đưa ra ngoài.", ok: "Hủy phòng", cancel: "Thôi", danger: true }))) return;
+    if (!room || room.you !== room.host) return; // trong lúc hỏi: phòng đã đóng / đã đổi chủ
     if (!net.disband()) toast("Đang nối lại máy chủ — chưa hủy được phòng.");
   }
   ui.rDisband.onclick = disbandRoom; ui.eDisband.onclick = disbandRoom;
   // "← Trang chủ" khi đang ở trong phòng: báo máy chủ rời phòng (chủ phòng ngồi một mình ở phòng chờ thì hủy luôn) rồi mới
   // chuyển trang — người kia thấy mình rời ngay, không phải chờ máy chủ hết hạn. Ngoài phòng thì link chạy bình thường.
   let exiting = false;
-  function onHomeClick(e) {
+  async function onHomeClick(e) {
     if (!(room || net.inRoom) || e.defaultPrevented || e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     if (exiting) return;
-    if (online() && s && !s.winner && !confirm("Rời ván đang chơi?")) return;
-    const href = e.currentTarget.href;
+    const href = e.currentTarget.href; // lấy trước khi chờ hộp xác nhận (currentTarget mất sau await)
+    if (online() && s && !s.winner && !(await pxConfirm(LEAVE_ASK))) return;
+    if (exiting) return;
+    if (!(room || net.inRoom)) { location.href = href; return; } // đã ra khỏi phòng trong lúc hỏi
     const alone = !!room && room.phase === "lobby" && room.you === room.host && room.players.length < 2;
     exiting = true;
     net.exit(alone ? "disband" : "leave", 400).then(() => { location.href = href; });
@@ -720,8 +773,9 @@ export function mount(root, ctx = {}) {
       : `<div class="rx"><small>${esc(nm[1])} · Đỏ</small><b>${sc[1]}</b></div><div><small>Hòa</small><b>${sc.draw}</b></div><div class="ro"><small>${esc(nm[2])} · Đen</small><b>${sc[2]}</b></div>`;
     ui.menuE.textContent = room ? "Rời phòng" : "Trận mới";
     ui.eDisband.hidden = !(room && room.you === room.host);
+    againUi();
     overlay("end");
-    $("nextBtn").focus({ preventScroll: true });
+    ($("nextBtn").disabled ? $("shareBtn") : $("nextBtn")).focus({ preventScroll: true });
   }
   // "Khoe kết quả": ảnh 1080×1080 với số thật của ván (cách kết thúc, số nước, quân ăn được, mức máy / đối thủ, tỉ số).
   function shareEnd() {
@@ -827,17 +881,20 @@ export function mount(root, ctx = {}) {
     persist(); hud(); maybeAi();
     return true;
   }
+  // Xin thua / đồng ý hòa: hỏi bằng hộp pixel (BRD-11). ctx.noConfirm (test) ⇒ làm ngay, trả boolean; không thì trả Promise<boolean>.
   function doResign() {
     if (!s || s.winner) return false;
-    if (online()) {
-      if (!ctx.noConfirm && !confirm("Xin thua ván này?")) return false;
-      return net.send({ t: "resign", gid: room.gid });
-    }
-    const side = s.mode === "ai" ? RED : s.turn;
-    if (!ctx.noConfirm && !confirm(s.mode === "ai" ? "Xin thua ván này?" : "Bên " + SIDE[side] + " (đang tới lượt) xin thua?")) return false;
-    clearTimers();
-    s = resign(s, side); resetSel(); finishLocal();
-    return true;
+    const wasOnline = online(), side = wasOnline ? mySide() : s.mode === "ai" ? RED : s.turn;
+    const go = () => {
+      if (!s || s.winner || online() !== wasOnline) return false; // trong lúc hỏi: ván đã xong / đã rời phòng
+      if (wasOnline) return net.send({ t: "resign", gid: room.gid });
+      clearTimers();
+      s = resign(s, side); resetSel(); finishLocal();
+      return true;
+    };
+    if (ctx.noConfirm) return go();
+    return pxConfirm({ title: wasOnline || s.mode === "ai" ? "Xin thua ván này?" : "Bên " + SIDE[side] + " (đang tới lượt) xin thua?",
+      text: wasOnline ? "Đối thủ được tính thắng ván này." : s.mode === "ai" ? "Máy được tính thắng ván này." : "", ok: "Xin thua", cancel: "Chơi tiếp", danger: true }).then((ok) => (ok ? go() : false));
   }
   function doDraw() {
     if (!s || s.winner) return false;
@@ -850,13 +907,13 @@ export function mount(root, ctx = {}) {
       toast(s.moves.length < 10 ? "Máy muốn đánh thêm đã — chưa đồng ý hòa." : "Máy từ chối hòa (máy đang thấy có lợi)."); hud();
       return false;
     }
-    if (!ctx.noConfirm && !confirm("Hai bên đồng ý hòa ván này?")) return false;
-    s = agreeDraw(s); resetSel(); finishLocal();
-    return true;
+    const go = () => { if (!s || s.winner || room) return false; s = agreeDraw(s); resetSel(); finishLocal(); return true; };
+    if (ctx.noConfirm) return go();
+    return pxConfirm({ title: "Hai bên đồng ý hòa?", text: "Ván này kết thúc hòa.", ok: "Hòa", cancel: "Chơi tiếp" }).then((ok) => (ok ? go() : false));
   }
   function doNext() {
     if (!s) return;
-    if (room) { if (s.winner) net.send({ t: "again", gid: room.gid }); return; }
+    if (room) { if (s.winner && !(room.again && room.again[room.you])) { net.send({ t: "again", gid: room.gid }); sfx.play("buoc-nhay", 0.4); } return; }
     clearTimers();
     s = s.winner ? nextRound(s) : newRound({ ...s, round: s.round - 1 });
     drawAsked = -1; resetSel(); fx = { move: null, bad: null, check: 0 };

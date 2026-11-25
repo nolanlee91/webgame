@@ -1,6 +1,8 @@
 // Cờ Cá Ngựa — lớp UI/HUD bằng DOM (thẻ người chơi, khay xúc xắc, nút chức năng, phòng chờ, bảng xếp hạng).
 // Chỉ hiển thị: nhận "view" từ game.js mỗi khung hình, gọi lại game.js qua các hàm on* khi người chơi bấm.
 // Không biết gì về luật — luật nằm trong logic.js.
+import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
+import { shareResult } from "../_shared/share.js?v=s2"; // "Khoe kết quả" ở bảng xếp hạng cuối ván
 const ICON = (n) => new URL("assets/icon-" + n + ".png", import.meta.url).href;
 const ic = (n, cls = "") => `<img class="px-ic ${cls}" src="${ICON(n)}" alt="" draggable="false">`;
 const COLORS = ["red", "blue", "yellow", "green"]; // màu hiển thị theo ghế = màu nhánh trên board-v5 (game.js VIEW_COLORS)
@@ -14,7 +16,7 @@ let cssAdded = false;
 function addCss() {
   if (cssAdded || document.querySelector("link[data-cn-hud]")) return;
   const l = document.createElement("link");
-  l.rel = "stylesheet"; l.href = new URL("hud.css?v=ls2", import.meta.url).href; l.dataset.cnHud = "";
+  l.rel = "stylesheet"; l.href = new URL("hud.css?v=d4b", import.meta.url).href; l.dataset.cnHud = "";
   document.head.appendChild(l); cssAdded = true;
 }
 
@@ -68,6 +70,7 @@ export function createHud(root, cb) {
         <table><thead><tr><th></th><th style="text-align:left">Phường</th><th>Về đích</th><th>${ic("xuc-xac-6")} Gieo 6</th><th>Đá quân</th></tr></thead><tbody></tbody></table>
         <div class="btns">
           <button class="px-btn primary" data-act="again" type="button">Ván mới</button>
+          <button class="px-btn" data-act="share" type="button">Khoe kết quả</button>
           <button class="px-btn" data-act="room" type="button">Về phòng</button>
           <button class="px-btn danger" data-act="disband" type="button" hidden>Hủy phòng</button>
           <a class="px-link" href="${cb.homeHref}">Trang chủ</a>
@@ -80,7 +83,7 @@ export function createHud(root, cb) {
   const result = $(".cn-result");
 
   // Bấm: chặn pointerdown lan xuống canvas; nút gọi lại game.
-  root.addEventListener("click", (e) => {
+  root.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-act],[data-n],[data-rule],[data-color],[data-bot]");
     if (!b || b.disabled) return;
     if (b.dataset.n) return cb.onPlayers(Number(b.dataset.n));
@@ -91,12 +94,13 @@ export function createHud(root, cb) {
     if (a === "mute") cb.onMute();
     if (a === "pause") cb.onPause();
     if (a === "leave" || a === "room" || a === "leave-room") {
-      if (online && a === "leave" && !online.over && !confirm("Rời ván đang chơi? Máy chủ sẽ đi thay phần của bạn.")) return;
+      if (online && a === "leave" && !online.over && !(await pxConfirm({ title: "Rời ván đang chơi?", text: "Máy chủ sẽ đi thay phần của bạn.", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
       cb.onLobby();
     }
     if (a === "disband") cb.onDisband && cb.onDisband();
     if (a === "play") cb.onPlay();
     if (a === "again") cb.onAgain();
+    if (a === "share") shareEnd();
     if (a === "copy") {
       const u = cb.shareUrl();
       (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => flash(b, "Đã chép link")).catch(() => flash(b, u));
@@ -115,7 +119,7 @@ export function createHud(root, cb) {
   }
   function flash(el, text) { const t = el.title; el.title = text; status.textContent = text; setTimeout(() => (el.title = t), 1500); }
 
-  let lastKey = "", lastActive = -2, avatarsDone = false, online = null;
+  let lastKey = "", lastActive = -2, avatarsDone = false, online = null, lastView = null;
   const esc = (t) => String(t).replace(/[&<>"']/g, (ch) => "&#" + ch.charCodeAt(0) + ";");
   const who = (v, s) => (v.online ? v.online.list.find((x) => x.seat === s) : null);   // người ngồi ghế s (online)
   const trayCanvas = (s) => seatEl(s).querySelector(".pit canvas");
@@ -134,7 +138,7 @@ export function createHud(root, cb) {
     if (!p && v.vsBot) return s === v.me ? `<div class="nm">Bạn</div><div class="sub">Phường ${NAMES[s]}</div>` : `<div class="nm">Máy</div><div class="sub">Phường ${NAMES[s]} · máy đi</div>`;
     if (!p) return `<div class="nm">${NAMES[s]}</div><div class="sub">Người chơi ${v.seats.indexOf(s) + 1}</div>`;
     const sub = p.away === "left" ? `<span class="off">Đã rời · máy đi thay</span>` : p.away ? `${ic("mat-ket-noi")} <span class="off">Mất kết nối</span>` : (p.me ? "Bạn · " : "") + "Phường " + NAMES[s];
-    return `<div class="nm" title="${esc(p.name)}">${esc(p.name)}${p.host ? " " + ic("chu-phong") : ""}</div><div class="sub">${sub}</div>`;
+    return `<div class="nm" title="${esc(p.name)}">${esc(p.name)}${p.me ? ' <span class="me">· Bạn</span>' : ""}${p.host ? " " + ic("chu-phong") : ""}</div><div class="sub">${sub}</div>`;
   }
   function trayLabel(t, v) {
     const p = v && who(v, t.seat), nm = p ? esc(p.name) : v && v.vsBot && t.seat !== v.me ? "Máy" : "";
@@ -155,7 +159,7 @@ export function createHud(root, cb) {
   function update(v) {
     const key = JSON.stringify([v.lobby, v.players, v.rule, v.seats, v.active, v.cards, v.tray, v.paused, v.muted, v.msg, !!v.over, v.online, v.vsBot, v.me]);
     if (key === lastKey) return;
-    lastKey = key;
+    lastKey = key; lastView = v;
     online = v.online ? { ...v.online, over: !!v.over } : null;
     const wasLobby = root.classList.contains("is-lobby");
     root.classList.toggle("is-lobby", v.lobby);
@@ -238,6 +242,27 @@ export function createHud(root, cb) {
           // chủ phòng: "Mời ra" người khác (online.js → _shared/online-kit.js lo hộp xác nhận + gửi lệnh)
           + (canBot && !p.me ? ` <button class="px-btn mini" data-pxkick="${p.idx}" data-pxkick-name="${esc(p.name)}" type="button" aria-label="Mời ${esc(p.name)} ra khỏi phòng">Mời ra</button>` : "");
       r.querySelector(".st").classList.toggle("bad", !!(p && p.away));
+    });
+  }
+
+  // "Khoe kết quả": ảnh 1080×1080 với số thật của ván (hạng của bạn, ngựa về đích, số lần gieo 6, số lần đá ngựa).
+  function shareEnd() {
+    const v = lastView; if (!v || !v.over) return;
+    const order = v.over.order, me = v.online ? v.online.me : v.me;
+    const k = order.findIndex((r) => r.seat === me), r = order[k] || order[0], n = order.length;
+    const w = order[0].seat, pw = who(v, w);
+    const winner = pw ? pw.name : v.vsBot ? "Máy (phường " + NAMES[w] + ")" : "Phường " + NAMES[w];
+    const title = k === 0 ? "Về nhất trong " + n + " phường!" : k > 0 ? "Về hạng " + (k + 1) + "/" + n : winner + " thắng!";
+    const tagline = k === 0 ? (r.kicks >= 3 ? "Đá văng cả làng, ngựa nhà về chuồng đủ bốn!" : "Ngựa nhà phi một mạch về đích!")
+      : k > 0 && r.home >= 3 ? "Chỉ thiếu một bước nữa thôi, ván sau phục thù!" : "Xúc xắc chưa chiều lòng, ván sau gỡ lại!";
+    shareResult({
+      game: "co-ca-ngua", title, tagline,
+      lines: [
+        "Ngựa về đích: " + r.home + "/4",
+        "Gieo được 6: " + r.sixes + " lần",
+        "Đá ngựa đối thủ: " + r.kicks + " lần",
+        v.online ? "Phòng " + n + " người · " + winner + " thắng" : "Đấu với " + (n - 1) + " máy",
+      ],
     });
   }
 

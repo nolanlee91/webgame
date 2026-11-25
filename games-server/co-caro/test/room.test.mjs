@@ -150,7 +150,11 @@ test('trạng thái gửi đi không có token; 2 máy nhận cùng một ván; 
     const seqs = b.states.filter((v) => v.phase !== 'lobby').map((v) => v.seq);
     for (let i = 1; i < seqs.length; i++) assert.ok(seqs[i] - seqs[i - 1] <= 1, 'seq không nhảy cóc: ' + seqs.join(','));
     // ván tiếp: người thua (O) đi trước, giữ tỉ số
-    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'play' && v.game.round === 2));
+    // BRD-09: một người bấm ⇒ người kia thấy "đối thủ muốn chơi tiếp" + hạn đếm ngược; ván chưa mở (thẻ kết quả còn đó)
+    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'over' && v.again[1] === true));
+    assert.deepEqual(a.v.again, [false, true]); assert.ok(a.v.againDeadline > 0);
+    a.send({ t: 'again' }); await a.next(st((v) => v.phase === 'play' && v.game.round === 2));
+    assert.deepEqual(a.v.again, [false, false]); assert.equal(a.v.againDeadline, 0);
     assert.equal(a.v.game.turn, 2); assert.equal(a.v.game.first, 2); assert.equal(a.v.game.score[1], 1); assert.equal(a.v.game.moves.length, 0);
     assert.equal(await a.tryCmd({ t: 'move', r: 7, c: 7 }), 'not-turn');
     for (const x of [a, b]) x.close();

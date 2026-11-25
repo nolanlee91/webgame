@@ -176,7 +176,9 @@ test('chơi hết ván → kết quả; "again": đội thua đi trước, tỉ 
     assert.equal(g.tally.reduce((x, y) => x + y, 0), 1);
     await sleep(400);
     assert.equal(await a.tryCmd({ t: 'move', pit: 1, dir: 1 }), 'phase');
-    b.send({ t: 'again' });
+    // BRD-09: một người bấm ⇒ người kia thấy "đối thủ muốn chơi tiếp" + hạn đếm ngược; ván chưa mở (thẻ kết quả còn đó)
+    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'over' && v.again[1] === true));
+    a.send({ t: 'again' });
     await a.next(st((v) => v.phase === 'play' && v.game.round === 2));
     const loser = g.winner === 0 ? 1 : g.winner === 1 ? 0 : 1;
     assert.equal(a.v.seat % 2, loser); assert.equal(a.v.game.turn, loser);

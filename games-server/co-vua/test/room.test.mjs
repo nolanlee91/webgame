@@ -158,7 +158,10 @@ test('chiếu bí: không lộ token; 2 máy cùng một ván; dựng lại bằ
     assert.equal(await a.tryCmd({ t: 'move', from: sq('a2'), to: sq('a3') }), 'phase');
     const seqs = b.states.filter((v) => v.phase !== 'lobby').map((v) => v.seq);
     for (let i = 1; i < seqs.length; i++) assert.ok(seqs[i] - seqs[i - 1] <= 1, 'seq không nhảy cóc: ' + seqs.join(','));
-    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'play' && v.game.round === 2));
+    // BRD-09: một người bấm ⇒ người kia thấy "đối thủ muốn chơi tiếp" + hạn đếm ngược; ván chưa mở (thẻ kết quả còn đó)
+    b.send({ t: 'again' }); await a.next(st((v) => v.phase === 'over' && v.again[1] === true));
+    assert.ok(a.v.againDeadline > 0);
+    a.send({ t: 'again' }); await a.next(st((v) => v.phase === 'play' && v.game.round === 2));
     assert.equal(a.v.game.white, 1, 'ván 2 Bình cầm Trắng'); assert.deepEqual(a.v.game.score, [0, 1]); assert.equal(a.v.game.moves.length, 0);
     assert.equal(await a.tryCmd({ t: 'move', from: sq('e7'), to: sq('e5') }), 'not-turn');
     await mv(b, [a, b], 'e2-e4');
