@@ -87,7 +87,13 @@ Các câu hướng dẫn trong lúc chơi (bếp ga, hỏi cô Hai, lời khai T
 
 Server `PORT=8962 node server.js` ở gốc worktree.
 
-KẾT_QUẢ_KIỂM_THỬ
+- Unit `node --test prototype/games/tham-tu-hem/test/*.test.mjs`: **44/44** (42 cũ + 2 mới TTH-02).
+- `tools/check-case.mjs data/cases/noi-thit-kho.js`: **0 lỗi — ĐẠT** (blanks=6, độ khó 1 cần ≥ 4).
+- `test/e2e.mjs`: **E2E ĐẠT**. `test/e2e-season.mjs`: **E2E-MÙA-2 ĐẠT** (404 file vụ: 0 dòng).
+- `test/e2e-bot.mjs` desktop 1366×768 và `VIEW=mob` 390×844: mỗi bên **25 PASS, 0 FAIL, 12/12 vụ 3★**, 0 lỗi console (hai bản chạy song song, chậm nhưng không chập chờn). Bot không cần sửa cách giải: `solver` đọc chỗ trống từ dữ liệu vụ.
+- `_shared/test/sound-press-e2e.mjs`: **246 PASS, 0 FAIL**. `_shared/test/share-e2e.mjs`: **53/53 đạt**.
+- `node tools/cache-tags/check-tags.mjs master` ⇒ `OK: 8 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.`
+- Script đo trước/sau (ngoài repo): 0 lỗi console ở 8 khung, cả hai bản.
 
 ## Chưa làm / ghi chú
 
