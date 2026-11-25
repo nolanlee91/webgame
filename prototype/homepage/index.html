@@ -30,32 +30,58 @@
   <link rel="preload" href="../assets/fonts/roboto-slab-700-800-latin.woff2?v=1" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../assets/fonts/fonts.css?v=f1" />
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
-  <link rel="stylesheet" href="styles.css?v=perf1" />
+  <link rel="stylesheet" href="styles.css?v=d3a" />
   <link rel="stylesheet" href="portal.css?v=perf1" />
-  <link rel="stylesheet" href="portal-pixel.css?v=tap1" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d3a" />
+  <link rel="stylesheet" href="nav.css?v=d3a" />
 </head>
 <body class="portal theme-b">
   <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
 
-  <!-- HEADER: logo + slogan · tìm game. Tạo phòng / Vào phòng bằng mã chỉ có MỘT chỗ: khung Sảnh chờ trực tiếp. -->
-  <header class="topbar topbar--search" data-name="topbar">
+  <!-- HEADER (D3): logo · điều hướng chính (Chơi · Phòng online · Thử thách · Bảng xếp hạng) · tìm game · ô hồ sơ.
+       Điện thoại (≤ 720 px): hàng dính đầu màn = logo + ô hồ sơ; ô tìm + hàng chip điều hướng (cuộn ngang) nằm ngay dưới, cuộn theo trang.
+       Tạo phòng / Vào phòng bằng mã chỉ có MỘT chỗ: khung Sảnh chờ trực tiếp. Khối này dùng chung với bang-xep-hang.html (nav.css, profile.js). -->
+  <header class="topbar topbar--search topbar--nav" data-name="topbar">
     <div class="topbar__inner">
-      <a class="logo" href="./" aria-label="Lụm Kèo — Rủ bạn vào chơi. Về trang chủ">
-        <img class="logo__mark" src="assets/ui/icon-xuc-xac-6.png" alt="" width="32" height="32" />
-        <span class="logo__words"><span class="logo__text">Lụm Kèo</span><span class="logo__slogan">Rủ bạn vào chơi</span></span>
-      </a>
+      <div class="topbar__row">
+        <a class="logo" href="./" aria-label="Lụm Kèo — Rủ bạn vào chơi. Về trang chủ">
+          <img class="logo__mark" src="assets/ui/icon-xuc-xac-6.png" alt="" width="32" height="32" />
+          <span class="logo__words"><span class="logo__text">Lụm Kèo</span><span class="logo__slogan">Rủ bạn vào chơi</span></span>
+        </a>
+        <!-- Ô hồ sơ (P-B): avatar pixel sinh từ tên + tên + ✎; chạm mở popover sửa tên / chuỗi ngày / bảng xếp hạng (profile.js).
+             Bề rộng cố định ⇒ điền tên sau không xô thanh trên (CLS). -->
+        <div class="me" id="me" data-name="profile">
+          <button class="me__btn" id="meBtn" type="button" aria-expanded="false" aria-controls="mePop" aria-haspopup="dialog">
+            <span class="me__av" id="meAv" aria-hidden="true"></span>
+            <span class="me__txt"><span class="sr-only">Hồ sơ của bạn: </span><span class="me__name" id="meName">&nbsp;</span></span>
+            <svg class="px-svg me__edit" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 1h3v1h1v3h-1v-1h-1v-1h-1v-1h-1zM10 3h2v2h1v2h-2v-1h-1v-1H9V4h1zM8 5h2v2h1v2H9V8H8V7H7V6h1zM6 7h2v2h1v2H7v-1H6V9H5V8h1zM4 9h2v2h1v2H5v-1H4v-1H3v-1h1zM2 11h1v1h1v1h1v1H1v-3z"/></svg>
+            <span class="sr-only"> — sửa tên</span>
+          </button>
+          <script>try { var _n = JSON.parse(localStorage.getItem("wgp.account.v1") || "null"); if (_n && _n.name) document.getElementById("meName").textContent = _n.name; } catch (e) {}</script>
+          <div class="me__pop" id="mePop" role="dialog" aria-labelledby="mePopTitle" hidden></div>
+        </div>
+      </div>
 
-      <!-- Điện thoại (≤720 px): CSS đưa ô tìm xuống dưới thanh logo (thanh trên chỉ 1 hàng, ô tìm cuộn theo trang) — không di chuyển bằng JS nữa -->
+      <!-- Điều hướng chính (P-D). Desktop: giữa thanh trên; điện thoại: hàng chip cuộn ngang dưới ô tìm. -->
+      <nav class="mainnav" aria-label="Điều hướng chính" data-name="mainnav">
+        <a class="mainnav__a" href="#games" aria-current="page"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi</a>
+        <a class="mainnav__a" href="#lobby"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/></svg><span>Phòng<span class="mainnav__l"> online</span></span></a>
+        <a class="mainnav__a" href="bang-xep-hang.html#thu-thach"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1h2v3H7zM6 4h4v2H6zM1 6h14v2H1zM3 8h10v2H3zM4 10h8v2H4zM3 12h4v2H3zM9 12h4v2H9zM2 14h3v1H2zM11 14h3v1h-3z"/></svg>Thử thách</a>
+        <a class="mainnav__a" href="bang-xep-hang.html"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h10v6H3zM1 2h2v1H1zM13 2h2v1h-2zM1 3h1v2H1zM14 3h1v2h-1zM2 5h1v1H2zM13 5h1v1h-1zM4 7h8v1H4zM6 8h4v2H6zM7 10h2v2H7zM5 12h6v1H5zM4 13h8v2H4z"/></svg><span class="mainnav__l">Bảng xếp hạng</span><span class="mainnav__s">Xếp hạng</span></a>
+      </nav>
+
+      <!-- Ô tìm game: điện thoại 16 px (không phóng to trên iPhone — HOME-05) -->
       <label class="field search" for="q">
         <svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 1h5v1H5zM3 2h2v1H3zM10 2h2v1h-2zM2 3h1v2H2zM12 3h1v2h-1zM1 5h1v5H1zM13 5h1v5h-1zM2 10h1v2H2zM12 10h1v1h-1zM3 12h2v1H3zM10 11h2v1h-2zM5 13h5v1H5zM11 12h2v1h-2zM12 13h2v1h-2zM13 14h2v1h-2z"/></svg>
-        <span class="sr-only">Tìm game</span>
-        <input id="q" type="search" placeholder="Tìm game…" autocomplete="off" enterkeyhint="search" />
+        <span class="sr-only">Tìm game theo tên, thể loại hoặc số người</span>
+        <input id="q" type="search" placeholder="Tìm game, thể loại, số người…" autocomplete="off" enterkeyhint="search" />
       </label>
-
     </div>
   </header>
 
   <main class="page">
+    <!-- h1 cho SEO + trình đọc màn hình (ẩn trực quan: logo + slogan đã nói điều này) -->
+    <h1 class="sr-only">Lụm Kèo — game miễn phí chơi ngay trên trình duyệt, không cần tải: rủ bạn vào chơi</h1>
     <!-- TẦNG 1: Hero trượt nhiều game (gọn, bên trái) + Sảnh chờ trực tiếp (rộng, bên phải) -->
     <section class="arena" id="featuredSection" data-name="arena" aria-label="Game nổi bật và sảnh chờ">
       <div id="featured" class="arena__hero">
@@ -71,6 +97,13 @@
         </div>
       </div>
 
+      <!-- Chơi ngay (HOME-02, chỉ điện thoại ≤ 720 px): dải cuộn ngang 2 hàng, 8 game bấm là chơi — màn đầu 390×844 thấy ≥ 6 game.
+           8 ô viết sẵn ở đây (= QUICK_PLAY trong games.js, app.js chỉ gắn ảnh lười; lệch id ⇒ app.js vẽ lại) để giữ chỗ từ lần vẽ đầu (CLS). Màn rộng hơn: ẩn, không tải ảnh. -->
+      <section class="qp" id="quickPlay" data-name="quick-play" aria-labelledby="qpTitle">
+        <h2 class="qp__title" id="qpTitle">Chơi ngay <span class="qp__hint">miễn phí · không cần tải</span></h2>
+        <div class="qp__row" id="qpRow"><a class="card tile tile--qp" href="../games/dao-vang/" data-id="dao-vang"><span class="tile__art"><img data-src="assets/thumbs/half/dao-vang.webp" data-srcset="assets/thumbs/half/dao-vang.webp 360w, assets/thumbs/dao-vang.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Đào Vàng</span></span></a><a class="card tile tile--qp" href="../games/co-caro/" data-id="co-caro"><span class="tile__art"><img data-src="assets/thumbs/half/co-caro.webp" data-srcset="assets/thumbs/half/co-caro.webp 360w, assets/thumbs/co-caro.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Cờ Caro</span></span></a><a class="card tile tile--qp" href="../games/ran-san-moi/" data-id="ran-san-moi"><span class="tile__art"><img data-src="assets/thumbs/half/ran-san-moi.webp" data-srcset="assets/thumbs/half/ran-san-moi.webp 360w, assets/thumbs/ran-san-moi.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Rắn Săn Mồi</span></span></a><a class="card tile tile--qp" href="../games/noi-thu/" data-id="noi-thu"><span class="tile__art"><img data-src="assets/thumbs/half/noi-thu.webp" data-srcset="assets/thumbs/half/noi-thu.webp 360w, assets/thumbs/noi-thu.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Nối Thú</span></span></a><a class="card tile tile--qp" href="../games/tiem-tra-sua/" data-id="tiem-tra-sua"><span class="tile__art"><img data-src="assets/thumbs/half/tiem-tra-sua.webp?v=pixel2" data-srcset="assets/thumbs/half/tiem-tra-sua.webp?v=pixel2 240w, assets/thumbs/tiem-tra-sua.webp?v=pixel2 480w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Tiệm Trà Sữa</span></span></a><a class="card tile tile--qp" href="../games/xep-gach/" data-id="xep-gach"><span class="tile__art"><img data-src="assets/thumbs/half/xep-gach.webp" data-srcset="assets/thumbs/half/xep-gach.webp 360w, assets/thumbs/xep-gach.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Xếp Gạch</span></span></a><a class="card tile tile--qp" href="../games/2048/" data-id="2048"><span class="tile__art"><img data-src="assets/thumbs/half/2048.webp" data-srcset="assets/thumbs/half/2048.webp 360w, assets/thumbs/2048.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">2048</span></span></a><a class="card tile tile--qp" href="../games/ban-bong/" data-id="ban-bong"><span class="tile__art"><img data-src="assets/thumbs/half/ban-bong.webp" data-srcset="assets/thumbs/half/ban-bong.webp 360w, assets/thumbs/ban-bong.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Bắn Bóng Khủng Long</span></span></a></div>
+      </section>
+
       <aside class="lobby px-panel is-loading" id="lobby" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
@@ -84,12 +117,12 @@
             </div>
             <div class="pin__row">
               <input class="field pin__input" id="roomInlineCode" autocomplete="off" spellcheck="false" autocapitalize="characters"
-                     maxlength="5" placeholder="ABC78" aria-label="Mã phòng" aria-describedby="roomInlineError" />
-              <button class="btn btn--teal" type="submit">Vào phòng</button>
+                     placeholder="ABC78" aria-label="Mã phòng" aria-describedby="roomInlineError" inputmode="text" />
+              <button class="btn btn--teal" type="submit"><span>Vào<span class="pin__goTx2"> phòng</span></span></button>
             </div>
             <div id="roomMatches" class="pin__matches"></div>
           </form>
-          <a class="btn btn--teal lobby__create" href="#duel" id="createRoom"><span class="btn__plus" aria-hidden="true">+</span>Tạo phòng mới</a>
+          <a class="btn btn--teal lobby__create" href="#duel" id="createRoom" aria-label="Tạo phòng mới"><span class="btn__plus" aria-hidden="true">+</span><span>Tạo phòng<span class="lobby__createTx2"> mới</span></span></a>
         </div>
 
         <div class="lobby__subrow">
@@ -107,35 +140,23 @@
       </aside>
     </section>
 
-    <!-- THỬ THÁCH HÔM NAY: mỗi ngày (giờ VN) mọi người chơi chung một đề Sudoku / 2048 / Đố Vui. CSS + JS riêng, nạp ngay trong khối này. -->
-    <link rel="stylesheet" href="daily.css?v=board2" />
-    <section class="daily" id="daily" data-name="daily" aria-labelledby="dailyTitle">
-      <div class="daily__head">
-        <h2 class="section__title daily__title" id="dailyTitle">Thử thách hôm nay<span class="daily__no" id="dailyNo"></span></h2>
-        <p class="daily__sub"><span class="daily__lead">Mọi người chung một đề, chơi xong khoe kết quả.</span> Đề mới sau <b id="dailyCount">--:--:--</b></p>
-      </div>
-      <!-- Số đề + đếm ngược điền ngay (cùng công thức dayNumber / msUntilNext của games/_shared/daily.js, ngày ra mắt 24/11/2026 giờ VN)
-           để tiêu đề không đổi bề rộng / xuống dòng khi daily.js (module, chạy sau) vẽ — CLS -->
-      <script>(function () { var t = Date.now() + 252e5, s = Math.ceil((864e5 - t % 864e5) / 1e3), p = function (x) { return (x < 10 ? "0" : "") + x; };
-        document.getElementById("dailyNo").textContent = "#" + Math.max(1, Math.floor((t - Date.UTC(2026, 10, 24)) / 864e5) + 1);
-        document.getElementById("dailyCount").textContent = p(Math.floor(s / 3600)) + ":" + p(Math.floor(s % 3600 / 60)) + ":" + p(s % 60); })();</script>
-      <!-- 3 thẻ viết sẵn (trạng thái "chưa chơi") để giữ đúng chỗ trước khi daily.js (module, chạy sau) vẽ lại theo dữ liệu máy -->
-      <div class="daily__row" id="dailyCards">
-        <a class="dcard" data-game="sudoku" href="../games/sudoku/?daily=1" aria-label="Sudoku, thử thách hôm nay">
-          <span class="dcard__art"><img src="assets/thumbs/half/sudoku.webp" srcset="assets/thumbs/half/sudoku.webp 360w, assets/thumbs/sudoku.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
-          <span class="dcard__body"><span class="dcard__name">Sudoku</span><span class="dcard__meta">Một đề Vừa · cả nước chung đề</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
-        </a>
-        <a class="dcard" data-game="2048" href="../games/2048/?daily=1" aria-label="2048, thử thách hôm nay">
-          <span class="dcard__art"><img src="assets/thumbs/half/2048.webp" srcset="assets/thumbs/half/2048.webp 360w, assets/thumbs/2048.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
-          <span class="dcard__body"><span class="dcard__name">2048</span><span class="dcard__meta">150 nước · cùng chuỗi ô</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
-        </a>
-        <a class="dcard" data-game="do-vui-nhanh" href="../games/do-vui-nhanh/?daily=1" aria-label="Đố Vui, thử thách hôm nay">
-          <span class="dcard__art"><img src="assets/thumbs/half/do-vui.webp" srcset="assets/thumbs/half/do-vui.webp 360w, assets/thumbs/do-vui.webp 720w" sizes="(max-width: 720px) 56px, (max-width: 1023px) 64px, (max-width: 1180px) 84px, 104px" alt="" width="384" height="288" /></span>
-          <span class="dcard__body"><span class="dcard__name">Đố Vui</span><span class="dcard__meta">5 câu · 15 giây mỗi câu</span><span class="dcard__go">▶ Chơi ngay</span><span class="dcard__foot"><span class="dcard__streak">Chưa có chuỗi</span></span></span>
-        </a>
-      </div>
-    </section>
-    <script type="module" src="daily.js?v=perf1"></script>
+    <!-- THỬ THÁCH HÔM NAY (thu nhỏ — P-E): không còn hàng thẻ lớn. Nhãn "★ Thử thách" nằm trên thẻ Sudoku / 2048 / Đố Vui (app.js),
+         mục Thử thách trên thanh điều hướng mở trang bang-xep-hang.html#thu-thach. Người ĐANG CÓ chuỗi ngày thấy 1 dòng nhắc dưới đây:
+         dựng ngay bằng script nội tuyến (đọc wgp.daily.v1, cùng công thức với games/_shared/daily.js) ⇒ không nhảy bố cục; daily.js cập nhật sau. -->
+    <p class="streak" id="streakLine" data-name="streak" hidden></p>
+    <script>(function () {
+      var DAY = Math.max(1, Math.floor((Date.now() + 252e5 - Date.UTC(2026, 10, 24)) / 864e5) + 1), st = null;
+      try { st = JSON.parse(localStorage.getItem("wgp.daily.v1") || "null"); } catch (e) {}
+      var G = [["sudoku", "Sudoku", "sudoku"], ["2048", "2048", "2048"], ["do-vui-nhanh", "Đố Vui", "do-vui-nhanh"]], best = 0, left = [];
+      G.forEach(function (x) { var g = st && st.games && st.games[x[0]]; var s = g && g.last >= DAY - 1 ? g.streak | 0 : 0; if (s > best) best = s; if (!(g && g.days && g.days[DAY])) left.push(x); });
+      window.__streak = { day: DAY, best: best, left: left.map(function (x) { return x[0]; }) };
+      if (!best) return;
+      var el = document.getElementById("streakLine"), h = '<span class="streak__fire">🔥 Chuỗi ' + best + " ngày</span>";
+      h += left.length ? ' <span class="streak__sep">·</span> Hôm nay còn: ' + left.map(function (x) { return '<a href="../games/' + x[2] + '/?daily=1">' + x[1] + " #" + DAY + "</a>"; }).join(" · ")
+        : ' <span class="streak__sep">·</span> Xong cả 3 thử thách hôm nay ✓ <a href="bang-xep-hang.html">Xem hạng</a>';
+      el.innerHTML = h; el.hidden = false;
+    })();</script>
+    <script type="module" src="daily.js?v=d3a"></script>
 
     <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng; tab lọc = đúng các kệ) -->
     <section class="shelves" id="games" data-name="games" aria-labelledby="gamesTitle">
@@ -144,7 +165,8 @@
         <nav class="tabs" id="chips" aria-label="Lọc game theo loại" data-name="filters"></nav>
       </div>
       <div id="grid"></div>
-      <p class="empty" id="empty" hidden>Không tìm thấy game nào. <button class="link" id="clearSearch" type="button">Xem tất cả game</button></p>
+      <div class="empty" id="empty" hidden><p class="empty__msg"><span id="emptyMsg">Không tìm thấy game nào.</span> <button class="link" id="clearSearch" type="button">Xem tất cả game</button></p>
+        <p class="empty__sub">Thử mấy game này nhé:</p><div class="tiles empty__tiles" id="emptyTiles"></div></div>
     </section>
   </main>
 
@@ -183,9 +205,10 @@
     </style>
   </footer>
 
-  <script src="games.js?v=perf1"></script>
-  <script src="app.js?v=perf1"></script>
+  <script src="games.js?v=d3a"></script>
+  <script src="app.js?v=d3a"></script>
   <script type="module" src="../games/_shared/feedback.js?v=f3"></script>
-  <script type="module" src="press-nav.js?v=p4"></script>
+  <script type="module" src="press-nav.js?v=d3a"></script>
+  <script type="module" src="profile.js?v=d3a"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@
   // 3 tầng: (1) hero trượt nhiều game + sảnh chờ trực tiếp · (2) kho game theo danh mục (cùng lưới 6 ô) · (3) footer.
   var GAMES = window.GAMES, CATS = window.CATEGORIES, SLIDES = window.HERO_SLIDES || [];
   var SHELVES = window.SHELVES || [], duelIds = window.DUEL_IDS || [];
+  var QUICK = window.QUICK_PLAY || [], DAILY = window.DAILY_GAMES || {}, SW = window.SEARCH_WORDS || {}, SPONSOR = window.SPONSOR || null;
   var MUTE_KEY = "wgp.muted", HERO_MS = 5500;
   var state = { cat: "all", q: "", slide: 0 };
 
@@ -218,7 +219,34 @@
   }
 
   // ---------- TẦNG 2: kho game ----------
+  // "★ Thử thách" trên thẻ Sudoku / 2048 / Đố Vui (P-E): link riêng sang chế độ thử thách hôm nay, đặt CẠNH thẻ (không lồng link).
+  // Số đề = cùng công thức dayNumber() của games/_shared/daily.js (ngày ra mắt 24/11/2026 giờ VN); đã xong ⇒ "✓ Thử thách #N".
+  var DAY = Math.max(1, Math.floor((Date.now() + 252e5 - Date.UTC(2026, 10, 24)) / 864e5) + 1);
+  function dailyDone(id) {
+    try { var st = JSON.parse(localStorage.getItem("wgp.daily.v1") || "null"); var g = st && st.games && st.games[id]; return !!(g && g.days && g.days[DAY]); } catch (e) { return false; }
+  }
+  function chalHTML(g) {
+    var d = DAILY[g.id]; if (!d || soon(g)) return "";
+    var done = dailyDone(d.id);
+    return '<a class="tile__chal' + (done ? " is-done" : "") + '" href="../games/' + d.path + '/?daily=1" data-daily="' + d.id + '" aria-label="' + esc(g.name) +
+      ": thử thách hôm nay #" + DAY + (done ? ", đã xong" : "") + '">' + (done ? "✓ Thử thách #" + DAY : "★ Thử thách") + "</a>";
+  }
   function tileHTML(g) {
+    var chal = chalHTML(g);
+    return chal ? '<div class="tile-wrap">' + tileInner(g) + chal + "</div>" : tileInner(g);
+  }
+  // Thẻ "Tài trợ" (HOME-11): cùng cỡ thẻ game, nhãn "Tài trợ" rõ ràng, cuối kệ cuối cùng. Hình vẽ bằng CSS (không cần ảnh mới).
+  function sponsorHTML() {
+    if (!SPONSOR || !SPONSOR.name) return "";
+    var url = /^https:\/\/\S+$/i.test(SPONSOR.url || "") ? SPONSOR.url : "";
+    var tag = url ? "a" : "article";
+    var link = url ? ' href="' + esc(url) + '" target="_blank" rel="sponsored noopener"' : "";
+    return "<" + tag + ' class="card tile tile--sponsor" data-id="sponsor"' + link + ' aria-label="Tài trợ: ' + esc(SPONSOR.name) + " — " + esc(SPONSOR.text) + '">' +
+      '<span class="tile__art sponsor__art" aria-hidden="true"><span class="badge badge--sponsor">Tài trợ</span>' +
+        '<span class="sponsor__bubble">ABC</span><span class="sponsor__brand">' + esc(SPONSOR.name) + "</span></span>" +
+      '<span class="tile__body"><span class="card__name">' + esc(SPONSOR.name) + '</span><span class="meta sponsor__meta">' + esc(SPONSOR.text) + "</span></span></" + tag + ">";
+  }
+  function tileInner(g) {
     var upcoming = soon(g);
     var tag = upcoming ? "article" : "a";
     var link = upcoming ? "" : ' href="' + href(g) + '"';
@@ -236,18 +264,32 @@
   }
   // Kệ của 1 game: game đối kháng → "duel", còn lại theo danh mục. Tab lọc và kệ dùng CÙNG hàm này nên số luôn khớp.
   function group(g) { return duelIds.indexOf(g.id) !== -1 ? "duel" : g.cat; }
-  function shelfHTML(cls, title, hint, list) {
+  function shelfHTML(cls, title, hint, list, extra) {
     return '<div class="shelf shelf--' + cls + '" id="' + cls + '"><h3 class="shelf__title">' + title + ' <span class="count">' + list.length +
-      '</span>' + (hint ? '<span class="shelf__hint">' + hint + '</span>' : "") + '</h3>' + tileGridHTML(list) + "</div>";
+      '</span>' + (hint ? '<span class="shelf__hint">' + hint + '</span>' : "") + '</h3>' + tileGridHTML(list, extra) + "</div>";
   }
-  function tileGridHTML(list) {
-    return '<div class="tiles">' + playableFirst(list).map(tileHTML).join("") + "</div>";
+  function tileGridHTML(list, extra) {
+    return '<div class="tiles">' + playableFirst(list).map(tileHTML).join("") + (extra || "") + "</div>";
   }
 
+  // Tìm kiếm (HOME-09): khớp tên + thể loại (kệ, danh mục) + số người ("2 nguoi" khớp cả "2–4 người") + chế độ. Không dấu, mọi từ phải có.
+  // Có từ khoá thì tìm trong TẤT CẢ game (bỏ lọc tab đang chọn — trước đây giới hạn trong tab mà không báo).
+  var catLabel = {}; CATS.forEach(function (c) { catLabel[c.id] = c.label; });
+  function haystack(g) {
+    if (g._hay) return g._hay;
+    var grp = group(g), p = String(g.players || ""), nums = p.match(/\d+/g) || [], words = [g.name, catLabel[grp] || "", catLabel[g.cat] || "", p, SW[grp] || "", SW[g.cat] || ""];
+    if (nums.length === 2) for (var k = +nums[0]; k <= +nums[1]; k++) words.push(k + " nguoi");
+    words.push(g.mode === "solo" ? SW.solo || "" : g.mode === "multi" ? SW.multi || "" : (SW.solo || "") + " " + (SW.multi || ""));
+    if (DAILY[g.id]) words.push("thu thach hom nay daily");
+    return (g._hay = " " + fold(words.join(" ")).replace(/[–—-]/g, " ").replace(/\s+/g, " ") + " ");
+  }
   function matches(g) {
-    if (state.cat !== "all" && group(g) !== state.cat) return false;
-    if (state.q && fold(g.name).indexOf(fold(state.q)) === -1) return false;
-    return true;
+    if (state.q) {
+      var hay = haystack(g), toks = fold(state.q).split(/\s+/).filter(Boolean);
+      // số ("2", "4") phải là nguyên một từ: "2 nguoi" không được khớp "2048 … 1 nguoi"
+      return toks.every(function (t) { return hay.indexOf(/^\d+$/.test(t) ? " " + t + " " : t) !== -1; });
+    }
+    return state.cat === "all" || group(g) === state.cat;
   }
   function countIn(catId) {
     return GAMES.filter(function (g) {
@@ -256,7 +298,7 @@
   }
   function renderChips() {
     chips.innerHTML = CATS.map(function (c) {
-      return '<button type="button" class="tab" data-cat="' + c.id + '" aria-pressed="' + (c.id === state.cat) + '">' +
+      return '<button type="button" class="tab" data-cat="' + c.id + '" aria-pressed="' + (!state.q && c.id === state.cat) + '">' +
         c.label + ' <span class="tab__n">' + countIn(c.id) + "</span></button>";
     }).join("");
   }
@@ -266,7 +308,7 @@
       // "Tất cả": các kệ theo đúng thứ tự SHELVES; mỗi game đúng 1 kệ.
       SHELVES.forEach(function (sh) {
         var items = sh.cat === "duel" ? duelIds.map(byId).filter(Boolean) : list.filter(function (g) { return group(g) === sh.cat; });
-        if (items.length) html += shelfHTML(sh.cat, sh.title, sh.hint, items);
+        if (items.length) html += shelfHTML(sh.cat, sh.title, sh.hint, items, sh === SHELVES[SHELVES.length - 1] ? sponsorHTML() : "");
       });
       var rest = list.filter(function (g) { return !SHELVES.some(function (sh) { return sh.cat === group(g); }); });
       if (rest.length) html += shelfHTML("other", "Game khác", "", rest);
@@ -280,20 +322,53 @@
     var label = CATS.filter(function (c) { return c.id === state.cat; })[0].label;
     $("gamesTitle").firstChild.textContent = (state.q ? "Kết quả tìm kiếm " : state.cat === "all" ? "Tất cả game " : label + " ");
     empty.hidden = list.length > 0;
+    if (!list.length) {
+      // Trạng thái rỗng: nói rõ từ khoá + gợi ý 4 game hay chơi
+      $("emptyMsg").textContent = state.q ? "Không tìm thấy game nào cho “" + state.q + "”." : "Chưa có game nào ở mục này.";
+      var box = $("emptyTiles"); unlazyIn(box);
+      box.innerHTML = ["co-ca-ngua", "dao-vang", "co-caro", "tiem-tra-sua"].map(byId).filter(Boolean).map(tileHTML).join("");
+      lazyIn(box);
+    }
+  }
+
+  // ---------- Chơi ngay (HOME-02): dải 2 hàng cuộn ngang dưới slide, chỉ hiện trên điện thoại ----------
+  function renderQuickPlay() {
+    var row = $("qpRow"); if (!row) return;
+    // Ô viết sẵn trong index.html (giữ chỗ từ lần vẽ đầu — CLS) khớp QUICK_PLAY ⇒ giữ nguyên, chỉ gắn ảnh lười.
+    var pre = [].map.call(row.children, function (a) { return a.dataset.id; }).join();
+    if (pre && pre === QUICK.filter(function (id) { var g = byId(id); return g && !soon(g); }).join()) { lazyIn(row); return; }
+    row.innerHTML = QUICK.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
+      return '<a class="card tile tile--qp" href="' + href(g) + '" data-id="' + g.id + '"><span class="tile__art">' + imgHTML(g, "(max-width: 720px) 32vw, 1px") +
+        '</span><span class="tile__body"><span class="card__name">' + esc(g.name) + "</span></span></a>";
+    }).join("");
+    lazyIn(row);
   }
 
   function renderFeatured() { $("featuredSection").hidden = !!state.q; }
   function renderAll() { renderChips(); renderFeatured(); renderGrid(); }
+  // Quay lại từ thử thách (bfcache) / tab khác ghi kết quả ⇒ nhãn "★ Thử thách" ↔ "✓ Thử thách #N"
+  function refreshChal() {
+    [].forEach.call(document.querySelectorAll(".tile__chal"), function (a) {
+      var done = dailyDone(a.dataset.daily), g = byId(a.parentNode.querySelector(".tile").dataset.id);
+      if (a.classList.contains("is-done") === done) return;
+      a.classList.toggle("is-done", done);
+      a.textContent = done ? "✓ Thử thách #" + DAY : "★ Thử thách";
+      a.setAttribute("aria-label", g.name + ": thử thách hôm nay #" + DAY + (done ? ", đã xong" : ""));
+    });
+  }
+  window.addEventListener("pageshow", refreshChal);
+  window.addEventListener("storage", function (e) { if (!e.key || e.key === "wgp.daily.v1") refreshChal(); });
 
   chips.addEventListener("click", function (e) {
     var b = e.target.closest(".tab");
     if (!b) return;
     state.cat = b.dataset.cat;
+    if (state.q) { $("q").value = ""; state.q = ""; renderFeatured(); } // bấm tab khi đang tìm ⇒ bỏ từ khoá, xem đúng tab đó
     renderChips(); renderGrid();
   });
   $("q").addEventListener("input", function (e) {
     state.q = e.target.value.trim();
-    renderFeatured(); renderGrid();
+    renderChips(); renderFeatured(); renderGrid();
   });
   $("clearSearch").addEventListener("click", function () {
     $("q").value = ""; state.q = ""; state.cat = "all";
@@ -302,10 +377,21 @@
   // Điện thoại: ô tìm kiếm nằm dưới thanh logo — đặt bằng CSS (.topbar--search trong portal-pixel.css), không di chuyển bằng JS
   // (trước đây placeSearch() chạy sau lần vẽ đầu ⇒ ô tìm ép logo xuống 2 dòng rồi nhảy, góp phần CLS).
 
-  // Mã phòng gồm 5 ký tự ở tất cả game multiplayer.
-  function cleanCode(input) {
-    input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+  // Mã phòng gồm 5 ký tự ở tất cả game multiplayer (HOME-04: không maxlength — lọc RỒI mới cắt, dán cả câu vẫn ra mã).
+  // Dán "Mã: WEBYS" / " WEBYS" / "vào phòng WEBYS nhé" ⇒ lấy cụm đúng 5 chữ-số đứng riêng: ưu tiên cụm có số, rồi cụm gõ HOA sẵn, rồi cụm cuối.
+  function pickCode(raw) {
+    raw = String(raw);
+    var toks = raw.split(/[^A-Za-z0-9]+/).filter(function (t) { return t.length === 5; });
+    if (toks.length > 1 || (toks.length === 1 && /[^A-Za-z0-9]/.test(raw.trim()))) {
+      return (toks.filter(function (t) { return /\d/.test(t); })[0] || toks.filter(function (t) { return t === t.toUpperCase(); })[0] || toks[toks.length - 1]).toUpperCase();
+    }
+    return raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
   }
+  function cleanCode(input) {
+    var v = pickCode(input.value);
+    if (input.value !== v) input.value = v;
+  }
+  window.__pickCode = pickCode; // để test
   async function tryJoin(input, errEl) {
     var code = input.value, submit = $("roomInline").querySelector("button");
     $("roomMatches").replaceChildren();
@@ -377,7 +463,7 @@
   });
   showSound();
 
-  renderHero(); renderAll(); renderQuick(); arm(); refreshRooms();
+  renderHero(); renderQuickPlay(); renderAll(); renderQuick(); arm(); refreshRooms();
   var invite = new URLSearchParams(location.search).get("room");
   if (invite && /^[A-Z0-9]{5}$/i.test(invite)) {
     inl.value = invite.toUpperCase();

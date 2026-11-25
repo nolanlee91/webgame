@@ -244,12 +244,6 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
    ========================================================= */
 .footer { background: #0c1014; box-shadow: inset 0 3px 0 #000; }
 .footer__inner { max-width: 1240px; margin: 0 auto; padding: 28px 20px 32px; display: grid; gap: 18px; }
-.sponsor { display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin: 0 3px; text-decoration: none; max-width: 640px; }
-.sponsor__tag { padding: 3px 7px 2px; font: 800 11px/1.2 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: #2c1b05; background: var(--px-ink); --b: #000; box-shadow: var(--px-border); }
-.sponsor__text { flex: 1; color: var(--px-soft); }
-.sponsor__text strong { color: var(--px-ink); }
-.sponsor__go { font: 800 22px/1 var(--font-body); color: var(--px-soft); }
-.sponsor:hover { background: #262019; }
 .footer__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-right: 7px; }
 .footer__brand { margin: 0; color: var(--px-soft); font-size: 14px; }
 .footer__brand strong { color: var(--px-ink); text-transform: uppercase; letter-spacing: .06em; }
@@ -352,6 +346,5 @@ input.field { border: 0; border-radius: 0; outline: none; min-width: 0; font: 60
   .tile__rooms { font-size: 0; gap: 0; padding: 4px; }
   .footer__inner { padding: 22px 12px 28px; }
   .footer .btn--sm { min-height: 40px; }
-  .sponsor { gap: 10px; }
 }
 

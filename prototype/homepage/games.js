@@ -57,3 +57,24 @@ window.SHELVES = [
 ];
 
 window.CATEGORIES = [{ id: "all", label: "Tất cả" }].concat(window.SHELVES.map(function (s) { return { id: s.cat, label: s.title }; }));
+
+// "Chơi ngay" (HOME-02): dải cuộn ngang 2 hàng dưới slide nổi bật, CHỈ trên điện thoại — game bấm là chơi, không cần phòng.
+window.QUICK_PLAY = ["dao-vang", "co-caro", "ran-san-moi", "noi-thu", "tiem-tra-sua", "xep-gach", "2048", "ban-bong"];
+
+// Game có "Thử thách hôm nay" (games/_shared/daily.js): id thẻ trang chủ → id + thư mục của thử thách. Thẻ có nhãn "★ Thử thách".
+window.DAILY_GAMES = { sudoku: { id: "sudoku", path: "sudoku" }, "2048": { id: "2048", path: "2048" }, "do-vui": { id: "do-vui-nhanh", path: "do-vui-nhanh" } };
+
+// Tìm kiếm (HOME-09): ngoài tên, khớp thêm thể loại (tên kệ + danh mục), số người, chế độ và vài từ người ta hay gõ.
+window.SEARCH_WORDS = {
+  duel: "doi khang online phong rủ ban choi cung ban be",
+  "tap-lam-chu": "quan ly kinh doanh mo tiem nong trai ban hang",
+  "giai-do": "giai do xep hinh thu gian",
+  "hanh-dong": "hanh dong nhanh tay arcade",
+  "tri-tue": "tri tue suy nghi co",
+  solo: "choi mot minh 1 nguoi",
+  multi: "nhieu nguoi choi cung ban",
+};
+
+// Thẻ "Tài trợ" cuối kệ game (HOME-11, chủ dự án chốt 25/11/2026). url trống ⇒ thẻ không bấm được (chưa có link chính thức).
+// Điền url (https://…) là thẻ thành link mở tab mới, rel="sponsored noopener".
+window.SPONSOR = { name: "SpeakUp Kids", text: "Tiếng Anh cho bé qua trò chơi", url: "" };

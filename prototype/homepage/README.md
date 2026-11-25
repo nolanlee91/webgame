@@ -4,7 +4,14 @@ Tên thương hiệu **Lụm Kèo**, slogan **"Rủ bạn vào chơi"**. Trang H
 bố cục theo `docs/homepage-redesign-spec.md`, Pixel UI theo Art Bible V5 (cùng ngôn ngữ với Cờ Cá Ngựa / Đào Vàng).
 
 ## Bố cục 3 tầng
-- **Thanh trên**: logo + slogan · tìm game (không dấu). Không đặt nút phòng ở đây để khỏi trùng với sảnh chờ.
+- **Thanh trên** (D3, `nav.css` + `profile.js`, dùng chung `bang-xep-hang.html`): logo · điều hướng **Chơi · Phòng online · Thử thách ·
+  Bảng xếp hạng** · tìm game (tên + thể loại + số người, không dấu) · **ô hồ sơ** (avatar pixel sinh từ tên + tên tự sinh + ✎ ⇒ popover
+  sửa tên / chuỗi ngày / bảng xếp hạng). Tên dùng chung mọi game: `games/_shared/account.js` (`getName/setName/onNameChange`).
+  Điện thoại: hàng dính = logo + ô hồ sơ; dưới là hàng chip điều hướng + ô tìm (16 px). Không đặt nút phòng ở đây để khỏi trùng với sảnh chờ.
+- **Thử thách hôm nay** (thu nhỏ): nhãn "★ Thử thách" trên thẻ Sudoku / 2048 / Đố Vui, 1 dòng nhắc cho người có chuỗi ngày;
+  3 thẻ đầy đủ + bảng xếp hạng (3 tab × hôm nay / hôm qua) ở `bang-xep-hang.html`.
+- **Chơi ngay** (chỉ điện thoại): dải 2 hàng cuộn ngang 8 game dưới slide (`QUICK_PLAY` trong `games.js`, viết sẵn trong HTML).
+- **Tài trợ**: thẻ SpeakUp Kids cùng cỡ thẻ game cuối kệ cuối (`SPONSOR` trong `games.js`; điền `url` là thẻ thành link).
 - **Tầng 1 — Arena** (desktop ≥1181 chia ~30/70, 1024–1180 chia ~42/58): trái là **carousel** các game nổi bật
   (`HERO_SLIDES`, tự chuyển, nút ‹ › + chấm, vuốt trên mobile; ảnh 4:3 hiện trọn bằng `object-fit: contain`, nút vàng "Chơi ngay");
   phải là **Sảnh chờ trực tiếp** — chỗ DUY NHẤT để vào/tạo phòng: ô nhập mã 5 ký tự + "Vào phòng", "Tạo phòng mới"

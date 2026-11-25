@@ -74,22 +74,21 @@ try {
   await ev(`localStorage.removeItem("wgp.daily.v1"); localStorage.setItem("wgp.sudoku.v1", JSON.stringify({ diff: "de", best: { de: 99 }, wins: { de: 3 }, games: {} })); localStorage.setItem("wgp.2048.v1", JSON.stringify({ size: 3, best: { 3: 1234, 4: 0, 5: 0 }, top: { 3: 128, 4: 0, 5: 0 }, games: {} })); localStorage.setItem("wgp.dovuinhanh.v1", JSON.stringify({ best: { normal: 1500, fast: 0 }, cat: "dia-ly", mode: "fast", recent: [1, 2, 3] })); true`);
   const normalBefore = await ev(`JSON.stringify(["wgp.sudoku.v1","wgp.2048.v1","wgp.dovuinhanh.v1"].map(k=>localStorage.getItem(k)))`);
   await nav("/homepage/");
-  const H = JSON.parse(await ev(`JSON.stringify((() => {
-    const d = document.getElementById("daily"), a = document.getElementById("featuredSection"), g = document.getElementById("games");
-    return { cards: [...document.querySelectorAll(".dcard")].map(c => c.dataset.game + ":" + c.querySelector(".dcard__go").textContent.trim()),
-      order: a.compareDocumentPosition(d) & 4 && d.compareDocumentPosition(g) & 4, inMain: !!d.closest("main"), no: document.getElementById("dailyNo").textContent,
-      count: document.getElementById("dailyCount").textContent };
-  })())`));
-  check("trang chủ: 3 thẻ đều 'Chơi ngay'", H.cards.length === 3 && H.cards.every((c) => c.includes("Chơi ngay")), H.cards.join(" | "));
-  check("trang chủ: khu thử thách nằm trong <main>, giữa hero/sảnh và 'Tất cả game'", H.inMain && !!H.order);
-  check("trang chủ: số thử thách + đếm ngược", /^#\d+$/.test(H.no) && /^\d\d:\d\d:\d\d$/.test(H.count), H.no + " " + H.count);
-  const day = +H.no.slice(1);
-  const toDaily = `scrollTo(0, document.getElementById("daily").getBoundingClientRect().top + scrollY - (document.querySelector(".topbar")?.offsetHeight || 0) - 12)`;
-  await ev(toDaily); await sleep(200);
-  await shot("trang-chu-chua-choi-1366.png");
-  await view(390, 844, true); await nav("/homepage/"); await ev(toDaily); await sleep(200);
-  check("trang chủ 390 (chưa chơi): thẻ không che, không tràn ngang", (await hitOk(".dcard")).every(Boolean) && (await noHScroll()));
-  await shot("trang-chu-chua-choi-390.png");
+  // D3 / P-E: không còn hàng thẻ "Thử thách hôm nay" lớn — nhãn "★ Thử thách" nằm trên thẻ Sudoku / 2048 / Đố Vui, link ?daily=1
+  const H = JSON.parse(await ev(`JSON.stringify((() => ({
+    chips: [...document.querySelectorAll(".tile__chal")].map(a => a.dataset.daily + ":" + a.textContent.trim() + ":" + a.getAttribute("href")),
+    old: !!document.getElementById("daily") || !!document.querySelector(".dcard"), streak: document.getElementById("streakLine").hidden,
+    day: window.__streak && window.__streak.day }))())`));
+  const day = H.day;
+  check("trang chủ: không còn khu thẻ lớn; 3 nhãn '★ Thử thách' trên thẻ Sudoku / 2048 / Đố Vui, link ?daily=1",
+    !H.old && H.chips.length === 3 && ["sudoku:★ Thử thách:../games/sudoku/?daily=1", "2048:★ Thử thách:../games/2048/?daily=1", "do-vui-nhanh:★ Thử thách:../games/do-vui-nhanh/?daily=1"].every((c) => H.chips.includes(c)), H.chips.join(" | "));
+  check("trang chủ: chưa có chuỗi ⇒ không hiện dòng nhắc", H.streak === true && day >= 1);
+  const toChal = `scrollTo(0, document.querySelector(".tile__chal").getBoundingClientRect().top + scrollY - (document.querySelector(".topbar")?.offsetHeight || 0) - 60)`;
+  await ev(toChal); await sleep(300);
+  await shot("trang-chu-nhan-thu-thach-1366.png");
+  await view(390, 844, true); await nav("/homepage/"); await ev(toChal); await sleep(300);
+  check("trang chủ 390 (chưa chơi): nhãn thử thách không bị che, không tràn ngang", (await hitOk(".tile__chal")).every(Boolean) && (await noHScroll()));
+  await shot("trang-chu-nhan-thu-thach-390.png");
   await view(1366, 768, false);
 
   // ---------- Đố Vui: chơi một lượt daily đến hết ----------
@@ -116,7 +115,15 @@ try {
     normal: document.getElementById("dlyNormal")?.getAttribute("href"), end: document.getElementById("ovEnd").hidden })`));
   const expGrid = marks.map((m) => (m ? "🟩" : "🟥")).join("");
   check("Đố Vui daily: hết 5 câu ⇒ bảng kết quả (ô 🟩/🟥, chuỗi 1, đếm ngược, nút Chơi thường)", P.ov && P.grid === expGrid && P.streak === "1" && /^\d\d:\d\d:\d\d$/.test(P.cd) && P.normal === "./" && P.end, JSON.stringify(P));
-  check("Đố Vui daily: bảng kết quả không bị che (elementFromPoint)", (await hitOk("#dlyShare, #dlyNormal, #dlyView")).every(Boolean));
+  check("Đố Vui daily: bảng kết quả không bị che (elementFromPoint)", (await hitOk("#dlyShare, #dlyNormal, #dlyView, #dlyHome")).every(Boolean));
+  const MORE = JSON.parse(await ev(`JSON.stringify({ home: document.getElementById("dlyHome")?.getAttribute("href"), more: document.getElementById("dlyMore")?.textContent,
+    links: [...document.querySelectorAll("#dlyMore a")].map(a => a.getAttribute("href")) })`));
+  check("QCK-03/HOME-17: nút 'Về trang chủ' + dòng 'Còn: Sudoku #N · 2048 #N'", MORE.home === "../../homepage/" && MORE.more === `Còn: Sudoku #${day} · 2048 #${day}`
+    && MORE.links.join() === "../sudoku/?daily=1,../2048/?daily=1", JSON.stringify(MORE));
+  check("QCK-03: link '← Trang chủ' trên thanh game KHÔNG bị bảng kết quả che", (await hitOk(".bar a")).every(Boolean) && (await hitOk(".bar a")).length >= 1);
+  await ev(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); document.getElementById("dlyOv").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+  check("Esc ⇒ đóng bảng kết quả (như 'Xem bàn'), hiện nút mở lại", await ev(`document.getElementById("dlyOv").hidden && !document.getElementById("dlyReopen").hidden`));
+  await ev(`document.getElementById("dlyReopen").click()`);
   await shot("do-vui-ket-qua-1366.png");
   // Chia sẻ: máy tính ⇒ chép clipboard + thông báo
   await send("Page.bringToFront");
@@ -134,6 +141,7 @@ try {
   check("Đố Vui daily: mở lại trong ngày ⇒ khoá, chỉ hiện bảng kết quả", L2.ov && L2.state === null && L2.grid === expGrid);
   await view(390, 844, true); await sleep(300);
   check("Đố Vui daily 390×844: bảng kết quả không che, không tràn ngang", (await hitOk("#dlyShare, #dlyNormal, #dlyView")).every(Boolean) && (await noHScroll()));
+  check("Đố Vui daily 390×844: '← Trang chủ' vẫn bấm được khi bảng kết quả mở", (await hitOk(".bar a")).every(Boolean));
   await shot("do-vui-ket-qua-390.png");
   await view(1366, 768, false);
 
@@ -168,6 +176,7 @@ try {
   const TP = JSON.parse(await ev(`JSON.stringify({ ov: !document.getElementById("dlyOv")?.hidden, grid: document.getElementById("dlyGrid")?.textContent, title: document.getElementById("dlyTitle")?.textContent, moves: __game.state.moves, end: document.getElementById("ovEnd").hidden })`));
   check("2048 daily: hết lượt (≤150 nước) ⇒ bảng kết quả hàng mốc ô", TP.ov && TP.moves <= 150 && /^[🟦🟩🟪🟧🟨⬜]+$/u.test(TP.grid) && TP.end, JSON.stringify(TP));
   await view(390, 844, true); await sleep(300);
+  check("2048 daily (xong cả 3): dòng 'Xong cả 3 thử thách hôm nay ✓'", (await ev(`document.getElementById("dlyMore").textContent`)) === "Xong cả 3 thử thách hôm nay ✓");
   await shot("2048-ket-qua-390.png");
   await view(1366, 768, false);
 
@@ -181,28 +190,23 @@ try {
   await nav("/games/do-vui-nhanh/");
   check("Đố Vui thường: menu + ván 10 câu như cũ", await ev(`(() => { document.getElementById("playBtn").click(); return __game.state.qs.length === 10 && document.getElementById("qNo").textContent === "CÂU 1/10"; })()`));
 
-  // ---------- Trang chủ sau khi chơi ----------
+  // ---------- Trang chủ + trang Bảng xếp hạng sau khi chơi ----------
   for (const [w, h, m, name] of [[1366, 768, false, "trang-chu-1366.png"], [390, 844, true, "trang-chu-390.png"]]) {
     await view(w, h, m);
     await nav("/homepage/");
-    const R = JSON.parse(await ev(`JSON.stringify((() => {
-      const cards = [...document.querySelectorAll(".dcard")];
-      const sec = document.getElementById("daily").getBoundingClientRect(), g = document.getElementById("gamesTitle").getBoundingClientRect();
-      return { cards: cards.map(c => c.dataset.game + ":" + c.querySelector(".dcard__go").textContent.trim()), secH: Math.round(sec.height), secTop: Math.round(sec.top + scrollY),
-        gamesTop: Math.round(g.top + scrollY), cardH: Math.round(cards[0].getBoundingClientRect().height),
-        rowScroll: document.getElementById("dailyCards").scrollWidth > document.getElementById("dailyCards").clientWidth };
-    })())`));
-    check(`trang chủ ${w}×${h}: cả 3 thẻ 'Đã xong ✓'`, R.cards.every((c) => c.includes("Đã xong ✓")), R.cards.join(" | "));
+    const R = JSON.parse(await ev(`JSON.stringify({ chips: [...document.querySelectorAll(".tile__chal")].map(a => a.textContent.trim() + (a.classList.contains("is-done") ? ":done" : "")),
+      streak: document.getElementById("streakLine").hidden ? "" : document.getElementById("streakLine").textContent })`));
+    check(`trang chủ ${w}×${h}: 3 nhãn thành '✓ Thử thách #${day}'`, R.chips.length === 3 && R.chips.every((c) => c === `✓ Thử thách #${day}:done`), R.chips.join(" | "));
+    check(`trang chủ ${w}×${h}: dòng nhắc chuỗi '🔥 Chuỗi 1 ngày · Xong cả 3 thử thách hôm nay ✓'`, R.streak.startsWith("🔥 Chuỗi 1 ngày") && R.streak.includes("Xong cả 3 thử thách hôm nay ✓"), R.streak);
     check(`trang chủ ${w}×${h}: không tràn ngang trang`, await noHScroll());
-    await ev(`document.getElementById("daily").scrollIntoView({ block: "center" })`); await sleep(200);
-    const hits = await hitOk(".dcard");
-    check(`trang chủ ${w}×${h}: thẻ trong khung nhìn không bị che (elementFromPoint)`, hits.length >= (m ? 1 : 3) && hits.every(Boolean), JSON.stringify(hits));
-    console.log(`  khu thử thách cao ${R.secH}px (thẻ ${R.cardH}px), 'Tất cả game' ở y=${R.gamesTop}px${m ? ", dải thẻ cuộn ngang: " + R.rowScroll : ""}`);
-    if (m) check("trang chủ 390: khu thử thách gọn (≤ 160px)", R.secH <= 160, R.secH + "px");
-    await ev(`scrollTo(0, 0)`); await sleep(150);
+    check(`trang chủ ${w}×${h}: dòng nhắc không bị che`, (await hitOk("#streakLine")).every(Boolean));
+    await ev(`document.getElementById("streakLine").scrollIntoView({ block: "center" })`); await sleep(200);
     await shot(name);
-    await ev(`scrollTo(0, document.getElementById("daily").getBoundingClientRect().top + scrollY - (document.querySelector(".topbar")?.offsetHeight || 0) - 12)`); await sleep(200);
-    await shot(name.replace(".png", "-khu.png"));
+    await nav("/homepage/bang-xep-hang.html");
+    const L = JSON.parse(await ev(`JSON.stringify([...document.querySelectorAll("#dailyCards .dcard")].map(c => c.dataset.game + ":" + c.querySelector(".dcard__go").textContent.trim()))`));
+    check(`bảng xếp hạng ${w}×${h}: 3 thẻ thử thách 'Đã xong ✓'`, L.length === 3 && L.every((c) => c.includes("Đã xong ✓")), L.join(" | "));
+    check(`bảng xếp hạng ${w}×${h}: không tràn ngang`, await noHScroll());
+    await shot(name.replace("trang-chu", "bang-xep-hang"));
   }
   check("không có lỗi JS trên trang", errors.length === 0, errors.join(" || "));
 } catch (e) {

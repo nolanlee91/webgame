@@ -1,6 +1,6 @@
 // Sudoku — phần hiển thị + điều khiển. Luật chơi, sinh đề, lưu/nạp nằm ở logic.js.
 import * as L from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=board2";
+import * as UI from "../_shared/daily-ui.js?v=name1";
 
 const D = UI.D;
 const DAILY_ID = "sudoku";

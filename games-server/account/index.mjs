@@ -147,6 +147,17 @@ export function createAccountApi(opts = {}) {
       if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, { error: "method" }, { Allow: "GET" });
       return send(res, 200, config());
     }
+    if (p === "/api/name/check") {
+      // Hỏi bộ lọc tên trước khi lưu (ô hồ sơ trang chủ). Không cần danh tính, chạy cả khi bảng xếp hạng tắt.
+      // { name } → { ok:true, name: <đã làm sạch> } | { ok:false } (tục / link / quá ngắn).
+      if (req.method !== "POST") return send(res, 405, { error: "method" }, { Allow: "POST" });
+      if (!postOk(ipOf(req))) return send(res, 429, { error: "rate" }, { "Retry-After": "60" });
+      let body;
+      try { body = await readBody(req); } catch (e) { return send(res, e.status === 413 ? 413 : 400, { error: e.status === 413 ? "too_big" : "body" }); }
+      if (!body || typeof body !== "object" || typeof body.name !== "string") return send(res, 400, { error: "body" });
+      const name = cleanName(body.name);
+      return send(res, 200, name === DEFAULT_NAME && body.name.trim() !== DEFAULT_NAME ? { ok: false } : { ok: true, name });
+    }
     if (!p.startsWith("/api/daily/")) return false;
     if (mode === "off") return send(res, 503, { error: "off" });
     const ip = ipOf(req);

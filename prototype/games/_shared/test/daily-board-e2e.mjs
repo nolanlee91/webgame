@@ -1,5 +1,6 @@
 // e2e "Bảng xếp hạng hôm nay": HAI người chơi (2 hồ sơ Chrome riêng, máy chủ chế độ RAM + x-dev-user) chơi cả 3 thử thách
-// bằng giao diện thật (bấm đáp án, bấm ô + bàn số, phím mũi tên), thấy nhau trên bảng đúng thứ tự, thấy "Hạng #N/M" trên trang chủ.
+// bằng giao diện thật (bấm đáp án, bấm ô + bàn số, phím mũi tên), thấy nhau trên bảng đúng thứ tự, thấy "Hạng #N/M" trên trang Bảng xếp hạng.
+// D3: không còn hỏi tên — mỗi người có tên tự sinh (account.js getName) gửi thẳng; A đổi tên bằng nút "Đổi tên" (kiểm 2–16 ký tự ở máy).
 // Người A: máy tính 1366×768 (chuột). Người B: điện thoại 390×844 (chạm).
 // Chạy: node prototype/games/_shared/test/daily-board-e2e.mjs <thư-mục-ảnh>   (tự bật server.js ở cổng 8897)
 import { spawn } from "node:child_process";
@@ -81,7 +82,7 @@ async function play2048(tab, order) {
   await tab.waitFor(`document.getElementById("dlyOv") && !document.getElementById("dlyOv").hidden`, 20000);
 }
 async function typeName(tab, name, touch) {
-  await tab.waitFor(`document.getElementById("dlyLb")?.dataset.state === "ask"`);
+  await tab.waitFor(`document.getElementById("dlyLb")?.dataset.state === "rename"`);
   await tab.click("#dlyName", { touch });
   await tab.ev(`document.getElementById("dlyName").select()`);
   await tab.cmd("Input.insertText", { text: name });
@@ -96,31 +97,36 @@ try {
   const cfg = await (await fetch(BASE + "/api/config")).json();
   check("máy chủ chế độ RAM (không có Supabase) ⇒ /api/config board:'memory'", cfg.board === "memory" && cfg.supabase === false, JSON.stringify(cfg));
 
-  // ---------- Đố Vui: A 5/5 (hỏi tên ⇒ gõ tên), B 4/5 (bỏ qua ⇒ "Người chơi") ----------
+  // ---------- Đố Vui: A 5/5 (tên tự sinh ⇒ đổi tên bằng nút "Đổi tên"), B 4/5 (giữ tên tự sinh) ----------
   await playQuiz(A, [true, true, true, true, true], false);
-  const askA = await A.waitFor(`document.getElementById("dlyLb")?.dataset.state === "ask"`).catch(() => false);
-  check("A Đố Vui: xong ⇒ bảng kết quả + ô hỏi tên (chỉ một lần)", askA && (await A.ev(`document.getElementById("dlyName").maxLength === 16`)));
-  await shot(A, "bxh-hoi-ten-1366.png");
-  await typeName(A, "  Anh   Tuấn  ", false);
   await waitBoard(A);
   let a = await readBoard(A);
-  check("A Đố Vui: gửi xong ⇒ bảng có mình hạng #1, tên đã gộp khoảng trắng, '1 người đã chơi'",
-    a.state === "board" && a.rows.length === 1 && a.rows[0].n === "Anh Tuấn" && a.rows[0].r === "#1" && a.rows[0].you && a.count === "1 người đã chơi", JSON.stringify(a));
+  const genA = await A.ev(`JSON.parse(localStorage.getItem("wgp.account.v1")).name`);
+  check("A Đố Vui: KHÔNG hỏi tên — gửi thẳng bằng tên tự sinh, bảng có mình #1",
+    a.state === "board" && a.rows.length === 1 && a.rows[0].n === genA && /^[\p{L} ]+ \d\d$/u.test(genA) && a.rows[0].r === "#1" && a.rows[0].you && a.count === "1 người đã chơi", JSON.stringify(a) + " tên=" + genA);
+  await A.click("#dlyLbRename");
+  await typeName(A, "a", false);
+  const errA = await A.ev(`document.getElementById("dlyNameErr")?.textContent || ""`);
+  check("HOME-15: đổi tên 1 ký tự ⇒ báo lỗi rõ ở máy, không gửi", errA === "Tên cần ít nhất 2 ký tự." && (await boardState(A)) === "rename", errA);
+  await shot(A, "bxh-doi-ten-loi-1366.png");
+  await typeName(A, "  Anh   Tuấn  ", false);
+  await waitBoard(A);
+  a = await readBoard(A);
+  check("A đổi tên: bảng hiện 'Anh Tuấn' (đã gộp khoảng trắng), tên chung trên máy đổi theo",
+    a.state === "board" && a.rows.length === 1 && a.rows[0].n === "Anh Tuấn" && a.rows[0].you && (await A.ev(`JSON.parse(localStorage.getItem("wgp.account.v1")).name`)) === "Anh Tuấn", JSON.stringify(a));
   await playQuiz(B, [true, true, false, true, true], true);
-  check("B Đố Vui (điện thoại): bảng kết quả + ô hỏi tên", await B.waitFor(`document.getElementById("dlyLb")?.dataset.state === "ask"`).catch(() => false));
-  check("B Đố Vui 390: hộp hỏi tên không tràn ngang", await noHScroll(B));
-  await shot(B, "bxh-hoi-ten-390.png");
-  await B.click("#dlyNameSkip", { touch: true });
   await waitBoard(B);
   let b = await readBoard(B);
-  check("B Đố Vui: bỏ qua tên ⇒ 'Người chơi'; thứ tự A (5/5) trên B (4/5); '2 người đã chơi'",
-    b.state === "board" && b.rows.map((r) => r.r + " " + r.n + " " + r.s).join(" | ") === "#1 Anh Tuấn 5/5 | #2 Người chơi 4/5"
+  const genB = await B.ev(`JSON.parse(localStorage.getItem("wgp.account.v1")).name`);
+  check("B Đố Vui: tên tự sinh (không phải 'Người chơi'); thứ tự A (5/5) trên B (4/5); '2 người đã chơi'",
+    b.state === "board" && b.rows.map((r) => r.r + " " + r.n + " " + r.s).join(" | ") === `#1 Anh Tuấn 5/5 | #2 ${genB} 4/5` && genB !== "Người chơi"
     && b.rows[1].you && !b.rows[0].you && b.count === "2 người đã chơi" && /hạng #2 \/ 2/.test(b.me), JSON.stringify(b));
+  check("B: có link 'Xem bảng xếp hạng đầy đủ' tới trang riêng", (await B.ev(`document.getElementById("dlyLbMore")?.getAttribute("href")`)) === "../../homepage/bang-xep-hang.html?game=do-vui-nhanh");
   check("B Đố Vui 390: bảng xếp hạng vừa khung, không tràn ngang trang", b.fits && (await noHScroll(B)));
   check("B Đố Vui 390: nút Khoe kết quả vẫn bấm được (không bị che)", await B.click("#dlyShare", { touch: true }));
   await B.ev(`document.getElementById("dlyLb").scrollIntoView({ block: "center" })`);
   await shot(B, "bxh-do-vui-390.png");
-  // A mở lại ⇒ không hỏi tên, không gửi lại, thấy B
+  // A mở lại ⇒ không gửi lại, thấy B
   await nav(A, "/games/do-vui-nhanh/?daily=1");
   await waitBoard(A);
   a = await readBoard(A);
@@ -129,13 +135,13 @@ try {
 
   // ---------- Sudoku: A có 1 lỗi (+30 giây), B không lỗi ⇒ B #1 ----------
   await playSudoku(A, false, { mistake: true });
-  check("A Sudoku: đã hỏi tên rồi ⇒ không hỏi lại, tự gửi", await A.waitFor(`document.getElementById("dlyLb")?.dataset.state !== "ask"`, 3000).catch(() => false));
+  check("A Sudoku: tự gửi bằng tên chung 'Anh Tuấn'", await A.waitFor(`document.getElementById("dlyLb")?.dataset.state !== "rename"`, 3000).catch(() => false));
   await waitBoard(A);
   await playSudoku(B, true);
   await waitBoard(B);
   b = await readBoard(B);
   const sres = JSON.parse(await B.ev(`localStorage.getItem("wgp.daily.v1")`)).games.sudoku;
-  check("Sudoku: B (không lỗi) #1, A (1 lỗi, +30 giây) #2", b.rows.length === 2 && b.rows[0].n === "Người chơi" && b.rows[0].you && b.rows[1].n === "Anh Tuấn", JSON.stringify(b.rows) + " B=" + JSON.stringify(Object.values(sres.days)[0]?.time));
+  check("Sudoku: B (không lỗi) #1, A (1 lỗi, +30 giây) #2", b.rows.length === 2 && b.rows[0].n === genB && b.rows[0].you && b.rows[1].n === "Anh Tuấn", JSON.stringify(b.rows) + " B=" + JSON.stringify(Object.values(sres.days)[0]?.time));
   check("Sudoku 390: không tràn ngang", b.fits && (await noHScroll(B)));
   await B.ev(`document.getElementById("dlyLb").scrollIntoView({ block: "center" })`);
   await shot(B, "bxh-sudoku-390.png");
@@ -147,7 +153,7 @@ try {
   await waitBoard(B);
   b = await readBoard(B);
   const scoreA = await A.ev(`__game.state.score`), scoreB = await B.ev(`__game.state.score`);
-  const want = scoreA >= scoreB ? ["Anh Tuấn", "Người chơi"] : ["Người chơi", "Anh Tuấn"];
+  const want = scoreA >= scoreB ? ["Anh Tuấn", genB] : [genB, "Anh Tuấn"];
   const api2048 = await (await fetch(`${BASE}/api/daily/2048/${await B.ev("__game.daily.day")}`)).json();
   check("2048: máy chủ phát lại ra đúng điểm trong game của cả hai", api2048.top.map((e) => e.score).sort((x, y) => x - y).join() === [scoreA, scoreB].sort((x, y) => x - y).join(), JSON.stringify(api2048.top) + ` A=${scoreA} B=${scoreB}`);
   check("2048: thứ tự theo điểm (cao trên)", b.rows.map((r) => r.n).join() === want.join(), JSON.stringify(b.rows) + ` A=${scoreA} B=${scoreB}`);
@@ -170,18 +176,20 @@ try {
   check("Thử lại sau khi có mạng ⇒ hiện bảng", (await boardState(B)) === "board");
   B.errors.splice(errsBefore); // lỗi "bị chặn" do test tự gây ra
 
-  // ---------- Trang chủ: "Hạng #N/M" trên thẻ ----------
-  const expRank = { A: { "do-vui-nhanh": 1, sudoku: 2, "2048": want[0] === "Anh Tuấn" ? 1 : 2 }, B: { "do-vui-nhanh": 2, sudoku: 1, "2048": want[0] === "Người chơi" ? 1 : 2 } };
-  for (const [who, tab, file] of [["A", A, "bxh-trang-chu-1366.png"], ["B", B, "bxh-trang-chu-390.png"]]) {
-    await nav(tab, "/homepage/");
+  // ---------- Trang Bảng xếp hạng: "Hạng #N/M" trên thẻ thử thách + bảng tô dòng của mình ----------
+  const expRank = { A: { "do-vui-nhanh": 1, sudoku: 2, "2048": want[0] === "Anh Tuấn" ? 1 : 2 }, B: { "do-vui-nhanh": 2, sudoku: 1, "2048": want[0] === genB ? 1 : 2 } };
+  for (const [who, tab, file] of [["A", A, "bxh-trang-rieng-1366.png"], ["B", B, "bxh-trang-rieng-390.png"]]) {
+    await nav(tab, "/homepage/bang-xep-hang.html?game=do-vui-nhanh");
     await tab.waitFor(`document.querySelectorAll(".dcard__rank").length === 3`, 15000).catch(() => {});
     const R = JSON.parse(await tab.ev(`JSON.stringify(Object.fromEntries([...document.querySelectorAll(".dcard")].map(c => [c.dataset.game, c.querySelector(".dcard__rank")?.textContent || ""])))`));
     const ok = Object.entries(expRank[who]).every(([g, r]) => R[g] === `🏆 Hạng #${r}/2`);
-    check(`trang chủ ${who}: thẻ hiện 'Hạng #N/2' đúng cả 3 game`, ok, JSON.stringify(R));
-    check(`trang chủ ${who}: không tràn ngang`, await noHScroll(tab));
-    const secH = await tab.ev(`Math.round(document.getElementById("daily").getBoundingClientRect().height)`);
-    if (who === "B") check("trang chủ 390: khu thử thách vẫn gọn (≤ 160px) khi có hạng", secH <= 160, secH + "px");
-    await tab.ev(`scrollTo(0, document.getElementById("daily").getBoundingClientRect().top + scrollY - (document.querySelector(".topbar")?.offsetHeight || 0) - 12)`);
+    check(`trang Bảng xếp hạng ${who}: thẻ thử thách hiện 'Hạng #N/2' đúng cả 3 game`, ok, JSON.stringify(R));
+    check(`trang Bảng xếp hạng ${who}: không tràn ngang`, await noHScroll(tab));
+    await tab.waitFor(`document.getElementById("lbPanel").dataset.state === "board"`, 15000);
+    const me = JSON.parse(await tab.ev(`JSON.stringify([...document.querySelectorAll("#lbList .lb__row")].map(r => ({ n: r.querySelector(".lb__name").firstChild.textContent.trim(), you: r.classList.contains("is-you") })))`));
+    const myName = who === "A" ? "Anh Tuấn" : genB;
+    check(`trang Bảng xếp hạng ${who}: tab Đố Vui, dòng của mình được tô`, me.length === 2 && me.filter((x) => x.you).map((x) => x.n).join() === myName, JSON.stringify(me));
+    await tab.ev(`document.getElementById("bang").scrollIntoView({ block: "start" })`);
     await sleep(150);
     await shot(tab, file);
   }
@@ -193,7 +201,9 @@ try {
   C.ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.method === "Network.requestWillBeSent") reqs.push(m.params.request.url); });
   await nav(C, "/homepage/");
   await sleep(1500);
-  check("trang chủ người mới: không tải account.js / không gọi API bảng", !reqs.some((u) => /account\.js|\/api\/daily|\/api\/config/.test(u)), reqs.filter((u) => /api|account/.test(u)).join(" "));
+  check("trang chủ người mới: không gọi API bảng (ô hồ sơ chỉ đọc tên trên máy)", !reqs.some((u) => /\/api\/daily|\/api\/config/.test(u)), reqs.filter((u) => /api|account/.test(u)).join(" "));
+  const nameC = await C.ev(`document.getElementById("meName").textContent`);
+  check("trang chủ người mới: ô hồ sơ có tên tự sinh ngay", /^[\p{L} ]+ \d\d$/u.test(nameC), nameC);
 
   check("không có lỗi JS / console error (A, B, C)", !A.errors.length && !B.errors.length && !C.errors.length, [...A.errors, ...B.errors, ...C.errors].join(" || "));
 } catch (e) {
