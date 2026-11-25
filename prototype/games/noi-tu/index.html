@@ -293,6 +293,12 @@
       .chain { padding: 8px 8px 10px; }
       .dock { padding: 6px 8px; } .dock .msg { margin-top: 4px; min-height: 18px; font-size: 13px; }
     }
+    /* Điện thoại xoay ngang (không phải cầm dọc mở bàn phím): nút ☰ / loa / chat ≥ 44 px, link trang chủ chạm được 44 px */
+    @media (max-height: 560px) and (min-aspect-ratio: 4/3) {
+      .tools .btn { min-height: 44px; } .tools .btn--icon { min-width: 48px; }
+      .bar a { margin-block: 0; min-height: 0; align-self: stretch; position: relative; z-index: 6; /* trên lớp menu .ov (z 5) */ }
+      .bar a::after { content: ""; position: absolute; left: -12px; right: -8px; top: -4px; height: 44px; } /* vùng chạm 44 px tính từ mép trên màn, không thò ra ngoài */
+    }
     /* MÀN ĐẦU (chưa vào ván / tạm dừng ván với máy): chỉ còn bàn + thẻ menu chiếm trọn khung ⇒ 3 nút chính không phải cuộn */
     .wrap.is-entry { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) !important; grid-template-areas: "stage" !important; max-width: 1080px !important; }
     .wrap.is-entry > :is(.hud, .tools, .clock, .dock, .chat) { display: none !important; }

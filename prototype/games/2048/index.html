@@ -190,11 +190,20 @@
     @media (max-width: 380px) { .stat small { font-size: 9px; letter-spacing: .04em; } .stat b, .stat.best b, .stat.main b { font-size: 15px; } .modes { grid-template-columns: 1fr; } }
     /* Điện thoại xoay ngang: HUD + nút bên trái, bàn bên phải */
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
-      .bar { padding: 4px 12px; } .bar a { margin-block: -12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .bar { padding: 4px 12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .bar a { margin-block: 0; min-height: 0; align-self: stretch; position: relative; z-index: 2; }
+      .bar a::after { content: ""; position: absolute; left: -12px; right: -8px; top: -4px; height: 44px; } /* vùng chạm 44 px tính từ mép trên màn, không thò ra ngoài */
       .wrap { padding: 6px 12px; gap: 8px 16px; grid-template-columns: 230px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "hud stage" "acts stage" ". stage"; }
       .stats { padding: 6px 10px; gap: 4px; grid-template-columns: 1fr 1fr; } .stat.main b { font-size: 20px; } .stat b { font-size: 15px; } .hsep, .stat.time, .goal .px-bar { display: none; }
-      .acts { gap: 10px; } .acts .btn { min-height: 38px; font-size: 12px; }
+      .acts { gap: 10px; } .acts .btn { min-height: 44px; font-size: 12px; } /* nút ≥ 44 px cả khi xoay ngang */
       .keys { display: none; }
+      /* Khung ngang hẹp (≤ 760 px, vd 740×360) cũng dính luật "cầm dọc" ở trên ⇒ trả về đúng bố cục ngang: cột trái 2 cột nút, loa nằm trong cột */
+      .wrap { max-width: none; }
+      .stats { grid-auto-flow: row; align-items: start; }
+      .mini, .hint { display: none; }
+      .acts, .is-daily .acts { grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+      .acts .wide { grid-column: span 2; } .acts .mute { display: inline-flex; }
+      .acts .btn { padding: 6px 8px; }
     }
   </style>
 </head>
