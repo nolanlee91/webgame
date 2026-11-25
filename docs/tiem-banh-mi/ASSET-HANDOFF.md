@@ -101,3 +101,12 @@ CẢNH BÁO [assets/journal-card.webp] thiếu file (tuỳ chọn)
 Cả 9 cảnh báo thuộc các sheet tuỳ chọn của Đợt 2.
 
 Nhật ký ở trên đã được đối chiếu với lần chạy cuối trên hợp đồng mới. Kết quả vẫn là 0 lỗi, 9 cảnh báo thuộc Đợt 2.
+
+## Âm thanh bổ sung tháng 11
+
+Commit âm thanh: `76b2f69`. Tự tổng hợp bằng NumPy và SciPy. Đã giải mã cả bộ MP3 bằng FFmpeg, kiểm tên file, định dạng mono 32 kHz 56 kbps và điểm bắt đầu tín hiệu dưới 1 ms. Độ dài là thời lượng phát sau khi bỏ phần đệm mã hóa. Với tiếng dưới 0,4 giây, phép đo LUFS đệm im lặng ở cuối khi đo, không thêm vào file.
+
+| File | Thời lượng (giây) | LUFS |
+|---|---:|---:|
+| `discard.mp3` | 0.430 | -16.4 |
+| `decorate.mp3` | 0.380 | -16.4 |
