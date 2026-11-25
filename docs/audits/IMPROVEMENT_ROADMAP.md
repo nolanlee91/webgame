@@ -110,6 +110,22 @@ Chưa sửa gì — chờ chủ dự án duyệt. Sau khi duyệt: Claude Code t
 
 **Nghiệm thu:** Không còn chữ "bản chơi thử"; không còn confirm() hệ thống; mọi nút chính ≥ 44 px; dòng game tiệm dùng chung một khung UI theo chuẩn đã chốt.
 
+## Quyết định của chủ dự án, sau Đợt 4 (25/11/2026)
+
+| Câu hỏi | Chốt |
+|---|---|
+| Đối thủ rớt mạng lúc chờ "Ván tiếp" | Giữ như hiện tại: 10 giây tự mở ván, 15 giây máy đánh thay |
+| Nút < 44 px khi xoay ngang (2048, Sudoku, Đặt Bom, Nối Từ) | Sửa lên 44 px |
+| Nút "Bắt đầu" Đặt Bom ở 360 px | Ghim chân màn hình |
+| Tên khách tự sinh (cute + cục súc) | Duyệt, giữ nguyên |
+| Giọng văn mở đầu Vụ 1 Thám Tử | Duyệt, giữ nguyên |
+| "Mời ra" giữa ván | Không, chỉ ở phòng chờ và sau ván |
+| Bánh Mì ngày 1–3 gộp "Lấy" + "Rạch" | Gộp ở ngày 1–3, từ ngày 4 tách |
+| Đăng nhập thật | Google trước |
+| Thẻ SpeakUp Kids | Ẩn cho tới khi có link thật |
+| Email liên hệ / nhóm FB, Zalo | Chưa có, để sau |
+| Đợt 5 dọn nốt | Làm luôn |
+
 ## Quyết định của chủ dự án (25/11/2026)
 
 | Câu hỏi | Chốt |
