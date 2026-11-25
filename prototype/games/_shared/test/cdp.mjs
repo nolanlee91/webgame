@@ -45,6 +45,7 @@ export class Tab {
   constructor(chrome, name) { this.chrome = chrome; this.name = name; this.id = 0; this.pend = new Map(); this.errors = []; this.console = []; }
   async open(w, h, mobile, browserContextId) {
     const { targetId } = (await this.chrome.cmd("Target.createTarget", { url: "about:blank", newWindow: true, ...(browserContextId ? { browserContextId } : {}) })).result;
+    this.targetId = targetId;
     this.ws = new WebSocket(`ws://127.0.0.1:${this.chrome.port}/devtools/page/${targetId}`);
     await new Promise((r) => (this.ws.onopen = r));
     this.ws.onmessage = (e) => {
@@ -93,6 +94,8 @@ export class Tab {
     return p.free;
   }
   close() { try { this.ws.close(); } catch {} }
+  /** Đóng hẳn tab (như người dùng bấm X) — khác close() chỉ ngắt kênh điều khiển. */
+  async closeTab() { this.close(); await this.chrome.cmd("Target.closeTarget", { targetId: this.targetId }); }
 }
 
 /** Đọc Blob ảnh trong trang (biến toàn cục name) ⇒ Buffer PNG + kích thước. */

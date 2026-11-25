@@ -1,5 +1,6 @@
 // Danh sách 18 game theo docs/game-catalog-v2.md (thứ tự theo điểm ưu tiên).
 // thumb: 6 game đầu cắt từ concept V4; 12 game còn lại là ảnh thumbnail 4:3 riêng (đã được chủ dự án duyệt). icon/hue giữ làm dự phòng.
+// tw: bề rộng thật của thumb (mặc định 720). Bản nửa cỡ nằm ở assets/thumbs/half/ (tools/thumbs/make-half-thumbs.py) ⇒ app.js dựng srcset.
 // mode: "solo" | "multi" | "both" — dùng cho nhãn số người chơi trên thẻ.
 // url: game đã có bản chơi thật — thẻ game mở thẳng link này thay vì trang chờ play.html (hiện có Đào Vàng, Cờ Cá Ngựa, Nối Thú, Cờ Caro, Cờ Tướng, Cờ Vua, Ma Sói, Ai Là Nội Gián, Xếp Gạch, 2048, Sudoku, Đố Vui, Rắn Săn Mồi, Cờ Tỷ Phú, Đặt Bom, Nông Trại, Tiệm Trà Sữa, Tiệm Bánh Mì, Quán Cơm Tấm).
 // Game CHƯA có url: thẻ hiện nhãn "Đang cập nhật" + ảnh mờ, bấm vào vẫn mở trang chờ play.html.
@@ -8,7 +9,7 @@ window.GAMES = [
   { id: "o-an-quan", name: "Ô Ăn Quan", cat: "tri-tue", mode: "both", players: "1–4 người", thumb: "assets/thumbs/o-an-quan.webp", icon: "caro", badge: "Mới", url: "../games/o-an-quan/" },
   { id: "co-caro",   name: "Cờ Caro",          cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/co-caro.webp",  icon: "caro", badge: "Hot", url: "../games/co-caro/" },
   { id: "ran-san-moi", name: "Rắn Săn Mồi",    cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/ran-san-moi.webp", icon: "snake", hue: 140, url: "../games/ran-san-moi/" },
-  { id: "tham-tu-hem", name: "Thám Tử Hẻm", cat: "giai-do", mode: "solo", players: "1 người", thumb: "assets/thumbs/tham-tu-hem.webp", icon: "search", hue: 40, badge: "Mới", url: "../games/tham-tu-hem/" },
+  { id: "tham-tu-hem", name: "Thám Tử Hẻm", cat: "giai-do", mode: "solo", players: "1 người", thumb: "assets/thumbs/tham-tu-hem.webp", tw: 480, icon: "search", hue: 40, badge: "Mới", url: "../games/tham-tu-hem/" },
   { id: "noi-thu",   name: "Nối Thú",          cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/noi-thu.webp",  icon: "paw", badge: "Mới", url: "../games/noi-thu/" },
   { id: "dao-vang",  name: "Đào Vàng",         cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dao-vang.webp", icon: "gold", badge: "Hot", url: "../games/dao-vang/" },
   { id: "noi-tu",    name: "Nối Từ",           cat: "tri-tue",  mode: "multi", players: "2 người", thumb: "assets/thumbs/noi-tu.webp",   icon: "word", badge: "Mới", url: "../games/noi-tu/" },
@@ -20,10 +21,10 @@ window.GAMES = [
   { id: "dat-bom",   name: "Đặt Bom",          cat: "hanh-dong", mode: "multi", players: "2–4 người", thumb: "assets/thumbs/dat-bom.webp", icon: "bomb", hue: 15, badge: "Mới", url: "../games/dat-bom/" },
   { id: "xep-gach",  name: "Xếp Gạch",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/xep-gach.webp", icon: "blocks", hue: 265, url: "../games/xep-gach/" },
   { id: "dua-xe",    name: "Đua Xe Vượt Đồi",  cat: "hanh-dong", mode: "solo", players: "1 người", thumb: "assets/thumbs/dua-xe.webp", icon: "car", hue: 55, url: "../games/dua-xe/" },
-  { id: "nong-trai", name: "Nông Trại", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/cozy-nong-trai.webp?v=pixel2", url: "../games/nong-trai/" },
-  { id: "tiem-tra-sua", name: "Tiệm Trà Sữa", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/tiem-tra-sua.webp?v=pixel2", badge: "Mới", url: "../games/tiem-tra-sua/" },
-  { id: "tiem-banh-mi", name: "Tiệm Bánh Mì", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/tiem-banh-mi.webp?v=pixel2", badge: "Mới", url: "../games/tiem-banh-mi/" },
-  { id: "quan-com-tam", name: "Quán Cơm Tấm", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/quan-com-tam.webp?v=pixel2", badge: "Mới", url: "../games/quan-com-tam/" },
+  { id: "nong-trai", name: "Nông Trại", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/cozy-nong-trai.webp?v=pixel2", tw: 480, url: "../games/nong-trai/" },
+  { id: "tiem-tra-sua", name: "Tiệm Trà Sữa", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/tiem-tra-sua.webp?v=pixel2", tw: 480, badge: "Mới", url: "../games/tiem-tra-sua/" },
+  { id: "tiem-banh-mi", name: "Tiệm Bánh Mì", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/tiem-banh-mi.webp?v=pixel2", tw: 480, badge: "Mới", url: "../games/tiem-banh-mi/" },
+  { id: "quan-com-tam", name: "Quán Cơm Tấm", cat: "tap-lam-chu", mode: "solo", players: "1 người", thumb: "assets/thumbs/quan-com-tam.webp?v=pixel2", tw: 480, badge: "Mới", url: "../games/quan-com-tam/" },
   { id: "ghep-keo",  name: "Ghép Kẹo",         cat: "giai-do",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/ghep-keo.webp", icon: "candy", hue: 320, url: "../games/ghep-keo/" },
   { id: "sudoku",    name: "Sudoku",           cat: "tri-tue",  mode: "solo",  players: "1 người", thumb: "assets/thumbs/sudoku.webp", icon: "sudoku", hue: 225, url: "../games/sudoku/" },
   { id: "co-ty-phu", name: "Cờ Tỷ Phú",        cat: "tri-tue",  mode: "both",  players: "2–4 người", thumb: "assets/thumbs/co-ty-phu.webp", icon: "dice", hue: 45, badge: "Mới", url: "../games/co-ty-phu/" },

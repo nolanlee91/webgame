@@ -227,6 +227,14 @@
     .chat .log li b { display: block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--who, var(--soft)); }
     .chat .log li.mine { align-self: flex-end; background: #2c261d; box-shadow: inset -4px 0 0 var(--who, var(--gold)), 0 0 0 2px #000; padding: 5px 11px 5px 9px; }
     .chat .log li.mine b { text-align: right; }
+    .chat .hd .chat-tg { margin-left: auto; min-height: 44px; padding: 4px 10px; font-size: 12px; }
+    .chat .hd .chat-tg[aria-pressed="true"] { color: var(--gold); }
+    .chat .chat-offnote { flex: 1; min-height: 0; margin: 0; padding: 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 6px; color: var(--dim); font-size: 13px; font-weight: 700; text-align: center; }
+    .chat .chat-on { all: unset; box-sizing: border-box; cursor: pointer; min-height: 44px; padding: 0 8px; display: inline-flex; align-items: center; color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+    .chat .chat-on:focus-visible { outline: 2px dashed var(--gold); outline-offset: 2px; }
+    .chat form .inp:disabled { opacity: .55; cursor: not-allowed; }
+    .room-chk { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin: 4px 0 0; font-size: 14px; font-weight: 700; color: var(--soft); cursor: pointer; }
+    .room-chk input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--gold); cursor: pointer; }
     .chat .log .empty { align-self: center; background: none; box-shadow: none; color: var(--dim); font-size: 13px; text-align: center; }
     .chat form { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px 12px 10px; box-shadow: inset 0 3px 0 #000; }
     .chat form .inp { min-height: 40px; font-size: 15px; padding: 6px 10px; }
@@ -266,8 +274,9 @@
     <section class="pcard" id="pc3" hidden></section>
     <aside class="chat" id="chat" aria-label="Trò chuyện trong phòng" hidden>
       <div class="box">
-        <div class="hd"><h2>Trò chuyện</h2><button class="btn close" type="button">Đóng</button></div>
-        <ol class="log" aria-live="polite"></ol>
+        <div class="hd"><h2>Trò chuyện</h2><button class="btn chat-tg" type="button" data-chat-toggle aria-pressed="false">Tắt chat</button><button class="btn close" type="button">Đóng</button></div>
+        <ol class="log" aria-live="polite" data-chat-hide></ol>
+        <p class="chat-offnote" data-chat-offnote>Đã tắt chat ·<button class="chat-on" type="button" data-chat-on>Bật lại</button></p>
         <form autocomplete="off"><input class="inp" maxlength="200" placeholder="Nhắn cho cả phòng…" enterkeyhint="send" aria-label="Nội dung tin nhắn"><button class="btn btn--primary" type="submit">Gửi</button></form>
       </div>
     </aside>
@@ -312,6 +321,7 @@
         <div class="pick" id="rPick" role="group" aria-label="Chỗ ngồi và linh vật"></div>
         <div class="botrow" id="botRow" hidden></div>
         <p class="sub" id="rNote"></p>
+        <label class="room-chk"><input type="checkbox" data-chat-check /> Tắt chat · không nhận tin nhắn</label>
       </section>
       <div class="how">
         <span>🎲 <b>Gieo 2 xúc xắc</b>, đi theo chiều kim đồng hồ. Qua <b>Xuất Phát</b> +200K.</span>
@@ -345,7 +355,7 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=snd1"></script>
+  <script type="module" src="game.js?v=d0"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

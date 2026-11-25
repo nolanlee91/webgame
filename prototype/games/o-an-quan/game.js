@@ -4,8 +4,9 @@ import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, 
 import { bestMove } from "./ai.js";
 import { createBoard } from "./board.js?v=oaq2";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
-import { createNet, CODE_RE } from "./net.js?v=oaq2";
+import { createNet, CODE_RE } from "./net.js?v=rs1";
 import { shareResult } from "../_shared/share.js?v=s1";
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 
 const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module
 const SAVE_KEY = "wgp.o-an-quan.v1", NAME_KEY = "wgp.o-an-quan.name";
@@ -408,6 +409,10 @@ export function mount(root, ctx = {}) {
     const on = !!v;
     document.body.classList.toggle("has-chat", on); ui.chat.hidden = !on;
     if (!on) { document.body.classList.remove("chat-open"); chatSeen = 0; chatLast = -1; ui.chatLog.replaceChildren(); ui.chatN.hidden = true; ui.chatIn.value = ""; return; }
+    const off = isChatOff(), send = ui.chatF.querySelector('[type="submit"]');
+    ui.chatIn.disabled = off; if (send) send.disabled = off;
+    if (!ui.chatIn.dataset.ph) ui.chatIn.dataset.ph = ui.chatIn.placeholder;
+    ui.chatIn.placeholder = off ? "Chat đang tắt" : ui.chatIn.dataset.ph;
     const list = v.chat || [], top = list.length ? list[list.length - 1].id : 0;
     if (top !== chatLast) {
       const atEnd = ui.chatLog.scrollHeight - ui.chatLog.scrollTop - ui.chatLog.clientHeight < 40;
@@ -422,10 +427,10 @@ export function mount(root, ctx = {}) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) ui.chatLog.scrollTop = ui.chatLog.scrollHeight;
       const last = list.at(-1);
-      if (isNew && last && !last.mine) sfx.play("chat", 0.7);
-      if (isNew && last && !last.mine && !chatOpen()) toast(last.name + ": " + last.text, 3500);
+      if (isNew && last && !last.mine && !off) sfx.play("chat", 0.7);
+      if (isNew && last && !last.mine && !off && !chatOpen()) toast(last.name + ": " + last.text, 3500);
     }
-    if (chatOpen()) chatSeen = top;
+    if (chatOpen() || off) chatSeen = top;
     const unread = list.filter((c) => c.id > chatSeen && !c.mine).length;
     ui.chatN.hidden = !unread; ui.chatN.textContent = unread > 9 ? "9+" : String(unread);
   }
@@ -434,12 +439,14 @@ export function mount(root, ctx = {}) {
     if (on) { hideToast(); if (room) renderChat(room); ui.chatLog.scrollTop = ui.chatLog.scrollHeight; ui.chatIn.focus({ preventScroll: true }); }
     else if (!ui.ovRoom.hidden) ui.rLeave.focus({ preventScroll: true }); else cv.focus({ preventScroll: true });
   }
+  // "Tắt chat" (chung toàn trang): đổi ⇒ vẽ lại khung chat, tắt luôn toast tin nhắn đang hiện
+  initChatOff((off) => { if (off) hideToast(); if (room) renderChat(room); });
   ui.chatBtn.onclick = () => setChatOpen(!document.body.classList.contains("chat-open"));
   ui.chatX.onclick = () => setChatOpen(false);
   ui.chatIn.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); setChatOpen(false); } });
   ui.chatF.addEventListener("submit", (e) => {
     e.preventDefault();
-    const text = ui.chatIn.value.trim(); if (!text) return;
+    const text = ui.chatIn.value.trim(); if (!text || isChatOff()) return;
     if (net.send({ t: "chat", text })) ui.chatIn.value = ""; else toast("Đang nối lại máy chủ — chưa gửi được tin.");
   });
 
@@ -741,6 +748,7 @@ export function mount(root, ctx = {}) {
   {
     const q = new URLSearchParams(location.search), code = String(q.get("room") || "").toUpperCase();
     const seat = net.seat;
+    if (CODE_RE.test(code)) ui.codeIn.value = code; // vào lại thất bại (ghế hết hạn / phòng đã hết) ⇒ ô mã vẫn điền sẵn
     if (seat && seat.code && (!code || code === seat.code)) { net.resume(); ui.mErr.textContent = "Đang vào lại phòng " + seat.code + "…"; }
     else if (CODE_RE.test(code)) {
       ui.codeIn.value = code;

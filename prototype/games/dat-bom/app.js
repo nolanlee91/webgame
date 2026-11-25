@@ -2,6 +2,7 @@
 // Client tự đi nhân vật của mình bằng đúng hàm move() của logic.js (mượt, không chờ mạng) rồi gửi vị trí lên;
 // máy chủ kiểm tra lại, sai thì gửi "fix" để kéo về. Người khác được nội suy giữa các khung 20 lần/giây.
 // Đồ hoạ trong bản đồ: sprite Pixel V5 của Codex ở assets/ (ô 64 px).
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import * as L from "./logic.js";
 
 const $ = (id) => document.getElementById(id);
@@ -204,8 +205,9 @@ function render(prev) {
     log.innerHTML = v.chat.length ? v.chat.map((c) => `<li class="msg ${c.mine ? "mine" : ""}"><b>${esc(c.name)}:</b> ${esc(c.text)}</li>`).join("")
       : '<li class="sys">Chưa có tin nhắn nào. Chào cả phòng đi!</li>';
     log.scrollTop = log.scrollHeight;
-    if (newMsg) sfx.play("msg", 0.6);
+    if (newMsg && !isChatOff()) sfx.play("msg", 0.6);
   }
+  renderChatOff();
   // chủ phòng rời ⇒ nhường quyền chủ phòng cho người kế tiếp: ghi rõ trên nút
   $("leaveBtn").textContent = isHost() && humansIn() > 1 ? "Rời phòng · nhường chủ" : "Rời phòng";
   // phòng chờ
@@ -344,10 +346,17 @@ $("copyBtn").onclick = async () => {
 };
 $("chatForm").onsubmit = (e) => {
   e.preventDefault();
-  const t = $("chatInp").value.trim(); if (!t) return;
+  const t = $("chatInp").value.trim(); if (!t || isChatOff()) return;
   send({ t: "chat", text: t }); $("chatInp").value = "";
   if (inGame()) $("chatInp").blur(); // gửi xong trả phím về cho game
 };
+
+// "Tắt chat" chung toàn trang: khoá ô nhập (khung tin nhắn ẩn bằng CSS của chat-off.js)
+function renderChatOff() {
+  const off = isChatOff(), inp = $("chatInp");
+  inp.disabled = off; $("chatBtn").disabled = off; inp.placeholder = off ? "Chat đang tắt" : "Nhắn cả phòng…";
+}
+initChatOff(renderChatOff);
 
 let bannerT = 0;
 function banner(t) { const b = $("banner"); b.textContent = t; b.classList.add("on"); clearTimeout(bannerT); bannerT = setTimeout(() => b.classList.remove("on"), 1800); }

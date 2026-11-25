@@ -1,7 +1,16 @@
 {
-  "_note": "Lọc tên hiển thị trên bảng xếp hạng (names.mjs). exact: so nguyên từ (chữ thường, GIỮ dấu tiếng Việt) để không chặn nhầm 'các', 'lớn', 'bưởi'. ascii: so nguyên từ sau khi bỏ dấu. contains: chuỗi con của tên đã bỏ dấu + bỏ khoảng trắng/ký hiệu. Trúng ⇒ tên thành 'Người chơi'.",
-  "exact": ["lồn", "cặc", "buồi", "địt", "đụ", "đéo", "đĩ", "cứt", "đm", "đmm", "đcm", "đkm", "vãi lồn", "óc chó"],
-  "ascii": ["dm", "dmm", "dcm", "dkm", "dmcs", "vcl", "vkl", "vl", "cl", "clm", "cmm", "djt", "dit", "loz", "l0z", "cak", "cax", "cc", "occho",
-    "fuck", "fck", "fuk", "shit", "bitch", "dick", "cunt", "pussy", "asshole", "nigger", "nigga", "whore", "slut", "porn", "sex", "xxx"],
-  "contains": ["fuck", "shit", "bitch", "cunt", "nigg", "asshole", "whore", "ditme", "ditcon", "ditmia", "dume", "duma", "dmm", "dcm", "dkm", "vcl", "vkl", "occho", "concho", "lozz"]
+  "_note": "Danh sách lọc từ tục dùng chung (games-server/moderation.js) cho tên người chơi, chat mọi phòng online và bảng xếp hạng. Cách thêm từ: xem games-server/MODERATION.md. exact = so NGUYÊN TỪ/CỤM TỪ có dấu (chữ thường); plain = chỉ so khi người gõ KHÔNG DẤU (đ coi như d, số kiểu leet 0→o 1→i 3→e 4→a 5→s 7→t đã đổi); contains = chuỗi con của câu đã bỏ dấu + bỏ khoảng trắng — CHỈ dùng chuỗi không thể ghép ngẫu nhiên từ các từ tiếng Việt bình thường. nameOnly = chỉ áp cho tên (khắt khe hơn chat).",
+  "exact": ["lồn", "cặc", "buồi", "địt", "đụ", "đéo", "đĩ", "đm", "đmm", "đcm", "đcmm", "đkm", "đkmm", "đjt", "chịch", "nứng",
+    "đù má", "đù mẹ", "đù mé", "đụ má", "địt mẹ", "vãi lồn"],
+  "plain": ["dm", "dmm", "dcm", "dcmm", "dkm", "dkmm", "dmcs", "vcl", "vkl", "vcc", "vl", "cl", "clm", "clgt", "cmm", "cmn", "cc",
+    "djt", "dit", "loz", "lozz", "cak", "cax", "duma", "dume",
+    "du ma", "du me", "du mm", "dis me", "vai lon", "vai cac", "bu cac", "mut cac",
+    "fuck", "fucking", "fuckin", "fucker", "fucked", "fck", "fuk", "fvck", "wtf", "stfu", "motherfucker",
+    "shit", "bullshit", "bitch", "bitches", "dick", "cunt", "pussy", "asshole", "bastard", "nigger", "nigga", "whore", "slut", "porn", "sex"],
+  "contains": ["fuck", "fvck", "motherf", "shit", "nigg", "whore", "asshole", "ditme", "ditmia", "dcmm", "vcl", "vkl", "lozz"],
+  "nameOnly": {
+    "exact": ["cứt", "óc chó", "con chó", "thằng chó", "đồ chó", "chó ngu", "thằng ngu", "con ngu", "đồ ngu"],
+    "plain": ["occho", "concho", "oc cho", "con cho", "thang cho", "cho ngu", "thang ngu", "xxx"],
+    "contains": ["occho", "ditcon"]
+  }
 }

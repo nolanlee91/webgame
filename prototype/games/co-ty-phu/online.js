@@ -2,6 +2,7 @@
 // Máy chủ (games-server/co-ty-phu/) giữ ván, gieo xúc xắc và kiểm tra lượt; file này chỉ:
 //   • gửi ý định của người chơi lên máy chủ, nhận trạng thái về (onState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
+//   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ,
 //   • vẽ khung chat (tên người gửi do máy chủ gắn theo ghế; nội dung chèn bằng text node, không dùng innerHTML).
 // Cùng khuôn với prototype/games/co-ca-ngua/online.js, bản độc lập cho game này.
 
@@ -27,7 +28,25 @@ export const ERR = {
   "chat-slow": "Bạn nhắn nhanh quá — đợi một chút rồi gửi tiếp.",
 };
 const OFFLINE = "Chưa kết nối được máy chủ chơi online (mạng có vấn đề hoặc máy chủ đang khởi động lại). Bạn vẫn có thể chơi với máy.";
-const load = (k) => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } };
+const load = (k, store = sessionStorage) => { try { return JSON.parse(store.getItem(k)); } catch { return null; } };
+// Ghế lưu qua việc đóng tab: localStorage "<SEAT_KEY>.<MÃ>" = { code, token, savedAt } — hết hạn sau 30 phút không ở trong phòng
+const KEEP_MS = 30 * 60 * 1000;
+const keepKey = (code) => SEAT_KEY + "." + code;
+function kept(code) {
+  try {
+    for (let k = localStorage.length - 1; k >= 0; k--) { // dọn ghế hết hạn
+      const key = localStorage.key(k);
+      if (key && key.startsWith(SEAT_KEY + ".")) { const s = load(key, localStorage); if (!s || !(Date.now() - s.savedAt < KEEP_MS)) localStorage.removeItem(key); }
+    }
+    const s = load(keepKey(code), localStorage);
+    return s && s.code === code && typeof s.token === "string" ? { code, token: s.token } : null;
+  } catch { return null; }
+}
+function loadSeat() { // ghế của tab này (F5); mở link mời phòng khác ⇒ ghế đã lưu cho phòng đó (nếu còn hạn)
+  let s = null; try { s = load(SEAT_KEY); } catch {}
+  const c = String(new URLSearchParams(location.search).get("room") || "").toUpperCase();
+  return (CODE_RE.test(c) && (!s || s.code !== c) && kept(c)) || s;
+}
 
 // ---------- Thông báo nổi ----------
 let toastEl = null, toastTimer = 0;
@@ -42,10 +61,19 @@ export const hideToast = () => { if (toastEl) toastEl.hidden = true; clearTimeou
  *  onClosed: chủ phòng vừa hủy phòng — trả về câu thông báo (gọi trước onExit, lúc còn trạng thái phòng). */
 export function createNet(h, { wsUrl } = {}) {
   const url = wsUrl || (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/co-ty-phu";
-  let ws = null, seat = load(SEAT_KEY), inRoom = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
+  let ws = null, seat = loadSeat(), inRoom = false, retry = 0, retryTimer = 0, pingTimer = 0, pending = null;
   let exiting = null; // đang rời phòng để sang trang khác (bấm "← Trang chủ"): chờ máy chủ trả lời rồi mới đi
   const setRoomParam = (code) => { const u = new URL(location.href); if (code) u.searchParams.set("room", code); else u.searchParams.delete("room"); history.replaceState(null, "", u.href); };
-  const saveSeat = (s) => { seat = s; if (s) sessionStorage.setItem(SEAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SEAT_KEY); };
+  let touched = 0, joinAfter = null; // joinAfter: vào bằng mã mà còn ghế đã lưu ⇒ thử resume trước, ghế hết thì join như thường
+  // keepLocal: bị tab khác của mình thay chỗ ⇒ chỉ xoá ghế của tab này, giữ bản localStorage cho tab mới
+  const saveSeat = (s, keepLocal) => {
+    const old = seat; seat = s; touched = Date.now();
+    try { if (s) sessionStorage.setItem(SEAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SEAT_KEY); } catch {}
+    try {
+      if (s) localStorage.setItem(keepKey(s.code), JSON.stringify({ code: s.code, token: s.token, savedAt: touched }));
+      else if (old && old.code && !keepLocal && load(keepKey(old.code), localStorage)?.token === old.token) localStorage.removeItem(keepKey(old.code));
+    } catch {}
+  };
 
   function stop() {
     clearTimeout(retryTimer); clearInterval(pingTimer); retryTimer = pingTimer = 0;
@@ -79,20 +107,21 @@ export function createNet(h, { wsUrl } = {}) {
 
   function onMsg(m) {
     if (m.t === "joined") {
-      retry = 0; pending = null; inRoom = true;
+      retry = 0; pending = joinAfter = null; inRoom = true;
       saveSeat({ code: m.code, token: m.token }); setRoomParam(m.code); hideToast();
       h.onJoined(m.code); return;
     }
-    if (m.t === "state") { m.v.skew = m.now - Date.now(); h.onState(m.v); return; }
+    if (m.t === "state") { if (inRoom && seat && Date.now() - touched > 60000) saveSeat(seat); m.v.skew = m.now - Date.now(); h.onState(m.v); return; }
     if (m.t === "pong") return;
     if (exiting && (m.t === "left" || m.t === "closed")) return exiting();
     if (m.t === "left") { saveSeat(null); setRoomParam(""); return exit(); }
     if (m.t === "closed") { const msg = (h.onClosed && h.onClosed()) || "Chủ phòng đã hủy phòng."; saveSeat(null); setRoomParam(""); return exit(msg); }
-    if (m.t === "replaced") { saveSeat(null); return exit("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); }
+    if (m.t === "replaced") { saveSeat(null, true); return exit("Bạn đã mở phòng này ở một tab khác — tab này đã thoát."); }
     if (m.t === "kicked") { saveSeat(null); setRoomParam(""); return exit("Bạn không còn trong phòng (quá lâu không quay lại phòng chờ)."); }
     if (m.t === "err") {
       const text = ERR[m.code] || "Có lỗi xảy ra (" + m.code + ").";
       if (!inRoom) {
+        if (joinAfter && (m.code === "no-seat" || m.code === "no-room")) { pending = joinAfter; joinAfter = null; saveSeat(null); connect(); return; }
         const code = (pending && pending.code) || (seat && seat.code) || "";
         if (m.code === "no-seat" || m.code === "no-room") saveSeat(null);
         return exit(text, m.code === "no-room" ? code : CODE_RE.test(code) ? code : "");
@@ -105,7 +134,11 @@ export function createNet(h, { wsUrl } = {}) {
   return {
     get seat() { return seat; }, get ws() { return ws; },
     create(name, isPublic) { pending = { t: "create", name, public: isPublic }; connect(); },
-    join(code, name) { pending = { t: "join", code, name }; connect(); },
+    join(code, name) {
+      const k = kept(code), j = { t: "join", code, name };
+      if (k) { seat = k; pending = null; joinAfter = j; } else { pending = j; joinAfter = null; }
+      connect();
+    },
     resume() { pending = null; connect(); },
     send,
     leave() { if (ws && ws.readyState === 1) ws.send('{"t":"leave"}'); else { saveSeat(null); setRoomParam(""); exit(); } },
@@ -125,6 +158,8 @@ export function createNet(h, { wsUrl } = {}) {
   };
 }
 
+import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
+
 // ---------- Trò chuyện trong phòng ----------
 // Máy rộng: khung nằm ở cột phải giữa 2 thẻ người chơi. Màn hẹp: nút "Chat" trên thanh đầu trang mở bảng trượt từ dưới lên.
 export function createChat({ box, button, send, colorOf, onNew }) {
@@ -136,7 +171,7 @@ export function createChat({ box, button, send, colorOf, onNew }) {
   input.addEventListener("keyup", (e) => e.stopPropagation());
   box.querySelector("form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const text = input.value.trim(); if (!text) return;
+    const text = input.value.trim(); if (!text || isChatOff()) return;
     if (send({ t: "chat", text })) input.value = "";
   });
   box.querySelector(".close").onclick = () => open(false);
@@ -148,6 +183,8 @@ export function createChat({ box, button, send, colorOf, onNew }) {
   }
   function render(v) {
     view = v;
+    const off = isChatOff(), sendBtn = box.querySelector('[type="submit"]');
+    input.disabled = off; sendBtn.disabled = off; input.placeholder = off ? "Chat đang tắt" : "Nhắn cho cả phòng…";
     const list = v.chat || [], top = list.length ? list[list.length - 1].id : 0;
     if (top !== last) {
       const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40, isNew = last >= 0 && top > last;
@@ -161,14 +198,15 @@ export function createChat({ box, button, send, colorOf, onNew }) {
       }) : [Object.assign(document.createElement("li"), { className: "empty", textContent: "Chưa có tin nhắn. Chào cả phòng một câu nhé!" })]));
       if (atEnd || list.at(-1)?.mine) log.scrollTop = log.scrollHeight;
       const lt = list.at(-1);
-      if (isNew && lt && !lt.mine && onNew) onNew(); // tin mới từ người khác: kêu cả khi đang mở khung chat
-      if (isNew && lt && !lt.mine && !visible()) toast(lt.name + ": " + lt.text, 3500);
+      if (isNew && lt && !lt.mine && !off && onNew) onNew(); // tin mới từ người khác: kêu cả khi đang mở khung chat
+      if (isNew && lt && !lt.mine && !off && !visible()) toast(lt.name + ": " + lt.text, 3500);
     }
-    if (visible()) seen = top;
+    if (visible() || off) seen = top;
     const unread = list.filter((c) => c.id > seen && !c.mine).length;
     badge.hidden = !unread; badge.textContent = unread > 9 ? "9+" : String(unread);
   }
   addEventListener("resize", () => view && render(view));
+  initChatOff((off) => { if (off) hideToast(); if (view) render(view); }); // "Tắt chat" chung toàn trang
   return {
     render, open,
     show(on) { box.hidden = !on; button.hidden = !on; document.body.classList.toggle("online", on); if (!on) { document.body.classList.remove("chat-open"); last = -1; seen = 0; view = null; } },
