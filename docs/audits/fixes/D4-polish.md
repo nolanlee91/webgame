@@ -91,7 +91,16 @@ nâng lên 44 thì cột trái / bàn chơi bị đẩy, nên để nguyên (câ
 
 ## Kiểm thử
 
-Xem phần báo cáo cuối (kết quả chạy trên nhánh).
+- Unit: 2048 / Sudoku / Đố Vui 35/35; `noi-tu/test` 62/62; `_shared/test/*.test.mjs` 48/48.
+- games-server: ma-soi 35, ai-la-noi-gian 32, dat-bom 21, noi-tu 14, kick 12, disband 8, esm 18, static 8: tất cả đạt.
+- e2e đạt: ma-soi, ai-la-noi-gian, noi-tu (80/80), kick, resume, daily, sound-press (246/0, chạy lại lần 2 vì lần đầu quá 10 phút), touch-scroll.
+- e2e lỗi **có sẵn trên master** (đã chạy lại trên bản master fd03559, ra y hệt):
+  `dat-bom/test/browser-e2e.mjs` "không nhập tên ⇒ nhắc nhập tên" (giờ tên khách tự sinh nên không còn nhắc);
+  `_shared/test/chat-off-e2e.mjs` 0/20 (chờ `#nameInp` của Nội Gián quá giờ).
+- Kiểm riêng BRD-11 (script ngoài repo, Chrome headless 390×844): Nội Gián + Ma Sói (Rời phòng giữa ván: hộp hiện, Esc ở lại, Rời ván ⇒ về màn đầu;
+  link Trang chủ: Thôi ở lại, Rời ván ⇒ sang trang chủ), Đặt Bom 2 người (Hủy phòng: Esc giữ phòng; link giữa ván: Esc ở lại, Rời ván ⇒ đi),
+  Nối Từ online 2 người (link giữa ván). `window.confirm` bị thay bằng bẫy: không lần nào bị gọi. Đạt hết.
+- `node tools/cache-tags/check-tags.mjs master`: `OK: 7 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.`
 
 ## Câu hỏi mở
 
