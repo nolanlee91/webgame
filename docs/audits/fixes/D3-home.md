@@ -17,7 +17,7 @@ API ổn định, ghi ở đầu file (agent làm 10 game online dùng `getName 
 | `saveName(name, {syncBoard})` | Promise `{ ok, name, error }` | Như setName + hỏi bộ lọc máy chủ `POST /api/name/check`, rồi đổi tên trên bảng hôm nay nếu đã có danh tính |
 | `rerollName()`, `randomName()`, `checkName()`, `avatarSvg(name, px)` | | Tên ngẫu nhiên khác; kiểm không lưu; avatar pixel 8×8 sinh từ tên |
 
-- Địa chỉ import mới: `../_shared/account.js?v=name1`.
+- Địa chỉ import mới: `../_shared/account.js?v=name2`. Thêm `hasCustomName()` (= `!isGenerated()`) cho `online-kit.js`.
 - Bản lưu `wgp.account.v1` giữ nguyên khoá + dạng `{v:1,…}`, thêm trường `gen`. Người đã có tên ⇒ giữ; người cũ bấm "Bỏ qua" (tên rỗng) ⇒ được tên tự sinh. Dữ liệu `sent`, `devId` giữ.
 - Kho tên: 39 đầu × 42 đuôi, lọc độ dài ⇒ ~1.200 cặp × 100 số. Trộn cute ("Cute", "Mập", "Lém Lỉnh", "Ú Nu"…) và cục súc hài ("Cáu Kỉnh", "Láo", "Lầy", "Hổ Báo", "Báo Thủ", "Hẻm"…). Không có từ về vùng miền / giới tính / ngoại hình của người (Mập/Ú Nu chỉ tả con vật).
 - Test `games-server/name-gen.test.mjs` duyệt **hết** tổ hợp × 00–99 (~120.000 tên) qua `moderation.cleanPlayerName` (phòng online) + `names.cleanName` (bảng xếp hạng). Test đã bắt được 2 tổ hợp dính bộ lọc ("Sóc Chợ", "Bạch Tuộc Chợ" — chuỗi con "occho") ⇒ bỏ đuôi "Chợ" thay "Phố"; bỏ "Khủng Long", "Chiến Thần", "Tinh Nghịch" (quá dài, không ghép được).
@@ -63,6 +63,53 @@ API ổn định, ghi ở đầu file (agent làm 10 game online dùng `getName 
 - Esc = "Xem bàn" (HOME-18).
 
 ## Cache tag (`?v=`)
-`account.js`/`daily-board.js`/`daily-ui.js` ⇒ `name1` (và `game.js?v=name1` ở 3 index.html); trang chủ `styles.css`, `portal-pixel.css`, `games.js`, `app.js`, `press-nav.js`, `daily.js` ⇒ `d3a` (cả `quyen-rieng-tu.html`); file mới `nav.css`, `profile.js`, `bang-xep-hang.*` ⇒ `d3a`. `node tools/cache-tags/check-tags.mjs master` ⇒ xem mục Test.
+`account.js` ⇒ `name2`, `daily-board.js`/`daily-ui.js` ⇒ `name1` (và `game.js?v=name1` ở 3 index.html); trang chủ `styles.css`, `portal-pixel.css`, `games.js`, `app.js`, `press-nav.js`, `daily.js` ⇒ `d3a` (cả `quyen-rieng-tu.html`); file mới `nav.css`, `profile.js`, `bang-xep-hang.*` ⇒ `d3a` (sửa sau: `nav.css`, `press-nav.js`, `portal-pixel.css` ⇒ `d3b`). `node tools/cache-tags/check-tags.mjs master` ⇒ xem mục Test.
 
-SỐ_ĐO_VÀ_TEST
+## Gộp với D3-online (`online-kit.js`)
+- Đã merge master `653a141` (10 game online dùng `online-kit.js`). Theo yêu cầu agent game online: thêm `hasCustomName()` (= `!isGenerated()`); sinh tên tự động **không** bật cờ `asked` (chỉ `setName` / tên người chơi gõ mới bật).
+- `account.js?v=name2` ở mọi chỗ import (gồm `online-kit.js`), `online-kit.js?v=ok2` ở mọi chỗ tham chiếu, và tăng dây chuyền tag (`…h3`) ở các file game import online-kit.js (game.js/net.js/online.js/app.js + index.html của 10 game) để `check-tags` OK.
+
+## Phụ: press-nav + dải Chơi ngay
+- Dải "Chơi ngay" ban đầu có `scroll-snap`: trình duyệt chỉnh vị trí vài px ngay lúc chạm ⇒ sự kiện scroll ⇒ press-nav huỷ chạm (touch-scroll-e2e lỗi chập chờn "chạm giữ ⇒ lún", "chạm thật ⇒ kêu"). Bỏ scroll-snap ở dải này; press-nav giờ chỉ huỷ khi thẻ đang chạm **thật sự dịch > 10 px** khi có scroll.
+- Mục điều hướng desktop lún khi bấm (sound-press-e2e kiểm mọi phần tử bấm được).
+
+## Số đo
+`tools/perf/home-vitals.mjs` (Slow 4G + CPU 4×, mỗi lần hồ sơ mới, 3 lần), máy đang chạy song song test của agent khác nên LCP dao động.
+"Trước" = master `27ac178` (worktree tạm, cổng riêng), "sau" = nhánh này.
+
+| Cỡ | CLS trước | CLS sau | LCP trước → sau (ms, 3 lần) |
+|---|---|---|---|
+| 390×844 chậm | 0 / 0 / 0 | **0 / 0 / 0** | 1680·1556·1784 → 1392·2928·1436 |
+| 412×915 chậm | 0 / 0 / 0 | **0 / 0 / 0** | 1828·1672·1880 → 1648·1572·1692 |
+| 1366×768 chậm | 0,0061 / 0,0062 / 0,0061 | **0,0066 / 0,0072 / 0,0066** | 2772·2924·2748 → 2624·2684·2612 |
+| 1366×768 nhanh | 0,0001 ×3 | 0,0008 / 0,0008 / 0,0013 | 228 → ~560 (máy bận) |
+
+- Bỏ khu Thử thách khiến "Tất cả game" lên màn đầu 1366 ⇒ lần đo đầu CLS 0,11 (tab lọc `#chips` + `#count` do app.js vẽ trễ). Sửa: tab lọc + số đếm **viết sẵn trong HTML** (= `renderChips()`), CLS về ≈ master.
+- Bảng xếp hạng (390 / 1366 chậm): CLS ≤ 0,002.
+- Màn đầu 390×844: 7 thẻ game thấy trọn (trước 0). Trang chủ 390 tải thêm ~8 ảnh nửa cỡ của dải Chơi ngay (ảnh nhỏ 240–360w).
+- Không tràn ngang 320 / 360 / 390 / 412 / 768 / 844×390 / 1024 / 1366 / 1920 (trang chủ + bảng xếp hạng, e2e), không lỗi console.
+
+## Test
+| Lệnh | Kết quả |
+|---|---|
+| `node --test prototype/games/_shared/test/*.test.mjs` | 48/48 (mới: `board-labels.test.mjs`) |
+| `npm run test:account` | 26/26 |
+| `node --test games-server/*.test.mjs` | 102/102 (mới: `name-gen.test.mjs` ~25 s, duyệt hết ~120.000 tên). `ws-heartbeat` chập chờn khi máy bận (cả trên master), chạy riêng đạt |
+| `node --test server-static.test.mjs` | 8/8 |
+| `home-d3-e2e.mjs` (**mới**) | 35/35 — tên tự sinh + bản lưu cũ, ô hồ sơ (Enter/Esc/×, lỗi 2–16, tên tục bị máy chủ từ chối, tab khác đổi theo), điều hướng + h1, tài trợ, tìm kiếm, dán mã, màn đầu 390, 320–1920, trang bảng xếp hạng (tab phím, hôm qua, tô dòng, "4/5 · 15 giây") |
+| `daily-e2e.mjs` | 40/40 (sửa có chủ đích: kiểm nhãn ★ Thử thách thay hàng thẻ lớn; thêm Về trang chủ / "Còn: …" / "← Trang chủ" không bị che / Esc; thẻ Đã xong ở trang bảng xếp hạng) |
+| `daily-board-e2e.mjs` | 26/26 (sửa có chủ đích: không hỏi tên — tên tự sinh; đổi tên qua "Đổi tên" + lỗi 1 ký tự; hạng #N/M kiểm ở trang bảng xếp hạng; trang chủ người mới được nạp account.js nhưng không gọi API) |
+| `share-e2e.mjs` | 53/53 |
+| `sound-press-e2e.mjs` | 246/246 |
+| `touch-scroll-e2e.mjs` | 22/22 (3 lần liền) |
+| `chat-off-e2e.mjs` | 248/250 lần đầu (Nối Từ 390 "B thấy tin của A" — chập chờn), chạy lại `noi-tu` 25/25 |
+| `screenshots/check.mjs` | 78/84 — 5 lỗi **có sẵn trên master** (nút vàng/teal portal, Tập Làm Chủ "3 thẻ Sắp ra mắt", "viền mảnh + bo góc", Tiệm Trà Sữa "Sắp ra mắt", hero__dot 37 px ở 360) + "Nông Trại mở thẳng" (chờ 1,5 s, máy bận; lần chạy trước đạt). Sửa có chủ đích: không đếm thẻ Tài trợ là game; hàng dính điện thoại là `.topbar__row` (logo + hồ sơ) |
+| `node tools/cache-tags/check-tags.mjs master` | OK |
+
+Ảnh trước/sau (scratchpad, không commit): `shots/before-*.png`, `shots/after-*.png` (390×844, 844×390, 1366×768, 320×568), `shots/after-lb-*.png`, ảnh e2e trong `e2e2/`.
+
+## Cần chủ dự án xem
+- **20 tên mẫu** (sinh ngẫu nhiên từ kho): Ếch Tí Hon 14 · Nai Gắt 30 · Mèo Mun Gắt 59 · Kỳ Lân Hớn Hở 13 · Heo Phố 66 · Thánh Ham Ăn 12 · Gấu Đáng Yêu 83 · Gấu Hổ Báo 87 · Rùa Siêu Tốc 07 · Sóc Mập 59 · Gấu Trúc Bông 30 · Kỳ Lân Lầy 16 · Gấu Cà Khịa 42 · Heo Bá Đạo 52 · Sư Phụ Lầy 04 · Ong Ú Nu 29 · Cú Cáu Kỉnh 58 · Hiệp Sĩ Tò Mò 55 · Vịt Láo 22 · Trùm Hẻm 31. Danh sách đầy đủ: `NAME_HEADS` / `NAME_TAILS` đầu `account.js`.
+- **Link SpeakUp Kids**: khối cũ là `href="#"`; cần URL thật điền vào `window.SPONSOR.url` (`games.js`).
+- Avatar là "con thú" pixel sinh theo hash, chưa đúng từng con (Nai/Voi dùng tai ngẫu nhiên).
+- Chưa làm: P-F (sảnh "Đang diễn ra"), hero ≤ 60vh khi điện thoại xoay ngang (844×390 vẫn chủ yếu thấy hero), "Đăng nhập" trong ô hồ sơ.

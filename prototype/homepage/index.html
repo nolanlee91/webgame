@@ -161,8 +161,8 @@
     <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng; tab lọc = đúng các kệ) -->
     <section class="shelves" id="games" data-name="games" aria-labelledby="gamesTitle">
       <div class="shelves__head">
-        <h2 class="section__title" id="gamesTitle">Tất cả game <span class="count" id="count"></span></h2>
-        <nav class="tabs" id="chips" aria-label="Lọc game theo loại" data-name="filters"></nav>
+        <h2 class="section__title" id="gamesTitle">Tất cả game <span class="count" id="count">25</span></h2>
+        <!-- tab viết sẵn (= renderChips() của app.js) để khung không nhảy khi app.js vẽ — CLS --><nav class="tabs" id="chips" aria-label="Lọc game theo loại" data-name="filters"><button type="button" class="tab" data-cat="all" aria-pressed="true">Tất cả <span class="tab__n">25</span></button><button type="button" class="tab" data-cat="tap-lam-chu" aria-pressed="false">Tập Làm Chủ <span class="tab__n">4</span></button><button type="button" class="tab" data-cat="duel" aria-pressed="false">Đối Kháng <span class="tab__n">10</span></button><button type="button" class="tab" data-cat="giai-do" aria-pressed="false">Giải đố <span class="tab__n">6</span></button><button type="button" class="tab" data-cat="hanh-dong" aria-pressed="false">Hành động <span class="tab__n">3</span></button><button type="button" class="tab" data-cat="tri-tue" aria-pressed="false">Trí tuệ <span class="tab__n">2</span></button></nav>
       </div>
       <div id="grid"></div>
       <div class="empty" id="empty" hidden><p class="empty__msg"><span id="emptyMsg">Không tìm thấy game nào.</span> <button class="link" id="clearSearch" type="button">Xem tất cả game</button></p>
