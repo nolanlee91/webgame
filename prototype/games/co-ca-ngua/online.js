@@ -4,7 +4,7 @@
 //   • chuyển ý định của người chơi lên máy chủ và đẩy trạng thái máy chủ về cho game.js (inst.netState),
 //   • tự nối lại khi rớt mạng (giữ ghế bằng token trong sessionStorage — mỗi tab là một người chơi),
 //   • đóng hẳn tab rồi mở lại link mời: token còn trong localStorage "<SEAT_KEY>.<MÃ>" (hết hạn 30 phút) ⇒ "resume" đúng ghế cũ.
-import { mount } from "./game.js?v=d7o";
+import { mount } from "./game.js?v=d8o";
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import { sharedName, sessionId, initKick, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=d6g"; // tên dùng chung + "Mời ra"
