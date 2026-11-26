@@ -116,6 +116,7 @@ function makeSfx(dir, names, sdk) {
 export function mount(el, ctx = {}) {
   loadArt().catch(() => {});
   const sdk = ctx.sdk || {};
+  const hudEl = ctx.hudEl || null; // D8: HUD chữ thật ngoài canvas (không có thì vẽ trên canvas như cũ)
   const sfx = makeSfx("assets/sfx/", ["tha-moc", "keo-vat", "trung-vang", "trung-kim-cuong", "trung-da", "no-tnt", "het-gio", "qua-man", "thang", "thua"], sdk);
   const players = 1; // chỉ chơi 1 người (đã bỏ chế độ 2 người cùng máy; ctx.localPlayers cũ = 2 cũng thành 1 người)
   let g = createGame({ players, seed: ctx.seed });
@@ -131,6 +132,9 @@ export function mount(el, ctx = {}) {
   canvas.setAttribute("aria-label", "Màn chơi Đào Vàng");
   canvas.tabIndex = 0;
   canvas.style.cssText = "display:block;width:100%;height:auto;aspect-ratio:" + W + "/" + H + ";touch-action:manipulation;outline:none;image-rendering:pixelated";
+  // D8: chữ trên canvas co theo khung (điện thoại dọc: 1 đơn vị canvas ≈ 0,32 px CSS) ⇒ phóng chữ để ≥ ~12,5 px CSS.
+  const cssScale = () => (canvas.clientWidth || W) / W;
+  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
   el.appendChild(canvas);
   const c2 = canvas.getContext("2d");
 
@@ -361,7 +365,6 @@ export function mount(el, ctx = {}) {
     pxText("MÀN " + g.level, W / 2, 23, PX.ink, FONT(800, 15));
     c2.textAlign = "right";
     const low = g.time <= 10, tc = low ? COLORS.bad : PX.ink;
-    if (low && g.time > 0 && !g._lowWarned) { g._lowWarned = true; sfx.play("het-gio", 0.45); } // còn 10 giây (cờ gắn vào màn hiện tại)
     pxText(Math.ceil(g.time) + " giây", W - 16, 22, tc, FONT(800, 18));
     clockIcon(W - 16 - c2.measureText(Math.ceil(g.time) + " giây").width - 26, 14, tc);
     // thanh thời gian chia ô (pixel), nằm dưới viền HUD
@@ -372,24 +375,6 @@ export function mount(el, ctx = {}) {
       c2.fillRect(i * cw + 1, 47, cw - 2, 5);
       if (i < on) { c2.fillStyle = "rgba(0,0,0,.3)"; c2.fillRect(i * cw + 1, 50, cw - 2, 2); }
     }
-  }
-  function overlay(title, lines, color) {
-    c2.fillStyle = "rgba(8,7,6,.62)"; c2.fillRect(0, 0, W, H);
-    const bw = 540, bh = 112 + lines.length * 30, bx = Math.round((W - bw) / 2), by = Math.round((H - bh) / 2);
-    pxBox(bx, by, bw, bh, PX.panel, PX.line, true);
-    c2.fillStyle = color; c2.fillRect(bx, by, bw, 6); // dải màu trạng thái (như thẻ Cờ Cá Ngựa)
-    c2.fillStyle = "rgba(0,0,0,.35)"; c2.fillRect(bx, by + 4, bw, 2);
-    c2.textAlign = "center"; c2.textBaseline = "middle";
-    pxText(title.toUpperCase(), W / 2, by + 48, color, FONT(800, 32));
-    const body = lines.slice(0, -1), cta = lines[lines.length - 1];
-    body.forEach((l, i) => pxText(l, W / 2, by + 92 + i * 30, PX.ink, FONT(600, 18)));
-    // lời nhắc hành động chính = "nút" vàng
-    c2.font = FONT(800, 15); const tw = Math.ceil(c2.measureText(cta.toUpperCase()).width) + 32;
-    const cy = by + bh - 50, cx = Math.round(W / 2 - tw / 2);
-    pxBox(cx, cy, tw, 34, PX.gold, PX.goldD, true);
-    c2.fillStyle = PX.goldL; c2.fillRect(cx, cy, tw, 3);
-    c2.fillStyle = "#2c1b05"; c2.fillText(cta.toUpperCase(), W / 2, cy + 18);
-    return by + bh;
   }
   function draw() {
     c2.save();
@@ -411,41 +396,82 @@ export function mount(el, ctx = {}) {
     for (const p of pops) {
       c2.globalAlpha = Math.max(0, 1 - p.t / 1.2);
       c2.textAlign = "center"; c2.textBaseline = "middle";
-      pxText(p.text, p.x, p.y - p.t * 40, p.color, FONT(800, 24));
+      pxText(p.text, p.x, p.y - p.t * 40, p.color, FONT(800, Math.max(24, 13 / cssScale())));
       c2.globalAlpha = 1;
     }
     c2.restore();
     if (flash > 0) { c2.fillStyle = "rgba(255,220,160," + flash * 2 + ")"; c2.fillRect(0, 0, W, H); }
-    hud();
-    const keyHint = "Space / ↓ hoặc chạm màn hình để thả móc";
+    if (hudEl) hudDom(); else hud();
+    lowTimeCue();
+    const keyHint = coarse ? "Chạm màn hình để thả móc" : "Space / ↓ hoặc chạm màn hình để thả móc";
     if (g.status === "playing" && g.tick < 240 && !paused) {
-      c2.font = FONT(700, 15); const kw = Math.ceil(c2.measureText(keyHint).width) + 32;
-      pxBox(Math.round(W / 2 - kw / 2), H - 48, kw, 32, PX.panel, PX.line, true);
-      c2.textAlign = "center"; c2.textBaseline = "middle"; pxText(keyHint, W / 2, H - 31, PX.ink, FONT(700, 15));
+      // chữ ≥ ~12,5 px CSS ở mọi cỡ khung; dài quá bề ngang thì thu lại cho vừa
+      let fs = Math.max(15, 12.5 / cssScale()); c2.font = FONT(700, fs);
+      const fit = (W - 40) / (c2.measureText(keyHint).width + 32); if (fit < 1) { fs *= fit; c2.font = FONT(700, fs); }
+      const kw = Math.ceil(c2.measureText(keyHint).width) + 32, kh = Math.round(fs * 2.1);
+      pxBox(Math.round(W / 2 - kw / 2), H - 16 - kh, kw, kh, PX.panel, PX.line, true);
+      c2.textAlign = "center"; c2.textBaseline = "middle"; pxText(keyHint, W / 2, H - 16 - kh / 2 + 1, PX.ink, FONT(700, fs));
     }
-    if (g.status === "cleared") {
-      overlay("Qua màn " + g.level + "!", ["Điểm " + g.score + " / mục tiêu " + g.target, "Nhấn Space hoặc chạm để sang màn " + (g.level + 1)], COLORS.ok);
-    }
-    let shareAt = 0;
-    if (g.status === "failed") {
-      const rec = result && result.record && result.score > 0 ? "Kỷ lục mới!" : saved.best ? "Kỷ lục: " + saved.best : null;
-      shareAt = overlay("Hết giờ!", ["Thiếu " + (g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + g.score, ...(rec ? [rec] : []), "Nhấn Space hoặc chạm để chơi lại"], COLORS.bad);
-    } else if (paused) {
-      overlay("Tạm dừng", ["Trò chơi đang dừng", "Nhấn P hoặc chạm để chơi tiếp"], PX.ink);
-    }
-    placeShare(shareAt);
+    // Bảng Qua màn / Hết giờ / Tạm dừng: canvas chỉ phủ tối, chữ + nút là DOM (.dv-ov) để đọc được trên điện thoại.
+    if (g.status !== "playing" || paused) { c2.fillStyle = "rgba(8,7,6,.62)"; c2.fillRect(0, 0, W, H); }
+    showCard();
   }
 
-  // ---------- Nút "Khoe kết quả" (DOM, nằm ngay dưới bảng "Hết giờ" trên canvas) ----------
-  const shareBtn = document.createElement("button");
-  shareBtn.type = "button"; shareBtn.className = "btn dv-share"; shareBtn.id = "shareBtn"; shareBtn.textContent = "Khoe kết quả"; shareBtn.hidden = true;
-  el.appendChild(shareBtn);
-  let shareTop = -1;
-  function placeShare(y) {
-    const show = y > 0 && !paused;
-    if (shareBtn.hidden === show) shareBtn.hidden = !show;
-    if (show && y !== shareTop) { shareTop = y; shareBtn.style.top = (y + 18) / H * 100 + "%"; }
+  // ---------- HUD bằng chữ thật (ctx.hudEl) — chỉ ghi DOM khi số đổi ----------
+  let hudRefs = null, hudLast = {};
+  if (hudEl) {
+    hudEl.innerHTML = '<span class="dvh__i" data-k="s"><small>Điểm</small><b>0</b></span><span class="dvh__i" data-k="g"><small>Mục tiêu</small><b>0</b></span>' +
+      '<span class="dvh__i" data-k="l"><small>Màn</small><b>1</b></span><span class="dvh__i dvh__t" data-k="t"><small>Thời gian</small><b>60 giây</b></span><span class="dvh__bar" aria-hidden="true"><i></i></span>';
+    const q = (k) => hudEl.querySelector('[data-k="' + k + '"]');
+    hudRefs = { s: q("s"), g: q("g"), l: q("l"), t: q("t"), bar: hudEl.querySelector(".dvh__bar i") };
   }
+  function setHud(k, v, fn) { if (hudLast[k] !== v) { hudLast[k] = v; fn(v); } }
+  function hudDom() {
+    const R = hudRefs, reached = g.score >= g.target, low = g.time <= 10;
+    setHud("s", g.score, (v) => { R.s.lastChild.textContent = fmtNum(v); });
+    setHud("g", g.target + "|" + reached, () => { R.g.lastChild.textContent = fmtNum(g.target) + (reached ? " ✓" : ""); R.g.classList.toggle("is-ok", reached); });
+    setHud("l", g.level, (v) => { R.l.lastChild.textContent = v; });
+    setHud("t", Math.ceil(Math.max(0, g.time)) + "|" + low, () => { R.t.lastChild.textContent = Math.ceil(Math.max(0, g.time)) + " giây"; R.t.classList.toggle("is-low", low); });
+    setHud("bar", Math.ceil(40 * Math.max(0, g.time) / CFG.levelTime), (v) => { R.bar.style.setProperty("--t", (v * 2.5) + "%"); });
+  }
+  function lowTimeCue() { // còn 10 giây: nhắc 1 lần (cờ gắn vào màn hiện tại)
+    if (g.time <= 10 && g.time > 0 && !g._lowWarned) { g._lowWarned = true; sfx.play("het-gio", 0.45); }
+  }
+
+  // ---------- Bảng kết quả / tạm dừng (DOM, phủ lên khung chơi) ----------
+  const ov = document.createElement("div");
+  ov.className = "dv-ov"; ov.hidden = true;
+  el.appendChild(ov);
+  const shareBtn = document.createElement("button");
+  shareBtn.type = "button"; shareBtn.className = "btn dv-share"; shareBtn.id = "shareBtn"; shareBtn.textContent = "Khoe kết quả";
+  let cardKey = "";
+  function showCard() {
+    const st = paused && g.status === "playing" ? "paused" : g.status;
+    const rec = st === "failed" ? (result && result.record && result.score > 0 ? "Kỷ lục mới!" : saved.best ? "Kỷ lục: " + fmtNum(saved.best) : "") : "";
+    const key = st === "playing" ? "" : [st, g.level, g.score, g.target, rec].join("|");
+    if (key === cardKey) return;
+    cardKey = key;
+    if (!key) { ov.hidden = true; ov.textContent = ""; return; }
+    const kb = coarse ? "" : st === "paused" ? "hoặc nhấn P" : "hoặc nhấn Space";
+    const C = { cleared: ["Qua màn " + g.level + "!", COLORS.ok, ["Điểm " + fmtNum(g.score) + " / mục tiêu " + fmtNum(g.target)], "Sang màn " + (g.level + 1)],
+      failed: ["Hết giờ!", COLORS.bad, ["Thiếu " + fmtNum(g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + fmtNum(g.score)], "Chơi lại"],
+      paused: ["Tạm dừng", PX.ink, ["Trò chơi đang dừng"], "Chơi tiếp"] }[st];
+    const card = document.createElement("div");
+    card.className = "dv-card"; card.setAttribute("role", "dialog"); card.setAttribute("aria-label", C[0]); card.style.setProperty("--c", C[1]);
+    const h = document.createElement("h2"); h.textContent = C[0]; card.appendChild(h);
+    for (const line of C[2]) { const p = document.createElement("p"); p.textContent = line; card.appendChild(p); }
+    if (rec) { const p = document.createElement("p"); p.className = "dv-rec"; p.textContent = rec; card.appendChild(p); }
+    const acts = document.createElement("div"); acts.className = "dv-acts";
+    const go = document.createElement("button"); go.type = "button"; go.className = "btn btn--primary dv-go"; go.textContent = C[3];
+    go.addEventListener("click", () => { sfx.unlock(); act(0); canvas.focus({ preventScroll: true }); });
+    acts.appendChild(go);
+    if (st === "failed") acts.appendChild(shareBtn);
+    card.appendChild(acts);
+    if (kb) { const p = document.createElement("p"); p.className = "dv-kb"; p.textContent = kb; card.appendChild(p); }
+    ov.textContent = ""; ov.appendChild(card); ov.hidden = false;
+  }
+  // chạm vùng tối quanh bảng = như chạm canvas trước đây (chơi tiếp / sang màn / chơi lại); chạm trong bảng thì chỉ nút mới tính
+  ov.addEventListener("pointerdown", (e) => { if (e.target === ov) onPointer(e); });
   shareBtn.addEventListener("click", () => {
     const r = result; if (!r) return;
     const tagline = r.record && r.level >= 4 ? "Kỷ lục mới! Mỏ vàng này giờ đứng tên tui."
@@ -470,7 +496,7 @@ export function mount(el, ctx = {}) {
       window.removeEventListener("keydown", onKey);
       canvas.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("visibilitychange", onVis);
-      canvas.remove(); shareBtn.remove();
+      canvas.remove(); ov.remove(); if (hudEl) hudEl.textContent = "";
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return g; },
