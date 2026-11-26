@@ -31,10 +31,12 @@
     :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c; --red: #e0483d; --pink: #e05f9c;
-      --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
       --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
       --drop: 4px 7px 0 0 var(--shadow), 7px 4px 0 0 var(--shadow); }
     * { box-sizing: border-box; }
+    /* Viền 3px theo màu --b của CHÍNH phần tử. --border phải khai trên từng phần tử: khai trên :root thì var(--b) bị tính một lần ở gốc
+       ⇒ mọi viền ra --line, đặt --b riêng không ăn. --b: initial (độ ưu tiên 0, mọi luật class đè được) để --b không truyền xuống con. */
+    *, ::before, ::after { --b: initial; --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line)); }
     [hidden] { display: none !important; }
     html, body { height: 100%; }
     body { margin: 0; background: linear-gradient(180deg, #21162944, #21162988), url("assets/bg/shop-v2.webp") center / cover no-repeat, #291e35; image-rendering: pixelated; color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;
@@ -85,7 +87,7 @@
     .btn:hover { background: #30281f; }
     .btn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 5px; }
     .btn:not(:disabled):active { transform: translate(4px, 4px); box-shadow: var(--bevel), var(--border); }
-    .btn[disabled] { color: var(--dim); cursor: default; box-shadow: var(--border); background: #1a1612; transform: none; }
+    .btn[disabled] { color: var(--dim); cursor: default; --b: var(--line); box-shadow: var(--border); background: #1a1612; transform: none; }
     .btn img { width: 16px; height: 16px; image-rendering: pixelated; }
     .btn--icon { padding: 8px 12px; }
     .btn--big { min-height: 52px; font-size: 17px; padding: 12px 22px; }

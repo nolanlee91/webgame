@@ -3,12 +3,16 @@
    KHÔNG bo tròn, nút có vát sáng/tối, tiêu đề chữ đậm có bóng cứng. Ảnh game giữ nguyên. */
 .theme-b {
   --nv-line: #0a111c; --nv-edge: #3c526d; --nv-edge-hi: #6b86a6;
-  --b-border: 0 -3px 0 0 var(--b, var(--nv-line)), 0 3px 0 0 var(--b, var(--nv-line)), -3px 0 0 0 var(--b, var(--nv-line)), 3px 0 0 0 var(--b, var(--nv-line));
   --b-bevel: inset 0 2px 0 rgba(255, 255, 255, .08), inset 0 -2px 0 rgba(0, 0, 0, .35);
   --b-drop: 4px 6px 0 0 #050a12, 6px 4px 0 0 #050a12;
   background: var(--bg);
   background-image: linear-gradient(#ffffff05 2px, transparent 2px), linear-gradient(90deg, #ffffff05 2px, transparent 2px);
   background-size: 32px 32px;
+}
+/* Viền 3px theo màu --b của CHÍNH phần tử. --b-border phải khai trên từng phần tử: khai trên .theme-b thì var(--b) bị tính một lần ở body
+   ⇒ mọi viền ra --nv-line, đặt --b riêng không ăn. :where() giữ độ ưu tiên 0 (mọi luật class đè được); --b: initial để --b không truyền xuống con. */
+:where(.theme-b, .theme-b *), :where(.theme-b, .theme-b *)::before, :where(.theme-b, .theme-b *)::after {
+  --b: initial; --b-border: 0 -3px 0 0 var(--b, var(--nv-line)), 0 3px 0 0 var(--b, var(--nv-line)), -3px 0 0 0 var(--b, var(--nv-line)), 3px 0 0 0 var(--b, var(--nv-line));
 }
 
 /* Bề mặt: bỏ bo tròn + viền mảnh, thay bằng khung pixel */

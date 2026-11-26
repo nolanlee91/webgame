@@ -5,12 +5,14 @@
   --gold: #f5d77f; --gold-d: #a8741a; --green: #3a7d44; --teal: #2f8f83; --teal-d: #1b5b53;
   --red: #e03c3c; --moon: #7ea7e0;
   --bg: #2c221b; --panel: #2a2119; --panel2: #3a2d21; --accent: var(--gold);
-  --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
   --bevel: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -2px 0 rgba(0,0,0,.35);
   --drop: 4px 6px 0 0 var(--shadow);
 }
 body.is-night { --bg: #0b0e14; --panel: #12161f; --panel2: #1b2130; --accent: var(--moon); --soft: #a9b4c8; --dim: #6c7690; }
 * { box-sizing: border-box; }
+/* Viền 3px theo màu --b của CHÍNH phần tử. --border phải khai trên từng phần tử: khai trên :root thì var(--b) bị tính một lần ở gốc
+   ⇒ mọi viền ra --line, đặt --b riêng không ăn. --b: initial (độ ưu tiên 0, mọi luật class đè được) để --b không truyền xuống con. */
+*, ::before, ::after { --b: initial; --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line)); }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif;

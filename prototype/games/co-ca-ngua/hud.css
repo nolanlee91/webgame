@@ -6,11 +6,15 @@
   --px-panel: #1d1a16; --px-panel2: #262019; --px-line: #0a0807; --px-shadow: rgba(0,0,0,.6);
   --px-gold: #ffc94a; --px-gold-d: #a8741a; --px-gold-l: #ffe9a8;
   --red: #e0483d; --green: #3fae4a; --yellow: #f2b632; --blue: #3a7bd5;
-  --px-border: 0 -3px 0 0 var(--b, var(--px-line)), 0 3px 0 0 var(--b, var(--px-line)), -3px 0 0 0 var(--b, var(--px-line)), 3px 0 0 0 var(--b, var(--px-line));
   --px-bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
   --px-drop: 4px 7px 0 0 var(--px-shadow), 7px 4px 0 0 var(--px-shadow);
   position: relative; color: var(--px-ink); user-select: none; -webkit-user-select: none;
   font: 600 14px/1.35 "Be Vietnam Pro", system-ui, sans-serif;
+}
+/* Viền 3px theo màu --b của CHÍNH phần tử. --px-border phải khai trên từng phần tử: khai trên .cn-table thì var(--b) bị tính một lần ở đó
+   ⇒ mọi viền ra --px-line, đặt --b riêng không ăn. :where() giữ độ ưu tiên 0 (mọi luật class đè được); --b: initial để --b không truyền xuống con. */
+:where(.cn-table, .cn-table *), :where(.cn-table, .cn-table *)::before, :where(.cn-table, .cn-table *)::after {
+  --b: initial; --px-border: 0 -3px 0 0 var(--b, var(--px-line)), 0 3px 0 0 var(--b, var(--px-line)), -3px 0 0 0 var(--b, var(--px-line)), 3px 0 0 0 var(--b, var(--px-line));
 }
 .cn-table [hidden] { display: none !important; }
 .cn-table img.px-ic { width: 16px; height: 16px; image-rendering: pixelated; vertical-align: -3px; }

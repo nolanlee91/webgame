@@ -31,10 +31,12 @@
     :root { --bg: #11171c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08;
-      --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line));
       --bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
       --drop: 4px 7px 0 0 var(--shadow), 7px 4px 0 0 var(--shadow); }
     * { box-sizing: border-box; }
+    /* Viền 3px theo màu --b của CHÍNH phần tử. --border phải khai trên từng phần tử: khai trên :root thì var(--b) bị tính một lần ở gốc
+       ⇒ mọi viền ra --line, đặt --b riêng không ăn. --b: initial (độ ưu tiên 0, mọi luật class đè được) để --b không truyền xuống con. */
+    *, ::before, ::after { --b: initial; --border: 0 -3px 0 0 var(--b, var(--line)), 0 3px 0 0 var(--b, var(--line)), -3px 0 0 0 var(--b, var(--line)), 3px 0 0 0 var(--b, var(--line)); }
     [hidden] { display: none !important; }
     body { margin: 0; background: var(--bg); color: var(--ink); font: 500 15px/1.5 "Be Vietnam Pro", system-ui, sans-serif; }
     .bar { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: #0c1014; box-shadow: inset 0 -3px 0 #000; }
