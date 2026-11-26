@@ -115,7 +115,12 @@ try {
   // tên khách giờ tự sinh (_shared/account.js) ⇒ ô tên luôn điền sẵn; kiểm tra hợp lệ khi người chơi sửa tên
   const autoName = await A.ev(`document.getElementById('nameInp').value`);
   ok(autoName.trim().length > 0 && autoName.length <= 16, `người mới: ô tên điền sẵn tên khách tự sinh (“${autoName}”)`);
-  ok(await A.ev(`document.getElementById('nameInp').maxLength`) === 16, 'ô tên giới hạn 16 ký tự (không gõ được tên quá dài)');
+  // PARTY2-06 (D8): không cắt im lặng ở 16 nữa — bộ đếm n/16, dài quá thì nhắc và không tạo phòng
+  await A.ev(`(()=>{const i=document.getElementById('nameInp'); i.value='Nguyễn Thị Thanh Hương'; i.dispatchEvent(new Event('input'))})()`);
+  ok(/^22\/16 · dài quá$/.test(await A.ev(`document.getElementById('nameCount').textContent`)), 'ô tên có bộ đếm n/16, báo "dài quá"');
+  await A.click('#createBtn');
+  await sleep(300);
+  ok(/Tên tối đa 16 ký tự — bớt 6/.test(await A.ev(`document.getElementById('homeMsg').textContent`)) && await A.ev(`document.getElementById('game').hidden`), 'tên dài quá ⇒ nhắc bớt ký tự, không tạo phòng');
   await A.ev(`document.getElementById('nameInp').value='   '`);
   await A.click('#createBtn');
   await sleep(300);
