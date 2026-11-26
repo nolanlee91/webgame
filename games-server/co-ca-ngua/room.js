@@ -4,6 +4,7 @@
 // tự gieo xúc xắc bằng crypto (không dùng RNG có seed của logic.js để không ai đoán trước được mặt xúc xắc).
 "use strict";
 const { Chat } = require("./chat");
+const { Rematch, AGAIN_MS } = require("../rematch");
 
 const MAX_PLAYERS = 4;
 const BOT_NAMES = ["Bot Tèo", "Bot Mận", "Bot Tí", "Bot Sửu"];
@@ -13,6 +14,7 @@ const DEFAULT_TIMINGS = {
   away: 8000,     // người có lượt đang mất kết nối → đi thay sớm hơn
   left: 1200,     // người đã rời ván → máy chủ đi thay gần như ngay
   bot: 1800,      // ghế bot (chủ phòng thêm ở phòng chờ): đợi xúc xắc bay / ngựa nhảy xong rồi mới đi
+  again: AGAIN_MS, // hết ván: một người bấm "Ván mới" ⇒ đếm ngược rồi mới mở ván mới (mọi người thật bấm ⇒ mở ngay) — ../rematch.js
 };
 
 // Tên: bộ lọc dùng chung games-server/moderation.js — bỏ ký tự điều khiển / vô hình / bidi và < >, cắt 16 ký tự thật
@@ -36,6 +38,7 @@ class Room {
     this.timer = null;
     this.closed = false;
     this.chat = new Chat(clock); // trò chuyện của phòng — sống cùng phòng
+    this.rematch = new Rematch(clock, this.t.again); // "Ván mới" cần mọi người thật sẵn sàng hoặc hết đếm ngược (BOARD2-03)
   }
 
   get hostSeat() { return this.players.findIndex((p) => !p.left && !p.bot); }
@@ -56,6 +59,8 @@ class Room {
     if (this.phase === "lobby") this.players.splice(i, 1);
     else { p.left = true; p.connected = false; p.token = null; }
     if (!this.humans().length) return this.close(); // chỉ còn bot ⇒ đóng phòng
+    // hết ván, người còn lại đều đã bấm "Ván mới" ⇒ không bắt họ chờ hết đếm ngược vì người vừa rời
+    if (this.phase === "over" && this.rematch.deadline) this.rematch.vote(null, this.humans(), () => this.nextRound());
     this.schedule(false);
     this.changed();
   }
@@ -99,9 +104,13 @@ class Room {
         if (i !== this.hostSeat) return { err: "not-host" };
         if (this.players.length < 2) return { err: "need-2" };
         this.newGame(); return { ok: true };
-      case "again":
+      case "again": // "tôi sẵn sàng ván mới": mọi người thật sẵn sàng ⇒ mở ngay, không thì đếm ngược (../rematch.js)
         if (this.phase !== "over") return { err: "phase" };
-        this.newGame(); return { ok: true };
+        if (this.rematch.vote(p.token, this.humans(), () => this.nextRound()) === "wait") this.changed();
+        return { ok: true };
+      case "lobby": // hết ván → cả phòng về phòng chờ (giữ mã phòng, người và bot; người đã rời bị bỏ) — BOARD2-02
+        if (this.phase !== "over") return { err: "phase" };
+        this.toLobby(); return { ok: true };
       case "roll":
       case "move": {
         if (this.phase !== "play") return { err: "phase" };
@@ -119,7 +128,22 @@ class Room {
     }
   }
 
+  /** Mở ván mới sau "Ván mới" (rematch.js gọi khi mọi người sẵn sàng hoặc hết đếm ngược) — kiểm lại pha / phòng. */
+  nextRound() {
+    if (this.closed || this.phase !== "over" || this.players.length < 2) return;
+    this.newGame();
+  }
+
+  toLobby() {
+    this.clock.clearTimeout(this.timer); this.timer = null; this.deadline = 0;
+    this.rematch.reset();
+    this.players = this.players.filter((p) => !p.left);
+    this.phase = "lobby"; this.g = null; this.gid++; this.seq = 0; this.lastAct = null;
+    this.changed();
+  }
+
   newGame() {
+    this.rematch.reset();
     const L = this.L, n = this.players.length;
     // seed không dùng (xúc xắc do máy chủ gieo bằng crypto) — đặt 0 để không lộ gì qua trạng thái
     this.g = L.createGame({ players: n, seed: 0, rules: { launchOn: this.rule === "16" ? [1, 6] : [6] } });
@@ -183,7 +207,7 @@ class Room {
 
   changed() { if (!this.closed) this.onChange(); }
 
-  close() { this.closed = true; this.clock.clearTimeout(this.timer); this.timer = null; }
+  close() { this.closed = true; this.clock.clearTimeout(this.timer); this.timer = null; this.rematch.reset(); }
 
   /** Góc nhìn gửi cho người thứ i. Cờ cá ngựa không có thông tin ẩn — chỉ bỏ seed/rng và token của người khác. */
   viewFor(i) {
@@ -191,6 +215,7 @@ class Room {
     return {
       code: this.code, phase: this.phase, rule: this.rule, you: i, host: this.hostSeat,
       gid: this.gid, seq: this.seq, act: this.lastAct, deadline: this.deadline,
+      again: this.rematch.flags(this.players), againDeadline: this.rematch.deadline, // hết ván: ai đã bấm "Ván mới" + hạn tự mở ván mới
       players: this.players.map((p, k) => ({ name: p.name, connected: p.connected, left: p.left, bot: !!p.bot, seat: g ? g.seats[k] : -1 })),
       chat: this.chat.view(this.players[i]?.token),
       game: g && {
