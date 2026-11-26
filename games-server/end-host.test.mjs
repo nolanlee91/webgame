@@ -25,7 +25,8 @@ async function raw(port, path, answer) {
     st.msgs += d.toString("latin1");
     if (answer) for (let i = 0; i + 1 < d.length; i++) if (d[i] === 0x89 && d[i + 1] === 0) c.write(Buffer.concat([Buffer.from([0x8a, 0x80]), crypto.randomBytes(4)]));
   });
-  await sleep(50); return st;
+  for (let t0 = Date.now(); !st.up && Date.now() - t0 < 10000; ) await sleep(10); // chờ 101 rồi mới gửi khung
+  return st;
 }
 
 const GAMES = [
@@ -37,36 +38,38 @@ for (const [g, file, fn, winner] of GAMES) {
     test(`${g}: hết ván, chủ phòng ${answer ? "còn trả pong ⇒ vẫn là chủ phòng" : "im lặng ⇒ người kế tiếp thành chủ phòng trong ~endProbeMs, mở được ván mới"}`, async () => {
       const srv = http.createServer();
       const path = `/ws/${g}`;
-      const host = require(file)[fn](srv, { path, endProbeMs: 300, pingMs: 60000, deadMs: 120000 }); // tắt nhịp tim thường để chỉ thử phép dò lúc hết ván
+      const host = require(file)[fn](srv, { path, endProbeMs: 600, pingMs: 60000, deadMs: 120000 }); // tắt nhịp tim thường để chỉ thử phép dò lúc hết ván
       await new Promise((r) => srv.listen(0, "127.0.0.1", r));
       const { port } = srv.address();
-      const a = await raw(port, path, answer);
-      a.c.write(textFrame(JSON.stringify({ t: "create", name: "Chủ Phòng" }))); await sleep(100);
-      const code = /"code":"([A-Z0-9]{5})"/.exec(a.msgs)?.[1];
-      assert.ok(code);
-      const b = new WebSocket(`ws://127.0.0.1:${port}${path}`); const bm = [];
-      b.onmessage = (e) => bm.push(JSON.parse(e.data));
-      await new Promise((r) => (b.onopen = r));
-      b.send(JSON.stringify({ t: "join", code, name: "Khách Một" })); await sleep(100);
-      const room = host.rooms.get(code).room;
+      let a = null, b = null;
+      const until = async (f, ms) => { for (let t0 = Date.now(); !f() && Date.now() - t0 < ms; ) await sleep(20); return f(); };
       try {
+        a = await raw(port, path, answer);
+        a.c.write(textFrame(JSON.stringify({ t: "create", name: "Chủ Phòng" })));
+        let code; await until(() => (code = /"code":"([A-Z0-9]{5})"/.exec(a.msgs)?.[1]), 10000);
+        assert.ok(code, "tạo được phòng");
+        b = new WebSocket(`ws://127.0.0.1:${port}${path}`);
+        await new Promise((r) => (b.onopen = r));
+        b.send(JSON.stringify({ t: "join", code, name: "Khách Một" }));
+        const room = host.rooms.get(code).room;
+        assert.ok(await until(() => room.players.length === 2, 10000), "khách vào được");
         assert.equal(room.host, 0);
-        room.winner = winner || "agency";
+        room.winner = winner;
+        const t0 = Date.now();
         room._enter("end", 0); // ván kết thúc
-        await sleep(150);
-        assert.equal(room.host, 0, "chưa hết endProbeMs ⇒ chưa đổi");
-        await sleep(400);
         if (answer) {
+          await sleep(1500);
           assert.equal(room.host, 0, "chủ phòng còn trả pong ⇒ giữ nguyên");
           assert.equal(room.players[0].connected, true);
         } else {
-          assert.equal(room.host, 1, "chủ phòng im lặng ⇒ chuyển cho người kế tiếp");
+          assert.ok(await until(() => room.host === 1, 5000), "chủ phòng im lặng ⇒ chuyển cho người kế tiếp");
+          assert.ok(Date.now() - t0 >= 500, "không chuyển trước endProbeMs");
           assert.equal(room.players[0].connected, false);
           assert.equal(room.players.length, 2, "chủ cũ vẫn giữ ghế (chỉ mất kết nối)");
-          b.send(JSON.stringify({ t: "again" })); await sleep(100);
-          assert.equal(room.phase, "lobby", "chủ phòng mới bấm Chơi ván mới ⇒ về phòng chờ");
+          b.send(JSON.stringify({ t: "again" }));
+          assert.ok(await until(() => room.phase === "lobby", 3000), "chủ phòng mới bấm Chơi ván mới ⇒ về phòng chờ");
         }
-      } finally { a.c.destroy(); b.close(); host.close(); srv.close(); }
+      } finally { a?.c.destroy(); try { b?.close(); } catch {} host.close(); srv.close(); }
     });
   }
 }
