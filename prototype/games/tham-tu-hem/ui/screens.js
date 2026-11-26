@@ -4,7 +4,7 @@ import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portrait
 import { renderText } from "./dialog.js?v=t11";
 import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
-import { pickEvidence, clueCard } from "./panels.js?v=t13";
+import { pickEvidence, clueCard } from "./panels.js?v=t14";
 import { play as sfx } from "./sfx.js?v=t10";
 import { shareResult } from "../../_shared/share.js?v=s2";
 
@@ -47,7 +47,8 @@ const LO = Object.fromEntries(Object.entries(HD).map(([lo, hi]) => [hi, lo]));
 function hdCover(file, W, H, fx = 0.5) {
   const k = Math.max(W / (SCENE_W * 2), H / (SCENE_H * 2)), w = Math.ceil(SCENE_W * 2 * k), hh = Math.ceil(SCENE_H * 2 * k);
   const left = Math.round(Math.min(0, Math.max(W - w, W / 2 - fx * w)));
-  const lo = LO[file], src = lo && hasFile(lo) && w * dpr() <= SCENE_W ? lo : file;
+  // TTH2-03: băng tựa điện thoại dọc (≤ 480 px CSS) cũng dùng bản 960 dù dpr 3 (1,1 MB ⇒ ~0,1 MB; tranh vẽ mịn, thu/phóng nhẹ không vỡ hạt)
+  const lo = LO[file], src = lo && hasFile(lo) && (w * dpr() <= SCENE_W || w <= 480) ? lo : file;
   return h("img.cover-img.hd-img", { src, alt: "", draggable: "false", style: { width: w + "px", height: hh + "px", left: left + "px", top: Math.round((H - hh) / 2) + "px" } });
 }
 /** Điện thoại dọc: ảnh mở đầu thành băng ngang trên cùng (đủ chiều cao ảnh, sáng rõ, không phủ tối), chữ nằm dưới. */
