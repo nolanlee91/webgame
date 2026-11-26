@@ -155,3 +155,14 @@
   .topbar--nav .mainnav { margin: 0 -12px; }
   .me__btn { width: 190px; }
 }
+
+/* ---------- HOME2-03 / HOME2-04 (D7) ---------- */
+/* Ô tìm 16 px trên mọi máy cảm ứng (điện thoại xoay ngang, iPad): < 16 px thì iOS tự phóng to khi focus */
+@media (pointer: coarse) { .topbar--nav .search input { font-size: 16px; } }
+/* Nhảy tới mục (skip link, chip "Phòng", chip thể loại): tiêu đề mục nằm dưới mép thanh dính ≥ 8 px.
+   Chiều cao thanh dính: > 1180 px 71 · 721–1180 (hai hàng) 117 · ≤ 720 (chỉ hàng logo dính) 57 · xoay ngang thấp: thanh không dính. */
+#games, #lobby, .shelf { scroll-margin-top: 79px; }
+#games:focus, #lobby:focus { outline: none; } /* tabindex="-1" để skip link chuyển focus; tiêu đề ngay đó nên không cần viền */
+@media (max-width: 1180px) { #games, #lobby, .shelf { scroll-margin-top: 125px; } }
+@media (max-width: 720px) { #games, #lobby, .shelf { scroll-margin-top: 65px; } }
+@media (orientation: landscape) and (max-height: 500px) and (min-width: 721px) and (max-width: 1023px) { #games, #lobby, .shelf { scroll-margin-top: 8px; } }

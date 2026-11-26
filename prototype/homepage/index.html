@@ -32,8 +32,8 @@
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
   <link rel="stylesheet" href="styles.css?v=d3a" />
   <link rel="stylesheet" href="portal.css?v=perf1" />
-  <link rel="stylesheet" href="portal-pixel.css?v=d6b" />
-  <link rel="stylesheet" href="nav.css?v=d7a" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d7a" />
+  <link rel="stylesheet" href="nav.css?v=d7b" />
 </head>
 <body class="portal theme-b">
   <a class="skip" href="#games">Bỏ qua, tới danh sách game</a>
@@ -86,6 +86,7 @@
     <section class="arena" id="featuredSection" data-name="arena" aria-label="Game nổi bật và sảnh chờ">
       <div id="featured" class="arena__hero">
         <div class="hero px-panel is-loading" role="region" aria-roledescription="băng chuyền" aria-label="Game nổi bật" data-name="hero">
+          <h2 class="sr-only">Game nổi bật</h2>
           <div class="hero__viewport"><div class="hero__track" id="heroTrack" aria-live="off">
             <!-- Slide 1 viết sẵn trong HTML (= đúng slideHTML() của app.js cho HERO_SLIDES[0]) để ảnh LCP được tải ngay và khung hero có
                  chiều cao thật trước khi JS chạy (CLS). Đổi slide đầu trong games.js thì sửa cả khối này; lệch id ⇒ app.js vẽ lại từ đầu. -->
@@ -104,7 +105,7 @@
         <div class="qp__row" id="qpRow"><a class="card tile tile--qp" href="../games/dao-vang/" data-id="dao-vang"><span class="tile__art"><img data-src="assets/thumbs/half/dao-vang.webp" data-srcset="assets/thumbs/half/dao-vang.webp 360w, assets/thumbs/dao-vang.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Đào Vàng</span></span></a><a class="card tile tile--qp" href="../games/co-caro/" data-id="co-caro"><span class="tile__art"><img data-src="assets/thumbs/half/co-caro.webp" data-srcset="assets/thumbs/half/co-caro.webp 360w, assets/thumbs/co-caro.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Cờ Caro</span></span></a><a class="card tile tile--qp" href="../games/ran-san-moi/" data-id="ran-san-moi"><span class="tile__art"><img data-src="assets/thumbs/half/ran-san-moi.webp" data-srcset="assets/thumbs/half/ran-san-moi.webp 360w, assets/thumbs/ran-san-moi.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Rắn Săn Mồi</span></span></a><a class="card tile tile--qp" href="../games/noi-thu/" data-id="noi-thu"><span class="tile__art"><img data-src="assets/thumbs/half/noi-thu.webp" data-srcset="assets/thumbs/half/noi-thu.webp 360w, assets/thumbs/noi-thu.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Nối Thú</span></span></a><a class="card tile tile--qp" href="../games/tiem-tra-sua/" data-id="tiem-tra-sua"><span class="tile__art"><img data-src="assets/thumbs/half/tiem-tra-sua.webp?v=pixel2" data-srcset="assets/thumbs/half/tiem-tra-sua.webp?v=pixel2 240w, assets/thumbs/tiem-tra-sua.webp?v=pixel2 480w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Tiệm Trà Sữa</span></span></a><a class="card tile tile--qp" href="../games/xep-gach/" data-id="xep-gach"><span class="tile__art"><img data-src="assets/thumbs/half/xep-gach.webp" data-srcset="assets/thumbs/half/xep-gach.webp 360w, assets/thumbs/xep-gach.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Xếp Gạch</span></span></a><a class="card tile tile--qp" href="../games/2048/" data-id="2048"><span class="tile__art"><img data-src="assets/thumbs/half/2048.webp" data-srcset="assets/thumbs/half/2048.webp 360w, assets/thumbs/2048.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">2048</span></span></a><a class="card tile tile--qp" href="../games/ban-bong/" data-id="ban-bong"><span class="tile__art"><img data-src="assets/thumbs/half/ban-bong.webp" data-srcset="assets/thumbs/half/ban-bong.webp 360w, assets/thumbs/ban-bong.webp 720w" sizes="(max-width: 720px) 32vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Bắn Bóng Khủng Long</span></span></a></div>
       </section>
 
-      <aside class="lobby px-panel is-loading" id="lobby" data-name="lobby" aria-labelledby="lobbyTitle">
+      <aside class="lobby px-panel is-loading" id="lobby" tabindex="-1" data-name="lobby" aria-labelledby="lobbyTitle">
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
           <!-- P-F: chỉ hiện khi đủ đông (app.js ONLINE_MIN) — sảnh vắng không bị lộ "3 người đang chơi" -->
@@ -166,7 +167,7 @@
     <script type="module" src="daily.js?v=d3a"></script>
 
     <!-- TẦNG 2: Kho game theo danh mục (mọi kệ cùng một kiểu lưới 6 ô/dòng; tab lọc = đúng các kệ) -->
-    <section class="shelves" id="games" data-name="games" aria-labelledby="gamesTitle">
+    <section class="shelves" id="games" tabindex="-1" data-name="games" aria-labelledby="gamesTitle">
       <div class="shelves__head">
         <h2 class="section__title" id="gamesTitle">Tất cả game <span class="count" id="count">25</span></h2>
         <!-- tab viết sẵn (= renderChips() của app.js) để khung không nhảy khi app.js vẽ — CLS --><nav class="tabs" id="chips" aria-label="Lọc game theo loại" data-name="filters"><button type="button" class="tab" data-cat="all" aria-pressed="true">Tất cả <span class="tab__n">25</span></button><button type="button" class="tab" data-cat="tap-lam-chu" aria-pressed="false">Tập Làm Chủ <span class="tab__n">4</span></button><button type="button" class="tab" data-cat="duel" aria-pressed="false">Đối Kháng <span class="tab__n">10</span></button><button type="button" class="tab" data-cat="giai-do" aria-pressed="false">Giải đố <span class="tab__n">6</span></button><button type="button" class="tab" data-cat="hanh-dong" aria-pressed="false">Hành động <span class="tab__n">3</span></button><button type="button" class="tab" data-cat="tri-tue" aria-pressed="false">Trí tuệ <span class="tab__n">2</span></button></nav>
