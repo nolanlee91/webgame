@@ -351,6 +351,17 @@
       .overlay { padding: 8px; place-items: end center; }
       .hintbar { font-size: 12px; padding: 6px 10px; }
     }
+    /* TLC22-02: cuộn xuống quầy ráp ⇒ HUD + viên Lò/Gas + dòng gợi ý + thông báo dời lên dải dính dưới thanh đầu (game.js setDock) */
+    .dockbar { position: fixed; left: 0; right: 0; top: 48px; z-index: 29; display: grid; gap: 4px; padding: 4px 6px 5px; background: #0f161f;
+      box-shadow: inset 0 -3px 0 #000, 0 3px 0 rgba(0, 0, 0, .35); }
+    .dockbar[hidden] { display: none; }
+    .dock-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .dockbar #hud { position: static; flex: 1 1 auto; min-width: 0; }
+    .dockbar #pills { position: static; flex: none; flex-direction: row; align-items: center; pointer-events: auto; }
+    .dock-msg { display: grid; gap: 4px; }
+    .dockbar #hintbar { position: static; }
+    .dockbar #toasts { position: static; width: auto; transform: none; }
+    .dockbar #toasts:empty { display: none; }
     /* máy tính bảng dọc (761–1024): cảnh cao hơn, ô nguyên liệu nhiều cột hơn */
     @media (min-width: 761px) and (max-width: 1024px) and (orientation: portrait) {
       .world { height: clamp(300px, 40svh, 440px); }
@@ -447,6 +458,6 @@
   <div class="decor-bar" id="decorBar" hidden></div>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div class="boot-error" id="bootError" hidden></div>
-  <script type="module" src="./game.js?v=b10"></script>
+  <script type="module" src="./game.js?v=b11"></script>
 </body>
 </html>

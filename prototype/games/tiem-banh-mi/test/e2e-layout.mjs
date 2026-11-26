@@ -13,12 +13,18 @@ export async function runLayout({ b, check, sleep, OUT, PORT, waitFor }) {
   const noOverflowX = () => b.ev("document.documentElement.scrollWidth<=document.documentElement.clientWidth");
   const hit = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]')||e.disabled)return null;const r=e.getBoundingClientRect();if(!r.width)return null;
     const x=r.x+r.width/2,y=r.y+r.height/2,t=document.elementFromPoint(x,y),v=visualViewport;return {x:x-v.offsetLeft,y:y-v.offsetTop,ok:!!t&&(t===e||e.contains(t))}})()`);
-  let missed = [];
+  let missed = [], unseen = [];
+  // TLC22-02: lúc ráp (sau khi ghim phiếu) HUD (ô Giờ), viên Lò, dòng gợi ý (nếu đang hiện) và thông báo mới nhất phải nằm trong màn, không bị che
+  const seen = () => b.ev(`(()=>{const ok=(e)=>{if(!e||e.closest('[hidden]'))return true;const r=e.getBoundingClientRect();if(!r.width||!r.height)return true;
+    if(r.top<0||r.bottom>innerHeight)return false;const t=document.elementFromPoint(r.x+r.width/2,r.y+Math.min(r.height/2,10));return !!t&&(e===t||e.contains(t)||t.contains(e))};
+    const ts=[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none');
+    return [['hud',document.querySelector('#hud .chip')],['lò',document.querySelector('#pills .pill')],['gợi ý',document.querySelector('#hintbar')],['thông báo',ts[ts.length-1]]].filter(([,e])=>!ok(e)).map(([n])=>n)})()`);
   /** Chạm nút tại chỗ; nút không bấm được ngay (phải cuộn tay) ⇒ ghi lại rồi mới cuộn để đi tiếp. */
   async function press(sel) {
     await sleep(160);
     let h = null; for (let i = 0; i < 30 && !(h = await hit(sel)); i++) await sleep(80);
     if (!h) throw new Error("không thấy " + sel);
+    if (h.ok && !sel.startsWith("#rail")) { const u = await seen(); if (u.length) unseen.push(sel.replace(/^\[data-(\w+)="?([\w-]+)"?\]$/, "$1:$2") + "→" + u.join("+")); }
     if (!h.ok) { missed.push(sel); await b.ev(`document.querySelector(${JSON.stringify(sel)}).scrollIntoView({block:'center'})`); await sleep(80); h = await hit(sel); }
     await b.tap(h.x, h.y); await sleep(120);
   }
@@ -27,9 +33,13 @@ export async function runLayout({ b, check, sleep, OUT, PORT, waitFor }) {
   for (const [w, h] of VIEWS) {
     const tag = `${w}×${h}`;
     await b.view(w, h, true, 2); await b.touch(true);
-    await b.send("Page.navigate", { url: "about:blank" }); await sleep(500);
-    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
-    await b.nav(BASE);
+    // TLC22-06: trang cũ có thể ghi lại bản lưu lúc pagehide sau khi đã xoá ⇒ chưa thấy màn chào thì xoá + mở lại (tối đa 3 lần)
+    for (let k = 0; k < 3; k++) {
+      await b.send("Page.navigate", { url: "about:blank" }); await sleep(600);
+      await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
+      await b.nav(BASE);
+      if (await waitFor("!!document.querySelector('#introGo')", 6000)) break;
+    }
     let ox = await noOverflowX();
     await b.ev("document.querySelector('#introGo').click()");
     await waitFor("__game.overlay==='prep'");
@@ -42,7 +52,7 @@ export async function runLayout({ b, check, sleep, OUT, PORT, waitFor }) {
     await b.ev("document.querySelector('#openShop').click()");
     await waitFor("!!__game.state.shift");
     await b.ev("__game.act({type:'bake',slot:0});__game.advance(28500);__game.act({type:'pull',slot:0})");
-    missed = [];
+    missed = []; unseen = [];
     let orders = 0;
     for (let order = 0; order < 2; order++) {
       let cid = null;
@@ -69,6 +79,7 @@ export async function runLayout({ b, check, sleep, OUT, PORT, waitFor }) {
       orders++;
     }
     check(`${tag}: 2 đơn ngày 1, nút bước kế luôn bấm được tại chỗ (0 lần tự cuộn)`, orders === 2 && missed.length === 0, `${orders} đơn · phải cuộn: ${missed.join(" ") || "0"}`);
+    if (h > 500) check(`${tag}: lúc ráp luôn thấy HUD, viên Lò, gợi ý và thông báo mới nhất (dải dính khi cảnh trôi khỏi màn)`, unseen.length === 0, unseen.slice(0, 6).join(" ") || "0");
     check(`${tag}: trong ca không tràn ngang`, await noOverflowX(), String(await b.ev("document.documentElement.scrollWidth")));
     if (w === 768) {
       const g = await b.ev("JSON.stringify({world:document.querySelector('#world').getBoundingClientRect().width,slip:(document.querySelector('#rail .slip')||{getBoundingClientRect:()=>({height:0})}).getBoundingClientRect().height,toasts:[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none').length})").then(JSON.parse);
