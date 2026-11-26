@@ -9,13 +9,22 @@ export async function runLayout({ b, check, sleep, OUT, BASE, PORT, waitFor }) {
   for (const [w, h] of VIEWS) {
     const tag = `${w}×${h}`;
     await b.view(w, h, true, 2); await b.touch(true);
-    await b.send("Page.navigate", { url: "about:blank" }); await sleep(600);
-    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
-    await b.nav(BASE);
-    await waitFor("!!document.querySelector('#introGo')", 6000);
+    // TLC22-06: trang cũ có thể ghi lại bản lưu lúc pagehide sau khi đã xoá ⇒ chưa thấy màn chào thì xoá + mở lại (tối đa 3 lần)
+    for (let k = 0; k < 3; k++) {
+      await b.send("Page.navigate", { url: "about:blank" }); await sleep(600);
+      await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
+      await b.nav(BASE);
+      if (await waitFor("!!document.querySelector('#introGo')", 6000)) break;
+    }
     await b.ev("document.querySelector('#introGo').click()");
     await waitFor("__game.overlay==='prep'");
     check(`${tag}: bảng Chuẩn bị không tràn ngang`, await b.ev("document.documentElement.scrollWidth<=document.documentElement.clientWidth"));
+    // TLC22-04: bấm Mở quán khi chưa nấu cơm / nhóm bếp ⇒ hỏi lại (Chuẩn bị nhanh / Vẫn mở quán), ca chưa mở; Chuẩn bị nhanh lo đủ
+    await b.ev("document.querySelector('#openShop').click()"); await sleep(200);
+    check(`${tag}: mở quán rỗng ⇒ hỏi lại, nút Chuẩn bị nhanh + Vẫn mở quán bấm được`, !(await b.ev("!!__game.state.shift")) &&
+      (await b.ev("['#quickPrep','#openAnyway'].every(q=>{const e=document.querySelector(q);if(!e)return false;e.scrollIntoView({block:'nearest'});const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&!!t&&e.contains(t)})")));
+    await b.ev("document.querySelector('#quickPrep').click()"); await sleep(200);
+    check(`${tag}: Chuẩn bị nhanh ⇒ có sườn ướp, nồi cơm, bếp đã nhóm`, await b.ev("(()=>{const s=__game.state;return s.stock['suon-uop']>0&&s.kitchen.rice>0&&s.kitchen.coal>0})()"));
     await b.ev(`document.querySelector('[data-act="restockToday"]')?.click()`); await sleep(150);
     await b.ev(`document.querySelector('[data-tab="first"]')?.click()`); await sleep(150);
     for (const a of ["prepCook", "prepMoHanh", "prepLight"]) { await b.ev(`document.querySelector('[data-act="${a}"]')?.click()`); await sleep(120); }

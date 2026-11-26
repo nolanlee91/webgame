@@ -1,18 +1,18 @@
 // Bảng phủ: màn chào, Chuẩn bị (Nhập hàng · Ướp sườn · Mẻ đầu · Menu · Ca · Dự báo), chốt ca (lời lỗ), nghỉ giữa ca, tạm dừng, cách chơi,
 // xác nhận chơi lại, khiếu nại, tính dư, hết hàng, Kho (nhập gấp trong ca), Sổ (review, khách quen). Ca tạm dừng khi có bảng phủ.
-import { el, button, fmtK, starText, tableName } from "./common.js?v=c8";
-import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c8";
-import { ARCHETYPES } from "../data/customers.js?v=c8";
-import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c8";
-import { stockoutOptions, itemName } from "../core/rescue.js?v=c8";
-import { MISTAKES } from "../core/score.js?v=c8";
-import { xpToNext } from "../core/progress.js?v=c8";
-import { groupById } from "../core/tables.js?v=c8";
-import { createBook } from "./notebook.js?v=c8"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
-import * as PU from "./progress-ui.js?v=c8"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
-import { potSize } from "../core/progression.js?v=c8"; // A: cỡ nồi theo giai đoạn
-import "./book-tabs.js?v=c8"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
-import * as M5 from "./m5-ui.js?v=c8"; // S: nút bật / tắt món (M5)
+import { el, button, fmtK, starText, tableName } from "./common.js?v=c9";
+import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c9";
+import { ARCHETYPES } from "../data/customers.js?v=c9";
+import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c9";
+import { stockoutOptions, itemName } from "../core/rescue.js?v=c9";
+import { MISTAKES } from "../core/score.js?v=c9";
+import { xpToNext } from "../core/progress.js?v=c9";
+import { groupById } from "../core/tables.js?v=c9";
+import { createBook } from "./notebook.js?v=c9"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
+import * as PU from "./progress-ui.js?v=c9"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
+import { potSize } from "../core/progression.js?v=c9"; // A: cỡ nồi theo giai đoạn
+import "./book-tabs.js?v=c9"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import * as M5 from "./m5-ui.js?v=c9"; // S: nút bật / tắt món (M5)
 import { shareResult } from "../../_shared/share.js?v=s2";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
@@ -158,11 +158,44 @@ export function createOverlays(overlay, sheet, atlas, act, hooks) {
     }
     const fo = footer(p);
     if (!s.between) button(fo, "btn", "Cách chơi", () => help(() => prep(state(), prepTab)));
+    const startNow = () => { const r = act({ type: "startShift" }); if (!r.err) close(); };
     button(fo, "btn primary", s.between ? `Mở ${SHIFTS[s.between].name.toLowerCase()}` : "Mở quán", () => {
-      const r = act({ type: "startShift" });
-      if (!r.err) close();
+      // TLC22-04 / TLC2-14: chưa có sườn ướp / cơm / lửa ⇒ hỏi lại ngay trong chân bảng, kèm nút chuẩn bị nhanh (không mở quán rỗng một cách lặng lẽ)
+      const miss = emptyKit(state());
+      if (!miss.length) { startNow(); return; }
+      askEmpty(fo, miss, startNow, () => { quickPrep(state()); prep(state(), prepTab); });
     }, { id: "openShop" });
     focusFirst();
+  }
+  /** Những thứ thiếu khiến ca không bán nổi dĩa nào (sườn ướp, cơm, lửa). Rỗng = sẵn sàng. */
+  function emptyKit(s) {
+    const miss = [];
+    if ((s.stock["suon-uop"] || 0) <= 0) miss.push((s.stock.suon || 0) > 0 ? "sườn chưa ướp" : "hết sườn");
+    if ((s.kitchen?.rice || 0) <= 0) miss.push((s.stock["gao-tam"] || 0) > 0 ? "nồi cơm chưa nấu" : "hết gạo, chưa có cơm");
+    if ((s.kitchen?.coal || 0) <= 0) miss.push((s.stock.than || 0) + (s.spareSack || 0) > 0 ? "bếp chưa nhóm than" : "hết than, bếp nguội");
+    return miss;
+  }
+  /** "Chuẩn bị nhanh": nhập + ướp đủ cho hôm nay, rồi nấu cơm, làm mỡ hành, nhóm bếp (bước nào làm được thì làm, giống bấm tay ở các tab). */
+  function quickPrep(s) {
+    act({ type: "restockToday" });
+    s = state();
+    if ((s.stock.suon || 0) > 0 && (s.stock["suon-uop"] || 0) <= 0) act({ type: "marinate", n: s.stock.suon });
+    s = state();
+    if (s.kitchen.rice < potSize(s) && (s.stock["gao-tam"] || 0) > 0) act({ type: "prepCook" });
+    s = state();
+    if (s.moHanh.n <= 0 && (s.stock["mo-hanh-bo"] || 0) > 0) act({ type: "prepMoHanh" });
+    s = state();
+    if (s.kitchen.coal < GRILL.prepLight.level && (s.stock.than || 0) >= GRILL.prepLight.baskets) act({ type: "prepLight" });
+  }
+  function askEmpty(fo, miss, openNow, fill) {
+    fo.textContent = "";
+    fo.classList.add("ask");
+    const t = el("p", "warn-txt", fo, `Quán chưa sẵn sàng: ${miss.join(", ")}. Mở bây giờ thì khách tới mà bếp không ra được dĩa nào.`);
+    t.setAttribute("role", "alert");
+    button(fo, "btn primary", "Chuẩn bị nhanh", fill, { id: "quickPrep", title: "Nhập + ướp đủ, nấu cơm, làm mỡ hành, nhóm bếp" });
+    button(fo, "btn danger", "Vẫn mở quán", openNow, { id: "openAnyway" });
+    fo.querySelector("#quickPrep").focus({ preventScroll: true });
+    fo.scrollIntoView?.({ block: "nearest" });
   }
 
   // ---------- chốt ca ----------

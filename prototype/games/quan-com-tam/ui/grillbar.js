@@ -1,12 +1,12 @@
 // Thanh Bếp (SCREENS.md): luôn thấy trong ca ở mọi màn trừ hội thoại. 6 chip vỉ (vòng hai nửa: trái = mặt dưới, phải = mặt trên),
 // nút Than + thanh than, nút Quạt (giữ), thanh Khói, viên Cơm (+ Nấu), viên Dĩa sạch (+ Rửa), Mỡ hành. Lật được trong lúc ô bày đang mở.
 // Dựng DOM một lần, mỗi khung chỉ đổi chữ / lớp.
-import { el, button } from "./common.js?v=c8";
-import { icon } from "../render/atlas.js?v=c8";
-import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c8";
-import { ownerFree } from "../core/walker.js?v=c8";
-import { GRILL } from "../data/economy.js?v=c8";
-import { eggState } from "../core/rice.js?v=c8"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
+import { el, button } from "./common.js?v=c9";
+import { icon } from "../render/atlas.js?v=c9";
+import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c9";
+import { ownerFree } from "../core/walker.js?v=c9";
+import { GRILL } from "../data/economy.js?v=c9";
+import { eggState } from "../core/rice.js?v=c9"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
 
 const SIDE_COL = { raw: "var(--m-raw)", half: "var(--m-half)", done: "var(--m-done)", charred: "var(--m-char)", burnt: "var(--m-burnt)" };
 const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy cạnh", burnt: "cháy" };
@@ -100,8 +100,9 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
     const lvl = Math.round(coalGrill === 2 ? g.coal2 : g.coal); // S: bếp 2 than riêng
     coalBar.style.width = lvl + "%";
     coalBar.style.setProperty("--c", lvl >= 60 ? "#ffb14a" : lvl >= 30 ? "#f2622a" : lvl >= 10 ? "#c2361e" : "#5a5450");
-    coalTxt.textContent = `+Than (${s.stock.than || 0})`;
+    coalTxt.textContent = lvl < 10 ? `Tắt lửa! +Than (${s.stock.than || 0})` : `+Than (${s.stock.than || 0})`; // TLC22-04: bếp tắt thì nút nói rõ, không chỉ đổi màu
     coal.classList.toggle("warn", lvl < 25);
+    coal.classList.toggle("out", lvl < 10);
     coal.classList.toggle("hint", hint?.key === "coal");
     coal.disabled = !free;
     fan.classList.toggle("on", g.fan);

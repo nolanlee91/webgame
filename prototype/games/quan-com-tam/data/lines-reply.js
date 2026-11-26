@@ -10,8 +10,8 @@
 //
 // REPLY_LINES[option] = { [lý do review]?, [chủ đề], [nhóm] }: chọn [...câu riêng theo lý do, ...câu theo chủ đề, ...câu chung theo nhóm].
 //   Chủ đề: praise | takeaway (nhóm up) · mistake | slow | meh | net (nhóm down) · serious (nhóm serious: chỉ câu serious).
-import { REPLY_LINES_A } from "./lines-reply-a.js?v=c8";
-import { REPLY_LINES_B } from "./lines-reply-b.js?v=c8";
+import { REPLY_LINES_A } from "./lines-reply-a.js?v=c9";
+import { REPLY_LINES_B } from "./lines-reply-b.js?v=c9";
 
 export const PERSONAS = {
   hien: { name: "Hiền lành, lễ phép", short: "Hiền lành", desc: "Dạ vâng, cảm ơn, xin lỗi đủ cả. Trả lời an toàn: tăng ít mà chắc, hiếm khi có chuyện." },

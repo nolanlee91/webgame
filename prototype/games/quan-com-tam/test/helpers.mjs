@@ -1,15 +1,15 @@
-// Tiện ích test + bot chơi tự động (chỉ dùng apply(), như người chơi). Import có ?v=c8 để dùng chung module với core.
-import { apply } from "../core/apply.js?v=c8";
-import { createState } from "../core/state.js?v=c8";
-import { itemResult, isCooked, zoneOf, freeWarm } from "../core/grill.js?v=c8";
-import { tableJob, groupById, canSeat } from "../core/tables.js?v=c8";
-import { nextStep, slotOf } from "../core/plate.js?v=c8";
-import { stockoutOptions } from "../core/rescue.js?v=c8";
-import { ownerFree } from "../core/walker.js?v=c8";
-import { canAutoBill } from "../core/bill.js?v=c8";
-import { GRILL } from "../data/economy.js?v=c8";
-import { heatMul } from "../core/grill.js?v=c8";
-import { pickFree } from "../core/drama.js?v=c8"; // B: drama
+// Tiện ích test + bot chơi tự động (chỉ dùng apply(), như người chơi). Import có ?v=c9 để dùng chung module với core.
+import { apply } from "../core/apply.js?v=c9";
+import { createState } from "../core/state.js?v=c9";
+import { itemResult, isCooked, zoneOf, freeWarm } from "../core/grill.js?v=c9";
+import { tableJob, groupById, canSeat } from "../core/tables.js?v=c9";
+import { nextStep, slotOf } from "../core/plate.js?v=c9";
+import { stockoutOptions } from "../core/rescue.js?v=c9";
+import { ownerFree } from "../core/walker.js?v=c9";
+import { canAutoBill } from "../core/bill.js?v=c9";
+import { GRILL } from "../data/economy.js?v=c9";
+import { heatMul } from "../core/grill.js?v=c9";
+import { pickFree } from "../core/drama.js?v=c9"; // B: drama
 
 /** Giây tới lúc miếng cần tay (mặt dưới chạm 100 nếu chưa chín, chạm 128 nếu đã chín) — bot chăm không rời bếp khi sắp tới lúc. */
 export function grillSafeSec(s) {

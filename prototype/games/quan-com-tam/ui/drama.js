@@ -3,10 +3,10 @@
 // bảng Chuẩn bị. Lớp riêng (#drama) nằm trên bảng phủ, không đụng ui/overlays.js. Esc không đóng (phải chọn).
 // Độc thoại (npc "owner") chỉ một chân dung. Chân dung (đợt 2 tự dùng khi manifest có, qua HD_SHEETS / LAZY_SHEETS):
 // drama-portraits-hd "<npc>-<mood>" → portrait-expressions-hd "<vai>-<biểu cảm>" → portraits-hd "<vai>" → characters "<vai>" → chữ cái đầu.
-import { icon } from "../render/atlas.js?v=c8";
-import { EVENT } from "../data/events.js?v=c8";
-import { DRAMA_FACES } from "../data/npcs.js?v=c8";
-import { currentEvent, nodeOf, speakerInfo, textOf, byPersona, choiceVisible, affordable } from "../core/drama.js?v=c8";
+import { icon } from "../render/atlas.js?v=c9";
+import { EVENT } from "../data/events.js?v=c9";
+import { DRAMA_FACES } from "../data/npcs.js?v=c9";
+import { currentEvent, nodeOf, speakerInfo, textOf, byPersona, choiceVisible, affordable } from "../core/drama.js?v=c9";
 
 const h = (tag, cls, text, parent) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; parent?.appendChild(e); return e; };
 const FACE = { neutral: "waiting", happy: "happy", annoyed: "annoyed", surprised: "surprised" };

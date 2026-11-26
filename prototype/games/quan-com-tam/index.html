@@ -170,7 +170,7 @@
     .gbtn2 { min-height: 44px; min-width: 64px; border: 0; padding: 4px 10px; cursor: pointer; background: var(--cream); color: var(--ink); font-weight: 800; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; --b: var(--line); box-shadow: var(--px-bevel), var(--px-border2), 2px 3px 0 0 rgba(0, 0, 0, .45); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
     .gbtn2:disabled { opacity: .5; cursor: default; }
     .gbtn2.on { background: #ffd9a0; --b: var(--ember); box-shadow: var(--px-bevel), var(--px-border2), inset 0 0 0 2px var(--ember); }
-    .gbtn2.warn { background: var(--ember-l); } .gbtn2.hint { --b: #c27c26; box-shadow: var(--px-bevel), var(--px-border2), inset 0 0 0 2px var(--amber), 2px 3px 0 0 rgba(0, 0, 0, .45); }
+    .gbtn2.warn { background: var(--ember-l); } .gbtn2.out { background: var(--ember); color: #fff; --b: #5a1a10; } /* TLC22-04: bếp tắt */ .gbtn2.hint { --b: #c27c26; box-shadow: var(--px-bevel), var(--px-border2), inset 0 0 0 2px var(--amber), 2px 3px 0 0 rgba(0, 0, 0, .45); }
     .meter { width: 56px; height: 10px; background: rgba(0, 0, 0, .25); overflow: hidden; display: inline-block; vertical-align: middle; }
     .meter i { display: block; height: 100%; background: var(--c, #f2622a); }
     .gbtn2 small { font-size: 11px; font-weight: 700; color: var(--ink2); }
@@ -274,6 +274,8 @@
     .jday .btn { margin-top: 6px; }
     .journal-canvas { width: min(480px, 100%, calc((100svh - 220px) * 0.8)); height: auto; aspect-ratio: 1080 / 1350; display: block; margin: 8px auto; --b: var(--line); box-shadow: var(--px-border), var(--px-drop); }
     .footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; padding: 8px 0 0; }
+    .footer.ask { align-items: center; } /* TLC22-04: hỏi lại khi mở quán rỗng hàng */
+    .footer .warn-txt { flex: 1 1 100%; margin: 0; padding: 8px 10px; background: var(--ember-l); color: #7a2a22; font-weight: 700; --b: #7a2a22; box-shadow: var(--px-border2, 0 0 0 2px #7a2a22); }
     input.name { font: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--cream3); width: 100%; background: #fff; color: var(--ink); }
     .intro { display: grid; grid-template-columns: 1fr 420px; gap: 0; padding: 0; overflow: hidden; }
     .intro .art { min-height: 360px; background: #1c1a3a; position: relative; overflow: hidden; }
@@ -429,6 +431,6 @@
   </nav>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="bootError" hidden></div>
-  <script type="module" src="game.js?v=c8"></script>
+  <script type="module" src="game.js?v=c9"></script>
 </body>
 </html>

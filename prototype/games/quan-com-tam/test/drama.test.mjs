@@ -3,15 +3,15 @@
 // không còn {biến} chưa điền, không emoji; hẹn quay lại mở đúng ngày; tải lại giữa hội thoại giữ bước; mô phỏng 14 ngày.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EVENTS, EVENT, DRAMA_IDS, MECH_IDS, REPLY_IDS } from "../data/events.js?v=c8";
-import { NPCS, npcByName, DRAMA_FACES } from "../data/npcs.js?v=c8";
-import { ARCHETYPES } from "../data/customers.js?v=c8";
-import { LEVELS, SHIFTS, STOCK, GEAR } from "../data/economy.js?v=c8";
-import { eligibleNow, openEvent, currentEvent, affordable, isFree, FX_KEYS, IF_KEYS, textCtx, nodeOf, speakerInfo, DRAMA } from "../core/drama.js?v=c8";
-import { fill } from "../core/text.js?v=c8";
-import { spawnGroup } from "../core/tables.js?v=c8";
+import { EVENTS, EVENT, DRAMA_IDS, MECH_IDS, REPLY_IDS } from "../data/events.js?v=c9";
+import { NPCS, npcByName, DRAMA_FACES } from "../data/npcs.js?v=c9";
+import { ARCHETYPES } from "../data/customers.js?v=c9";
+import { LEVELS, SHIFTS, STOCK, GEAR } from "../data/economy.js?v=c9";
+import { eligibleNow, openEvent, currentEvent, affordable, isFree, FX_KEYS, IF_KEYS, textCtx, nodeOf, speakerInfo, DRAMA } from "../core/drama.js?v=c9";
+import { fill } from "../core/text.js?v=c9";
+import { spawnGroup } from "../core/tables.js?v=c9";
 import { apply, must, newGame, prepDay, playShift, seeded } from "./helpers.mjs";
-import { loadSave, dump } from "../core/state.js?v=c8";
+import { loadSave, dump } from "../core/state.js?v=c9";
 
 const allChoices = (ev) => Object.values(ev.nodes).flatMap((n) => n.choices);
 const fxOf = (ch) => [ch.fx, ch.roll?.win?.fx, ch.roll?.lose?.fx].filter(Boolean);
