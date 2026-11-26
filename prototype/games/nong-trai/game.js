@@ -1,15 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m12";
-import { browserStorage, farmSave } from "./save.js?v=m12";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m12";
-import { createMarketScene } from "./ui/scene-market.js?v=m12";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m12";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m12";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m12";
-import { createVillageScene } from "./ui/scene-village.js?v=m12";
-import { createTruck } from "./ui/truck.js?v=m12";
-import { farmShare } from "./ui/share-card.js?v=m12";
+import * as L from "./logic.js?v=m13";
+import { shortNum } from "./ui/short-num.js?v=m13"; // TLC12-04
+import { browserStorage, farmSave } from "./save.js?v=m13";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m13";
+import { createMarketScene } from "./ui/scene-market.js?v=m13";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m13";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m13";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m13";
+import { createVillageScene } from "./ui/scene-village.js?v=m13";
+import { createTruck } from "./ui/truck.js?v=m13";
+import { farmShare } from "./ui/share-card.js?v=m13";
 import { shareResult } from "../_shared/share.js?v=s2";
 
 const MUTE_KEY = "wgp.muted";
@@ -418,12 +419,13 @@ export function mount(root, ctx = {}) {
   function renderHud() {
     if (shownCoins !== s.coins) {
       if (shownCoins !== null && s.coins > shownCoins) { const st = ui.coins.closest(".stat"); st.classList.remove("bump"); void st.offsetWidth; st.classList.add("bump"); }
-      shownCoins = s.coins; ui.coins.textContent = fmtNum(s.coins);
+      shownCoins = s.coins; ui.coins.textContent = shortNum(s.coins); // TLC12-04: số gọn, số đủ ở title / aria-label
+      const full = `${fmtNum(s.coins)} xu`, st = ui.coins.closest(".stat"); st.title = full; st.setAttribute("aria-label", "Xu: " + full);
     }
     ui.level.textContent = s.level;
     const need = L.xpNeed(s.level);
     ui.xp.style.width = Math.round((100 * s.xp) / need) + "%";
-    ui.xpTxt.textContent = `${s.xp}/${need} XP`;
+    ui.xpTxt.textContent = `${shortNum(s.xp)}/${shortNum(need)} XP`; ui.xpTxt.title = `${fmtNum(s.xp)}/${fmtNum(need)} XP`;
     const used = L.used(s), cap = L.capacity(s), over = L.overflowCount(s);
     ui.store.textContent = `${used}/${cap}`;
     ui.over.textContent = over ? `+${over} giỏ tràn` : "";
@@ -589,11 +591,44 @@ export function mount(root, ctx = {}) {
   }
 
   /** Mũi tên + viền sáng vào điều khiển nhiệm vụ đang cần. */
-  let hlEl = null;
+  let hlEl = null, detourKey = "";
+  /** TLC12-01: việc kế tiếp NV1–NV5 (core/guide.js) ⇒ nút trên màn. Bán luôn trỏ "Bán 1" (không "Bán hết") để giữ hàng cho đơn. */
+  function goalEl(g) {
+    const plot = (i) => cells[i]?.b || null;
+    switch (g.do) {
+      case "claim": return ui.qClaim;
+      case "plant":
+        if (mode !== "seed") return ui.grow;
+        if (pick !== g.crop) return seedBtns[L.FIELD_CROPS.findIndex((c) => c.id === g.crop)] || null;
+        return plot(g.i);
+      case "water": return g.detour || mode === "water" ? plot(g.i) : ui.water;
+      case "harvest": case "wait": return plot(g.i);
+      case "sell":
+        if (scene === "market") return ui.mkRoot.querySelector(`#mkSell [data-act="sell"][data-id="${CSS.escape(g.id)}"][data-n="1"]`);
+        if (scene !== "farm") return null;
+        return ui.warehouse.hidden ? ui.sellTool : ui.whBody.querySelector(`[data-act="sell1"][data-id="${CSS.escape(g.id)}"]`);
+      case "deliver":
+        if (scene !== "farm") return null;
+        return ui.orders.hidden ? ui.orderTool : ui.slips.querySelector(`[data-act="deliver"][data-slot="${g.slot}"]:not([disabled])`);
+    }
+    return null;
+  }
   function highlight(t) {
     const q = L.currentQuest(s);
     let el = null;
-    if (q && !L.questComplete(s)) {
+    const g = L.tutorialGoal(s, t);
+    if (g) {
+      el = goalEl(g);
+      // đi vòng (hết cây chín, kho trống, thiếu hàng giao đơn) ⇒ gợi ý nói rõ việc cần làm và tự mở (điện thoại gập gợi ý)
+      if (g.detour && g.hint) {
+        if (ui.qHint.textContent !== g.hint) ui.qHint.textContent = g.hint;
+        const key = `${q.id}:${g.do}`;
+        if (detourKey !== key && !ui.quest.classList.contains("open")) {
+          ui.quest.classList.add("open"); $("qMore")?.setAttribute("aria-expanded", "true"); $("qMore")?.setAttribute("aria-label", "Thu gọn nhiệm vụ");
+        }
+        detourKey = key;
+      } else detourKey = "";
+    } else if (q && !L.questComplete(s)) {
       const firstPlot = (pred) => { const order = [12, ...s.plots.keys()]; const i = order.find((k) => pred(s.plots[k], k)); return i === undefined ? null : cells[i].b; };
       switch (q.target) {
         case "plot-empty": el = mode === "seed" ? firstPlot((p) => p.open && !p.crop) : ui.grow; break;
@@ -614,10 +649,10 @@ export function mount(root, ctx = {}) {
         case "warehouse-upgrade": el = ui.warehouse.hidden ? ui.depot : ui.whBody.querySelector("#whUpgrade:not([disabled])"); break;
       }
     } else if (q) el = ui.qClaim;
-    if (el === hlEl) return;
+    if (el === hlEl && (!el || el.classList.contains("qhl"))) return;
     hlEl?.classList.remove("qhl", "qarrow");
     hlEl = el;
-    if (el) { el.classList.add("qhl"); if (q?.arrow && el !== ui.qClaim) el.classList.add("qarrow"); }
+    if (el) { el.classList.add("qhl"); if (q?.arrow && el !== ui.qClaim && g?.do !== "wait") el.classList.add("qarrow"); }
   }
 
   function renderPlot(i, t) {
@@ -1245,7 +1280,7 @@ export function mount(root, ctx = {}) {
   for (const b of document.querySelectorAll("[data-back]")) b.onclick = () => goScene("farm");
   ui.sellTool.onclick = () => {
     openPanel("stock");
-    (ui.sell.disabled ? ui.depot : ui.sell).focus({ preventScroll: true });
+    (ui.whBody.querySelector('[data-act="sell1"]') || (ui.sell.disabled ? ui.depot : ui.sell)).focus({ preventScroll: true }); // TLC12-01: "Bán 1" trước "Bán hết"
     ui.warehouse.scrollIntoView({ block: "nearest" });
   };
   ui.sell.onclick = () => exec({ type: "sellAll" });

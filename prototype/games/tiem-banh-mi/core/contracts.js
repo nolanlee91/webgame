@@ -1,9 +1,9 @@
 // Hợp đồng định kỳ (Milestone 5): sự kiện K02 (Đội Chú Tám, 12 ổ / 2 ngày) và X05 (Hoa Sen Xanh, 25 ổ / tuần) ký hợp đồng ⇒ đơn đặt trước tự sinh
 // đúng lịch ở đầu ca. Hợp đồng trả khi giao (không cọc). Giao đủ mọi đợt ⇒ cờ "hop-dong-xong" (sự kiện HD1: gia hạn). Trễ / huỷ một đợt ⇒ cờ "hop-dong-tre";
 // trễ đợt thứ hai ⇒ huỷ hợp đồng, cờ "hop-dong-vo" (sự kiện HD2). Thuần.
-import { CONTRACT_LINES } from "../data/lines-m5.js?v=b8";
-import { engineFlag } from "./flags.js?v=b8";
-import { freshLine } from "./text.js?v=b8";
+import { CONTRACT_LINES } from "../data/lines-m5.js?v=b10";
+import { engineFlag } from "./flags.js?v=b10";
+import { freshLine } from "./text.js?v=b10";
 
 export const CONTRACT = { maxStrikes: 2 };
 const int = (v, lo, hi, d) => (Number.isFinite(v) ? Math.max(lo, Math.min(hi, Math.floor(v))) : d);

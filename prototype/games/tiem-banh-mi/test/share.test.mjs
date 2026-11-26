@@ -2,10 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { shop, prepAndOpen } from "./helpers.mjs";
-import { gainXp, endShift } from "../core/shift.js?v=b8";
-import { loadSave, dump } from "../core/state.js?v=b8";
-import { LEVELS } from "../data/economy.js?v=b8";
-import { summaryShare, levelUpShare } from "../ui/screens.js?v=b8";
+import { gainXp, endShift } from "../core/shift.js?v=b10";
+import { loadSave, dump } from "../core/state.js?v=b10";
+import { LEVELS } from "../data/economy.js?v=b10";
+import { summaryShare, levelUpShare } from "../ui/screens.js?v=b10";
 
 const openShift = () => { const s = shop(11); s.tutorialDone = true; s.day = 3; prepAndOpen(s); return s; };
 

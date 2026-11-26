@@ -3,20 +3,20 @@
 // tiền ≥ 0 (số nguyên), quỹ lẻ là tờ nguyên ≥ 0 và không vượt tổng tiền, kho số nguyên ≥ 0 và không vượt sức chứa vì hàng mới,
 // tủ kính không vượt sức chứa, danh tiếng 0–100, cấp khớp XP.
 // Bấm lặp / tải lại không cộng hai lần: giao chỉ khi ổ đã gói và khách còn chờ; thối tiền chỉ khi đang có khách trả tiền; mỗi bước ráp đúng thứ tự.
-import * as shift from "./shift.js?v=b8";
-import * as bd from "./board.js?v=b8";
-import { loadBatch, pullBatch, firstBatch, caseCap } from "./oven.js?v=b8";
-import { restock, restockToday, exchangePack, consign, capacity, stockUsed } from "./stock.js?v=b8";
-import { resolveStockout, resolveNochange } from "./rescue.js?v=b8";
-import { floatValue } from "./money.js?v=b8";
-import { STOCK_IDS, FLOAT_BILLS } from "../data/economy.js?v=b8";
-import { autoSpread } from "./board.js?v=b8";
-import { setPersona, reply } from "./reviews.js?v=b8";
-import { missionsOnPull } from "./missions.js?v=b8";
-import * as pg from "./progress.js?v=b8";
-import { scenePointsShop } from "./placements.js?v=b8";
-import { fry, grillLoad, grillPull } from "./cook.js?v=b8";
-import { checkBadges } from "./challenge.js?v=b8";
+import * as shift from "./shift.js?v=b10";
+import * as bd from "./board.js?v=b10";
+import { loadBatch, pullBatch, firstBatch, caseCap } from "./oven.js?v=b10";
+import { restock, restockToday, exchangePack, consign, capacity, stockUsed } from "./stock.js?v=b10";
+import { resolveStockout, resolveNochange } from "./rescue.js?v=b10";
+import { floatValue } from "./money.js?v=b10";
+import { STOCK_IDS, FLOAT_BILLS } from "../data/economy.js?v=b10";
+import { autoSpread } from "./board.js?v=b10";
+import { setPersona, reply } from "./reviews.js?v=b10";
+import { missionsOnPull } from "./missions.js?v=b10";
+import * as pg from "./progress.js?v=b10";
+import { scenePointsShop } from "./placements.js?v=b10";
+import { fry, grillLoad, grillPull } from "./cook.js?v=b10";
+import { checkBadges } from "./challenge.js?v=b10";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),

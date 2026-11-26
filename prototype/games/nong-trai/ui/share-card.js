@@ -1,5 +1,5 @@
 // Khoe kết quả (lên cấp / danh hiệu Sổ sưu tập / danh hiệu Nhà): nội dung thẻ từ số thật của nông trại. Thuần, không DOM (test Node).
-import * as L from "../logic.js?v=m12";
+import * as L from "../logic.js?v=m13";
 
 const fmtNum = (n) => n.toLocaleString("vi-VN");
 const clip = (t) => (t.length > 40 ? t.slice(0, 39) + "…" : t);

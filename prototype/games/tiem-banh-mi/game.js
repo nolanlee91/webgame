@@ -1,24 +1,24 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b8";
-import { placeholderFallback } from "./render/placeholder.js?v=b8";
-import { createScene } from "./render/scene.js?v=b8";
-import { createBench } from "./ui/bench.js?v=b8";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b8";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b10";
+import { placeholderFallback } from "./render/placeholder.js?v=b10";
+import { createScene } from "./render/scene.js?v=b10";
+import { createBench } from "./ui/bench.js?v=b10";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b10";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { apply } from "./core/apply.js?v=b8";
-import { customer } from "./core/shift.js?v=b8";
-import { hint } from "./core/tutorial.js?v=b8";
-import { itemName } from "./core/rescue.js?v=b8";
-import { STEP_NAME, STEPS } from "./core/board.js?v=b8";
-import { STOCK, NAMES } from "./data/economy.js?v=b8";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b8";
-import { shopSave, browserStorage } from "./save.js?v=b8";
-import { setJournalBg } from "./ui/journal.js?v=b8";
-import { currentEvent, openEvent } from "./core/drama.js?v=b8";
-import { DECOR } from "./data/equipment.js?v=b8";
-import { PLACE_REASON } from "./core/progress.js?v=b8";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b8";
+import { apply } from "./core/apply.js?v=b10";
+import { customer } from "./core/shift.js?v=b10";
+import { hint } from "./core/tutorial.js?v=b10";
+import { itemName } from "./core/rescue.js?v=b10";
+import { STEP_NAME, STEPS } from "./core/board.js?v=b10";
+import { STOCK, NAMES } from "./data/economy.js?v=b10";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b10";
+import { shopSave, browserStorage } from "./save.js?v=b10";
+import { setJournalBg } from "./ui/journal.js?v=b10";
+import { currentEvent, openEvent } from "./core/drama.js?v=b10";
+import { DECOR } from "./data/equipment.js?v=b10";
+import { PLACE_REASON } from "./core/progress.js?v=b10";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b10";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -380,7 +380,7 @@ async function boot() {
     if (!state.shift) return;
     const click = (sel) => { const b = document.querySelector(sel); if (b && !b.disabled) { b.click(); e.preventDefault(); return true; } return false; };
     if (/^[1-6]$/.test(e.key)) click(`#rail .slip:nth-child(${e.key})`);
-    else if (e.key === "Enter") { click('[data-act="giveChange"]') || click('[data-act="serve"]'); }
+    else if (e.key === "Enter") { click('[data-act="giveChange"]') || click('[data-act="autoChange"]') || click('[data-act="serve"]'); }
     else if (e.key === "Backspace") click('[data-act="undo"]');
     else if (key === "l") click('[data-act="ovenPill"]');
     else if (key === "n") click('[data-act="toast"]');

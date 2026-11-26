@@ -1,7 +1,7 @@
 // Tiền mặt và tiền lẻ (ECONOMY §4). s.money = tổng tiền (k, số nguyên). s.float = quỹ lẻ theo mệnh giá (tờ ≤ 50k), là một phần của s.money;
 // phần còn lại là két (tờ lớn). Bất biến: floatValue(s.float) ≤ s.money. Thuần, không DOM.
-import { FLOAT_BILLS, BILLS } from "../data/economy.js?v=b8";
-import { next, weighted } from "./rng.js?v=b8";
+import { FLOAT_BILLS, BILLS } from "../data/economy.js?v=b10";
+import { next, weighted } from "./rng.js?v=b10";
 
 export const floatValue = (bills) => FLOAT_BILLS.reduce((a, d) => a + d * (bills?.[d] || 0), 0);
 export const sumBills = (bills) => Object.entries(bills || {}).reduce((a, [d, n]) => a + Number(d) * n, 0);

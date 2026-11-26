@@ -11,13 +11,13 @@
 //   toast?(msg, ms), sfx?(name, vol, rate), onBack?(),
 // }
 // Trả { root, open, close, show, hide, render, onEvents(events, origin), selectNpc(id), npcEl(id) }.
-import * as V from "../core/village.js?v=m12";
-import { VILLAGERS, VILLAGER, PROGRESSION_GIVER, VILLAGE_LEVEL, CHAIN_LEVEL, FRIEND_LEVELS } from "../data/village.js?v=m12";
-import { ITEM } from "../data/catalog.js?v=m12";
+import * as V from "../core/village.js?v=m13";
+import { VILLAGERS, VILLAGER, PROGRESSION_GIVER, VILLAGE_LEVEL, CHAIN_LEVEL, FRIEND_LEVELS } from "../data/village.js?v=m13";
+import { ITEM } from "../data/catalog.js?v=m13";
 import {
   loadArt, artReady, draw, tileRow, cropUrl, fx, floatText, centerIn, injectStyle, esc, fmtNum, iconHtml, makeToast, makeSfx, frameCss, frameEdgeCss,
   rewardHtml, rewardText,
-} from "./m4-art.js?v=m12";
+} from "./m4-art.js?v=m13";
 
 const RW = 1000, RH = 216, GROUND = 144; // khung vẽ đường làng (logic)
 const HOUSE_X = [130, 375, 625, 870];

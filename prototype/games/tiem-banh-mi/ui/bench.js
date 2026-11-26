@@ -1,19 +1,19 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b8";
-import { loafLayers } from "../render/loafview.js?v=b8";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b8";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b8";
-import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b8";
-import { sumBills, makeChange } from "../core/money.js?v=b8";
-import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b8";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b8";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b8";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b10";
+import { loafLayers } from "../render/loafview.js?v=b10";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b10";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b10";
+import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b10";
+import { sumBills, makeChange } from "../core/money.js?v=b10";
+import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b10";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b10";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b10";
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
-import { QUIRKS } from "../data/quirks.js?v=b8";
-import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b8";
+import { QUIRKS } from "../data/quirks.js?v=b10";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b10";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -310,10 +310,13 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     box.appendChild(p);
     const row = h("div", "row");
     const clear = h("button", "btn small", "Chọn lại"); clear.type = "button"; clear.dataset.act = "clearChange"; clear.addEventListener("click", () => { picked = {}; key = ""; });
-    const give = h("button", "btn primary", "Thối " + sum + "k"); give.type = "button"; give.dataset.act = "giveChange";
-    give.addEventListener("click", () => { const bills = picked; picked = {}; key = ""; dispatch({ type: "giveChange", bills }); });
+    // TLC22-03: chưa chọn tờ ⇒ nút thối tay tắt (không còn "Thối 0k" làm bẫy); ngày 1–3 "Thối đúng" là nút chính, đứng đầu
+    const autoOk = autoChangeAllowed(state);
+    const give = h("button", "btn" + (sum > 0 && (!autoOk || diff === 0) ? " primary" : ""), sum > 0 ? "Thối " + sum + "k" : "Chọn tờ để thối"); give.type = "button"; give.dataset.act = "giveChange";
+    give.disabled = sum <= 0;
+    give.addEventListener("click", () => { if (sumBills(picked) <= 0) return; const bills = picked; picked = {}; key = ""; dispatch({ type: "giveChange", bills }); });
+    if (autoOk) { const auto = h("button", "btn" + (sum > 0 && diff === 0 ? "" : " primary"), "Thối đúng"); auto.type = "button"; auto.dataset.act = "autoChange"; auto.title = "Ngày 1–3: máy tự chọn tờ thối"; auto.addEventListener("click", () => { picked = {}; key = ""; dispatch({ type: "autoChange" }); }); row.appendChild(auto); }
     row.append(clear, give);
-    if (autoChangeAllowed(state)) { const auto = h("button", "btn", "Thối đúng"); auto.type = "button"; auto.dataset.act = "autoChange"; auto.title = "Ngày 1–3: máy tự chọn tờ thối"; auto.addEventListener("click", () => { picked = {}; key = ""; dispatch({ type: "autoChange" }); }); row.appendChild(auto); }
     const none = h("button", "btn small", "Hết lẻ?"); none.type = "button"; none.dataset.act = "noChange"; none.addEventListener("click", () => dispatch({ type: "noChange" }));
     row.appendChild(none);
     box.appendChild(row);

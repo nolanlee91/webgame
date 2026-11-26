@@ -1,10 +1,10 @@
 // Test bản đồ theo cấp (Milestone 3) — core/levels-map.js.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mapLayout, unlocksAt, unlockTable, lotMenu } from "../core/levels-map.js?v=m12";
-import * as B from "../core/build.js?v=m12";
-import { BUILDINGS, LOTS, DECOR_SLOTS, EAST_W } from "../data/buildings.js?v=m12";
-import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m12";
+import { mapLayout, unlocksAt, unlockTable, lotMenu } from "../core/levels-map.js?v=m13";
+import * as B from "../core/build.js?v=m13";
+import { BUILDINGS, LOTS, DECOR_SLOTS, EAST_W } from "../data/buildings.js?v=m13";
+import { LEVELS, MAX_LEVEL } from "../data/levels.js?v=m13";
 import manifest from "../assets/v3/manifest.json" with { type: "json" };
 import { existsSync } from "node:fs";
 

@@ -1,9 +1,9 @@
 // Nhiệm vụ ngày (ECONOMY §8, chép core/missions.js Trà Sữa): 3 mục chọn ở đầu ca (RNG của ván ⇒ tải lại không đổi) theo cơ chế đã mở,
 // đếm khi rút mẻ / giao / thối tiền / xử lý sự kiện / chốt ca, thưởng một lần. Câu vui khi xong / hụt (data/lines-m3.js) lưu thành khoảnh khắc.
-import { MISSIONS, MISSIONS_PER_DAY } from "../data/equipment.js?v=b8";
-import { MISSION_DONE, MISSION_MISS, MISSION_ALL } from "../data/lines-m3.js?v=b8";
-import { int } from "./rng.js?v=b8";
-import { fill, freshLine } from "./text.js?v=b8";
+import { MISSIONS, MISSIONS_PER_DAY } from "../data/equipment.js?v=b10";
+import { MISSION_DONE, MISSION_MISS, MISSION_ALL } from "../data/lines-m3.js?v=b10";
+import { int } from "./rng.js?v=b10";
+import { fill, freshLine } from "./text.js?v=b10";
 
 export const MISSION = Object.fromEntries(MISSIONS.map((m) => [m.id, m]));
 export const missionLines = (table, kind) => [...(table[kind] || []), ...table.default];

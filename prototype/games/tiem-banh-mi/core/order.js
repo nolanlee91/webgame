@@ -1,7 +1,7 @@
 // Phiếu: yêu cầu của từng ổ (công thức + biến thể), chữ trên phiếu, giá "ổ ba chục". Thuần.
-import { RECIPE, RECIPES, LEVEL_USE, LEVEL_NAMES, RETAIL, BACHUC, SPREADS, FILLINGS, NAMES, STOCK } from "../data/economy.js?v=b8";
-import { QUIRKS } from "../data/quirks.js?v=b8";
-import { RECIPE_NEEDS } from "../data/equipment.js?v=b8";
+import { RECIPE, RECIPES, LEVEL_USE, LEVEL_NAMES, RETAIL, BACHUC, SPREADS, FILLINGS, NAMES, STOCK } from "../data/economy.js?v=b10";
+import { QUIRKS } from "../data/quirks.js?v=b10";
+import { RECIPE_NEEDS } from "../data/equipment.js?v=b10";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
 /** Món bán được: đủ cấp; khi có trạng thái `s` thì cần thêm đồ / trạm (RECIPE_NEEDS) và ổ gia truyền phải đã đặt tên (s.house). */
