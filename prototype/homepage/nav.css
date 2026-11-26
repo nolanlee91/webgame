@@ -89,12 +89,14 @@
 .me__acct-tick { color: #9be08a; }
 .me__acct-note { font: 700 13px/1.35 var(--font-body); color: #ffab9f; }
 .me__acct-note.is-ok { color: #9be08a; }
-.me__acct-btn { min-height: 44px; justify-content: center; gap: 8px; }
-.me__acct-btn:disabled { opacity: .7; cursor: progress; }
+.me__pop .me__acct-btn { min-height: 44px; justify-content: center; gap: 8px; margin-top: 4px; }
+.me__pop .me__acct-btn:disabled { opacity: .7; cursor: progress; }
 .me__google .me__g { width: 16px; height: 16px; color: #75d1bf; flex: none; }
 .me__acct-alt { all: unset; box-sizing: border-box; cursor: pointer; justify-self: start; min-height: 44px; padding: 0 4px; font: 700 13px/44px var(--font-body); color: #a9c6f5; }
 .me__acct-alt:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 .me__acct-alt:focus-visible { outline: 2px solid var(--px-gold); outline-offset: 0; }
+/* Màn thấp (điện thoại 640 px): popover dài hơn màn mà thanh trên dính ⇒ cuộn bên trong popover (mũi tên bỏ vì bị cắt) */
+@media (max-height: 760px) { .me__pop { max-height: calc(100vh - 84px); max-height: calc(100dvh - 84px); overflow-y: auto; overscroll-behavior: contain; } .me__pop::before { display: none; } }
 @media (prefers-reduced-motion: reduce) { .me__pop { animation: none; } }
 
 /* ---------- 721–1180 px: điều hướng xuống hàng thứ hai ---------- */

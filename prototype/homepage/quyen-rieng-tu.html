@@ -15,6 +15,7 @@
     .policy h1 { margin: 0 0 6px; font: 800 clamp(24px, 3.4vw, 32px)/1.15 var(--font-title); }
     .policy .updated { margin: 0 0 18px; color: var(--soft, #9fb0c4); font-size: 14px; }
     .policy h2 { margin: 26px 0 8px; font: 800 19px/1.25 "Be Vietnam Pro", system-ui, sans-serif; color: #c6f7ea; }
+    .policy h3 { margin: 18px 0 6px; font: 800 16px/1.3 "Be Vietnam Pro", system-ui, sans-serif; color: #ffe2a4; }
     .policy p, .policy li { font-size: 15.5px; line-height: 1.65; }
     .policy ul { padding-left: 20px; margin: 6px 0; }
     .policy li + li { margin-top: 4px; }
@@ -48,7 +49,7 @@
       <h1>Quyền riêng tư</h1>
       <p class="updated">Cập nhật ngày 25/11/2026</p>
 
-      <p class="lead">Lụm Kèo là cổng game chơi miễn phí trên trình duyệt. Bạn chơi được mà không cần đăng ký, không cần email hay số điện thoại. Trang này nói rõ Lụm Kèo giữ những gì, để làm gì, và cách xoá.</p>
+      <p class="lead">Lụm Kèo là cổng game chơi miễn phí trên trình duyệt. Bạn chơi được mà không cần đăng ký, không cần email hay số điện thoại. Đăng nhập Google chỉ là tuỳ chọn để giữ tiến độ khi đổi máy. Trang này nói rõ Lụm Kèo giữ những gì, để làm gì, và cách xoá.</p>
 
       <h2>1. Lưu ngay trên máy của bạn</h2>
       <p>Phần lớn dữ liệu chỉ nằm trong bộ nhớ trình duyệt của bạn (localStorage), không gửi về máy chủ:</p>
@@ -69,12 +70,22 @@
           <tr><th scope="row">Địa chỉ IP</th><td>Máy chủ nào cũng thấy địa chỉ IP khi bạn vào trang. Lụm Kèo chỉ dùng IP để chặn gửi quá nhiều lần (giữ trong bộ nhớ khoảng một phút) và không ghi vào cơ sở dữ liệu.</td></tr>
         </tbody>
       </table>
-      <p>Lụm Kèo <b>không</b> thu email, số điện thoại, danh bạ, vị trí hay ảnh của bạn, không bán dữ liệu và không dùng dữ liệu để quảng cáo nhắm theo người.</p>
+      <p>Lụm Kèo <b>không</b> thu số điện thoại, danh bạ, vị trí hay ảnh của bạn, không thu email trừ khi bạn tự chọn lưu bằng Google (mục dưới), không bán dữ liệu và không dùng dữ liệu để quảng cáo nhắm theo người.</p>
+
+      <h3 id="google">Lưu tiến độ bằng Google (không bắt buộc)</h3>
+      <p>Trong ô hồ sơ có nút <b>Lưu tiến độ bằng Google</b>. Bấm vào thì mã người chơi ẩn danh của bạn được gắn với tài khoản Google, để sang máy khác đăng nhập là có lại tên hiển thị và kết quả Thử thách.</p>
+      <ul>
+        <li>Lụm Kèo chỉ lưu <b>mã tài khoản Google</b> và <b>địa chỉ email</b> do Google gửi về, để nhận ra bạn khi đăng nhập lại. Không dùng vào việc gì khác, không gửi thư quảng cáo.</li>
+        <li>Email và tên Google <b>không bao giờ hiện công khai</b>: bảng xếp hạng và phòng online vẫn chỉ dùng tên hiển thị bạn tự đặt. Trong ô hồ sơ, chỉ bạn thấy email đã che bớt (ví dụ "ng•••@gmail.com").</li>
+        <li>Lụm Kèo không đọc danh bạ, Gmail, Drive hay bất cứ dữ liệu nào khác trong tài khoản Google.</li>
+        <li><b>Đăng xuất</b>: mở ô hồ sơ, bấm <b>Đăng xuất</b>. Máy đó quay về chơi bằng tên khách mới; tên và kết quả vẫn nằm trong tài khoản, đăng nhập lại là có.</li>
+      </ul>
 
       <h2>3. Lưu ở đâu</h2>
       <ul>
         <li><b>Railway</b>: máy chủ chạy trang web và phòng chơi online.</li>
-        <li><b>Supabase</b>, máy chủ đặt tại Singapore: lưu mã ẩn danh, tên hiển thị và kết quả Thử thách.</li>
+        <li><b>Supabase</b>, máy chủ đặt tại Singapore: lưu mã ẩn danh, tên hiển thị và kết quả Thử thách; nếu bạn chọn lưu bằng Google thì lưu thêm mã tài khoản Google và email.</li>
+        <li><b>Google</b>: chỉ khi bạn bấm lưu hoặc đăng nhập bằng Google, trang đăng nhập là của Google.</li>
         <li><b>jsDelivr</b>, <b>Google Fonts</b>: tải thư viện và phông chữ. Các dịch vụ này cũng thấy địa chỉ IP của bạn khi tải.</li>
       </ul>
       <p>Bảng xếp hạng mỗi ngày giữ lại để xem lịch sử. Lụm Kèo có thể xoá bớt dữ liệu cũ mà không báo trước.</p>
@@ -86,11 +97,12 @@
       <ul>
         <li>Muốn đổi tên: bấm ô hồ sơ (avatar + tên) góc trên trang chủ, hoặc nút <b>Đổi tên</b> ngay dòng hạng của bạn.</li>
         <li>Muốn xoá hẳn kết quả và tên trên máy chủ: gửi yêu cầu cho Lụm Kèo kèm tên hiển thị và ngày chơi. Lụm Kèo xoá trong vòng 7 ngày.</li>
+        <li>Đã lưu bằng Google và muốn xoá hẳn tài khoản (mã Google, email, tên, kết quả): gửi yêu cầu từ chính email đó, kèm tên hiển thị. Lụm Kèo xoá trong vòng 7 ngày. Bạn cũng gỡ được quyền truy cập của Lụm Kèo trong trang quản lý tài khoản Google (Bảo mật › Ứng dụng bên thứ ba).</li>
       </ul>
       <p id="contactLine">Liên hệ: <span id="contactBox">đang cập nhật.</span></p>
 
       <h2>6. Thay đổi</h2>
-      <p>Khi Lụm Kèo thêm tính năng mới (ví dụ đăng nhập bằng Google hoặc Facebook để giữ bản lưu khi đổi máy), trang này sẽ được cập nhật trước khi tính năng chạy, kèm ngày cập nhật ở đầu trang.</p>
+      <p>Khi Lụm Kèo thêm tính năng mới (ví dụ đăng nhập bằng Facebook), trang này sẽ được cập nhật trước khi tính năng chạy, kèm ngày cập nhật ở đầu trang.</p>
     </article>
   </main>
 

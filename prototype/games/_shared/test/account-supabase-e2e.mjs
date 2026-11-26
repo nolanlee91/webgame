@@ -35,6 +35,9 @@ try {
   await tab.cmd("Network.enable");
   const bodies = [];
   tab.ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.method === "Network.responseReceived" && /\/api\//.test(m.params.response.url)) bodies.push(m.params.requestId); });
+  // D3 bỏ bước hỏi tên (gửi thẳng bằng getName()) ⇒ đặt sẵn tên chung trước khi chơi
+  await nav(tab, "/homepage/");
+  await tab.ev(`localStorage.setItem("wgp.account.v1", JSON.stringify({ v: 1, name: "Supa Test", gen: false, asked: true, devId: "", sent: {} }))`);
   await nav(tab, "/games/do-vui-nhanh/?daily=1");
   await tab.waitFor(`window.__game && __game.state && __game.state.phase === "ask"`);
   for (let k = 0; k < 5; k++) {
@@ -44,10 +47,6 @@ try {
     await tab.waitFor(`!document.getElementById("nextBtn").hidden`);
     await tab.click("#nextBtn", { touch: true });
   }
-  await tab.waitFor(`document.getElementById("dlyLb")?.dataset.state === "ask"`, 30000);
-  await tab.click("#dlyName", { touch: true });
-  await tab.cmd("Input.insertText", { text: "Supa Test" });
-  await tab.click("#dlyNameOk", { touch: true });
   await tab.waitFor(`["board", "error"].includes(document.getElementById("dlyLb")?.dataset.state)`, 30000);
   const st = await tab.ev(`document.getElementById("dlyLb").dataset.state`);
   const rows = await tab.ev(`JSON.stringify([...document.querySelectorAll("#dlyLbList .dly-lb__row")].map(li => li.textContent))`);
@@ -68,9 +67,12 @@ try {
   await tab.shot(path.join(OUT, "supabase-do-vui-390.png")); console.log("  ảnh: " + path.join(OUT, "supabase-do-vui-390.png"));
   // trang chủ: hạng #1/1 bằng phiên có sẵn (không tạo người dùng mới)
   await nav(tab, "/homepage/");
-  await tab.waitFor(`document.querySelector('.dcard[data-game="do-vui-nhanh"] .dcard__rank')`, 30000).catch(() => {});
-  const rank = await tab.ev(`document.querySelector('.dcard[data-game="do-vui-nhanh"] .dcard__rank')?.textContent || ""`);
-  check("trang chủ: 'Hạng #1/1' trên thẻ Đố Vui, không đăng ký thêm người dùng", rank === "🏆 Hạng #1/1" && fake.log.filter((r) => r.path === "/auth/v1/signup" && r.method === "POST").length === 1, rank);
+  // D3 bỏ 3 thẻ Thử thách lớn ⇒ hạng hôm nay hiện trong ô hồ sơ (#meRanks, chỉ hỏi khi mở popover)
+  await tab.ev(`window.__profile.ready`);
+  await tab.click("#meBtn", { touch: true });
+  await tab.waitFor(`!document.getElementById("meRanks")?.hidden`, 30000).catch(() => {});
+  const rank = await tab.ev(`document.getElementById("meRanks")?.textContent || ""`);
+  check("trang chủ: ô hồ sơ 'Đố Vui #1/1', không đăng ký thêm người dùng", rank.includes("Đố Vui #1/1") && fake.log.filter((r) => r.path === "/auth/v1/signup" && r.method === "POST").length === 1, rank);
   check("không có lỗi JS / console error", tab.errors.length === 0, tab.errors.join(" || "));
 } catch (e) {
   console.log("FAIL ngoại lệ — " + (e && e.stack || e)); fails++;

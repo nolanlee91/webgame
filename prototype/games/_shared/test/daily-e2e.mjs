@@ -9,7 +9,7 @@ import path from "node:path";
 const OUT = path.resolve(process.argv[2] || "daily-shots");
 mkdirSync(OUT, { recursive: true });
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
-const PORT = 8767, BASE = `http://127.0.0.1:${PORT}`;
+const PORT = Number(process.env.E2E_PORT) || 8767, BASE = `http://127.0.0.1:${PORT}`;
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
