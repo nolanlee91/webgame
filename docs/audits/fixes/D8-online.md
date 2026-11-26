@@ -111,8 +111,43 @@ Mọi file tĩnh đã sửa đổi sang `d8o` ở mọi chỗ tham chiếu:
 
 ## Kết quả kiểm thử
 
-KQ_TEST
+Chạy trên nhánh này, mỗi lệnh có `timeout`. Máy test dùng chung với nhiều agent khác nên rất bận: lần chạy đầu bộ unit (chạy song
+song với e2e) trượt vài test đo thời gian thật (Nội Gián room, `ws-heartbeat` khoảng 40 / 200 ms); đã nới khoảng thời gian của
+test nhịp tim / dò chủ phòng (chờ 101 trước khi gửi khung, khoảng 0,3–3 s thay vì 0,1 s, luôn đóng máy chủ trong `finally`)
+rồi chạy lại tuần tự, tất cả đạt.
+
+| Lệnh | Kết quả |
+|---|---|
+| `node --test --test-concurrency=1 games-server/*.test.mjs games-server/*/test/*.test.mjs games-server/account/test/*.test.mjs server-static.test.mjs` (chia 2 nửa để vừa `timeout 590`) | **403/403 đạt** (177 + 226) |
+| — trong đó mới: `room-privacy.test.mjs` (1, 10 game), `end-host.test.mjs` (4), `ws-heartbeat.test.mjs` (+17) | đạt |
+| `node games-server/ma-soi/test/browser-e2e.mjs` | đạt |
+| `node games-server/ai-la-noi-gian/test/browser-e2e.mjs` | đạt |
+| `node games-server/dat-bom/test/browser-e2e.mjs` | đạt (sửa bước "maxlength 16" ⇒ kiểm bộ đếm 22/16 + nhắc bớt ký tự; Phòng kín ở phòng chờ) |
+| `node games-server/noi-tu/test/browser-e2e.mjs` | đạt |
+| `node games-server/board-online-e2e.mjs` | Caro / Vua / Tướng / Ô Ăn Quan: tất cả đạt |
+| `node prototype/games/_shared/test/kick-e2e.mjs` | tất cả đạt |
+| `node games-server/co-ca-ngua/test/rematch-e2e.mjs` | đạt |
+| `BASE=http://127.0.0.1:8941 node prototype/games/_shared/test/chat-off-e2e.mjs` | 250 đạt, 0 lỗi |
+| `node tools/cache-tags/check-tags.mjs master` | `OK: 13 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.` |
+
+Đo bố cục bằng script tạm (Chrome headless cổng 8942, server cổng 8941, ngoài repo, đã xoá): Ma Sói / Nội Gián 844×390, 740×360
+(đang chơi + phòng chờ), 320 / 360 phòng chờ; Cá Ngựa kết quả 320–412 + 844×390; Caro 740×360, 844×390, 568×320; Bắt đầu chơi với
+máy ở Caro / Vua / Tướng / Ô Ăn Quan × 844×390, 740×360, 568×320, 320×568; thẻ kết ván Ô Ăn Quan 320–390 + ngang; mũi tên Ô Ăn
+Quan 320 / 390 / 844 / 1366; ô Phòng kín + gợi ý ở cả 10 game (360 px, không tràn ngang).
 
 ## Bỏ qua (lý do)
 
-SKIPPED
+| ID | Lý do |
+|---|---|
+| OAQ-03 (khoảng cách ô ở 320) | Bàn đã to nhất có thể theo bề ngang 300 px (k không bị làm tròn xuống). Đã sửa phần gây hại (mũi tên che ô / số sỏi). Muốn ô to hơn phải đổi bố cục cả màn 320 (bỏ HUD / hàng nút) — để đợt sau nếu cần. |
+| PTY-07 (8 ghế chồng khung ở 320) | Toạ độ ghế đo trên ảnh làng; sửa cần chỉnh lại vị trí ghế / ảnh (asset). Nhãn tên đã không chồng. |
+| PTY-02 tắt tiếng / báo cáo từng người | Tính năng mới (M), MODERATION.md ghi là chưa làm. |
+| BRD-06 Tỷ Phú 2,4 MB | P1 riêng về ảnh, ngoài phạm vi đợt này (D7 trang chủ đã ưu tiên tải poster). |
+| BRD-18 khoảng trống dọc Caro / Vua, BRD-19 thẻ kết quả hiện sau ~1 s | Quyết định thiết kế, không phải lỗi P2; đề xuất cũ đã đạt (< 2 s). |
+| BRD-21 `:hover` không bọc `@media (hover:hover)` | Đụng CSS của 5 game, rủi ro lệch giao diện; P3 thẩm mỹ. |
+| BRD-23 loa emoji Tỷ Phú | Cần icon pixel mới (asset). |
+| BOARD2-08 tên Cá Ngựa 320 "…", BOARD2-09 Mời ra sau ván, BOARD2-11 ô đất Tỷ Phú nhỏ | P3, không thuộc danh sách P2. |
+| BOARD2-10 e2e Cờ Tướng trượt | Lần chạy này `board-online-e2e.mjs` Tướng ĐẠT, không tái hiện. |
+| TTH2-11 (nhãn mất kết nối 6–8 s ở Ô Ăn Quan) | Đã nhanh hơn nhờ nhịp tim mới (rớt im lặng ≤ 20 s); đóng tab có khung đóng vẫn báo ngay như cũ. |
+| Vua / Tướng 568×320: nút "Tạo phòng online" ở màn đầu phải cuộn | Cỡ màn quá nhỏ, ngoài danh sách audit; "Bắt đầu" (chơi với máy) đã trong màn. |
+| Chạy e2e trên cổng 8941–8950 | Các e2e có sẵn tự dựng server cổng ngẫu nhiên (`listen(0)`) và Chrome cổng 9400–9900 trong `cdp.mjs` (không được sửa). Chỉ server riêng cho chat-off và script đo của tôi dùng 8941 / 8942. |
