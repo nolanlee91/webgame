@@ -5,26 +5,26 @@
 //   Di chuyển v3/v4: s.warehouse ≥ 1 (đã nâng kho bằng xu) ⇒ Nhà kho coi như đã xây, level = mốc + 1 (build.migrate) — không ai mất sức chứa.
 // v6 (Milestone 4) thêm: animals (đàn gà / bò, core/animals.js), village (thân thiết, nhiệm vụ làng, core/village.js), lastDeliveryAt
 //   (xe giao hàng). Save cũ thiếu field ⇒ tạo mới (core/m4-handlers.js ensureM4). Đơn có trứng / sữa giữ được khi tải lại.
-import { CROP, CROPS } from "../data/crops.js?v=m13";
-import { ITEM, isDecor } from "../data/catalog.js?v=m13";
-import { WORKSHOP } from "../data/workshop.js?v=m13";
-import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m13";
-import { MACHINES_NOW } from "./workshop.js?v=m13";
-import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m13";
-import { applyEffects } from "./construct.js?v=m13";
-import { NPC } from "../data/npcs.js?v=m13";
-import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m13";
-import { UPGRADES } from "../data/decor.js?v=m13";
-import { QUESTS, TUTORIAL } from "../data/quests.js?v=m13";
+import { CROP, CROPS } from "../data/crops.js?v=m14";
+import { ITEM, isDecor } from "../data/catalog.js?v=m14";
+import { WORKSHOP } from "../data/workshop.js?v=m14";
+import { createProduction, sanitize as sanitizeProduction, grantMachine } from "./production.js?v=m14";
+import { MACHINES_NOW } from "./workshop.js?v=m14";
+import { sanitize as sanitizeBuild, migrate as migrateBuild } from "./build.js?v=m14";
+import { applyEffects } from "./construct.js?v=m14";
+import { NPC } from "../data/npcs.js?v=m14";
+import { WAREHOUSE, OVERFLOW_MAX } from "../data/warehouse.js?v=m14";
+import { UPGRADES } from "../data/decor.js?v=m14";
+import { QUESTS, TUTORIAL } from "../data/quests.js?v=m14";
 const TUTORIAL_LENGTH = TUTORIAL.length;
-import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m13";
-import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m13";
-import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m13";
-import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m13";
-import { ensureM4 } from "./m4-handlers.js?v=m13";
-import { isSpecialSlot, SPECIAL2_LEVEL } from "./orders.js?v=m13";
-import { createCollection, sanitize as sanitizeCollection } from "./collection.js?v=m13";
-import { createFair, sanitize as sanitizeFair } from "./fair.js?v=m13";
+import { ORDER_TYPES, FIRST_ORDERS, LEGACY_RECIPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m14";
+import { W, H, PLOT_COUNT, BASE_PLOTS, blankPlot } from "./plots.js?v=m14";
+import { xpNeed, cropUnlocked, orderSlotCount } from "./progression.js?v=m14";
+import { priceOrder, SPECIAL_LEVEL } from "./orders.js?v=m14";
+import { ensureM4 } from "./m4-handlers.js?v=m14";
+import { isSpecialSlot, SPECIAL2_LEVEL } from "./orders.js?v=m14";
+import { createCollection, sanitize as sanitizeCollection } from "./collection.js?v=m14";
+import { createFair, sanitize as sanitizeFair } from "./fair.js?v=m14";
 // v7 (Milestone 6) thêm: collection (Sổ sưu tập — save cũ: món đang có trong kho ghi sẵn vào sổ), fair (hàng săn đã bán trong
 //   Phiên chợ hôm nay), orders.special2 (đơn đặc biệt thứ hai, cấp 18). Không đổi / xoá field cũ nào.
 

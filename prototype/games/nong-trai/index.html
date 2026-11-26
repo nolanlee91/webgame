@@ -720,6 +720,19 @@
       .tools { flex: 1 1 100%; margin-left: 3px; } .tools .btn { flex: 1; }
     }
 
+    /* TLC12-03: điện thoại dọc màn thấp (≤ 700 px cao, vd 320×568) khi gieo / tưới: trang không cuộn nữa — bản đồ là khung cuộn riêng
+       chiếm phần còn lại giữa HUD + nhiệm vụ và khay, ruộng đặt giữa khung (game.js centerField); hàng nút điều hướng một hàng cuộn ngang.
+       Trước đây khay dính đáy che hết ruộng (0 % thấy được). Bảng Kho / Đơn / Nâng cấp vẫn nằm theo dòng trang như cũ. */
+    @media (max-width: 760px) and (orientation: portrait) and (max-height: 700px) {
+      body:is(:not([data-scene]), [data-scene="farm"]):is([data-panel="seed"], [data-panel="water"]) { height: 100svh; min-height: 0; overflow: hidden; }
+      body:is(:not([data-scene]), [data-scene="farm"]):is([data-panel="seed"], [data-panel="water"]) .wrap { min-height: 0; grid-template-rows: auto auto minmax(0, 1fr); align-content: stretch; padding-bottom: 0; }
+      body:is(:not([data-scene]), [data-scene="farm"]):is([data-panel="seed"], [data-panel="water"]) .farm-world { min-height: 0; }
+      body:is(:not([data-scene]), [data-scene="farm"]):is([data-panel="seed"], [data-panel="water"]) .farm { flex: 1 1 0; min-height: 0; width: 100%; overflow: auto; contain: size; }
+      body:is(:not([data-scene]), [data-scene="farm"]):is([data-panel="seed"], [data-panel="water"]) .farm-controls { position: static; flex: none; }
+      .farm-nav { display: flex; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; gap: 5px; margin-bottom: 5px; padding-bottom: 2px; }
+      .farm-nav::-webkit-scrollbar { display: none; }
+      .farm-nav .btn { flex: 0 0 auto; min-width: 64px; min-height: 44px; padding: 2px 8px; font-size: 11px; line-height: 1.1; white-space: normal; text-align: center; }
+    }
     /* điện thoại xoay ngang (≤ 500 px cao): 2 cột — bản đồ trái, cột phải HUD / nhiệm vụ / khay (cột phải tự cuộn) */
     @media (orientation: landscape) and (max-height: 500px) {
       .tag { display: none; }
@@ -947,7 +960,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m13";
+    import { mount } from "./game.js?v=m14";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

@@ -12,7 +12,7 @@
 // cycleMs: chu kỳ từ lúc cho ăn tới lúc sản phẩm chín. product × qty vào kho khi "Thu". xp: kinh nghiệm mỗi lần thu.
 // housing: công trình chứa (M3 xây). capacityByLevel[i]: số con tối đa khi chuồng ở level i+1 (§2.4: gà 6, bò 4 lúc xây).
 // sprite: frame trong assets/v3/animals.webp (manifest.json → sheets.animals). bubble: bong bóng trên đầu.
-import { ITEM, ANIMAL_REF } from "./catalog.js?v=m13";
+import { ITEM, ANIMAL_REF } from "./catalog.js?v=m14";
 
 export const FEED = "thuc-an-gia-suc";
 /** Trần cứng (chống save bị sửa): không chuồng nào chứa quá số này, kể cả khi capacity() trả số lớn hơn. */
