@@ -7,9 +7,10 @@ import { launchChrome, sleep } from "./cdp.mjs";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { shotDir } from "./lk-temp.mjs";
 
 const BASE = process.env.BASE || "http://127.0.0.1:8922";
-const OUT = process.argv[2] || join(tmpdir(), "chat-off-shots");
+const OUT = process.argv[2] || shotDir("chat-off");
 const ONLY = process.argv[3] ? process.argv[3].split(",") : null;
 mkdirSync(OUT, { recursive: true });
 
@@ -51,7 +52,7 @@ for (const g of GAMES) {
   const r = await fetch(`${BASE}/games/${g.id}/`).catch((e) => ({ ok: false, status: e.message }));
   if (!r.ok) { console.error(`Máy chủ ${BASE} không phục vụ /games/${g.id}/ (${r.status}). Chạy: PORT=… node server.js ở gốc repo rồi đặt BASE.`); process.exit(2); }
 }
-const chrome = await launchChrome();
+const chrome = await launchChrome("chat-off");
 async function tab(name, w, h, mobile) {
   const ctx = await chrome.newContext();
   const t = await chrome.newTab(name, w, h, mobile, ctx);

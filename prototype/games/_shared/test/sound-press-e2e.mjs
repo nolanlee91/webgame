@@ -29,7 +29,7 @@ const GAMES = {
 };
 
 const { server, base } = await startServer();
-const chrome = await launchChrome();
+const chrome = await launchChrome("sound-press");
 const KC = { ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40, Space: 32, KeyM: 77, KeyP: 80 };
 const keyer = (t) => async (code) => {
   const k = code === "Space" ? " " : code.startsWith("Key") ? code.slice(3).toLowerCase() : code.startsWith("Digit") ? code.slice(5) : code;

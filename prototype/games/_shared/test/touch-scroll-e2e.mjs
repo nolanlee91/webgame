@@ -17,7 +17,7 @@ let pass = 0, fail = 0;
 const ok = (c, msg) => { c ? pass++ : fail++; console.log(`${c ? "✔" : "✘"} ${msg}`); };
 
 const { server, base } = await startServer();
-const chrome = await launchChrome();
+const chrome = await launchChrome("touch-scroll");
 
 async function open(mobile) {
   const t = await chrome.newTab(mobile ? "phone" : "desktop", mobile ? 390 : 1366, mobile ? 844 : 768, mobile);

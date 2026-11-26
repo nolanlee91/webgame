@@ -1,15 +1,16 @@
 // CDP tối thiểu cho Chrome headless (không thêm thư viện). Dùng bởi test/e2e.mjs (chép từ Quán Cơm Tấm).
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { tempProfile, guardChrome } from "../../_shared/test/lk-temp.mjs";
 
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function launch(outDir, dbgPort = 9371) {
   mkdirSync(outDir, { recursive: true });
-  const prof = outDir + "/prof-" + dbgPort;
-  try { rmSync(prof, { recursive: true, force: true }); } catch {}
+  const prof = tempProfile("tham-tu-hem-" + dbgPort); // %TEMP%/lk-e2e-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết)
   const proc = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${dbgPort}`, "--user-data-dir=" + prof, "--hide-scrollbars", "--mute-audio", "about:blank"], { stdio: "ignore" });
+  guardChrome(proc, prof);
   let ws;
   for (let i = 0; i < 80 && !ws; i++) {
     try { const l = await (await fetch(`http://127.0.0.1:${dbgPort}/json`)).json(); const p = l.find((x) => x.type === "page"); if (p) ws = new WebSocket(p.webSocketDebuggerUrl); } catch {}

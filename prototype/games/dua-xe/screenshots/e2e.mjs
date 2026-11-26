@@ -2,12 +2,15 @@
 // Chạy: (ở gốc repo) PORT=8771 node server.js   rồi   node prototype/games/dua-xe/screenshots/e2e.mjs <thư mục output>
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
-const OUT = process.argv[2] || '.', BASE = (process.env.BASE || 'http://127.0.0.1:8771') + '/games/dua-xe/';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('dua-xe'), BASE = (process.env.BASE || 'http://127.0.0.1:8771') + '/games/dua-xe/';
 mkdirSync(OUT, { recursive: true });
 try { rmSync(OUT + '/prof', { recursive: true, force: true }); } catch {}
 const PORT = 9348;
+const PROF = tempProfile('dua-xe'); // %TEMP%/lk-e2e-*, tự xoá khi thoát
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=' + PORT, '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + PORT, '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 console.log('chrome pid', chrome.pid);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;

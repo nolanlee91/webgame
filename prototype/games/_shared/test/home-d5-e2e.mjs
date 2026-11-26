@@ -5,12 +5,13 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { startServer, launchChrome, sleep } from "./cdp.mjs";
+import { shotDir } from "./lk-temp.mjs";
 
-const OUT = path.resolve(process.argv[2] || "home-d5-shots");
+const OUT = path.resolve(process.argv[2] || shotDir("home-d5"));
 mkdirSync(OUT, { recursive: true });
 for (const k of ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "RAILWAY_ENVIRONMENT", "RAILWAY_PROJECT_ID", "NODE_ENV", "DAILY_BOARD"]) delete process.env[k];
 const { server, base } = await startServer();
-const chrome = await launchChrome();
+const chrome = await launchChrome("home-d5");
 let fails = 0;
 const check = (n, c, d = "") => { if (!c) fails++; console.log((c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : "")); };
 const shot = async (t, name) => { const f = path.join(OUT, name); await t.shot(f); console.log("  ảnh: " + f); };

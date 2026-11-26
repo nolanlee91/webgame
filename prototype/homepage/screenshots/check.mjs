@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
+import { tempProfile, guardChrome } from '../../games/_shared/test/lk-temp.mjs';
 // Chạy PORT=8766 node server.js ở gốc repo để có API sảnh và WebSocket. Chỉ chạy trên localhost.
 const OUT = process.argv[2], BASE = process.argv[3] || 'http://127.0.0.1:8766/homepage/';
 const baseUrl = new URL(BASE);
@@ -25,8 +26,10 @@ const games = ["dat-bom", "ma-soi", "ai-la-noi-gian", "noi-tu", "co-ca-ngua", "c
 const publicRooms = {};
 for (const game of games) publicRooms[game] = await createRoom(game);
 const privateCode = await createRoom("dat-bom", false);
+const PROF = tempProfile('homepage-check'); // %TEMP%/lk-e2e-*, tự xoá khi thoát
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9333', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=9333', '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 240; i++) {

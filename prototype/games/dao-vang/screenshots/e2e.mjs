@@ -2,9 +2,12 @@
 // node e2e.mjs <thư mục output>   (cần server thật của dự án — có /api/lobby cho trang chủ: PORT=8766 node server.js ở gốc repo)
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { tempProfile, guardChrome } from '../../_shared/test/lk-temp.mjs';
 const OUT = process.argv[2], BASE = 'http://127.0.0.1:8766/games/dao-vang/index.html';
+const PROF = tempProfile('dao-vang'); // %TEMP%/lk-e2e-*, tự xoá khi thoát
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9334', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=9334', '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {

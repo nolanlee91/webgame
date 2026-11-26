@@ -5,8 +5,9 @@
 import { readdirSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
 import { CASES } from "../data/cases/index.js";
+import { shotDir } from "../../_shared/test/lk-temp.mjs";
 
-const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8871, ORIGIN = `http://127.0.0.1:${PORT}`;
+const OUT = process.argv[2] || shotDir("tham-tu-bot"), PORT = process.env.PORT || 8871, ORIGIN = `http://127.0.0.1:${PORT}`;
 const have = new Set(readdirSync(new URL("../data/cases/", import.meta.url)).map((f) => f.replace(/\.js$/, "")));
 // mọi vụ trong danh mục (cả mùa 2) có file thì chạy; vụ chưa có file thì bỏ qua (báo SKIP)
 const want = process.argv.slice(3).length ? process.argv.slice(3) : CASES.map((c) => c.id);
