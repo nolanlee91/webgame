@@ -346,7 +346,8 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const k = JSON.stringify([b.cid, b.item, b.step, l && [l.sliced, l.wrap, l.toastT0 !== null, l.spreads, l.fills, l.veg, l.ot, l.sauces, l.toasted, l.burnt, l.id],
       sh.paying, sh.paying !== null && state.float, picked, sh.oven.map((x) => !!x), sh.case.length, state.stock, hint?.key, showBook, loafScale, state.day,
       b.cid !== null && customer(state, b.cid)?.filled.map(Boolean), sh.sel, sh.boards.map((x) => [x.cid, !!x.loaf]), sh.que, l?.n, helperOn(state), Object.keys(state.owned || {}).length,
-      sh.cook && [sh.cook.eggs, sh.cook.pan.map((x) => x !== null), sh.cook.meat, !!sh.cook.grill]]);
+      sh.cook && [sh.cook.eggs, sh.cook.pan.map((x) => x !== null), sh.cook.meat, !!sh.cook.grill],
+      b.cid === null && sh.customers.some((x) => x.phase === "wait")]); // TLC2-06: thớt trống ⇒ chữ "Chưa có khách chờ" đổi ngay khi có khách tới
     if (k === key) return;
     if (b.cid === null) showBook = false;
     key = k;

@@ -333,10 +333,11 @@
       .help-cards { grid-template-columns: 1fr; }
       .bubble { max-width: 170px; font-size: 11.5px; padding: 4px 8px; }
       .tbadge { font-size: 9.5px; padding: 0 5px; max-width: calc(100% - 4px); overflow: hidden; text-overflow: ellipsis; } /* V: không tràn sang nhãn bàn bên cạnh */
-      /* cảnh chỉ cao 240: gợi ý + thông báo mỗi thứ một dòng, ở vùng trời (không che khách, bàn) */
-      .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* cảnh chỉ cao 240: gợi ý + thông báo ở vùng trời (không che khách, bàn) */
+      /* TLC2-07: gợi ý ngày 1 xuống dòng (tối đa 3 dòng) thay vì cắt "…" đúng chỗ chỉ cách làm */
+      .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
       .toasts { top: 3px; left: 3px; right: 3px; }
-      .hintbar:not([hidden]) ~ .toasts { top: 26px; }
+      .hintbar:not([hidden]) ~ .toasts { top: 54px; }
       .toast { font-size: 11px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; }
       .toast.has-act { overflow: visible; padding: 2px 3px 2px 8px; gap: 8px; } .toast.has-act > span { overflow: hidden; text-overflow: ellipsis; } .toast-act { padding: 1px 12px; font-size: 12px; }
@@ -378,8 +379,8 @@
       .plate-row .strip { flex: 1; grid-template-columns: repeat(3, 1fr); gap: 4px; }
       .lay { min-height: 44px; font-size: 11px; } .acts .btn { min-height: 44px; }
       .acts { position: sticky; bottom: 0; background: #241f33; padding: 4px 0 6px; z-index: 2; }
-      .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .toasts { top: 3px; left: 3px; right: 3px; } .hintbar:not([hidden]) ~ .toasts { top: 26px; }
+      .hintbar { font-size: 11px; line-height: 1.25; padding: 3px 8px; top: 3px; left: 3px; right: 3px; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+      .toasts { top: 3px; left: 3px; right: 3px; } .hintbar:not([hidden]) ~ .toasts { top: 40px; }
       .toast { font-size: 11px; padding: 2px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .toast:not(:last-child):not(.has-act):not(:has(+ .has-act)) { display: none; }
       .bubble { max-width: 170px; font-size: 11.5px; padding: 4px 8px; }

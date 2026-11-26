@@ -267,6 +267,9 @@
     .picked.ok { color: #1d6a3a; } .picked.short { color: #8a1f14; } .picked.over { color: #8a4a1a; }
 
     .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(10, 14, 22, .62); padding: 16px; }
+    .sum-foot { position: sticky; bottom: -18px; z-index: 2; margin: 12px -20px -18px; padding: 10px 20px 14px; background: var(--cream); box-shadow: 0 -3px 0 var(--cream3, rgba(59, 38, 24, .25)); }
+    @media (max-width: 760px) { .sum-foot { bottom: -14px; margin: 12px -12px -14px; padding: 8px 12px 12px; } }
+    @media (orientation: landscape) and (max-height: 500px) { .sum-foot { bottom: -12px; margin: 10px -14px -12px; padding: 6px 14px 10px; } }
     .sheet { width: min(980px, 100%); max-height: calc(100svh - 32px); overflow-y: auto; background: var(--cream); color: var(--ink); --b: var(--line); box-shadow: var(--px-bevel), var(--px-border), 6px 8px 0 0 rgba(0, 0, 0, .5); padding: 18px 20px; }
     .sheet.narrow { width: min(560px, 100%); }
     .sheet h2 { margin: 0 0 6px; font-size: 22px; } .sheet h3 { margin: 10px 0 4px; font-size: 16px; }

@@ -10,7 +10,8 @@ import { eggState } from "../core/rice.js?v=c9"; // A: chảo trứng + xửng h
 
 const SIDE_COL = { raw: "var(--m-raw)", half: "var(--m-half)", done: "var(--m-done)", charred: "var(--m-char)", burnt: "var(--m-burnt)" };
 const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy cạnh", burnt: "cháy" };
-const ZONE = { hot: ["N", "Nóng"], mid: ["V", "Vừa"], warm: ["Ấ", "Giữ ấm"], veg: ["C", "Vỉ chay"] }; // S: vỉ chay riêng
+// TLC2-08: nhãn chip dùng chữ ngắn đọc được ("Nóng · trống") thay chữ cái "N · bỏ sườn" khó hiểu với trẻ (điện thoại ẩn nhãn vùng)
+const ZONE = { hot: ["Nóng", "Nóng"], mid: ["Vừa", "Vừa"], warm: ["Ấm", "Giữ ấm"], veg: ["Chay", "Vỉ chay"] }; // S: vỉ chay riêng
 const MEAT_NAME = { suon: "Sườn", "suon-non": "Sườn non", ga: "Gà", "lap-xuong": "Lạp xưởng", "dau-hu": "Đậu hũ" };
 
 export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = () => false }) {
@@ -75,7 +76,7 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
       c.b.hidden = i + base >= g.slots.length; // S: trang vỉ chay chỉ có 2 chỗ
       let sig, cls = "gchip " + z, label;
       if (!it) {
-        sig = "empty"; label = `${ZONE[z][0]} · bỏ sườn`;
+        sig = "empty"; label = `${ZONE[z][0]} · trống`;
         c.ring.style.setProperty("--c1", "#4a4060"); c.ring.style.setProperty("--c2", "#4a4060");
       } else {
         const a = sideState(it.sides[0]), b = sideState(it.sides[1]), r = itemResult(it);

@@ -561,7 +561,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       }
       grid.appendChild(right);
       c.appendChild(grid);
-      const foot = h("div", "row"); foot.style.marginTop = "12px";
+      const foot = h("div", "row sum-foot"); // TLC2-13: chân bảng chốt ca dính đáy ⇒ "Ngày tiếp theo" luôn thấy, không phải cuộn tìm
       const go = btn("Ngày tiếp theo", "primary", "nextDay", () => { dispatch({ type: "closeSummary" }); close(); hooks.afterSummary(); }); go.dataset.autofocus = "";
       // Review chưa trả lời ⇒ nút dẫn thẳng tới ô trả lời (như Trà Sữa); không có thì thôi
       const open = (hooks.state().feed || []).filter((r) => !r.reply);
