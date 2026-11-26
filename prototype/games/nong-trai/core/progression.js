@@ -1,6 +1,6 @@
 // XP / cấp / mở khoá — đọc bảng cấp từ data/levels.js.
-import { CROP } from "../data/crops.js?v=m12";
-import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel, MAX_LEVEL, XP_TO_NEXT } from "../data/levels.js?v=m12";
+import { CROP } from "../data/crops.js?v=m13";
+import { LEVELS, CURRENT_MILESTONE, ORDER_SLOT_LEVELS, featureLevel, MAX_LEVEL, XP_TO_NEXT } from "../data/levels.js?v=m13";
 
 /** XP cần để đi từ cấp `lv` lên `lv + 1` (bảng data/levels.js XP_TO_NEXT, cân bằng bằng tools/sim). lv ≥ 20 ⇒ trần cấp 20. */
 export const xpNeed = (lv) => XP_TO_NEXT[Math.min(Math.max(1, Math.floor(lv) || 1), XP_TO_NEXT.length) - 1];

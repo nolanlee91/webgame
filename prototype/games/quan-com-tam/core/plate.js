@@ -2,11 +2,11 @@
 // Bước: dĩa / hộp → cơm (1 / 2 vá) → mỡ hành (1 / 2 phần) → món nướng (gắp từ vỉ) → bì → chả → trứng → đồ chua → dưa leo → nước mắm (chan / chén / bịch) → ngò.
 // Luật thứ tự tối thiểu: phải có dĩa / hộp trước; món ăn đặt lên cơm nên phải xới cơm trước (trừ bánh mì sườn). Còn lại bày theo ý.
 // Mỗi lớp trừ kho ngay lúc đặt. Hoàn tác / đổ dĩa: lớp đã bỏ tính hao (trừ dĩa sạch trả lại chồng, miếng sườn trả về vùng giữ ấm nếu còn chỗ).
-import { DISHES, STOCK, MO_HANH } from "../data/economy.js?v=c6";
-import { QUIRKS } from "../data/customers.js?v=c6";
-import { takeRice } from "./rice.js?v=c6";
-import { takeItem, isCooked, itemResult, freeWarm, hottestFree, placeItem, zoneOf } from "./grill.js?v=c6";
-import { takeEgg, eggState } from "./rice.js?v=c6";
+import { DISHES, STOCK, MO_HANH } from "../data/economy.js?v=c8";
+import { QUIRKS } from "../data/customers.js?v=c8";
+import { takeRice } from "./rice.js?v=c8";
+import { takeItem, isCooked, itemResult, freeWarm, hottestFree, placeItem, zoneOf } from "./grill.js?v=c8";
+import { takeEgg, eggState } from "./rice.js?v=c8";
 
 export const LAYER_NAME = {
   dia: "Dĩa", hop: "Hộp", com: "Cơm", moHanh: "Mỡ hành", hanhPhi: "Hành phi", meat: "Món nướng", bi: "Bì", cha: "Chả", trung: "Trứng",

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TUTORIAL } from "../data/quests.js?v=m12";
-import { currentQuest } from "../core/quests.js?v=m12";
-import { apply } from "../core/apply.js?v=m12";
+import { TUTORIAL } from "../data/quests.js?v=m13";
+import { currentQuest } from "../core/quests.js?v=m13";
+import { apply } from "../core/apply.js?v=m13";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 /** Cày bằng cơ chế thật (gieo cà rốt mọi ô trống → chờ chín → thu hết → bán hết) tới khi `until()` đúng. Trả mốc giờ mới. */
@@ -20,9 +20,10 @@ function grind(s, t, until, onEvents = () => {}) {
 /** 5 bước đầu bằng cơ chế thật, dừng ở trước khi nhận "giao-don" (đã giao xong đơn đầu). */
 function firstFive(s, t) {
   const claim = (id) => act(s, { type: "claimQuest", id }, t);
-  act(s, { type: "plant", i: CENTER, crop: "ca-rot" }, t); claim("gieo-hat");
+  // TLC12-01: NV1 gieo đủ 3 hạt (3 hạt tặng) ⇒ NV3 "Thu hoạch 3" có đủ 3 cây
+  for (const i of [CENTER, 6, 7]) act(s, { type: "plant", i, crop: "ca-rot" }, t);
+  claim("gieo-hat");
   act(s, { type: "water", i: CENTER }, t); claim("tuoi-cay");
-  act(s, { type: "plant", i: 6, crop: "ca-rot" }, t); act(s, { type: "plant", i: 7, crop: "ca-rot" }, t);
   t += 30_000; act(s, { type: "harvestAll" }, t); claim("thu-hoach");
   act(s, { type: "sell", id: "ca-rot", n: 1 }, t); claim("ban-hang");
   assert.equal(s.inv["ca-rot"], 2, "3 thu hoạch − 1 bán");
@@ -42,7 +43,9 @@ test("8 nhiệm vụ hướng dẫn đúng thứ tự thiết kế (M3: lên c�
 test("chưa làm thì không nhận được; làm xong nhận đúng 1 lần", () => {
   const s = farm();
   assert.equal(err(s, { type: "claimQuest", id: "gieo-hat" }), "quest-incomplete");
-  const r = act(s, { type: "plant", i: CENTER, crop: "ca-rot" });
+  for (const i of [CENTER, 6]) assert.ok(!act(s, { type: "plant", i, crop: "ca-rot" }).events.some((e) => e.type === "questDone"), "NV1 cần 3 hạt");
+  assert.equal(err(s, { type: "claimQuest", id: "gieo-hat" }), "quest-incomplete");
+  const r = act(s, { type: "plant", i: 7, crop: "ca-rot" });
   assert.ok(r.events.some((e) => e.type === "questDone" && e.id === "gieo-hat"));
   const coins = s.coins;
   act(s, { type: "claimQuest", id: "gieo-hat" });
@@ -55,8 +58,8 @@ test("chưa làm thì không nhận được; làm xong nhận đúng 1 lần", 
 
 test("tiến độ chỉ tính khi nhiệm vụ đang mở (thu hoạch trước khi tới bước 3 không được tính)", () => {
   const s = farm();
-  act(s, { type: "plant", i: CENTER, crop: "ca-rot" });
-  act(s, { type: "harvest", i: CENTER }, START + 30_000); // đang ở bước 1 (đã xong), chưa nhận
+  for (const i of [CENTER, 6, 7]) act(s, { type: "plant", i, crop: "ca-rot" });
+  act(s, { type: "harvestAll" }, START + 30_000); // đang ở bước 1 (đã xong), chưa nhận
   act(s, { type: "claimQuest", id: "gieo-hat" }, START + 30_000);
   assert.equal(s.quests.progress, 0);
   act(s, { type: "plant", i: CENTER, crop: "ca-rot" }, START + 30_000);

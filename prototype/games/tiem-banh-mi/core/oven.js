@@ -1,8 +1,8 @@
 // Lò và tủ kính (GAME-DESIGN §3.1, ECONOMY §3). Thuần: thời gian là ms ca (sh.t).
 // Vỏ: phôi → vàng nhạt (sống) → vàng óng (chín) → nâu sậm (xém) → đen (cháy). Rút: chín 100 · xém 90 · sống 60 · cháy = bỏ (hao phôi + gas).
 // Bánh ra lò vào tủ kính, độ giòn −1 mỗi 2,5 s ca. Nướng lại ở lò than: ≥ 4 s đưa giòn lên ít nhất 85, quá 10 s là cháy ổ.
-import { OVENS, PULL_CRISP, RAW_UNTIL, DISPLAY, TOASTER, TOAST_TO, STOCK, QUE } from "../data/economy.js?v=b8";
-import { modSum } from "./flags.js?v=b8";
+import { OVENS, PULL_CRISP, RAW_UNTIL, DISPLAY, TOASTER, TOAST_TO, STOCK, QUE } from "../data/economy.js?v=b10";
+import { modSum } from "./flags.js?v=b10";
 
 /** Lò đang dùng; sự kiện (mẹ chỉnh lửa…) nới vùng chín bằng mod "zone". */
 export function ovenOf(s) {

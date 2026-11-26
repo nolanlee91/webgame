@@ -1,7 +1,7 @@
 // Dò đường cong XP (chép Bánh Mì tools/sim/fit.mjs): chạy hồ sơ "average" với bảng cấp hiện tại (sửa tạm trong bộ nhớ), đo XP tích luỹ
 // theo phút chơi, rồi đặt XP mỗi cấp = XP người chơi trung bình có ở phút mục tiêu của cấp đó. Lặp vài vòng vì mở khoá theo cấp đổi tốc độ XP.
 // node tools/sim/fit.mjs [vòng] [seed,seed]  ⇒ in bảng XP đề xuất (chép vào data/economy.js LEVELS; đổi bảng thì nâng bản lưu qua rescaleXp giữ cấp + %).
-import { LEVELS } from "../../data/economy.js?v=c6";
+import { LEVELS } from "../../data/economy.js?v=c8";
 import { runSim } from "./sim.mjs";
 
 /** Phút chơi mục tiêu tới từng cấp (PLAYBOOK §6: 4 ≈ 10, 7 ≈ 40, 10 ≈ 120, 20 ≈ 660). */

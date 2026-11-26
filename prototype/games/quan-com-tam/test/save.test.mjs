@@ -1,9 +1,9 @@
 // Bản lưu: ghi / đọc giữ nguyên (cả giữa ca), kẹp số, bản hỏng chép sang .corrupt, chơi lại từ đầu cất .backup, chơi lại ngày hôm nay.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { shopSave, KEY, CORRUPT_KEY, BACKUP_KEY, DAY_KEY, REPLAY_BACKUP_KEY } from "../save.js?v=c6";
-import { loadSave, dump, SAVE_VERSION, MIGRATIONS } from "../core/state.js?v=c6";
-import { levelForXp } from "../core/progress.js?v=c6";
+import { shopSave, KEY, CORRUPT_KEY, BACKUP_KEY, DAY_KEY, REPLAY_BACKUP_KEY } from "../save.js?v=c8";
+import { loadSave, dump, SAVE_VERSION, MIGRATIONS } from "../core/state.js?v=c8";
+import { levelForXp } from "../core/progress.js?v=c8";
 import { apply, must, openWithOrder, home, newGame, prepDay, playDay, seeded } from "./helpers.mjs";
 
 const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }; };

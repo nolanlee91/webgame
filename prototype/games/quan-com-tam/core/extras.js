@@ -3,17 +3,17 @@
 // vỉ chay riêng, bếp 2 than riêng, nợ Anh Sáu chung sổ nợ thật, trang trí Drama tặng thành đồ kéo thả, câu review nước mắm nhà pha.
 // Móc vào lõi bằng các dòng "// S:" ở core/shift.js (onStart / onTick / beforeEnd / afterEnd), core/apply.js, core/grill.js, core/plate.js,
 // core/score.js, core/tables.js, core/bill.js, core/drama.js, core/progression.js, core/state.js.
-import { DISHES, GEAR, DECOR, FAIR, CHALLENGE, GLASS_CASE, GRILL, LATE, TIERS, FISH_SAUCE, STAFF } from "../data/economy.js?v=c6";
-import { ARCHETYPES } from "../data/customers.js?v=c6";
-import * as LM from "../data/lines-m5.js?v=c6";
-import { freshLine, fill } from "./text.js?v=c6";
-import { next, int, weighted } from "./rng.js?v=c6";
-import { gainXp } from "./progress.js?v=c6";
-import { isCooked, zoneOf } from "./grill.js?v=c6";
-import { slotOf, ticketOf, targetOf } from "./plate.js?v=c6";
-import { enqueue } from "./walker.js?v=c6";
-import { batchMax, isFamous, staffToday, openDramaOrder, syncDebtFlags } from "./progression.js?v=c6";
-import { dayMoment } from "./reviews.js?v=c6";
+import { DISHES, GEAR, DECOR, FAIR, CHALLENGE, GLASS_CASE, GRILL, LATE, TIERS, FISH_SAUCE, STAFF } from "../data/economy.js?v=c8";
+import { ARCHETYPES } from "../data/customers.js?v=c8";
+import * as LM from "../data/lines-m5.js?v=c8";
+import { freshLine, fill } from "./text.js?v=c8";
+import { next, int, weighted } from "./rng.js?v=c8";
+import { gainXp } from "./progress.js?v=c8";
+import { isCooked, zoneOf } from "./grill.js?v=c8";
+import { slotOf, ticketOf, targetOf } from "./plate.js?v=c8";
+import { enqueue } from "./walker.js?v=c8";
+import { batchMax, isFamous, staffToday, openDramaOrder, syncDebtFlags } from "./progression.js?v=c8";
+import { dayMoment } from "./reviews.js?v=c8";
 
 const owns = (s, id) => !!s.owned?.[id];
 

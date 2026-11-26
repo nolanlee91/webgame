@@ -1,7 +1,7 @@
 // Cảnh Xưởng chế biến (DESIGN-2.0 §1 khu 2): nội thất gỗ (tường + sàn từ workshop.webp), máy đứng dọc tường (machines.webp,
 // khung idle / chạy theo manifest), dưới mỗi máy là khay hàng chờ (ui-kit hang-cho-*), bảng công thức (ui-kit the-cong-thuc)
 // trượt lên khi chạm máy. Mọi thay đổi đi qua ctx.exec(action) ⇒ apply(). Chỉ hiển thị + điều khiển.
-import { loadSprites, draw, machineFrame, playFx } from "./sprites.js?v=m12";
+import { loadSprites, draw, machineFrame, playFx } from "./sprites.js?v=m13";
 
 const MACHINE_ERR = {
   inputs: "Thiếu nguyên liệu", "queue-full": "Hàng chờ đầy", building: "Máy đang xây", locked: "Chưa đủ cấp",

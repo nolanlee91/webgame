@@ -35,6 +35,17 @@ test("thối đúng bằng tờ tay: tờ khách đưa ≤ 50k vào quỹ lẻ, 
   assert.notEqual(err(s, { type: "giveChange", bills }), undefined, "bấm lặp không thối hai lần");
 });
 
+test("TLC22-03: chưa chọn tờ nào ⇒ không 'Thối 0k' được, không tính lỗi thối nhầm, khách vẫn chờ thối", () => {
+  const [s, c] = paying(7, 50);
+  const wrong0 = s.shift.stats.changeWrong || 0, m0 = s.money;
+  for (const bills of [{}, { 10: 0 }, { 1: 0, 5: 0 }]) assert.equal(err(s, { type: "giveChange", bills }), "no-change-picked");
+  assert.equal(s.shift.paying, c.id, "vẫn đang thối cho khách này");
+  assert.equal(s.shift.stats.changeWrong || 0, wrong0);
+  assert.equal(s.money, m0);
+  act(s, { type: "giveChange", bills: makeChange(s.float, c.pay.change) });
+  assert.equal(s.shift.stats.changeRight, 1);
+});
+
 test("thối dư: mất tiền (hoặc khách thật thà trả lại), không trừ sao", () => {
   let returned = 0, lost = 0;
   for (let seed = 1; seed <= 12; seed++) {

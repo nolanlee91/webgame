@@ -1,8 +1,8 @@
 // Bếp than: vùng nhiệt, hai mặt + lật, kết quả miếng (mặt kém hơn), cháy cạnh, vùng giữ ấm, than cháy / thêm than / lửa bùng, quạt + khói.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { freshGrill, placeItem, flip, tickGrill, itemResult, sideState, addCoal, setFan, heatMul, moveItem, isCooked, itemFrame } from "../core/grill.js?v=c6";
-import { GRILL } from "../data/economy.js?v=c6";
+import { freshGrill, placeItem, flip, tickGrill, itemResult, sideState, addCoal, setFan, heatMul, moveItem, isCooked, itemFrame } from "../core/grill.js?v=c8";
+import { GRILL } from "../data/economy.js?v=c8";
 
 const run = (g, ms, t0 = 0, step = 100) => { const ev = []; for (let t = step; t <= ms; t += step) tickGrill(g, step, t0 + t, ev); return ev; };
 
@@ -110,7 +110,7 @@ test("dời miếng sang vùng giữ ấm; chỗ đã có miếng thì không b�
 });
 
 // ---- Cân bằng M3: vùng chín đủ rộng để người thật bấm kịp ----
-import { windowSec, advanceSide } from "../core/grill.js?v=c6";
+import { windowSec, advanceSide } from "../core/grill.js?v=c8";
 const timeIn = (zone, coal, band = "done", item = "suon", fan = false) => {
   // đo thật bằng tickGrill: thời gian mặt dưới nằm trong dải
   const g = freshGrill(coal); g.fan = fan;
