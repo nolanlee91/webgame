@@ -125,6 +125,8 @@ Chưa sửa gì — chờ chủ dự án duyệt. Sau khi duyệt: Claude Code t
 | Thẻ SpeakUp Kids | Ẩn cho tới khi có link thật |
 | Email liên hệ / nhóm FB, Zalo | Chưa có, để sau |
 | Đợt 5 dọn nốt | Làm luôn |
+| Phòng online mặc định (26/11) | **Công khai**; có ô "Phòng kín", tích vào thì kín (chỉ vào bằng mã). Thống nhất ở mọi game online |
+| Sau Đợt 7 | Làm luôn Đợt 8: các P2 còn lại của audit lần 2 |
 
 ## Quyết định của chủ dự án (25/11/2026)
 
