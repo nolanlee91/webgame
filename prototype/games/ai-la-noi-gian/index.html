@@ -29,7 +29,7 @@
 </head>
 <body class="is-day">
   <header class="bar">
-    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">← Lụm Kèo</a>
+    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">←<span class="bar__home"> Lụm Kèo</span></a>
     <h1>Ai Là Nội Gián</h1>
     <span class="bar__code" id="barCode" hidden>Phòng <b id="barCodeTxt"></b></span>
     <span class="net" id="net" hidden>Đang kết nối lại…</span>
@@ -48,8 +48,8 @@
       <div class="home__body">
         <h2 class="px-h">Họp khẩn 6–8 đặc vụ</h2>
         <p class="soft">Trong trụ sở có 2 Nội Gián. Khi mất điện, chúng phá hoại; khi đèn sáng, cả đội họp và bỏ phiếu bắt giữ kẻ phản bội.</p>
-        <label class="field">Mật danh của bạn
-          <input id="nameInp" maxlength="16" autocomplete="nickname" placeholder="VD: Cú Đêm" />
+        <label class="field"><span class="field__row">Mật danh của bạn <span class="nm-count" id="nameCount" aria-live="polite">0/16</span></span>
+          <input id="nameInp" maxlength="40" aria-describedby="nameCount" autocomplete="nickname" placeholder="VD: Cú Đêm" />
         </label>
         <div class="home__opt">
           <p class="home__step"><b>Chưa có phòng?</b> Tạo phòng rồi gửi mã cho bạn bè. Thiếu người thì thêm bot.</p>

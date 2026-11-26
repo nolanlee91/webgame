@@ -153,7 +153,7 @@ function onMsg(m) {
       const prev = v;
       v = m.v;
       if (vsBots && v.phase === "lobby" && v.host === v.seat && v.players.length >= v.min) { vsBots = false; send({ t: "start" }); }
-      render();
+      render(); checkRenamed(v.players[v.seat]);
       if (newHunt(prev, v)) banner(huntText(v.events.at(-1)));
       soundFor(prev, v);
       break;
@@ -205,9 +205,28 @@ document.addEventListener("click", async (e) => {
 // ---------------- màn đầu ----------------
 function homeMsg(t) { $("homeMsg").textContent = t; }
 function showHome() { $("home").hidden = false; $("game").hidden = true; $("barCode").hidden = true; $("ovEnd").hidden = true; $("ovReveal").hidden = true; setTheme("day"); }
-function needName() { const n = myName.commit($("nameInp").value); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } try { localStorage.setItem("ma-soi:name", n); } catch {} return n; }
+// PARTY2-06 (D8): ô tên có bộ đếm n/16 như game cờ; dài quá thì nhắc (trước bị cắt im lặng ở 16). Máy chủ thay tên (tên chưa
+// dùng được) ⇒ báo cho người chơi hiểu vì sao tên đổi.
+const NAME_MAX = 16, nameLen = (s) => [...String(s || "").replace(/\s+/g, " ").trim()].length, AUTO_NAME = /^Người( chơi)? \d+$/;
+let sentName = "";
+function nameCount() {
+  const n = nameLen($("nameInp").value), over = n > NAME_MAX;
+  $("nameCount").textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : ""); $("nameCount").classList.toggle("over", over);
+}
+function nameTooLong() {
+  const n = nameLen($("nameInp").value); if (n <= NAME_MAX) return false;
+  homeMsg(`Tên tối đa ${NAME_MAX} ký tự — bớt ${n - NAME_MAX} ký tự nhé.`); $("nameInp").focus(); return true;
+}
+function checkRenamed(mine) {
+  if (!sentName || !mine) return;
+  if (AUTO_NAME.test(mine.name) && !AUTO_NAME.test(sentName)) toast(`Tên "${sentName}" chưa dùng được nên tạm gọi bạn là ${mine.name}. Lần sau đổi tên khác nhé.`);
+  sentName = "";
+}
+function needName() { if (nameTooLong()) return null; const n = myName.commit($("nameInp").value); sentName = n; if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } try { localStorage.setItem("ma-soi:name", n); } catch {} return n; }
 // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game ("ma-soi:name") được chuyển sang một lần.
 const myName = sharedName({ game: "ma-soi", input: $("nameInp"), legacy: () => { try { return localStorage.getItem("ma-soi:name") || ""; } catch { return ""; } } });
+$("nameInp").addEventListener("input", () => { nameCount(); if (/^Tên tối đa/.test($("homeMsg")?.textContent || "") && nameLen($("nameInp").value) <= NAME_MAX) homeMsg(""); });
+nameCount();
 initKick({ send: (o) => { send(o); return true; } }); // chủ phòng "Mời ra" người khác ở phòng chờ — hộp xác nhận pixel
 const qp = new URLSearchParams(location.search).get("p"); if (qp) $("codeInp").value = qp.toUpperCase();
 let vsBots = false; // bấm "Chơi với máy" ⇒ tự tạo phòng kín, thêm bot, bắt đầu luôn (dùng bot của máy chủ)

@@ -47,6 +47,9 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed
 .btn[aria-disabled="true"], .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn[aria-disabled="true"]:active, .btn:disabled:active { transform: none; box-shadow: var(--bevel), var(--border), 3px 4px 0 0 var(--shadow); } /* nút tắt không lún */
 .field { display: grid; gap: 6px; font-weight: 700; font-size: 13px; color: var(--soft); }
+.field__row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.nm-count { font-size: 12px; font-weight: 800; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nm-count.over { color: #ff8a7a; }
 .field input, .chat__form input { background: #0c0f14; border: 0; padding: 10px 12px; min-height: 44px; font-size: 16px; color: var(--ink);
   --b: var(--line); box-shadow: inset 0 3px 0 rgba(0,0,0,.6), var(--border); margin: 3px; }
 
@@ -185,11 +188,11 @@ body.is-day .seat--sel .seat__av { --b: var(--gold); box-shadow: var(--border), 
 .prow__av { width: 36px; height: 36px; background: url(assets/player-avatars.png) 0 0 / 400% 200% no-repeat; image-rendering: pixelated; --b: var(--line); box-shadow: var(--border); margin: 3px; }
 .prow__name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prow__name i { font-style: normal; font-weight: 600; color: var(--gold); }
-.prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; align-items: center; } /* PARTY2-08: chip không bị kéo cao theo hàng */
 .chip { font: 800 11px/1 "Be Vietnam Pro", system-ui; padding: 5px 7px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; --b: var(--line); box-shadow: var(--border); margin: 3px 2px; }
 .chip--host { background: var(--gold); color: #2b1c08; }
 .chip--bot { background: #1a1410; color: var(--gold); }
-.chip--x { border: 0; cursor: pointer; background: var(--panel2, #2a221b); color: var(--ink); min-width: 32px; min-height: 28px; }
+.chip--x { border: 0; cursor: pointer; background: var(--panel2, #2a221b); color: var(--ink); min-width: 44px; min-height: 44px; margin: 0; display: inline-grid; place-items: center; } /* PARTY2-05: vùng chạm 44 */
 .botrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; font-size: 12px; }
 .botrow .soft { color: var(--soft, #b9ad93); }
 .botrow .btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -328,6 +331,18 @@ body.is-lobby .me { display: none; }
   body.is-lobby .chat__fold { display: none; }
   body.is-lobby .act__row .btn { padding: 6px 8px; }
   body.is-lobby .act__row [data-a="start"] { min-height: 44px; }
+}
+/* PARTY2-05 (D8): ≤ 360 px thanh trên một dòng — "←" thay "← Lụm Kèo" (nhãn đọc màn hình giữ nguyên), loa không bị bóp */
+.bar__snd { flex: none; }
+.bar h1 { white-space: nowrap; }
+@media (max-width: 360px) {
+  .bar__home { display: none; }
+  .bar a { min-width: 44px; justify-content: center; }
+  .bar { gap: 8px; padding-inline: 8px; }
+  .bar h1 { font-size: 14px; letter-spacing: .02em; }
+  /* danh sách người: tên luôn còn ≥ 72 px (xuống 2 dòng), chip tự xuống hàng thay vì bóp tên còn "Bé …" */
+  .prow { grid-template-columns: 36px minmax(72px, 1fr) minmax(0, auto); gap: 6px; }
+  .prow__name { white-space: normal; overflow-wrap: anywhere; line-height: 1.2; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 

@@ -29,7 +29,7 @@
 </head>
 <body class="is-day">
   <header class="bar">
-    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">← Lụm Kèo</a>
+    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">←<span class="bar__home"> Lụm Kèo</span></a>
     <h1>Ma Sói</h1>
     <span class="bar__code" id="barCode" hidden>Phòng <b id="barCodeTxt"></b></span>
     <span class="net" id="net" hidden>Đang kết nối lại…</span>
@@ -48,8 +48,8 @@
       <div class="home__body">
         <h2 class="px-h">Rủ 6–8 người vào làng</h2>
         <p class="soft">Mỗi người một vai bí mật. Đêm xuống, Sói đi săn; trời sáng, cả làng bàn bạc và bỏ phiếu tìm Sói.</p>
-        <label class="field">Tên của bạn
-          <input id="nameInp" maxlength="16" autocomplete="nickname" placeholder="VD: Tí Còi" />
+        <label class="field"><span class="field__row">Tên của bạn <span class="nm-count" id="nameCount" aria-live="polite">0/16</span></span>
+          <input id="nameInp" maxlength="40" aria-describedby="nameCount" autocomplete="nickname" placeholder="VD: Tí Còi" />
         </label>
         <div class="home__opt">
           <p class="home__step"><b>Chưa có phòng?</b> Tạo phòng rồi gửi mã cho bạn bè.</p>

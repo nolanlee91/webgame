@@ -214,6 +214,8 @@
     /* phòng chờ / menu trong phòng: không cần lời giới thiệu */
     #mCard:is([data-view="lobby"], [data-view="room"]) .intro { display: none; }
     #mNote { margin-top: 8px; } #mNote:empty { display: none; }
+    .entry .lb-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 3px -4px; } .entry .lb-row .lb { margin: 0; }
+    .nm-count { font-size: 12px; font-weight: 800; color: var(--dim, #8a8170); font-variant-numeric: tabular-nums; white-space: nowrap; } .nm-count.over { color: #ff8a7a; }
     .field--sm input { min-height: 44px; font-size: 17px; }
     .join-row { display: flex; gap: 14px; align-items: center; } .join-row .field { flex: 1; min-width: 0; } .join-row .btn { flex: none; margin-right: 7px; }
     #oCode { text-transform: uppercase; letter-spacing: .2em; font-weight: 800; }
@@ -342,8 +344,8 @@
           <p class="sub intro">Nối từ ghép tiếng Việt 2 tiếng — mỗi lượt 15 giây. Đấu với máy hoặc với bạn qua mã phòng.</p>
           <div class="note" id="mNote" role="status" aria-live="polite"></div>
           <section class="entry" id="vEntry">
-            <label class="lb" for="oName">Tên của bạn</label>
-            <div class="field field--sm"><input id="oName" type="text" maxlength="16" autocomplete="nickname" enterkeyhint="go" placeholder="Ví dụ: Lan" /></div>
+            <div class="lb-row"><label class="lb" for="oName">Tên của bạn</label><span class="nm-count" id="oNameCount" aria-live="polite">0/16</span></div>
+            <div class="field field--sm"><input id="oName" type="text" maxlength="40" aria-describedby="oNameCount" autocomplete="nickname" enterkeyhint="go" placeholder="Ví dụ: Lan" /></div>
             <button class="btn btn--big btn--primary" id="createBtn" type="button">Tạo phòng online</button>
             <label class="chk"><input id="privateRoom" type="checkbox" aria-describedby="privHint" /> Phòng kín</label>
 <p class="priv-hint" id="privHint" style="margin:-6px 0 8px;font-size:.8em;line-height:1.35;opacity:.8">Tích để chỉ người có mã mới vào được</p>

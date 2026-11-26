@@ -48,8 +48,8 @@
       <div class="home__body">
         <h2 class="px-h">Đấu trường 2–4 người</h2>
         <p class="soft">Đặt bom phá gạch, nhặt vật phẩm, dồn đối thủ vào góc. Ai sống sót cuối cùng thắng — hết 3 phút thì ai nhiều điểm nhất thắng.</p>
-        <label class="field">Tên của bạn
-          <input id="nameInp" maxlength="16" autocomplete="nickname" placeholder="VD: Tèo Bom Tấn" />
+        <label class="field"><span class="field__row">Tên của bạn <span class="nm-count" id="nameCount" aria-live="polite">0/16</span></span>
+          <input id="nameInp" maxlength="40" aria-describedby="nameCount" autocomplete="nickname" placeholder="VD: Tèo Bom Tấn" />
         </label>
         <div class="home__opt">
           <button class="btn btn--gold home__create" id="createBtn" type="button">Tạo phòng mới</button>
