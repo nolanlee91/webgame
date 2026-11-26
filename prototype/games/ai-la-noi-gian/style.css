@@ -142,7 +142,7 @@ body.is-day .seat--sel .av { --b: var(--gold); box-shadow: var(--border), 0 0 0 
 /* mặt radar xoay trong đêm (đề cương §4) — xoay theo bước 45° cho đúng chất pixel */
 .dial--spin .hud { animation: spin 2.4s steps(8) infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.banner { position: absolute; left: 0; right: 0; top: 64%; transform: translateY(-50%); z-index: 3; text-align: center; padding: 14px; background: rgba(10,8,7,.82); font: 800 clamp(16px, 2.2vw, 26px)/1.2 "Be Vietnam Pro", system-ui;
+.banner { pointer-events: none; position: absolute; left: 0; right: 0; top: 64%; transform: translateY(-50%); z-index: 3; text-align: center; padding: 14px; background: rgba(10,8,7,.82); font: 800 clamp(16px, 2.2vw, 26px)/1.2 "Be Vietnam Pro", system-ui;
   text-shadow: 3px 3px 0 #000; box-shadow: inset 0 3px 0 #000, inset 0 -3px 0 #000; animation: bannerIn .3s steps(3); }
 @keyframes bannerIn { from { transform: translateY(-50%) scaleY(0); } }
 
@@ -318,6 +318,43 @@ body.is-lobby .me { display: none; }
   .rcard figcaption span { font-size: 10px; }
   .rcard__n { font-size: 13px; min-width: 28px; right: -4px; }
   .chip { font-size: 10px; padding: 4px 5px; }
+}
+/* ---------- điện thoại xoay ngang (PARTY2-04, D8): 2 cột vừa một màn, trang không cuộn ----------
+   Trái: cảnh (cắt quanh chỗ ngồi, vừa chiều cao) — phòng chờ thì danh sách người + bộ vai (cuộn riêng).
+   Phải: vai của bạn, hành động, chat (chat co giãn theo phần còn lại). */
+@media (orientation: landscape) and (max-height: 500px) {
+  body:has(> .game:not([hidden])) { height: 100dvh; min-height: 0; overflow: hidden; }
+  body:has(> .game:not([hidden])) .bar { padding-block: 4px; }
+  .game { flex: 1 1 0; min-height: 0; max-width: none; padding: 4px 6px 6px; gap: 6px; overflow: hidden;
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 43%); grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  .game > .stage { grid-column: 1; grid-row: 1; order: 0; min-height: 0; aspect-ratio: auto; }
+  .world { position: absolute; width: 140%; left: -20%; top: 44%; transform: translateY(-50%); }
+  .seat { width: 7%; }
+  .dial { top: 4px; min-width: 0; width: calc(100% - 14px); grid-template-columns: auto 1fr auto; gap: 8px; padding: 3px 8px 8px; }
+  .hud { width: 32px; height: 32px; }
+  .dial__txt b { font-size: 14px; } .dial__sec { font-size: 20px; }
+  .banner { font-size: 16px; padding: 8px; }
+  .game > .side { grid-column: 2; grid-row: 1; order: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; }
+  .side > .px-panel { flex: none; }
+  .me { grid-template-columns: 34px 1fr; gap: 8px; padding: 4px 8px; }
+  .me__card { width: 34px; }
+  .me__info { gap: 0; }
+  .me__role { font-size: 15px; }
+  .me__desc { display: none; } /* mô tả vai: chạm thẻ vai để xem lại */
+  .act { padding: 4px 8px; gap: 2px; }
+  .act__txt { font-size: 13px; line-height: 1.35; }
+  .side > .chat { flex: 1 0 128px; height: auto; min-height: 128px; padding-bottom: 4px; }
+  .chat__tabs button { padding: 4px 10px; }
+  .quick { display: none; } /* câu nói nhanh: không đủ chỗ cho một hàng 44 px nữa ở màn thấp — ô gõ vẫn còn */
+  /* phòng chờ: bỏ chat neo đáy kiểu dọc, cảnh nhường chỗ cho danh sách người + bộ vai */
+  body.is-lobby .game { padding-bottom: 6px; }
+  body.is-lobby .game > .stage { display: none; }
+  .lobby { grid-column: 1; grid-row: 1; order: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; grid-template-columns: 1fr; gap: 6px; align-content: start; }
+  body.is-lobby .chat { position: static; margin: 3px; padding-bottom: 4px; grid-template-rows: auto minmax(0, 1fr) auto auto; box-shadow: var(--bevel), var(--border), var(--drop); }
+  body.is-lobby .chat__log, body.is-lobby .chat--open .chat__log { height: auto; }
+  body.is-lobby .chat__fold { display: none; }
+  body.is-lobby .act__row .btn { padding: 6px 8px; }
+  body.is-lobby .act__row [data-a="start"] { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
