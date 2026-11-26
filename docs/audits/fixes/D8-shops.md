@@ -12,7 +12,7 @@ Throttle này nặng hơn số của audit (audit: 10,3 / 10,9 s), nên so trư�
 | | LCP (3 lượt) | Phần tử LCP | Ảnh phố màn chào tải xong |
 |---|---|---|---|
 | Trước (master) | 16,2 / 16,1 / 16,1 s | `IMG.layer` (shop-scene.webp, tạo sau khi JS + ~1,3 MB sheet tải xong) | 19,2 s |
-| Sau | 7,2 / 7,2 / 7,1 s | `IMG.scene-ph` (cùng ảnh, có sẵn trong HTML) | 7,9 s |
+| Sau | 7,3 / 7,1 / 7,2 s | `IMG.scene-ph` (cùng ảnh, có sẵn trong HTML) | 7,9 s |
 
 FCP giữ nguyên (~1,4 s). Tổng byte 60 s đầu không đổi (2,37 MB).
 
@@ -147,8 +147,33 @@ kiểm ở 390. Chưa sửa.
 
 Asset, manifest, font, `_shared` giữ nguyên.
 
-`node tools/cache-tags/check-tags.mjs master`: KẾT_QUẢ_CHECK_TAGS
+`node tools/cache-tags/check-tags.mjs master`: `OK: 183 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.`
 
 ## Kết quả test
 
-KẾT_QUẢ_TEST
+Unit (`node --test test/*.test.mjs`):
+
+| Game | Kết quả |
+|---|---|
+| Trà Sữa | 179/179 |
+| Bánh Mì | 124/124 |
+| Cơm Tấm | 147/147 (gồm 4 test mới ở `open-empty.test.mjs`) |
+| Nông Trại | 182/182 |
+
+E2E (Chrome headless, server cổng 8931):
+
+| Test | Kết quả |
+|---|---|
+| Trà Sữa `e2e.mjs` (gồm e2e-layout) | **177/177**: thêm seed 42 ở 320, HUD 1 hàng ở mọi khung ≤ 1024 cuối game, 12 kiểm tra sự kiện ngang |
+| Cơm Tấm `e2e.mjs` (gồm layout, m3a, m5, m5v) | **211 PASS, E2E ĐẠT**, chạy 2 lần (lần 2 sau khi sửa TLC2-07/08) |
+| Bánh Mì `e2e.mjs` (gồm layout) | **150 PASS, E2E ĐẠT**, chạy 2 lần (lần 2 sau khi sửa TLC2-06/13) |
+| Nông Trại `e2e.mjs` | **181/181** (thêm TLC12-03 ×2, TLC1-02) |
+| Nông Trại `e2e-cards.mjs` | 44/44 |
+| Nông Trại `e2e-m4.mjs` | ALL PASS |
+
+Chập chờn:
+- Trà Sữa lần 1 dừng ở `#introGo` (xoá bản lưu chưa kịp, TLC22-06), nằm trong phần sự kiện ngang mới thêm. Đã thêm `freshProfile()`
+  thử lại 3 lần, lần 2 đạt hết.
+- Lần 1 còn FAIL "cảnh tiệm dùng … barista-scene": test tìm ảnh cảnh trong `.stage`, nay ảnh nằm dưới sân khấu (`#scene > img.bglayer`).
+  Đã sửa test.
+- Cơm Tấm và Bánh Mì e2e-layout từng dừng một lần ở `#introGo`. Đã thêm thử lại, sau đó đạt.
