@@ -5,7 +5,7 @@
     {
       "id": "board-co-ty-phu",
       "prompt": "Edit the provided Vietnamese merchant board artwork. REPLACE ONLY THE PERIMETER TILE LAYOUT: must have EXACTLY 40 perimeter tiles, ELEVEN tiles along EACH of the four sides including both corner tiles. This is a standard 11x11 perimeter ring: top 11 + bottom 11 + left nine intermediate + right nine intermediate =40 UNIQUE tiles. Do NOT keep the old seven-per-side layout. Preserve original square top-down orthographic 2.5D style, lantern street and terracotta roofs around outer border, warm oak framing and central grassy courtyard. Output square 1024x1024. Main board roughly x64..960,y64..960. Four corner tiles about 112px square. Each edge has exactly NINE NARROW rectangular tiles between its two square corner tiles, each ~75px wide by112px deep. Clearly drawn dark separators every tile, no tiny extra subdivision lines. Top: bus-stop corner + nine interior tiles + handcuff go-to-jail corner. Bottom: jail corner + nine interior tiles + departure-arrow start corner. Left and right have nine intermediate tiles apiece. Distribute 32 property pads and FOUR event pads around ring: one event pad at the middle of each edge, top/left gold lucky seal, bottom/right purple unlucky seal. Four corners +32 properties+4event=40. Four different region colors on property strips: north teal, east terracotta red, south muted blue, west amber. No names, no letters, no prices. Grass center largely empty for UI. Absolute priority is countable 11 tiles per side including two corners, not 10 or 12. Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. Square framing overrides generic landscape. No Monopoly logos, no mascot. Keep all old assets other than this board untouched.",
-      "source": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-4b123e6e-22b5-41b1-b485-aa3f406e58b5.png",
+      "source": "exec-4b123e6e-22b5-41b1-b485-aa3f406e58b5.png",
       "transparent_background": false,
       "reference": "previous 24-tile board-co-ty-phu.webp; superseded prompt/source retained below"
     },
@@ -13,31 +13,31 @@
       "id": "tokens-sprite",
       "prompt": "Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. Premium Detailed Pixel Art for original Vietnamese Lụm Kèo game studio. Mechanical stepped edges, strong dark outlines #0a0807, hard shadows, restrained rich colors. No typography, no numbers, no watermark, no Western Monopoly logos or mascot. Asset: FOUR PLAYER TOKENS on one genuinely TRANSPARENT sprite sheet, square aspect, exact equal 2 columns by 2 rows. Single small 2.5D figurine centered in each cell, same camera and scale, generous transparent gutter, each stays inside middle 75% of its cell, fixed base near bottom. TOP LEFT: a miniature Vietnamese cycle rickshaw XICH LO with RED upholstery and red stepped display plinth; TOP RIGHT: Vietnamese conical NON LA straw hat with BLUE ribbon and blue stepped plinth; BOTTOM LEFT: cup of dark Vietnamese COFFEE with small stainless PHIN filter on top, YELLOW/amber saucer and yellow stepped plinth; BOTTOM RIGHT: GOLDEN WATER BUFFALO figurine with curved horns and GREEN neck ribbon and green stepped plinth. Four distinct readable silhouettes. No faces on objects, no cartoon/chibi, no humans. Metallic and natural textures defined with few hard pixel clusters. No background, no labels, no duplicate tokens. Isolated no floor or ambient shadows outside each object.",
       "transparent_background": true,
-      "source": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-5d5ca7f4-5cbc-4ede-aed3-38a7b5ebe3ba.png"
+      "source": "exec-5d5ca7f4-5cbc-4ede-aed3-38a7b5ebe3ba.png"
     },
     {
       "id": "buildings-sprite",
       "prompt": "Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. Premium Detailed Pixel Art for original Vietnamese Lụm Kèo game studio. Mechanical stepped edges, strong dark outlines #0a0807, hard shadows, restrained rich colors. No typography, no numbers, no watermark, no Western Monopoly logos or mascot. Asset: PROPERTY UPGRADE SPRITE SHEET with exactly FOUR isolated objects in equal 2 columns by 2 rows, square framing, genuinely TRANSPARENT background. All buildings same fixed 2.5D isometric camera, aligned feet/bases, each stays within middle 75% of its cell. TOP LEFT: level 1 small Vietnamese thatched-roof timber cottage on tiny stone footprint. TOP RIGHT: level 2 two-storey ochre Vietnamese townhouse with terracotta tile roof. BOTTOM LEFT: level 3 elegant larger cream-and-terracotta three-storey courtyard villa boutique hotel, no sign or text. BOTTOM RIGHT: single small RED triangular ownership flag on a dark upright pole and small square stone base; keep flag simple for optional color tint by code. Visual progression house -> townhouse -> villa obvious even reduced to 32px sprites. Dark crisp outlines, architectural silhouettes, no scenery, no extra objects, no people, no soft shadows outside sprites. Exact same four equal cells, ample transparent gutters.",
       "transparent_background": true,
-      "source": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-de182cbe-f9a3-43cb-b864-8a02e94af801.png"
+      "source": "exec-de182cbe-f9a3-43cb-b864-8a02e94af801.png"
     },
     {
       "id": "cards-keo",
       "prompt": "Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. Premium Detailed Pixel Art for original Vietnamese Lụm Kèo game studio. Mechanical stepped edges, strong dark outlines #0a0807, hard shadows, restrained rich colors. No typography, no numbers, no watermark, no Western Monopoly logos or mascot. Asset: TWO EVENT CARD BACKS side by side, whole canvas landscape 3:2, exactly two equal adjacent portrait 3:4 panels. Card A on LEFT: lucky KÈO THƠM, ornate restrained antique gold and oak cut-corner border, green jade quatrefoil lucky blossom emblem at center, stepped sunburst and stylized Vietnamese lantern patterns. Card B on RIGHT: unlucky KÈO THỐI, deep plum purple and charcoal cut-corner border, sly abstract theatrical trickster mask emblem with narrow amused eyes, angular shadow motifs. Both are tasteful premium retro game card backs, identical size and aligned top/bottom, generous interior margin and solid flat center fields. NO TEXT, no labels, no letters, no prices, no paragraphs. No real brand logos. Perfectly straight-on flat card view, no perspective, no overlapping cards, no hands.",
       "transparent_background": false,
-      "source": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-c42c1856-e8a3-4e49-a141-600ef19f9338.png"
+      "source": "exec-c42c1856-e8a3-4e49-a141-600ef19f9338.png"
     },
     {
       "id": "hud-dice-icons",
       "prompt": "Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. Premium Detailed Pixel Art for original Vietnamese Lụm Kèo game studio. Mechanical stepped edges, strong dark outlines #0a0807, hard shadows, restrained rich colors. No typography, no numbers, no watermark, no Western Monopoly logos or mascot. Asset: exactly TEN small HUD icons in ONE genuinely transparent atlas, five equal columns and two equal rows, canvas aspect 5:2. Every square cell is identical size; isolate icon with 15 percent transparent margin, no label. FIRST ROW left to right: square cream DIE showing ONE centered black pip; DIE showing TWO diagonal black pips; DIE showing THREE diagonal black pips; DIE showing FOUR corner black pips; DIE showing FIVE black pips (four corners plus center). SECOND ROW left to right: DIE showing SIX black pips (two columns of three); neat STACK OF teal Vietnamese-style polymer banknotes with abstract decorative patterns, NO actual text or political portraits; a closed brown MONEY BAG with a few gold coins; STEEL HANDCUFFS two rings and connecting chain representing jail; circular RED PROHIBITION sign with diagonal slash. ALL dice FRONT-FACING, one face ONLY, flat readable squares with bevelled pixel rim. PIP COUNTS MUST BE EXACT. All ten icons centered inside individual equal square cells. No other items or extra icons. Limited ivory/charcoal/terracotta/teal/antique gold palette, chunky readable silhouettes for 32x32 use. No backgrounds, no ambient glow, no labels.",
       "transparent_background": true,
-      "source": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-55bb6817-9c47-47ef-9e47-4ee27068f104.png"
+      "source": "exec-55bb6817-9c47-47ef-9e47-4ee27068f104.png"
     },
     {
       "id": "poster-co-ty-phu",
       "prompt": "Authentic 16-bit retro pixel art, hard-edge chunky pixel grid, strict palette dithering, coarse visible pixel blocks matching the coarse pixel density of ran-san-moi.webp, completely free of painterly brushwork, no smooth gradients, no digital airbrush, no soft blur, no anime eyes, no chibi. Premium Detailed Pixel Art for original Vietnamese Lụm Kèo game studio. Mechanical stepped edges, strong dark outlines #0a0807, hard shadows, restrained rich colors. No typography, no numbers, no watermark, no Western Monopoly logos or mascot. Asset: original Vietnamese board game homepage poster, exact 3:2 landscape. Four whimsical but finely crafted OBJECT MASCOTS gathered around a square merchant property board at an outdoor table in Hoi An-style Vietnamese lantern street at night. The four mascots are the miniature red cycle-rickshaw, the straw conical hat with blue ribbon, a glass coffee with metal phin and amber saucer, and the golden water buffalo with green ribbon. Arrange all four around table like rival players in a lively strategy showdown, expressive playful poses conveyed by their placement, no human bodies attached to objects, no chibi humanoids. Perspective view board with grassy middle, dice and property houses. Terracotta roofs, ochre shopfronts, wooden shutters, overhead red/orange lanterns illuminate hard pixel highlights, dark warm oak and muted teal night shadows. Rich premium 16-bit environment, focal board and four mascots fill 65 percent. NO Monopoly references, no white-moustached rich man, no top hat, no game title or signage text. Leave top central breathing room for code-added title. Avoid soft bokeh, lens flare or painterly textures.",
       "transparent_background": false,
-      "source": "C:\\Users\\thang\\.codex\\generated_images\\01a1e7f9-42ec-74d1-b43d-94bdf6ae1e51\\exec-ed3798cf-f85b-4335-a6da-56680d05a740.png"
+      "source": "exec-ed3798cf-f85b-4335-a6da-56680d05a740.png"
     }
   ],
   "superseded": [
@@ -49,5 +49,21 @@
     }
   ],
   "activeAssetSlots": 6,
-  "replacementCalls": 1
+  "replacementCalls": 1,
+  "BRD-06": {
+    "calls": 2,
+    "retries": 0,
+    "prompts": [
+      {
+        "id": "board-co-ty-phu",
+        "prompt": "Precisely redraw the reference image as true crisp classic Vietnamese pixel art, square exact full-frame alignment. A game board texture with FIXED UI COORDINATES: trace all 4 corner icons, all 9 slots per side, every grid line, grass inner and outer board boundaries at IDENTICAL normalized coordinates. Match orange roofs, foliage, teal top headers, red right, blue bottom, yellow left, parchment cells. Identical icon shapes and placements, blank cells stay blank for rendered labels. Preserve geometry 1:1, no perspective, no zoom or crop. Redraw stone, grass, foliage and roofing with fewer and larger clean solid clusters, restrained 48 to 64 color palette, no dithering noise no gradients, no text. Effective drawing grid 512×512.",
+        "reference": "board-co-ty-phu.webp"
+      },
+      {
+        "id": "poster-co-ty-phu",
+        "prompt": "Redraw the reference as 3:2 true crisp hand-placed pixel art, same exact composition, lighting and 4 friendly mascots: left red cyclo, left-middle conical straw hat with scarf, right-middle iced coffee glass with metal filter, right smiling golden buffalo with teal scarf. Keep the same table board game with dice and miniature houses, Hoi An lantern street at night, reflection and moon, exact scene framing. Fewer crisp stepped clusters and flat distinct shadows, no smooth gradients, no dithering noise, max 64-color feeling, nominal 480×320 drawing pixels. No lettering, logos or weapons.",
+        "reference": "poster-co-ty-phu.webp"
+      }
+    ]
+  }
 }

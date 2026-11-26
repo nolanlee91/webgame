@@ -5,9 +5,9 @@
       "file": "board-co-ty-phu.webp",
       "width": 1024,
       "height": 1024,
-      "bytes": 1354468,
+      "bytes": 107048,
       "mode": "RGB",
-      "sha256": "18faf7e6b56f6f4990e79de19b7106182585d97aa7f7d256deb527f4d698d469"
+      "sha256": "c7b6b77b576a586aa2a2a447304a5f942f5312f0244ee601465160f75c9b3576"
     },
     {
       "file": "tokens-sprite.webp",
@@ -57,9 +57,9 @@
       "file": "poster-co-ty-phu.webp",
       "width": 960,
       "height": 640,
-      "bytes": 943468,
+      "bytes": 70908,
       "mode": "RGB",
-      "sha256": "5c0c6cb9fdafd64ca85afc47a38044656cf76e8617b82cde32034f32d2fd93ed"
+      "sha256": "b3ee2fa19fc7ee7d62bde8b41169fc24db1e0983535ac3ecfff2465d023ec45c"
     }
   ],
   "sprites": {
