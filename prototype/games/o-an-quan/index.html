@@ -292,6 +292,17 @@
       .vact, .actions { position: sticky; bottom: -12px; z-index: 1; margin: 14px -14px -22px; padding: 10px 14px 14px; gap: 10px; background: var(--panel); box-shadow: 0 -3px 0 var(--line); }
     }
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .card h2 { font-size: 22px; } }
+    /* TTH2-10 (D8): thẻ kết ván — tiêu đề + điểm luôn ở trên cùng, hàng nút KHÔNG dính đáy (5 nút xếp dọc từng che hết tiêu đề ở 320).
+       Máy hẹp: "Ván tiếp" một hàng, các nút còn lại 2 cột ⇒ Ván tiếp vẫn thấy ngay dưới điểm. */
+    #ovEnd .actions { position: static; margin: 14px 0 0; padding: 0; box-shadow: none; background: none; }
+    @media (max-width: 520px) {
+      #ovEnd .card h2 { font-size: 22px; }
+      #ovEnd .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #ovEnd .actions .btn { min-width: 0; min-height: 44px; padding: 8px 6px; font-size: 14px; }
+      #ovEnd .actions > .btn:first-child { grid-column: 1 / -1; }
+    }
+    /* OAQ-09 (D8): giảm chuyển động ⇒ bỏ hoạt cảnh / chuyển cảnh CSS (rải sỏi trên canvas: tua nhanh sẵn ở game.js) */
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
 </head>
 <body>
@@ -309,7 +320,7 @@
       <button class="btn" id="undoBtn" type="button" title="Đi lại nước vừa đi (U)">↶ Đi lại<span class="kb">U</span></button>
       <button class="btn" id="newBtn" type="button" title="Ván mới (N)">Ván mới<span class="kb">N</span></button>
       <button class="btn" id="chatBtn" type="button" aria-label="Trò chuyện">Chat<span class="badge" id="chatN" hidden></span></button>
-      <button class="btn btn--icon" id="menuBtn" type="button" aria-label="Tạm dừng / menu (Esc)" title="Tạm dừng / menu (Esc)"><img src="assets/ui/icon-tam-dung.png" alt="" /></button>
+      <button class="btn btn--icon" id="menuBtn" type="button" data-nosfx aria-label="Tạm dừng / menu (Esc)" title="Tạm dừng / menu (Esc)"><img src="assets/ui/icon-tam-dung.png" alt="" /></button>
       <button class="btn btn--icon" id="muteBtn" type="button" aria-pressed="false" aria-label="Âm thanh (M)" title="Âm thanh (M)"><img id="muteIc" src="assets/ui/icon-am-thanh-bat.png" alt="" /></button>
     </div>
     <aside class="chat" id="chat" hidden aria-label="Trò chuyện trong phòng">
@@ -404,10 +415,10 @@
 
       <div class="ov" id="ovPause" hidden>
         <div class="card">
-          <h2>Tạm dừng</h2>
+          <h2 id="pTitle">Tạm dừng</h2>
           <p class="sub" id="pSub"></p>
           <div class="actions">
-            <button class="btn btn--big btn--primary" id="resumeBtn" type="button">▶ Chơi tiếp</button>
+            <button class="btn btn--big btn--primary" id="resumeBtn" type="button" data-nosfx>▶ Chơi tiếp</button>
             <button class="btn btn--big" id="restartBtn" type="button">Chơi lại ván này</button>
             <button class="btn btn--big" id="menuBtnP" type="button">Về menu</button>
           </div>
