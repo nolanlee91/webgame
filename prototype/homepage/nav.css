@@ -43,7 +43,8 @@
 .me__av { display: block; width: 28px; height: 28px; background: #20324a; box-shadow: 0 0 0 2px #0a111c; }
 .me__av svg, .me__bigav svg { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 .me__txt { min-width: 0; }
-.me__name { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 700 14px/1.2 var(--font-body); }
+/* HOME2-08: tên tự sinh (vd "Sư Phụ Xó Bếp") được xuống 2 dòng thay vì luôn bị cắt "…" */
+.me__name { display: block; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font: 700 14px/1.15 var(--font-body); }
 .me__edit { width: 14px; height: 14px; color: #75d1bf; }
 
 .me__pop { position: absolute; right: 3px; top: calc(100% + 12px); z-index: 40; box-sizing: border-box; width: min(340px, calc(100vw - 24px));
@@ -67,7 +68,7 @@
   background: #101c2d; --b: #3c526d; box-shadow: var(--b-border), inset 0 3px 0 rgba(0, 0, 0, .45); }
 .me__input:focus { --b: #80d9c7; }
 .me__input[aria-invalid="true"] { --b: #ff8a7a; }
-.me__save { min-height: 44px; padding: 0 16px; }
+.me__save, .me__pop .me__save { min-height: 44px; padding: 0 16px; } /* HOME2-11: .portal .btn (40 px) từng đè */
 .me__err { margin: 0; font: 700 13px/1.35 var(--font-body); color: #ffab9f; }
 .me__err.is-ok { color: #9be08a; }
 .me__err:empty { display: none; }
@@ -124,8 +125,9 @@
   .topbar--nav .topbar__row { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 10px;
     min-height: 56px; padding: 3px 9px 3px 12px; background: #0c1421; border-bottom: 1px solid #273950; }
   .topbar--nav .logo { position: static; min-height: 0; padding: 0; border: 0; background: none; flex: none; }
-  .me__btn { width: clamp(118px, 40vw, 176px); grid-template-columns: 28px minmax(0, 1fr) 14px; gap: 7px; padding: 5px 8px 5px 6px; }
+  .me__btn { width: clamp(118px, 40vw, 176px); grid-template-columns: 28px minmax(0, 1fr); gap: 7px; padding: 5px 8px 5px 6px; }
   .me__name { font-size: 13px; }
+  .me__edit { display: none; } /* HOME2-08: nhường chỗ cho tên (nút vẫn có nhãn "sửa tên" cho trình đọc màn hình) */
   .me__pop { right: 0; }
   /* hàng chip điều hướng: cuộn ngang, chip cao 44 px */
   .topbar--nav .mainnav { gap: 10px; margin: 0; padding: 12px 12px 4px 15px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }

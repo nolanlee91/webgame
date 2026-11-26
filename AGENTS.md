@@ -30,6 +30,12 @@ python -I tools/asset-check/check_assets.py docs/<game>/asset-spec.json --previe
 - Mở ảnh `nhan-vat-xep-hang-x2.png` để tự soi tỉ lệ so với cảnh và xem mỗi vai có giữ cùng một người không. Máy không kiểm được điều này.
 - Cập nhật `docs/<game>/asset-manifest.json` và ghi commit hash vào ASSET-HANDOFF.md.
 
+## Khi chạy test trình duyệt (e2e)
+
+- Hồ sơ Chrome tạm phải tạo qua `prototype/games/_shared/test/lk-temp.mjs`: `tempProfile("<tên>")` + `guardChrome(proc, prof)` (hoặc dùng `launchChrome()` của `_shared/test/cdp.mjs`). Hồ sơ nằm ở `%TEMP%/lk-e2e-<tên>-*`, tự xoá khi thoát, kể cả Ctrl+C, lỗi và khi tiến trình test bị giết cứng. Ảnh chụp mặc định ở `%TEMP%/lk-e2e-shots-<tên>`.
+- Không tự `mkdtemp` hồ sơ Chrome hay ghi ảnh vào thư mục đang đứng.
+- Dọn tay mọi đồ sót (hồ sơ, ảnh, thư mục `*-shots` chưa theo dõi trong repo): `node tools/clean-test-temp.mjs` (`--dry` để xem trước, `--kill` để tắt Chrome test còn treo, `--keep-shots` để giữ ảnh). Chạy sau mỗi đợt test.
+
 ## Chung
 
 - Không commit đường dẫn máy (`C:\Users\…`, `AppData`), tên tài khoản Windows, email.

@@ -7,8 +7,9 @@ import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { REPO, sleep, launchChrome } from "./cdp.mjs";
+import { shotDir } from "./lk-temp.mjs";
 
-const OUT = path.resolve(process.argv[2] || "daily-board-shots");
+const OUT = path.resolve(process.argv[2] || shotDir("daily-board"));
 mkdirSync(OUT, { recursive: true });
 const PORT = Number(process.env.E2E_PORT) || 8897, BASE = `http://127.0.0.1:${PORT}`;
 const env = { ...process.env, PORT: String(PORT), DAILY_SUDOKU_MIN_SEC: "0" };
@@ -17,7 +18,7 @@ const server = spawn(process.execPath, ["server.js"], { cwd: REPO, env, stdio: "
 let fails = 0;
 const check = (n, c, d = "") => { if (!c) fails++; console.log((c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : "")); };
 for (let i = 0; i < 120; i++) { try { if ((await fetch(BASE + "/healthz")).ok) break; } catch {} await sleep(250); }
-const chrome = await launchChrome();
+const chrome = await launchChrome("daily-board");
 const finish = (code) => { try { chrome.close(); } catch {} try { server.kill(); } catch {} setTimeout(() => process.exit(code), 900); };
 
 const shot = async (tab, name) => { const f = path.join(OUT, name); await tab.shot(f); console.log("  ảnh: " + f); };

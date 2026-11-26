@@ -1,11 +1,11 @@
 // Trợ lý CDP tối thiểu (không gói ngoài) cho test trình duyệt của module chia sẻ: dựng server tĩnh từ server.js,
 // mở Chrome/Edge headless, mỗi Tab một cửa sổ. Dùng chung cho share-e2e.mjs và tools/og/render-og-images.mjs.
 import { spawn } from "node:child_process";
-import { mkdtempSync, existsSync, rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { tmpdir } from "node:os";
 import { createRequire } from "node:module";
+import { tempProfile, guardChrome } from "./lk-temp.mjs";
 
 export const REPO = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -17,14 +17,15 @@ export async function startServer() {
   return { server, base: `http://127.0.0.1:${server.address().port}` };
 }
 
-export async function launchChrome() {
+export async function launchChrome(name = "cdp") {
   const CHROME = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
     "/usr/bin/google-chrome", "/usr/bin/chromium", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"].find(existsSync);
   if (!CHROME) throw new Error("Không thấy Chrome/Edge");
-  const prof = mkdtempSync(join(tmpdir(), "lk-share-"));
+  const prof = tempProfile(name); // %TEMP%/lk-e2e-<name>-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết)
   const port = 9400 + Math.floor(Math.random() * 500);
   const proc = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${prof}`, "--hide-scrollbars", "--no-first-run",
     "--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "about:blank"], { stdio: "ignore" });
+  guardChrome(proc, prof);
   let ver;
   for (let i = 0; i < 80; i++) { try { ver = await (await fetch(`http://127.0.0.1:${port}/json/version`)).json(); break; } catch { await sleep(250); } }
   const bws = new WebSocket(ver.webSocketDebuggerUrl);

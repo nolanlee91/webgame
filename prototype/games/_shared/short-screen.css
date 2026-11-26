@@ -5,7 +5,7 @@
    Biến tuỳ chọn: --ss-ov-pad (lề trong của lớp phủ, mặc định 12px), --panel / --line (màu nền thẻ / viền). */
 @media (max-height: 860px) {
   .ss-cta.ss-cta { position: sticky; bottom: calc(-1 * var(--ss-ov-pad, 12px)); z-index: 3;
-    padding-top: 12px; padding-bottom: var(--ss-ov-pad, 12px);
+    padding-top: 12px; padding-bottom: max(var(--ss-ov-pad, 12px), env(safe-area-inset-bottom, 0px)); /* QUICK2-03: trên thanh home */
     background: var(--panel, #1d1a16); box-shadow: 0 -3px 0 0 var(--line, #0a0807); }
 }
 /* (class nhân đôi: thắng .ov / .actions của game vì file này nạp TRƯỚC <style> của game) */
@@ -13,7 +13,7 @@
    (--ss-bar-h, mặc định 0) thay vì bị ép trong khung bàn chơi hẹp giữa HUD và nút. */
 @media (orientation: landscape) and (max-height: 500px) {
   .ss-ov.ss-ov { position: fixed; inset: var(--ss-bar-h, 0px) 0 0 0; z-index: 30; --ss-ov-pad: 8px;
-    padding: 8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); }
+    padding: 8px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left)); }
 }
 /* Biến thể "ss-cta ss-cta--land" (2048, Sudoku, Đố Vui, Ghép Kẹo, Nối Thú — QUICK2-01): chỉ ghim khi điện thoại xoay ngang,
    màn dọc / máy tính giữ nguyên bố cục cũ (không thêm nền, viền trên). */

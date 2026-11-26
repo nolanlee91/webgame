@@ -5,8 +5,9 @@ import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { tempProfile, guardChrome, shotDir } from "./lk-temp.mjs";
 
-const OUT = path.resolve(process.argv[2] || "daily-shots");
+const OUT = path.resolve(process.argv[2] || shotDir("daily"));
 mkdirSync(OUT, { recursive: true });
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const PORT = Number(process.env.E2E_PORT) || 8767, BASE = `http://127.0.0.1:${PORT}`;
@@ -14,7 +15,9 @@ const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const server = spawn(process.execPath, ["server.js"], { cwd: ROOT, env: { ...process.env, PORT: String(PORT), DAILY_SUDOKU_MIN_SEC: "0" }, stdio: "ignore" });
-const chrome = spawn(CHROME, ["--headless=new", "--remote-debugging-port=9334", "--user-data-dir=" + OUT + "/prof", "--hide-scrollbars", "--mute-audio", "about:blank"], { stdio: "ignore" });
+const PROF = tempProfile("daily"); // %TEMP%/lk-e2e-*, tự xoá khi thoát
+const chrome = spawn(CHROME, ["--headless=new", "--remote-debugging-port=9334", "--user-data-dir=" + PROF, "--hide-scrollbars", "--mute-audio", "about:blank"], { stdio: "ignore" });
+guardChrome(chrome, PROF);
 let fails = 0;
 const check = (n, c, d = "") => { if (!c) fails++; console.log((c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : "")); };
 const done = (code) => { try { chrome.kill(); } catch {} try { server.kill(); } catch {} process.exit(code); };

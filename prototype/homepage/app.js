@@ -36,8 +36,21 @@
   // Ảnh lưới game / Mở phòng nhanh: chưa gắn src (data-src) — IntersectionObserver gắn khi ảnh sắp vào màn (≤ 300 px),
   // thay cho loading="lazy" của trình duyệt (tải trước tới 1.250–2.500 px ⇒ điện thoại tải gần hết lưới ngay lúc đầu).
   // sizes: bề rộng ô thật theo bố cục styles.css (6/5/4/3 cột).
-  var TILE_SIZES = "(max-width: 720px) 34vw, (max-width: 1023px) 25vw, (max-width: 1180px) 20vw, 200px";
+  // HOME2-05: sizes theo bề rộng ô thật (đo 320–1920, cả xoay ngang). Dòng đánh dấu 1 chỉ dùng cho thumb tranh vẽ 720w (lossy):
+  // máy dpr ≥ 2,5 khai 2/3 bề rộng ⇒ chọn bản như máy dpr 2 (360w thay vì 720w, mắt không phân biệt ở mật độ đó).
+  // Thumb pixel lưới 2× (480w, lossless) bỏ các dòng đó để không phóng to bản 240w (sẽ nhoè lưới pixel).
+  var HI = " and (min-resolution: 2.5dppx)", LAND = "(orientation: landscape) and (max-height: 500px)";
+  function sz(g, rows) {
+    var paint = (g.tw || 720) === 720;
+    return rows.filter(function (r) { return paint || !r[2]; }).map(function (r) { return r[0] ? r[0] + " " + r[1] : r[1]; }).join(", ");
+  }
+  var HERO_SIZES = [[LAND + HI, "15vw", 1], [LAND, "22vw"], ["(max-width: 720px)" + HI, "29vw", 1], ["(max-width: 720px)", "44vw"],
+    ["(max-width: 1023px)", "53vw"], ["(max-width: 1180px)", "40vw"], ["", "360px"]];
+  var TILE_SIZES = [["(max-width: 720px)" + HI, "21vw", 1], ["(max-width: 720px)", "31vw"], ["(max-width: 1023px)", "25vw"], ["(max-width: 1180px)", "19vw"], ["", "190px"]];
+  var QP_SIZES = [[LAND + HI, "11vw", 1], [LAND, "16vw"], ["(max-width: 720px)" + HI, "20vw", 1], ["(max-width: 720px)", "29vw"], ["", "1px"]];
+  var QUICK_SIZES = [["(max-width: 1180px)" + HI, "90px", 1], ["(max-width: 1180px)", "130px"], ["", "150px"]];
   function imgHTML(g, sizes, eager) {
+    if (typeof sizes !== "string") sizes = sz(g, sizes);
     if (eager) return '<img src="' + halfSrc(g.thumb) + '" srcset="' + srcsetOf(g) + '" sizes="' + sizes + '" alt="" loading="lazy" decoding="async" />';
     return '<img data-src="' + halfSrc(g.thumb) + '" data-srcset="' + srcsetOf(g) + '" sizes="' + sizes + '" alt="" decoding="async" />';
   }
@@ -66,7 +79,7 @@
   function slideHTML(x, i) {
     var g = x.g, s = x.s;
     // Slide 1 tải ngay (ưu tiên cao); slide sau chỉ gắn src khi sắp tới lượt (loadSlide) để không tranh băng thông lúc đầu.
-    var set = srcsetOf(g), sizes = "(max-width: 720px) 45vw, 720px";
+    var set = srcsetOf(g), sizes = sz(g, HERO_SIZES);
     var img = i ? '<img data-src="' + g.thumb + '" data-srcset="' + set + '" sizes="' + sizes + '" alt="" decoding="async" />'
       : '<img src="' + g.thumb + '" srcset="' + set + '" sizes="' + sizes + '" alt="" decoding="async" fetchpriority="high" />';
     return '<a class="card slide' + soonCls(g) + '" href="' + href(g) + '" data-id="' + g.id + '" role="group" aria-roledescription="trang" aria-label="' + (i + 1) + " / " + slides.length + ": " + g.name + '">' +
@@ -134,8 +147,12 @@
   heroEl.addEventListener("focusin", pause); heroEl.addEventListener("focusout", resume);
   document.addEventListener("visibilitychange", arm);
   heroEl.addEventListener("keydown", function (e) {
-    if (e.key === "ArrowLeft") { goSlide(state.slide - 1); e.preventDefault(); }
-    if (e.key === "ArrowRight") { goSlide(state.slide + 1); e.preventDefault(); }
+    var d = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
+    if (!d) return;
+    // HOME-10: slide cũ thành inert ⇒ focus rơi về <body>. Đang đứng trên slide thì chuyển focus sang slide mới.
+    var onSlide = track.contains(document.activeElement);
+    goSlide(state.slide + d); e.preventDefault();
+    if (onSlide) { var cur = track.children[state.slide]; if (cur) cur.focus({ preventScroll: true }); }
   });
   // Vuốt ngang trên điện thoại để chuyển game; vuốt xong thì không tính là bấm vào thẻ.
   var sx = null, sy = 0, swiped = false;
@@ -222,7 +239,7 @@
     quickDone = true;
     var box = $("quickGrid");
     box.innerHTML = duelIds.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
-      return '<a class="quick__item" href="' + href(g) + '"><span class="quick__art">' + imgHTML(g, "(max-width: 1180px) 130px, 150px") + '</span><span class="quick__name">' + esc(g.name) + "</span></a>";
+      return '<a class="quick__item" href="' + href(g) + '"><span class="quick__art">' + imgHTML(g, QUICK_SIZES) + '</span><span class="quick__name">' + esc(g.name) + "</span></a>";
     }).join("");
     lazyIn(box);
   }
@@ -331,11 +348,13 @@
     if (DAILY[g.id]) words.push("thu thach hom nay daily");
     return (g._hay = " " + fold(words.join(" ")).replace(/[–—-]/g, " ").replace(/\s+/g, " ") + " ");
   }
+  var FILLER = { game: 1, games: 1, tro: 1, choi: 1, cho: 1, be: 1, danh: 1, cac: 1, de: 1 };
   function matches(g) {
     if (state.q) {
       var hay = haystack(g), toks = fold(state.q).split(/\s+/).filter(Boolean);
       // số ("2", "4") phải là nguyên một từ: "2 nguoi" không được khớp "2048 … 1 nguoi"
-      return toks.every(function (t) { return hay.indexOf(/^\d+$/.test(t) ? " " + t + " " : t) !== -1; });
+      // HOME2-09: từ đệm ("tro choi", "game cho be") không bắt buộc phải khớp — trước đây làm cả câu ra 0 kết quả.
+      return toks.every(function (t) { return FILLER[t] || hay.indexOf(/^\d+$/.test(t) ? " " + t + " " : t) !== -1; });
     }
     return state.cat === "all" || group(g) === state.cat;
   }
@@ -386,7 +405,7 @@
     var pre = [].map.call(row.children, function (a) { return a.dataset.id; }).join();
     if (pre && pre === QUICK.filter(function (id) { var g = byId(id); return g && !soon(g); }).join()) { lazyIn(row); return; }
     row.innerHTML = QUICK.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
-      return '<a class="card tile tile--qp" href="' + href(g) + '" data-id="' + g.id + '"><span class="tile__art">' + imgHTML(g, "(max-width: 720px) 32vw, 1px") +
+      return '<a class="card tile tile--qp" href="' + href(g) + '" data-id="' + g.id + '"><span class="tile__art">' + imgHTML(g, QP_SIZES) +
         '</span><span class="tile__body"><span class="card__name">' + esc(g.name) + "</span></span></a>";
     }).join("");
     lazyIn(row);

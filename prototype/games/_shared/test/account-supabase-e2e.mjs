@@ -7,8 +7,9 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { REPO, sleep, launchChrome } from "./cdp.mjs";
 import { fakeSupabase } from "../../../../games-server/account/test/helpers.mjs";
+import { shotDir } from "./lk-temp.mjs";
 
-const OUT = path.resolve(process.argv[2] || "account-supabase-shots");
+const OUT = path.resolve(process.argv[2] || shotDir("account-supabase"));
 mkdirSync(OUT, { recursive: true });
 const PORT = Number(process.env.E2E_PORT) || 8898, BASE = `http://127.0.0.1:${PORT}`;
 const ANON = "sb_publishable_E2E_PUBLIC", SECRET = "sb_secret_E2E_MUST_NOT_LEAK";
@@ -19,7 +20,7 @@ const server = spawn(process.execPath, ["server.js"], { cwd: REPO, env, stdio: "
 let fails = 0;
 const check = (n, c, d = "") => { if (!c) fails++; console.log((c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : "")); };
 for (let i = 0; i < 120; i++) { try { if ((await fetch(BASE + "/healthz")).ok) break; } catch {} await sleep(250); }
-const chrome = await launchChrome();
+const chrome = await launchChrome("account-supabase");
 const finish = async (code) => { try { chrome.close(); } catch {} try { server.kill(); } catch {} await fake.close(); setTimeout(() => process.exit(code), 900); };
 
 async function nav(tab, url) {

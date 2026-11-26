@@ -10,14 +10,15 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { startServer, launchChrome, blobFromPage, sleep } from "./cdp.mjs";
+import { shotDir } from "./lk-temp.mjs";
 
-const OUT = process.argv[2] || join(tmpdir(), "lk-share-shots");
+const OUT = process.argv[2] || shotDir("share");
 mkdirSync(OUT, { recursive: true });
 let fails = 0, passes = 0;
 const ok = (c, msg) => { console.log(`${c ? "PASS" : "FAIL"} ${msg}`); c ? passes++ : fails++; };
 
 const { server, base } = await startServer();
-const chrome = await launchChrome();
+const chrome = await launchChrome("share");
 const IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
 // community.js gán window.COMMUNITY = {...}; móc này ghép thêm link giả để thử nhánh "có link".
 const FAKE_COMMUNITY = `(() => { let v; Object.defineProperty(window, "COMMUNITY", { configurable: true,

@@ -176,6 +176,13 @@
     .tools .btn { min-width: 44px; }
     @media (max-width: 760px) { .tools .btn { min-height: 44px; min-width: 44px; } }
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .tools .btn { min-height: 44px; min-width: 44px; } }
+    /* QUICK2-03 (D8): viewport-fit=cover ⇒ chừa tai thỏ / góc bo / thanh home cho thanh trên, bàn chơi, nút đáy.
+       env() = 0 trên máy không tai thỏ (Android, máy tính) ⇒ không đổi gì. Lớp phủ cố định tự chừa trong _shared/short-screen.css. */
+    body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+    /* QUICK2-06 (D8): vùng chạm "← Trang chủ" ≥ 44 px tính từ mép trên màn ở mọi khung (thanh thấp 26–42 px ⇒ phần thò xuống dưới thanh bù vào),
+       nổi trên lớp phủ menu để phần thò xuống vẫn bấm được. */
+    .bar a { position: relative; z-index: 40; }
+    .bar a::after { content: ""; position: absolute; left: -8px; right: -8px; top: calc(50% - 22px); bottom: calc(50% - 31px); height: auto; }
   </style>
 </head>
 <body class="is-menu">

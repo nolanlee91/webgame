@@ -127,7 +127,7 @@ async function sharedNames(chrome, base) {
 const games = process.argv.slice(2).length ? process.argv.slice(2) : ["co-caro", "ma-soi", "co-ca-ngua"];
 let srv = null, base = process.env.BASE;
 if (!base) { srv = await startServer(); base = srv.base; }
-const chrome = await launchChrome();
+const chrome = await launchChrome("kick");
 let fail = 0;
 try {
   for (const g of games) {

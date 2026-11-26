@@ -7,12 +7,13 @@ import path from "node:path";
 import { startServer, launchChrome, sleep } from "./cdp.mjs";
 import { quizProof } from "../../../../games-server/account/test/helpers.mjs";
 import { D } from "../../../../games-server/account/verify.mjs";
+import { shotDir } from "./lk-temp.mjs";
 
-const OUT = path.resolve(process.argv[2] || "home-d3-shots");
+const OUT = path.resolve(process.argv[2] || shotDir("home-d3"));
 mkdirSync(OUT, { recursive: true });
 for (const k of ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "RAILWAY_ENVIRONMENT", "RAILWAY_PROJECT_ID", "NODE_ENV", "DAILY_BOARD"]) delete process.env[k];
 const { server, base } = await startServer();
-const chrome = await launchChrome();
+const chrome = await launchChrome("home-d3");
 let fails = 0;
 const check = (n, c, d = "") => { if (!c) fails++; console.log((c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : "")); };
 const shot = async (t, name) => { const f = path.join(OUT, name); await t.shot(f); console.log("  ảnh: " + f); };

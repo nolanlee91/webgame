@@ -4,13 +4,14 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const OUT = process.argv[2] || "levelup-shots";
+const OUT = process.argv[2] || shotDir("levelup-share");
 mkdirSync(OUT, { recursive: true });
 import { startServer, launchChrome, sleep } from "./cdp.mjs";
+import { shotDir } from "./lk-temp.mjs";
 let fails = 0, passes = 0;
 const ok = (c, msg) => { console.log(`${c ? "PASS" : "FAIL"} ${msg}`); c ? passes++ : fails++; };
 const { server, base } = await startServer();
-const chrome = await launchChrome();
+const chrome = await launchChrome("levelup-share");
 const IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
 const only = process.argv[3] ? process.argv[3].split(",") : null;
 

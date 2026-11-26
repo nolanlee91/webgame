@@ -8,8 +8,9 @@
 // Desktop thêm: tải lại giữa vụ rồi "Tiếp tục" giữ tiến độ; "Chơi lại vụ" có xác nhận; "Xoá tiến độ" có xác nhận + .backup.
 // Mỗi màn: chụp ảnh, kiểm nút chính không bị che (elementFromPoint 5 điểm), không tràn ngang. Yêu cầu 0 lỗi console (trừ 404 file vụ chưa viết).
 import { launch, sleep } from "./cdp.mjs";
+import { shotDir } from "../../_shared/test/lk-temp.mjs";
 
-const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8871;
+const OUT = process.argv[2] || shotDir("tham-tu"), PORT = process.env.PORT || 8871;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
 const URL0 = `${ORIGIN}/games/tham-tu-hem/?case=__mini&fast=1`;
 const b = await launch(OUT, Number(process.env.CDP_PORT) || 9571);

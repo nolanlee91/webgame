@@ -2,13 +2,17 @@
 // node e2e.mjs <thư mục output>   (cần server thật của dự án — có /api/lobby cho trang chủ: PORT=8766 node server.js ở gốc repo)
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
-const OUT = process.argv[2], BASE = 'http://127.0.0.1:8766/games/dao-vang/index.html';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const PORT = process.env.PORT || 8766, CDP = Number(process.env.CDP_PORT) || 9334;
+const OUT = process.argv[2] || shotDir('dao-vang'), BASE = 'http://127.0.0.1:' + PORT + '/games/dao-vang/index.html';
+const PROF = tempProfile('dao-vang'); // %TEMP%/lk-e2e-*, tự xoá khi thoát
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9334', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + CDP, '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {
-  try { const l = await (await fetch('http://127.0.0.1:9334/json')).json(); const p = l.find(x => x.type === 'page'); if (p) { ws = new WebSocket(p.webSocketDebuggerUrl); break; } } catch {}
+  try { const l = await (await fetch('http://127.0.0.1:' + CDP + '/json')).json(); const p = l.find(x => x.type === 'page'); if (p) { ws = new WebSocket(p.webSocketDebuggerUrl); break; } } catch {}
   await sleep(250);
 }
 await new Promise(r => ws.onopen = r);
@@ -243,14 +247,14 @@ check('màn 1 (người chơi bình thường, phím thật, 3 màn): không lư
   hits.length >= 2 && hits.every(t => t >= 25) && med >= 30 && med <= 55, runs.map(r => r.hitAt == null ? 'không đạt' : r.hitAt.toFixed(1) + ' s').join(' · '));
 
 // ---------- Trang chủ → "Chơi ngay" ở ô Đào Vàng → game thật ----------
-const HOME = 'http://127.0.0.1:8766/homepage/';
+const HOME = 'http://127.0.0.1:' + PORT + '/homepage/';
 await nav(HOME); await sleep(400);
 const links = await ev('[...document.querySelectorAll("a.card[data-id=dao-vang]")].map(a=>a.getAttribute("href"))');
 check('trang chủ: mọi thẻ Đào Vàng (thẻ chính + ô trong lưới) trỏ tới game thật', links.length >= 2 && links.every(h => h === '../games/dao-vang/'), links.join(', '));
 check('trang chủ: mọi thẻ game đều trỏ tới game thật (không còn thẻ nào vào trang chờ play.html)', await ev('[...document.querySelectorAll("a.card")].every(a=>a.getAttribute("href").startsWith("../games/"))'));
 await shot('dv-trang-chu.png');
 // trang chủ mới: thẻ lớn nằm trong băng chuyển (có thể đang ẩn) ⇒ bấm ô Đào Vàng ở lưới "Tất cả game"
-const playBtn = await ev('(()=>{const b=document.querySelector("a.card.tile[data-id=dao-vang]");b.scrollIntoView({block:"center"});const r=b.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/3,(b.querySelector("h3,b,strong,.card__name")||b).textContent.trim().slice(0,20)]})()');
+const playBtn = await ev('(()=>{const b=document.querySelector("#grid a.card.tile[data-id=dao-vang]");b.scrollIntoView({block:"center"});const r=b.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/3,(b.querySelector("h3,b,strong,.card__name")||b).textContent.trim().slice(0,20)]})()');
 await sleep(200); await click(playBtn[0], playBtn[1]); await sleep(1800);
 check(`trang chủ: bấm ô "${playBtn[2]}" → mở game thật`, await ev('location.pathname==="/games/dao-vang/" && !!document.getElementById("play1")'), await ev('location.href'));
 await shot('dv-tu-trang-chu-vao-game.png');
@@ -260,7 +264,7 @@ await nav(HOME); await sleep(400);
 const tile = await ev('(()=>{const a=document.querySelector(".tiles a.card[data-id=dao-vang]")||[...document.querySelectorAll("a.card[data-id=dao-vang]")].pop();a.scrollIntoView({block:"center"});const r=a.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/3]})()');
 await sleep(200); await click(tile[0], tile[1]); await sleep(1800);
 check('trang chủ: bấm ô Đào Vàng trong lưới "Tất cả game" → mở game thật', await ev('location.pathname==="/games/dao-vang/"'));
-await nav('http://127.0.0.1:8766/homepage/play.html?game=dao-vang'); await sleep(600);
+await nav('http://127.0.0.1:' + PORT + '/homepage/play.html?game=dao-vang'); await sleep(600);
 check('link cũ play.html?game=dao-vang tự chuyển sang game thật', await ev('location.pathname==="/games/dao-vang/"'));
 // Mobile: chạm vào thẻ Đào Vàng
 await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });

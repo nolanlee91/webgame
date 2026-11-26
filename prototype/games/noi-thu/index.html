@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/noi-thu.jpg" />
   <!-- og:end -->
   <link rel="stylesheet" href="../../assets/fonts/fonts.css?v=f1" />
-  <link href="../_shared/short-screen.css?v=ss2" rel="stylesheet" /><!-- khung thấp: nút chính ghim đáy lớp phủ (QUICK2-01, docs/mobile-landscape.md) -->
+  <link href="../_shared/short-screen.css?v=ss3" rel="stylesheet" /><!-- khung thấp: nút chính ghim đáy lớp phủ (QUICK2-01, docs/mobile-landscape.md) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%232b1d14%22/%3E%3Crect x=%221%22 y=%221%22 width=%2214%22 height=%2214%22 fill=%22%23efe2c2%22/%3E%3Crect x=%224%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%232b1d14%22/%3E%3Crect x=%2210%22 y=%225%22 width=%222%22 height=%222%22 fill=%22%232b1d14%22/%3E%3Crect x=%226%22 y=%2210%22 width=%224%22 height=%222%22 fill=%22%23d9576b%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ với Đào Vàng / Cờ Cá Ngựa: viền 3px góc khuyết (box-shadow),
@@ -138,6 +138,13 @@
     .bar a::after { content: ""; position: absolute; left: -6px; right: -6px; top: calc(50% - 22px); bottom: calc(50% - 22px); }
     .btn--icon { min-width: 44px; }
     @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .tools .btn { min-height: 44px; } }
+    /* QUICK2-03 (D8): viewport-fit=cover ⇒ chừa tai thỏ / góc bo / thanh home cho thanh trên, bàn chơi, nút đáy.
+       env() = 0 trên máy không tai thỏ (Android, máy tính) ⇒ không đổi gì. Lớp phủ cố định tự chừa trong _shared/short-screen.css. */
+    body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+    /* QUICK2-06 (D8): vùng chạm "← Trang chủ" ≥ 44 px tính từ mép trên màn ở mọi khung (thanh thấp 26–42 px ⇒ phần thò xuống dưới thanh bù vào),
+       nổi trên lớp phủ menu để phần thò xuống vẫn bấm được. */
+    .bar a { position: relative; z-index: 40; }
+    .bar a::after { content: ""; position: absolute; left: -8px; right: -8px; top: calc(50% - 22px); bottom: calc(50% - 31px); height: auto; }
   </style>
 </head>
 <body>

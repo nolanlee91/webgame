@@ -4,8 +4,9 @@
 import { readdirSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
 import { CASES } from "../data/cases/index.js";
+import { shotDir } from "../../_shared/test/lk-temp.mjs";
 
-const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8871, ORIGIN = `http://127.0.0.1:${PORT}`;
+const OUT = process.argv[2] || shotDir("tham-tu-season"), PORT = process.env.PORT || 8871, ORIGIN = `http://127.0.0.1:${PORT}`;
 const URL0 = `${ORIGIN}/games/tham-tu-hem/?fast=1`;
 const have = new Set(readdirSync(new URL("../data/cases/", import.meta.url)).map((f) => f.replace(/\.js$/, "")));
 const S1 = CASES.filter((c) => !c.season || c.season === 1), S2 = CASES.filter((c) => c.season === 2);
