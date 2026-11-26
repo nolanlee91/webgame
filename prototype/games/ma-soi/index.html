@@ -54,7 +54,8 @@
         <div class="home__opt">
           <p class="home__step"><b>Chưa có phòng?</b> Tạo phòng rồi gửi mã cho bạn bè.</p>
           <button class="btn btn--gold home__create" id="createBtn">Tạo phòng mới</button>
-          <label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
+          <label><input id="privateRoom" type="checkbox" aria-describedby="privHint" /> Phòng kín</label>
+<p class="priv-hint" id="privHint" style="margin:-6px 0 8px;font-size:.8em;line-height:1.35;opacity:.8">Tích để chỉ người có mã mới vào được</p>
         </div>
         <div class="home__or" role="separator"><span>hoặc</span></div>
         <div class="home__join">
@@ -155,6 +156,7 @@
       <h2 class="end__title" id="endTitle"></h2>
       <p class="soft" id="endSub"></p>
       <div class="end__cards" id="endCards"></div>
+      <p class="soft end__wait" id="endWait" role="status" hidden></p>
       <div class="end__row"><button class="btn btn--gold" id="againBtn">Chơi ván mới</button><button class="btn" id="endClose">Xem lại sân</button></div>
     </div>
   </div>

@@ -125,7 +125,7 @@ try {
   await A.ev(`document.getElementById('nameInp').value='Tèo'`);
   await A.click('#createBtn');
   await A.waitFor(`!document.getElementById('game').hidden && !document.getElementById('ovLobby').hidden`);
-  ok(await A.ev(`document.getElementById('pubToggle').checked`), 'phòng mới mặc định công khai');
+  ok(!(await A.ev(`document.getElementById('privToggle').checked`)), 'phòng mới mặc định công khai (ô Phòng kín để trống)');
   await A.click('#leaveBtn');
   await A.waitFor(`!document.getElementById('home').hidden`);
   await A.click('#privateRoom');
@@ -133,7 +133,7 @@ try {
   await A.waitFor(`!document.getElementById('game').hidden && !document.getElementById('ovLobby').hidden`);
   const code = await A.ev(`document.getElementById('lobCode').textContent`);
   ok(/^[A-Z2-9]{5}$/.test(code), `tạo phòng kín, mã ${code}`);
-  ok(!(await A.ev(`document.getElementById('pubToggle').checked`)), 'tích Phòng kín giữ phòng ngoài sảnh');
+  ok(await A.ev(`document.getElementById('privToggle').checked`), 'tích Phòng kín giữ phòng ngoài sảnh');
   ok(new URL(await A.ev('location.href')).searchParams.get('p') === code, 'địa chỉ trang mang mã phòng (?p=) để chép mời');
   ok(await A.visible('#startBtn') && await A.ev(`document.getElementById('startBtn').getAttribute('aria-disabled')`) === 'true', 'chủ phòng thấy nút Bắt đầu, còn mờ khi chỉ có 1 người');
   await A.click('#startBtn');
@@ -151,9 +151,9 @@ try {
   await A.waitFor(`document.querySelectorAll('#pplList li').length===2`);
 
   // ---------- bật công khai, người lạ (điện thoại) vào từ danh sách ----------
-  await A.click('#pubToggle');
-  await B.waitFor(`document.getElementById('pubToggle').checked`);
-  ok(await B.ev(`document.getElementById('pubToggle').disabled`), 'chỉ chủ phòng đổi được công khai');
+  await A.click('#privToggle');
+  await B.waitFor(`!document.getElementById('privToggle').checked`);
+  ok(await B.ev(`document.getElementById('privToggle').disabled`), 'chỉ chủ phòng đổi được Phòng kín');
   await C.go(BASE);
   await C.waitFor(`document.querySelector('#pubList [data-code="${code}"]')`, 8000);
   ok(true, 'phòng công khai hiện trong danh sách của người lạ');

@@ -570,7 +570,12 @@ function renderEnd() {
     const r = ROLE[p.role] || ROLE.agent;
     return `<figure class="${p.alive ? "" : "dead"} ${won(p) ? "win" : ""}"><img src="assets/thumbs/${r.img}" alt=""><figcaption>${esc(p.name)}<br>${r.name}${p.alive ? "" : " · bị loại"}</figcaption></figure>`;
   }).join("");
-  $("againBtn").hidden = v.host !== v.seat;
+  // PARTY2-03 (D8): chủ phòng vắng ⇒ ai cũng mở ván mới được (máy chủ cũng chuyển chủ phòng ngay khi hết ván nếu chủ phòng
+  // không trả lời). Chủ phòng còn đó ⇒ người khác thấy lời giải thích thay vì màn trống.
+  const hostHere = !!v.players[v.host]?.connected, canAgain = v.host === v.seat || !hostHere;
+  $("againBtn").hidden = !canAgain;
+  $("endWait").hidden = canAgain;
+  if (!canAgain) $("endWait").textContent = `Chờ chủ phòng ★ ${nameOf(v.host)} mở ván mới… Nếu chủ phòng rời đi, nút "Chơi ván mới" sẽ hiện cho bạn.`;
   $("ovEnd").hidden = false;
 }
 $("againBtn").onclick = () => send({ t: "again" });

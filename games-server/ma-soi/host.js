@@ -64,8 +64,26 @@ function createMaSoiHost(server, opts = {}) {
 
   const seatOf = (entry, token) => entry.room.players.findIndex((p) => p.token === token);
 
+  // PARTY2-03 (D8): vừa hết ván ⇒ hỏi thăm kết nối của chủ phòng (ping). Không có gì về trong endProbeMs (tab đã đóng mà máy
+  // chủ chưa nhận khung đóng, điện thoại khoá màn…) ⇒ coi như rớt: đóng kết nối đó (silent), room.setConnected chuyển chủ phòng
+  // cho người kế tiếp ngay, không phải chờ nhịp tim 15 s. Chủ phòng thật ra vẫn còn ⇒ trình duyệt tự nối lại + resume, giữ ghế.
+  function probeHostAtEnd(entry) {
+    const room = entry.room, hostP = room.players[room.host];
+    if (!hostP || hostP.bot || !hostP.connected) return;
+    const c = [...entry.conns].find((x) => x.token === hostP.token);
+    if (!c || !c.ws.open || typeof c.ws.ping !== "function") return;
+    const t0 = Date.now();
+    c.ws.ping();
+    const t = setTimeout(() => {
+      if (entry.room.phase !== "end" || !c.ws.open || c.token !== hostP.token) return;
+      if ((c.ws.rxAt || 0) < t0) { c.ws.silent = true; c.ws.close(1001); }
+    }, opts.endProbeMs ?? 4000);
+    t.unref?.();
+  }
+
   /** Gửi góc nhìn mới cho từng kết nối — CHỈ khi nội dung góc nhìn của ghế đó thay đổi. */
   function push(entry) {
+    if (entry.room.phase !== entry.lastPhase) { entry.lastPhase = entry.room.phase; if (entry.lastPhase === "end") probeHostAtEnd(entry); }
     for (const c of entry.conns) {
       if (!c.token) continue;
       const seat = seatOf(entry, c.token);

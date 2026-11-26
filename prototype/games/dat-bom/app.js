@@ -153,7 +153,7 @@ $("pubRef").onclick = () => send({ t: "list" });
 function renderPub(rooms) {
   $("pubList").innerHTML = rooms.length
     ? rooms.map((r) => `<li class="room"><b>${esc(r.code)}</b><span>${esc(r.host)}</span><span class="soft">${r.n}/${r.max}</span><button class="btn btn--teal" type="button" data-code="${esc(r.code)}">Vào</button></li>`).join("")
-    : '<li class="soft">Chưa có phòng công khai nào — tạo phòng rồi bật "công khai" để người khác vào.</li>';
+    : '<li class="soft">Chưa có phòng nào đang chờ — tạo phòng mới (để trống ô "Phòng kín") cho người khác vào.</li>';
 }
 $("pubList").onclick = (e) => { const b = e.target.closest("[data-code]"); if (b) joinCode(b.dataset.code); };
 setInterval(() => { if (!$("home").hidden && ws && ws.readyState === 1 && !sess) send({ t: "list" }); }, 5000);
@@ -225,7 +225,7 @@ function render(prev) {
   $("ovLobby").hidden = v.phase !== "lobby";
   if (v.phase === "lobby") {
     $("lobCode").textContent = v.code;
-    $("pubToggle").checked = v.public; $("pubToggle").disabled = !isHost();
+    $("privToggle").checked = !v.public; $("privToggle").disabled = !isHost(); // D8: một ô "Phòng kín" thống nhất mọi game (bỏ "Phòng công khai" tick sẵn)
     const n = pl.length;
     $("startBtn").hidden = !isHost();
     $("startBtn").setAttribute("aria-disabled", String(n < 2));
@@ -284,7 +284,7 @@ function onFrame(m) {
 const held = [];      // hướng đang giữ (phím nhấn sau cùng được ưu tiên)
 let touchDir = null;
 const KEYMAP = { ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", ArrowDown: "d", a: "l", d: "r", w: "u", s: "d", A: "l", D: "r", W: "u", S: "d" };
-// chỉ nhường phím khi đang GÕ chữ (ô chat); ô tích "Tắt chat" / "Phòng công khai" có focus thì phím vẫn điều khiển game
+// chỉ nhường phím khi đang GÕ chữ (ô chat); ô tích "Tắt chat" / "Phòng kín" có focus thì phím vẫn điều khiển game
 const typing = () => { const a = document.activeElement; return !!a && a.matches("textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit])"); };
 const inGame = () => !$("game").hidden && v && v.phase === "play";
 window.addEventListener("keydown", (e) => {
@@ -323,7 +323,7 @@ if (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0) tou
 window.addEventListener("touchstart", touchy, { once: true, passive: true });
 
 $("startBtn").onclick = () => { if (v && v.players.length >= 2) send({ t: "start" }); else toast(ERR["need-2"]); };
-$("pubToggle").onchange = (e) => send({ t: "public", on: e.target.checked });
+$("privToggle").onchange = (e) => send({ t: "public", on: !e.target.checked }); // giao thức giữ nguyên: public = !kín
 $("againBtn").onclick = () => send({ t: "again" });
 $("toLobbyBtn").onclick = () => send({ t: "lobby" });
 $("leaveBtn").onclick = () => send({ t: "leave" });

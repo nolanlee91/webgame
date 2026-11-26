@@ -53,7 +53,8 @@
         </label>
         <div class="home__opt">
           <button class="btn btn--gold home__create" id="createBtn" type="button">Tạo phòng mới</button>
-          <label class="check"><input type="checkbox" id="privateRoom" /> Phòng kín · vào bằng mã riêng</label>
+          <label class="check"><input id="privateRoom" type="checkbox" aria-describedby="privHint" /> Phòng kín</label>
+<p class="priv-hint" id="privHint" style="margin:-6px 0 8px;font-size:.8em;line-height:1.35;opacity:.8">Tích để chỉ người có mã mới vào được</p>
         </div>
         <div class="home__or">hoặc</div>
         <form class="home__join" id="joinForm" autocomplete="off">
@@ -103,7 +104,7 @@
             <p class="soft" id="lobHint">Gửi mã hoặc link mời cho bạn bè. Cần 2–4 người.</p>
             <div class="wait__btns">
               <button class="btn btn--teal" id="copyBtn" type="button">Chép link mời</button>
-              <label class="check" id="pubWrap"><input type="checkbox" id="pubToggle" /> Phòng công khai</label>
+              <label class="check" id="privWrap" title="Tích để chỉ người có mã mới vào được"><input type="checkbox" id="privToggle" /> Phòng kín</label>
               <label class="check check--chat"><input type="checkbox" data-chat-check /> Tắt chat</label>
             </div>
             <div class="wait__foot">

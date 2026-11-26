@@ -345,7 +345,8 @@
             <label class="lb" for="oName">Tên của bạn</label>
             <div class="field field--sm"><input id="oName" type="text" maxlength="16" autocomplete="nickname" enterkeyhint="go" placeholder="Ví dụ: Lan" /></div>
             <button class="btn btn--big btn--primary" id="createBtn" type="button">Tạo phòng online</button>
-            <label class="chk"><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
+            <label class="chk"><input id="privateRoom" type="checkbox" aria-describedby="privHint" /> Phòng kín</label>
+<p class="priv-hint" id="privHint" style="margin:-6px 0 8px;font-size:.8em;line-height:1.35;opacity:.8">Tích để chỉ người có mã mới vào được</p>
             <div class="or"><span>hoặc vào phòng của bạn bè</span></div>
             <div class="join-row"><div class="field field--sm"><input id="oCode" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="MÃ PHÒNG" aria-label="Mã phòng của bạn bè" /></div><button class="btn" id="enterBtn" type="button">Vào phòng</button></div>
             <div class="or"><span>hoặc</span></div>
