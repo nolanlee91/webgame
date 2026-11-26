@@ -185,6 +185,11 @@ async function boot() {
   const shopLabel = $("#shopLabel");
   const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current;
   function frame(now) {
+    // TLC22-01: hẹn khung sau TRƯỚC khi làm việc ⇒ một lỗi trong event / vẽ không bao giờ làm đơ cả game
+    requestAnimationFrame(frame);
+    try { step(now); } catch (err) { console.error(err); }
+  }
+  function step(now) {
     const dt = Math.min(250, now - last); last = now;
     if (running()) act({ type: "tick", dt }, true);
     if (dirty && performance.now() - lastSave > 2500) save(true);
@@ -202,7 +207,6 @@ async function boot() {
     brew.frame(state);
     $("#pauseBtn").disabled = !state.shift;
     if (shopLabel.textContent !== state.shopName) shopLabel.textContent = state.shopName;
-    requestAnimationFrame(frame);
   }
 
   // ---------- bố cục ----------

@@ -232,6 +232,11 @@ async function boot() {
   const shopLabel = $("#shopLabel"), hintbar = $("#hintbar"), away = $("#away");
   const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current && !shareOpen();
   function frame(now) {
+    // TLC22-01: hẹn khung sau TRƯỚC khi làm việc ⇒ một lỗi trong event / vẽ không bao giờ làm đơ cả game
+    requestAnimationFrame(frame);
+    try { step(now); } catch (err) { console.error(err); }
+  }
+  function step(now) {
     const dt = Math.min(250, now - last); last = now;
     if (running()) act({ type: "tick", dt }, true);
     if (dirty && performance.now() - lastSave > 2500) save(true);
@@ -255,7 +260,6 @@ async function boot() {
     if (sh?.away) away.textContent = sh.away.kind === "change" ? "Đang chạy qua Cô Sáu đổi tiền lẻ…" : sh.away.kind === "si" ? "Đang chạy ra lò đầu hẻm mua bánh sỉ…" : sh.away.kind === "gas" ? "Đang chạy qua Cô Sáu mượn bình gas…" : `Đang chạy ra chợ mua ${itemName(sh.away.id)}… (${Math.ceil((sh.away.until - sh.t) / 1000)}s)`;
     $("#pauseBtn").disabled = !sh;
     if (shopLabel.textContent !== state.shopName) shopLabel.textContent = state.shopName;
-    requestAnimationFrame(frame);
   }
 
   // Bước đổi ⇒ cuộn tới nút của bước đó (TLC2-01: trên điện thoại trước đây mỗi đơn phải tự cuộn 2–4 lần).

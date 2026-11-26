@@ -1,10 +1,10 @@
 // Cứu hết hàng giữa ca (GAME-DESIGN §5, ECONOMY §10; khung theo core/rescue.js của Tiệm Bánh Mì).
 // Hội thoại hết hàng luôn có lựa chọn miễn phí (mượn quán bên cạnh, để sau, treo bảng hết món, đổi bánh mì sườn) và gói ký gửi Cô Ba
 // lên đầu khi không đủ tiền. Chạy ra chợ: cô chủ rời quán 12 giây, bếp vẫn chạy. Nhờ Anh Sáu chở: hàng tới sau 20 giây.
-import { STOCK, RESCUE, DISHES } from "../data/economy.js?v=c6";
-import { packPrice, packSize, consignAvailable, consign, addLot } from "./stock.js?v=c6";
-import { sendAway } from "./walker.js?v=c6";
-import { voidTicket } from "./tables.js?v=c6";
+import { STOCK, RESCUE, DISHES } from "../data/economy.js?v=c8";
+import { packPrice, packSize, consignAvailable, consign, addLot } from "./stock.js?v=c8";
+import { sendAway } from "./walker.js?v=c8";
+import { voidTicket } from "./tables.js?v=c8";
 
 const lower = (t) => t.toLocaleLowerCase("vi");
 export const itemName = (id) => (id === "gao-tam" ? "gạo tấm" : id === "suon-uop" ? "sườn ướp" : lower(STOCK[id]?.name || id));

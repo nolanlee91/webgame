@@ -3,15 +3,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, playDay, playShift, prepDay } from "./helpers.mjs";
-import { loadSave, dump } from "../core/state.js?v=c6";
-import { reviewPool, pushReview, replyOptions, topicOf, linesFor, needPersona, trafficBonus, ratingOf, onShiftStart, FLIP_DAY, SERIOUS } from "../core/reviews.js?v=c6";
-import { captionKind, caption, journalCard, journalMoments } from "../core/journal.js?v=c6";
-import { MISTAKE_IDS } from "../core/score.js?v=c6";
-import { PERSONAS, PERSONA_IDS, REPLY_OPTIONS, REPLY_LINES, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_REVIEW, RETURN_LINES, CAPTIONS_PERSONA, CAPTIONS_REPLY, MISTAKE_TEXT } from "../data/lines-reply.js?v=c6";
-import { CAPTIONS } from "../data/lines-journal.js?v=c6";
-import * as M4 from "../data/lines-reviews-m4.js?v=c6";
-import { freshLine, fill } from "../core/text.js?v=c6";
-import { pickFree } from "../core/drama.js?v=c6";
+import { loadSave, dump } from "../core/state.js?v=c8";
+import { reviewPool, pushReview, replyOptions, topicOf, linesFor, needPersona, trafficBonus, ratingOf, onShiftStart, FLIP_DAY, SERIOUS } from "../core/reviews.js?v=c8";
+import { captionKind, caption, journalCard, journalMoments } from "../core/journal.js?v=c8";
+import { MISTAKE_IDS } from "../core/score.js?v=c8";
+import { PERSONAS, PERSONA_IDS, REPLY_OPTIONS, REPLY_LINES, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_REVIEW, RETURN_LINES, CAPTIONS_PERSONA, CAPTIONS_REPLY, MISTAKE_TEXT } from "../data/lines-reply.js?v=c8";
+import { CAPTIONS } from "../data/lines-journal.js?v=c8";
+import * as M4 from "../data/lines-reviews-m4.js?v=c8";
+import { freshLine, fill } from "../core/text.js?v=c8";
+import { pickFree } from "../core/drama.js?v=c8";
 
 const review = (s, o = {}) => pushReview(s, { name: "Chú Tư", role: "worker", stars: 2, line: "Câu review.", mistake: null, dish: "com-suon", ...o });
 const ROLES = ["office", "worker", "student", "regular", "driver", "nurse", "reviewer", "tourist", "worker2", "student2"];

@@ -1,9 +1,9 @@
 // Gợi ý từng bước ngày 1 (GAME-DESIGN §7 M2: người mới tự nướng, bày và bưng được 1 dĩa mà không cần đọc hướng dẫn ngoài).
 // hint(s) ⇒ { key, text, target } theo trạng thái; target là vùng UI được làm nổi (data-hint ở ui/). Thuần.
-import { itemResult, isCooked, sideState } from "./grill.js?v=c6";
-import { slotOf, ticketOf, targetOf, nextStep, LAYER_NAME } from "./plate.js?v=c6";
-import { tableJob, availableTables } from "./tables.js?v=c6";
-import { ownerFree } from "./walker.js?v=c6";
+import { itemResult, isCooked, sideState } from "./grill.js?v=c8";
+import { slotOf, ticketOf, targetOf, nextStep, LAYER_NAME } from "./plate.js?v=c8";
+import { tableJob, availableTables } from "./tables.js?v=c8";
+import { ownerFree } from "./walker.js?v=c8";
 
 export const HINTS = {
   seat: "Có khách! Chạm khách đang đứng chờ, rồi chạm một bàn trống để mời ngồi.",

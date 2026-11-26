@@ -1,16 +1,16 @@
 // Sổ quản lý (SCREENS.md): tab Review · Nhật ký · Sự kiện · Nhiệm vụ · Huy hiệu. Chép ui/notebook.js của Tiệm Bánh Mì.
 // Agent C giữ khung Sổ + tab Review + Nhật ký; tab khác cắm vào bằng registerTab(id, label, render):
-//   import { registerTab } from "./ui/notebook.js?v=c6";
+//   import { registerTab } from "./ui/notebook.js?v=c8";
 //   registerTab("events", "Sự kiện", (body, state, ctx) => { ... });   // ctx = { act, rerender, close, el, button, starText }
 // id trùng tab có sẵn (events / missions / badges) thì thay chỗ trống "sắp có"; id mới thì thêm vào cuối hàng tab.
 // Review: chạm một review ⇒ khung trả lời với hàng nút tính cách (đổi ngay, thành mặc định) trên các lựa chọn; hậu quả ghi trên nút;
 // câu trả lời lưu nguyên văn dưới review kèm kết quả + câu đáp lại. Vẽ lại giữ vị trí cuộn.
 // Kèm: hỏi tính cách một lần (bản lưu cũ), thẻ chọn ở màn chào, thẻ Nhật Ký (lưu PNG, chia sẻ, ẩn tên quán, đổi khoảnh khắc).
-import { el, button, starText } from "./common.js?v=c6";
-import { personaCards, personaSwitch, PERSONAS } from "./persona.js?v=c6";
-import { drawJournal, download, share } from "./journal.js?v=c6";
-import { replyOptions, optionHint, personaOf, OUTCOME_LABEL, topicOf } from "../core/reviews.js?v=c6";
-import { DISHES } from "../data/economy.js?v=c6";
+import { el, button, starText } from "./common.js?v=c8";
+import { personaCards, personaSwitch, PERSONAS } from "./persona.js?v=c8";
+import { drawJournal, download, share } from "./journal.js?v=c8";
+import { replyOptions, optionHint, personaOf, OUTCOME_LABEL, topicOf } from "../core/reviews.js?v=c8";
+import { DISHES } from "../data/economy.js?v=c8";
 
 const BASE_TABS = [["reviews", "Review"], ["journal", "Nhật ký"], ["events", "Sự kiện"], ["missions", "Nhiệm vụ"], ["badges", "Huy hiệu"]];
 const REGISTRY = new Map();

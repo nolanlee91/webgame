@@ -1,7 +1,7 @@
 // Adapter lưu (localStorage). Luật đọc / kẹp / di chuyển ở core/state.js. Chép khung save.js của Tiệm Bánh Mì.
 // Bản lưu hỏng không bị xoá: chép nguyên văn sang KEY + ".corrupt" (một lần) rồi mới mở quán mới.
 // Bản lưu phiên bản cũ: chép nguyên văn sang KEY + ".bak-v<cũ>" (một lần) trước khi nâng, để không bao giờ mất dữ liệu người chơi.
-import { createState, loadSave, dump, saveVersion, SAVE_VERSION } from "./core/state.js?v=c6";
+import { createState, loadSave, dump, saveVersion, SAVE_VERSION } from "./core/state.js?v=c8";
 
 export const KEY = "wgp.quancomtam.v1";
 export const CORRUPT_KEY = KEY + ".corrupt";
