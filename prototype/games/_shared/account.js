@@ -20,7 +20,7 @@
 //   avatarSvg(name, px?) → string   Avatar pixel 8×8 (SVG) sinh từ tên — cùng tên ⇒ cùng avatar.
 //   NAME_MIN = 2, NAME_MAX = 16, DEFAULT_NAME = "Người chơi" (tên máy chủ dùng khi tên bị lọc).
 // Lưu ở localStorage "wgp.account.v1" { v:1, name, gen, asked, devId, sent } — bản lưu cũ (chưa có gen) vẫn đọc được, tên cũ giữ nguyên.
-// Địa chỉ import hiện tại: "../_shared/account.js?v=name2" (sửa file này ⇒ tăng ?v= ở MỌI chỗ import).
+// Địa chỉ import hiện tại: "../_shared/account.js?v=d6g" (sửa file này ⇒ tăng ?v= ở MỌI chỗ import).
 // =================================================================================================================================
 //
 // Bảng xếp hạng (giai đoạn 1):
@@ -28,7 +28,10 @@
 //     lần đầu cần (signInAnonymously), giữ phiên trong localStorage của supabase-js. Máy chủ chỉ tin access token này.
 //   • Máy dev (board:"memory"): id ngẫu nhiên lưu cục bộ, gửi qua header x-dev-user (máy chủ thật không nhận header này).
 //   • board:false: bảng xếp hạng tắt ⇒ mọi hàm trả null / lỗi "off", trang tự ẩn phần bảng.
-// Sau này "Liên kết Google/Facebook": linkIdentity(provider) bên dưới (chưa có giao diện).
+// Đăng nhập Google (D6, giao diện ở homepage/profile.js): xem mục "Google" cuối file. Chỉ hiện khi Supabase bật nhà cung cấp Google
+//   (googleEnabled() hỏi {supabaseUrl}/auth/v1/settings). Tài khoản ẩn danh được NÂNG CẤP bằng linkIdentity (giữ nguyên user id ⇒ giữ
+//   điểm); máy mới đã có Google ⇒ signInWithOAuth chuyển sang tài khoản cũ. Luồng PKCE: quay về trang với ?code=… ⇒ handleOAuthReturn().
+//   Tên Google thật KHÔNG BAO GIỜ thành tên hiển thị công khai (trẻ em chơi): chỉ dùng tên đã lưu trên máy chủ (profiles.name).
 
 export const STORE_KEY = "wgp.account.v1";
 export const SUPABASE_ESM = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.9/+esm";
@@ -265,7 +268,9 @@ async function supabase() {
     sbP = (async () => {
       const c = await getConfig();
       const { createClient } = await import(/* @vite-ignore */ SUPABASE_ESM);
-      return createClient(c.supabaseUrl, c.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+      // flowType "pkce": đăng nhập Google quay về bằng ?code= (không để token trong URL). detectSessionInUrl tắt: chỉ trang có ô hồ sơ
+      // tự xử lý lúc quay về (handleOAuthReturn), game khác không đụng tới tham số URL của mình.
+      return createClient(c.supabaseUrl, c.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: "pkce" } });
     })();
     sbP.catch(() => { sbP = null; });
   }
@@ -357,16 +362,230 @@ export async function getMyRanks(day) {
   return api(`/api/daily/me?day=${day | 0}`, { create: false });
 }
 
-// ---------- Để dành: liên kết Google / Facebook (chưa có giao diện) ----------
+// ---------- Google: lưu tiến độ / đăng nhập / đăng xuất (D6) ----------
+// Giao diện: homepage/profile.js. Cần Supabase: nhà cung cấp Google + "Manual linking" (docs/account/GOOGLE-LOGIN-SETUP.md).
+const GOOGLE_KEY = "wgp.google.v1";   // sessionStorage: kết quả googleEnabled() trong phiên { url, on }
+const INTENT_KEY = "wgp.oauth.v1";    // sessionStorage: đang đi Google để "link" hay "signin" (đọc lại khi quay về)
+function ss() { try { return globalThis.sessionStorage || null; } catch { return null; } }
+
+/** Đọc JSON của /auth/v1/settings ⇒ Google có bật không. Chỉ true khi external.google === true. */
+export function parseAuthSettings(json) { return !!(json && typeof json === "object" && json.external && json.external.google === true); }
+
+/** Hỏi Supabase đã bật Google chưa ⇒ { on, failed }. Lỗi mạng / quá giờ / HTTP lỗi ⇒ on=false, failed=true. */
+export async function detectGoogle({ url, anonKey, fetch: f = globalThis.fetch, timeoutMs = 5000 } = {}) {
+  if (!url || !anonKey || typeof f !== "function") return { on: false, failed: false };
+  try {
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const tm = ctl && setTimeout(() => ctl.abort(), timeoutMs);
+    const r = await f(String(url).replace(/\/+$/, "") + "/auth/v1/settings", { headers: { apikey: anonKey, Accept: "application/json" }, signal: ctl?.signal, cache: "no-store" });
+    clearTimeout(tm);
+    if (!r || !r.ok) return { on: false, failed: true };
+    return { on: parseAuthSettings(await r.json()), failed: false };
+  } catch { return { on: false, failed: true }; }
+}
+
+let googleP = null;
+/**
+ * Google có dùng được không (máy chủ ở chế độ supabase VÀ Supabase bật Google) ⇒ Promise<boolean>.
+ * Nhớ trong phiên (biến trang + sessionStorage); lần hỏi lỗi KHÔNG nhớ (lần sau hỏi lại).
+ */
+export function googleEnabled() {
+  if (!googleP) {
+    googleP = (async () => {
+      if ((await mode()) !== "supabase") return false;
+      const c = await getConfig();
+      try { const v = JSON.parse(ss()?.getItem(GOOGLE_KEY) || "null"); if (v && v.url === c.supabaseUrl && typeof v.on === "boolean") return v.on; } catch { /* bỏ qua */ }
+      const r = await detectGoogle({ url: c.supabaseUrl, anonKey: c.supabaseAnonKey });
+      if (r.failed) { setTimeout(() => { googleP = null; }, 0); return false; }
+      try { ss()?.setItem(GOOGLE_KEY, JSON.stringify({ url: c.supabaseUrl, on: r.on })); } catch { /* bỏ qua */ }
+      return r.on;
+    })();
+  }
+  return googleP;
+}
+
+/** "nguyenvana@gmail.com" ⇒ "ng•••@gmail.com" (chỉ hiện cho chính người chơi trong ô hồ sơ). */
+export function maskEmail(email) {
+  const s = String(email || ""), at = s.lastIndexOf("@");
+  if (at < 1) return "";
+  const local = [...s.slice(0, at)];
+  return (local.length <= 2 ? local[0] : local.slice(0, 2).join("")) + "•••" + s.slice(at);
+}
+
+/** Tên có dạng tên tự sinh ("Heo Cute 15") không — để tên lấy từ máy chủ giữ đúng cờ isGenerated(). */
+export function looksGenerated(name) {
+  const m = /^(.+) (\d\d)$/.exec(String(name || ""));
+  return !!m && allNamePairs().some(([h, t]) => `${h} ${t}` === m[1]);
+}
+
+/** user của Supabase ⇒ { email (che bớt) } nếu đã gắn Google, không thì null. KHÔNG đọc tên thật (full_name). */
+export function googleOf(user) {
+  if (!user || user.is_anonymous) return null;
+  const ids = Array.isArray(user.identities) ? user.identities : [];
+  const g = ids.find((i) => i && i.provider === "google");
+  const am = user.app_metadata || {};
+  const linked = !!g || am.provider === "google" || (Array.isArray(am.providers) && am.providers.includes("google"));
+  if (!linked) return null;
+  return { email: maskEmail(user.email || g?.identity_data?.email || "") };
+}
+
+/**
+ * Trạng thái tài khoản cho ô hồ sơ (không tạo người dùng mới):
+ *   { google: false }                                  ⇒ không hiện gì
+ *   { google: true, linked: false }                    ⇒ nút "Lưu tiến độ bằng Google"
+ *   { google: true, linked: true, email: "ng•••@…" }   ⇒ "Đã lưu bằng Google · …" + "Đăng xuất"
+ */
+export async function accountState() {
+  if (!(await googleEnabled())) return { google: false, linked: false, email: "" };
+  try {
+    const { data } = await (await supabase()).auth.getSession();
+    const g = googleOf(data?.session?.user);
+    return { google: true, linked: !!g, email: g ? g.email : "" };
+  } catch { return { google: true, linked: false, email: "" }; }
+}
+
+/** Địa chỉ quay về sau Google: trang hiện tại, bỏ query/hash (phải khớp Redirect URLs của Supabase: https://lumkeo.com/**). */
+export function returnUrl(loc = globalThis.location) { return loc.origin + loc.pathname; }
+
+function setIntent(intent) { try { ss()?.setItem(INTENT_KEY, JSON.stringify({ intent, at: Date.now() })); } catch { /* bỏ qua */ } }
+function takeIntent() {
+  let v = null; try { v = JSON.parse(ss()?.getItem(INTENT_KEY) || "null"); ss()?.removeItem(INTENT_KEY); } catch { /* bỏ qua */ }
+  return v && Date.now() - v.at < 30 * 60 * 1000 ? v.intent : null;
+}
+const codeOf = (e) => (e && (e.code || e.error_code)) || "";
+
 /**
  * Gắn tài khoản ẩn danh hiện tại với Google/Facebook để giữ điểm khi đổi máy (Supabase linkIdentity, cần bật
- * "Manual linking" + nhà cung cấp trong Supabase). provider: "google" | "facebook".
+ * "Manual linking" + nhà cung cấp trong Supabase). provider: "google" | "facebook". Trình duyệt chuyển sang trang nhà cung cấp.
  */
-export async function linkIdentity(provider, { redirectTo = location.href } = {}) {
+export async function linkIdentity(provider, { redirectTo = returnUrl() } = {}) {
   if ((await mode()) !== "supabase") throw new Error("Chưa bật tài khoản Supabase");
   const sb = await supabase();
   await getToken({ create: true });
+  setIntent("link");
   const { data, error } = await sb.auth.linkIdentity({ provider, options: { redirectTo } });
-  if (error) throw error;
+  if (error) { takeIntent(); throw error; }
   return data;
+}
+
+export function oauthErrorText(code) {
+  if (code === "identity_already_exists") return "Tài khoản Google này đã lưu tiến độ của một người chơi khác.";
+  if (code === "manual_linking_disabled") return "Tính năng lưu bằng Google chưa bật xong. Bạn thử lại sau nhé.";
+  if (code === "access_denied") return "Bạn đã huỷ đăng nhập Google.";
+  return "Chưa kết nối được Google. Bạn thử lại sau nhé.";
+}
+
+/** "Lưu tiến độ bằng Google": { ok:true } (đang chuyển trang) | { ok:false, code, error } (câu tiếng Việt). */
+export async function startGoogleLink({ redirectTo = returnUrl() } = {}) {
+  try { await linkIdentity("google", { redirectTo }); return { ok: true }; }
+  catch (e) { return { ok: false, code: codeOf(e), error: oauthErrorText(codeOf(e)) }; }
+}
+
+/** "Đăng nhập bằng Google" (máy mới, Google đã gắn với tài khoản khác): bỏ phiên khách hiện tại, dùng tài khoản Google cũ. */
+export async function startGoogleSignIn({ redirectTo = returnUrl() } = {}) {
+  try {
+    if ((await mode()) !== "supabase") throw new Error("off");
+    const sb = await supabase();
+    setIntent("signin");
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+    if (error) { takeIntent(); throw error; }
+    return { ok: true };
+  } catch (e) { return { ok: false, code: codeOf(e), error: oauthErrorText(codeOf(e)) }; }
+}
+
+const OAUTH_Q = ["code", "error", "error_code", "error_description", "state"];
+/** Đọc tham số OAuth trong URL (query của PKCE, hoặc #hash nếu Supabase trả lỗi kiểu cũ). null nếu không có. */
+export function readOAuthParams(loc = globalThis.location) {
+  const q = new URLSearchParams(loc.search || "");
+  const h = new URLSearchParams(String(loc.hash || "").replace(/^#/, ""));
+  const get = (k) => q.get(k) || h.get(k) || "";
+  const code = q.get("code") || "", error = get("error"), errorCode = get("error_code"), desc = get("error_description");
+  if (!code && !error && !errorCode) return null;
+  return { code, error, errorCode: errorCode || (error === "access_denied" ? "access_denied" : ""), description: desc,
+    hashHadOAuth: h.has("error") || h.has("error_code") || h.has("access_token") };
+}
+
+/** Xoá tham số OAuth khỏi thanh địa chỉ (history.replaceState, không tải lại trang). */
+export function cleanOAuthUrl(loc = globalThis.location, hist = globalThis.history) {
+  try {
+    const u = new URL(loc.href);
+    const p = readOAuthParams(loc);
+    for (const k of OAUTH_Q) u.searchParams.delete(k);
+    if (p && p.hashHadOAuth) u.hash = "";
+    hist.replaceState(hist.state, "", u.pathname + u.search + u.hash);
+  } catch { /* bỏ qua */ }
+}
+
+/** Tên đã lưu trên máy chủ của tài khoản đang đăng nhập (GET /api/account/me) ⇒ { name } | null. */
+export async function getServerProfile() {
+  try { const r = await api("/api/account/me", { create: false }); return r && r.name ? r : null; } catch { return null; }
+}
+
+/** Sau khi vào tài khoản Google cũ: dùng tên đã lưu trên máy chủ; chưa có thì đẩy tên trên máy lên. */
+async function adoptAccountName() {
+  const p = await getServerProfile();
+  if (p && typeof p.name === "string" && p.name !== DEFAULT_NAME && checkName(p.name).ok) {
+    const st = load();
+    st.name = p.name; st.gen = looksGenerated(p.name);
+    save(st); emit(p.name);
+    return p.name;
+  }
+  try { await renameMe(getName()); } catch { /* không bắt buộc */ }
+  return getName();
+}
+
+/**
+ * Gọi lúc tải trang có ô hồ sơ. Không có tham số OAuth ⇒ { status: "none" } (không gọi mạng).
+ *   "linked"         — đã gắn Google vào tài khoản hiện tại (cùng user id, giữ điểm). email = email che bớt.
+ *   "signed-in"      — đã vào tài khoản Google cũ (tên trên máy chủ được dùng).
+ *   "already-linked" — Google này đã gắn với tài khoản khác ⇒ giao diện mời "Đăng nhập bằng Google".
+ *   "cancelled" | "error" — error: câu tiếng Việt.
+ * Luôn dọn URL.
+ */
+export async function handleOAuthReturn(loc = globalThis.location, hist = globalThis.history) {
+  const p = readOAuthParams(loc);
+  if (!p) return { status: "none" };
+  cleanOAuthUrl(loc, hist);
+  const intent = takeIntent();
+  if (!p.code) {
+    const code = p.errorCode || p.error;
+    if (code === "identity_already_exists" || /already (been )?linked|already exists/i.test(p.description)) return { status: "already-linked", intent };
+    if (code === "access_denied") return { status: "cancelled", intent, error: oauthErrorText(code) };
+    return { status: "error", intent, code, error: oauthErrorText(code) };
+  }
+  try {
+    if ((await mode()) !== "supabase") return { status: "error", intent, error: oauthErrorText("") };
+    const sb = await supabase();
+    const { data, error } = await sb.auth.exchangeCodeForSession(p.code);
+    if (error) {
+      const c = codeOf(error);
+      return { status: c === "identity_already_exists" ? "already-linked" : "error", intent, code: c, error: oauthErrorText(c) };
+    }
+    const g = googleOf(data?.user || data?.session?.user);
+    if (intent === "signin") {
+      await adoptAccountName();
+      return { status: "signed-in", intent, email: g ? g.email : "" };
+    }
+    // Liên kết xong (cùng user id): lưu tên hiện tại lên máy chủ để máy khác đăng nhập là có tên này.
+    try { await renameMe(getName()); } catch { /* không bắt buộc */ }
+    return { status: "linked", intent, email: g ? g.email : "" };
+  } catch (e) {
+    return { status: "error", intent, code: codeOf(e), error: oauthErrorText(codeOf(e)) };
+  }
+}
+
+/**
+ * "Đăng xuất": bỏ phiên trên MÁY NÀY (scope "local": máy khác vẫn đăng nhập), đặt tên khách tự sinh mới.
+ * Lần sau cần danh tính (gửi điểm) getToken() tự tạo người dùng ẩn danh mới.
+ */
+export async function signOutAccount() {
+  if ((await mode()) === "supabase") {
+    try { await (await supabase()).auth.signOut({ scope: "local" }); } catch { /* vẫn bỏ phiên trên máy */ }
+  }
+  const st = load();
+  let n = randomName();
+  for (let i = 0; i < 5 && n === st.name; i++) n = randomName();
+  st.name = n; st.gen = true; st.asked = false;
+  save(st); emit(n);
+  return n;
 }

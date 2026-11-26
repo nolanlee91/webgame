@@ -1,6 +1,6 @@
 // Đố Vui Nhanh — giao diện (DOM), đồng hồ, phím/chạm, âm thanh, hiệu ứng hạt pixel, lưu kỷ lục. Luật + chấm điểm nằm trong logic.js.
 import { CATS, MODES, ROUND_LEN, QUESTIONS, newRound, current, answer, fifty, next, rank, rng } from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=name1";
+import * as UI from "../_shared/daily-ui.js?v=d6g";
 
 const D = UI.D;
 const DAILY_ID = "do-vui-nhanh";

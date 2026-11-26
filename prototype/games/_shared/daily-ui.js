@@ -181,7 +181,7 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
   // Bảng xếp hạng: nạp lười, lỗi gì cũng chỉ ẩn phần này (kết quả + nút Khoe vẫn dùng được).
   const lb = ov.querySelector("#dlyLb");
   if (board) {
-    import("./daily-board.js?v=name1")
+    import("./daily-board.js?v=d6g")
       .then((m) => m.mountBoard(lb, { game, day, result }))
       .then((st) => { window.__dailyBoardState = st; })
       .catch(() => { lb.hidden = true; window.__dailyBoardState = "failed"; });

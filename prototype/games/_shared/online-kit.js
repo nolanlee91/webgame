@@ -9,7 +9,7 @@
 //   • Câu báo khi bị mời ra / bị chặn.
 // Chịu được cả account.js bản cũ (getName() có thể rỗng, setName() trả chuỗi) lẫn bản mới (tên khách tự sinh, setName() trả
 // { ok, name, error }, onNameChange(cb)).
-import * as acc from "./account.js?v=name2";
+import * as acc from "./account.js?v=d6g";
 
 export const KICKED_TEXT = "Chủ phòng đã mời bạn ra khỏi phòng.";
 export const BANNED_TEXT = "Chủ phòng đã mời bạn ra khỏi phòng này — 10 phút nữa mới vào lại được. Bạn vẫn tạo hoặc vào phòng khác được nhé.";

@@ -4,7 +4,7 @@
 // Đóng hẳn tab rồi mở lại link mời ?room=MÃ: token còn lưu trong localStorage "<SEAT_KEY>.<MÃ>" = { code, token, savedAt }
 // (hết hạn sau 30 phút không ở trong phòng; xoá khi rời / phòng bị hủy / mất ghế) ⇒ gửi "resume" thay cho "join",
 // máy chủ trả lại đúng ghế kể cả khi ván đang chơi. Tab cũ của cùng người (nếu còn mở) nhận "replaced" và thoát.
-import { sessionId, KICKED_TEXT, BANNED_TEXT } from "../_shared/online-kit.js?v=ok2"; // mã phiên (chặn người bị "Mời ra") + câu báo
+import { sessionId, KICKED_TEXT, BANNED_TEXT } from "../_shared/online-kit.js?v=d6g"; // mã phiên (chặn người bị "Mời ra") + câu báo
 
 const SEAT_KEY = "wgp.o-an-quan.seat";
 export const CODE_RE = /^[A-HJKMNP-Z2-9]{5}$/;

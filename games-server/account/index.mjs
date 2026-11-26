@@ -3,6 +3,9 @@
 //   POST /api/daily/:game/:day       body { name, proof } + danh tính → kiểm bằng chứng, ghi điểm (lần đầu thắng), trả bảng
 //   GET  /api/daily/:game/:day?limit → { top: [{ rank, name, score, short, you? }], total, me? }
 //   GET  /api/daily/me?day=N         → { day, ranks: { <game>: { rank, total, short } } }  (thẻ trang chủ, 1 request cho cả 3 game)
+//   GET  /api/account/me             + danh tính → { name } (profiles.name, "" nếu chưa có) — máy mới đăng nhập Google lấy lại tên.
+// Danh tính = user id của Supabase. Người ẩn danh và người đã gắn Google (linkIdentity giữ nguyên id) được nhận như nhau:
+// auth.mjs chỉ hỏi /auth/v1/user lấy id, không xét is_anonymous; điểm + tên đều khoá theo user id.
 //
 // Chế độ (resolveMode):
 //   "supabase" — đủ SUPABASE_URL + SUPABASE_ANON_KEY + SUPABASE_SERVICE_ROLE_KEY.
@@ -158,10 +161,20 @@ export function createAccountApi(opts = {}) {
       const name = cleanName(body.name);
       return send(res, 200, name === DEFAULT_NAME && body.name.trim() !== DEFAULT_NAME ? { ok: false } : { ok: true, name });
     }
-    if (!p.startsWith("/api/daily/")) return false;
+    if (!p.startsWith("/api/daily/") && !p.startsWith("/api/account/")) return false;
     if (mode === "off") return send(res, 503, { error: "off" });
     const ip = ipOf(req);
     try {
+      if (p === "/api/account/me") {
+        // Tên đã lưu của tài khoản (máy mới đăng nhập Google dùng tên này). Không bao giờ trả tên Google thật: chỉ profiles.name.
+        if (req.method !== "GET") return send(res, 405, { error: "method" }, { Allow: "GET" });
+        if (!getOk(ip)) return send(res, 429, { error: "rate" }, { "Retry-After": "60" });
+        const userId = await userOf(req);
+        if (!userId) return send(res, 401, { error: "auth" });
+        const prof = await store.getProfile(userId);
+        return send(res, 200, { name: prof && typeof prof.name === "string" ? prof.name : "" });
+      }
+      if (p.startsWith("/api/account/")) return send(res, 404, { error: "not_found" });
       if (p === "/api/daily/me") {
         if (req.method !== "GET") return send(res, 405, { error: "method" }, { Allow: "GET" });
         if (!getOk(ip)) return send(res, 429, { error: "rate" }, { "Retry-After": "60" });

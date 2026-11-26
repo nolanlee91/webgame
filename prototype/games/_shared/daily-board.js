@@ -3,7 +3,7 @@
 // không hỏi tên nữa), rồi hiện top 10 + hạng của mình + "M người đã chơi". Nút "Đổi tên" kiểm 2–16 ký tự ngay ở máy (HOME-15).
 // Cùng điểm rút gọn ("4/5") mà khác hạng ⇒ hiện thêm tiêu chí phụ ("4/5 · 3,8 giây") — HOME-16.
 // Mọi lỗi chỉ hiện một dòng nhỏ — không bao giờ chặn nút Khoe kết quả hay kết quả cục bộ.
-import * as A from "./account.js?v=name2";
+import * as A from "./account.js?v=d6g";
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const fmtN = (n) => Number(n || 0).toLocaleString("vi-VN");

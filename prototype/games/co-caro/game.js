@@ -1,10 +1,10 @@
 // Cờ Caro — phần vẽ (canvas), điều khiển, HUD, âm thanh, lưu ván. Luật chơi ở logic.js, máy chơi ở ai.js.
 import { newMatch, newRound, nextRound, play, undo, replay, canPlay, isAiTurn, other } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createNet, CODE_RE } from "./net.js?v=kk1h3";
+import { createNet, CODE_RE } from "./net.js?v=d6g";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
-import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
+import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=d6g"; // tên dùng chung + "Mời ra"
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel thay confirm() của trình duyệt (BRD-11)
 
 const SAVE_KEY = "wgp.caro.v1";

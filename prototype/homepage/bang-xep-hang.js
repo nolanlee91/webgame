@@ -2,9 +2,9 @@
 // Dữ liệu: GET /api/daily/:game/:day?limit=50 (account.js getBoard, KHÔNG tạo danh tính mới khi chỉ xem), kết quả máy từ daily.js.
 // Dòng của mình tô sáng (máy chủ đánh dấu you/me theo danh tính). Cùng điểm rút gọn ⇒ hiện tiêu chí phụ "4/5 · 3,8 giây" (HOME-16).
 // URL giữ lựa chọn: ?game=2048&day=hom-qua (link "Xem bảng xếp hạng đầy đủ" trong bảng kết quả game mở đúng tab).
-import * as A from "../games/_shared/account.js?v=name2";
+import * as A from "../games/_shared/account.js?v=d6g";
 import * as D from "../games/_shared/daily.js?v=daily1";
-import { scoreLabels } from "../games/_shared/daily-board.js?v=name1";
+import { scoreLabels } from "../games/_shared/daily-board.js?v=d6g";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
