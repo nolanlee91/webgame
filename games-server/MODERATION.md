@@ -20,8 +20,20 @@ Danh sách từ nằm ở `games-server/account/bad-words.json`.
 - `cleanPlayerName(raw, fallback)`: chuẩn NFC, bỏ ký tự điều khiển / vô hình / đảo chiều chữ và `< >`, gộp khoảng trắng,
   cắt 16 **ký tự thật** (cụm grapheme, không cắt đôi emoji). Rỗng, dính từ tục hoặc chứa link thì trả `fallback`
   ("Người 2", "Người chơi 1"…). Tên gốc không bao giờ được lưu hay phát đi.
-- `maskChat(text)`: link (`http…`, `www.…`, `abc.com`, `zalo.me/…`) thành `[link]`; từ tục thành `***`, phần còn lại giữ nguyên.
-- `isProfane(text, { name })`: có từ tục không. `name: true` dùng thêm danh sách khắt khe dành riêng cho tên.
+- `maskChat(text)`: link (`http…`, `www.…`, `abc.com`, `zalo.me/…`) và thư điện tử thành `[link]`; từ tục, câu chửi người,
+  số điện thoại và lời rủ liên lạc riêng thành `***`, phần còn lại giữ nguyên.
+- `isProfane(text, { name })`: có từ tục / câu chửi không. `name: true` dùng thêm danh sách khắt khe dành riêng cho tên.
+- `hasContact(text)`: có số điện thoại hoặc lời rủ sang kênh riêng không (tên dính cái này cũng bị thay).
+
+## Số điện thoại và lời rủ sang kênh riêng (Đợt 7, TTH2-01)
+
+- Dãy **≥ 7 chữ số** luôn bị che, kể cả khi xen dấu cách / chấm / gạch / phẩy ("0912 345 678", "0912.345.678", "+84 912-345-678",
+  chữ số full-width). Trừ số tiền viết theo nghìn bắt đầu khác 0 ("10.000.000", "1,500,000").
+- Từ liên lạc (zalo, fb, facebook, sđt, đt, inbox, ib, tele, telegram, ig, insta, discord, tiktok, messenger…) chỉ bị che khi
+  câu có kèm số (≥ 3 chữ số), `@tên`, link, hoặc ngay sau nó là một nick có số / chấm / gạch dưới ("zalo: be.na_09").
+  "ib mình nha", "chơi zalo không" vẫn đi qua.
+- Chấp nhận chặn nhầm: hai số dài liền nhau ("2024 2025") bị che vì giống số điện thoại. Chấp nhận lọt: số điện thoại bỏ số 0
+  đầu và viết theo kiểu số tiền ("912.345.678"), số đọc bằng chữ ("không chín một hai…").
 
 ## Cách so (để không chặn nhầm tiếng Việt bình thường)
 
@@ -35,7 +47,11 @@ Chặn nhầm câu bình thường của trẻ con ("các bạn", "lớn lên", 
 3. **`contains`**: chuỗi con của câu đã bỏ dấu và bỏ khoảng trắng. **Chỉ** dùng cho chuỗi không thể ghép ngẫu nhiên từ các từ
    tiếng Việt, ví dụ có chữ f/w/z hoặc cụm phụ âm tiếng Việt không có ("fuck", "shit", "vcl"). Đừng thêm "bitch" (sẽ khớp
    "bít chặt"), "duma" (khớp "Du Mai") hay "concho" (khớp "Con Chồn").
-4. **`nameOnly`**: chỉ áp cho tên, vì tên hiện công khai và ngắn. Ví dụ "con chó", "óc chó" (trong chat có thể là
+4. **`except`**: cụm **bình thường** chứa một cụm trong danh sách, ví dụ "quả óc chó", "hạt óc chó". Đoạn tục nằm gọn trong
+   cụm này thì không bị che ("ăn quả óc chó, mày óc chó" ⇒ "ăn quả óc chó, mày ***").
+5. Câu chửi nhắm vào người ("mày ngu", "thằng ngu", "óc chó", "đồ con chó", "mày là con chó", "mất dạy"…) nằm trong `exact`
+   cho cả chat. "ngu quá", "tao ngu quá", "con chó này dễ thương", "đồ ngủ" vẫn đi qua.
+6. **`nameOnly`**: chỉ áp cho tên, vì tên hiện công khai và ngắn. Ví dụ "con chó", "óc chó" (trong chat có thể là
    "quả óc chó"), "cứt" (trẻ con hay nói "cục cứt").
 
 Bộ lọc tự xử lý các kiểu lách:
@@ -43,7 +59,11 @@ Bộ lọc tự xử lý các kiểu lách:
 - chữ lặp: "fuuuck", "lồnnn"
 - chữ đơn cách nhau bằng dấu chấm hoặc khoảng trắng: "c.ặ.c", "đ ụ", "f.u.c.k"
 - mẩu chữ nối bằng dấu câu: "cặ.c"
-- số kiểu leet: 0→o, 1→i, 3→e, 4→a, 5→s, 7→t ("l0z", "sh1t")
+- số kiểu leet: 0→o, 1→i, 3→e, 4→a, 5→s, 7→t ("l0z", "sh1t"). Từ ≥ 3 ký tự có số leet ("l0n", "c4c", "bu0i") được so dạng
+  bỏ dấu với **cả** danh sách, kể cả từ không dấu thường bỏ qua ("lon", "cac"), vì người gõ số thay chữ chắc chắn cố ý
+- cụm nhiều từ viết dính hoặc tách từng chữ: "đụmá", "đ ụ m á", "đ.ụ m.á" (che trọn cả cụm)
+- chữ full-width / chữ toán học / chữ khoanh ("ｆｕｃｋ", "𝐟𝐮𝐜𝐤", "ⓕⓤⓒⓚ") qua NFKC; chữ giả dạng Cyrillic, Armenian, Hy Lạp,
+  chữ hoa nhỏ ("fսck", "fuсk", "ꜰᴜᴄᴋ") qua bảng `CONFUSE` trong `moderation.js`
 - `@ $ !` kẹp giữa chữ ("đ!t", "$hit")
 - dấu `*`: "f*ck", "sh*t"
 - ZWJ chen giữa chữ

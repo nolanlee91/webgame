@@ -1,16 +1,23 @@
 {
-  "_note": "Danh sách lọc từ tục dùng chung (games-server/moderation.js) cho tên người chơi, chat mọi phòng online và bảng xếp hạng. Cách thêm từ: xem games-server/MODERATION.md. exact = so NGUYÊN TỪ/CỤM TỪ có dấu (chữ thường); plain = chỉ so khi người gõ KHÔNG DẤU (đ coi như d, số kiểu leet 0→o 1→i 3→e 4→a 5→s 7→t đã đổi); contains = chuỗi con của câu đã bỏ dấu + bỏ khoảng trắng — CHỈ dùng chuỗi không thể ghép ngẫu nhiên từ các từ tiếng Việt bình thường. nameOnly = chỉ áp cho tên (khắt khe hơn chat).",
+  "_note": "Danh sách lọc từ tục dùng chung (games-server/moderation.js) cho tên người chơi, chat mọi phòng online và bảng xếp hạng. Cách thêm từ: xem games-server/MODERATION.md. exact = so NGUYÊN TỪ/CỤM TỪ (≤ 4 từ) có dấu (chữ thường); plain = chỉ so khi người gõ KHÔNG DẤU (đ coi như d, số kiểu leet 0→o 1→i 3→e 4→a 5→s 7→t đã đổi); từ có SỐ LEET ('l0n', 'c4c') được so dạng bỏ dấu với cả exact lẫn plain; cụm nhiều từ cũng được so khi viết dính hoặc tách chữ ('đ ụ m á', 'đ.ụ m.á'); contains = chuỗi con của câu đã bỏ dấu + bỏ khoảng trắng — CHỈ dùng chuỗi không thể ghép ngẫu nhiên từ các từ tiếng Việt bình thường; except = cụm BÌNH THƯỜNG chứa một cụm trong danh sách ('quả óc chó') — đoạn nằm gọn trong cụm này không bị che. nameOnly = chỉ áp cho tên (khắt khe hơn chat).",
   "exact": ["lồn", "cặc", "buồi", "địt", "đụ", "đéo", "đĩ", "đm", "đmm", "đcm", "đcmm", "đkm", "đkmm", "đjt", "chịch", "nứng",
-    "đù má", "đù mẹ", "đù mé", "đụ má", "địt mẹ", "vãi lồn"],
+    "kặc", "cặk", "kặk", "lìn", "lìnn",
+    "đù má", "đù mẹ", "đù mé", "đụ má", "đụ mẹ", "địt mẹ", "vãi lồn", "hiếp dâm", "thủ dâm",
+    "mày ngu", "thằng ngu", "con ngu", "đồ ngu", "ngu như chó", "ngu như bò", "ngu như lợn", "óc chó", "óc lợn",
+    "thằng chó", "đồ chó", "đồ con chó", "con chó mày", "mày là chó", "mày là con chó", "mày như con chó", "đồ chó chết",
+    "mất dạy", "đồ mất dạy", "khốn nạn", "đồ khốn", "thằng khốn", "đồ súc vật", "câm mồm", "mày chết đi", "đi chết đi", "tự tử đi"],
   "plain": ["dm", "dmm", "dcm", "dcmm", "dkm", "dkmm", "dmcs", "vcl", "vkl", "vcc", "vl", "cl", "clm", "clgt", "cmm", "cmn", "cc",
     "djt", "dit", "loz", "lozz", "cak", "cax", "duma", "dume",
     "du ma", "du me", "du mm", "dis me", "vai lon", "vai cac", "bu cac", "mut cac",
-    "fuck", "fucking", "fuckin", "fucker", "fucked", "fck", "fuk", "fvck", "wtf", "stfu", "motherfucker",
-    "shit", "bullshit", "bitch", "bitches", "dick", "cunt", "pussy", "asshole", "bastard", "nigger", "nigga", "whore", "slut", "porn", "sex"],
+    "thang ngu", "oc cho", "do con cho", "may la cho", "may la con cho", "khon nan", "cam mom", "di chet di",
+    "fuck", "fucking", "fuckin", "fucker", "fucked", "fck", "fuk", "fvck", "phuck", "phuk", "wtf", "stfu", "motherfucker",
+    "shit", "bullshit", "bitch", "bitches", "dick", "cock", "cunt", "pussy", "asshole", "bastard", "nigger", "nigga", "whore", "slut",
+    "porn", "sex", "penis", "vagina", "dildo", "boobs", "tits", "nude", "nudes", "horny", "rape", "kys", "kill yourself", "kill urself"],
   "contains": ["fuck", "fvck", "motherf", "shit", "nigg", "whore", "asshole", "ditme", "ditmia", "dcmm", "vcl", "vkl", "lozz"],
+  "except": ["quả óc chó", "hạt óc chó", "trái óc chó", "sữa óc chó", "dầu óc chó", "gỗ óc chó", "bánh óc chó", "cây óc chó"],
   "nameOnly": {
-    "exact": ["cứt", "óc chó", "con chó", "thằng chó", "đồ chó", "chó ngu", "thằng ngu", "con ngu", "đồ ngu"],
-    "plain": ["occho", "concho", "oc cho", "con cho", "thang cho", "cho ngu", "thang ngu", "xxx"],
+    "exact": ["cứt", "con chó", "chó ngu", "đồ ngu"],
+    "plain": ["occho", "concho", "con cho", "cho ngu", "xxx"],
     "contains": ["occho", "ditcon"]
   }
 }

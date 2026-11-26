@@ -375,6 +375,7 @@ test('lọc tục: tên tục ⇒ "Người chơi" (cả ở danh sách phòng c
     assert.equal(cleanName('Cặc Bự'), 'Người chơi');
     assert.equal(cleanName('đụ m', 'Khách'), 'Khách');
     assert.equal(cleanName('Lâm 👨‍👩‍👧'), 'Lâm 👨‍👩‍👧');
+    for (const bad of ['l0n', 'ｆｕｃｋ', 'mày ngu', 'zalo 0912345678']) assert.equal(cleanName(bad, 'Khách'), 'Khách', bad); // D7
     const a = await new P(S.url, 'A').open(), b = await new P(S.url, 'B').open();
     a.send({ t: 'create', name: '👑 địt mẹ mày' }); await a.next((m) => m.t === 'room');
     assert.deepEqual(S.host.publicList().map((r) => r.host), ['Người chơi']);
@@ -384,9 +385,11 @@ test('lọc tục: tên tục ⇒ "Người chơi" (cả ở danh sách phòng c
     await a.next((m) => m.t === 'lobby' && m.started);
     await a.join(); await b.join();
     a.send({ t: 'chat', text: 'mày ngu vcl, vào zalo.me/123 nhé' });
-    assert.equal((await b.next((m) => m.t === 'chat')).text, 'mày ngu ***, vào [link] nhé');
+    assert.equal((await b.next((m) => m.t === 'chat')).text, '*** ***, vào [link] nhé');
     a.send({ t: 'chat', text: 'các bạn ơi lớn lên đi chợ mua lồng đèn' });
     assert.equal((await b.next((m) => m.t === 'chat')).text, 'các bạn ơi lớn lên đi chợ mua lồng đèn');
+    a.send({ t: 'chat', text: 'vao zalo 0912345678 nha, đ.ụ m.á' }); // D7
+    assert.equal((await b.next((m) => m.t === 'chat')).text, 'vao *** *** nha, ***');
   } finally { await S.stop(); }
 });
 
