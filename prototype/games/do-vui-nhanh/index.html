@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/do-vui.jpg" />
   <!-- og:end -->
   <link rel="stylesheet" href="../../assets/fonts/fonts.css?v=f1" />
-  <link href="../_shared/short-screen.css?v=ss2" rel="stylesheet" /><!-- khung thấp: nút chính ghim đáy lớp phủ (QUICK2-01, docs/mobile-landscape.md) -->
+  <link href="../_shared/short-screen.css?v=ss3" rel="stylesheet" /><!-- khung thấp: nút chính ghim đáy lớp phủ (QUICK2-01, docs/mobile-landscape.md) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%222%22 y=%222%22 width=%2212%22 height=%229%22 fill=%22%23ffc94a%22/%3E%3Crect x=%224%22 y=%2211%22 width=%223%22 height=%223%22 fill=%22%23ffc94a%22/%3E%3Crect x=%227%22 y=%224%22 width=%222%22 height=%223%22 fill=%22%232c1b05%22/%3E%3Crect x=%227%22 y=%228%22 width=%222%22 height=%222%22 fill=%22%232c1b05%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng bộ UI với Xếp Gạch / 2048 / Sudoku: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
@@ -184,7 +184,7 @@
     /* QUICK2-02: điện thoại xoay ngang — không phải cuộn khi đang trả lời. HUD một hàng trên cùng; cột trái: đồng hồ · câu hỏi · phản hồi
        (lời giải thích + "Câu tiếp"); cột phải: 4 đáp án xếp dọc, mỗi ô ≥ 44 px. Màn dọc / máy tính không đổi. */
     @media (orientation: landscape) and (max-height: 500px) {
-      .bar { padding: 3px max(12px, env(safe-area-inset-right)) 3px max(12px, env(safe-area-inset-left)); } .bar a { margin-block: -12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .bar { padding: 3px 12px; } /* tai thỏ: body đã chừa (QUICK2-03) */ .bar a { margin-block: -12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
       .wrap { max-width: 1100px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
         grid-template-areas: "hud hud" "timer ans" "q ans" "fb ans"; gap: 6px 16px; overflow: hidden;
         padding: 6px max(12px, env(safe-area-inset-right)) 6px max(12px, env(safe-area-inset-left)); }
@@ -203,6 +203,15 @@
       .feedback .btn { grid-column: 2; grid-row: 1; margin: 0 4px 4px 0; flex: none; min-height: 44px; }
       .keys-hint { display: none; }
     }
+    /* QUICK2-03 (D8): viewport-fit=cover ⇒ chừa tai thỏ / góc bo / thanh home cho thanh trên, bàn chơi, nút đáy.
+       env() = 0 trên máy không tai thỏ (Android, máy tính) ⇒ không đổi gì. Lớp phủ cố định tự chừa trong _shared/short-screen.css. */
+    body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+    /* QUICK2-06 (D8): vùng chạm "← Trang chủ" ≥ 44 px tính từ mép trên màn ở mọi khung (thanh thấp 26–42 px ⇒ phần thò xuống dưới thanh bù vào),
+       nổi trên lớp phủ menu để phần thò xuống vẫn bấm được. */
+    .bar a { position: relative; z-index: 40; }
+    .bar a::after { content: ""; position: absolute; left: -8px; right: -8px; top: calc(50% - 22px); bottom: calc(50% - 31px); height: auto; }
+    /* QUICK2-07 (D8): ô "Kỷ lục" trùng tên lớp .best (dòng kỷ lục ở menu, margin-top 12px, chữ 13px) ⇒ lệch xuống so với 3 ô bên cạnh */
+    .stat.best { margin-top: 0; font-size: inherit; }
   </style>
 </head>
 <body class="is-menu">
