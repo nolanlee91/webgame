@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
-const OUT = process.argv[2] || shotDir('ban-bong'), BASE = 'http://127.0.0.1:8768/games/ban-bong/';
+const OUT = process.argv[2] || shotDir('ban-bong'), BASE = 'http://127.0.0.1:' + (process.env.PORT || 8768) + '/games/ban-bong/';
 mkdirSync(OUT, { recursive: true });
 try { rmSync(OUT + '/prof', { recursive: true, force: true }); } catch {}
 const PORT = 9347;

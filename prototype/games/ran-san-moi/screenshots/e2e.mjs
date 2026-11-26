@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
-const OUT = process.argv[2] || shotDir('ran-san-moi'), BASE = 'http://127.0.0.1:8768/games/ran-san-moi/';
+const OUT = process.argv[2] || shotDir('ran-san-moi'), BASE = 'http://127.0.0.1:' + (process.env.PORT || 8768) + '/games/ran-san-moi/';
 mkdirSync(OUT, { recursive: true });
 const PROF = tempProfile('ran-san-moi'); // %TEMP%/lk-e2e-*, tự xoá khi thoát
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',

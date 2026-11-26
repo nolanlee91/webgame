@@ -254,7 +254,7 @@ check('trang chủ: mọi thẻ Đào Vàng (thẻ chính + ô trong lưới) tr
 check('trang chủ: mọi thẻ game đều trỏ tới game thật (không còn thẻ nào vào trang chờ play.html)', await ev('[...document.querySelectorAll("a.card")].every(a=>a.getAttribute("href").startsWith("../games/"))'));
 await shot('dv-trang-chu.png');
 // trang chủ mới: thẻ lớn nằm trong băng chuyển (có thể đang ẩn) ⇒ bấm ô Đào Vàng ở lưới "Tất cả game"
-const playBtn = await ev('(()=>{const b=document.querySelector("a.card.tile[data-id=dao-vang]");b.scrollIntoView({block:"center"});const r=b.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/3,(b.querySelector("h3,b,strong,.card__name")||b).textContent.trim().slice(0,20)]})()');
+const playBtn = await ev('(()=>{const b=document.querySelector("#grid a.card.tile[data-id=dao-vang]");b.scrollIntoView({block:"center"});const r=b.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/3,(b.querySelector("h3,b,strong,.card__name")||b).textContent.trim().slice(0,20)]})()');
 await sleep(200); await click(playBtn[0], playBtn[1]); await sleep(1800);
 check(`trang chủ: bấm ô "${playBtn[2]}" → mở game thật`, await ev('location.pathname==="/games/dao-vang/" && !!document.getElementById("play1")'), await ev('location.href'));
 await shot('dv-tu-trang-chu-vao-game.png');
