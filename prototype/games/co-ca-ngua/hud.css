@@ -171,6 +171,8 @@
 
 /* nút loa luôn bấm được, kể cả khi bảng xếp hạng phủ lên */
 .cn-top [data-act="mute"] { position: relative; z-index: 6; }
+/* BOARD2-05 (D8): …nhưng không được đè tiêu đề "BẠN THẮNG!": bảng chừa hàng trên cùng (cao 44 + lề) cho nút loa */
+.cn-result { padding-top: 60px; }
 
 /* ---------- Chế độ online (online.js): ẩn chọn số người / tạm dừng, hiện tên + trạng thái kết nối ---------- */
 .cn-table.is-online .sec-n, .cn-table.is-online [data-act="pause"], .cn-table:not(.is-online) .net-only, .cn-table.is-online .local-only { display: none; }

@@ -2,7 +2,7 @@
 // Luật ở logic.js (dùng chung với máy chủ), máy chơi ở ai.js, vẽ bàn + hoạt cảnh ở board.js, hình vẽ bằng code ở art.js.
 import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, isAiTurn, legalMoves, ROWS, LEVELS, RULES } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createBoard } from "./board.js?v=oaq2";
+import { createBoard } from "./board.js?v=d8o";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
 import { createNet, CODE_RE } from "./net.js?v=d6g";
 import { shareResult } from "../_shared/share.js?v=s2";
@@ -169,6 +169,8 @@ export function mount(root, ctx = {}) {
     },
     onChange: () => hud(),
   });
+  // OAQ-09 (D8): máy bật "giảm chuyển động" ⇒ rải sỏi tua nhanh sẵn (vẫn bấm "Tua nhanh" để tắt được)
+  try { if (matchMedia("(prefers-reduced-motion: reduce)").matches) board.fast = true; } catch {}
   function toast(text, ms = 2600) {
     ui.toast.textContent = text; ui.toast.hidden = false;
     clearTimeout(toastTimer); if (ms) toastTimer = setTimeout(() => (ui.toast.hidden = true), ms);
@@ -721,7 +723,9 @@ export function mount(root, ctx = {}) {
     if (!s || !ui.ovMenu.hidden || !ui.ovEnd.hidden) return;
     ui.menuP.textContent = room ? "Rời phòng" : "Về menu";
     if (on) {
-      ui.pSub.textContent = "Ván " + s.round + " · " + s.moves.length + " nước · điểm " + s.score[0] + " – " + s.score[1];
+      // OAQ-06 (D8): online không dừng được ván của cả phòng ⇒ nói rõ thay vì ghi "Tạm dừng"
+      $("pTitle").textContent = online() ? "Menu" : "Tạm dừng";
+      ui.pSub.textContent = "Ván " + s.round + " · " + s.moves.length + " nước · điểm " + s.score[0] + " – " + s.score[1] + (online() ? " · Ván online vẫn tiếp tục, hết giờ lượt thì máy đi thay." : "");
       overlay("pause"); $("resumeBtn").focus({ preventScroll: true }); sfx.play("pause", 0.6);
     } else { overlay(null); cv.focus({ preventScroll: true }); sfx.play("pause", 0.6); }
     hud();

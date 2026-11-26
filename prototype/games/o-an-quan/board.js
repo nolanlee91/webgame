@@ -149,6 +149,16 @@ export function createBoard(cv, { sfx = {}, onChange = () => {} } = {}) {
     const row = ROWS[api.mine], a = place(row[0]).at, b = place(row[4]).at, l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
     const ux = (b[0] - a[0]) / l, uy = (b[1] - a[1]) / l;
     const size = Math.max(64, Math.round(50 / kCss)); // ≥ 50 px CSS cho ngón cái
+    // OAQ-03 / OAQ-05 (D8): màn hẹp (ô cách nhau < 1,25 × mũi tên, vd 38 px ở 320) — mũi tên đặt cạnh ô theo hàng sẽ đè 2 ô bên cạnh
+    // (che số sỏi). Khi đó dời hai mũi tên ra NGOÀI hàng (phía người chơi, xa hàng đối thủ), tách trái / phải theo chiều đi.
+    const step = l / 4; // khoảng cách 2 ô liền nhau (toạ độ cảnh)
+    if (step < size * 1.25) {
+      const [, hy] = pitHalf(pit), o = ROWS[1 - api.mine], oa = place(o[0]).at, ob = place(o[4]).at;
+      let nx = -uy, ny = ux; // pháp tuyến của hàng, quay ra xa hàng đối thủ
+      if (nx * ((oa[0] + ob[0]) / 2 - cx) + ny * ((oa[1] + ob[1]) / 2 - cy) > 0) { nx = -nx; ny = -ny; }
+      const out = hy + size * 0.62, along = size * 0.56;
+      return { x: cx + nx * out + ux * along * dir, y: cy + ny * out + uy * along * dir, ux: ux * dir, uy: uy * dir, size };
+    }
     const off = hx + size * 0.18;
     return { x: cx + ux * off * dir, y: cy + uy * off * dir, ux: ux * dir, uy: uy * dir, size };
   }

@@ -174,12 +174,12 @@ function createCoVuaHost(server, opts = {}) {
           const t = setTimeout(() => {
             const s = seatOf(entry, token);
             if (s >= 0 && !entry.room.players[s].connected && entry.room.phase === "lobby") { entry.room.leave(s); if (entry.room.closed) dropRoom(entry); }
-          }, opts.lobbyGraceMs ?? 20000); t.unref?.();
+          }, (opts.lobbyGraceMs ?? 20000) + (ws.silent ? (opts.silentExtraMs ?? 45000) : 0)); t.unref?.(); // rớt im lặng (nhịp tim 15 s) ⇒ giữ thêm 45 s: tổng ≈ 80 s như trước D8
         }
       }
       checkIdle(entry);
     });
-  }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
+  }, { maxBytes: 1024, allowOrigin: opts.allowOrigin, pingMs: opts.pingMs, deadMs: opts.deadMs });
 
   return { rooms, publicList: () => listPublicRooms(rooms, MAX_PLAYERS), ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }

@@ -169,7 +169,7 @@ function onMsg(m) {
     case "state": {
       offset = m.now - Date.now(); const prev = v; v = m.v;
       if (vsBots && v.phase === "lobby" && v.host === v.seat && v.players.length >= v.min) { vsBots = false; send({ t: "start" }); }
-      render(); soundFor(prev, v); break;
+      render(); soundFor(prev, v); checkRenamed(v.players[v.seat]); break;
     }
     case "err":
       if (m.code === "banned") { save(null); v = null; showHome(); homeMsg(BANNED_TEXT); leaveDone(); break; } // bị mời ra: 10 phút chưa vào lại được
@@ -218,12 +218,31 @@ document.addEventListener("click", async (e) => {
 // ---------------- màn đầu ----------------
 function homeMsg(t) { $("homeMsg").textContent = t; }
 function showHome() { $("home").hidden = false; $("game").hidden = true; $("barCode").hidden = true; $("ovEnd").hidden = true; $("ovReveal").hidden = true; lastPhase = null; setTheme("day"); }
+// PARTY2-06 (D8): ô tên có bộ đếm n/16 như game cờ; dài quá thì nhắc (trước bị cắt im lặng ở 16). Máy chủ thay tên (tên chưa
+// dùng được) ⇒ báo cho người chơi hiểu vì sao tên đổi.
+const NAME_MAX = 16, nameLen = (s) => [...String(s || "").replace(/\s+/g, " ").trim()].length, AUTO_NAME = /^Người( chơi)? \d+$/;
+let sentName = "";
+function nameCount() {
+  const n = nameLen($("nameInp").value), over = n > NAME_MAX;
+  $("nameCount").textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : ""); $("nameCount").classList.toggle("over", over);
+}
+function nameTooLong() {
+  const n = nameLen($("nameInp").value); if (n <= NAME_MAX) return false;
+  homeMsg(`Tên tối đa ${NAME_MAX} ký tự — bớt ${n - NAME_MAX} ký tự nhé.`); $("nameInp").focus(); return true;
+}
+function checkRenamed(mine) {
+  if (!sentName || !mine) return;
+  if (AUTO_NAME.test(mine.name) && !AUTO_NAME.test(sentName)) toast(`Tên "${sentName}" chưa dùng được nên tạm gọi bạn là ${mine.name}. Lần sau đổi tên khác nhé.`);
+  sentName = "";
+}
 function needName() {
-  const n = myName.commit($("nameInp").value); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } // sửa tên ở đây ⇒ mọi game cùng đổi
+  if (nameTooLong()) return null; const n = myName.commit($("nameInp").value); sentName = n; if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } // sửa tên ở đây ⇒ mọi game cùng đổi
   try { localStorage.setItem(NAME, n); } catch {} return n;
 }
 // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game (NAME) được chuyển sang một lần.
 const myName = sharedName({ game: "ai-la-noi-gian", input: $("nameInp"), legacy: () => { try { return localStorage.getItem(NAME) || ""; } catch { return ""; } } });
+$("nameInp").addEventListener("input", () => { nameCount(); if (/^Tên tối đa/.test($("homeMsg")?.textContent || "") && nameLen($("nameInp").value) <= NAME_MAX) homeMsg(""); });
+nameCount();
 initKick({ send: (o) => { send(o); return true; } }); // chủ phòng "Mời ra" người khác ở phòng chờ — hộp xác nhận pixel
 const qp = new URLSearchParams(location.search).get("p"); if (qp) $("codeInp").value = qp.toUpperCase().slice(0, 5);
 let vsBots = false; // bấm "Chơi với máy" ⇒ tự tạo phòng kín, thêm bot, bắt đầu luôn (dùng bot của máy chủ)
@@ -570,7 +589,12 @@ function renderEnd() {
     const r = ROLE[p.role] || ROLE.agent;
     return `<figure class="${p.alive ? "" : "dead"} ${won(p) ? "win" : ""}"><img src="assets/thumbs/${r.img}" alt=""><figcaption>${esc(p.name)}<br>${r.name}${p.alive ? "" : " · bị loại"}</figcaption></figure>`;
   }).join("");
-  $("againBtn").hidden = v.host !== v.seat;
+  // PARTY2-03 (D8): chủ phòng vắng ⇒ ai cũng mở ván mới được (máy chủ cũng chuyển chủ phòng ngay khi hết ván nếu chủ phòng
+  // không trả lời). Chủ phòng còn đó ⇒ người khác thấy lời giải thích thay vì màn trống.
+  const hostHere = !!v.players[v.host]?.connected, canAgain = v.host === v.seat || !hostHere;
+  $("againBtn").hidden = !canAgain;
+  $("endWait").hidden = canAgain;
+  if (!canAgain) $("endWait").textContent = `Chờ chủ phòng ★ ${nameOf(v.host)} mở ván mới… Nếu chủ phòng rời đi, nút "Chơi ván mới" sẽ hiện cho bạn.`;
   $("ovEnd").hidden = false;
 }
 $("againBtn").onclick = () => send({ t: "again" });

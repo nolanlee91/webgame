@@ -5,7 +5,10 @@ const crypto = require("crypto");
 const { EventEmitter } = require("events");
 
 const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-const PING_MS = 20000, DEAD_MS = 60000;
+// BOARD2-04 (D8): ping 5 s, im lặng quá 15 s ⇒ đóng (rớt im lặng: khoá máy, mất sóng). Trước: 20 s / 60 s ⇒ 60–80 s mới biết.
+// Trình duyệt tự trả pong ở tầng mạng kể cả tab nền (không phụ thuộc JS bị hãm), nên tab nền còn sống không bị đóng nhầm.
+// Đóng vì im lặng ⇒ socket.silent = true: host cộng thêm thời gian giữ ghế ở phòng chờ (SILENT_EXTRA_MS) cho tổng thời gian giữ ghế không ngắn đi.
+const PING_MS = 5000, DEAD_MS = 15000;
 const MAX_FRAGS = 16, FRAME_BURST = 40, FRAME_PER_SEC = 20;
 
 class Socket extends EventEmitter {
@@ -77,7 +80,7 @@ function attachWs(server, path, onConnection, { maxBytes = 4096, allowOrigin = n
   const live = new Set();
   const beat = setInterval(() => {
     const t = Date.now();
-    for (const s of live) { if (!s.open) live.delete(s); else if (t - s.rxAt > deadMs) s.close(1001); else s.ping(); }
+    for (const s of live) { if (!s.open) live.delete(s); else if (t - s.rxAt > deadMs) { s.silent = true; s.close(1001); } else s.ping(); }
   }, pingMs);
   beat.unref?.();
   server.on("upgrade", (req, sock) => {
@@ -96,4 +99,4 @@ function attachWs(server, path, onConnection, { maxBytes = 4096, allowOrigin = n
 }
 function sameHost(origin, req) { try { return new URL(origin).host === req.headers.host; } catch { return false; } }
 
-module.exports = { attachWs };
+module.exports = { attachWs, PING_MS, DEAD_MS };

@@ -47,6 +47,9 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px dashed
 .btn[aria-disabled="true"], .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn[aria-disabled="true"]:active, .btn:disabled:active { transform: none; box-shadow: var(--bevel), var(--border), 3px 4px 0 0 var(--shadow); } /* nút tắt không lún */
 .field { display: grid; gap: 6px; font-weight: 700; font-size: 13px; color: var(--soft); }
+.field__row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.nm-count { font-size: 12px; font-weight: 800; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nm-count.over { color: #ff8a7a; }
 .field input, .chat__form input { background: #0c0f14; border: 0; padding: 10px 12px; min-height: 44px; font-size: 16px; color: var(--ink);
   --b: var(--line); box-shadow: inset 0 3px 0 rgba(0,0,0,.6), var(--border); margin: 3px; }
 
@@ -142,7 +145,7 @@ body.is-day .seat--sel .av { --b: var(--gold); box-shadow: var(--border), 0 0 0 
 /* mặt radar xoay trong đêm (đề cương §4) — xoay theo bước 45° cho đúng chất pixel */
 .dial--spin .hud { animation: spin 2.4s steps(8) infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.banner { position: absolute; left: 0; right: 0; top: 64%; transform: translateY(-50%); z-index: 3; text-align: center; padding: 14px; background: rgba(10,8,7,.82); font: 800 clamp(16px, 2.2vw, 26px)/1.2 "Be Vietnam Pro", system-ui;
+.banner { pointer-events: none; position: absolute; left: 0; right: 0; top: 64%; transform: translateY(-50%); z-index: 3; text-align: center; padding: 14px; background: rgba(10,8,7,.82); font: 800 clamp(16px, 2.2vw, 26px)/1.2 "Be Vietnam Pro", system-ui;
   text-shadow: 3px 3px 0 #000; box-shadow: inset 0 3px 0 #000, inset 0 -3px 0 #000; animation: bannerIn .3s steps(3); }
 @keyframes bannerIn { from { transform: translateY(-50%) scaleY(0); } }
 
@@ -204,12 +207,12 @@ body.is-day .seat--sel .av { --b: var(--gold); box-shadow: var(--border), 0 0 0 
 .prow--me { background: rgba(245,215,127,.1); box-shadow: inset 3px 0 0 var(--gold), inset 0 -2px 0 rgba(0,0,0,.3); }
 .prow__name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prow__name i { font-style: normal; font-weight: 600; color: var(--gold); }
-.prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.prow__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; align-items: center; } /* PARTY2-08: chip không bị kéo cao theo hàng */
 .chip { font: 800 11px/1 "Be Vietnam Pro", system-ui; padding: 5px 7px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; --b: var(--line); box-shadow: var(--border); margin: 3px 2px; }
 .chip--host { background: var(--gold); color: #2b1c08; }
 .chip--ok { background: var(--green); color: #fff; }
 .chip--bot { background: #0b0e14; color: var(--phos); }
-.chip--x { border: 0; cursor: pointer; background: var(--panel2); color: var(--ink); min-width: 32px; min-height: 28px; }
+.chip--x { border: 0; cursor: pointer; background: var(--panel2); color: var(--ink); min-width: 44px; min-height: 44px; margin: 0; display: inline-grid; place-items: center; } /* PARTY2-05: vùng chạm 44 */
 .botrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; }
 .botrow .btn:disabled { opacity: .45; cursor: not-allowed; }
 .chip--off { background: var(--red); color: #fff; animation: blink 1.2s steps(2) infinite; }
@@ -279,6 +282,7 @@ body.is-lobby .me { display: none; }
 .end__cards .dead img { filter: grayscale(.8) brightness(.7); }
 .end__cards .win figcaption { color: var(--gold); }
 .end__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.end__wait { margin: 0; font-size: 14px; line-height: 1.4; }
 
 /* ---------- mobile ---------- */
 @media (max-width: 980px) {
@@ -317,6 +321,55 @@ body.is-lobby .me { display: none; }
   .rcard figcaption span { font-size: 10px; }
   .rcard__n { font-size: 13px; min-width: 28px; right: -4px; }
   .chip { font-size: 10px; padding: 4px 5px; }
+}
+/* ---------- điện thoại xoay ngang (PARTY2-04, D8): 2 cột vừa một màn, trang không cuộn ----------
+   Trái: cảnh (cắt quanh chỗ ngồi, vừa chiều cao) — phòng chờ thì danh sách người + bộ vai (cuộn riêng).
+   Phải: vai của bạn, hành động, chat (chat co giãn theo phần còn lại). */
+@media (orientation: landscape) and (max-height: 500px) {
+  body:has(> .game:not([hidden])) { height: 100dvh; min-height: 0; overflow: hidden; }
+  body:has(> .game:not([hidden])) .bar { padding-block: 4px; }
+  .game { flex: 1 1 0; min-height: 0; max-width: none; padding: 4px 6px 6px; gap: 6px; overflow: hidden;
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 43%); grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  .game > .stage { grid-column: 1; grid-row: 1; order: 0; min-height: 0; aspect-ratio: auto; }
+  .world { position: absolute; width: 140%; left: -20%; top: 44%; transform: translateY(-50%); }
+  .seat { width: 7%; }
+  .dial { top: 4px; min-width: 0; width: calc(100% - 14px); grid-template-columns: auto 1fr auto; gap: 8px; padding: 3px 8px 8px; }
+  .hud { width: 32px; height: 32px; }
+  .dial__txt b { font-size: 14px; } .dial__sec { font-size: 20px; }
+  .banner { font-size: 16px; padding: 8px; }
+  .game > .side { grid-column: 2; grid-row: 1; order: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; }
+  .side > .px-panel { flex: none; }
+  .me { grid-template-columns: 34px 1fr; gap: 8px; padding: 4px 8px; }
+  .me__card { width: 34px; }
+  .me__info { gap: 0; }
+  .me__role { font-size: 15px; }
+  .me__desc { display: none; } /* mô tả vai: chạm thẻ vai để xem lại */
+  .act { padding: 4px 8px; gap: 2px; }
+  .act__txt { font-size: 13px; line-height: 1.35; }
+  .side > .chat { flex: 1 0 128px; height: auto; min-height: 128px; padding-bottom: 4px; }
+  .chat__tabs button { padding: 4px 10px; }
+  .quick { display: none; } /* câu nói nhanh: không đủ chỗ cho một hàng 44 px nữa ở màn thấp — ô gõ vẫn còn */
+  /* phòng chờ: bỏ chat neo đáy kiểu dọc, cảnh nhường chỗ cho danh sách người + bộ vai */
+  body.is-lobby .game { padding-bottom: 6px; }
+  body.is-lobby .game > .stage { display: none; }
+  .lobby { grid-column: 1; grid-row: 1; order: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; grid-template-columns: 1fr; gap: 6px; align-content: start; }
+  body.is-lobby .chat { position: static; margin: 3px; padding-bottom: 4px; grid-template-rows: auto minmax(0, 1fr) auto auto; box-shadow: var(--bevel), var(--border), var(--drop); }
+  body.is-lobby .chat__log, body.is-lobby .chat--open .chat__log { height: auto; }
+  body.is-lobby .chat__fold { display: none; }
+  body.is-lobby .act__row .btn { padding: 6px 8px; }
+  body.is-lobby .act__row [data-a="start"] { min-height: 44px; }
+}
+/* PARTY2-05 (D8): ≤ 360 px thanh trên một dòng — "←" thay "← Lụm Kèo" (nhãn đọc màn hình giữ nguyên), loa không bị bóp */
+.bar__snd { flex: none; }
+.bar h1 { white-space: nowrap; }
+@media (max-width: 360px) {
+  .bar__home { display: none; }
+  .bar a { min-width: 44px; justify-content: center; }
+  .bar { gap: 8px; padding-inline: 8px; }
+  .bar h1 { font-size: 14px; letter-spacing: .02em; }
+  /* danh sách người: tên luôn còn ≥ 72 px (xuống 2 dòng), chip tự xuống hàng thay vì bóp tên còn "Bé …" */
+  .prow { grid-template-columns: 36px minmax(72px, 1fr) minmax(0, auto); gap: 6px; }
+  .prow__name { white-space: normal; overflow-wrap: anywhere; line-height: 1.2; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 

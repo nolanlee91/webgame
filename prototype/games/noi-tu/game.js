@@ -579,7 +579,16 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   initKick({ send: (o) => !!online?.send(o) });
   el.solo.addEventListener("click", () => { if (!el.solo.disabled) showSolo(); });
   el.soloBack.addEventListener("click", () => { showEntry(); setTimeout(() => el.solo.focus({ preventScroll: true }), 40); });
-  const needName = () => { const n = myName(); if (!n) { el.mNote.textContent = ONLINE_ERR.name; el.oName.focus(); } return n; };
+  // PARTY2-06 (D8): bộ đếm n/16 như game cờ; dài quá thì nhắc thay vì cắt im lặng
+  const NAME_MAX = 16, nameLen = (v) => [...String(v || "").replace(/\s+/g, " ").trim()].length;
+  const nameCount = () => { const c = $("oNameCount"); if (!c) return; const n = nameLen(el.oName.value), over = n > NAME_MAX; c.textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : ""); c.classList.toggle("over", over); };
+  el.oName.addEventListener("input", () => { nameCount(); if (/^Tên tối đa/.test(el.mNote.textContent) && nameLen(el.oName.value) <= NAME_MAX) el.mNote.textContent = ""; });
+  nameCount();
+  const needName = () => {
+    const len = nameLen(el.oName.value);
+    if (len > NAME_MAX) { el.mNote.textContent = `Tên tối đa ${NAME_MAX} ký tự — bớt ${len - NAME_MAX} ký tự nhé.`; el.oName.focus(); return ""; }
+    const n = myName(); if (!n) { el.mNote.textContent = ONLINE_ERR.name; el.oName.focus(); } return n;
+  };
   el.create.addEventListener("click", () => { if (el.create.getAttribute("aria-disabled") === "true") return; const n = needName(); if (n) openRoom({ t: "create", name: n, public: !$("privateRoom").checked }); });
   const doEnter = () => {
     if (el.enter.getAttribute("aria-disabled") === "true") return;

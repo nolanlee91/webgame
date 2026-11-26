@@ -25,11 +25,11 @@
   <!-- og:end -->
   <link rel="stylesheet" href="../../assets/fonts/fonts.css?v=f1" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230b0e14%22/%3E%3Crect x=%229%22 y=%222%22 width=%225%22 height=%225%22 fill=%22%237ea7e0%22/%3E%3Crect x=%223%22 y=%229%22 width=%222%22 height=%222%22 fill=%22%23e03c3c%22/%3E%3Crect x=%227%22 y=%229%22 width=%222%22 height=%222%22 fill=%22%23e03c3c%22/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="style.css?v=d6b" />
+  <link rel="stylesheet" href="style.css?v=d8o" />
 </head>
 <body class="is-day">
   <header class="bar">
-    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">← Lụm Kèo</a>
+    <a href="../../homepage/" aria-label="Về trang chủ Lụm Kèo">←<span class="bar__home"> Lụm Kèo</span></a>
     <h1>Ma Sói</h1>
     <span class="bar__code" id="barCode" hidden>Phòng <b id="barCodeTxt"></b></span>
     <span class="net" id="net" hidden>Đang kết nối lại…</span>
@@ -48,13 +48,14 @@
       <div class="home__body">
         <h2 class="px-h">Rủ 6–8 người vào làng</h2>
         <p class="soft">Mỗi người một vai bí mật. Đêm xuống, Sói đi săn; trời sáng, cả làng bàn bạc và bỏ phiếu tìm Sói.</p>
-        <label class="field">Tên của bạn
-          <input id="nameInp" maxlength="16" autocomplete="nickname" placeholder="VD: Tí Còi" />
+        <label class="field"><span class="field__row">Tên của bạn <span class="nm-count" id="nameCount" aria-live="polite">0/16</span></span>
+          <input id="nameInp" maxlength="40" aria-describedby="nameCount" autocomplete="nickname" placeholder="VD: Tí Còi" />
         </label>
         <div class="home__opt">
           <p class="home__step"><b>Chưa có phòng?</b> Tạo phòng rồi gửi mã cho bạn bè.</p>
           <button class="btn btn--gold home__create" id="createBtn">Tạo phòng mới</button>
-          <label><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
+          <label><input id="privateRoom" type="checkbox" aria-describedby="privHint" /> Phòng kín</label>
+<p class="priv-hint" id="privHint" style="margin:-6px 0 8px;font-size:.8em;line-height:1.35;opacity:.8">Tích để chỉ người có mã mới vào được</p>
         </div>
         <div class="home__or" role="separator"><span>hoặc</span></div>
         <div class="home__join">
@@ -155,11 +156,12 @@
       <h2 class="end__title" id="endTitle"></h2>
       <p class="soft" id="endSub"></p>
       <div class="end__cards" id="endCards"></div>
+      <p class="soft end__wait" id="endWait" role="status" hidden></p>
       <div class="end__row"><button class="btn btn--gold" id="againBtn">Chơi ván mới</button><button class="btn" id="endClose">Xem lại sân</button></div>
     </div>
   </div>
 
-  <script type="module" src="app.js?v=d6g"></script>
+  <script type="module" src="app.js?v=d8o"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

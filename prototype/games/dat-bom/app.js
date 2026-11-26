@@ -111,7 +111,7 @@ function send(o) {
 function onMsg(m) {
   switch (m.t) {
     case "joined": save({ code: m.code, token: m.token }); history.replaceState(null, "", `?p=${m.code}`); break;
-    case "state": { offset = m.now - Date.now(); const prev = v; v = m.v; render(prev); break; }
+    case "state": { offset = m.now - Date.now(); const prev = v; v = m.v; render(prev); checkRenamed(v.players?.[v.you]); break; }
     case "f": offset = m.now - Date.now(); onFrame(m); break;
     case "fix": if (me && m.alive !== false) { me = { x: m.x, y: m.y }; sent = { ...me }; } break;
     case "list": renderPub(m.rooms); break;
@@ -133,13 +133,32 @@ function onMsg(m) {
 // ---------------- màn đầu ----------------
 function homeMsg(t) { $("homeMsg").textContent = t; }
 function showHome() { $("home").hidden = false; $("game").hidden = true; $("barCode").hidden = true; history.replaceState(null, "", location.pathname); }
+// PARTY2-06 (D8): ô tên có bộ đếm n/16 như game cờ; dài quá thì nhắc (trước bị cắt im lặng ở 16). Máy chủ thay tên (tên chưa
+// dùng được) ⇒ báo cho người chơi hiểu vì sao tên đổi.
+const NAME_MAX = 16, nameLen = (s) => [...String(s || "").replace(/\s+/g, " ").trim()].length, AUTO_NAME = /^Người( chơi)? \d+$/;
+let sentName = "";
+function nameCount() {
+  const n = nameLen($("nameInp").value), over = n > NAME_MAX;
+  $("nameCount").textContent = n + "/" + NAME_MAX + (over ? " · dài quá" : ""); $("nameCount").classList.toggle("over", over);
+}
+function nameTooLong() {
+  const n = nameLen($("nameInp").value); if (n <= NAME_MAX) return false;
+  homeMsg(`Tên tối đa ${NAME_MAX} ký tự — bớt ${n - NAME_MAX} ký tự nhé.`); $("nameInp").focus(); return true;
+}
+function checkRenamed(mine) {
+  if (!sentName || !mine) return;
+  if (AUTO_NAME.test(mine.name) && !AUTO_NAME.test(sentName)) toast(`Tên "${sentName}" chưa dùng được nên tạm gọi bạn là ${mine.name}. Lần sau đổi tên khác nhé.`);
+  sentName = "";
+}
 function needName() {
-  const n = myName.commit($("nameInp").value); if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } // sửa tên ở đây ⇒ mọi game cùng đổi
+  if (nameTooLong()) return null; const n = myName.commit($("nameInp").value); sentName = n; if (!n) { homeMsg(ERR.name); $("nameInp").focus(); return null; } // sửa tên ở đây ⇒ mọi game cùng đổi
   try { localStorage.setItem(NAME, n); } catch {}
   return n;
 }
 // Ô tên điền sẵn tên dùng chung (tài khoản); người cũ có tên riêng của game ("dat-bom:name") được chuyển sang một lần.
 const myName = sharedName({ game: "dat-bom", input: $("nameInp"), legacy: () => { try { return localStorage.getItem(NAME) || ""; } catch { return ""; } } });
+$("nameInp").addEventListener("input", () => { nameCount(); if (/^Tên tối đa/.test($("homeMsg")?.textContent || "") && nameLen($("nameInp").value) <= NAME_MAX) homeMsg(""); });
+nameCount();
 initKick({ send: (o) => { send(o); return true; } }); // chủ phòng "Mời ra" (phòng chờ / hết ván) — hộp xác nhận pixel
 $("createBtn").onclick = () => { const name = needName(); if (name) { homeMsg("Đang tạo phòng…"); send({ t: "create", name, public: !$("privateRoom").checked }); } };
 function joinCode(code) {
@@ -153,7 +172,7 @@ $("pubRef").onclick = () => send({ t: "list" });
 function renderPub(rooms) {
   $("pubList").innerHTML = rooms.length
     ? rooms.map((r) => `<li class="room"><b>${esc(r.code)}</b><span>${esc(r.host)}</span><span class="soft">${r.n}/${r.max}</span><button class="btn btn--teal" type="button" data-code="${esc(r.code)}">Vào</button></li>`).join("")
-    : '<li class="soft">Chưa có phòng công khai nào — tạo phòng rồi bật "công khai" để người khác vào.</li>';
+    : '<li class="soft">Chưa có phòng nào đang chờ — tạo phòng mới (để trống ô "Phòng kín") cho người khác vào.</li>';
 }
 $("pubList").onclick = (e) => { const b = e.target.closest("[data-code]"); if (b) joinCode(b.dataset.code); };
 setInterval(() => { if (!$("home").hidden && ws && ws.readyState === 1 && !sess) send({ t: "list" }); }, 5000);
@@ -225,7 +244,7 @@ function render(prev) {
   $("ovLobby").hidden = v.phase !== "lobby";
   if (v.phase === "lobby") {
     $("lobCode").textContent = v.code;
-    $("pubToggle").checked = v.public; $("pubToggle").disabled = !isHost();
+    $("privToggle").checked = !v.public; $("privToggle").disabled = !isHost(); // D8: một ô "Phòng kín" thống nhất mọi game (bỏ "Phòng công khai" tick sẵn)
     const n = pl.length;
     $("startBtn").hidden = !isHost();
     $("startBtn").setAttribute("aria-disabled", String(n < 2));
@@ -241,7 +260,8 @@ function renderEnd() {
   const r = v.result, pl = v.players;
   $("endKick").textContent = r.reason === "time" ? "Hết giờ — tính điểm" : "Người sống sót cuối cùng";
   $("endTitle").textContent = r.draw ? "Hoà!" : r.winner === v.you ? "Bạn thắng!" : `${pl[r.winner]?.name || "?"} thắng!`;
-  const order = r.stats.map((s, i) => i).sort((a, b) => (b === r.winner) - (a === r.winner) || r.stats[b].score - r.stats[a].score);
+  // PTY-15 (D8): người thắng → người còn sống → điểm. Hoà thì người đã bị loại (dù điểm cao) không đứng trên người còn sống.
+  const order = r.stats.map((s, i) => i).sort((a, b) => (b === r.winner) - (a === r.winner) || !!r.stats[b].alive - !!r.stats[a].alive || r.stats[b].score - r.stats[a].score);
   $("endList").innerHTML = order.map((i) => {
     const s = r.stats[i];
     return `<li class="${i === r.winner ? "win" : ""} ${s.alive ? "" : "dead"}"><span class="sw" style="background:${COLORS[i]}"></span>` +
@@ -284,7 +304,7 @@ function onFrame(m) {
 const held = [];      // hướng đang giữ (phím nhấn sau cùng được ưu tiên)
 let touchDir = null;
 const KEYMAP = { ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", ArrowDown: "d", a: "l", d: "r", w: "u", s: "d", A: "l", D: "r", W: "u", S: "d" };
-// chỉ nhường phím khi đang GÕ chữ (ô chat); ô tích "Tắt chat" / "Phòng công khai" có focus thì phím vẫn điều khiển game
+// chỉ nhường phím khi đang GÕ chữ (ô chat); ô tích "Tắt chat" / "Phòng kín" có focus thì phím vẫn điều khiển game
 const typing = () => { const a = document.activeElement; return !!a && a.matches("textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit])"); };
 const inGame = () => !$("game").hidden && v && v.phase === "play";
 window.addEventListener("keydown", (e) => {
@@ -323,7 +343,7 @@ if (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0) tou
 window.addEventListener("touchstart", touchy, { once: true, passive: true });
 
 $("startBtn").onclick = () => { if (v && v.players.length >= 2) send({ t: "start" }); else toast(ERR["need-2"]); };
-$("pubToggle").onchange = (e) => send({ t: "public", on: e.target.checked });
+$("privToggle").onchange = (e) => send({ t: "public", on: !e.target.checked }); // giao thức giữ nguyên: public = !kín
 $("againBtn").onclick = () => send({ t: "again" });
 $("toLobbyBtn").onclick = () => send({ t: "lobby" });
 $("leaveBtn").onclick = () => send({ t: "leave" });

@@ -323,6 +323,23 @@
       .pl { flex-wrap: wrap; row-gap: 2px; }
       .pl .who { order: 3; flex: 1 0 100%; }
     }
+    /* TTH2-09 (D8): màn thấp (điện thoại ngang) / hẹp — hàng "▶ Bắt đầu · Quay lại" và hàng nút thẻ kết ván dính đáy thẻ, luôn thấy
+       mà không phải cuộn. .ov "safe center": thẻ cao hơn khung thì bắt đầu từ mép trên (căn giữa thường cắt mất đầu thẻ, không cuộn tới được). */
+    .ov { place-items: safe center; }
+    @media (max-height: 600px) and (min-aspect-ratio: 1/1), (max-width: 760px), (max-aspect-ratio: 1/1) {
+      .card { padding: 18px 14px 22px; }
+      .vact, .actions { position: sticky; bottom: -12px; z-index: 1; margin: 14px -14px -22px; padding: 10px 14px 14px; gap: 10px; background: var(--panel); box-shadow: 0 -3px 0 var(--line); }
+    }
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .card h2 { font-size: 22px; } }
+    /* TTH2-10 (D8): thẻ kết ván — tiêu đề + điểm luôn ở trên cùng, hàng nút KHÔNG dính đáy (5 nút xếp dọc từng che hết tiêu đề ở 320).
+       Máy hẹp: "Ván tiếp" một hàng, các nút còn lại 2 cột ⇒ Ván tiếp vẫn thấy ngay dưới điểm. */
+    #ovEnd .actions { position: static; margin: 14px 0 0; padding: 0; box-shadow: none; background: none; }
+    @media (max-width: 520px) {
+      #ovEnd .card h2 { font-size: 22px; }
+      #ovEnd .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #ovEnd .actions .btn { min-width: 0; min-height: 44px; padding: 8px 6px; font-size: 14px; }
+      #ovEnd .actions > .btn:first-child { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
@@ -373,7 +390,8 @@
             <div class="lb-row"><label class="lb" for="nameIn">Tên của bạn</label><span class="nm-count" id="nameCount" aria-live="polite">0/16</span></div>
             <input class="inp" id="nameIn" maxlength="40" aria-describedby="nameCount" autocomplete="nickname" enterkeyhint="go" placeholder="Ví dụ: Tí Cờ Vua" />
             <button class="btn btn--big btn--primary" id="createBtn" type="button">Tạo phòng online</button>
-            <label class="chk"><input id="privateRoom" type="checkbox" /> Phòng kín · vào bằng mã riêng</label>
+            <label class="chk"><input id="privateRoom" type="checkbox" aria-describedby="privHint" /> Phòng kín</label>
+<p class="priv-hint" id="privHint" style="margin:-6px 0 8px;font-size:.8em;line-height:1.35;opacity:.8">Tích để chỉ người có mã mới vào được</p>
             <div class="or"><span>hoặc vào phòng của bạn bè</span></div>
             <div class="join"><input class="inp code" id="codeIn" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="MÃ PHÒNG" aria-label="Mã phòng" /><button class="btn" id="joinBtn" type="button">Vào phòng</button></div>
             <div class="resume" id="mNote"></div>

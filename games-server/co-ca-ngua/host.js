@@ -184,13 +184,13 @@ function createCoCaNguaHost(server, opts = {}) {
             entry.lobbyTimers.delete(token);
             const s = seatOf(entry, token);
             if (s >= 0 && !entry.room.players[s].connected && entry.room.phase === "lobby") { entry.room.leave(s); if (entry.room.closed) dropRoom(entry); }
-          }, opts.lobbyGraceMs ?? 20000);
+          }, (opts.lobbyGraceMs ?? 20000) + (ws.silent ? (opts.silentExtraMs ?? 45000) : 0)); // rớt im lặng (nhịp tim 15 s) ⇒ giữ thêm 45 s: tổng ≈ 80 s như trước D8
           entry.lobbyTimers.set(token, t); t.unref?.();
         }
       }
       checkIdle(entry);
     });
-  }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
+  }, { maxBytes: 1024, allowOrigin: opts.allowOrigin, pingMs: opts.pingMs, deadMs: opts.deadMs });
 
   return { rooms, publicList: () => listPublicRooms(rooms, MAX_PLAYERS), ready, close: () => { for (const e of [...rooms.values()]) dropRoom(e); for (const ws of [...sockets]) ws.close(1001); } };
 }
