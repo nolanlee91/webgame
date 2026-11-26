@@ -13,6 +13,29 @@ const MAX_COMPRESS = 16 * 1024 * 1024; // file chữ lớn hơn thì gửi thẳ
 const CACHE_LIMIT = 64 * 1024 * 1024; // tổng byte bản nén giữ trong RAM
 const IMMUTABLE = "public, max-age=31536000, immutable";
 
+// Tài liệu nội bộ nằm lẫn trong prototype/ (bàn giao asset, prompt tạo ảnh, ảnh xem thử, README…) — không phục vụ công khai (PARTY2-07).
+// asset-manifest.json: chỉ phục vụ những bản game thật sự fetch (đã grep code game; server-static.test.mjs dò lại mỗi lần chạy
+// test, thêm game mới fetch manifest thì thêm đường dẫn vào đây).
+const SERVED_MANIFESTS = new Set([
+  "games/co-ty-phu/assets/asset-manifest.json",
+  "games/o-an-quan/data/asset-manifest.json",
+  "games/quan-com-tam/data/asset-manifest.json",
+  "games/tham-tu-hem/data/asset-manifest.json",
+  "games/tiem-banh-mi/data/asset-manifest.json",
+  "games/tiem-tra-sua/data/asset-manifest.json",
+]);
+/** rel: đường dẫn trong prototype/ (dấu "/"). true ⇒ file nội bộ, trả 404. */
+function isInternal(rel) {
+  rel = String(rel).replace(/\\/g, "/").replace(/^\/+/, "");
+  const name = rel.slice(rel.lastIndexOf("/") + 1);
+  if (/\.md$/i.test(name)) return true;                          // README.md, HANDOFF.md, DESIGN-2.0.md, report.md…
+  if (/^HANDOFF/.test(name)) return true;                          // HANDOFF* (chữ hoa — "handoff.mp3" là tiếng trong game)
+  if (/^generation-prompts.*\.json$/i.test(name)) return true;    // prompt tạo ảnh AI
+  if (/-preview.*\.png$/i.test(name)) return true;                 // ảnh xem thử khi duyệt asset
+  if (name.toLowerCase() === "asset-manifest.json") return !SERVED_MANIFESTS.has(rel);
+  return false;
+}
+
 /** Chọn kiểu nén theo Accept-Encoding (có q=). Ưu tiên br rồi gzip; q=0 nghĩa là cấm. */
 function pickEncoding(header) {
   if (!header) return null;
@@ -31,7 +54,7 @@ function pickEncoding(header) {
   return null;
 }
 
-function createStatic({ types }) {
+function createStatic({ types, root = null }) {
   const cache = new Map(); // key → Buffer (thứ tự chèn = LRU)
   const pending = new Map(); // key → Promise<Buffer> (nhiều request cùng lúc chỉ nén một lần)
   let cacheBytes = 0;
@@ -100,6 +123,10 @@ function createStatic({ types }) {
   }
 
   function serve(file, req, res, st) {
+    if (root && isInternal(path.relative(root, file))) { // tài liệu nội bộ ⇒ như không có file
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+      return res.end(req.method === "HEAD" ? undefined : "Not Found");
+    }
     const ext = path.extname(file).toLowerCase();
     const type = types[ext] || "application/octet-stream";
     const base = `${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}`;
@@ -144,4 +171,4 @@ function createStatic({ types }) {
   return { serve, stats: () => ({ entries: cache.size, bytes: cacheBytes }) };
 }
 
-module.exports = { createStatic, pickEncoding };
+module.exports = { createStatic, pickEncoding, isInternal, SERVED_MANIFESTS };

@@ -86,7 +86,7 @@ function sendJson(res, status, body) {
 }
 
 // File tĩnh: nén gzip/br + ETag/304 + Cache-Control theo ?v= + Range — xem server-static.js.
-const staticFiles = createStatic({ types: TYPES });
+const staticFiles = createStatic({ types: TYPES, root: ROOT }); // root: chặn tài liệu nội bộ trong prototype/ (PARTY2-07)
 function serveFile(file, req, res, st) {
   if (st) return staticFiles.serve(file, req, res, st);
   fs.stat(file, (err, s) => (err || !s.isFile() ? send(res, 404, "Not Found") : staticFiles.serve(file, req, res, s)));

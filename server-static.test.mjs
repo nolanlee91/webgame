@@ -168,3 +168,35 @@ test("Đường đặc biệt giữ nguyên: /healthz, /api/lobby, chuyển hư�
   assert.notEqual((await get("/%2e%2e/server.js")).status, 200, "không lộ file ngoài prototype/");
   assert.equal((await get("/homepage/", {}, "POST")).status, 405);
 });
+
+// PARTY2-07: tài liệu nội bộ trong prototype/ (bàn giao asset, prompt tạo ảnh, ảnh xem thử, README) ⇒ 404; file game thật vẫn 200.
+test("Tài liệu nội bộ trong prototype/ không phục vụ công khai (HANDOFF, generation-prompts, *-preview*.png, *.md, manifest không dùng)", async () => {
+  const { readdirSync, statSync } = await import("node:fs");
+  const { isInternal, SERVED_MANIFESTS } = require("./server-static.js");
+  for (const p of ["/games/ai-la-noi-gian/assets/HANDOFF.md", "/games/ai-la-noi-gian/assets/generation-prompts.json",
+    "/games/ai-la-noi-gian/assets/avatars-x4-preview.png", "/games/ai-la-noi-gian/assets/asset-manifest.json",
+    "/games/co-vua/assets/HANDOFF.md", "/games/noi-tu/README.md", "/games/noi-tu/data/words-sources.md",
+    "/games/AI-LA-NOI-GIAN/assets/handoff.MD", "/games/ai-la-noi-gian/assets/HANDOFF.md?v=1"]) {
+    const r = await get(p, { "Accept-Encoding": "br" });
+    assert.equal(r.status, 404, p);
+    assert.equal((await get(p, {}, "HEAD")).status, 404, "HEAD " + p);
+  }
+  // file game thật vẫn phục vụ (kể cả tên gần giống: tiếng "handoff.mp3", manifest game có fetch)
+  for (const p of ["/games/ai-la-noi-gian/assets/avatars.webp", "/games/tiem-tra-sua/assets/audio/handoff.mp3", "/games/co-ty-phu/assets/asset-manifest.json",
+    "/games/tiem-tra-sua/data/asset-manifest.json", "/games/noi-tu/data/words.json", "/homepage/"]) {
+    assert.equal((await get(p, {}, "HEAD")).status, 200, p);
+  }
+  assert.equal(isInternal("games\\x\\HANDOFF-v2.txt"), true);
+  assert.equal(isInternal("games/x/game.js"), false);
+  // mọi asset-manifest.json mà code game nhắc tới (fetch / preload) phải nằm trong danh sách được phục vụ — thêm game mới thì báo
+  const walk = (d) => readdirSync(d).flatMap((n) => { const f = join(d, n); return statSync(f).isDirectory() ? (/^(test|tools|node_modules)$/.test(n) ? [] : walk(f)) : [f]; });
+  const games = join(ROOT, "prototype", "games");
+  for (const f of walk(games).filter((f) => /\.(js|html)$/.test(f))) {
+    const src = readFileSync(f, "utf8");
+    for (const m of src.matchAll(/["'`]([\w./-]*asset-manifest\.json)/g)) {
+      const rel = join(dirname(f), m[1]).slice(join(ROOT, "prototype").length + 1).replace(/\\/g, "/");
+      assert.ok(SERVED_MANIFESTS.has(rel), `${f} dùng ${rel} nhưng server-static.js chặn — thêm vào SERVED_MANIFESTS`);
+      assert.equal((await get("/" + rel, {}, "HEAD")).status, 200, rel);
+    }
+  }
+});
