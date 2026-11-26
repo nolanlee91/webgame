@@ -519,7 +519,8 @@ await b.ev("__game.advance(3000)");
 await b.shot(OUT + "/23-desktop-ca-hoi-cho.png");
 // mưa bão (V15): chưa có weather-fx.webp ⇒ lớp mưa CSS phủ cảnh; xong sự kiện vẫn mưa một lúc
 await b.ev("__game.forceEvent('V15')");
-check("M5: sự kiện mưa (V15) ⇒ lớp mưa phủ cảnh (CSS dự phòng khi chưa có weather-fx)", await waitFor("!!document.querySelector('.sheet[data-kind=event][data-event=V15]')") && await b.ev("(()=>{const w=document.querySelector('.stage .wx');return !!w&&!w.hidden&&w.classList.contains('wx-rain')})()"));
+check("M5: sự kiện mưa (V15) ⇒ lớp mưa phủ cảnh (CSS dự phòng khi chưa có weather-fx)", await waitFor("!!document.querySelector('.sheet[data-kind=event][data-event=V15]')") && // lớp mưa có thể bật chậm hơn hộp sự kiện vài khung khi máy bận ⇒ chờ tới 3 s thay vì đọc đúng lúc hộp mở
+  await waitFor("(()=>{const w=document.querySelector('.stage .wx.wx-rain');return !!w&&!w.hidden&&w.getClientRects().length>0&&getComputedStyle(w).visibility!=='hidden'})()", 3000));
 for (let i = 0; i < 4 && await visible(".sheet[data-kind=event] .choice"); i++) { // sự kiện nhiều bước
   await pressSel('.sheet[data-kind=event] .choice:not([disabled])');
   await waitFor("!!document.querySelector('#eventNext')");

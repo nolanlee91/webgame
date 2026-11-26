@@ -65,15 +65,29 @@ async function boot() {
     store.write(state); lastSave = now; dirty = false;
   };
   const say = (t, kind = "") => toast($("#toasts"), t, kind);
-  /** Vùng bong bóng thoại phải tránh: chip HUD + viên Lò / Gas (toạ độ trong khung cảnh). */
+  /** Vùng bong bóng thoại phải tránh: chip HUD + viên Lò / Gas (toạ độ trong khung cảnh).
+   *  D6: nhớ sẵn, không đọc getBoundingClientRect mỗi khung (như hudBottom của Trà Sữa, D5-shops). HUD / viên là lớp phủ tuyệt đối
+   *  cùng khung với #scene, dựng một lần ⇒ vị trí tương đối chỉ đổi khi khung cảnh, HUD hay một chip / viên đổi cỡ (đổi chữ, ẩn hiện,
+   *  xoay máy) ⇒ ResizeObserver + resize xoá bộ nhớ. Không có ResizeObserver thì đọc mỗi lần như cũ. */
+  let avoidCache = null;
   const avoidRects = () => {
+    if (avoidCache) return avoidCache;
     const r0 = $("#scene").getBoundingClientRect();
-    return [...document.querySelectorAll("#hud .chip, #pills > *")].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0)
+    const out = [...document.querySelectorAll("#hud .chip, #pills > *")].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0)
       .map((r) => ({ x0: r.left - r0.left - 4, y0: r.top - r0.top - 4, x1: r.right - r0.left + 4, y1: r.bottom - r0.top + 4 }));
+    if (avoidRO) avoidCache = out;
+    return out;
   };
+  let avoidRO = null;
   const scene = createScene($("#scene"), atlas, { onCustomer: (cid) => act({ type: "pin", cid }), avoid: avoidRects });
   const bench = createBench($("#bench"), atlas, (a) => act(a));
   const hud = createHud($("#hud"), $("#pills"), atlas, (a) => act(a));
+  if (typeof ResizeObserver === "function") { // chip / viên dựng xong ở createHud ⇒ theo dõi từ đây
+    const dropAvoid = () => { avoidCache = null; };
+    avoidRO = new ResizeObserver(dropAvoid);
+    for (const e of [$("#scene"), $("#hud"), $("#pills"), ...document.querySelectorAll("#hud .chip, #pills > *")]) if (e) avoidRO.observe(e);
+    addEventListener("resize", dropAvoid);
+  }
   const rail = createRail($("#rail"), (cid) => act({ type: "pin", cid }));
   /** Giữa hai ca: sự kiện Drama (nếu có) rồi Chuẩn bị ca. */
   const toPrep = (tab) => { if (state.drama?.pending) overlays.event(state, () => toPrep(tab)); else { store.snapshotDay(state); overlays.prep(state, tab); } };
