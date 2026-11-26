@@ -39,11 +39,12 @@ function handleAccount(req, res) {
 }
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/api/config" || req.url.startsWith("/api/config?") || req.url.startsWith("/api/daily/") || req.url === "/api/name/check") return handleAccount(req, res);
+  if (req.url === "/api/config" || req.url.startsWith("/api/config?") || req.url.startsWith("/api/daily/") || req.url.startsWith("/api/account/") || req.url === "/api/name/check") return handleAccount(req, res);
   if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, "Method Not Allowed", { Allow: "GET, HEAD" });
   let urlPath;
   try { urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { return send(res, 400, "Bad Request"); }
-  if (urlPath === "/") return send(res, 302, "", { Location: "/homepage/" });
+  // Giữ query khi chuyển: Supabase quay về Site URL "https://lumkeo.com/?code=…" vẫn tới trang chủ để xử lý đăng nhập Google.
+  if (urlPath === "/") { const q = req.url.indexOf("?"); return send(res, 302, "", { Location: "/homepage/" + (q >= 0 ? req.url.slice(q) : "") }); }
   if (urlPath === "/healthz") return send(res, 200, "ok");
 
   if (urlPath === "/api/lobby") {

@@ -6,7 +6,7 @@
 //   • vẽ khung chat (tên người gửi do máy chủ gắn theo ghế; nội dung chèn bằng text node, không dùng innerHTML).
 // Cùng khuôn với prototype/games/co-ca-ngua/online.js, bản độc lập cho game này.
 
-import { sessionId, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // mã phiên (chặn người bị "Mời ra") + câu báo
+import { sessionId, KICKED_TEXT, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=d6g"; // mã phiên (chặn người bị "Mời ra") + câu báo
 
 export const NAME_KEY = "wgp.co-ty-phu.name";
 const SEAT_KEY = "wgp.co-ty-phu.seat";

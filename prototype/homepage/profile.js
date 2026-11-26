@@ -4,7 +4,11 @@
 //   link Bảng xếp hạng. Esc / bấm ra ngoài / Tab ra khỏi popover ⇒ đóng, trả focus về nút.
 // Tên đổi ở tab khác (game online, bảng xếp hạng) ⇒ cập nhật ngay (onNameChange nghe cả sự kiện storage).
 // Không gọi API nào khi chỉ xem trang; hạng hôm nay chỉ hỏi máy chủ khi mở popover VÀ đã xong ít nhất 1 thử thách.
-import * as A from "../games/_shared/account.js?v=name2";
+// Google (D6): khi mở popover mới hỏi Supabase đã bật Google chưa (account.js googleEnabled, nhớ trong phiên). Chưa bật / lỗi ⇒ không
+//   hiện gì. Bật ⇒ "Lưu tiến độ bằng Google" (linkIdentity, giữ user id) | "Đã lưu bằng Google · ng•••@gmail.com" + "Đăng xuất".
+//   Quay về từ Google (?code= / ?error_code=) ⇒ handleOAuthReturn dọn URL rồi mở popover báo kết quả. Google đã gắn với tài khoản
+//   khác ⇒ mời "Đăng nhập bằng Google" (pxConfirm cảnh báo mất tiến độ khách trên máy này).
+import * as A from "../games/_shared/account.js?v=d6g";
 import * as D from "../games/_shared/daily.js?v=daily1";
 
 const ORDER = ["sudoku", "2048", "do-vui-nhanh"]; // thứ tự hiện (D.GAME_IDS để "2048" lên đầu vì khoá dạng số)
@@ -59,6 +63,7 @@ function paintPop() {
       <div><dt>Dài nhất</dt><dd>${s.max} ngày</dd></div>
     </dl>
     <p class="me__ranks" id="meRanks" hidden></p>
+    <div class="me__acct" id="meAcct" hidden></div>
     <div class="me__links">
       <a class="btn btn--gold me__board" href="${boardHref}"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h10v6H3zM1 2h2v1H1zM13 2h2v1h-2zM1 3h1v2H1zM14 3h1v2h-1zM2 5h1v1H2zM13 5h1v1h-1zM4 7h8v1H4zM6 8h4v2H6zM7 10h2v2H7zM5 12h6v1H5zM4 13h8v2H4z"/></svg>Bảng xếp hạng</a>
       ${s.done < 3 ? `<a class="btn me__chal" href="${boardHref}#thu-thach">★ Thử thách #${s.day}</a>` : ""}
@@ -79,6 +84,103 @@ function paintPop() {
   $("meDice").addEventListener("click", () => { A.rerollName(); $("meInput").value = A.getName(); flash("Tên mới ✓"); });
   $("meClose").addEventListener("click", () => close(true));
   loadRanks(s);
+  loadAcct();
+}
+
+// ---------- Google ----------
+const G_ICON = `<svg class="px-svg me__g" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 1h6v1h2v1h1v1h-3V3H5v1H4v1H3v6h1v1h1v1h6v-1h1v-1H8V8h7v4h-1v1h-1v1h-2v1H5v-1H3v-1H2v-1H1V5h1V3h1V2h2z"/></svg>`;
+let acctNotice = null; // { kind: "ok" | "err" | "already", text }
+
+function acctHtml(st) {
+  const note = acctNotice && acctNotice.kind !== "already" ? `<p class="me__acct-note ${acctNotice.kind === "ok" ? "is-ok" : ""}" role="${acctNotice.kind === "err" ? "alert" : "status"}">${esc(acctNotice.text)}</p>` : "";
+  if (st.linked) {
+    return `<p class="me__acct-on"><span class="me__acct-tick" aria-hidden="true">✓</span> Đã lưu bằng Google${st.email ? ` · <b>${esc(st.email)}</b>` : ""}</p>
+      ${note}
+      <p class="me__acct-hint">Ở máy khác: mở hồ sơ, bấm "Đăng nhập" rồi chọn tài khoản này.</p>
+      <button class="btn me__acct-btn me__out" id="meSignOut" type="button">Đăng xuất</button>`;
+  }
+  if (acctNotice && acctNotice.kind === "already") {
+    return `<p class="me__acct-msg">Tài khoản Google này đã lưu tiến độ trước đó (tên + điểm ở máy khác).</p>
+      <p class="me__acct-hint">Đăng nhập để dùng tên và điểm đó trên máy này.</p>
+      <button class="btn me__acct-btn me__google" id="meGoogleIn" type="button">${G_ICON}Đăng nhập bằng Google</button>`;
+  }
+  return `<p class="me__acct-hint">Đổi máy vẫn giữ tên và điểm. Tên Google không hiện cho ai.</p>
+    ${note}
+    <button class="btn me__acct-btn me__google" id="meGoogleLink" type="button">${G_ICON}Lưu tiến độ bằng Google</button>
+    <button class="me__acct-alt" id="meGoogleIn" type="button">Đã lưu ở máy khác? Đăng nhập</button>`;
+}
+
+async function loadAcct() {
+  let st;
+  try { st = await A.accountState(); } catch { return; }
+  const box = $("meAcct");
+  if (!box || pop.hidden) return;
+  if (!st.google) { box.hidden = true; box.innerHTML = ""; return; }
+  box.innerHTML = acctHtml(st);
+  box.hidden = false;
+  box.dataset.state = st.linked ? "linked" : acctNotice?.kind === "already" ? "already" : "guest";
+  $("meGoogleLink")?.addEventListener("click", onLink);
+  $("meGoogleIn")?.addEventListener("click", onSignIn);
+  $("meSignOut")?.addEventListener("click", onSignOut);
+}
+
+async function confirmBox(opts) {
+  const { pxConfirm } = await import("../games/_shared/px-confirm.js?v=pc1");
+  return pxConfirm(opts);
+}
+function busy(b, text) { b.disabled = true; b.dataset.label = b.innerHTML; b.textContent = text; }
+function unbusy(b) { if (!b.isConnected) return; b.disabled = false; if (b.dataset.label) b.innerHTML = b.dataset.label; }
+
+async function onLink(e) {
+  const b = e.currentTarget;
+  busy(b, "Đang mở Google…");
+  acctNotice = null;
+  const r = await A.startGoogleLink();
+  if (r.ok) return; // trình duyệt đang chuyển sang Google
+  unbusy(b);
+  acctNotice = r.code === "identity_already_exists" ? { kind: "already" } : { kind: "err", text: r.error };
+  loadAcct();
+}
+
+async function onSignIn(e) {
+  const b = e.currentTarget;
+  const ok = await confirmBox({
+    title: "Đăng nhập bằng Google?",
+    text: `Máy này sẽ dùng tên và điểm đã lưu trong tài khoản Google. Tiến độ khách hiện tại ("${A.getName()}" và điểm bảng xếp hạng của tên này) không gộp vào được và sẽ mất.`,
+    ok: "Đăng nhập", cancel: "Thôi", danger: true,
+  });
+  if (!ok) return;
+  busy(b, "Đang mở Google…");
+  const r = await A.startGoogleSignIn();
+  if (r.ok) return;
+  unbusy(b);
+  acctNotice = { kind: "err", text: r.error };
+  loadAcct();
+}
+
+async function onSignOut(e) {
+  const b = e.currentTarget;
+  const ok = await confirmBox({
+    title: "Đăng xuất Google?",
+    text: "Máy này sẽ chơi bằng một tên khách mới. Tên và điểm vẫn nằm trong tài khoản Google, đăng nhập lại là có.",
+    ok: "Đăng xuất", cancel: "Thôi", danger: true,
+  });
+  if (!ok) return;
+  busy(b, "Đang đăng xuất…");
+  await A.signOutAccount();
+  acctNotice = { kind: "ok", text: "Đã đăng xuất. Bạn đang chơi bằng tên khách mới." };
+  if (!pop.hidden) { paintPop(); $("meClose")?.focus({ preventScroll: true }); }
+}
+
+async function handleReturn() {
+  let r;
+  try { r = await A.handleOAuthReturn(); } catch { return; }
+  if (!r || r.status === "none") return;
+  if (r.status === "linked") acctNotice = { kind: "ok", text: "Xong! Tên và điểm của bạn đã được lưu." };
+  else if (r.status === "signed-in") acctNotice = { kind: "ok", text: `Đã đăng nhập. Chào mừng trở lại, ${A.getName()}!` };
+  else if (r.status === "already-linked") acctNotice = { kind: "already" };
+  else acctNotice = { kind: "err", text: r.error || A.oauthErrorText("") };
+  if (!pop.hidden) paintPop(); else open();
 }
 
 function flash(text) {
@@ -113,15 +215,18 @@ function open() {
 function close(focusBtn) {
   if (pop.hidden) return;
   pop.hidden = true;
+  if (acctNotice && acctNotice.kind !== "already") acctNotice = null; // thông báo một lần; "đã gắn tài khoản khác" giữ tới khi tải lại
   btn.setAttribute("aria-expanded", "false");
   if (focusBtn) btn.focus({ preventScroll: true });
 }
 
+// Hộp xác nhận (pxConfirm, lớp .pxc) nằm ngoài #me: bấm / focus / Esc trong hộp không được đóng popover.
+const inConfirm = (el) => !!(el && el.closest && el.closest(".pxc, .pxc-veil"));
 btn.addEventListener("click", () => (pop.hidden ? open() : close(true)));
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) { e.preventDefault(); close(true); } });
-document.addEventListener("pointerdown", (e) => { if (!pop.hidden && !e.target.closest("#me")) close(false); }, true);
-pop.addEventListener("focusout", (e) => { if (e.relatedTarget && !e.relatedTarget.closest("#me")) close(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden && !inConfirm(e.target)) { e.preventDefault(); close(true); } });
+document.addEventListener("pointerdown", (e) => { if (!pop.hidden && !e.target.closest("#me") && !inConfirm(e.target)) close(false); }, true);
+pop.addEventListener("focusout", (e) => { if (e.relatedTarget && !e.relatedTarget.closest("#me") && !inConfirm(e.relatedTarget)) close(false); });
 
 paint(A.getName());
 A.onNameChange(paint);
-window.__profile = { open, close, paint };
+window.__profile = { open, close, paint, ready: handleReturn() };

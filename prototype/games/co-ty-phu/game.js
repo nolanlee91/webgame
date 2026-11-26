@@ -1,10 +1,10 @@
 // Cờ Tỷ Phú — giao diện: bàn ảnh + lớp phủ DOM theo tọa độ manifest (hệ 1024×1024), phát lại sự kiện từ logic.js.
 import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, payJail, botStep, botWants, drainEvents,
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
-import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d3oh3";
+import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d6g";
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
 import { shareResult } from "../_shared/share.js?v=s2"; // "Khoe kết quả" ở bảng tổng kết
-import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
+import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=d6g"; // tên dùng chung + "Mời ra"
 
 const $ = (s) => document.querySelector(s);
 let SPEED = 1;

@@ -78,6 +78,23 @@
 .me__ranks { margin: 10px 0 0; font: 700 13px/1.4 var(--font-body); color: #c6f7ea; }
 .me__links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
 .me__links .btn { min-height: 44px; flex: 1 1 auto; text-decoration: none; }
+/* Google (D6): chỉ hiện khi Supabase bật Google (profile.js) */
+.me__acct { display: grid; gap: 6px; margin: 12px 0 0; padding: 10px 0 0; border-top: 2px dashed #2b3d55; }
+.me__acct[hidden] { display: none; }
+.me__acct p { margin: 0; }
+.me__acct-hint { font: 600 12px/1.4 var(--font-body); color: var(--px-dim, #98a9bd); }
+.me__acct-msg { font: 700 13px/1.4 var(--font-body); color: #ffe2a4; }
+.me__acct-on { font: 700 13px/1.4 var(--font-body); color: #c6f7ea; overflow-wrap: anywhere; }
+.me__acct-on b { color: #f5f2e8; }
+.me__acct-tick { color: #9be08a; }
+.me__acct-note { font: 700 13px/1.35 var(--font-body); color: #ffab9f; }
+.me__acct-note.is-ok { color: #9be08a; }
+.me__acct-btn { min-height: 44px; justify-content: center; gap: 8px; }
+.me__acct-btn:disabled { opacity: .7; cursor: progress; }
+.me__google .me__g { width: 16px; height: 16px; color: #75d1bf; flex: none; }
+.me__acct-alt { all: unset; box-sizing: border-box; cursor: pointer; justify-self: start; min-height: 44px; padding: 0 4px; font: 700 13px/44px var(--font-body); color: #a9c6f5; }
+.me__acct-alt:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.me__acct-alt:focus-visible { outline: 2px solid var(--px-gold); outline-offset: 0; }
 @media (prefers-reduced-motion: reduce) { .me__pop { animation: none; } }
 
 /* ---------- 721–1180 px: điều hướng xuống hàng thứ hai ---------- */

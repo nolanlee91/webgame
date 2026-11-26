@@ -4,10 +4,10 @@ import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, 
 import { bestMove } from "./ai.js";
 import { createBoard } from "./board.js?v=oaq2";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
-import { createNet, CODE_RE } from "./net.js?v=kk1h3";
+import { createNet, CODE_RE } from "./net.js?v=d6g";
 import { shareResult } from "../_shared/share.js?v=s2";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
-import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=ok2"; // tên dùng chung + "Mời ra"
+import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=d6g"; // tên dùng chung + "Mời ra"
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel thay confirm() của trình duyệt (BRD-11)
 
 const V = "oaq2"; // tag chống cache — đổi cùng lúc với index.html khi đổi API giữa các module

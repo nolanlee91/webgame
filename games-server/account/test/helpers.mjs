@@ -1,6 +1,6 @@
 // Dựng bằng chứng hợp lệ cho test (giống thứ trình duyệt gửi lên sau khi chơi thật).
 import http from "node:http";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { sudokuPuzzle, quizRound, MOVE_LETTER, D } from "../verify.mjs";
 import { isJwtKey } from "../stores.mjs";
 import * as T2048 from "../../../prototype/games/2048/logic.js";
@@ -48,16 +48,44 @@ export function apiServer(api) {
   });
 }
 
-/** Máy chủ Supabase giả: lưu bảng trong RAM, hiểu đủ cú pháp PostgREST mà supabaseStore dùng. */
-export async function fakeSupabase({ serviceKey, anonKey, users = {}, failRest = false }) {
-  const USERS = { ...users };
+/**
+ * Máy chủ Supabase giả: lưu bảng trong RAM, hiểu đủ cú pháp PostgREST mà supabaseStore dùng, và phần GoTrue mà supabase-js gọi:
+ * signInAnonymously, /user, /settings, đăng nhập Google kiểu PKCE (linkIdentity + signInWithOAuth + /token?grant_type=pkce), /logout.
+ * "Google" giả: /fake-google/consent chọn ngay tài khoản opts.googleEmail (sub = opts.googleSub) rồi quay về redirect_to.
+ * Đổi lúc chạy qua fake.opts: { google (bật nhà cung cấp), settingsStatus, googleSub, googleEmail, googleName }.
+ */
+export async function fakeSupabase({ serviceKey, anonKey, users = {}, failRest = false, google = false }) {
+  const USERS = { ...users };              // access token → user id
+  const PROFILE = {};                      // user id → { is_anonymous, email, identities }
+  const GOOGLE = {};                       // google sub → user id (identity đã gắn)
+  const PENDING = {}, CODES = {};
+  const opts = { google, settingsStatus: 200, googleSub: "g-sub-1", googleEmail: "nguyenvana@gmail.com", googleName: "Nguyễn Văn A" };
   const ANON = anonKey;
   const log = [];
   const tables = { daily_scores: [], profiles: [] };
   let clock = 0;
+  const userJson = (id) => {
+    const pr = PROFILE[id] || { is_anonymous: true, identities: [] };
+    return { id, aud: "authenticated", role: "authenticated", is_anonymous: pr.is_anonymous, email: pr.email || "",
+      app_metadata: pr.is_anonymous ? {} : { provider: "google", providers: ["google"] },
+      user_metadata: pr.is_anonymous ? {} : { full_name: opts.googleName, email: pr.email },
+      identities: pr.identities, created_at: new Date().toISOString() };
+  };
+  const session = (id) => {
+    const token = "eyJfake." + randomUUID().replace(/-/g, "") + ".sig";
+    USERS[token] = id;
+    const t = Math.floor(Date.now() / 1000);
+    return { access_token: token, token_type: "bearer", expires_in: 3600, expires_at: t + 3600, refresh_token: "r-" + randomUUID(), user: userJson(id) };
+  };
+  const linkGoogle = (id, sub = opts.googleSub, email = opts.googleEmail) => {
+    GOOGLE[sub] = id;
+    PROFILE[id] = { is_anonymous: false, email, identities: [{ id: sub, provider: "google", identity_data: { email, full_name: opts.googleName, sub } }] };
+  };
+  let base = "";
   const srv = await serve(async (req, res) => {
     const chunks = []; for await (const c of req) chunks.push(c);
-    const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : undefined;
+    const raw = Buffer.concat(chunks).toString();
+    let body; try { body = raw ? JSON.parse(raw) : undefined; } catch { body = raw; }
     const u = new URL(req.url, "http://x");
     log.push({ method: req.method, path: u.pathname, query: u.search, headers: { ...req.headers }, body });
     const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "GET, POST, PATCH, OPTIONS", "access-control-expose-headers": "content-range" };
@@ -71,10 +99,64 @@ export async function fakeSupabase({ serviceKey, anonKey, users = {}, failRest =
       return out(200, { access_token: token, token_type: "bearer", expires_in: 3600, expires_at: t + 3600, refresh_token: "r-" + id,
         user: { id, aud: "authenticated", role: "authenticated", is_anonymous: true, app_metadata: {}, user_metadata: {}, identities: [], created_at: new Date().toISOString() } });
     }
+    const bearer = /^Bearer (.+)$/.exec(req.headers.authorization || "")?.[1];
     if (u.pathname === "/auth/v1/user") {
       if (req.headers.apikey !== ANON) return out(401, { msg: "bad apikey" });
-      const tok = /^Bearer (.+)$/.exec(req.headers.authorization || "")?.[1];
-      return USERS[tok] ? out(200, { id: USERS[tok], is_anonymous: true }) : out(401, { msg: "invalid JWT" });
+      return USERS[bearer] ? out(200, userJson(USERS[bearer])) : out(401, { msg: "invalid JWT" });
+    }
+    if (u.pathname === "/auth/v1/settings") {
+      if (req.headers.apikey !== ANON) return out(401, { msg: "bad apikey" });
+      if (opts.settingsStatus !== 200) return out(opts.settingsStatus, { msg: "down" });
+      return out(200, { external: { anonymous_users: true, email: true, google: !!opts.google, facebook: false }, disable_signup: false, mailer_autoconfirm: false });
+    }
+    const startOAuth = (flow, uid) => {
+      const state = randomUUID();
+      PENDING[state] = { flow, uid, redirectTo: u.searchParams.get("redirect_to") || "", challenge: u.searchParams.get("code_challenge") || "", method: u.searchParams.get("code_challenge_method") || "" };
+      return base + "/fake-google/consent?state=" + state;
+    };
+    if (u.pathname === "/auth/v1/user/identities/authorize" && req.method === "GET") { // linkIdentity()
+      if (req.headers.apikey !== ANON) return out(401, { msg: "bad apikey" });
+      if (!USERS[bearer]) return out(401, { msg: "invalid JWT" });
+      if (!opts.google) return out(400, { code: "validation_failed", msg: "Unsupported provider" });
+      return out(200, { url: startOAuth("link", USERS[bearer]) });
+    }
+    if (u.pathname === "/auth/v1/authorize" && req.method === "GET") { // signInWithOAuth(): trình duyệt tự đi tới
+      res.writeHead(302, { location: startOAuth("signin", null) }); return res.end();
+    }
+    if (u.pathname === "/fake-google/consent") {
+      const st = u.searchParams.get("state"), pd = PENDING[st]; delete PENDING[st];
+      if (!pd) return out(400, { msg: "state" });
+      const back = new URL(pd.redirectTo);
+      const owner = GOOGLE[opts.googleSub];
+      let uid = pd.uid;
+      if (pd.flow === "link") {
+        if (owner && owner !== uid) {
+          back.searchParams.set("error", "server_error"); back.searchParams.set("error_code", "identity_already_exists");
+          back.searchParams.set("error_description", "Identity is already linked to another user");
+          res.writeHead(302, { location: back.href }); return res.end();
+        }
+        linkGoogle(uid);
+      } else {
+        uid = owner || randomUUID();
+        if (!owner) linkGoogle(uid);
+      }
+      const code = randomUUID();
+      CODES[code] = { uid, challenge: pd.challenge, method: pd.method };
+      back.searchParams.set("code", code);
+      res.writeHead(302, { location: back.href }); return res.end();
+    }
+    if (u.pathname === "/auth/v1/token" && u.searchParams.get("grant_type") === "pkce" && req.method === "POST") {
+      if (req.headers.apikey !== ANON) return out(401, { msg: "bad apikey" });
+      const key = body && body.auth_code, c = CODES[key]; delete CODES[key];
+      if (!c) return out(404, { code: "flow_state_not_found", msg: "invalid flow state" });
+      const v = String(body.code_verifier || "");
+      const ok = c.method === "s256" ? createHash("sha256").update(v).digest("base64url") === c.challenge : v === c.challenge;
+      if (!ok) return out(403, { code: "bad_code_verifier", msg: "code challenge does not match" });
+      return out(200, session(c.uid));
+    }
+    if (u.pathname === "/auth/v1/logout" && req.method === "POST") {
+      if (bearer) delete USERS[bearer];
+      res.writeHead(204, cors); return res.end();
     }
     const m = /^\/rest\/v1\/(\w+)$/.exec(u.pathname);
     if (!m) return out(404, {});
@@ -116,6 +198,7 @@ export async function fakeSupabase({ serviceKey, anonKey, users = {}, failRest =
     const h = prefer.includes("count=exact") ? { "content-range": rows.length ? `0-${rows.length - 1}/${total}` : `*/${total}` } : {};
     return out(200, rows, h);
   });
-  return { ...srv, log, tables, users: USERS };
+  base = srv.base;
+  return { ...srv, log, tables, users: USERS, opts, googleLinks: GOOGLE, linkGoogle };
 }
 
