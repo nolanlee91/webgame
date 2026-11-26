@@ -144,10 +144,12 @@ function setDice(d, rolling) {
 }
 const nameOf = (pid) => `<b style="color:${TOKENS[g.players[pid].token].color}">${esc(g.players[pid].name)}</b>`;
 const news = (html) => { $("#news").innerHTML = html; };
+// BOARD2-01: chữ "Vòng " nằm trong span riêng để thanh trên hẹp (≤ 420 px) ẩn đi, còn "1/25"
+const setRound = (r) => { $("#round").innerHTML = `<span class="rw">Vòng </span>${r | 0}/${g.rules.maxRounds | 0}`; };
 
 function renderAll() {
   shownCash = g.players.map((p) => p.cash);
-  $("#round").textContent = `Vòng ${g.round}/${g.rules.maxRounds}`;
+  setRound(g.round);
   renderPlayers(); renderTiles(); placeTokens(); renderActions();
 }
 
@@ -265,7 +267,7 @@ async function playOne(e) {
     case "sellHouse": syncCash(e); news(`${nameOf(e.pid)} bán bớt nhà ở ${TILES[e.tile].name} để trả nợ`); renderTiles(); await sleep(600); break;
     case "sellLand": syncCash(e); news(`${nameOf(e.pid)} cầm cố ${TILES[e.tile].name} cho ngân hàng`); renderTiles(); await sleep(600); break;
     case "bankrupt": syncCash(e); SFX.bad(); news(`💥 ${nameOf(e.pid)} <b>PHÁ SẢN!</b>`); renderTiles(); placeTokens(); renderPlayers(); await sleep(1400); break;
-    case "round": $("#round").textContent = `Vòng ${e.round}/${g.rules.maxRounds}`; if (e.round >= g.rules.maxRounds - 2) news(`⚠ Vòng <b>${e.round}</b>/${g.rules.maxRounds} — sắp chốt sổ!`); break;
+    case "round": setRound(e.round); if (e.round >= g.rules.maxRounds - 2) news(`⚠ Vòng <b>${e.round}</b>/${g.rules.maxRounds} — sắp chốt sổ!`); break;
     case "turn": renderPlayers(); if (g.players[e.pid] && !g.players[e.pid].bot) SFX.turn(); break; // tới lượt bạn (cả chơi với máy lẫn online)
   }
 }
@@ -382,7 +384,7 @@ function clearBoard() {
   tokEls.forEach((el) => el.remove()); tokEls.length = 0;
   for (let k = 0; k < 4; k++) $("#pc" + k).hidden = true;
   $("#actions").innerHTML = ""; $("#who").textContent = "Chuẩn bị"; news("Gieo xúc xắc để bắt đầu lụm kèo!");
-  $("#endOv").hidden = true; $("#cardOv").hidden = true; $("#round").textContent = `Vòng 1/${RULES.maxRounds}`;
+  $("#endOv").hidden = true; $("#cardOv").hidden = true; $("#round").innerHTML = `<span class="rw">Vòng </span>1/${RULES.maxRounds | 0}`;
   tileEls.forEach((el, i) => { const t = TILES[i]; if (t.type !== "property") return; el.classList.remove("owned"); el.querySelector(".bld").innerHTML = ""; el.querySelector(".pr").textContent = t.price + "K"; });
 }
 

@@ -292,16 +292,33 @@
     @media (orientation: landscape) and (max-height: 500px) {
       .board-wrap { --size: min(calc(100svh - 62px - env(safe-area-inset-bottom)), calc(100vw - 2 * 140px - 36px)); }
     }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+    /* BOARD2-06: link "← Trang chủ" vùng chạm ≥ 44×44 (trước 92×23, trong phòng chỉ còn "←" 13×23); margin âm để thanh không cao thêm */
+    /* Thanh trên luôn nằm trên lớp phủ (trước chỉ khi online) ⇒ link Trang chủ bấm được cả ở màn vào phòng / chơi với máy */
+    .bar { position: relative; z-index: 21; } .ov { padding-top: 64px; }
+    .bar a.home { display: inline-flex; align-items: center; justify-content: center; gap: .3em; min-width: 44px; min-height: 44px; margin-block: -8px; flex: none; }
+    @media (orientation: landscape) and (max-height: 500px) { .bar a.home { margin-block: -6px; } }
+    /* BOARD2-01: online ở 320–420 px thanh trên không được rộng hơn màn (trước nở ra 379 px, trình duyệt thu nhỏ cả trang, nút loa bị cắt):
+       Chat chỉ còn icon 44×44, "Vòng" ẩn (còn "1/25"), tên game co lại, mọi phần tử min-width: 0. */
+    .chatbtn .ci { display: none; }
+    .bar > * { min-width: 0; }
+    @media (max-width: 420px) {
+      .bar { gap: 4px; padding-left: 6px; padding-right: 6px; }
+      .bar h1 { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; font-size: 14px; letter-spacing: .02em; }
+      .round { padding: 4px 6px; } .round .rw { display: none; }
+      .bar .chatbtn { width: 44px; padding: 0; } .chatbtn .ct { display: none; } .chatbtn .ci { display: inline; font-size: 18px; }
+      .bar .iconbtn { flex: none; }
+    }
+    @media (max-width: 340px) { .bar h1 { font-size: 12px; letter-spacing: 0; } }
+: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
   </style>
 </head>
 <body>
   <header class="bar">
-    <a href="../../homepage/" aria-label="Về trang chủ">←<span class="hm"> Trang chủ</span></a>
+    <a class="home" href="../../homepage/" aria-label="Về trang chủ">←<span class="hm"> Trang chủ</span></a>
     <h1>Cờ Tỷ Phú</h1>
     <span class="tagline" id="tagline">Lụm Kèo Đại Phú · 2–4 người</span>
-    <span class="round" id="round">Vòng 1/25</span>
-    <button class="iconbtn chatbtn" id="chatBtn" type="button" aria-label="Trò chuyện" hidden>Chat<span class="n" hidden></span></button>
+    <span class="round" id="round"><span class="rw">Vòng </span>1/25</span>
+    <button class="iconbtn chatbtn" id="chatBtn" type="button" aria-label="Trò chuyện" hidden><span class="ci" aria-hidden="true">💬</span><span class="ct">Chat</span><span class="n" hidden></span></button>
     <button class="iconbtn" id="quitBtn" type="button" aria-label="Rời phòng" title="Rời phòng" hidden>Rời</button>
     <button class="iconbtn" id="mute" aria-label="Tắt/bật âm thanh" title="Âm thanh">🔊</button>
   </header>
@@ -393,7 +410,7 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=d6g"></script>
+  <script type="module" src="game.js?v=d7a"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>
