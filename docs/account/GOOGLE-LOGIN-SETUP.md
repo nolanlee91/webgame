@@ -10,6 +10,9 @@ Cần chuẩn bị:
 - `<project-ref>`: mã project Supabase, là phần đầu của Project URL `https://<project-ref>.supabase.co`
   (Supabase → Project Settings → General → Project ID, hoặc xem biến `SUPABASE_URL` trên Railway).
 - Tài khoản Google dùng để quản lý (nên là tài khoản của dự án, không phải tài khoản cá nhân).
+- **Điều kiện trước khi bật (HOME2-02):** có một email liên hệ công khai của dự án. Điền vào `contactEmail` trong
+  `prototype/homepage/community.js`, đổi `?v=` của `community.js` ở mọi trang (`index.html`, `quyen-rieng-tu.html`), push.
+  Trang Quyền riêng tư tự hiện email đó ở mục 5 (thay cho "sắp cập nhật"). Google cũng đòi chính sách có kênh liên hệ thật.
 
 ---
 
