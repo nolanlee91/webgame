@@ -1,30 +1,30 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c8";
-import { placeholderFallback } from "./render/placeholder.js?v=c8";
-import { createScene } from "./render/scene.js?v=c8";
-import { configureScene } from "./core/placements.js?v=c8";
-import { createGrillbar } from "./ui/grillbar.js?v=c8";
-import { createColumn } from "./ui/column.js?v=c8";
-import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c8";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c9";
+import { placeholderFallback } from "./render/placeholder.js?v=c9";
+import { createScene } from "./render/scene.js?v=c9";
+import { configureScene } from "./core/placements.js?v=c9";
+import { createGrillbar } from "./ui/grillbar.js?v=c9";
+import { createColumn } from "./ui/column.js?v=c9";
+import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c9";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { createDrama } from "./ui/drama.js?v=c8"; // B: drama
-import { createBigGrill } from "./ui/bigrill.js?v=c8"; // V: bếp lớn HD
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c8";
-import { apply } from "./core/apply.js?v=c8";
-import { hint } from "./core/tutorial.js?v=c8";
-import { layerStrip } from "./core/plate.js?v=c8";
-import { tableJob, groupById } from "./core/tables.js?v=c8";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c8";
-import { itemName } from "./core/rescue.js?v=c8";
-import { MISTAKES } from "./core/score.js?v=c8";
-import { shopSave, browserStorage } from "./save.js?v=c8";
-import { DISHES, LEVELS } from "./data/economy.js?v=c8";
-import { setJournalBg } from "./ui/journal.js?v=c8"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c8"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c8"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c8"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c8";
+import { createDrama } from "./ui/drama.js?v=c9"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c9"; // V: bếp lớn HD
+import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c9";
+import { apply } from "./core/apply.js?v=c9";
+import { hint } from "./core/tutorial.js?v=c9";
+import { layerStrip } from "./core/plate.js?v=c9";
+import { tableJob, groupById } from "./core/tables.js?v=c9";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c9";
+import { itemName } from "./core/rescue.js?v=c9";
+import { MISTAKES } from "./core/score.js?v=c9";
+import { shopSave, browserStorage } from "./save.js?v=c9";
+import { DISHES, LEVELS } from "./data/economy.js?v=c9";
+import { setJournalBg } from "./ui/journal.js?v=c9"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c9"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c9"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c9"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c9";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);

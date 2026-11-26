@@ -1,19 +1,19 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b10";
-import { loafLayers } from "../render/loafview.js?v=b10";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b10";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b10";
-import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b10";
-import { sumBills, makeChange } from "../core/money.js?v=b10";
-import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b10";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b10";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b10";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b11";
+import { loafLayers } from "../render/loafview.js?v=b11";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b11";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b11";
+import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b11";
+import { sumBills, makeChange } from "../core/money.js?v=b11";
+import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b11";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b11";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b11";
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
-import { QUIRKS } from "../data/quirks.js?v=b10";
-import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b10";
+import { QUIRKS } from "../data/quirks.js?v=b11";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b11";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -346,7 +346,8 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const k = JSON.stringify([b.cid, b.item, b.step, l && [l.sliced, l.wrap, l.toastT0 !== null, l.spreads, l.fills, l.veg, l.ot, l.sauces, l.toasted, l.burnt, l.id],
       sh.paying, sh.paying !== null && state.float, picked, sh.oven.map((x) => !!x), sh.case.length, state.stock, hint?.key, showBook, loafScale, state.day,
       b.cid !== null && customer(state, b.cid)?.filled.map(Boolean), sh.sel, sh.boards.map((x) => [x.cid, !!x.loaf]), sh.que, l?.n, helperOn(state), Object.keys(state.owned || {}).length,
-      sh.cook && [sh.cook.eggs, sh.cook.pan.map((x) => x !== null), sh.cook.meat, !!sh.cook.grill]]);
+      sh.cook && [sh.cook.eggs, sh.cook.pan.map((x) => x !== null), sh.cook.meat, !!sh.cook.grill],
+      b.cid === null && sh.customers.some((x) => x.phase === "wait")]); // TLC2-06: thớt trống ⇒ chữ "Chưa có khách chờ" đổi ngay khi có khách tới
     if (k === key) return;
     if (b.cid === null) showBook = false;
     key = k;
@@ -412,7 +413,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
    *  không bị thanh Hoàn tác / Đổ / Giao (dính đáy) che. Ưu tiên giữ phiếu (hoặc cảnh, khi chờ ghim phiếu) ở mép trên.
    *  Chỉ gọi khi bước đổi (game.js) ⇒ không giành cuộn với người chơi.
    *  keys: các bước cần thấy cùng lúc (bước đang làm + bước kế phiếu cần); không vừa khung thì ưu tiên bước cuối. */
-  function reveal(keys) {
+  function reveal(keys, reserve = 0) { // reserve: px ở mép trên khung bị dải HUD dính che (điện thoại, game.js)
     const els = keys.map((k) => REVEAL_SEL[k] && [...document.querySelectorAll(REVEAL_SEL[k])].find((e) => !e.disabled && !e.closest("[hidden]") && e.getBoundingClientRect().height > 0)).filter(Boolean);
     if (!els.length) return false;
     const last = els[els.length - 1], sc = scrollerOf(last);
@@ -420,7 +421,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const acts = sc.querySelector(".acts");
     if (acts?.contains(last)) { if (!onTop(last)) last.scrollIntoView({ block: "nearest" }); return true; }
     const box = sc.getBoundingClientRect();
-    const top = Math.max(box.top, 0) + 6, bottom = Math.min(box.bottom, innerHeight) - 6 - (acts ? acts.offsetHeight : 0);
+    const top = Math.max(box.top, 0) + 6 + reserve, bottom = Math.min(box.bottom, innerHeight) - 6 - (acts ? acts.offsetHeight : 0);
     const span = (list) => { const rs = list.map((e) => e.getBoundingClientRect()); return [Math.min(...rs.map((r) => r.top)), Math.max(...rs.map((r) => r.bottom))]; };
     const [t, bt] = span(els);
     const lo = bt - bottom; // cuộn xuống d với lo ≤ d ≤ hi ⇒ cả cụm nằm trọn trong khung

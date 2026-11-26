@@ -3,22 +3,22 @@
 // tiền ≥ 0 (số nguyên), kho số nguyên ≥ 0 và không vượt sức chứa vì hàng mới, danh tiếng 0–100, cấp khớp XP,
 // trong ca: dĩa được bảo toàn (sạch + dơ + đang bày + đang bưng + trên bàn = số dĩa quán có), than / khói 0–100, nồi cơm không âm.
 // Bấm lặp / tải lại không cộng hai lần: giao chỉ khi ô bày có dĩa, tính tiền chỉ khi phiếu tính tiền đang mở, mỗi lớp trừ kho đúng một lần.
-import * as sh from "./shift.js?v=c8";
-import * as pl from "./plate.js?v=c8";
-import * as tb from "./tables.js?v=c8";
-import * as st from "./stock.js?v=c8";
-import { tapLine, autoTap } from "./bill.js?v=c8";
-import { resolveStockout, openStockout } from "./rescue.js?v=c8";
-import { cookNow, makeJar, freshRice } from "./rice.js?v=c8";
-import { enqueue, ownerFree } from "./walker.js?v=c8";
-import { levelForXp } from "./progress.js?v=c8";
-import { STOCK_IDS, SHIFTS, GRILL } from "../data/economy.js?v=c8";
-import { setPersona, reply } from "./reviews.js?v=c8"; // C: tính cách + trả lời review
-import { choose as dramaChoose, openEvent } from "./drama.js?v=c8"; // B: drama
-import { aHandlers } from "./progression-actions.js?v=c8"; // A: thao tác tiến trình + kinh tế M3
-import { afterApply as aAfter } from "./progression.js?v=c8"; // A: nhiệm vụ, ghi sổ, câu theo cơ chế sau mỗi action
-import { sHandlers, HAND as S_HAND, afterApply as sAfter } from "./extras.js?v=c8"; // S: M5 (menu, hội chợ, thử thách, bày ×N, tủ kính, vỉ chay, bếp 2, nợ, trang trí Drama)
-import { batchLayer as aBatchLayer } from "./progression.js?v=c8"; // S: bày ×N dùng chung với mâm cơm
+import * as sh from "./shift.js?v=c9";
+import * as pl from "./plate.js?v=c9";
+import * as tb from "./tables.js?v=c9";
+import * as st from "./stock.js?v=c9";
+import { tapLine, autoTap } from "./bill.js?v=c9";
+import { resolveStockout, openStockout } from "./rescue.js?v=c9";
+import { cookNow, makeJar, freshRice } from "./rice.js?v=c9";
+import { enqueue, ownerFree } from "./walker.js?v=c9";
+import { levelForXp } from "./progress.js?v=c9";
+import { STOCK_IDS, SHIFTS, GRILL } from "../data/economy.js?v=c9";
+import { setPersona, reply } from "./reviews.js?v=c9"; // C: tính cách + trả lời review
+import { choose as dramaChoose, openEvent } from "./drama.js?v=c9"; // B: drama
+import { aHandlers } from "./progression-actions.js?v=c9"; // A: thao tác tiến trình + kinh tế M3
+import { afterApply as aAfter } from "./progression.js?v=c9"; // A: nhiệm vụ, ghi sổ, câu theo cơ chế sau mỗi action
+import { sHandlers, HAND as S_HAND, afterApply as sAfter } from "./extras.js?v=c9"; // S: M5 (menu, hội chợ, thử thách, bày ×N, tủ kính, vỉ chay, bếp 2, nợ, trang trí Drama)
+import { batchLayer as aBatchLayer } from "./progression.js?v=c9"; // S: bày ×N dùng chung với mâm cơm
 
 const inShift = (f) => (s, a, ev) => (s.shift ? f(s, a, ev) : { err: "no-shift" });
 const noShift = (f) => (s, a, ev) => (s.shift ? { err: "in-shift" } : f(s, a, ev));

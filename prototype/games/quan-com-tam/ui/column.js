@@ -1,19 +1,19 @@
 // Cột Dĩa (SCREENS.md): thanh phiếu (màu viền = màu bàn) + ô bày (phiếu ghim, dĩa xếp lớp từ plate-layers, dải lớp, Hoàn tác / Giao)
 // + phiếu tính tiền khi cô chủ đang đứng tính tiền ở bàn + danh sách việc theo bàn + bảng Bếp (mobile: dock Bàn / Bếp).
 // Dĩa vẽ bằng cùng đường atlas với cảnh: plate-layers (lưới 2×) hoặc plate-layers-hd khi Codex giao đợt 2 (cùng tên frame), hệ số qua crisp.
-import { el, button, fmtK, tableColor, tableName } from "./common.js?v=c8";
-import { paint, dpr } from "../render/atlas.js?v=c8";
-import { DISHES, EXTRAS } from "../data/economy.js?v=c8";
-import { QUIRKS } from "../data/customers.js?v=c8";
-import { layerStrip, LAYER_NAME, targetOf, plateFrames, slotOf, ticketOf, nextStep, bestPiece } from "../core/plate.js?v=c8";
-import { tableJob, groupById, patienceLeft } from "../core/tables.js?v=c8";
-import { billTotal, canAutoBill } from "../core/bill.js?v=c8";
-import { ownerFree } from "../core/walker.js?v=c8";
-import { isCooked } from "../core/grill.js?v=c8";
-import { JOB_LABEL } from "../render/scene.js?v=c8";
-import { missionsBox } from "./progress-ui.js?v=c8"; // A: nhiệm vụ trong ca
-import { eggState } from "../core/rice.js?v=c8"; // A: chảo trứng trong bảng Bếp
-import * as M5 from "./m5-ui.js?v=c8"; // S: nút bày ×N cho bàn cùng món
+import { el, button, fmtK, tableColor, tableName } from "./common.js?v=c9";
+import { paint, dpr } from "../render/atlas.js?v=c9";
+import { DISHES, EXTRAS } from "../data/economy.js?v=c9";
+import { QUIRKS } from "../data/customers.js?v=c9";
+import { layerStrip, LAYER_NAME, targetOf, plateFrames, slotOf, ticketOf, nextStep, bestPiece } from "../core/plate.js?v=c9";
+import { tableJob, groupById, patienceLeft } from "../core/tables.js?v=c9";
+import { billTotal, canAutoBill } from "../core/bill.js?v=c9";
+import { ownerFree } from "../core/walker.js?v=c9";
+import { isCooked } from "../core/grill.js?v=c9";
+import { JOB_LABEL } from "../render/scene.js?v=c9";
+import { missionsBox } from "./progress-ui.js?v=c9"; // A: nhiệm vụ trong ca
+import { eggState } from "../core/rice.js?v=c9"; // A: chảo trứng trong bảng Bếp
+import * as M5 from "./m5-ui.js?v=c9"; // S: nút bày ×N cho bàn cùng món
 
 const SAUCE = { chan: "chan", chen: "chén riêng", bich: "bịch" };
 
@@ -264,7 +264,7 @@ export function createColumn(railEl, workEl, atlas, act, hooks) {
     kb.rice.disabled = !free || !!sh.rice.cooking;
     kb.mo.textContent = `Làm mỡ hành (hũ ${s.moHanh.n})`;
     kb.wash.textContent = `Rửa chén (${sh.dirty} dơ)`; kb.wash.disabled = sh.dirty <= 0;
-    kb.coal.textContent = `Thêm than (${s.stock.than || 0} rổ)`; kb.coal.disabled = !free;
+    kb.coal.textContent = `${sh.grill.coal < 10 ? "Tắt lửa! " : ""}Thêm than (${s.stock.than || 0} rổ)`; kb.coal.disabled = !free;
     kb.mar.hidden = (s.stock.suon || 0) <= 0;
     kb.egg.hidden = !sh.pan;
     if (sh.pan) { const es = eggState(sh.pan, sh.t); kb.egg.textContent = es ? `Chảo: trứng ${EGG_TXT[es]} (${Math.floor((sh.t - sh.pan.egg.t0) / 1000)}s)` : `Chiên trứng (${s.stock.trung || 0} quả)`; kb.egg.disabled = !free || (!!es && ((sh.pan.cap || 1) < 2 || !!sh.pan.egg2)); } // A: chảo đôi chiên thêm 1

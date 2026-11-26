@@ -1,16 +1,17 @@
 // Thanh Bếp (SCREENS.md): luôn thấy trong ca ở mọi màn trừ hội thoại. 6 chip vỉ (vòng hai nửa: trái = mặt dưới, phải = mặt trên),
 // nút Than + thanh than, nút Quạt (giữ), thanh Khói, viên Cơm (+ Nấu), viên Dĩa sạch (+ Rửa), Mỡ hành. Lật được trong lúc ô bày đang mở.
 // Dựng DOM một lần, mỗi khung chỉ đổi chữ / lớp.
-import { el, button } from "./common.js?v=c8";
-import { icon } from "../render/atlas.js?v=c8";
-import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c8";
-import { ownerFree } from "../core/walker.js?v=c8";
-import { GRILL } from "../data/economy.js?v=c8";
-import { eggState } from "../core/rice.js?v=c8"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
+import { el, button } from "./common.js?v=c9";
+import { icon } from "../render/atlas.js?v=c9";
+import { zoneOf, sideState, itemResult, isCooked, itemFrame } from "../core/grill.js?v=c9";
+import { ownerFree } from "../core/walker.js?v=c9";
+import { GRILL } from "../data/economy.js?v=c9";
+import { eggState } from "../core/rice.js?v=c9"; // A: chảo trứng + xửng hấp chả trên Thanh Bếp
 
 const SIDE_COL = { raw: "var(--m-raw)", half: "var(--m-half)", done: "var(--m-done)", charred: "var(--m-char)", burnt: "var(--m-burnt)" };
 const SIDE_TXT = { raw: "sống", half: "tái", done: "chín", charred: "cháy cạnh", burnt: "cháy" };
-const ZONE = { hot: ["N", "Nóng"], mid: ["V", "Vừa"], warm: ["Ấ", "Giữ ấm"], veg: ["C", "Vỉ chay"] }; // S: vỉ chay riêng
+// TLC2-08: nhãn chip dùng chữ ngắn đọc được ("Nóng · trống") thay chữ cái "N · bỏ sườn" khó hiểu với trẻ (điện thoại ẩn nhãn vùng)
+const ZONE = { hot: ["Nóng", "Nóng"], mid: ["Vừa", "Vừa"], warm: ["Ấm", "Giữ ấm"], veg: ["Chay", "Vỉ chay"] }; // S: vỉ chay riêng
 const MEAT_NAME = { suon: "Sườn", "suon-non": "Sườn non", ga: "Gà", "lap-xuong": "Lạp xưởng", "dau-hu": "Đậu hũ" };
 
 export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = () => false }) {
@@ -75,7 +76,7 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
       c.b.hidden = i + base >= g.slots.length; // S: trang vỉ chay chỉ có 2 chỗ
       let sig, cls = "gchip " + z, label;
       if (!it) {
-        sig = "empty"; label = `${ZONE[z][0]} · bỏ sườn`;
+        sig = "empty"; label = `${ZONE[z][0]} · trống`;
         c.ring.style.setProperty("--c1", "#4a4060"); c.ring.style.setProperty("--c2", "#4a4060");
       } else {
         const a = sideState(it.sides[0]), b = sideState(it.sides[1]), r = itemResult(it);
@@ -100,8 +101,9 @@ export function createGrillbar(root, atlas, act, { onFan, onBig = null, isBig = 
     const lvl = Math.round(coalGrill === 2 ? g.coal2 : g.coal); // S: bếp 2 than riêng
     coalBar.style.width = lvl + "%";
     coalBar.style.setProperty("--c", lvl >= 60 ? "#ffb14a" : lvl >= 30 ? "#f2622a" : lvl >= 10 ? "#c2361e" : "#5a5450");
-    coalTxt.textContent = `+Than (${s.stock.than || 0})`;
+    coalTxt.textContent = lvl < 10 ? `Tắt lửa! +Than (${s.stock.than || 0})` : `+Than (${s.stock.than || 0})`; // TLC22-04: bếp tắt thì nút nói rõ, không chỉ đổi màu
     coal.classList.toggle("warn", lvl < 25);
+    coal.classList.toggle("out", lvl < 10);
     coal.classList.toggle("hint", hint?.key === "coal");
     coal.disabled = !free;
     fan.classList.toggle("on", g.fan);

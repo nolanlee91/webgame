@@ -65,10 +65,15 @@ export function customerPos(c, t) {
 }
 
 export function createScene(root, atlas, { onCustomer }) {
-  root.textContent = "";
+  // QUICK2-04: ảnh cảnh đã hiện sẵn từ HTML (<img class="scene-ph">, phần tử LCP) ⇒ giữ nguyên thẻ đó tại chỗ làm nền, đi cùng camera
+  // với sân khấu (layout() đặt cùng transform). Không dời/xoá thẻ: trình duyệt khỏi vẽ lại, LCP không bị tính lại lúc JS xong.
+  const ph = root.querySelector("img.scene-ph");
+  for (const n of [...root.childNodes]) if (n !== ph) n.remove();
   const stage = el("div", "stage", root);
   stage.style.width = W + "px"; stage.style.height = H + "px";
-  const bg = el("img", "layer", stage); bg.src = "assets/shop-scene.webp"; bg.alt = ""; bg.width = W; bg.height = H; bg.draggable = false;
+  const bg = ph || el("img", "layer", stage);
+  if (ph) ph.className = "bglayer"; else bg.src = "assets/shop-scene.webp";
+  bg.alt = ""; bg.width = W; bg.height = H; bg.draggable = false;
 
   const put = (alias, name, x, y, scale, cls = "spr") => { const e = el("div", cls, stage); const f = atlas.frame(alias, name); paint(e, f, scale); placeAt(e, f, x, y, scale); return e; };
   put("equip", "tea-brewer", 356, 292, 0.5);
@@ -203,6 +208,7 @@ export function createScene(root, atlas, { onCustomer }) {
     stage.classList.toggle("smooth", k * dpr < 0.5);
     setSnap(k * dpr); camGen++;
     stage.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
+    if (ph) { ph.classList.toggle("smooth", k * dpr < 0.5); ph.style.transform = stage.style.transform; }
   }
   const toScreen = (x, y) => [ox + x * k, oy + y * k];
 

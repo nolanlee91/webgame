@@ -1,24 +1,24 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b10";
-import { placeholderFallback } from "./render/placeholder.js?v=b10";
-import { createScene } from "./render/scene.js?v=b10";
-import { createBench } from "./ui/bench.js?v=b10";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b10";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b11";
+import { placeholderFallback } from "./render/placeholder.js?v=b11";
+import { createScene } from "./render/scene.js?v=b11";
+import { createBench } from "./ui/bench.js?v=b11";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b11";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { apply } from "./core/apply.js?v=b10";
-import { customer } from "./core/shift.js?v=b10";
-import { hint } from "./core/tutorial.js?v=b10";
-import { itemName } from "./core/rescue.js?v=b10";
-import { STEP_NAME, STEPS } from "./core/board.js?v=b10";
-import { STOCK, NAMES } from "./data/economy.js?v=b10";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b10";
-import { shopSave, browserStorage } from "./save.js?v=b10";
-import { setJournalBg } from "./ui/journal.js?v=b10";
-import { currentEvent, openEvent } from "./core/drama.js?v=b10";
-import { DECOR } from "./data/equipment.js?v=b10";
-import { PLACE_REASON } from "./core/progress.js?v=b10";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b10";
+import { apply } from "./core/apply.js?v=b11";
+import { customer } from "./core/shift.js?v=b11";
+import { hint } from "./core/tutorial.js?v=b11";
+import { itemName } from "./core/rescue.js?v=b11";
+import { STEP_NAME, STEPS } from "./core/board.js?v=b11";
+import { STOCK, NAMES } from "./data/economy.js?v=b11";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b11";
+import { shopSave, browserStorage } from "./save.js?v=b11";
+import { setJournalBg } from "./ui/journal.js?v=b11";
+import { currentEvent, openEvent } from "./core/drama.js?v=b11";
+import { DECOR } from "./data/equipment.js?v=b11";
+import { PLACE_REASON } from "./core/progress.js?v=b11";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b11";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -228,7 +228,7 @@ async function boot() {
   function showBanner(text) { const b = $("#banner"); b.textContent = text; b.hidden = false; clearTimeout(bannerT); bannerT = setTimeout(() => { b.hidden = true; }, 2600); }
 
   // ---------- vòng lặp ----------
-  let last = performance.now();
+  let last = performance.now(), dockKey = "";
   const shopLabel = $("#shopLabel"), hintbar = $("#hintbar"), away = $("#away");
   const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current && !shareOpen();
   function frame(now) {
@@ -254,6 +254,7 @@ async function boot() {
     bench.render(state, hn);
     bench.frame(state);
     revealStep(sh, hn);
+    { const dk = `${!!sh}|${overlays.current || ""}`; if (dk !== dockKey) { dockKey = dk; checkDock(); } } // hết ca / mở bảng phủ ⇒ trả HUD về cảnh
     hintbar.hidden = !hn;
     if (hn && hintbar.textContent !== hn.text) hintbar.textContent = hn.text;
     away.hidden = !sh?.away;
@@ -290,7 +291,7 @@ async function boot() {
     const k = JSON.stringify([keys, sh.sel, b?.cid, b?.item, sh.paying]);
     if (k === revealKey) return;
     revealKey = k;
-    if (keys.length) bench.reveal(keys);
+    if (keys.length) { bench.reveal(keys, keys[0] === "pin" ? 0 : dockReserve()); checkDock(); }
   }
 
   // ---------- bố cục ----------
@@ -307,6 +308,37 @@ async function boot() {
   addEventListener("resize", layout);
   new ResizeObserver(layout).observe($("#scene"));
   layout();
+
+  // TLC22-02: điện thoại / máy tính bảng dọc, cuộn xuống quầy ráp thì cảnh trôi khỏi màn ⇒ HUD, viên Lò/Gas, dòng gợi ý và thông báo
+  // dời lên một dải gọn dính dưới thanh đầu (chính các phần tử đó được dời chỗ, không chép). Cuộn lên thấy cảnh ⇒ trả về cảnh.
+  const dockbar = document.createElement("div"); dockbar.id = "dockbar"; dockbar.className = "dockbar"; dockbar.hidden = true;
+  const dockRow = document.createElement("div"); dockRow.className = "dock-row";
+  const dockMsg = document.createElement("div"); dockMsg.className = "dock-msg";
+  dockbar.append(dockRow, dockMsg); document.body.appendChild(dockbar);
+  let docked = false;
+  function setDock(on) {
+    if (on === docked) return;
+    docked = on;
+    const world = $("#world"), hudEl = $("#hud"), pills = $("#pills"), hb = $("#hintbar"), ts = $("#toasts");
+    if (on) { dockRow.append(hudEl, pills); dockMsg.append(hb, ts); }
+    else { world.insertBefore(pills, $("#banner")); world.insertBefore(hudEl, pills); world.append(hb, ts); }
+    if (on) dockbar.style.top = Math.round(document.querySelector(".top").getBoundingClientRect().bottom) + "px";
+    dockbar.hidden = !on;
+    document.body.classList.toggle("docked", on);
+  }
+  function checkDock() {
+    if (!mobile.matches || !state.shift || overlays.current) { setDock(false); return; }
+    const top = $("#app").getBoundingClientRect().top, w = $("#world").getBoundingClientRect();
+    setDock(w.top < top - 24); // HUD (mép trên cảnh) đã trôi khỏi khung
+  }
+  $("#app").addEventListener("scroll", checkDock, { passive: true });
+  mobile.addEventListener?.("change", checkDock);
+  /** Phần trên của khung cuộn bị dải dính che (để quầy ráp tự cuộn không đặt nút / phiếu dưới dải). */
+  const dockReserve = () => {
+    if (!mobile.matches) return 0;
+    if (docked) return dockbar.getBoundingClientRect().bottom - $("#app").getBoundingClientRect().top;
+    return Math.max($("#hud").offsetHeight, 44) + ($("#hintbar").hidden ? 0 : $("#hintbar").offsetHeight + 4) + 10;
+  };
 
   // ---------- điều khiển ----------
   const muteBtn = $("#muteBtn");

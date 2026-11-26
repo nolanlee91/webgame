@@ -7,8 +7,19 @@ import { launch, sleep } from "./cdp.mjs";
 const VIEWS = [[390, 844, true], [360, 800, true], [412, 915, true], [320, 568, true], [768, 1024, true], [844, 390, true], [1366, 768, false]];
 const LATE = `(()=>{const s=__game.state;s.xp=999999;s.level=20;s.day=30;s.money=5000;Object.assign(s.owned||(s.owned={}),{"powered-sealer":true,"crate-rack":true,"dual-pot-cooker":true,"upright-fridge":true,"portion-dispenser":true});for(const k of Object.keys(s.stock))s.stock[k]=60;})()`;
 
+/** Hồ sơ mới: xoá bản lưu rồi mở trang. Trang cũ có thể ghi lại bản lưu lúc pagehide sau khi đã xoá (TLC22-06) ⇒ chưa thấy màn chào
+ *  thì xoá + mở lại (tối đa 3 lần). */
+async function freshProfile(b, PORT, url) {
+  for (let k = 0; k < 3; k++) {
+    await b.send("Page.navigate", { url: "about:blank" }); await sleep(600);
+    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
+    await b.nav(url);
+    for (let i = 0; i < 20; i++) { if (await b.ev("!!document.querySelector('#introGo')")) return; await sleep(150); }
+  }
+}
+
 export async function runLayout({ b, check, PORT, OUT }) {
-  const BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=777&calm=1`;
+  let BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=777&calm=1`;
   const S = (e) => b.ev(`(()=>{const s=__game.state;return ${e}})()`);
   const hit = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]')||e.disabled)return null;const r=e.getBoundingClientRect();if(!r.width)return null;
     const x=r.x+r.width/2,y=r.y+r.height/2,t=document.elementFromPoint(x,y),v=visualViewport;return {x:x-v.offsetLeft,y:y-v.offsetTop,ok:!!t&&(t===e||e.contains(t))}})()`);
@@ -22,12 +33,12 @@ export async function runLayout({ b, check, PORT, OUT }) {
     await sleep(120);
   }
   async function clearDialogs() { for (let i = 0; i < 4; i++) { if (!(await S("s.shift&&s.shift.dialog"))) return; await b.ev("document.querySelector('.sheet .choice:not([disabled])')?.click()"); await sleep(200); await b.ev("document.querySelector('#eventNext')?.click()"); await sleep(150); } }
-  for (const [w, h, touch] of VIEWS) for (const late of [false, true]) {
-    const tag = `${w}×${h} ${late ? "cuối game" : "ngày 1"}`;
+  // TLC12-05: seed 42 ở 320×568 có dòng "sắp hết" làm quầy pha thấp hơn ⇒ nút gợi ý từng bị thanh Hoàn tác che
+  for (const [w, h, touch, seed] of [...VIEWS, [320, 568, true, 42]]) for (const late of seed ? [false] : [false, true]) {
+    BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=${seed || 777}&calm=1`;
+    const tag = `${w}×${h} ${late ? "cuối game" : "ngày 1"}${seed ? " seed " + seed : ""}`;
     await b.view(w, h, touch, 2); await b.touch(touch);
-    await b.send("Page.navigate", { url: "about:blank" }); await sleep(500);
-    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
-    await b.nav(BASE);
+    await freshProfile(b, PORT, BASE);
     await b.ev("document.querySelector('#introGo').click()"); await sleep(300);
     if (late) { await b.ev(LATE); await b.ev("__game.save&&__game.save()"); await b.nav(BASE); await sleep(300); }
     await b.ev("document.querySelector('#openShop')?.click()"); await sleep(400);
@@ -49,7 +60,35 @@ export async function runLayout({ b, check, PORT, OUT }) {
     }
     check(`bố cục ${tag}: 2 đơn, nút của bước luôn bấm được tại chỗ (0 lần tự cuộn), không tràn ngang`,
       n === 2 && missed.length === 0 && (await b.ev("document.documentElement.scrollWidth<=document.documentElement.clientWidth")), `${n} đơn · phải cuộn: ${missed.join(" ") || "0"}`);
+    if (late) {
+      // TLC12-06: HUD 1 hàng cả ở tablet dọc 768 (cuối game: số lớn)
+      const rows = await b.ev("new Set([...document.querySelectorAll('#hud > *')].filter(c=>c.offsetParent).map(c=>Math.round(c.getBoundingClientRect().top))).size");
+      if (w <= 1024) check(`HUD ${tag}: 1 hàng`, rows === 1, `${rows} hàng`);
+    }
     if (OUT && !late) await b.shot(`${OUT}/layout-${w}x${h}.png`);
+  }
+  await runEventLandscape({ b, check, PORT, OUT });
+}
+
+/** TLC12-02: bảng sự kiện khi xoay ngang màn thấp — mọi lựa chọn (và nút Tiếp tục của bảng kết quả) nằm trọn trong khung,
+ *  bấm được tại tâm và hai góc, không phải cuộn. V12 (2 lựa chọn), R09 / FA2 (3 lựa chọn, chữ dài nhất). */
+export async function runEventLandscape({ b, check, PORT, OUT }) {
+  const BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=42&calm=1`;
+  const vis = (sel) => `[...document.querySelectorAll(${JSON.stringify(sel)})].map(e=>{const r=e.getBoundingClientRect();const at=(x,y)=>{const t=document.elementFromPoint(x,y);return !!t&&e.contains(t)};
+    return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth&&at(r.x+r.width/2,r.y+r.height/2)&&at(r.x+6,r.y+6)&&at(r.right-6,r.bottom-6)})`;
+  for (const [w, h] of [[844, 390], [740, 360]]) for (const id of ["V12", "R09", "FA2"]) {
+    await b.view(w, h, true, 2); await b.touch(true);
+    await freshProfile(b, PORT, BASE);
+    await b.ev("document.querySelector('#introGo').click()"); await sleep(300);
+    let r = await b.ev(`JSON.stringify(__game.forceEvent(${JSON.stringify(id)}))`);
+    if (r.includes("wrong-time")) { await b.ev("document.querySelector('#openShop')?.click()"); await sleep(400); r = await b.ev(`JSON.stringify(__game.forceEvent(${JSON.stringify(id)}))`); }
+    await sleep(400);
+    const cs = await b.ev(`JSON.stringify(${vis(".sheet.drama .btn.choice")})`).then(JSON.parse);
+    check(`sự kiện ${id} ở ${w}×${h}: ${cs.length} lựa chọn đều thấy trọn, bấm được không cuộn`, cs.length >= 2 && cs.every(Boolean), JSON.stringify(cs));
+    if (OUT && id === "R09") await b.shot(`${OUT}/event-${w}x${h}.png`);
+    await b.ev("document.querySelector('.sheet.drama .btn.choice:not([disabled])')?.click()"); await sleep(400);
+    const nx = await b.ev(`JSON.stringify(${vis("#eventNext")})`).then(JSON.parse);
+    check(`sự kiện ${id} ở ${w}×${h}: nút Tiếp tục của bảng kết quả bấm được không cuộn`, nx.length === 1 && nx[0], JSON.stringify(nx));
   }
 }
 

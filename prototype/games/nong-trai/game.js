@@ -1,16 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m13";
-import { shortNum } from "./ui/short-num.js?v=m13"; // TLC12-04
-import { browserStorage, farmSave } from "./save.js?v=m13";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m13";
-import { createMarketScene } from "./ui/scene-market.js?v=m13";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m13";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m13";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m13";
-import { createVillageScene } from "./ui/scene-village.js?v=m13";
-import { createTruck } from "./ui/truck.js?v=m13";
-import { farmShare } from "./ui/share-card.js?v=m13";
+import * as L from "./logic.js?v=m14";
+import { shortNum } from "./ui/short-num.js?v=m14"; // TLC12-04
+import { browserStorage, farmSave } from "./save.js?v=m14";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m14";
+import { createMarketScene } from "./ui/scene-market.js?v=m14";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m14";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m14";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m14";
+import { createVillageScene } from "./ui/scene-village.js?v=m14";
+import { createTruck } from "./ui/truck.js?v=m14";
+import { farmShare } from "./ui/share-card.js?v=m14";
 import { shareResult } from "../_shared/share.js?v=s2";
 
 const MUTE_KEY = "wgp.muted";
@@ -1235,6 +1235,8 @@ export function mount(root, ctx = {}) {
   // ---------- điều khiển ----------
   const PANELS = { seed: ui.seeds, water: $("waterHint"), stock: ui.warehouse, orders: ui.orders, upgrade: ui.upgrades };
   function selectMode(next) {
+    const tray = (m) => m === "seed" || m === "water";
+    if (tray(next) && !tray(mode)) requestAnimationFrame(() => { if (SHORT.matches) centerField(); }); // TLC12-03: bản đồ vừa thành khung cuộn ⇒ ruộng vào giữa
     mode = next;
     for (const [key, button] of [["seed", ui.grow], ["water", ui.water], ["stock", ui.depot], ["orders", ui.orderTool], ["upgrade", ui.improve]]) {
       button.setAttribute("aria-pressed", String(key === mode));
@@ -1330,7 +1332,8 @@ export function mount(root, ctx = {}) {
   try { muted ||= storage?.getItem(MUTE_KEY) === "1"; } catch {}
   setMuted(muted);
   ui.mute.addEventListener("click", () => setMuted(!sdk.sound.muted));
-  const showHelp = (on) => { ui.ovHelp.hidden = !on; if (on) ui.helpOk.focus(); else cells[cursor].b.focus({ preventScroll: true }); };
+  // TLC1-02: nút "Đã hiểu" nằm cuối bảng ⇒ focus không được kéo bảng xuống cuối (trước đây mở ra đã cuộn tới cuối, mất tiêu đề)
+  const showHelp = (on) => { ui.ovHelp.hidden = !on; if (on) { ui.helpOk.focus({ preventScroll: true }); ui.ovHelp.scrollTop = 0; for (const e of ui.ovHelp.querySelectorAll("*")) if (e.scrollTop) e.scrollTop = 0; } else cells[cursor].b.focus({ preventScroll: true }); };
   ui.help.addEventListener("click", () => showHelp(true));
   ui.helpOk.addEventListener("click", () => showHelp(false));
   function onKey(e) {
@@ -1429,14 +1432,16 @@ export function mount(root, ctx = {}) {
   };
   requestAnimationFrame(centerField);
   const LANDSCAPE = matchMedia("(orientation: landscape) and (max-height: 500px)");
+  const SHORT = matchMedia("(max-width: 760px) and (orientation: portrait) and (max-height: 700px)"); // TLC12-03: bản đồ là khung cuộn riêng (index.html)
   const onOrient = () => requestAnimationFrame(centerField);
   LANDSCAPE.addEventListener?.("change", onOrient);
+  SHORT.addEventListener?.("change", onOrient);
 
   return {
     destroy() {
       clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave(); truck?.destroy(); animals?.hide(); village?.hide();
       window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onVisibility); window.removeEventListener("pagehide", onLeave);
-      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); LANDSCAPE.removeEventListener?.("change", onOrient); cancelAnimationFrame(panRaf);
+      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); LANDSCAPE.removeEventListener?.("change", onOrient); SHORT.removeEventListener?.("change", onOrient); cancelAnimationFrame(panRaf);
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return s; },

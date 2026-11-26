@@ -1,10 +1,10 @@
 // Phiên chợ (Milestone 6) — luật thuần, không DOM. Giờ phiên + hàng săn suy ra từ thời gian (data/fair.js); trạng thái lưu duy nhất
 // là s.fair = { day, sold: { id: số hàng săn đã bán trong phiên của ngày `day` } } (save v7). Mọi chỗ bán (Nhà kho, giỏ tràn, Khu chợ,
 // bộ mô phỏng) tính tiền qua quote() rồi ghi commitSale() ⇒ một nguồn giá.
-import { ITEMS, ITEM } from "../data/catalog.js?v=m13";
-import { featureLevel } from "../data/levels.js?v=m13";
-import { FAIR_DURATION_MS, FAIR_TZ_MS, FAIR_FIRST_MIN, FAIR_SLOTS, FAIR_SLOT_MIN, FAIR_GOODS_MULT, FAIR_HOT_MULT, FAIR_HOT_CAP, FAIR_HOT_COUNT } from "../data/fair.js?v=m13";
-import { MARKET } from "./market.js?v=m13";
+import { ITEMS, ITEM } from "../data/catalog.js?v=m14";
+import { featureLevel } from "../data/levels.js?v=m14";
+import { FAIR_DURATION_MS, FAIR_TZ_MS, FAIR_FIRST_MIN, FAIR_SLOTS, FAIR_SLOT_MIN, FAIR_GOODS_MULT, FAIR_HOT_MULT, FAIR_HOT_CAP, FAIR_HOT_COUNT } from "../data/fair.js?v=m14";
+import { MARKET } from "./market.js?v=m14";
 
 export const FAIR_LEVEL = featureLevel("fair");
 const DAY = 24 * 3600_000;

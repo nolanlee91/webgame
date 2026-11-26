@@ -1,6 +1,6 @@
 // HUD, dải phiếu khách, và các bảng phủ (chào mừng, chuẩn bị ca, hội thoại khiếu nại, chốt ca, tạm dừng, cách chơi).
 import { icon, dpr } from "../render/atlas.js?v=m38";
-import { ingIcon, headIcon } from "./brew.js?v=m41";
+import { ingIcon, headIcon } from "./brew.js?v=m43";
 import { RECIPE, RECIPES } from "../data/recipes.js?v=m38";
 import { STOCK, STOCK_IDS, choiceName } from "../data/ingredients.js?v=m38";
 import { ARCHETYPES } from "../data/customers.js?v=m38";

@@ -1,11 +1,11 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → render cảnh / quầy / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
 import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, DEFER_SHEETS, preload, dpr, icon } from "./render/atlas.js?v=m38";
-import { createScene } from "./render/scene.js?v=m41";
-import { createBrew } from "./ui/brew.js?v=m41";
-import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m41";
+import { createScene } from "./render/scene.js?v=m43";
+import { createBrew } from "./ui/brew.js?v=m43";
+import { createHud, createRail, createOverlays, toast, fmtK } from "./ui/screens.js?v=m43";
 import { createPanels } from "./ui/panels.js?v=m38";
-import { createStockout } from "./ui/stockout.js?v=m41";
+import { createStockout } from "./ui/stockout.js?v=m43";
 import { TIER_LINES } from "./data/lines-m5.js?v=m38";
 import { apply } from "./core/apply.js?v=m38";
 import { customer } from "./core/shift.js?v=m38";
@@ -41,7 +41,14 @@ async function boot() {
   const loaded = store.read(seed);
   const deferred = want.filter((src) => DEFER_SHEETS.has(src) && !LAZY_SHEETS.has(src));
   const first = want.filter((src) => !LAZY_SHEETS.has(src) && !DEFER_SHEETS.has(src));
-  await Promise.all((loaded.state.introSeen ? [...first, ...deferred] : first).map(load));
+  // QUICK2-04: người chơi mới thấy màn chào (lớp phủ che cảnh) ngay khi JS + manifest xong, không chờ ~1,3 MB sheet trong tiệm.
+  // Sheet màn đầu vẫn tải ngay (không chờ); sprite tự hiện khi ảnh về, icon() có trạng thái "đang tải".
+  // Ảnh của màn chào (phố + chân dung) đi trước, sheet trong tiệm tải sau (HTTP/1.1, mạng chậm: không giành băng thông).
+  if (loaded.state.introSeen) await Promise.all([...first, ...deferred].map(load));
+  else {
+    const introArt = [SHEETS.street, ...want.filter((src) => src === SHEETS.portraits || src === HD_SHEETS.portraits)];
+    Promise.all(introArt.map(load)).then(() => first.forEach(load));
+  }
   const prefetch = (list) => list.forEach((src) => files.has(src) && load(src));
   const prefetchShop = () => prefetch(deferred);
   const prefetchShift = () => prefetch([HD_SHEETS.drama, (lowDpr ? SHEETS.faces : HD_SHEETS.faces), SHEETS.weather]);

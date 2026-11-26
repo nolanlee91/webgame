@@ -1,12 +1,12 @@
 // Bán hàng, nâng trang trí, lưới an toàn. Chỉ gọi qua apply(). (Nâng kho: Nhà kho là công trình — startUpgrade nha-kho, core/construct.js.)
 // Giá bán: MỘT nguồn — core/market.js priceOf(id, now) (±15 % theo chu kỳ 3 giờ). Đơn hàng giữ thưởng cố định riêng.
-import { ITEM } from "../data/catalog.js?v=m13";
-import { UPGRADES } from "../data/decor.js?v=m13";
-import { CROPS } from "../data/crops.js?v=m13";
-import { have, take } from "./inventory.js?v=m13";
-import { MARKET } from "./market.js?v=m13";
-import { cropUnlocked } from "./progression.js?v=m13";
-import * as fair from "./fair.js?v=m13";
+import { ITEM } from "../data/catalog.js?v=m14";
+import { UPGRADES } from "../data/decor.js?v=m14";
+import { CROPS } from "../data/crops.js?v=m14";
+import { have, take } from "./inventory.js?v=m14";
+import { MARKET } from "./market.js?v=m14";
+import { cropUnlocked } from "./progression.js?v=m14";
+import * as fair from "./fair.js?v=m14";
 
 export const SAFETY_GIFT = 3, SAFETY_COOLDOWN_MS = 10 * 60_000;
 export const sellable = (id) => !!ITEM[id] && ITEM[id].sell > 0;

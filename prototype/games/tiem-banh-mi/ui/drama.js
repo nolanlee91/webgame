@@ -2,11 +2,11 @@
 // bảng hậu quả sau khi chọn ("Tiếp" nếu còn bước, "Xong" thì đóng). Ca tạm dừng; Esc không đóng (phải chọn).
 // Chân dung (đợt 2 tự dùng khi manifest có): drama-portraits-hd "<npc>-<mood>" → portrait-expressions-hd "<vai>-<biểu cảm>" → portraits-hd "<vai>"
 // → nhân vật trong cảnh characters "<vai>" → vòng tròn chữ cái đầu. Cùng cách Trà Sữa khớp tên người với frame.
-import { icon } from "../render/atlas.js?v=b10";
-import { EVENT } from "../data/events.js?v=b10";
-import { DRAMA_FACES } from "../data/npcs.js?v=b10";
-import { currentEvent, nodeOf, speakerInfo, textOf, byPersona, choiceVisible, affordable, fxSummary } from "../core/drama.js?v=b10";
-import { PERSONAS } from "../data/lines-reply.js?v=b10";
+import { icon } from "../render/atlas.js?v=b11";
+import { EVENT } from "../data/events.js?v=b11";
+import { DRAMA_FACES } from "../data/npcs.js?v=b11";
+import { currentEvent, nodeOf, speakerInfo, textOf, byPersona, choiceVisible, affordable, fxSummary } from "../core/drama.js?v=b11";
+import { PERSONAS } from "../data/lines-reply.js?v=b11";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const FACE = { neutral: "waiting", happy: "happy", annoyed: "annoyed", surprised: "surprised" };

@@ -6,8 +6,8 @@ import { dirname, join } from "node:path";
 import { Player } from "./harness.mjs";
 import { PROFILES, PROFILE_IDS } from "./profiles.mjs";
 import { renderReport } from "./report.mjs";
-import { LEVELS } from "../../data/economy.js?v=b10";
-import { EQUIPMENT, RANKS, HOUSE_PATE } from "../../data/equipment.js?v=b10";
+import { LEVELS } from "../../data/economy.js?v=b11";
+import { EQUIPMENT, RANKS, HOUSE_PATE } from "../../data/equipment.js?v=b11";
 
 /** Mục tiêu (PLAYBOOK §6, ECONOMY §11): phút chơi thật tới cấp. */
 export const TARGETS = { 4: [7, 14], 7: [30, 50], 10: [100, 140], 20: [600, 720] };

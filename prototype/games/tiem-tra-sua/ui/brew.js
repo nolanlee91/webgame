@@ -235,6 +235,7 @@ export function createBrew(root, atlas, dispatch) {
     const span = (els) => { const rs = els.map((e) => e.getBoundingClientRect()); return [Math.min(...rs.map((r) => r.top)), Math.max(...rs.map((r) => r.bottom))]; };
     let [t, bt] = span([stepsEl, optsEl]);
     if (bt - t > bottom - top) [t, bt] = span([$("#optsTitle"), first]);
+    if (bt - t > bottom - top) [t, bt] = span([first]); // TLC12-05: khung quá thấp (320×568, có dòng sắp hết) ⇒ nút gợi ý phải nằm trọn, bỏ tiêu đề
     const lo = bt - bottom, hi = t - top; // cuộn xuống d (lo ≤ d ≤ hi) ⇒ cụm nằm trọn trong khung
     if (lo <= 0 && hi >= 0) return;
     const anchor = root.querySelector(".brew-top") || root;
