@@ -69,7 +69,8 @@ check("âm thanh: trước thao tác người chơi không tạo AudioContext, k
 check("mở game: bảng chào mừng có chân dung nhân viên (portraits.webp) và ô tên tiệm", await visible("#introGo") && await visible("#shopName") && await b.ev("!!document.querySelector('.intro .portrait[style*=\"portraits\"]')"));
 check("cảnh tiệm dùng nhân viên 144 × 192 từ barista-scene", await waitFor(`(() => {
   const actor = document.querySelector('.stage .barista');
-  return !!document.querySelector('.stage img[src$="shop-scene.webp"]') &&
+  return !!document.querySelector('#scene img.bglayer[src$="shop-scene.webp"]') && // QUICK2-04: ảnh cảnh là thẻ có sẵn trong HTML, nằm dưới sân khấu
+    !document.querySelector('#scene .scene-ph') &&
     !!document.querySelector('.stage img[src$="shop-counter-foreground.webp"]') &&
     actor?.style.backgroundImage.includes("barista-scene.webp") &&
     actor.style.width === "144px" && actor.style.height === "192px";

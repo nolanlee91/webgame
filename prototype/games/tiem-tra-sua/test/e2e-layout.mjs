@@ -7,6 +7,17 @@ import { launch, sleep } from "./cdp.mjs";
 const VIEWS = [[390, 844, true], [360, 800, true], [412, 915, true], [320, 568, true], [768, 1024, true], [844, 390, true], [1366, 768, false]];
 const LATE = `(()=>{const s=__game.state;s.xp=999999;s.level=20;s.day=30;s.money=5000;Object.assign(s.owned||(s.owned={}),{"powered-sealer":true,"crate-rack":true,"dual-pot-cooker":true,"upright-fridge":true,"portion-dispenser":true});for(const k of Object.keys(s.stock))s.stock[k]=60;})()`;
 
+/** Hồ sơ mới: xoá bản lưu rồi mở trang. Trang cũ có thể ghi lại bản lưu lúc pagehide sau khi đã xoá (TLC22-06) ⇒ chưa thấy màn chào
+ *  thì xoá + mở lại (tối đa 3 lần). */
+async function freshProfile(b, PORT, url) {
+  for (let k = 0; k < 3; k++) {
+    await b.send("Page.navigate", { url: "about:blank" }); await sleep(600);
+    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
+    await b.nav(url);
+    for (let i = 0; i < 20; i++) { if (await b.ev("!!document.querySelector('#introGo')")) return; await sleep(150); }
+  }
+}
+
 export async function runLayout({ b, check, PORT, OUT }) {
   let BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=777&calm=1`;
   const S = (e) => b.ev(`(()=>{const s=__game.state;return ${e}})()`);
@@ -27,9 +38,7 @@ export async function runLayout({ b, check, PORT, OUT }) {
     BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=${seed || 777}&calm=1`;
     const tag = `${w}×${h} ${late ? "cuối game" : "ngày 1"}${seed ? " seed " + seed : ""}`;
     await b.view(w, h, touch, 2); await b.touch(touch);
-    await b.send("Page.navigate", { url: "about:blank" }); await sleep(500);
-    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
-    await b.nav(BASE);
+    await freshProfile(b, PORT, BASE);
     await b.ev("document.querySelector('#introGo').click()"); await sleep(300);
     if (late) { await b.ev(LATE); await b.ev("__game.save&&__game.save()"); await b.nav(BASE); await sleep(300); }
     await b.ev("document.querySelector('#openShop')?.click()"); await sleep(400);
@@ -69,9 +78,7 @@ export async function runEventLandscape({ b, check, PORT, OUT }) {
     return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth&&at(r.x+r.width/2,r.y+r.height/2)&&at(r.x+6,r.y+6)&&at(r.right-6,r.bottom-6)})`;
   for (const [w, h] of [[844, 390], [740, 360]]) for (const id of ["V12", "R09", "FA2"]) {
     await b.view(w, h, true, 2); await b.touch(true);
-    await b.send("Page.navigate", { url: "about:blank" }); await sleep(500);
-    await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" });
-    await b.nav(BASE);
+    await freshProfile(b, PORT, BASE);
     await b.ev("document.querySelector('#introGo').click()"); await sleep(300);
     let r = await b.ev(`JSON.stringify(__game.forceEvent(${JSON.stringify(id)}))`);
     if (r.includes("wrong-time")) { await b.ev("document.querySelector('#openShop')?.click()"); await sleep(400); r = await b.ev(`JSON.stringify(__game.forceEvent(${JSON.stringify(id)}))`); }
