@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Audit Lụm Kèo lần 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Roboto+Slab:wght@700;800&display=swap&subset=vietnamese" rel="stylesheet">
+<style>
+/* Layout: một cột đọc dọc kiểu hồ sơ kiểm tra — tóm tắt → điểm → hạng game → danh sách lỗi có lọc → bằng chứng → lộ trình.
+   Chất liệu mượn từ chính cổng Lụm Kèo: nền navy, viền góc khuyết, bóng cứng lệch, teal + vàng hổ phách. Một tông tối cố ý. */
+:root {
+  --bg: #0d1522; --panel: #15212f; --panel2: #1b2a3c; --line: #2b3f57; --ink: #e9eef5; --soft: #a3b4c8;
+  --teal: #6fd3c0; --amber: #f2c45a; --p0: #ff6b5e; --p1: #ff9f43; --p2: #f2c45a; --p3: #8fa6bf;
+  --ga: #6fd3c0; --gb: #9fd36f; --gc: #f2c45a; --gd: #ff6b5e;
+  --display: "Roboto Slab", Georgia, "Times New Roman", serif;
+  --text: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cut: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 500 15px/1.6 var(--text); margin: 0;
+  background-image: linear-gradient(rgba(111,211,192,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(111,211,192,.035) 1px, transparent 1px); background-size: 24px 24px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 5vw, 46px); letter-spacing: .01em; }
+h2 { font-size: clamp(22px, 3vw, 28px); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+h2 small { font: 600 13px var(--text); color: var(--soft); letter-spacing: .04em; }
+h3 { font-size: 18px; }
+p { margin: 0; }
+.eyebrow { font: 700 12px var(--text); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.muted { color: var(--soft); }
+.panel { background: var(--panel); clip-path: var(--cut); padding: 18px 20px; box-shadow: none; position: relative; }
+.panel.hard { filter: drop-shadow(4px 4px 0 #050a12); }
+section { display: grid; gap: 16px; min-width: 0; }
+a { color: var(--teal); }
+:focus-visible { outline: 2px dashed var(--amber); outline-offset: 3px; }
+
+/* Hero */
+.hero { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.hero .lead { max-width: 62ch; color: var(--soft); font-size: 16px; }
+.score { display: grid; place-items: center; width: 168px; aspect-ratio: 1; background: var(--panel2); clip-path: var(--cut); filter: drop-shadow(5px 5px 0 #050a12); text-align: center; }
+.score b { font: 800 64px/1 var(--display); color: var(--amber); font-variant-numeric: tabular-nums; }
+.score span { font: 600 12px var(--text); color: var(--soft); letter-spacing: .08em; text-transform: uppercase; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi { background: var(--panel); clip-path: var(--cut); padding: 12px 14px; display: grid; gap: 2px; }
+.kpi b { font: 800 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 12.5px; color: var(--soft); }
+.kpi.bad b { color: var(--p0); }
+.sevrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.sev { font: 800 12px var(--text); padding: 3px 9px 2px; letter-spacing: .06em; color: #0d1522; clip-path: var(--cut); white-space: nowrap; }
+.sev.P0 { background: var(--p0); } .sev.P1 { background: var(--p1); } .sev.P2 { background: var(--p2); } .sev.P3 { background: var(--p3); }
+.verdict { display: grid; gap: 8px; padding-left: 0; margin: 0; list-style: none; }
+.verdict li { padding-left: 18px; position: relative; max-width: 75ch; }
+.verdict li::before { content: ""; position: absolute; left: 0; top: .62em; width: 8px; height: 8px; background: var(--teal); }
+
+/* Điểm theo trọng số */
+.bars { display: grid; gap: 12px; }
+.bar { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 64px; gap: 12px; align-items: center; }
+.bar .name { font-weight: 700; font-size: 14px; }
+.bar .name small { display: block; font-weight: 500; color: var(--soft); font-size: 12px; }
+.track { height: 14px; background: var(--panel2); position: relative; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--teal); }
+.fill.low { background: var(--p1); } .fill.vlow { background: var(--p0); }
+.bar .val { text-align: right; font: 800 15px var(--text); font-variant-numeric: tabular-nums; }
+.bar .why { grid-column: 2 / 4; font-size: 13px; color: var(--soft); margin-top: -4px; }
+
+/* Hạng game */
+.grades { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.grade { background: var(--panel); clip-path: var(--cut); padding: 12px 14px; display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 12px; align-items: start; }
+.grade .g { font: 800 26px/46px var(--display); text-align: center; height: 46px; color: #0d1522; clip-path: var(--cut); }
+.g.A { background: var(--ga); } .g.B { background: var(--gb); } .g.C { background: var(--gc); } .g.D { background: var(--gd); }
+.grade b { display: block; font-size: 14.5px; } .grade small { display: block; color: var(--teal); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; }
+.grade p { font-size: 13px; color: var(--soft); margin-top: 4px; }
+
+/* Bộ lọc + danh sách lỗi */
+.filters { display: grid; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips .lab { font: 700 12px var(--text); color: var(--soft); letter-spacing: .08em; text-transform: uppercase; margin-right: 4px; min-width: 70px; }
+.chip { font: 600 13px var(--text); color: var(--ink); background: var(--panel2); border: 0; padding: 7px 11px; cursor: pointer; clip-path: var(--cut); min-height: 34px; }
+.chip[aria-pressed="true"] { background: var(--teal); color: #0d1522; }
+.chip:active { transform: translate(1px, 1px); }
+.search { width: 100%; font: 500 16px var(--text); padding: 10px 12px; background: var(--panel2); color: var(--ink); border: 0; clip-path: var(--cut); }
+.search::placeholder { color: var(--soft); }
+.resultline { font-size: 13px; color: var(--soft); }
+.issues { display: grid; gap: 10px; }
+.issue { background: var(--panel); clip-path: var(--cut); padding: 14px 16px; display: grid; gap: 6px; border-left: 0; position: relative; }
+.issue::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.issue.P0::before { background: var(--p0); } .issue.P1::before { background: var(--p1); } .issue.P2::before { background: var(--p2); } .issue.P3::before { background: var(--p3); }
+.issue .top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.issue .id { font: 800 12.5px var(--text); color: var(--teal); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.issue .where { font-size: 12.5px; color: var(--soft); }
+.issue .title { font-weight: 700; font-size: 15px; max-width: 80ch; }
+.issue .fix { font-size: 13.5px; color: var(--soft); max-width: 80ch; }
+.issue .fix b { color: var(--ink); font-weight: 700; }
+.tag { font: 600 11px var(--text); color: var(--soft); background: var(--panel2); padding: 2px 7px; }
+.ev { display: inline-flex; gap: 6px; align-items: center; font: 700 12px var(--text); color: var(--amber); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.empty { padding: 20px; text-align: center; color: var(--soft); background: var(--panel); clip-path: var(--cut); }
+
+/* Bằng chứng */
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.shot { background: var(--panel); clip-path: var(--cut); padding: 8px; display: grid; gap: 8px; cursor: zoom-in; border: 0; text-align: left; color: var(--ink); font: inherit; }
+.shot img { width: 100%; height: 190px; object-fit: cover; object-position: top; background: #000; display: block; }
+.shot span { font-size: 12.5px; color: var(--soft); } .shot b { font-size: 12px; color: var(--teal); }
+dialog.zoom { border: 0; padding: 0; background: var(--panel); color: var(--ink); max-width: min(96vw, 1000px); max-height: 94vh; clip-path: var(--cut); }
+dialog.zoom::backdrop { background: rgba(5,10,18,.85); }
+dialog.zoom .zin { display: grid; gap: 8px; padding: 10px; }
+dialog.zoom img { max-width: 100%; max-height: 80vh; display: block; margin: 0 auto; }
+dialog.zoom .zbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13px; }
+dialog.zoom button { font: 700 13px var(--text); background: var(--teal); color: #0d1522; border: 0; padding: 8px 14px; cursor: pointer; clip-path: var(--cut); min-height: 36px; }
+
+/* Lộ trình */
+.phases { display: grid; gap: 12px; }
+.phase { background: var(--panel); clip-path: var(--cut); padding: 16px 18px; display: grid; gap: 10px; }
+.phase .why, .phase .acc { font-size: 13.5px; color: var(--soft); max-width: 80ch; }
+.phase .acc b { color: var(--ink); }
+.idchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.idchip { font: 700 12px var(--text); background: var(--panel2); color: var(--ink); border: 0; padding: 5px 9px; cursor: pointer; clip-path: var(--cut); font-variant-numeric: tabular-nums; }
+.idchip.P0 { box-shadow: inset 3px 0 0 var(--p0); } .idchip.P1 { box-shadow: inset 3px 0 0 var(--p1); } .idchip.P2 { box-shadow: inset 3px 0 0 var(--p2); } .idchip.P3 { box-shadow: inset 3px 0 0 var(--p3); }
+.idchip.prop { background: #1d3a3a; color: var(--teal); cursor: default; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+ul.plain li { max-width: 80ch; }
+.check li { list-style: none; margin-left: -18px; padding-left: 26px; position: relative; }
+.check li::before { content: ""; position: absolute; left: 0; top: .35em; width: 14px; height: 14px; box-shadow: inset 0 0 0 2px var(--teal); }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--soft); letter-spacing: .06em; text-transform: uppercase; }
+footer { font-size: 12.5px; color: var(--soft); }
+@media (max-width: 640px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .score { width: 140px; }
+  .bar { grid-template-columns: minmax(0, 1fr) 54px; }
+  .bar .track { grid-column: 1 / 3; grid-row: 2; }
+  .bar .why { grid-column: 1 / 3; }
+  .chips .lab { min-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .chip:active { transform: none; } }
+
+.bar .track { position: relative; }
+.bar .ghost { position: absolute; top: 0; bottom: 0; left: 0; border-right: 3px solid #a3b4c8; opacity: .75; pointer-events: none; }
+.bar .val small { display: block; color: var(--soft); font-size: 11px; font-weight: 600; }
+.delta { font: 800 13px var(--text); margin-left: 6px; }
+.delta.up { color: var(--teal); } .delta.down { color: var(--p0); } .delta.same { color: var(--soft); }
+.g.old { opacity: .45; transform: scale(.82); }
+.gpair { display: flex; align-items: center; gap: 4px; }
+.gpair .arr { color: var(--soft); font-weight: 800; }
+.cmp td.n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; }
+.cmp td.ok { color: var(--teal); } .cmp td.part { color: var(--amber); } .cmp td.no { color: var(--p1); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--soft); }
+.legend i { display: inline-block; width: 18px; height: 8px; vertical-align: middle; margin-right: 6px; }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div style="display:grid;gap:12px;min-width:0">
+      <span class="eyebrow">Hồ sơ kiểm tra lần 2 · 25–26/11/2026</span>
+      <h1>Audit Lụm Kèo lần 2</h1>
+      <p class="lead">Kiểm lại toàn bộ cổng và 25 game sau 6 đợt sửa, cùng 7 agent, cùng phương pháp và thang điểm với lần 1 (24–25/11). Mã được kiểm: master ab70036 (Đợt 0–6). Mỗi lỗi cũ được đối chiếu lại kèm bằng chứng; lỗi mới có cách sửa.</p>
+      <div class="sevrow" id="sevrow"></div>
+    </div>
+    <div class="score" aria-label="Điểm tổng"><div><b>72</b><br><span>/ 100 · lần 1: 64</span></div></div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><b>64 → 72</b><span>Điểm tổng</span></div>
+    <div class="kpi"><b>2 → 6/10</b><span>An toàn trẻ em</span></div>
+    <div class="kpi"><b>0</b><span>Lỗi P0 còn mở (lần 1: 1)</span></div>
+    <div class="kpi"><b>65 / 134</b><span>Lỗi cũ đã sửa hẳn</span></div>
+    <div class="kpi"><b>30</b><span>Lỗi cũ sửa một phần</span></div>
+    <div class="kpi"><b>0</b><span>Hồi quy</span></div>
+  </div>
+
+  <section aria-labelledby="h-verdict">
+    <h2 id="h-verdict">Kết luận</h2>
+    <ul class="verdict">
+      <li><b>Tăng 8 điểm, từ 64 lên 72.</b> Mạnh nhất ở hiệu năng (4,5 → 6,8) và điện thoại (6 → 7,4). Không hạng mục nào giảm.</li>
+      <li><b>An toàn trẻ em 2 → 6/10:</b> tên tục không còn hiện công khai ở các trường hợp chính, chat có lọc và có "Tắt chat". Còn lọt chữ lách ("l0n", chữ full-width), số điện thoại / lời rủ Zalo, câu chửi "mày ngu".</li>
+      <li><b>Không còn P0, còn 8 P1</b>, phần lớn công S: Cơm Tấm treo lúc chốt ca, bộ lọc lọt, hướng dẫn Nông Trại kẹt, ô tìm đè nav trên máy tính, Tỷ Phú tràn màn và nặng, trang quyền riêng tư thiếu email liên hệ.</li>
+      <li><b>Không có hồi quy.</b> Vài game bị hạ hạng vì lần 2 đo thêm (màn ngang ở game nhỏ, hướng dẫn Nông Trại khi gợi ý thu gọn), không phải do sửa làm hỏng.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="h-score">
+    <h2 id="h-score">Điểm theo trọng số <small>thang 0–10 · vạch xám = lần 1</small></h2>
+    <div class="legend"><span><i style="background:var(--teal)"></i>Lần 2</span><span><i style="background:#a3b4c8;height:3px"></i>Mốc lần 1</span></div>
+    <div class="panel bars" id="bars"></div>
+  </section>
+
+  <section aria-labelledby="h-grades">
+    <h2 id="h-grades">Hạng từng game <small>lần 1 → lần 2 · A mượt · B tốt · C vướng đáng kể · D hỏng luồng chính</small></h2>
+    <div class="grades" id="grades"></div>
+  </section>
+
+  <section aria-labelledby="h-cmp">
+    <h2 id="h-cmp">Đối chiếu lỗi lần 1 <small>134 mục · bằng chứng từng mục trong báo cáo gốc</small></h2>
+    <div class="panel"><div class="tbl"><table class="cmp"><thead><tr><th>Nhóm</th><th>Số mục</th><th>Đã sửa</th><th>Một phần</th><th>Chưa sửa</th></tr></thead><tbody id="cmp"></tbody></table></div></div>
+  </section>
+
+  <section aria-labelledby="h-issues" id="issues-sec">
+    <h2 id="h-issues">Lỗi còn lại <small id="issuecount"></small></h2>
+    <div class="panel filters">
+      <div class="chips" id="f-sev"><span class="lab">Mức</span></div>
+      <div class="chips" id="f-area"><span class="lab">Khu vực</span></div>
+      <label for="q" style="position:absolute;left:-9999px">Tìm lỗi</label>
+      <input class="search" id="q" type="search" placeholder="Tìm theo game, mã lỗi hoặc từ khoá… (vd: Tỷ Phú, ngang, chat)" autocomplete="off">
+      <p class="resultline" id="resultline"></p>
+    </div>
+    <div class="issues" id="issues"></div>
+  </section>
+
+  <div class="two">
+    <section aria-labelledby="h-dec" class="panel">
+      <h3 id="h-dec">Cần chủ dự án quyết</h3>
+      <ul class="plain">
+        <li>Email liên hệ công khai cho trang quyền riêng tư — bắt buộc trước khi bật đăng nhập Google.</li>
+        <li>Phòng online mặc định công khai hay kín (chỉ vào bằng mã)? Kế hoạch ban đầu ghi "mặc định kín".</li>
+        <li>Đợt 7: sửa 8 P1 + nhóm P2 xoay ngang / Cá Ngựa online / Nối Từ.</li>
+      </ul>
+    </section>
+    <section aria-labelledby="h-lim" class="panel">
+      <h3 id="h-lim">Giới hạn của audit</h3>
+      <ul class="plain">
+        <li>Chỉ Chrome headless giả lập; chưa có iPhone / Android thật, chưa thử Safari, Firefox.</li>
+        <li>7 agent chạy song song (CPU ~87%) nên số thời gian / fps nhiễu; mỗi số chạy lại ≥ 2 lần, lấy trung vị.</li>
+        <li>Phiên bị ngắt một lần; các agent chạy tiếp từ log còn lại.</li>
+        <li>Lighthouse không có mục Performance (giới hạn MCP).</li>
+        <li>Đăng nhập Google chỉ kiểm được trạng thái "ẩn khi chưa bật".</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>Tài liệu trong repo: <code>docs/audits/v2/AUDIT_SUMMARY.md</code> và 7 báo cáo gốc <code>docs/audits/v2/raw/</code>. Lần 1: <code>docs/audits/AUDIT_REPORT.html</code>.</footer>
+</div>
+
+<script type="application/json" id="data">{"issues": [{"id": "BOARD2-01", "sev": "P1", "area": "BOARD", "areaName": "Cờ online", "game": "Tỷ Phú online, phòng chờ và trong ván, ở 320/360", "title": "Trang nở ra 379 px: innerWidth = 379 khi khung là 320/360. Phần tử tràn: #mute mép phải 379, #quitBtn 327, .card/.lobbyBtns 365. Trình duyệt thu nhỏ cả trang, nút loa và chữ \"Rời\" bị cắt (typhu-probe-room-360.png, typhu-C-lobby.png). Chơi solo ở cùng cỡ thì không tràn.", "fix": "Thanh trên khi online: CHAT và Rời chỉ dùng icon (44×44), các nút min-width:0, flex-wrap. Thẻ phòng max-width:100%."}, {"id": "BOARD2-02", "sev": "P2", "area": "BOARD", "areaName": "Cờ online", "game": "Cá Ngựa online, nút \"Về phòng\" ở bảng kết quả và nút \"Rời bàn\"", "title": "hud.js:96–98 gọi cb.onLobby(), rồi game.js:206 gọi net.leave(), nên người chơi rời hẳn phòng và về màn nhập mã. Đúng ra phải về phòng chờ cùng nhóm.", "fix": "Online: gửi lệnh về phòng chờ (như lobby của Tỷ Phú, co-ty-phu/room.js:127). Đổi nhãn cho đúng. Gộp BRD-15."}, {"id": "BOARD2-03", "sev": "P2", "area": "BOARD", "areaName": "Cờ online", "game": "Cá Ngựa online, \"Ván mới\"", "title": "Server co-ca-ngua/room.js:102–104: bất kỳ ai gửi again là mở ván mới ngay cho cả phòng. Bảng kết quả của 2 người còn lại bị đóng ngang, không kịp Khoe.", "fix": "Dùng games-server/rematch.js (bản đã làm cho BRD-09)."}, {"id": "BOARD2-04", "sev": "P2", "area": "BOARD", "areaName": "Cờ online", "game": "Mọi game online, games-server/*/ws.js:8", "title": "Phát hiện mất kết nối dựa vào việc trình duyệt gửi khung đóng. Đo khi đóng tab: 0,4 / 2,1 / 5 / 11 / 12 s, và 2 lần quá 14 s chưa có nhãn (chủ phòng ở Caro và Vua). Nếu rớt im lặng (điện thoại khoá màn, mất sóng) thì DEAD_MS=60000 nên 60–80 s sau mới có nhãn, cộng thêm 15 s nữa máy mới đi thay.", "fix": "DEAD_MS 25–30 s, client ping 10 s. Client gửi {t:\"bye\"} lúc pagehide."}, {"id": "BOARD2-05", "sev": "P2", "area": "BOARD", "areaName": "Cờ online", "game": "Cá Ngựa, bảng kết quả ở 360×640", "title": "Nút loa của HUD đè lên chữ \"BẠN THẮNG!\" (cangua-solo-result-360x640.png). Lỗi D4 đã ghi lại nhưng chưa sửa.", "fix": "Ẩn HUD hoặc nâng z-index của bảng kết quả, thêm padding-top."}, {"id": "BOARD2-06", "sev": "P2", "area": "BOARD", "areaName": "Cờ online", "game": "Cá Ngựa, Tỷ Phú: link \"← Trang chủ\"", "title": "Chỉ cao 92×23 px. Tỷ Phú trong phòng chỉ còn dấu \"←\" rộng 13×23 px. 3 game kia đã đạt 44.", "fix": "Dùng chung kiểu .bar a{min-height:44px} như Caro."}, {"id": "BOARD2-07", "sev": "P2", "area": "BOARD", "areaName": "Cờ online", "game": "Caro 740×360 (cũng thấy ở 844×390)", "title": "Ô cờ 14 px (16 px ở 844), bàn 236 px trong khi nửa phải trống. Nút menu và loa rộng 28 px (caro-solo-740x360.png).", "fix": "Bố cục 3 cột như Vua ngang. Bàn = min(100svh − thanh trên, 100vw − 2 cột)."}, {"id": "BOARD2-08", "sev": "P3", "area": "BOARD", "areaName": "Cờ online", "game": "Cá Ngựa 320", "title": "Tên và dòng trạng thái bị \"…\" (\"Lượt Ngọc Á…\").", "fix": "Tên 2 dòng như Caro (line-clamp:2)."}, {"id": "BOARD2-09", "sev": "P3", "area": "BOARD", "areaName": "Cờ online", "game": "5 game, sau ván", "title": "Chủ dự án cho phép \"Mời ra\" sau ván, nhưng thẻ kết quả không có nút này (kick_btn_after: 0). Chỉ phòng chờ có.", "fix": "Thêm nút trên thẻ kết quả hoặc danh sách người sau ván."}, {"id": "BOARD2-10", "sev": "P3", "area": "BOARD", "areaName": "Cờ online", "game": "games-server/board-online-e2e.mjs (Cờ Tướng)", "title": "Test chính thức trượt 2/2 lần (\"A không thấy Đối thủ muốn chơi tiếp\", rồi lần sau \"cả hai bấm mà không mở ván ngay\"). Kiểm tay thì luồng đúng, khả năng là do tab.click không kiểm free / timing.", "fix": "Kiểm free, chờ ovEnd hết hoạt ảnh."}, {"id": "BOARD2-11", "sev": "P3", "area": "BOARD", "areaName": "Cờ online", "game": "Tỷ Phú ở ≤360", "title": "Ô đất trên bàn (chạm để xem thông tin) chỉ 21–27 × 29–38 px. Nút chọn số người 2/3/4 rộng 38×44.", "fix": "Ô 44 ảo (vùng chạm lớn hơn) hoặc chạm vào nhóm ô."}, {"id": "HOME2-01", "sev": "P1", "area": "HOME", "areaName": "Trang chủ", "game": "Thanh điều hướng máy tính", "title": "Mục \"Bảng xếp hạng\" bị ô tìm kiếm đè ở mọi bề rộng >1180 px, thấy chữ \"Bảng xếp hạ\". Đo được:", "fix": ""}, {"id": "HOME2-02", "sev": "P1", "area": "HOME", "areaName": "Trang chủ", "game": "quyen-rieng-tu.html", "title": "Trang hứa \"gửi yêu cầu… xoá trong 7 ngày\" và \"gửi yêu cầu từ chính email đó\", nhưng \"Liên hệ: đang cập nhật\" (:102). Không có kênh nào để xoá dữ liệu. Google OAuth (consent screen) cũng cần chính sách có liên hệ. Ngoài ra trang ghi \"Google Fonts\" ở mục \"Lưu ở đâu\", trong khi trang chủ đã tự host font. Sửa. Điền COMMUNITY.contactEmail (email công khai) hoặc thêm form liên hệ. Sửa dòng font. Chấp nhận. Trang hiện một kênh liên hệ thật. Checklist trong GOOGLE-LOGIN-SETUP ghi rõ điều kiệ", "fix": ""}, {"id": "HOME2-03", "sev": "P2", "area": "HOME", "areaName": "Trang chủ", "game": "Ô tìm ở điện thoại ngang và tablet", "title": "#q 14 px ở 844×390, 740×360 và 768×1024 ⇒ iPhone xoay ngang và iPad phóng to khi focus. Sửa. @media (pointer: coarse) { #q { font-size: 16px } }. Chấp nhận. 16 px ở mọi viewport cảm ứng. Effort. S.", "fix": ""}, {"id": "HOME2-04", "sev": "P2", "area": "HOME", "areaName": "Trang chủ", "game": "Nhảy tới mục bị header dính che", "title": "Ở 390, chip \"Phòng\" đưa #lobby lên top 0, tiêu đề \"Sảnh chờ trực tiếp\" (top 10) và nhãn \"Có mã phòng bạn gửi?\" nằm dưới thanh 57 px (chip-lobby-390.png). Ở 1366, skip link đưa #games vào dưới header 71 px và focus ở lại body. Sửa. scroll-margin-top cho #lobby và #games bằng chiều cao header + 8 px. Đích skip link có tabindex=\"-1\" và .focus(). Chấp nhận. Tiêu đề mục nằm dưới mép header ≥ 8 px ở 390 và 1366. activeElement = #games sau khi dùng skip link. Effort. S.", "fix": ""}, {"id": "HOME2-05", "sev": "P2", "area": "HOME", "areaName": "Trang chủ", "game": "LCP và byte ở máy dpr cao", "title": "Slow 4G + CPU 4×:", "fix": ""}, {"id": "HOME2-06", "sev": "P3", "area": "HOME", "areaName": "Trang chủ", "game": "", "title": "Chạm hero đúng lúc tự chuyển slide thì hụt. Lúc tự chuyển, slide cũ đã inert trong khi vẫn đang nằm dưới ngón tay. elementFromPoint trả DIV.hero__track ⇒ chạm không làm gì, hoặc mở game của slide mới (s5: 1 lần chạm không chuyển trang, s7: chạm ra Ma Sói thay vì Cờ Cá Ngựa). Ở 6 lần chạm khi slide đứng yên: 6/6 đúng. Sửa: chưa đặt inert cho tới khi transition xong, và dừng hẳn tự chuyển sau lần chạm đầu. Effort: S", "fix": ""}, {"id": "HOME2-07", "sev": "P3", "area": "HOME", "areaName": "Trang chủ", "game": "", "title": "Thẻ phòng. Tên chủ phòng dài bị cắt cứng, không có \"…\" (\"Gấu Trúc Bôn\", hostClipped ở cả 390 và 1366). Ở 390 danh sách phòng không lấp hết bề ngang panel, nút \"Vào\" lệch khỏi mép phải (lobby-rooms-390.png). Sửa: text-overflow: ellipsis và .rooms full width. Effort: S", "fix": ""}, {"id": "HOME2-08", "sev": "P3", "area": "HOME", "areaName": "Trang chủ", "game": "", "title": "Ô hồ sơ luôn cắt tên tự sinh. Ví dụ \"Sư Phụ Xó…\" (390), \"Cún C…\" (320), cả \"Ong Đáng Yêu…\" ở 844×390 dù còn nhiều chỗ. Bé không thấy trọn tên mình. Sửa: ở ≤720 bỏ icon bút hoặc cho 2 dòng 13 px. Ở xoay ngang thì nới bề rộng. Effort: S", "fix": ""}, {"id": "HOME2-09", "sev": "P3", "area": "HOME", "areaName": "Trang chủ", "game": "", "title": "Tìm kiếm có từ đệm ra 0. \"tro choi 2 nguoi\" → 0 và \"game cho be\" → 0 (mọi từ phải khớp). Sửa: bỏ các từ đệm (game, tro, choi, cho, be, danh) trước khi khớp. Effort: S", "fix": ""}, {"id": "HOME2-10", "sev": "P3", "area": "HOME", "areaName": "Trang chủ", "game": "", "title": "Âm thanh không nhất quán. Chạm chip điều hướng mobile (link #lobby) im lặng, trong khi các nút và thẻ khác đều bụp. Effort: S", "fix": ""}, {"id": "HOME2-13", "sev": "P3", "area": "HOME", "areaName": "Trang chủ", "game": "", "title": "568×320 (iPhone SE xoay ngang). Dải game bắt đầu ở y=291, chỉ thấy 1 thẻ. D5 đã biết. Sửa: khi xoay ngang thấp, gộp chip và ô tìm thành 1 hàng", "fix": ""}, {"id": "PARTY2-01", "sev": "P1", "area": "PARTY", "areaName": "Game nhóm online", "game": "games-server/moderation.js, account/bad-words.json", "title": "Biến thể lọt bộ lọc tên và chat. \"l0n\", \"c4c\" lọt vì leet đổi ra \"lon\"/\"cac\" mà dạng không dấu cố ý bỏ qua. Lọt cả \"kặc\", \"lìn\", \"phuck\", \"ｆｕｃｋ\" (full-width), \"fսck\" (chữ giả dạng), \"đ ụ m á\", \"kys\", \"penis\", \"vagina\". \"l0n\" hiện công khai trên ghế.", "fix": "normalize('NFKC') + bảng chữ giả dạng (confusables) trước khi so. Dạng **có số leet** thì so với danh sách gốc kể cả từ trong nhóm plain-skip, vì người gõ \"l0n\" chắc chắn cố ý. Thêm kặc/lìn/phuck, cụm \"đụmá\" ghép từ chữ rời, từ tình dục/tự hại tiếng Anh vào nhóm contains/exact."}, {"id": "PARTY2-02", "sev": "P2", "area": "PARTY", "areaName": "Game nhóm online", "game": "noi-tu/session/online.js:76 → core/rules.js:8", "title": "Mỗi lần bắt đầu ván online, **cả hai tab** ném TypeError: Cannot read properties of null (reading 'contentHash'): start() chạy trước khi từ điển nạp xong. Ván vẫn chạy (nt2.mjs: lỗi có ngay trước bước tải lại, 1/1 mỗi tab).", "fix": "Chờ dict sẵn sàng rồi mới start() (đặt cờ chờ, chạy lại khi dict nạp xong)."}, {"id": "PARTY2-03", "sev": "P2", "area": "PARTY", "areaName": "Game nhóm online", "game": "Ma Sói / Nội Gián, màn hết ván", "title": "Máy chủ chỉ nhận ra chủ phòng đã đóng tab sau 5–32 s. Trong lúc đó màn kết quả không có nút \"Chơi ván mới\" cho ai và không có lời giải thích, nên trẻ chỉ thấy \"Xem kết quả / Rời phòng\".", "fix": "Hiện \"Chờ chủ phòng ★X… (nếu vắng, bạn sẽ mở được ván mới)\". Rút nhịp heartbeat ở pha end, hoặc cho người còn lại bấm sau 10 s nếu chủ phòng không phản hồi."}, {"id": "PARTY2-04", "sev": "P2", "area": "PARTY", "areaName": "Game nhóm online", "game": "Ma Sói / Nội Gián xoay ngang 844×390, 740×360", "title": "Cảnh chiếm trọn chiều cao, trang cao 1152 px. Vai, nút hành động và chat nằm dưới mép màn, phải cuộn qua lại khi đang bỏ phiếu (ms-844x390-ingame.png).", "fix": "Bố cục 2 cột khi (orientation: landscape) and (max-height: 500px): cảnh trái theo 100dvh, cột phải gồm đồng hồ, vai, hành động và chat cuộn trong cột."}, {"id": "PARTY2-05", "sev": "P2", "area": "PARTY", "areaName": "Game nhóm online", "game": "Ma Sói / Nội Gián phòng chờ 320", "title": "Chip ✕ bỏ bot 32×28. Ghế 38×55. Thanh trên ở 320 xuống 2 dòng (\"← Lụm / Kèo\", \"MA / SÓI\").", "fix": "Chip ✕ ≥ 44×44 (hoặc ::after). Thu chữ thanh trên / ẩn chữ \"Lụm Kèo\" ≤ 340 px."}, {"id": "PARTY2-06", "sev": "P3", "area": "PARTY", "areaName": "Game nhóm online", "game": "Nối Từ, Ma Sói, Nội Gián, Đặt Bom", "title": "Tên bị đổi thành \"Người chơi N\" hoặc bị cắt ở 16 ký tự (\"Phúc Đức Dũng Cư\") mà không báo, trẻ không hiểu vì sao tên mình đổi.", "fix": "Toast \"Tên này chưa dùng được, đổi tên khác nhé\". Bộ đếm 16 ký tự ở ô tên (như game cờ đã có)."}, {"id": "PARTY2-07", "sev": "P3", "area": "PARTY", "areaName": "Game nhóm online", "game": "prototype/games/ai-la-noi-gian/assets/", "title": "HANDOFF.md, generation-prompts.json, avatars-x4-preview.png được phục vụ công khai trên lumkeo.com (HANDOFF.md trả 200).", "fix": "Chuyển sang docs/ai-la-noi-gian/ hoặc chặn ở server.js."}, {"id": "PARTY2-08", "sev": "P3", "area": "PARTY", "areaName": "Game nhóm online", "game": "Nội Gián phòng chờ", "title": "Chip \"SẴN SÀNG\" bị kéo cao theo hàng 44 px, chữ dính mép trên (ng-390-lobby.png).", "fix": "align-self:center cho chip."}, {"id": "PARTY2-09", "sev": "P3", "area": "PARTY", "areaName": "Game nhóm online", "game": "Ma Sói / Nội Gián", "title": "Loa 41×44 ở 360 (màn kết quả, trong ván).", "fix": "≥ 44×44."}, {"id": "QUICK2-01", "sev": "P2", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "2048, Sudoku, Đố Vui, Ghép Kẹo, Nối Thú khi xoay ngang", "title": "lỗi giống QCK-02 nhưng ở 5 game chưa được sửa. \"Bắt đầu\" nằm dưới mép: 2048 844×390: y 495–547 Sudoku 844×390: y 521–573 Đố Vui 844 và 740: y 428–480 Ghép Kẹo 844: y 606–658; 740: y 332–384 Nối Thú 844: y 468–520; 740: y 437–489 Nút màn kết quả cũng ngoài khung: 2048 \"Chơi lại\" 349–401; Sudoku \"Đề mới\" 431–483; Ghép Kẹo 740 bốn nút tới y 595; Nối Thú \"Màn 2 →\" 353–405. Trẻ chỉ thấy phần luật hoặc bảng điểm, phải tự biết cuộn lớp phủ.", "fix": ""}, {"id": "QUICK2-02", "sev": "P2", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "Đố Vui khi xoay ngang, trong lúc trả lời", "title": "ở 844×390, phản hồi \"Đúng rồi / Sai rồi! Đáp án: B… (giải thích)\" và \"Câu tiếp\" nằm ở y 407–451, ngoài khung. Game tự sang câu sau REVEAL_MS, nên trẻ không kịp thấy lời giải thích. Ở 740×360, đáp án C/D ở y 329–387, bị cắt 27 px trong khi đồng hồ đang chạy. Ảnh: probe-dovui-844-fb.png. Sửa: luật (orientation: landscape) and (max-height:500px): HUD 1 hàng thấp, câu hỏi và đáp án 2×2 gọn hơn, phản hồi phủ lên vùng đáp án thay vì đẩy xuống dưới. Nghiệm thu: ở 740×360, 4 đáp án và phản", "fix": ""}, {"id": "QUICK2-03", "sev": "P2", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "9/10 game casual (trừ Đào Vàng)", "title": "<meta viewport … viewport-fit=cover> nhưng trang game không dùng env(safe-area-inset-*); chỉ lớp phủ .ss-ov ở 3 game có. Khi xoay ngang trên iPhone có tai thỏ, nội dung sát mép sẽ nằm dưới tai thỏ hoặc góc bo, ví dụ bàn đạp phanh Đua Xe ở x 12–20, cột trái 2048/Sudoku/Ghép Kẹo, HUD. Sửa: padding-inline: max(…, env(safe-area-inset-left/right)) cho .bar và .wrap/.stage; padding-bottom: env(safe-area-inset-bottom) cho pad/bàn đạp. Hoặc bỏ viewport-fit=cover. Nghiệm thu: tr", "fix": ""}, {"id": "QUICK2-04", "sev": "P2", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "Trà Sữa tải lần đầu", "title": "Slow 4G + 4× ở 390: LCP 10,3 / 10,9 s (một lần nhiễu 24,5 s), phần tử LCP là street-background.webp 504 KB, kèm shop-scene.webp 475 KB; tải lần đầu 1 832 KB. FCP thì tốt (0,7–0,8 s). Sửa: giảm cỡ ảnh phố cho màn nhỏ (srcset ½), fetchpriority=high cho cảnh tiệm, hoãn ảnh phố tới khi cần. Nghiệm thu: LCP < 4 s khi throttle như trên.", "fix": ""}, {"id": "QUICK2-05", "sev": "P3", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "2048 menu", "title": "CLS 0,087–0,106 (#frame DIV.card, DIV.how #dailyLink); Lighthouse mobile 0,119. Đua Xe desktop 0,025–0,031 (DIV.card), privacy desktop tới 0,058 (TABLE UL P). Sửa: giữ chỗ cho thẻ menu và link Thử thách trước khi JS dựng. Nghiệm thu: CLS < 0,05.", "fix": ""}, {"id": "QUICK2-06", "sev": "P3", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "Link \"← Trang chủ\" ở 7 game (Ghép Kẹo, Đua Xe, Xếp Gạch, Nối Thú, Rắn, Bắn Bóng, Đào Vàng) và nút loa 2048 dọc", "title": "vùng chạm thật 41 px (dọc) và 37 px (ngang), trong khi 2048/Sudoku đạt 44. #muteBtn2 2048 ở 390 rộng 36 px. Sửa: dùng chung ::after 44 px tính từ mép trên màn như D5 đã làm cho 2048/Sudoku; loa min-width: 44px. Nghiệm thu: dò elementFromPoint theo cột qua tâm cho ra ≥ 44 px.", "fix": ""}, {"id": "QUICK2-07", "sev": "P3", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "Đố Vui HUD", "title": "ô \"KỶ LỤC —\" lệch dòng so với 3 ô bên cạnh, cả dọc lẫn ngang (ảnh daily-do-vui-nhanh-p390-0start.png). Sửa: căn baseline nhãn/số giống các ô khác. Nghiệm thu: 4 nhãn cùng một hàng.", "fix": ""}, {"id": "QUICK2-08", "sev": "P3", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "Màn kết quả 2048", "title": "thanh công cụ dưới (Hoàn tác / Ván mới / Menu) vẫn hiện và bấm được dưới lớp phủ kết quả, trùng với các nút trong bảng. Nối Thú và 2048 xoay ngang có viền focus nét đứt trên nút chính ngay sau khi chạm (focus do JS, không phải bàn phím). Sửa: ẩn hoặc inert thanh dưới khi có lớp phủ; chỉ gọi focus() khi người dùng đang dùng bàn phím.", "fix": ""}, {"id": "QUICK2-09", "sev": "P3", "area": "QUICK", "areaName": "Game nhỏ + hiệu năng", "game": "Hạ tầng live", "title": "ETag của file không có ?v= đều dùng chung mtime lúc deploy, nên mỗi lần deploy mọi file đều bị coi là đã đổi. Vẫn HTTP/1.1, không CDN, TTFB từ Việt Nam 1,0–1,7 s. Sửa: Cloudflare (đã duyệt, đang hoãn; client-ip.js đã sẵn); ETag theo hash nội dung. Nghiệm thu: TTFB < 300 ms ở VN, HTTP/2 hoặc 3. Ghi chép chéo (thuộc HOME): Lighthouse trang chủ báo target-size cho nhãn \"★ Thử thách\" 86×17 px ×3 (vùng chạm mở rộng bằng ::after mà axe không thấy; cần kiểm trên máy thật) và heading-or", "fix": ""}, {"id": "TLC12-01", "sev": "P1", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "NT hướng dẫn NV1–NV5, game.js highlight() (590–620), data/quests.js:6–10", "title": "Làm đúng mũi tên thì kẹt 2 lần. NV1 chỉ gieo 1 hạt, nên NV3 \"Thu hoạch 3\" thu xong 1 cây là hết mũi tên, chế độ đang là Tưới, ruộng trống (ntA-390-10-after-tut.png). NV4 trỏ \"Bán hết\" bán cả 3 cà rốt, nên NV5 \"Giao đơn\" mở Bảng đơn thấy toàn \"Còn thiếu hàng\" và không còn mũi tên (ntA-390-q4.png, 44 vòng không có mục tiêu). Trên điện thoại gợi ý chữ bị gập nên trẻ không biết phải làm gì.", "fix": "(a) plot-ready khi không còn cây chín và cũng không có cây đang lớn ⇒ trỏ Hạt giống / ô trống; khi có cây đang lớn ⇒ hiện \"Chờ cây chín… 0:12\". (b) NV1 gieo 3 hạt (đúng 3 hạt miễn phí), hoặc NV3 chỉ cần 1. (c) NV4 trỏ nút \"Bán\" của 1 món, hoặc giữ lại số món mà đơn đầu cần; NV5 thiếu hàng ⇒ trỏ Hạt giống. (d) Khi không có mục tiêu thì tự mở gợi ý."}, {"id": "TLC12-02", "sev": "P2", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "TTS sự kiện / drama khi xoay ngang (≤ 500 px cao)", "title": "0/2 lựa chọn thấy trọn. Ảnh minh hoạ ~170 px chiếm hơn nửa sheet 318 px (gộp/thay TLC1-09).", "fix": "Ở màn thấp: ảnh thành dải 80–96 px hoặc đặt cạnh chữ (2 cột); lựa chọn ghim đáy sheet."}, {"id": "TLC12-03", "sev": "P2", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "NT 320×568 (và màn thấp dọc)", "title": "Cuối game ruộng 0 % thấy được: khay dính đáy y 360 che ruộng y 364+. Ngày 1 thì D4 đã ghi là \"phải cuộn lên\". HUD 2 hàng + nhiệm vụ + khay ăn hết chiều cao.", "fix": "≤ 600 px cao: khay hạt thu thành 1 hàng cuộn ngang, nút điều hướng 1 hàng biểu tượng, hoặc khay dính đáy chỉ hiện hàng hạt."}, {"id": "TLC12-04", "sev": "P2", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "NT HUD, số xu lớn (360/390/412/844×390/740×360)", "title": "999.999.999 xu làm HUD xuống 2 hàng (cao 100 px, đẩy bản đồ xuống 50 px). TTS đã rút gọn số (\"999 tỷ\"), NT thì chưa.", "fix": "shortNum giống TTS (1,2 tr / 999 tr), số đủ để ở title / aria-label."}, {"id": "TLC12-05", "sev": "P2", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "TTS 320×568, ngày 1, khi có thông báo hết hàng", "title": "2 lần nút gợi ý (Đường 70 %, Đá nhiều) bị #undoBtn che. reveal() chạy trước khi thông báo đổi bố cục, hoặc cụm nút cao hơn khoảng trống. e2e (seed 777, không có thông báo) không bắt được.", "fix": "Chạy lại reveal() khi thông báo/HUD đổi cỡ (ResizeObserver trên .brew); ở 320 ưu tiên đúng nút gợi ý."}, {"id": "TLC12-06", "sev": "P2", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "TTS 768×1024 cuối game", "title": "HUD dùng bố cục máy tính: 4 hàng, cao 146 px, đè lên cảnh 322×181.", "fix": "Gộp 768 dọc vào khối HUD 1 hàng (max-width:1024px and (orientation:portrait))."}, {"id": "TLC12-07", "sev": "P3", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "NT xoay ngang 844×390 / 740×360", "title": "Ô ruộng 42×42 (< 44).", "fix": "Ruộng 5×5 ⇒ bản đồ rộng hơn một chút, hoặc vùng chạm nở 1 px."}, {"id": "TLC12-08", "sev": "P3", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "TTS Nhật Ký", "title": "Ô \"Ẩn tên tiệm\" 22×22 (nhãn có bấm được nhưng ô nhỏ).", "fix": "Ô 28 px + nhãn bọc vùng chạm 44 px."}, {"id": "TLC12-09", "sev": "P3", "area": "TLC1", "areaName": "Nông Trại + Trà Sữa", "game": "NT thông báo \"Nhiệm vụ xong\"", "title": "Thông báo hiện đè lên HUD (che Cấp/Kho) đúng lúc trẻ cần thấy thưởng (ntA-390-q4.png).", "fix": "Đặt thông báo dưới dòng nhiệm vụ hoặc bay thưởng vào ô Xu/Cấp."}, {"id": "TLC22-01", "sev": "P1", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "Cơm Tấm cuối ca có thể đơ cả game, không ra bảng chốt ca (game.js)", "title": "Khi tick vừa thu tiền bàn cuối vừa chốt ca, act phát event paid sau lúc state.shift = null (core/shift.js:240). Handler case \"paid\" gọi groupById(state, …) và ném TypeError (game.js:180). Lỗi ném ra trong frame() trước requestAnimationFrame(frame) ở cuối hàm (game.js:~296), nên vòng lặp chết hẳn. Kết quả: đồng hồ đứng ở 23:00, dải gợi ý cũ vẫn hiện, bảng chốt ca không mở. Chạm gì cũng không có phản hồi (bot chạm thêm ~100 s). Ảnh ct-390b-09-end.png; ct-390b.json c", "fix": ""}, {"id": "TLC22-02", "sev": "P2", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "Bánh Mì điện thoại / tablet: tự cuộn tới quầy ráp làm mất cảnh, HUD, gợi ý, thông báo", "title": "390 giữa đơn: cảnh ở y = −252, đáy HUD −217, thông báo ở y = −28 (ngoài màn). 768: HUD cũng trôi khỏi màn (scan-tiem-banh-mi-390x844-shift.png, …768x1024-shift.png). Trẻ không thấy dải \"Bước 1: …\", thanh kiên nhẫn của khách trong cảnh, hay lời khách.", "fix": ""}, {"id": "TLC22-03", "sev": "P2", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "Bánh Mì khay thối tiền: nút chính \"Thối 0k\" là bẫy cho trẻ", "title": "Nút chính (màu nổi) Thối Nk đứng trước nút \"Thối đúng\". Bấm nó khi chưa chọn tờ nào vẫn được nhận, và bị tính lỗi \"Thối nhầm tiền\". Lượt đầu, bot bấm nút đầu tiên của hàng thì cả ca \"thối đúng 0, sai 2\" (bm-390-09-end.png).", "fix": ""}, {"id": "TLC22-04", "sev": "P2", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "Cơm Tấm tự tắt bếp / thiếu hàng mà không cảnh báo (gộp với TLC2-14)", "title": "Mở quán rỗng hàng thì ca chạy với than 0: bếp không nhóm, không nướng được, khách bỏ về. Xem TLC2-14. Hộp xác nhận nên liệt kê cả than. S.", "fix": ""}, {"id": "TLC22-05", "sev": "P3", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "Màn chào / Chuẩn bị ca khi xoay ngang phải cuộn", "title": "844×390 và 740×360: #introGo nằm dưới mép màn. restockToday bị .tab che (bm-844x390.json pre: introGo, restockToday(che:tab), openShop). Cơm Tấm dọc 390: nút vào quán ở y = 886.", "fix": ""}, {"id": "TLC22-06", "sev": "P3", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "e2e-layout của Bánh Mì và Cơm Tấm chập chờn khi máy bận", "title": "Cả hai trượt ở khung thứ 2 với \"không thấy #introGo\" (e2e-bm.out, e2e-ct.out). Cùng nguyên nhân D4 đã sửa cho e2e-m5: xoá localStorage 500 ms sau about:blank, nhưng pagehide của trang cũ ghi lại bản lưu.", "fix": ""}, {"id": "TLC22-07", "sev": "P3", "area": "TLC2", "areaName": "Bánh Mì + Cơm Tấm", "game": "Bánh Mì dải bước ngày 1 vẫn có \"Nướng lại\"", "title": "Ngày 1 ít khi dùng bước này. Khung ổ rỗng \"Lấy một ổ từ tủ kính…\" cao ~150 px ở 390 đẩy các nút xuống. Nên ẩn \"Nướng lại\" khi phiếu không cần, và thu khung ổ khi chưa có ổ. S.", "fix": ""}, {"id": "TTH2-01", "sev": "P1", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Ô Ăn Quan (và mọi game dùng games-server/moderation.js)", "title": "Chat phòng lọt **số điện thoại / lời rủ qua Zalo**: \"vao zalo 0912345678 nha\" hiện nguyên văn ở máy A. Lọt cả câu chửi không có từ tục: \"mày ngu\", \"thằng ngu\". \"đ.ụ m.á\" chỉ bị che một nửa (\"*** m.á\"). Trang dành cho trẻ, phòng có thể công khai ⇒ rủi ro dụ trẻ sang kênh riêng.", "fix": "Che dãy ≥ 7 chữ số (cả khi có dấu cách hay dấu chấm xen giữa), các từ zalo / fb / sđt / ib / inbox / tele. Thêm danh sách xúc phạm nhẹ (ngu, óc chó…). Chuẩn hoá bỏ dấu câu chen giữa chữ trước khi so."}, {"id": "TTH2-02", "sev": "P2", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Thám Tử, mọi màn có thanh trên, ≤ 400 px", "title": "Nút \"← Bản đồ\" chỉ còn mũi tên **24×40**, nút loa **34×38** (đo ở 320 và 390, index.html:582). Trẻ khó bấm Tắt tiếng / Thoát.", "fix": ".bar .btn--icon và #toMap tối thiểu 44×44 (hoặc vùng chạm ::after 44)."}, {"id": "TTH2-03", "sev": "P2", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Thám Tử, màn tựa trên điện thoại", "title": "srcset + sizes=\"100vw\" ⇒ máy dpr 3 tải title-art-hd.webp **1,1 MB** (index.html:760, screens.js:32). Mạng 1,6 Mbps: ảnh xong ở giây 18,9, LCP 19 s; tổng trang từ 163 KB lên 1,3 MB.", "fix": "Màn dọc ≤ 480 px dùng bản 960 (sizes thực tế hoặc <picture> theo media). Ảnh HD chỉ cho ngang / desktop."}, {"id": "TTH2-04", "sev": "P2", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Thám Tử Vụ 1 (vụ hướng dẫn)", "title": "Tới hiện trường đã nhanh, nhưng cả vụ vẫn **357 chạm, 230 chạm qua thoại, 11,4 phút**. Chỗ trống \"Vật gì?\" có **12 chip** (sổ tay nhặt 38 từ khoá), trẻ 7–10 tuổi dễ đoán mò.", "fix": "Vụ 1: mỗi chỗ trống chỉ hiện 3–4 chip cùng loại (đúng + nhiễu gần), hoặc bỏ nhặt các từ khoá không dùng; gộp thêm thoại hỏi cung."}, {"id": "TTH2-05", "sev": "P2", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Thám Tử, sổ tay 320 / 390", "title": "Tab \"Từ khoá\" bị cắt, tab \"Nhân vật\" nằm hẳn ngoài màn, không có dấu hiệu cuộn (phần còn lại của TTH-04).", "fix": "Tab 2×2 hoặc chữ ngắn + số; hoặc mép mờ báo cuộn được."}, {"id": "TTH2-06", "sev": "P3", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Thám Tử, chỗ trống bảng (dọc)", "title": ".slot đo được 96×**36** ở 320 / 390, trong khi D5 ghi \"chỗ trống 44 px\" (đúng ở màn ngang, chưa đúng ở màn dọc).", "fix": "min-height: 44px cho .slot ở mọi khung."}, {"id": "TTH2-07", "sev": "P3", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Thám Tử, kết vụ khi xoay ngang", "title": "Câu hỏi phụ nằm dưới hàng nút dính đáy (y 414–458, ngoài khung 360), phải cuộn mới thấy. Dòng \"+100 danh tiếng (gốc 100)\" bị hàng nút đè (tth-740x360-12-result-bonus.png).", "fix": "scroll-padding-bottom bằng chiều cao hàng nút; gợi ý \"Còn 3 câu hỏi phụ ↓\"."}, {"id": "TTH2-08", "sev": "P3", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "test/e2e-bot.mjs", "title": "Cả VIEW=mob và VIEW=land báo **FAIL \"0 lỗi console\"** vì net::ERR_CACHE_OPERATION_NOT_SUPPORTED với file mp3 (Range 206 khi Chrome headless dùng cache). Lối chơi vẫn 12/12. Một lần trượt chập chờn: meo-mat-tich VIEW=land \"không thấy [data-case]\" khi máy tải nặng.", "fix": "Bỏ qua lỗi này trong bộ lọc test, hoặc server trả Cache-Control: no-store cho yêu cầu Range. press() chờ lâu hơn khi cột hồ sơ đang cuộn."}, {"id": "TTH2-09", "sev": "P2", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Ô Ăn Quan \"Chơi với máy\", xoay ngang", "title": "Nút **▶ Bắt đầu nằm ngoài màn**: 844×390 ở y 376–428, 740×360 ở y 363–415 (oaq-844x390-02-solo.png).", "fix": "Hàng nút dính đáy như short-screen.css .ss-cta."}, {"id": "TTH2-10", "sev": "P2", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Ô Ăn Quan thẻ kết ván 320×568 (online)", "title": "Hàng nút (Ván tiếp, Khoe, Xem bàn, Rời phòng, Hủy phòng) **đè tiêu đề + điểm** \"ĐỘI BẠN THẮNG\"; \"Hủy phòng\" bị cắt (on-A-07-320.png). Người chơi không thấy mình thắng hay thua.", "fix": "Thẻ cuộn từ trên xuống (place-items:start), hoặc gộp Rời / Hủy vào menu. Tiêu đề + điểm luôn nằm trên cùng."}, {"id": "TTH2-11", "sev": "P3", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Ô Ăn Quan online", "title": "Đóng tab ⇒ nhãn \"mất kết nối\" hiện sau **6,4–8,1 s**, máy đi thay sau **22,6 s** (lần 1 toast hiện ở 13,9 s). Giữa lúc đó A thấy \"Chờ Tí…\" mà không biết vì sao.", "fix": "Nhịp ping ngắn hơn (2–3 s) hoặc bắt pagehide để gửi \"leave-soft\"."}, {"id": "TTH2-12", "sev": "P3", "area": "TTH", "areaName": "Thám Tử + Ô Ăn Quan", "game": "Ô Ăn Quan xoay ngang (online)", "title": "Tên đối thủ bị cắt \"Tí Siêu …\" trên thẻ cột trái; ở dọc thì đã 2 dòng.", "fix": "Áp line-clamp: 2 cho cả bố cục ngang."}, {"id": "BRD-06", "sev": "P1", "area": "BOARD", "areaName": "Cờ online", "game": "Cờ Tỷ Phú (lỗi lần 1, chưa sửa)", "title": "Vẫn nặng 2.429 KB, tải xong sau 15–17 giây trên Fast 3G + CPU ×4; bản thật lumkeo.com cũng vậy.", "fix": "Xuất ảnh bàn và poster đúng cỡ hiển thị, srcset 1×/2×, poster ≤ 150 KB, giữ lưới 2× sắc nét."}], "count": {"P0": 0, "P1": 8, "P2": 31, "P3": 30}, "scores": [["Visual Design & Brand Identity", 15, 7.9, 8.1, "3 game tiệm sang khung V5, bỏ nhãn \"bản chơi thử\", hộp hỏi pixel thay confirm(), viền nút đúng màu. Còn: hệ số pixel lẻ ở game tiệm, 16/25 nhãn MỚI/HOT."], ["Mobile UX & Responsive", 25, 6.0, 7.4, "Màn đầu trang chủ có 7 game; ngang/tablet chạy ở game tiệm, cờ, Đặt Bom, Thám Tử; nút ≥ 44 px gần như mọi nơi. Còn: 5 game nhỏ có nút Bắt đầu ngoài màn khi xoay ngang, Tỷ Phú online tràn ở ≤ 360 px, HUD Trà Sữa 4 hàng ở 768."], ["Game Experience", 20, 7.2, 7.5, "Vụ 1 Thám Tử 9 chạm tới hiện trường, Bánh Mì không cuộn tay, Khoe ở Cá Ngựa / Tỷ Phú. Còn: hướng dẫn Nông Trại kẹt 2 chỗ, Cơm Tấm có thể treo lúc chốt ca, Bánh Mì ~11 chạm mỗi đơn."], ["Navigation & User Flow", 10, 7.0, 7.5, "Đóng tab mở lại đúng ghế, Ván tiếp chờ đủ hai bên, trang Bảng xếp hạng + thanh điều hướng. Còn: ô tìm đè \"Bảng xếp hạng\" trên máy tính, Cá Ngựa \"Về phòng\" thoát hẳn phòng."], ["Animation & Interaction", 10, 7.4, 7.4, "Lún + tiếng ở mọi nút, cuộn trên điện thoại không còn kêu nhầm. Chưa soi lại hiệu ứng chuyển cảnh."], ["Performance", 10, 4.5, 6.8, "br/gzip + ETag/304 + cache immutable trên bản thật; Trà Sữa đứng yên 2,4 MB (trước 12,2 MB); Thám Tử chữ đầu 0,9 s (trước 18,5 s). Còn: Tỷ Phú 2,4 MB, LCP trang chủ ~4,7 s và Trà Sữa ~10 s trên 4G chậm, Bánh Mì ~15 fps ở CPU×4, chưa có CDN."], ["Accessibility", 5, 6.1, 6.5, "Nút ≥ 44 px, HUD có nhãn chữ; Lighthouse a11y trang chủ 95, 2048 93, Trà Sữa 93. Còn: skip link, thứ tự tiêu đề, focus rơi về body ở hero."], ["Advertising Integration", 5, 2.0, 3.0, "Thẻ Tài trợ SpeakUp Kids có sẵn nhưng ẩn tới khi có link; thẻ kết quả game cờ có chỗ đặt. Chưa có quảng cáo chạy thật để chấm."]], "grades": [["Trang chủ", "Cổng", "B-", "B", "Điện thoại dọc A-, ngang B+; máy tính B- vì ô tìm đè mục điều hướng."], ["Nông Trại", "Tập Làm Chủ", "B", "C", "Bố cục điện thoại tốt hơn nhiều; hạ vì phát hiện hướng dẫn kẹt 2 lần (lỗi cũ, lần 1 chưa thấy)."], ["Tiệm Trà Sữa", "Tập Làm Chủ", "C", "B", "Nút không còn bị che, khung V5, HUD 1 hàng, tải ngầm 2,4 MB."], ["Tiệm Bánh Mì", "Tập Làm Chủ", "C", "B", "0 lần cuộn tay, tablet + ngang chơi được; vẫn ~11 chạm mỗi đơn."], ["Quán Cơm Tấm", "Tập Làm Chủ", "C+", "C", "Tablet / ngang đã sửa; mới phát hiện lỗi treo lúc chốt ca."], ["Thám Tử Hẻm", "Giải đố", "B+", "B+", "Sát A: Vụ 1 nhẹ cho trẻ, màn ngang đủ 14 màn, bot 12/12 vụ 3★."], ["Ô Ăn Quan", "Đối kháng", "B-", "B", "Giữ ghế, nhãn mất kết nối, Ván tiếp đúng; chat lọt số điện thoại."], ["Cờ Caro", "Đối kháng", "B", "A", "Đủ luồng online, giữ ghế khi đóng tab."], ["Cờ Vua", "Đối kháng", "C", "B", "Màn ngang đã sửa."], ["Cờ Tướng", "Đối kháng", "B", "B", ""], ["Cờ Cá Ngựa", "Đối kháng", "C", "B", "Ngang, 320 px, Khoe đã sửa; \"Về phòng\" / \"Ván mới\" online còn lỗi."], ["Cờ Tỷ Phú", "Đối kháng", "C", "C", "Vẫn 2,4 MB; online tràn ở ≤ 360 px."], ["Ma Sói", "Nhóm", "C", "B", "Lọc tên/chat, chuyển chủ phòng khi chủ rời."], ["Ai Là Nội Gián", "Nhóm", "C", "B", "Có 8 chân dung pixel."], ["Đặt Bom", "Nhóm", "C", "B", "Ngang chơi được, phím chạy sau khi chat, nút Bắt đầu ghim đáy."], ["Nối Từ", "Nhóm", "B", "B", "Còn lỗi JS mỗi lần vào ván online."], ["2048", "Trí tuệ", "A", "B+", "Lần 2 có đo màn ngang (lần 1 không): nút Bắt đầu dưới mép."], ["Sudoku", "Trí tuệ", "A", "B+", "Như 2048."], ["Đố Vui", "Giải đố", "A-", "B", "Xoay ngang: lời giải thích, đáp án bị cắt."], ["Ghép Kẹo", "Giải đố", "A-", "B", "Xoay ngang: nút dưới mép."], ["Đua Xe", "Hành động", "A-", "A-", ""], ["Xếp Gạch", "Hành động", "B+", "A-", ""], ["Nối Thú", "Giải đố", "B+", "B", "Xoay ngang: nút dưới mép."], ["Rắn Săn Mồi", "Hành động", "B", "A-", ""], ["Bắn Bóng", "Hành động", "B", "A-", ""], ["Đào Vàng", "Hành động", "C+", "C+", "Chưa sửa: tràn dọc, chữ canvas ~7 px."]], "cmp": [["Trang chủ", 24, 17, 5, 2], ["Nông Trại + Trà Sữa", 18, 6, 4, 8], ["Bánh Mì + Cơm Tấm", 19, 5, 4, 10], ["Thám Tử + Ô Ăn Quan", 18, 7, 4, 7], ["Cờ online", 24, 14, 2, 8], ["Game nhóm online", 15, 9, 5, 1], ["Game nhỏ + hiệu năng", 16, 7, 6, 3]], "area": {"HOME": "Trang chủ", "TLC1": "Nông Trại + Trà Sữa", "TLC2": "Bánh Mì + Cơm Tấm", "TTH": "Thám Tử + Ô Ăn Quan", "BOARD": "Cờ online", "PARTY": "Game nhóm online", "QUICK": "Game nhỏ + hiệu năng"}}</script>
+
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const fmt = (n) => String(n).replace(".", ",");
+  $("sevrow").innerHTML = ["P0", "P1", "P2", "P3"].map((s) => `<span class="sev ${s}">${s} · ${D.count[s]}</span>`).join("");
+
+  $("bars").innerHTML = D.scores.map(([n, w, s1, s2, why]) => {
+    const cls = s2 < 5 ? " vlow" : s2 < 6.5 ? " low" : "";
+    const d = +(s2 - s1).toFixed(1);
+    const dl = d > 0 ? `<span class="delta up">+${fmt(d)}</span>` : d < 0 ? `<span class="delta down">${fmt(d)}</span>` : `<span class="delta same">=</span>`;
+    return `<div class="bar"><div class="name">${esc(n)}<small>trọng số ${w} · ${fmt(s1)} → ${fmt(s2)}${dl}</small></div><div class="track" role="img" aria-label="${fmt(s2)} trên 10, lần 1 ${fmt(s1)}"><div class="fill${cls}" style="width:${s2 * 10}%"></div><div class="ghost" style="width:${s1 * 10}%"></div></div><div class="val">${fmt((w * s2 / 10).toFixed(1))}/${w}<small>lần 1: ${fmt((w * s1 / 10).toFixed(1))}</small></div><p class="why">${esc(why)}</p></div>`;
+  }).join("");
+
+  $("grades").innerHTML = D.grades.map(([g, c, h1, h2, w]) => `<div class="grade"><div class="gpair"><div class="g old ${h1[0]}">${h1}</div><span class="arr">→</span><div class="g ${h2[0]}">${h2}</div></div><div><small>${esc(c)}</small><b>${esc(g)}</b><p>${esc(w)}</p></div></div>`).join("");
+
+  let T = [0, 0, 0, 0];
+  $("cmp").innerHTML = D.cmp.map(([n, a, b, c, e]) => { T = [T[0] + a, T[1] + b, T[2] + c, T[3] + e]; return `<tr><td>${esc(n)}</td><td class="n">${a}</td><td class="n ok">${b}</td><td class="n part">${c}</td><td class="n no">${e}</td></tr>`; }).join("")
+    + `<tr><td><b>Tổng</b></td><td class="n">${T[0]}</td><td class="n ok">${T[1]}</td><td class="n part">${T[2]}</td><td class="n no">${T[3]}</td></tr>`;
+
+  const state = { sev: new Set(), area: new Set(), q: "" };
+  const mkChips = (box, key, items) => items.forEach(([val, label]) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = label; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => { const on = !state[key].has(val); on ? state[key].add(val) : state[key].delete(val); b.setAttribute("aria-pressed", String(on)); render(); });
+    box.appendChild(b);
+  });
+  mkChips($("f-sev"), "sev", ["P1", "P2", "P3"].map((s) => [s, `${s} (${D.count[s]})`]));
+  mkChips($("f-area"), "area", Object.entries(D.area).map(([k, v]) => [k, `${v} (${D.issues.filter((i) => i.area === k).length})`]));
+  $("q").addEventListener("input", (e) => { state.q = e.target.value.trim(); render(); });
+  const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+  function render() {
+    const q = norm(state.q);
+    const list = D.issues.filter((i) => (!state.sev.size || state.sev.has(i.sev)) && (!state.area.size || state.area.has(i.area)) &&
+      (!q || norm([i.id, i.game, i.title, i.fix, i.areaName].join(" ")).includes(q)));
+    $("issuecount").textContent = `${D.issues.length} lỗi · ${D.count.P0} P0 · ${D.count.P1} P1`;
+    $("resultline").textContent = list.length === D.issues.length ? `Đang hiện tất cả ${list.length} lỗi, xếp theo mức.` : `Đang hiện ${list.length} / ${D.issues.length} lỗi.`;
+    const order = { P0: 0, P1: 1, P2: 2, P3: 3 };
+    list.sort((a, b) => order[a.sev] - order[b.sev]);
+    $("issues").innerHTML = list.length ? list.map((i) => `<article class="issue ${i.sev}" id="i-${esc(i.id)}"><div class="top"><span class="sev ${i.sev}">${i.sev}</span><span class="id">${esc(i.id)}</span><span class="where">${esc(i.game || i.areaName)}</span><span class="tag">${esc(i.areaName)}</span></div><p class="title">${esc(i.title)}</p>${i.fix ? `<p class="fix"><b>Sửa:</b> ${esc(i.fix)}</p>` : ""}</article>`).join("")
+      : `<div class="empty">Không có lỗi nào khớp bộ lọc.</div>`;
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
