@@ -80,4 +80,44 @@ và `index.html` tương ứng ⇒ `d6g`. Trong file game chỉ có dòng tag đ
 
 ## Test
 
-Xem phần kết quả cuối file (dán từ lần chạy cuối).
+Chạy trên nhánh này (server riêng ở cổng 8993–8997, chỉ tắt tiến trình mình bật):
+
+| Bộ test | Kết quả |
+|---|---|
+| `npm run test:account` (gồm `google.test.mjs` mới) | 30/30 đạt |
+| `node --test prototype/games/_shared/test/*.test.mjs` (gồm `google-login.test.mjs` mới, 11 test) | 59/59 đạt |
+| `node --test server-static.test.mjs games-server/name-gen.test.mjs` | 14/14 đạt |
+| `google-login-e2e.mjs` (mới) | 34 PASS, TẤT CẢ ĐẠT |
+| `home-d3-e2e` | 36 PASS, TẤT CẢ ĐẠT |
+| `home-d5-e2e` | 20 PASS, TẤT CẢ ĐẠT |
+| `touch-scroll-e2e` | 22 đạt, 0 lỗi |
+| `daily-e2e` (`E2E_PORT=8995`) | 40 PASS, TẤT CẢ ĐẠT |
+| `daily-board-e2e` (`E2E_PORT=8996`) | 26 PASS, TẤT CẢ ĐẠT |
+| `account-supabase-e2e` (`E2E_PORT=8997`) | 10 PASS, TẤT CẢ ĐẠT (sau khi sửa test cũ, xem dưới) |
+
+`google-login-e2e` kiểm: Google tắt và settings lỗi 500 thì khối Google ẩn; xem trang không hỏi settings; bật thì nút ≥ 44 px hiện;
+bấm thì `linkIdentity` gửi `redirect_to = http://…/homepage/` (đã bỏ `?game=x#top`) + PKCE S256 + token người ẩn danh; quay về thì URL sạch,
+hiện "Đã lưu bằng Google · ng•••@gmail.com", cùng user id, tên giữ nguyên, tên/email Google thật không có trên trang, tên được lưu vào
+`profiles`; tải lại và trang Bảng xếp hạng vẫn linked, settings không hỏi lại; Đăng xuất: pxConfirm, Thôi giữ nguyên, Đăng xuất thì
+`/logout?scope=local`, phiên bị xoá, tên khách tự sinh mới; máy mới: `identity_already_exists` thì mời đăng nhập, pxConfirm có tên khách,
+`/authorize` đúng `redirect_to`, vào lại đúng user id cũ, tên = "Bé Na" lấy từ máy chủ (`gen=false`); không lỗi console.
+
+**`account-supabase-e2e` đã hỏng sẵn trên master** (từ D3): test còn chờ bước hỏi tên (`dlyLb` state "ask") và thẻ `.dcard__rank`
+trên trang chủ, cả hai đã bị D3 bỏ. Đã sửa test: đặt sẵn tên chung trong localStorage, kiểm hạng qua ô hồ sơ (`#meRanks`).
+`daily-e2e` thêm `E2E_PORT` để chạy ngoài cổng 8767.
+
+`node tools/cache-tags/check-tags.mjs master`:
+```
+OK: 29 file tĩnh đổi, mọi tham chiếu ?v= tới chúng đã đổi tag.
+```
+
+Ảnh e2e (390×844 và 1366×900): khách có nút, đã lưu, hộp xác nhận đăng xuất, đã đăng xuất, máy mới "đã lưu trước đó", hộp xác nhận
+đăng nhập, đã đăng nhập. Không commit ảnh.
+
+## Chủ dự án cần làm trước khi chạy thật
+
+Theo `docs/account/GOOGLE-LOGIN-SETUP.md`: (1) Google Cloud: consent screen External, 3 quyền cơ bản, không logo, **Publish app**;
+(2) Web client: origin `https://lumkeo.com`, redirect `https://<project-ref>.supabase.co/auth/v1/callback`; (3) Supabase: bật Google
+(Client ID + Secret), giữ **Allow anonymous sign-ins**, bật **Allow manual linking**, Site URL `https://lumkeo.com/homepage/`, Redirect URLs
+`https://lumkeo.com/**` (+ `http://localhost:8991/**` cho dev); (4) kiểm `/auth/v1/settings` ra `"google": true` rồi thử luồng.
+Không cần đổi biến môi trường Railway, không cần deploy lại sau khi cấu hình.
