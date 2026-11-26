@@ -2,7 +2,7 @@
 // Luật ở logic.js (dùng chung với máy chủ), máy chơi ở ai.js, vẽ bàn + hoạt cảnh ở board.js, hình vẽ bằng code ở art.js.
 import { newMatch, nextRound, restartRound, playSteps, replay, canPlay, isOver, isAiTurn, legalMoves, ROWS, LEVELS, RULES } from "./logic.js";
 import { bestMove } from "./ai.js";
-import { createBoard } from "./board.js?v=oaq2";
+import { createBoard } from "./board.js?v=d8o";
 import { makeYardTile, makeBoard, makeStones, makeQuan, DEFAULT_PLACEMENTS } from "./art.js?v=oaq2";
 import { createNet, CODE_RE } from "./net.js?v=d6g";
 import { shareResult } from "../_shared/share.js?v=s2";
