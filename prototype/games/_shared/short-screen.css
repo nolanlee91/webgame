@@ -15,3 +15,8 @@
   .ss-ov.ss-ov { position: fixed; inset: var(--ss-bar-h, 0px) 0 0 0; z-index: 30; --ss-ov-pad: 8px;
     padding: 8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); }
 }
+/* Biến thể "ss-cta ss-cta--land" (2048, Sudoku, Đố Vui, Ghép Kẹo, Nối Thú — QUICK2-01): chỉ ghim khi điện thoại xoay ngang,
+   màn dọc / máy tính giữ nguyên bố cục cũ (không thêm nền, viền trên). */
+@media not all and (orientation: landscape), (min-height: 501px) {
+  .ss-cta--land.ss-cta--land.ss-cta--land { position: static; padding-top: 0; padding-bottom: 0; background: none; box-shadow: none; }
+}

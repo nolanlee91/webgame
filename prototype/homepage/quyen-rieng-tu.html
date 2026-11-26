@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../assets/fonts/fonts.css?v=f1" />
   <link rel="stylesheet" href="styles.css?v=d3a" />
   <link rel="stylesheet" href="portal.css?v=perf1" />
-  <link rel="stylesheet" href="portal-pixel.css?v=d6b" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d7a" />
   <style>
     .policy { max-width: 760px; margin: 0 auto; padding: 22px 26px 26px; }
     .policy h1 { margin: 0 0 6px; font: 800 clamp(24px, 3.4vw, 32px)/1.15 var(--font-title); }
@@ -47,7 +47,7 @@
     <a class="btn btn--sm back" href="./">← Về trang chủ</a>
     <article class="policy px-panel">
       <h1>Quyền riêng tư</h1>
-      <p class="updated">Cập nhật ngày 25/11/2026</p>
+      <p class="updated">Cập nhật ngày 26/11/2026</p>
 
       <p class="lead">Lụm Kèo là cổng game chơi miễn phí trên trình duyệt. Bạn chơi được mà không cần đăng ký, không cần email hay số điện thoại. Đăng nhập Google chỉ là tuỳ chọn để giữ tiến độ khi đổi máy. Trang này nói rõ Lụm Kèo giữ những gì, để làm gì, và cách xoá.</p>
 
@@ -86,7 +86,7 @@
         <li><b>Railway</b>: máy chủ chạy trang web và phòng chơi online.</li>
         <li><b>Supabase</b>, máy chủ đặt tại Singapore: lưu mã ẩn danh, tên hiển thị và kết quả Thử thách; nếu bạn chọn lưu bằng Google thì lưu thêm mã tài khoản Google và email.</li>
         <li><b>Google</b>: chỉ khi bạn bấm lưu hoặc đăng nhập bằng Google, trang đăng nhập là của Google.</li>
-        <li><b>jsDelivr</b>, <b>Google Fonts</b>: tải thư viện và phông chữ. Các dịch vụ này cũng thấy địa chỉ IP của bạn khi tải.</li>
+        <li><b>jsDelivr</b>: chỉ khi bạn bấm lưu hoặc đăng nhập bằng Google, trình duyệt tải thư viện đăng nhập từ đây; jsDelivr thấy địa chỉ IP của bạn khi tải. Phông chữ nằm ngay trên máy chủ Lụm Kèo, không tải từ Google Fonts.</li>
       </ul>
       <p>Bảng xếp hạng mỗi ngày giữ lại để xem lịch sử. Lụm Kèo có thể xoá bớt dữ liệu cũ mà không báo trước.</p>
 
@@ -96,10 +96,13 @@
       <h2>5. Xoá dữ liệu và liên hệ</h2>
       <ul>
         <li>Muốn đổi tên: bấm ô hồ sơ (avatar + tên) góc trên trang chủ, hoặc nút <b>Đổi tên</b> ngay dòng hạng của bạn.</li>
-        <li>Muốn xoá hẳn kết quả và tên trên máy chủ: gửi yêu cầu cho Lụm Kèo kèm tên hiển thị và ngày chơi. Lụm Kèo xoá trong vòng 7 ngày.</li>
-        <li>Đã lưu bằng Google và muốn xoá hẳn tài khoản (mã Google, email, tên, kết quả): gửi yêu cầu từ chính email đó, kèm tên hiển thị. Lụm Kèo xoá trong vòng 7 ngày. Bạn cũng gỡ được quyền truy cập của Lụm Kèo trong trang quản lý tài khoản Google (Bảo mật › Ứng dụng bên thứ ba).</li>
+        <li>Muốn xoá hẳn kết quả và tên trên máy chủ: gửi yêu cầu qua kênh liên hệ ghi ngay bên dưới, kèm tên hiển thị và ngày chơi. Lụm Kèo xoá trong vòng 7 ngày.</li>
+        <li>Đã lưu bằng Google và muốn xoá hẳn tài khoản (mã Google, email, tên, kết quả): gửi yêu cầu từ chính email đó qua kênh liên hệ bên dưới, kèm tên hiển thị. Lụm Kèo xoá trong vòng 7 ngày. Bạn cũng gỡ được quyền truy cập của Lụm Kèo trong trang quản lý tài khoản Google (Bảo mật › Ứng dụng bên thứ ba).</li>
       </ul>
-      <p id="contactLine">Liên hệ: <span id="contactBox">đang cập nhật.</span></p>
+      <!-- HOME2-02: kênh liên hệ lấy từ community.js (contactEmail, facebookGroup, zalo). Còn trống ⇒ ghi "sắp cập nhật", không hứa kênh chưa có.
+           Điền contactEmail (nhớ đổi ?v= của community.js) là email tự hiện ở đây. -->
+      <p id="contactLine">Kênh liên hệ: <span id="contactBox">sắp cập nhật.</span></p>
+      <p id="contactWait">Trong lúc chưa có kênh liên hệ, bạn vẫn tự đổi tên được ở ô hồ sơ. Kết quả trên bảng xếp hạng chỉ gắn với tên hiển thị và mã ẩn danh, không gắn với tên thật.</p>
 
       <h2>6. Thay đổi</h2>
       <p>Khi Lụm Kèo thêm tính năng mới (ví dụ đăng nhập bằng Facebook), trang này sẽ được cập nhật trước khi tính năng chạy, kèm ngày cập nhật ở đầu trang.</p>
@@ -114,13 +117,22 @@
   <script src="community.js?v=c2"></script>
   <script>
     (function () {
-      var C = window.COMMUNITY || {}, box = document.getElementById("contactBox"), parts = [];
-      var mail = typeof C.contactEmail === "string" ? C.contactEmail.trim() : "";
-      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) parts.push('<a href="mailto:' + mail + '">' + mail + "</a>");
-      var g = typeof C.facebookGroup === "string" ? C.facebookGroup.trim() : "", z = typeof C.zalo === "string" ? C.zalo.trim() : "";
-      if (/^https?:\/\/\S+$/i.test(g)) parts.push('<a href="' + g + '" target="_blank" rel="noopener">nhóm Facebook Lụm Kèo</a>');
-      if (/^https?:\/\/\S+$/i.test(z)) parts.push('<a href="' + z + '" target="_blank" rel="noopener">nhóm Zalo Lụm Kèo</a>');
-      if (parts.length) box.innerHTML = parts.join(" hoặc ") + ".";
+      var C = window.COMMUNITY || {}, box = document.getElementById("contactBox"), items = [];
+      var str = function (v) { return typeof v === "string" ? v.trim() : ""; };
+      var mail = str(C.contactEmail), g = str(C.facebookGroup), z = str(C.zalo);
+      if (/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(mail)) items.push({ href: "mailto:" + mail, text: mail });
+      if (/^https?:\/\/[^\s<>"]+$/i.test(g)) items.push({ href: g, text: "nhóm Facebook Lụm Kèo", ext: true });
+      if (/^https?:\/\/[^\s<>"]+$/i.test(z)) items.push({ href: z, text: "nhóm Zalo Lụm Kèo", ext: true });
+      if (!items.length) return;
+      box.textContent = "";
+      items.forEach(function (it, i) {
+        if (i) box.appendChild(document.createTextNode(" hoặc "));
+        var a = document.createElement("a"); a.href = it.href; a.textContent = it.text;
+        if (it.ext) { a.target = "_blank"; a.rel = "noopener"; }
+        box.appendChild(a);
+      });
+      box.appendChild(document.createTextNode("."));
+      var w = document.getElementById("contactWait"); if (w) w.hidden = true;
     })();
   </script>
 </body>

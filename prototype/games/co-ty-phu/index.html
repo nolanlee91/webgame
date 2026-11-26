@@ -24,6 +24,7 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/co-ty-phu.jpg" />
   <!-- og:end -->
   <link rel="stylesheet" href="../../assets/fonts/fonts.css?v=f1" />
+  <link rel="preload" as="image" href="assets/poster-co-ty-phu.webp?v=d7a" fetchpriority="high" /><!-- BRD-06: ảnh lớn đầu tiên người chơi thấy -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%223%22 y=%222%22 width=%2210%22 height=%2212%22 fill=%22%23f4c042%22/%3E%3Crect x=%226%22 y=%224%22 width=%224%22 height=%228%22 fill=%22%235a3a08%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng ngôn ngữ Cờ Cá Ngựa / Rắn Săn Mồi: viền 3px (box-shadow), bóng cứng lệch, không bo tròn.
@@ -92,7 +93,9 @@
     .ic-money { background-position: 25% 100%; } .ic-bag { background-position: 50% 100%; } .ic-jail { background-position: 75% 100%; } .ic-ban { background-position: 100% 100%; }
 
     /* Bàn: mọi lớp phủ dùng % của hệ 1024×1024 */
-    .board { position: absolute; inset: 0; background: url(assets/board-co-ty-phu.webp) center / 100% 100% no-repeat; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--line), var(--drop); container-type: size; z-index: 0; }
+    .board { position: absolute; inset: 0; background: #46602f center / 100% 100% no-repeat; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--line), var(--drop); container-type: size; z-index: 0; }
+    /* BRD-06: ảnh bàn (1,3 MB) chỉ gắn khi đã tải xong — tải SAU sự kiện load (script cuối trang) để poster màn vào phòng được trọn băng thông */
+    html.tp-board .board { background-image: url(assets/board-co-ty-phu.webp?v=d7a); }
     .tile { position: absolute; cursor: pointer; }
     .tile:focus-visible { outline: 3px dashed var(--gold); outline-offset: -3px; z-index: 3; }
     .tile.hl { animation: hl .5s steps(2) 3; }
@@ -156,7 +159,7 @@
     .card { width: min(560px, 100%); padding: 20px 22px 24px; background: var(--panel); box-shadow: var(--bevel), var(--border), var(--drop); text-align: center; margin: 3px 7px 7px 3px; }
     .card h2 { margin: 0 0 6px; font: 800 26px/1.15 "Be Vietnam Pro", system-ui; letter-spacing: .05em; text-transform: uppercase; text-shadow: 3px 3px 0 #000; }
     .card .sub { margin: 0; color: var(--soft); font-size: 14px; }
-    .poster { width: 100%; aspect-ratio: 3/2; background: url(assets/poster-co-ty-phu.webp) center / cover; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--line); margin-bottom: 14px; }
+    .poster { width: 100%; aspect-ratio: 3/2; background: url(assets/poster-co-ty-phu.webp?v=d7a) center / cover; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--line); margin-bottom: 14px; }
     .pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 3px 6px; }
     .pick button { all: unset; cursor: pointer; display: grid; justify-items: center; gap: 4px; padding: 8px 4px; background: var(--panel2); box-shadow: var(--border); font-size: 12px; font-weight: 700; color: var(--soft); }
     .pick button i { width: 56px; height: 56px; }
@@ -292,16 +295,33 @@
     @media (orientation: landscape) and (max-height: 500px) {
       .board-wrap { --size: min(calc(100svh - 62px - env(safe-area-inset-bottom)), calc(100vw - 2 * 140px - 36px)); }
     }
+    /* BOARD2-06: link "← Trang chủ" vùng chạm ≥ 44×44 (trước 92×23, trong phòng chỉ còn "←" 13×23); margin âm để thanh không cao thêm */
+    /* Thanh trên luôn nằm trên lớp phủ (trước chỉ khi online) ⇒ link Trang chủ bấm được cả ở màn vào phòng / chơi với máy */
+    .bar { position: relative; z-index: 21; } .ov { padding-top: 64px; }
+    .bar a.home { display: inline-flex; align-items: center; justify-content: center; gap: .3em; min-width: 44px; min-height: 44px; margin-block: -8px; flex: none; }
+    @media (orientation: landscape) and (max-height: 500px) { .bar a.home { margin-block: -6px; } }
+    /* BOARD2-01: online ở 320–420 px thanh trên không được rộng hơn màn (trước nở ra 379 px, trình duyệt thu nhỏ cả trang, nút loa bị cắt):
+       Chat chỉ còn icon 44×44, "Vòng" ẩn (còn "1/25"), tên game co lại, mọi phần tử min-width: 0. */
+    .chatbtn .ci { display: none; }
+    .bar > * { min-width: 0; }
+    @media (max-width: 420px) {
+      .bar { gap: 4px; padding-left: 6px; padding-right: 6px; }
+      .bar h1 { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; font-size: 14px; letter-spacing: .02em; }
+      .round { padding: 4px 6px; } .round .rw { display: none; }
+      .bar .chatbtn { width: 44px; padding: 0; } .chatbtn .ct { display: none; } .chatbtn .ci { display: inline; font-size: 18px; }
+      .bar .iconbtn { flex: none; }
+    }
+    @media (max-width: 340px) { .bar h1 { font-size: 12px; letter-spacing: 0; } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
   </style>
 </head>
 <body>
   <header class="bar">
-    <a href="../../homepage/" aria-label="Về trang chủ">←<span class="hm"> Trang chủ</span></a>
+    <a class="home" href="../../homepage/" aria-label="Về trang chủ">←<span class="hm"> Trang chủ</span></a>
     <h1>Cờ Tỷ Phú</h1>
     <span class="tagline" id="tagline">Lụm Kèo Đại Phú · 2–4 người</span>
-    <span class="round" id="round">Vòng 1/25</span>
-    <button class="iconbtn chatbtn" id="chatBtn" type="button" aria-label="Trò chuyện" hidden>Chat<span class="n" hidden></span></button>
+    <span class="round" id="round"><span class="rw">Vòng </span>1/25</span>
+    <button class="iconbtn chatbtn" id="chatBtn" type="button" aria-label="Trò chuyện" hidden><span class="ci" aria-hidden="true">💬</span><span class="ct">Chat</span><span class="n" hidden></span></button>
     <button class="iconbtn" id="quitBtn" type="button" aria-label="Rời phòng" title="Rời phòng" hidden>Rời</button>
     <button class="iconbtn" id="mute" aria-label="Tắt/bật âm thanh" title="Âm thanh">🔊</button>
   </header>
@@ -393,7 +413,14 @@
   </div>
   <div class="confetti" id="confetti"></div>
 
-  <script type="module" src="game.js?v=d6g"></script>
+  <script>
+    /* BRD-06: bàn cờ tải sau khi trang xong (không tranh băng thông với poster), có trong cache rồi mới hiện ⇒ không vẽ dở */
+    (function () {
+      var go = function () { var im = new Image(); im.onload = im.onerror = function () { document.documentElement.classList.add("tp-board"); }; im.src = "assets/board-co-ty-phu.webp?v=d7a"; };
+      if (document.readyState === "complete") go(); else addEventListener("load", go, { once: true });
+    })();
+  </script>
+  <script type="module" src="game.js?v=d7a"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

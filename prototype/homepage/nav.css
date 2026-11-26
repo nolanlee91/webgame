@@ -5,10 +5,16 @@
             ≤ 720      hàng dính đầu màn [logo …… hồ sơ]; dưới đó (cuộn theo trang) hàng chip điều hướng cuộn ngang + ô tìm. */
 
 .topbar--nav .topbar__row { display: contents; }
-.topbar--nav .topbar__inner { grid-template-columns: auto minmax(0, 1fr) minmax(200px, 300px) auto; gap: 8px 18px; }
+.topbar--nav .topbar__inner { grid-template-columns: auto auto minmax(160px, 1fr) auto; gap: 8px 18px; }
 .topbar--nav .logo { grid-column: 1; grid-row: 1; }
 .topbar--nav .mainnav { grid-column: 2; grid-row: 1; }
-.topbar--nav .search { grid-column: 3; grid-row: 1; }
+.topbar--nav .search { grid-column: 3; grid-row: 1; justify-self: end; width: 100%; max-width: 300px; }
+/* HOME2-01: cột điều hướng rộng đúng bằng nội dung (auto, không còn minmax(0,1fr) cho tràn sang ô tìm); ô tìm co 160–300 px.
+   ≤ 1440 px: mục cuối dùng nhãn ngắn "Xếp hạng" (có sẵn trong DOM) để ô tìm còn rộng. */
+@media (min-width: 1181px) and (max-width: 1440px) {
+  .topbar--nav:not(.topbar--nosearch) .mainnav__a:has(.mainnav__s) .mainnav__l { display: none; }
+  .topbar--nav:not(.topbar--nosearch) .mainnav__s { display: inline; }
+}
 .topbar--nav .me { grid-column: 4; grid-row: 1; }
 
 /* ---------- Điều hướng chính ---------- */
@@ -102,7 +108,7 @@
 /* ---------- 721–1180 px: điều hướng xuống hàng thứ hai ---------- */
 @media (max-width: 1180px) {
   .topbar--nav .topbar__inner { grid-template-columns: auto minmax(0, 1fr) auto; padding-bottom: 4px; }
-  .topbar--nav .search { grid-column: 2; justify-self: end; width: min(100%, 420px); }
+  .topbar--nav .search { grid-column: 2; justify-self: end; width: min(100%, 420px); max-width: none; }
   .topbar--nav .me { grid-column: 3; }
   .topbar--nav .mainnav { grid-column: 1 / -1; grid-row: 2; margin: 0 -12px; }
 }
@@ -149,3 +155,14 @@
   .topbar--nav .mainnav { margin: 0 -12px; }
   .me__btn { width: 190px; }
 }
+
+/* ---------- HOME2-03 / HOME2-04 (D7) ---------- */
+/* Ô tìm 16 px trên mọi máy cảm ứng (điện thoại xoay ngang, iPad): < 16 px thì iOS tự phóng to khi focus */
+@media (pointer: coarse) { .topbar--nav .search input { font-size: 16px; } }
+/* Nhảy tới mục (skip link, chip "Phòng", chip thể loại): tiêu đề mục nằm dưới mép thanh dính ≥ 8 px.
+   Chiều cao thanh dính: > 1180 px 71 · 721–1180 (hai hàng) 117 · ≤ 720 (chỉ hàng logo dính) 57 · xoay ngang thấp: thanh không dính. */
+#games, #lobby, .shelf { scroll-margin-top: 79px; }
+#games:focus, #lobby:focus { outline: none; } /* tabindex="-1" để skip link chuyển focus; tiêu đề ngay đó nên không cần viền */
+@media (max-width: 1180px) { #games, #lobby, .shelf { scroll-margin-top: 125px; } }
+@media (max-width: 720px) { #games, #lobby, .shelf { scroll-margin-top: 65px; } }
+@media (orientation: landscape) and (max-height: 500px) and (min-width: 721px) and (max-width: 1023px) { #games, #lobby, .shelf { scroll-margin-top: 8px; } }

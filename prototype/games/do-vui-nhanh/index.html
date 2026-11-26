@@ -24,11 +24,13 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/do-vui.jpg" />
   <!-- og:end -->
   <link rel="stylesheet" href="../../assets/fonts/fonts.css?v=f1" />
+  <link href="../_shared/short-screen.css?v=ss2" rel="stylesheet" /><!-- khung thấp: nút chính ghim đáy lớp phủ (QUICK2-01, docs/mobile-landscape.md) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230a0807%22/%3E%3Crect x=%222%22 y=%222%22 width=%2212%22 height=%229%22 fill=%22%23ffc94a%22/%3E%3Crect x=%224%22 y=%2211%22 width=%223%22 height=%223%22 fill=%22%23ffc94a%22/%3E%3Crect x=%227%22 y=%224%22 width=%222%22 height=%223%22 fill=%22%232c1b05%22/%3E%3Crect x=%227%22 y=%228%22 width=%222%22 height=%222%22 fill=%22%232c1b05%22/%3E%3C/svg%3E" />
   <style>
     /* Pixel UI theo Art Bible V5 — cùng bộ UI với Xếp Gạch / 2048 / Sudoku: viền 3px (box-shadow), vát 2px, bóng cứng lệch,
        không bo tròn, không mờ. Vàng CHỈ cho nút chính. Đúng = xanh lá, sai = đỏ, luôn kèm chữ/biểu tượng (không chỉ màu). */
-    :root { --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
+    :root { --ss-bar-h: 31px; /* chiều cao thanh đầu trang khi xoay ngang — _shared/short-screen.css */
+      --bg: #17110c; --ink: #f4ead2; --soft: #b9ad93; --dim: #7d7564;
       --panel: #1d1a16; --panel2: #262019; --line: #0a0807; --shadow: rgba(0,0,0,.6);
       --gold: #ffc94a; --gold-l: #ffe9a8; --gold-d: #5a3a08; --teal: #3f9a45; --teal-l: #7fd47f; --teal-d: #17521c;
       --red: #e0483d; --red-l: #ff8f84; --red-d: #7a1c17; --blue: #3a7bd5; --blue-l: #8fb8f0; --blue-d: #163a73;
@@ -179,6 +181,28 @@
       .bar { padding: 4px 12px; } .bar a { margin-block: -12px; } .wrap { padding: 8px 12px; gap: 8px; }
       .answers { gap: 6px 14px; } .ans { min-height: 46px; font-size: 15px; } .qcard { padding: 12px 16px 14px; } .qcard h2 { font-size: 18px; margin-top: 8px; }
     }
+    /* QUICK2-02: điện thoại xoay ngang — không phải cuộn khi đang trả lời. HUD một hàng trên cùng; cột trái: đồng hồ · câu hỏi · phản hồi
+       (lời giải thích + "Câu tiếp"); cột phải: 4 đáp án xếp dọc, mỗi ô ≥ 44 px. Màn dọc / máy tính không đổi. */
+    @media (orientation: landscape) and (max-height: 500px) {
+      .bar { padding: 3px max(12px, env(safe-area-inset-right)) 3px max(12px, env(safe-area-inset-left)); } .bar a { margin-block: -12px; } .bar h1 { font-size: 15px; } .tag { display: none; }
+      .wrap { max-width: 1100px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+        grid-template-areas: "hud hud" "timer ans" "q ans" "fb ans"; gap: 6px 16px; overflow: hidden;
+        padding: 6px max(12px, env(safe-area-inset-right)) 6px max(12px, env(safe-area-inset-left)); }
+      .hud { grid-area: hud; flex-direction: row; gap: 10px; }
+      .stats { padding: 4px 10px; gap: 6px; } .stat small { font-size: 10px; letter-spacing: .04em; } .stat b { font-size: 17px; } .stat.best b { font-size: 14px; }
+      .tools { gap: 10px; margin: 3px 7px 3px 3px; } .tools .btn { flex: none; min-height: 44px; }
+      .timer { grid-area: timer; } .timer b { font-size: 17px; min-width: 40px; } .timer .px-bar { height: 12px; }
+      .qcard { grid-area: q; min-height: 0; overflow: auto; padding: 10px 14px 12px; margin: 3px 7px 3px 3px; }
+      .qcard .chip { font-size: 11px; padding: 2px 8px; } .qno { top: 10px; right: 12px; font-size: 12px; }
+      .qcard h2 { font-size: 17px; margin-top: 8px; }
+      .answers { grid-area: ans; grid-template-columns: 1fr; align-content: center; gap: 4px; margin: 0; }
+      .ans { min-height: 44px; margin: 2px 6px 5px 2px; padding: 4px 10px 4px 6px; gap: 10px; font-size: 15px; --drop: 3px 4px 0 0 var(--shadow); }
+      .ans .k { width: 30px; height: 30px; font-size: 15px; }
+      .feedback { grid-area: fb; min-height: 0; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; }
+      .fb-text { grid-column: 1; grid-row: 1; font-size: 16px; } .fb-note { grid-column: 1 / -1; font-size: 13px; line-height: 1.35; }
+      .feedback .btn { grid-column: 2; grid-row: 1; margin: 0 4px 4px 0; flex: none; min-height: 44px; }
+      .keys-hint { display: none; }
+    }
   </style>
 </head>
 <body class="is-menu">
@@ -222,7 +246,7 @@
   </main>
   <canvas id="fx"></canvas>
 
-  <div class="ov" id="ovMenu">
+  <div class="ov ss-ov" id="ovMenu">
     <div class="card">
       <h2>Đố Vui Nhanh</h2>
       <p class="sub">10 câu trắc nghiệm — trả lời đúng và càng nhanh càng nhiều điểm!</p>
@@ -233,7 +257,7 @@
         <button class="opt" type="button" role="radio" data-mode="normal"><b>Bình thường</b><small>15 giây mỗi câu.</small></button>
         <button class="opt" type="button" role="radio" data-mode="fast"><b>Siêu tốc ⚡</b><small>8 giây mỗi câu, điểm × 1,5.</small></button>
       </div>
-      <div class="actions"><button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button></div>
+      <div class="actions ss-cta ss-cta--land"><button class="btn btn--big btn--primary" id="playBtn" type="button">▶ Bắt đầu</button></div>
       <div class="best" id="mBest"></div>
       <a class="daily-link" id="dailyLink" href="?daily=1">★ Thử thách hôm nay</a>
       <div class="how">
@@ -245,25 +269,25 @@
     </div>
   </div>
 
-  <div class="ov" id="ovPause" hidden>
+  <div class="ov ss-ov" id="ovPause" hidden>
     <div class="card">
       <h2>Tạm dừng</h2>
       <p class="sub">Câu hỏi được che lại, đồng hồ đứng yên.</p>
-      <div class="actions">
+      <div class="actions ss-cta ss-cta--land">
         <button class="btn btn--big btn--primary" id="resumeBtn" type="button">▶ Chơi tiếp</button>
         <button class="btn btn--big" id="menuBtnP" type="button">Về menu</button>
       </div>
     </div>
   </div>
 
-  <div class="ov" id="ovEnd" hidden>
+  <div class="ov ss-ov" id="ovEnd" hidden>
     <div class="card">
       <div class="stars" id="eStars" aria-hidden="true"></div>
       <h2 id="eTitle">Cao Thủ</h2>
       <p class="sub" id="eSub"></p>
       <div class="result" id="eResult"></div>
       <div id="eRecord"></div>
-      <div class="actions">
+      <div class="actions ss-cta ss-cta--land">
         <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
         <button class="btn btn--big" id="menuBtnE" type="button">Đổi chủ đề</button>
       </div>
