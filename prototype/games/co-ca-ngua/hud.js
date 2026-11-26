@@ -44,7 +44,7 @@ export function createHud(root, cb) {
       <div class="cn-board"></div>
       <aside class="cn-lobby px-panel" aria-label="Phòng chờ">
         <div class="ttl"><h2 class="px-h">Phòng · <span class="code">Chơi với máy</span></h2>
-          <button class="px-btn icon" data-act="copy" type="button" title="Sao chép link phòng" aria-label="Sao chép link phòng">${ic("copy-link").replace("px-ic", "")}</button></div>
+          <button class="px-btn icon net-only" data-act="copy" type="button" title="Sao chép link phòng" aria-label="Sao chép link phòng">${ic("copy-link").replace("px-ic", "")}</button></div>
         <div class="sec sec-n"><div class="lb">Số người</div>
           <div class="segs">${[2, 3, 4].map((n) => `<button class="px-btn seg" data-n="${n}" type="button" aria-pressed="false">${n} người</button>`).join("")}</div></div>
         <div class="sec sec-color local-only" role="group" aria-labelledby="cnColorLb"><div class="lb" id="cnColorLb">Màu của bạn</div>
