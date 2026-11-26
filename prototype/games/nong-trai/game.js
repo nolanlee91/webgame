@@ -1332,7 +1332,8 @@ export function mount(root, ctx = {}) {
   try { muted ||= storage?.getItem(MUTE_KEY) === "1"; } catch {}
   setMuted(muted);
   ui.mute.addEventListener("click", () => setMuted(!sdk.sound.muted));
-  const showHelp = (on) => { ui.ovHelp.hidden = !on; if (on) ui.helpOk.focus(); else cells[cursor].b.focus({ preventScroll: true }); };
+  // TLC1-02: nút "Đã hiểu" nằm cuối bảng ⇒ focus không được kéo bảng xuống cuối (trước đây mở ra đã cuộn tới cuối, mất tiêu đề)
+  const showHelp = (on) => { ui.ovHelp.hidden = !on; if (on) { ui.helpOk.focus({ preventScroll: true }); ui.ovHelp.scrollTop = 0; for (const e of ui.ovHelp.querySelectorAll("*")) if (e.scrollTop) e.scrollTop = 0; } else cells[cursor].b.focus({ preventScroll: true }); };
   ui.help.addEventListener("click", () => showHelp(true));
   ui.helpOk.addEventListener("click", () => showHelp(false));
   function onKey(e) {

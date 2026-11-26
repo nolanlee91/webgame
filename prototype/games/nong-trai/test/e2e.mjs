@@ -214,6 +214,8 @@ check("mobile: nhà kho mở, không tràn ngang, nút bán ≥ 44px", await vis
 await shotFull("08-mobile-kho.png");
 // người mới trên mobile: chạm gieo
 await ev("localStorage.clear()"); await nav(BASE);
+// TLC1-02: bảng Cách chơi mở ở đầu (tiêu đề thấy được), không bị focus nút "Đã hiểu" kéo xuống cuối
+check("TLC1-02: mobile 390: bảng Cách chơi mở ở đầu, tiêu đề trong màn", await ev("(()=>{const o=document.getElementById('ovHelp');const t=o.querySelector('h2,h3');const r=t&&t.getBoundingClientRect();return !o.hidden&&o.scrollTop===0&&[...o.querySelectorAll('*')].every(e=>e.scrollTop===0)&&!!r&&r.top>=0&&r.bottom<=innerHeight})()"));
 await pressSel("#helpOk");
 await plot(12);
 check("mobile: chạm ô → gieo được, NV1 1/3", (await S("s.plots[12].crop")) === "ca-rot" && (await text("#qProg")) === "1/3");
