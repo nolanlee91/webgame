@@ -252,7 +252,7 @@ function createNoiTuHost(server, opts = {}) {
       if (e.ref) e.ref.disconnect(conn.id); // trọng tài tự chờ 30 s rồi cho máy thay ghế
       checkIdle(e);
     });
-  }, { maxBytes: 1024, allowOrigin: opts.allowOrigin });
+  }, { maxBytes: 1024, allowOrigin: opts.allowOrigin, pingMs: opts.pingMs, deadMs: opts.deadMs });
 
   function publicList() {
     return [...rooms.values()]
