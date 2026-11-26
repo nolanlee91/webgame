@@ -4,7 +4,7 @@
 // Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
-import { createHud } from "./hud.js?v=d6b";
+import { createHud } from "./hud.js?v=d7o";
 import { botMove, makeRng } from "./ai.js";
 import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=chat1";
 
@@ -203,7 +203,8 @@ export function mount(el, ctx = {}) {
     onRule(k) { if (net) { net.send({ t: "rule", rule: k }); return; } if (lobby) { ruleKey = k; newGame(); } refocus(); },
     onPlay() { sfx.unlock(); if (net) { net.send({ t: "start" }); return; } lobby = false; newGame(); sfx.play("qua-man", 0.5); refocus(); }, // vào ván với máy: cùng tiếng "vào ván" như online
     onDisband() { if (net && net.disband) net.disband(); }, // chủ phòng online: hủy phòng (online.js hỏi xác nhận nếu còn người khác)
-    onLobby() { if (net) { net.leave(); return; } lobby = true; paused = false; newGame(); },
+    // online: hết ván ⇒ cả phòng về phòng chờ (giữ mã + người, BOARD2-02); đang chơi ⇒ rời phòng (máy chủ đi thay, nút ghi "Rời ván")
+    onLobby() { if (net) { if (room && room.phase === "over") net.send({ t: "lobby" }); else net.leave(); return; } lobby = true; paused = false; newGame(); },
     onAgain() { sfx.unlock(); if (net) { net.send({ t: "again" }); return; } advanceOver(); refocus(); },
     onMute() { sdk.sound.muted = !sdk.sound.muted; ctx.onMuteChange && ctx.onMuteChange(sdk.sound.muted); sfx.unlock(); refocus(); },
     onPause() { if (net) { refocus(); return; } setPaused(!paused); refocus(); },
@@ -586,6 +587,12 @@ export function mount(el, ctx = {}) {
     if (net && room) {
       const list = room.players.map((p, i) => ({ seat: lobby ? g.seats[i] : p.seat, name: p.name, away: p.left ? "left" : p.connected ? "" : "away", me: i === room.you, host: i === room.host, bot: !!p.bot, idx: i }));
       online = { code: room.code, host: room.you === room.host, count: room.players.length, me: list[room.you] ? list[room.you].seat : -1, list, left: room.deadline && !inbox.length ? Math.max(0, Math.ceil((room.deadline - Date.now() - (room.skew || 0)) / 1000)) : null };
+      // hết ván: ai đã bấm "Ván mới" (máy chủ đếm ngược 10 giây rồi tự mở ván, BOARD2-03). Máy chủ cũ không gửi `again` ⇒ null
+      if (room.phase === "over" && Array.isArray(room.again)) {
+        const real = room.players.map((p, i) => i).filter((i) => !room.players[i].bot && !room.players[i].left);
+        online.again = { k: real.filter((i) => room.again[i]).length, n: real.length, mine: !!room.again[room.you],
+          left: room.againDeadline ? Math.max(0, Math.ceil((room.againDeadline - Date.now() - (room.skew || 0)) / 1000)) : null };
+      }
     }
     return { lobby, players, rule: ruleKey, seats: g.seats, active: tray ? tray.seat : -1, cards, tray, msg, paused, muted: !!sdk.sound.muted, over, online, vsBot: !net, me: meSeat() };
   }

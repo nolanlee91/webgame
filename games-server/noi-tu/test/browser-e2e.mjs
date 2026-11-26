@@ -190,6 +190,27 @@ try {
   ok(true, 'A rời phòng ⇒ B được báo đối thủ mất kết nối');
 
   ok(A.errors.length === 0 && B.errors.length === 0, `không có lỗi JS (${[...A.errors, ...B.errors].join(' | ')})`);
+
+  // ---- PARTY2-02: mạng chậm, bấm Tạo / Vào phòng TRƯỚC khi từ điển nạp xong ⇒ không lỗi pinOf(null), ván vẫn chạy ----
+  const C = await new Tab('C').open(), D = await new Tab('D').open();
+  const slow = async (T) => { await T.cmd('Network.enable'); await T.cmd('Network.setCacheDisabled', { cacheDisabled: true });
+    await T.cmd('Network.emulateNetworkConditions', { offline: false, latency: 400, downloadThroughput: 120 * 1024, uploadThroughput: 120 * 1024 }); };
+  const early = async (T, url, name, btn) => {
+    await slow(T); await T.cmd('Page.navigate', { url });
+    await T.waitFor(`document.readyState!=='loading' && window.__game && document.getElementById('${btn}')`, 20000);
+    const noDict = await T.ev(`!window.__game.dict`);
+    await T.ev(`document.getElementById('oName').value=${JSON.stringify(name)}`);
+    await T.click('#' + btn);
+    return noDict;
+  };
+  const cEarly = await early(C, BASE, 'Cúc', 'createBtn');
+  await C.waitFor(`!document.getElementById('mLobby').hidden && document.getElementById('lCode').textContent.length===5`, 30000);
+  const code2 = await C.text('#lCode');
+  const dEarly = await early(D, `${BASE}?p=${code2}`, 'Đào', 'enterBtn');
+  await C.waitFor(`window.__game.state?.round`, 30000); await D.waitFor(`window.__game.state?.round`, 30000);
+  ok(cEarly || dEarly, `bấm khi từ điển chưa nạp (C:${cEarly} D:${dEarly})`);
+  await sleep(500);
+  ok(C.errors.length === 0 && D.errors.length === 0, `mạng chậm, bấm sớm ⇒ ván vẫn bắt đầu, không lỗi JS (${[...C.errors, ...D.errors].join(' | ')})`);
 } catch (e) {
   console.error(e); fails++;
 } finally {

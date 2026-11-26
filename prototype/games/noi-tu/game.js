@@ -143,7 +143,14 @@ export function mount(root, { sdk = { sound: { muted: false } } } = {}) {
   }
 
   // ---------- online: phòng 2 người qua mã ----------
+  let pendingRoom = null;     // bấm Tạo / Vào phòng khi từ điển chưa nạp xong ⇒ chờ nạp rồi mới mở (PARTY2-02)
   function openRoom(action) {
+    if (!dict) { // ghim ván (pinOf) cần từ điển: mở phòng sớm thì lúc ván bắt đầu sẽ lỗi `pinOf(null)` ở cả hai tab
+      el.mNote.textContent = "Đang tải từ điển…"; setBusyMenu(true);
+      if (!pendingRoom) ready.then(() => { const a = pendingRoom; pendingRoom = null; if (dict && a) openRoom(a); });
+      pendingRoom = action;
+      return;
+    }
     closeSession(); leaveRoom();
     mode = "online";
     const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/noi-tu`;

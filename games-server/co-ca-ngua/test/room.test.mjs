@@ -236,7 +236,7 @@ test('máy chủ tự đi nước bắt buộc; người im lặng quá hạn �
   } finally { await S.stop(); }
 });
 
-test('hết ván: chuyển pha "over", ai trong phòng cũng xin "ván mới" được → ván mới sạch', async () => {
+test('hết ván: chuyển pha "over"; "ván mới" cần cả phòng sẵn sàng (BOARD2-03) → ván mới sạch', async () => {
   const S = await startServer({ timings: { auto: 5, turn: 5, away: 5, left: 5 } });
   try {
     const cs = await table(S.url, 2);
@@ -246,7 +246,14 @@ test('hết ván: chuyển pha "over", ai trong phòng cũng xin "ván mới" đ
     assert.ok(L.hasWon({ rules: cs[0].v.game.rules, horses: cs[0].v.game.horses }, cs[0].v.game.winner), 'người thắng đủ 4 ngựa về chuồng');
     assert.equal(await cs[0].tryCmd({ t: 'roll' }), 'phase', 'hết ván thì không gieo được nữa');
     cs[1].send({ t: 'again' });
+    await cs[0].next((m) => m.t === 'state' && m.v.again?.[1] === true);
+    assert.equal(cs[0].v.phase, 'over', 'một người bấm ⇒ bảng kết quả của người kia vẫn mở');
+    assert.deepEqual(cs[0].v.again, [false, true]);
+    assert.ok(cs[0].v.againDeadline > Date.now(), 'cả phòng thấy hạn tự mở ván mới');
+    cs[0].send({ t: 'again' });
     await cs[0].next((m) => m.t === 'state' && m.v.gid === 2 && m.v.phase === 'play');
+    assert.deepEqual(cs[0].v.again, [false, false]);
+    assert.equal(cs[0].v.againDeadline, 0);
     assert.equal(cs[0].v.seq, 0);
     assert.ok(cs[0].v.game.horses[0].every((p) => p === -1));
     for (const c of cs) c.close();
@@ -413,4 +420,78 @@ test('chat (review Codex): hạn mức theo IP sống suốt đời phòng — r
   assert.equal(c.post(b, 'abc' + ctl + 'def', 1).ok, true);
   const last = c.view('x').at(-1).text;
   assert.equal(last, 'abc def'); assert.ok(![...last].some((ch) => ch.charCodeAt(0) > 0x7e && ch.charCodeAt(0) < 0x2100 && !/\p{L}/u.test(ch)));
+});
+
+// BOARD2-02 / BOARD2-03 / BRD-15: "Ván mới" theo kiểu sẵn sàng + đếm ngược (../../rematch.js), "Về phòng chờ" giữ cả nhóm.
+function fakeRoom(timings = {}) {
+  const { Room } = require('../room.js');
+  let now = 1000, timers = [], id = 0;
+  const clock = { now: () => now, setTimeout: (f, ms) => { const t = { id: ++id, at: now + ms, f }; timers.push(t); return t; }, clearTimeout: (t) => { timers = timers.filter((x) => x !== t); } };
+  const tick = (to) => { while (true) { const t = timers.filter((x) => x.at <= to).sort((a, b) => a.at - b.at)[0]; if (!t) break; timers = timers.filter((x) => x !== t); now = t.at; t.f(); } now = to; };
+  const r = new Room({ code: 'ABCDE', L, clock, randInt: () => 5, timings: { again: 10000, ...timings } });
+  const over = () => { r.phase = 'over'; r.g.phase = 'over'; r.clock.clearTimeout(r.timer); r.timer = null; r.deadline = 0; };
+  return { r, tick, over, now: () => now };
+}
+
+test('BOARD2-03: một người bấm "Ván mới" ⇒ đếm ngược 10 giây, cả phòng thấy ai đã sẵn sàng; đủ người thật ⇒ mở ngay; bot không cần bấm', () => {
+  const { r, tick, over, now } = fakeRoom();
+  r.join('A', 'ta'); r.join('B', 'tb'); r.join('C', 'tc'); r.handle(0, { t: 'add-bot' });
+  r.handle(0, { t: 'start' }); over();
+  assert.ok(r.handle(1, { t: 'again' }).ok);
+  assert.equal(r.phase, 'over', 'chưa mở ván mới');
+  assert.deepEqual(r.viewFor(0).again, [false, true, false, false]);
+  assert.equal(r.viewFor(2).againDeadline, now() + 10000);
+  assert.ok(r.handle(1, { t: 'again' }).ok, 'bấm lại không sao'); assert.equal(r.phase, 'over');
+  assert.ok(r.handle(0, { t: 'again' }).ok); assert.equal(r.phase, 'over');
+  assert.ok(r.handle(2, { t: 'again' }).ok);
+  assert.equal(r.phase, 'play', 'cả 3 người thật sẵn sàng ⇒ mở ngay (ghế bot không phải bấm)');
+  assert.equal(r.gid, 2);
+  assert.deepEqual(r.viewFor(0).again, [false, false, false, false]);
+  // hết đếm ngược ⇒ tự mở ván mới
+  over();
+  r.handle(2, { t: 'again' });
+  tick(now() + 9999); assert.equal(r.phase, 'over');
+  tick(now() + 2); assert.equal(r.phase, 'play'); assert.equal(r.gid, 3);
+  r.close();
+});
+
+test('BOARD2-03: người chưa bấm rời phòng lúc hết ván ⇒ những người còn lại đã sẵn sàng thì mở ngay', () => {
+  const { r, over } = fakeRoom();
+  r.join('A', 'ta'); r.join('B', 'tb'); r.handle(0, { t: 'start' }); over();
+  r.handle(0, { t: 'again' }); assert.equal(r.phase, 'over');
+  r.leave(1);
+  assert.equal(r.phase, 'play', 'người còn lại không phải chờ hết 10 giây');
+  r.close();
+});
+
+test('BOARD2-02 / BRD-15: "lobby" lúc hết ván ⇒ cả phòng về phòng chờ, giữ mã, người và bot; người đã rời bị bỏ; chơi lại được', () => {
+  const { r, over } = fakeRoom();
+  r.join('A', 'ta'); r.join('B', 'tb'); r.join('C', 'tc'); r.handle(0, { t: 'add-bot' });
+  assert.equal(r.handle(1, { t: 'lobby' }).err, 'phase', 'phòng chờ: không có gì để về');
+  r.handle(0, { t: 'start' });
+  assert.equal(r.handle(1, { t: 'lobby' }).err, 'phase', 'đang chơi thì không kéo cả phòng về phòng chờ được');
+  r.leave(2);
+  over();
+  r.handle(0, { t: 'again' });
+  assert.ok(r.handle(1, { t: 'lobby' }).ok);
+  assert.equal(r.phase, 'lobby'); assert.equal(r.code, 'ABCDE'); assert.equal(r.g, null);
+  assert.deepEqual(r.players.map((p) => p.name), ['A', 'B', 'Bot Tèo']);
+  assert.equal(r.rematch.deadline, 0, 'đếm ngược ván mới bị huỷ'); assert.equal(r.timer, null);
+  const v = r.viewFor(1);
+  assert.equal(v.phase, 'lobby'); assert.equal(v.game, null); assert.deepEqual(v.again, [false, false, false]);
+  assert.ok(r.handle(0, { t: 'start' }).ok); assert.equal(r.phase, 'play');
+  r.close();
+});
+
+test('giao thức an toàn với client cũ / dữ liệu lạ: "again" không kèm gì vẫn chạy (đếm ngược), lệnh lạ / trường rác không làm sập máy chủ', () => {
+  const { r, tick, over, now } = fakeRoom();
+  r.join('A', 'ta'); r.join('B', 'tb'); r.handle(0, { t: 'start' });
+  for (const m of [{ t: 'again' }, { t: 'lobby' }, { t: 'lobby', x: { y: 1 } }, { t: 'again', ready: 'yes' }, { t: 'zzz' }, { t: null }, {}]) {
+    assert.doesNotThrow(() => r.handle(1, m));
+  }
+  over();
+  assert.ok(r.handle(1, { t: 'again', junk: [1, 2, 3] }).ok);
+  tick(now() + 10001);
+  assert.equal(r.phase, 'play', 'client cũ chỉ biết gửi "again": ván mới vẫn mở sau đếm ngược');
+  r.close();
 });

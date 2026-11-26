@@ -16,7 +16,7 @@ let cssAdded = false;
 function addCss() {
   if (cssAdded || document.querySelector("link[data-cn-hud]")) return;
   const l = document.createElement("link");
-  l.rel = "stylesheet"; l.href = new URL("hud.css?v=d6b", import.meta.url).href; l.dataset.cnHud = "";
+  l.rel = "stylesheet"; l.href = new URL("hud.css?v=d7o", import.meta.url).href; l.dataset.cnHud = "";
   document.head.appendChild(l); cssAdded = true;
 }
 
@@ -29,7 +29,7 @@ export function createHud(root, cb) {
       <div class="cn-tools">
         <button class="px-btn icon" data-act="mute" type="button" title="Âm thanh (M)" aria-label="Âm thanh"><img alt="" draggable="false"></button>
         <button class="px-btn icon play-only" data-act="pause" type="button" title="Tạm dừng (P)" aria-label="Tạm dừng">${ic("tam-dung").replace("px-ic", "")}</button>
-        <button class="px-btn icon play-only" data-act="leave" type="button" title="Rời bàn — về phòng chờ" aria-label="Rời bàn, về phòng chờ">${ic("roi-phong").replace("px-ic", "")}</button>
+        <button class="px-btn icon play-only" data-act="leave" type="button" title="Rời bàn" aria-label="Rời bàn">${ic("roi-phong").replace("px-ic", "")}</button>
       </div>
     </div>
     <div class="cn-arena">
@@ -68,6 +68,7 @@ export function createHud(root, cb) {
         <div class="head"><h2 class="px-h"></h2></div>
         <canvas class="podium" width="960" height="552"></canvas>
         <table><thead><tr><th></th><th style="text-align:left">Phường</th><th>Về đích</th><th>${ic("xuc-xac-6")} Gieo 6</th><th>Đá quân</th></tr></thead><tbody></tbody></table>
+        <p class="again-note" aria-live="polite" hidden></p>
         <div class="btns">
           <button class="px-btn primary" data-act="again" type="button">Ván mới</button>
           <button class="px-btn" data-act="share" type="button">Khoe kết quả</button>
@@ -94,7 +95,7 @@ export function createHud(root, cb) {
     if (a === "mute") cb.onMute();
     if (a === "pause") cb.onPause();
     if (a === "leave" || a === "room" || a === "leave-room") {
-      if (online && a === "leave" && !online.over && !(await pxConfirm({ title: "Rời ván đang chơi?", text: "Máy chủ sẽ đi thay phần của bạn.", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
+      if (online && a === "leave" && !online.over && !(await pxConfirm({ title: "Rời ván đang chơi?", text: "Bạn sẽ ra khỏi phòng, máy chủ đi thay phần của bạn.", ok: "Rời ván", cancel: "Thôi", danger: true }))) return;
       cb.onLobby();
     }
     if (a === "disband") cb.onDisband && cb.onDisband();
@@ -213,7 +214,14 @@ export function createHud(root, cb) {
       result.querySelector(".head").setAttribute("style", seatVars(w));
       const pw = who(v, w);
       result.querySelector(".head .px-h").textContent = pw ? (pw.me ? "Bạn thắng!" : pw.name + " thắng!") : v.vsBot ? (w === v.me ? "Bạn thắng!" : "Máy (phường " + NAMES[w] + ") thắng!") : "Phường " + NAMES[w] + " thắng!";
-      result.querySelector('[data-act="room"]').textContent = v.online ? (v.online.host && others ? "Rời phòng · nhường chủ" : "Rời phòng") : "Về phòng";
+      // online: "Về phòng chờ" đưa cả nhóm về phòng chờ, giữ mã + người (BOARD2-02); rời hẳn thì bấm "Rời phòng" ở phòng chờ
+      result.querySelector('[data-act="room"]').textContent = v.online ? "Về phòng chờ" : "Về phòng";
+      // "Ván mới" online = "tôi sẵn sàng": cả phòng thấy k/N muốn chơi tiếp + giây đếm ngược, thẻ kết quả không bị đóng ngang (BOARD2-03)
+      const ag = v.online && v.online.again, againBtn = result.querySelector('[data-act="again"]'), note = result.querySelector(".again-note");
+      againBtn.disabled = !!(ag && ag.mine);
+      againBtn.textContent = !ag ? "Ván mới" : ag.mine ? "Đã sẵn sàng ✓" : ag.k ? "Chơi tiếp ngay ▶" : "Ván mới";
+      note.hidden = !(ag && ag.k);
+      if (ag && ag.k) note.textContent = `${ag.k}/${ag.n} muốn chơi tiếp` + (ag.left != null ? ` · ván mới sau ${ag.left} giây` : "");
       result.querySelector("tbody").innerHTML = v.over.order.map((r, i) => `<tr style="${seatVars(r.seat)}"><td class="rk">#${i + 1}</td><td class="n"><i></i>${who(v, r.seat) ? esc(who(v, r.seat).name) : v.vsBot ? (r.seat === v.me ? "Bạn · " : "Máy · ") + NAMES[r.seat] : NAMES[r.seat]}</td><td>${r.home}/4</td><td>${r.sixes}</td><td>${r.kicks}</td></tr>`).join("");
     }
   }
