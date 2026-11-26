@@ -74,3 +74,22 @@ Nếu gameplay yêu cầu bàn có ô **đều tuyệt đối** thì bản minh 
 `generation-prompts.json`: 6 prompt của bộ ảnh hiện hành, prompt bàn 24 ô được chuyển vào `superseded`; có ghi 1 lần thay thế và tổng số lần gọi thực tế. `asset-manifest.json`: 6 file chính, kích thước, mode, byte size, SHA-256, các sprite và **40 tọa độ bàn**. So SHA-256 bằng `Get-FileHash -Algorithm SHA256 <file>`.
 
 Đã kiểm đủ file, tỷ lệ, alpha và tọa độ không vượt kích thước atlas; xem preview sau xuất. Lần sửa bàn 40 ô đã đối chiếu SHA-256: **cả 5 ảnh còn lại giữ nguyên từng byte**. Chưa kiểm trong gameplay/trên thiết bị di động thật. Chưa sửa file của game khác. Đề cương MVP cũ vẫn mô tả 24 ô; cần Dev cập nhật cấu hình/luật theo quyết định bàn 40 ô, không đọc số ô từ đề cương cũ.
+
+## Giảm dung lượng (BRD-06)
+
+| File | Kích thước | Trước → sau (byte) | Màu | Lưới 2× |
+|---|---|---:|---:|---:|
+| `board-co-ty-phu.webp` | 1024×1024 | 1.354.468 → 107.048 | 64 | 100% |
+| `poster-co-ty-phu.webp` | 960×640 | 943.468 → 70.908 | 64 | 100% |
+
+WebP lossless, không dither. Đã dùng 2 lượt ImageGen, 0 lượt làm lại. Đã soi ảnh chồng 50% để rà vị trí 40 ô, 4 góc và mép bàn. Tọa độ manifest giữ nguyên.
+
+```text
+board-co-ty-phu.webp: 1024x1024 | 107,048 bytes | 64 colors | 100.00% 2x grid
+poster-co-ty-phu.webp: 960x640 | 70,908 bytes | 64 colors | 100.00% 2x grid
+40 board tiles with unique perimeter positions
+```
+
+Chạy lại bằng `python -I docs/co-ty-phu/check_optimize.py`. Đã kiểm byte và SHA-256. Chưa đo lại tải trang với cache mới.
+
+Commit asset: f5ea8c7.
