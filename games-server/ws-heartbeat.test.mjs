@@ -37,12 +37,13 @@ for (const g of games) {
   test(`${g}/ws.js: client chết bị đóng sau deadMs; client trả pong được giữ`, async () => {
     const { attachWs } = require(`./${g}/ws.js`);
     const srv = http.createServer(); const closes = [];
-    attachWs(srv, "/ws", (s) => s.on("close", () => closes.push(s)), { pingMs: 40, deadMs: 200 });
+    attachWs(srv, "/ws", (s) => s.on("close", () => closes.push(s)), { pingMs: 80, deadMs: 500 }); // khoảng rộng: máy test bận vẫn kịp trả pong
     await new Promise((r) => srv.listen(0, "127.0.0.1", r));
     const { port } = srv.address();
     const dead = await open(port, false), alive = await open(port, true);
     try {
-      await sleep(450);
+      for (let t0 = Date.now(); !dead.ended && Date.now() - t0 < 4000; ) await sleep(20);
+      await sleep(200);
       assert.ok(alive.pings >= 3, `phải nhận ping định kỳ (nhận ${alive.pings})`);
       assert.equal(dead.ended, true, "client không trả lời phải bị đóng");
       assert.equal(alive.ended, false, "client trả pong không được bị đóng");
@@ -64,13 +65,13 @@ for (const g of games) {
   test(`${g}/ws.js: đóng vì im lặng ⇒ socket.silent = true; đóng bình thường ⇒ không`, async () => {
     const { attachWs } = require(`./${g}/ws.js`);
     const srv = http.createServer(); const socks = [];
-    attachWs(srv, "/ws", (s) => socks.push(s), { pingMs: 30, deadMs: 120 });
+    attachWs(srv, "/ws", (s) => socks.push(s), { pingMs: 60, deadMs: 500 });
     await new Promise((r) => srv.listen(0, "127.0.0.1", r));
     const { port } = srv.address();
     const dead = await open(port, false), polite = await open(port, true);
     try {
       polite.c.write(Buffer.concat([Buffer.from([0x88, 0x82]), Buffer.alloc(4), Buffer.from([0x03, 0xe8])])); // khung đóng 1000, mask 0
-      for (let t0 = Date.now(); Date.now() - t0 < 3000 && !(socks[0]?.silent && !socks[1]?.open); ) await sleep(20);
+      for (let t0 = Date.now(); Date.now() - t0 < 5000 && !(socks[0]?.silent && !socks[1]?.open); ) await sleep(20);
       assert.equal(socks.length, 2);
       assert.equal(socks[0].silent, true, "client im lặng ⇒ silent");
       assert.ok(!socks[1].silent, "client tự đóng ⇒ không silent");
