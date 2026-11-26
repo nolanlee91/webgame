@@ -260,7 +260,8 @@ function renderEnd() {
   const r = v.result, pl = v.players;
   $("endKick").textContent = r.reason === "time" ? "Hết giờ — tính điểm" : "Người sống sót cuối cùng";
   $("endTitle").textContent = r.draw ? "Hoà!" : r.winner === v.you ? "Bạn thắng!" : `${pl[r.winner]?.name || "?"} thắng!`;
-  const order = r.stats.map((s, i) => i).sort((a, b) => (b === r.winner) - (a === r.winner) || r.stats[b].score - r.stats[a].score);
+  // PTY-15 (D8): người thắng → người còn sống → điểm. Hoà thì người đã bị loại (dù điểm cao) không đứng trên người còn sống.
+  const order = r.stats.map((s, i) => i).sort((a, b) => (b === r.winner) - (a === r.winner) || !!r.stats[b].alive - !!r.stats[a].alive || r.stats[b].score - r.stats[a].score);
   $("endList").innerHTML = order.map((i) => {
     const s = r.stats[i];
     return `<li class="${i === r.winner ? "win" : ""} ${s.alive ? "" : "dead"}"><span class="sw" style="background:${COLORS[i]}"></span>` +

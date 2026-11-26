@@ -302,6 +302,14 @@
       .pl { flex-wrap: wrap; row-gap: 2px; }
       .pl .who { order: 3; flex: 1 0 100%; }
     }
+    /* TTH2-09 (D8): màn thấp (điện thoại ngang) / hẹp — hàng "▶ Bắt đầu · Quay lại" và hàng nút thẻ kết ván dính đáy thẻ, luôn thấy
+       mà không phải cuộn. .ov "safe center": thẻ cao hơn khung thì bắt đầu từ mép trên (căn giữa thường cắt mất đầu thẻ, không cuộn tới được). */
+    .ov { place-items: safe center; }
+    @media (max-height: 600px) and (min-aspect-ratio: 1/1), (max-width: 760px), (max-aspect-ratio: 1/1) {
+      .card { padding: 18px 14px 22px; }
+      .vact, .actions { position: sticky; bottom: -12px; z-index: 1; margin: 14px -14px -22px; padding: 10px 14px 14px; gap: 10px; background: var(--panel); box-shadow: 0 -3px 0 var(--line); }
+    }
+    @media (max-height: 520px) and (min-aspect-ratio: 1/1) { .card h2 { font-size: 22px; } }
   </style>
 </head>
 <body>
