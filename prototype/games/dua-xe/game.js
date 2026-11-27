@@ -2,7 +2,7 @@
 // Toàn bộ hình vẽ pixel bằng canvas ở độ phân giải thấp rồi phóng to "pixelated" (không dùng ảnh AI):
 // xe địa hình đỏ, đồi 4 vùng (cỏ, cát, đá đỏ, tuyết), can xăng, đồng xu, cột mốc, cờ kỷ lục.
 import * as L from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s2";
+import { shareResult } from "../_shared/share.js?v=s3";
 
 const SAVE_KEY = "wgp.dua-xe.v1";
 const OUT = "#160d0a";

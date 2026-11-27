@@ -10,6 +10,11 @@ Thư mục này chứa SQL tạo bảng cho tài khoản (giai đoạn 1) và B�
 
 File viết theo kiểu chạy lại được (`create table if not exists`, `drop policy if exists` rồi tạo lại), nên chạy lần hai sẽ không hỏng dữ liệu.
 
+## 002_stats.sql: số đếm lượt dùng (Đợt 10)
+
+Chạy giống hệt `001_init.sql` (dán toàn bộ, Run). Tạo bảng `stats_daily` (RLS bật, không policy) và hàm `stats_add(jsonb)` chỉ
+`service_role` gọi được. Hướng dẫn đầy đủ + biến môi trường: `docs/account/STATS-SETUP.md`.
+
 ## Migration sau này
 
 Đặt tên tăng dần: `002_<việc>.sql`, `003_…`. Mỗi file cũng phải chạy lại được. Không sửa file đã chạy trên bản thật, chỉ thêm file mới.

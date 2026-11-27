@@ -4,7 +4,7 @@ import { portraitEl, accentOf, clueSprite } from "./art.js?v=t10";
 import { renderText } from "./dialog.js?v=t11";
 import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t10";
 import { KINDS } from "../core/validate.js?v=t10";
-import { accuse } from "./screens.js?v=t14";
+import { accuse } from "./screens.js?v=d10";
 import { play as sfx } from "./sfx.js?v=t10";
 
 export const KIND_NAME = { ai: "Ai", luc: "Lúc nào", o: "Ở đâu", vat: "Vật gì", cach: "Cách nào", vi: "Vì sao", khac: "Khác" };

@@ -2,7 +2,7 @@
 // (npc-market.webp, keeperLayer.drawRect) với bong bóng thoại xoay vòng, kệ "Bán" (hàng trong kho, giá hôm nay + ↑↓·),
 // bảng giá + "đổi giá sau h:mm:ss", kệ "Mua" (market.catalogue: hạt giống trả lúc gieo, thức ăn, vật liệu, trang trí).
 // Mọi giao dịch qua ctx.exec ⇒ apply() (marketSell / marketBuy).
-import { loadSprites, draw, sheet, image, frame, playFx } from "./sprites.js?v=m15";
+import { loadSprites, draw, sheet, image, frame, playFx } from "./sprites.js?v=m16";
 
 const BUY_KIND = { seed: "Hạt giống", feed: "Thức ăn", material: "Vật liệu", decor: "Trang trí" };
 const TREND = { "↑": ["up", "giá đang lên"], "↓": ["down", "giá đang xuống"], "·": ["flat", "giá đứng"] };

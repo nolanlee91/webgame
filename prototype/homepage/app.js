@@ -252,6 +252,13 @@
   function roomHref(game, code) {
     return byId(game).url + "?" + (roomQueryP.has(game) ? "p" : "room") + "=" + encodeURIComponent(code);
   }
+  // Đợt 10 (số đếm): bấm "Vào" ở sảnh chờ ⇒ cookie ngắn hạn lk_via=sanh (2 phút, giá trị cố định, không định danh ai).
+  // Trình duyệt gửi kèm khi game mở WebSocket ⇒ máy chủ đếm "vào phòng từ sảnh" thay vì "vào bằng link / mã" (games-server/stats-hook.js).
+  document.addEventListener("click", function (e) {
+    var a = e.target && e.target.closest ? e.target.closest(".room__go") : null;
+    if (!a) return;
+    try { document.cookie = "lk_via=sanh; Max-Age=120; Path=/; SameSite=Lax"; } catch (err) {}
+  }, true);
   function seatsHTML(r) {
     var s = "";
     for (var i = 0; i < r.max; i++) s += '<i class="' + (i < r.have ? "on" : "") + '"></i>';
