@@ -311,7 +311,16 @@ async function boot() {
   // ---------- điều khiển ----------
   const muteBtn = $("#muteBtn");
   const MODE_LABEL = { all: "Tiếng: bật", sfx: "Tiếng: hiệu ứng", off: "Tiếng: tắt" };
-  const syncMute = () => { const m = soundMode(); muteBtn.dataset.mode = m; muteBtn.setAttribute("aria-pressed", m === "off" ? "true" : "false"); muteBtn.textContent = MODE_LABEL[m]; muteBtn.title = MODE_LABEL[m] + " (M)"; };
+  // D9: ≤ 360 px nút Tiếng chỉ còn biểu tượng (CSS ẩn chữ) ⇒ ô tiền không bị cắt ở 320. Biểu tượng pixel lưới 12×11 (1 điểm = 2 px):
+  // bật hết = loa + 2 sóng, chỉ hiệu ứng = loa + 1 sóng, tắt = loa xám + dấu X đỏ. Chữ đủ vẫn ở aria-label / title.
+  const SND_PX = { spk: [[1, 4, 2, 3], [3, 3, 1, 5], [4, 2, 1, 7], [5, 1, 1, 9]], w1: [[7, 4, 1, 3]], w2: [[8, 2, 1, 1], [9, 3, 1, 5], [8, 8, 1, 1]],
+    x: [[7, 3, 1, 1], [10, 3, 1, 1], [8, 4, 2, 2], [7, 6, 1, 1], [10, 6, 1, 1]] };
+  const SND_ICON = Object.fromEntries(Object.entries({ all: [["spk", "#f5ecd9"], ["w1", "#ffc35a"], ["w2", "#ffc35a"]], sfx: [["spk", "#f5ecd9"], ["w1", "#ffc35a"]], off: [["spk", "#8f8aa8"], ["x", "#ff6a4d"]] })
+    .map(([m, parts]) => [m, `<svg class="snd-ico" viewBox="0 0 12 11" width="24" height="22" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${parts.map(([k, c]) => SND_PX[k].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`).join("")).join("")}</svg>`]));
+  const syncMute = () => {
+    const m = soundMode(); muteBtn.dataset.mode = m; muteBtn.setAttribute("aria-pressed", m === "off" ? "true" : "false");
+    muteBtn.innerHTML = SND_ICON[m] + `<span class="snd-l">${MODE_LABEL[m]}</span>`; muteBtn.setAttribute("aria-label", MODE_LABEL[m]); muteBtn.title = MODE_LABEL[m] + " (M)";
+  };
   document.addEventListener("pointerdown", () => unlockSound(), { passive: true, capture: true });
   // V: chạm (cảm ứng) chỉ được tính là thao tác người dùng ở lúc nhấc tay ⇒ mở khoá cả ở pointerup / touchend (ctx đang treo thì resume lại)
   for (const t of ["pointerup", "touchend"]) document.addEventListener(t, () => unlockSound(), { passive: true, capture: true });
