@@ -36,7 +36,7 @@
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
   <link rel="stylesheet" href="styles.css?v=d9a" />
   <link rel="stylesheet" href="portal.css?v=d9a" />
-  <link rel="stylesheet" href="portal-pixel.css?v=d11a" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d12a" />
   <link rel="stylesheet" href="nav.css?v=d11a" />
 </head>
 <body class="portal theme-b">
@@ -86,7 +86,7 @@
   <main class="page">
     <!-- h1 cho SEO + trình đọc màn hình (ẩn trực quan: logo + slogan đã nói điều này) -->
     <h1 class="sr-only">Lụm Kèo — game miễn phí chơi ngay trên trình duyệt, không cần tải: rủ bạn vào chơi</h1>
-    <!-- TẦNG 1: Hero trượt nhiều game (gọn, bên trái) + Sảnh chờ trực tiếp (rộng, bên phải) -->
+    <!-- TẦNG 1: Hero trượt nhiều game (gọn, bên trái) + Sảnh chờ trực tiếp (rộng, bên phải). Điện thoại: băng "Tựa game của tuần" rồi sảnh, xếp dọc. -->
     <section class="arena" id="featuredSection" data-name="arena" aria-label="Game nổi bật và sảnh chờ">
       <div id="featured" class="arena__hero">
         <div class="hero px-panel is-loading" role="region" aria-roledescription="băng chuyền" aria-label="Game nổi bật" data-name="hero">
@@ -94,7 +94,7 @@
           <div class="hero__viewport"><div class="hero__track" id="heroTrack" aria-live="off">
             <!-- Slide 1 viết sẵn trong HTML (= đúng slideHTML() của app.js cho HERO_SLIDES[0]) để ảnh LCP được tải ngay và khung hero có
                  chiều cao thật trước khi JS chạy (CLS). Đổi slide đầu trong games.js thì sửa cả khối này; lệch id ⇒ app.js vẽ lại từ đầu. -->
-            <a class="card slide" href="../games/co-ca-ngua/" data-id="co-ca-ngua" role="group" aria-roledescription="trang" aria-label="1 / 5: Cờ Cá Ngựa"><span class="hero__art"><img src="assets/thumbs/co-ca-ngua.webp" srcset="assets/thumbs/half/co-ca-ngua.webp 360w, assets/thumbs/co-ca-ngua.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 15vw, (orientation: landscape) and (max-height: 500px) 22vw, (max-width: 720px) and (min-resolution: 2.5dppx) 29vw, (max-width: 720px) 44vw, (max-width: 1023px) 53vw, (max-width: 1180px) 40vw, 440px" alt="" decoding="async" fetchpriority="high" /></span><span class="hero__info"><span class="hero__tags"><span class="kicker">Tựa game của tuần</span><span class="badge badge--hot">Hot</span></span><h3 class="hero__name">Cờ Cá Ngựa</h3><span class="hero__text">Gieo xúc xắc, xuất chuồng và đua ngựa về lầu giữa. Rủ 2–4 người cùng chơi.</span><span class="hero__row"><span class="btn btn--gold" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span><span class="hero__stats"><p class="meta meta--multi"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/></svg><span>2–4 người<span class="sr-only">, chơi cùng bạn được</span></span></p></span></span></span></a>
+            <a class="card slide" href="../games/co-ca-ngua/" data-id="co-ca-ngua" role="group" aria-roledescription="trang" aria-label="1 / 5: Cờ Cá Ngựa"><span class="hero__art"><img src="assets/thumbs/co-ca-ngua.webp" srcset="assets/thumbs/half/co-ca-ngua.webp 360w, assets/thumbs/co-ca-ngua.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) 128px, (max-width: 720px) 120px, (max-width: 1023px) 53vw, (max-width: 1180px) 40vw, 360px" alt="" decoding="async" fetchpriority="high" /></span><span class="hero__info"><span class="hero__tags"><span class="kicker">Tựa game của tuần</span><span class="badge badge--hot">Hot</span></span><h3 class="hero__name">Cờ Cá Ngựa</h3><span class="hero__text">Gieo xúc xắc, xuất chuồng và đua ngựa về lầu giữa. Rủ 2–4 người cùng chơi.</span><span class="hero__row"><span class="btn btn--gold" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span><span class="hero__stats"><p class="meta meta--multi"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/></svg><span>2–4 người<span class="sr-only">, chơi cùng bạn được</span></span></p></span></span></span></a>
           </div></div>
           <button class="hero__nav hero__nav--prev" id="heroPrev" type="button" aria-label="Game trước"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2h2v2h-2zM8 4h2v2H8zM6 6h2v4H6zM8 10h2v2H8zM10 12h2v2h-2z"/></svg></button>
           <button class="hero__nav hero__nav--next" id="heroNext" type="button" aria-label="Game tiếp theo"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h2v2H4zM6 4h2v2H6zM8 6h2v4H8zM6 10h2v2H6zM4 12h2v2H4z"/></svg></button>
@@ -102,21 +102,14 @@
         </div>
       </div>
 
-      <!-- D11 (quyết định chủ dự án): điện thoại dọc ẩn hero, ô ĐẦU của "Chơi ngay" là ô lớn "Tựa game của tuần" (= HERO_SLIDES[0], cùng srcset + sizes
-           với ảnh slide 1 ⇒ trình duyệt chọn cùng một file, chỉ 1 lần tải, fetchpriority cao — đây là phần tử LCP trên điện thoại). Dải thành 3 hàng:
-           ô lớn chiếm 2×2 góc trái, 2 ô dưới nó, rồi các cột 3 ô. Xoay ngang thấp / máy tính: giữ hero, ẩn ô lớn.
-           Chơi ngay (HOME-02, chỉ điện thoại ≤ 720 px): dải cuộn ngang 2 hàng, 8 game bấm là chơi — màn đầu 390×844 thấy ≥ 6 game.
-           8 ô viết sẵn ở đây (= QUICK_PLAY trong games.js, app.js chỉ gắn ảnh lười; lệch id ⇒ app.js vẽ lại) để giữ chỗ từ lần vẽ đầu (CLS). Màn rộng hơn: ẩn, không tải ảnh. -->
-      <section class="qp" id="quickPlay" data-name="quick-play" aria-labelledby="qpTitle">
-        <h2 class="qp__title" id="qpTitle">Chơi ngay <span class="qp__hint">miễn phí · không cần tải</span></h2>
-        <div class="qp__row" id="qpRow"><a class="card tile tile--qp tile--feat" href="../games/co-ca-ngua/" data-id="co-ca-ngua" aria-label="Tựa game của tuần: Cờ Cá Ngựa — chơi ngay"><span class="tile__art"><img src="assets/thumbs/co-ca-ngua.webp" srcset="assets/thumbs/half/co-ca-ngua.webp 360w, assets/thumbs/co-ca-ngua.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 15vw, (orientation: landscape) and (max-height: 500px) 22vw, (max-width: 720px) and (min-resolution: 2.5dppx) 29vw, (max-width: 720px) 44vw, (max-width: 1023px) 53vw, (max-width: 1180px) 40vw, 440px" alt="" decoding="async" fetchpriority="high" /></span><span class="tile__body"><span class="feat__kicker">Tựa game của tuần</span><span class="card__name">Cờ Cá Ngựa</span><span class="btn btn--gold feat__go" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span></span></a><a class="card tile tile--qp" href="../games/dao-vang/" data-id="dao-vang"><span class="tile__art"><img data-src="assets/thumbs/half/dao-vang.webp" data-srcset="assets/thumbs/half/dao-vang.webp 360w, assets/thumbs/dao-vang.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Đào Vàng</span></span></a><a class="card tile tile--qp" href="../games/co-caro/" data-id="co-caro"><span class="tile__art"><img data-src="assets/thumbs/half/co-caro.webp" data-srcset="assets/thumbs/half/co-caro.webp 360w, assets/thumbs/co-caro.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Cờ Caro</span></span></a><a class="card tile tile--qp" href="../games/ran-san-moi/" data-id="ran-san-moi"><span class="tile__art"><img data-src="assets/thumbs/half/ran-san-moi.webp" data-srcset="assets/thumbs/half/ran-san-moi.webp 360w, assets/thumbs/ran-san-moi.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Rắn Săn Mồi</span></span></a><a class="card tile tile--qp" href="../games/noi-thu/" data-id="noi-thu"><span class="tile__art"><img data-src="assets/thumbs/half/noi-thu.webp" data-srcset="assets/thumbs/half/noi-thu.webp 360w, assets/thumbs/noi-thu.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Nối Thú</span></span></a><a class="card tile tile--qp" href="../games/tiem-tra-sua/" data-id="tiem-tra-sua"><span class="tile__art"><img data-src="assets/thumbs/half/tiem-tra-sua.webp?v=pixel2" data-srcset="assets/thumbs/half/tiem-tra-sua.webp?v=pixel2 240w, assets/thumbs/tiem-tra-sua.webp?v=pixel2 480w" sizes="(orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Tiệm Trà Sữa</span></span></a><a class="card tile tile--qp" href="../games/xep-gach/" data-id="xep-gach"><span class="tile__art"><img data-src="assets/thumbs/half/xep-gach.webp" data-srcset="assets/thumbs/half/xep-gach.webp 360w, assets/thumbs/xep-gach.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Xếp Gạch</span></span></a><a class="card tile tile--qp" href="../games/2048/" data-id="2048"><span class="tile__art"><img data-src="assets/thumbs/half/2048.webp" data-srcset="assets/thumbs/half/2048.webp 360w, assets/thumbs/2048.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">2048</span></span></a><a class="card tile tile--qp" href="../games/ban-bong/" data-id="ban-bong"><span class="tile__art"><img data-src="assets/thumbs/half/ban-bong.webp" data-srcset="assets/thumbs/half/ban-bong.webp 360w, assets/thumbs/ban-bong.webp 720w" sizes="(orientation: landscape) and (max-height: 500px) and (min-resolution: 2.5dppx) 11vw, (orientation: landscape) and (max-height: 500px) 16vw, (max-width: 720px) and (min-resolution: 2.5dppx) 20vw, (max-width: 720px) 29vw, 1px" alt="" decoding="async" /></span><span class="tile__body"><span class="card__name">Bắn Bóng Khủng Long</span></span></a></div>
-      </section>
+      <!-- D12 (quyết định chủ dự án): bỏ dải "Chơi ngay" của điện thoại (game trùng với kệ bên dưới — mỗi game chỉ xuất hiện một lần, trong kệ).
+           Điện thoại (dọc ≤ 720 px và xoay ngang thấp): hero thu thành băng thấp một hàng "Tựa game của tuần" = slide 1 (ảnh nhỏ, kicker, tên, Chơi ngay). -->
 
+      <!-- D12 (quyết định chủ dự án): sảnh MỘT bố cục cố định, chỉ nội dung bên trong đổi. Trên cùng luôn là hàng "Có mã phòng bạn gửi? [mã] Vào phòng · + Tạo phòng mới"
+           (cùng toạ độ dù có phòng hay không); dưới là ô .lobby__body cao cố định: có phòng ⇒ tab + danh sách (cuộn bên trong), trống ⇒ một dòng nhắn ở giữa.
+           Máy tính (≥ 1024): hero trái, sảnh phải cao bằng hero. ≤ 1023: sảnh dưới hero / "Chơi ngay", ô danh sách cao đúng một hàng phòng (dải vuốt ngang)
+           ⇒ phòng về sau khi trang đã vẽ không xô "Tất cả game" (CLS). Bỏ chế độ "sảnh gọn / hero trọn hàng" và nút "N phòng đang chờ · Xem" của D11. -->
       <aside class="lobby px-panel is-loading" id="lobby" tabindex="-1" data-name="lobby" aria-labelledby="lobbyTitle">
-        <!-- D11: sảnh đang gọn mà phòng về sau khi trang đã vẽ ⇒ chỉ hiện nút nhỏ này (nằm đè mép trên khung, không xô bố cục); bấm mới mở đầy đủ -->
-        <!-- D11: kết quả sảnh đã về trước khi tới đây ⇒ đặt dạng đầy đủ ngay trong lần vẽ đầu (không xô trang khi app.js vẽ danh sách) -->
-        <script>try { var _l = window.__lobbyD; if (_l && ((_l.rooms && _l.rooms.length) || (_l.playing && _l.playing.some(function (p) { return p.rooms > 0; })))) document.getElementById("lobby").classList.add("has-rooms"); } catch (e) {}</script>
-        <button class="btn btn--sm lobby__peek" id="lobbyPeek" type="button" hidden><i class="live" aria-hidden="true"></i><span></span> · Xem</button>
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>
           <!-- P-F: chỉ hiện khi đủ đông (app.js ONLINE_MIN) — sảnh vắng không bị lộ "3 người đang chơi" -->
@@ -139,23 +132,21 @@
           <a class="btn btn--teal lobby__create" href="#duel" id="createRoom" aria-label="Tạo phòng mới"><span class="btn__plus" aria-hidden="true">+</span><span>Tạo phòng<span class="lobby__createTx2"> mới</span></span></a>
         </div>
 
-        <!-- P-F: tab kiểu Đấu Trí — Phòng chờ (vào được) / Đang diễn ra (số bàn + số người mỗi game, từ /api/lobby .playing) -->
-        <div class="lobby__subrow">
-          <div class="ltabs" role="tablist" aria-label="Phòng online">
-            <button class="ltab" type="button" role="tab" id="ltabWait" aria-selected="true" aria-controls="rooms" data-ltab="wait">Phòng chờ <span class="count" id="roomCount"></span></button>
-            <button class="ltab" type="button" role="tab" id="ltabLive" aria-selected="false" aria-controls="liveRooms" data-ltab="live" tabindex="-1">Đang diễn ra <span class="count" id="liveCount"></span></button>
+        <div class="lobby__body" id="lobbyBody">
+          <!-- P-F: tab kiểu Đấu Trí — Phòng chờ (vào được) / Đang diễn ra (số bàn + số người mỗi game, từ /api/lobby .playing). ≤ 1023 px: không tab, một dải chung. -->
+          <div class="lobby__subrow">
+            <div class="ltabs" role="tablist" aria-label="Phòng online">
+              <button class="ltab" type="button" role="tab" id="ltabWait" aria-selected="true" aria-controls="rooms" data-ltab="wait">Phòng chờ <span class="count" id="roomCount"></span></button>
+              <button class="ltab" type="button" role="tab" id="ltabLive" aria-selected="false" aria-controls="liveRooms" data-ltab="live" tabindex="-1">Đang diễn ra <span class="count" id="liveCount"></span></button>
+            </div>
           </div>
-        </div>
-        <ul class="rooms" id="rooms" role="tabpanel" aria-labelledby="ltabWait"></ul>
-        <ul class="rooms rooms--live" id="liveRooms" role="tabpanel" aria-labelledby="ltabLive" hidden></ul>
-
-        <p class="lobby__note" id="roomStatus" role="status">Đang tải danh sách phòng…</p>
-
-        <!-- D9: bỏ khối "Mở phòng nhanh" (trùng lựa chọn game với hero + danh sách bên dưới). Sảnh trống: chỉ lời nhắn (nút Tạo phòng đã có ở thanh trên, không lặp) nằm giữa
-             phần còn lại của khung (máy tính: khung cao bằng hero); điện thoại: ẩn, khung co theo nội dung. -->
-        <div class="lobby__empty" id="lobbyEmpty" data-name="lobby-empty" hidden>
-          <p class="lobby__emptyTitle">Chưa có phòng nào đang chờ</p>
-          <p class="lobby__emptyText">Bấm “Tạo phòng mới” ở trên rồi gửi mã cho bạn bè, hoặc chọn một game bên dưới để chơi ngay.</p>
+          <div class="lobby__lists">
+            <ul class="rooms" id="rooms" role="tabpanel" aria-labelledby="ltabWait"></ul>
+            <ul class="rooms rooms--live" id="liveRooms" role="tabpanel" aria-labelledby="ltabLive" hidden></ul>
+          </div>
+          <p class="lobby__note" id="roomStatus" role="status" hidden></p>
+          <!-- Không có phòng chờ / ván nào (hoặc đang tải, hoặc lỗi): MỘT dòng ở giữa ô — không nút Tạo phòng thứ hai (đã có ở hàng trên) -->
+          <p class="lobby__empty" id="lobbyEmpty" data-name="lobby-empty" role="status">Đang tìm phòng đang chờ…</p>
         </div>
       </aside>
     </section>
@@ -228,8 +219,8 @@
   <!-- D9: nạp webfont sau khi ảnh hero (phần tử LCP) đã tải; ảnh lỗi / quá 3 s thì nạp luôn -->
   <script>(function () { var img = document.querySelector(".hero__art img"), t; function go() { clearTimeout(t); requestAnimationFrame(function () { setTimeout(window.__lkFonts, 0); }); }
     if (!img || img.complete) go(); else { img.addEventListener("load", go); img.addEventListener("error", go); t = setTimeout(go, 3000); } })();</script>
-  <script src="games.js?v=d5a"></script>
-  <script src="app.js?v=d11"></script>
+  <script src="games.js?v=d12a"></script>
+  <script src="app.js?v=d12"></script>
   <script type="module" src="../games/_shared/stats.js?v=st1"></script>
   <script type="module" src="../games/_shared/feedback.js?v=f4"></script>
   <script type="module" src="press-nav.js?v=d11a"></script>
