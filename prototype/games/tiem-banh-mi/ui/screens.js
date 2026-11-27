@@ -1,30 +1,30 @@
 // HUD, viên Lò / Gas, dải phiếu, thông báo, và các bảng phủ: chào, Chuẩn bị ca (nhập hàng, tiền lẻ, mẻ đầu, dự báo), Cách chơi,
 // Tạm dừng (Chơi lại từ đầu có xác nhận + backup), Chốt ca (lời lỗ), khiếu nại, hết hàng, hết tiền lẻ.
-import { icon } from "../render/atlas.js?v=b13";
-import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b13";
-import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b13";
-import { floatValue, sumBills } from "../core/money.js?v=b13";
-import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b13";
-import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b13";
-import { orderText, loafName, menuAt } from "../core/order.js?v=b13";
-import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b13";
-import { MISTAKES } from "../data/lines-mistakes.js?v=b13";
-import { PHASES } from "../data/shift.js?v=b13";
-import { quirkChips } from "./bench.js?v=b13";
-import { personaCards } from "./persona.js?v=b13";
-import { buildEvent } from "./drama.js?v=b13";
-import { buildNotebook } from "./notebook.js?v=b13";
-import { drawJournal, download, share } from "./journal.js?v=b13";
-import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b13";
-import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b13";
-import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b13";
-import { expiringOn } from "../core/expiry.js?v=b13";
-import { maiOpen, MAI } from "../core/stock.js?v=b13";
-import { currentEvent } from "../core/drama.js?v=b13";
-import { MERGE_SLICE_DAYS } from "../core/board.js?v=b13";
-import { PERSONAS } from "../data/lines-reply.js?v=b13";
-import { STALE } from "../data/lines-m3.js?v=b13";
-import { FILLINGS, NAMES } from "../data/economy.js?v=b13";
+import { icon } from "../render/atlas.js?v=b14";
+import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b14";
+import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b14";
+import { floatValue, sumBills } from "../core/money.js?v=b14";
+import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b14";
+import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b14";
+import { orderText, loafName, menuAt } from "../core/order.js?v=b14";
+import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b14";
+import { MISTAKES } from "../data/lines-mistakes.js?v=b14";
+import { PHASES } from "../data/shift.js?v=b14";
+import { quirkChips } from "./bench.js?v=b14";
+import { personaCards } from "./persona.js?v=b14";
+import { buildEvent } from "./drama.js?v=b14";
+import { buildNotebook } from "./notebook.js?v=b14";
+import { drawJournal, download, share } from "./journal.js?v=b14";
+import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b14";
+import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b14";
+import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b14";
+import { expiringOn } from "../core/expiry.js?v=b14";
+import { maiOpen, MAI } from "../core/stock.js?v=b14";
+import { currentEvent } from "../core/drama.js?v=b14";
+import { MERGE_SLICE_DAYS } from "../core/board.js?v=b14";
+import { PERSONAS } from "../data/lines-reply.js?v=b14";
+import { STALE } from "../data/lines-m3.js?v=b14";
+import { FILLINGS, NAMES } from "../data/economy.js?v=b14";
 import { shareResult } from "../../_shared/share.js?v=s3";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
@@ -53,20 +53,95 @@ export function levelUpShare(state, level = state.level) {
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 export const fmtK = (k) => (Math.round(k * 10) / 10).toLocaleString("vi-VN") + "k";
-/** Thông báo. `action` = { label, act, onClick }: thêm nút nhỏ (vd "Khoe" lúc lên cấp) — thông báo ở lâu hơn (7 giây) để kịp bấm,
- *  luôn nằm dưới cùng (thông báo mới chen lên trên nó) và không bị đẩy ra trước các thông báo thường. */
-export function toast(box, text, kind = "", action = null) {
-  const t = h("div", "toast " + kind, text);
-  if (action) {
-    t.classList.add("has-act");
-    const b = h("button", "toast-act", action.label); b.type = "button"; if (action.act) b.dataset.act = action.act;
-    b.addEventListener("click", (e) => { e.stopPropagation(); t.remove(); action.onClick(); });
-    t.appendChild(b);
+/** Thông báo (D11, TLC2-12). Luật D4 "một thông báo một lúc" áp cho mọi cỡ màn (kể cả máy tính): thông báo mới thay thông báo cũ;
+ *  riêng thông báo có nút (`action` = { label, act, onClick }, vd "Khoe" lúc lên cấp) ở 7 giây, nằm dưới cùng và không bị thay.
+ *  Khi bảng phủ đang mở (`isOpen()`): không vẽ đè thanh đầu nữa mà xếp hàng (tối đa 3 câu mới nhất, bỏ câu trùng); đóng bảng thì
+ *  hiện lần lượt từng câu (2,4 giây một câu, câu cũ quá 45 giây thì bỏ). Câu quan trọng (`opt.important`, vd sắp hết hàng) và câu
+ *  trả lời cho thao tác trong bảng (`opt.sheet`, vd "Không đủ tiền") hiện thành một dòng `.sheet-note` trong chân bảng dính đáy (`footSel`), không có thì dưới tiêu đề. */
+export function createToaster(box, { isOpen, sheet, footSel = "", watch = [] }) {
+  const queue = [], QMAX = 3, TTL = 45000, GAP = 2400, NOTE_MS = 5000;
+  let note = null, drainT = 0, wasOpen = isOpen();
+  function place(text, kind, action) {
+    for (const x of [...box.children]) if (action ? x.classList.contains("has-act") : !x.classList.contains("has-act")) x.remove();
+    const t = h("div", "toast " + kind, text);
+    if (action) {
+      t.classList.add("has-act");
+      const b = h("button", "toast-act", action.label); b.type = "button"; if (action.act) b.dataset.act = action.act;
+      b.addEventListener("click", (e) => { e.stopPropagation(); t.remove(); action.onClick(); });
+      t.appendChild(b);
+    }
+    t._q = { text, kind, action };
+    const keep = !action && box.querySelector(".toast.has-act");
+    if (keep) box.insertBefore(t, keep); else box.appendChild(t);
+    setTimeout(() => t.remove(), action ? 7000 : 3600);
   }
-  const keep = !action && box.querySelector(".toast.has-act");
-  if (keep) box.insertBefore(t, keep); else box.appendChild(t);
-  while (box.children.length > 3) (box.querySelector(".toast:not(.has-act)") || box.firstChild).remove();
-  setTimeout(() => t.remove(), action ? 7000 : 3600);
+  function enqueue(q) {
+    const k = queue.findIndex((x) => x.text === q.text);
+    if (k >= 0) queue.splice(k, 1);
+    queue.push(q);
+    while (queue.length > QMAX) queue.splice(queue.findIndex((x) => !x.action) >= 0 ? queue.findIndex((x) => !x.action) : 0, 1);
+  }
+  function drain() {
+    clearTimeout(drainT); drainT = 0;
+    if (isOpen()) return;
+    let q;
+    while ((q = queue.shift()) && Date.now() - q.at > TTL && !q.action);
+    if (!q) return;
+    place(q.text, q.kind, q.action);
+    if (queue.length) drainT = setTimeout(drain, GAP);
+  }
+  /** Chân bảng dính đáy cao bao nhiêu thì cuộn tới nút (Tab / focus / scrollIntoView) chừa bấy nhiêu, để nút không nằm sau chân bảng. */
+  function padFoot() {
+    const foot = footSel && isOpen() ? [...sheet.querySelectorAll(footSel)].pop() : null;
+    const pad = foot ? `${Math.ceil(foot.getBoundingClientRect().height) + 12}px` : "";
+    if (sheet.style.scrollPaddingBottom !== pad) sheet.style.scrollPaddingBottom = pad;
+  }
+  function renderNote() {
+    renderNoteEl(); padFoot();
+  }
+  function renderNoteEl() {
+    const old = sheet.querySelector(".sheet-note");
+    const live = note && isOpen() && note.view === sheet.dataset.view && Date.now() - note.at < note.ms;
+    if (!live) { old?.remove(); return; }
+    if (old && old.textContent === note.text) return;
+    const n = old || h("p");
+    n.className = "sheet-note " + note.kind; n.textContent = note.text; n.setAttribute("role", "status");
+    // chân bảng dính đáy (nút chính) có sẵn ⇒ dòng nằm ngay trên nút, luôn thấy mà không che tab / nút nào; không có ⇒ dưới tiêu đề
+    if (!old) { const foot = footSel ? [...sheet.querySelectorAll(footSel)].pop() : null, h2 = sheet.querySelector("h2"); if (foot) foot.prepend(n); else if (h2) h2.after(n); else sheet.prepend(n); }
+  }
+  function sheetNote(text, kind, important) {
+    note = { text, kind, at: Date.now(), ms: important ? Infinity : NOTE_MS, view: sheet.dataset.view };
+    renderNote();
+    if (!important) setTimeout(renderNote, NOTE_MS + 50);
+  }
+  function sync() {
+    const open = isOpen();
+    if (open && !wasOpen) { // bảng vừa mở: thông báo đang hiện ⇒ cất lại vào hàng, không vẽ đè thanh đầu
+      clearTimeout(drainT); drainT = 0;
+      for (const t of [...box.children]) { if (t._q) queue.unshift({ ...t._q, at: Date.now() }); t.remove(); }
+      while (queue.length > QMAX) queue.shift();
+    }
+    if (!open && wasOpen) { note = null; drain(); }
+    wasOpen = open;
+    renderNote();
+  }
+  if (typeof MutationObserver === "function") {
+    const mo = new MutationObserver(sync);
+    for (const [el, opts] of watch) if (el) mo.observe(el, opts);
+    mo.observe(sheet, { childList: true });
+  }
+  function toast(text, kind = "", action = null, opt = {}) {
+    if (!text) return;
+    sync();
+    if (isOpen()) {
+      if (opt.important || opt.sheet) sheetNote(text, kind, !!opt.important);
+      if (!opt.sheet) enqueue({ text, kind, action, at: Date.now() });
+      return;
+    }
+    if (queue.length) { enqueue({ text, kind, action, at: Date.now() }); if (!drainT) drain(); return; }
+    place(text, kind, action);
+  }
+  return { toast, sync, get queued() { return queue.map((q) => q.text); } };
 }
 
 // ---------- HUD + viên Lò / Gas ----------
@@ -199,7 +274,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       c.appendChild(personaCards(persona, (p) => { persona = p; }));
       const go = btn("Mở xe bánh mì", "primary", "introGo", () => { dispatch({ type: "setName", name: inp.value || state.shopName }); dispatch({ type: "persona", persona }); dispatch({ type: "seeIntro" }); close(); hooks.afterIntro(); });
       go.id = "introGo"; go.dataset.autofocus = "";
-      const row = h("div", "row"); row.style.marginTop = "12px"; row.appendChild(go); c.appendChild(row);
+      const row = h("div", "row sum-foot"); row.appendChild(go); c.appendChild(row); // D11 TLC22-05: chân bảng dính đáy ⇒ xoay ngang không phải cuộn tìm nút
     });
   }
 
@@ -229,7 +304,7 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       else if (prepTab === "pre") preTab(body, s);
       else if (prepTab === "shop") shopTab(body, s);
       else forecastTab(body, s, est);
-      const foot = h("div", "row"); foot.style.marginTop = "12px";
+      const foot = h("div", "row sum-foot"); // D11 TLC22-05: "Mở hàng" dính đáy bảng (xoay ngang / điện thoại không phải cuộn hết bảng)
       if (consignAvailable(s)) foot.appendChild(btn("Nhận gói ký gửi Bà Tư", "warn", "consign", () => { const r = dispatch({ type: "consign" }); if (r.ok) prep(hooks.state()); }));
       const go = btn("Mở hàng", "primary", "openShop", () => { stopPrepOven(); close(); const r = dispatch({ type: "startShift" }); if (r.err) prep(hooks.state()); });
       go.id = "openShop"; go.dataset.autofocus = "";
@@ -525,27 +600,27 @@ export function createOverlays(rootEl, sheetEl, atlas, dispatch, hooks) {
       if (S.headline) c.appendChild(h("p", "say headline", S.headline));
       const big = h("div", "big");
       const card = (v, l, cls = "") => { const d = h("div"); d.appendChild(h("b", cls, v)); d.appendChild(h("small", "", l)); big.appendChild(d); };
-      card(fmtK(S.revenue), "Doanh thu"); card((S.profit >= 0 ? "+" : "") + fmtK(S.profit), "Lời vận hành", S.profit >= 0 ? "pos" : "neg");
+      card(fmtK(S.revenue), "Doanh thu"); card((S.profit >= 0 ? "+" : "") + fmtK(S.profit), "Lời còn lại", S.profit >= 0 ? "pos" : "neg");
       card(String(S.loaves), "Ổ bán"); card(S.avg ? S.avg + " sao" : "—", "Sao trung bình");
       c.appendChild(big);
       const grid = h("div", "grid2");
       const t = h("table", "pl");
       const row = (a, v, cls = "") => { const tr = h("tr", cls); tr.appendChild(h("td", "", a)); tr.appendChild(h("td", "", v)); t.appendChild(tr); };
       row("Doanh thu", fmtK(S.revenue));
-      row("Giá vốn ổ đã bán", "−" + fmtK(S.cogs));
-      row("Hao hụt (bánh cháy, bánh dư, đổ bỏ)", "−" + fmtK(S.waste));
+      row("Tiền nguyên liệu ổ đã bán", "−" + fmtK(S.cogs));
+      row("Đồ hỏng bỏ (bánh cháy, bánh dư, đổ bỏ)", "−" + fmtK(S.waste));
       row(`Gas (${S.batches} mẻ)`, "−" + fmtK(S.gas));
       row(`Than (${S.toasts} lần nướng lại)`, "−" + fmtK(S.than));
       row("Phí ca", "−" + fmtK(S.fee));
       if (S.changeLoss) row("Thối dư mất", "−" + fmtK(S.changeLoss));
-      row("Lời vận hành", (S.profit >= 0 ? "+" : "") + fmtK(S.profit), "total");
+      row("Lời còn lại", (S.profit >= 0 ? "+" : "") + fmtK(S.profit), "total");
       grid.appendChild(t);
       const right = h("div", "small");
       right.appendChild(h("p", "", `Khách phục vụ ${S.served} · bỏ về ${S.lost} · mẻ nướng ${S.batches} (cháy ${S.burntBatches}, đúng vùng chín ${S.goldenPulls}) · thối đúng ${S.changeRight}, sai ${S.changeWrong}.`));
       right.appendChild(h("p", "", `Dòng tiền khác: nhập hàng trong ca ${fmtK(S.restockSpent)}, cứu hàng ${fmtK(S.rescueSpent)}, trả ký gửi ${fmtK(S.consignRepaid)}${S.owed ? `, khách nợ ${fmtK(S.owed)}` : ""}. Tiền hiện có ${fmtK(S.money)}. +${S.xp} XP.`));
       const mk = Object.entries(S.mistakes || {});
       if (mk.length) right.appendChild(h("p", "", "Lỗi: " + mk.map(([m, n]) => `${MISTAKES[m]?.label || m} ×${n}`).join(", ")));
-      if (S.wasteLog?.length) right.appendChild(h("p", "muted", "Hao: " + S.wasteLog.join(" · ")));
+      if (S.wasteLog?.length) right.appendChild(h("p", "muted", "Đồ hỏng bỏ: " + S.wasteLog.join(" · ")));
       if (S.missions?.length) right.appendChild(h("p", "", "Nhiệm vụ: " + S.missions.map((m) => `${m.done ? "✓" : "✗"} ${m.text}`).join(" · ")));
       if (S.preorders || S.multi) right.appendChild(h("p", "", `Đơn nhiều ổ ${S.multi || 0} · đơn đặt trước ${S.preorders || 0}${S.preLate ? ` (trễ ${S.preLate})` : ""}${S.staleSold ? ` · bán ${S.staleSold} ổ bánh hôm qua` : ""}`));
       if (S.followersDelta) right.appendChild(h("p", "", `Người theo dõi ${S.followersDelta > 0 ? "+" : ""}${S.followersDelta}`));

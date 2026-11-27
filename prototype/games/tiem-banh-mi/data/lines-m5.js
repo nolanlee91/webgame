@@ -293,7 +293,7 @@ export const EXPIRY_LINES = {
     "Kho sạch hơn sau khi dọn đồ hết hạn, ví thì nhẹ hơn.",
     "Mấy lát chả lụa hôm kia đã tới hạn. Tiệc của mèo hẻm.",
     "Phôi để qua ngày thứ ba không nở nổi nữa. Bỏ cho chắc.",
-    "Dọn kho cuối ca, ghi sổ hao hụt, tự hứa mai nhập kỹ hơn.",
+    "Dọn kho cuối ca, ghi sổ đồ hỏng bỏ, tự hứa mai nhập kỹ hơn.",
   ],
   fresh: [
     "Rau thơm, dưa leo tươi rói. Ổ bánh như mới hái ngoài vườn. #rautươi",

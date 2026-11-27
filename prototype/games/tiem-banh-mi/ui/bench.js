@@ -1,19 +1,19 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b13";
-import { loafLayers } from "../render/loafview.js?v=b13";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b13";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b13";
-import { autoChangeAllowed, changeHint, customer, orderPrice, helperOn } from "../core/shift.js?v=b13";
-import { sumBills, makeChange } from "../core/money.js?v=b13";
-import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b13";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b13";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b13";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b14";
+import { loafLayers } from "../render/loafview.js?v=b14";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b14";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b14";
+import { autoChangeAllowed, changeHint, customer, orderPrice, helperOn } from "../core/shift.js?v=b14";
+import { sumBills, makeChange } from "../core/money.js?v=b14";
+import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b14";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b14";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b14";
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
-import { QUIRKS } from "../data/quirks.js?v=b13";
-import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b13";
+import { QUIRKS } from "../data/quirks.js?v=b14";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b14";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -158,7 +158,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const wrap = h("div", "loafwrap");
     wrap.id = "loafView";
     dyn.crispNum = null; dyn.toastBar = null;
-    if (!l) { wrap.appendChild(h("div", "empty-loaf", b.cid === null ? "Thớt trống" : sh.case.length ? "Lấy một ổ từ tủ kính để bắt đầu." : "Tủ kính hết bánh: nướng mẻ mới!")); wrap.dataset.stage = "empty"; return wrap; }
+    if (!l) { wrap.appendChild(h("div", "empty-loaf", b.cid === null ? "Thớt trống" : sh.case.length ? "Lấy một ổ từ tủ kính để bắt đầu." : "Tủ kính hết bánh: nướng mẻ mới!")); wrap.dataset.stage = "empty"; wrap.classList.add("is-empty"); return wrap; } // D11 TLC22-07: chưa có ổ ⇒ khung thấp, nút không bị đẩy xuống
     const names = loafLayers(l);
     wrap.dataset.stage = names.join("|");
     // chủ tiệm cận cảnh HD (baker-actions-hd, đợt 2) mờ phía sau ổ bánh, động tác theo bước đang làm
@@ -176,11 +176,12 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     return wrap;
   }
 
-  function stepsStrip(b, merged = false) {
+  function stepsStrip(b, merged = false, needToast = true) {
     const ul = h("ol", "steps");
-    // ngày 1–3: "Lấy + rạch" là một bước (ô Rạch gộp vào ô Lấy)
+    // ngày 1–3: "Lấy + rạch" là một bước (ô Rạch gộp vào ô Lấy). D11 TLC22-07: phiếu không dặn "giòn giòn" (và ổ không đang / đã nướng lại) ⇒ ẩn ô "Nướng lại"
     STEPS.forEach((s, i) => {
       if (merged && s === "slice") return;
+      if (!needToast && s === "toast") return;
       const li = h("li", "", merged && s === "take" ? "Lấy + rạch" : STEP_NAME[s]);
       if (b.loaf && i <= b.step) li.className = "done"; if (b.loaf && i === b.step + 1) li.className = "now";
       if (merged && s === "take" && b.loaf && !b.loaf.sliced && !b.loaf.que) li.className = "now";
@@ -365,7 +366,8 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     if (sh.paying !== null) root.appendChild(changePanel(state));
     else {
       root.appendChild(loafView(state));
-      root.appendChild(stepsStrip(b, mergedSlice(state)));
+      const c = b.cid !== null ? customer(state, b.cid) : null, l = b.loaf;
+      root.appendChild(stepsStrip(b, mergedSlice(state), !!(c?.items[b.item]?.crispy || (l && (l.toastT0 !== null || l.toasted)))));
       root.appendChild(options(state, sh.tutorial));
       root.appendChild(acts(state));
     }

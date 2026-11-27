@@ -56,7 +56,7 @@ test("ba buổi: cao điểm sáng 05:30–08:00 (55% khách), trưa vắng 11:0
   assert.ok(ev.some((e) => e.type === "phase" && e.id === "trua"));
 });
 
-test("chốt ca: lời vận hành = doanh thu − giá vốn − hao hụt − gas − than − phí ca; sang ngày mới", () => {
+test("chốt ca: lời còn lại = doanh thu − tiền nguyên liệu − đồ hỏng bỏ − gas − than − phí ca; sang ngày mới", () => {
   const s = shop(); act(s, { type: "firstBatch", sec: 28 }); act(s, { type: "startShift" });
   playShift(s);
   const S = s.lastSummary;

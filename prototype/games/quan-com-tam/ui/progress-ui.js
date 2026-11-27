@@ -2,12 +2,12 @@
 // Tab: Nhập hàng (Cô Ba + Chú Hòa), Đồ nghề (đồ, phụ việc theo ngày, thuê mặt bằng), Trang trí (mua + kéo thả trong quán),
 // Đơn đặt (đơn đặt trước / mâm cơm), Hạng quán (hạng, nước mắm nhà pha, quảng bá), Ca (trưa / tối / cả hai, ca khuya kéo dài).
 // CSS riêng chèn một lần (không sửa index.html).
-import { el, button, fmtK } from "./common.js?v=c10";
-import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c10";
-import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c10";
-import * as PG from "../core/progression.js?v=c10";
-import { icon } from "../render/atlas.js?v=c10"; // V: hình thật của đồ trang trí trên khung kéo thả
-import * as M5 from "./m5-ui.js?v=c10"; // S: tab Hội chợ · Thử thách (M5)
+import { el, button, fmtK } from "./common.js?v=c12";
+import { STOCK, DISHES, GEAR, STAFF, DECOR, TIERS, FISH_SAUCE, PROMOS, PROMO_UNLOCK, SHIFTS, RENT, LATE, PREORDER, DEBT, hoaPack } from "../data/economy.js?v=c12";
+import { packPrice, packSize, canBuy, maxPlates } from "../core/stock.js?v=c12";
+import * as PG from "../core/progression.js?v=c12";
+import { icon } from "../render/atlas.js?v=c12"; // V: hình thật của đồ trang trí trên khung kéo thả
+import * as M5 from "./m5-ui.js?v=c12"; // S: tab Hội chợ · Thử thách (M5)
 
 const BUY_ORDER = ["suon", "gao-tam", "than", "do-chua", "dua-leo", "nuoc-mam", "mo-hanh-bo", "tra", "khan-lanh", "hop", "bi", "trung", "cha", "tui", "suon-non", "ga", "lap-xuong", "dau-hu", "bi-chay", "cha-chay", "nuoc-tuong"];
 const OWN_TABS = new Set(["buy", "gear", "decor", "orders", "rank", "shift", "fair"]); // S: fair

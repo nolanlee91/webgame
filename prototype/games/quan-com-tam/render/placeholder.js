@@ -1,7 +1,7 @@
 // Hình dự phòng khi asset Codex chưa có (cảnh đợt 0 đang vẽ, nhân vật đợt 1 vẽ sau). Vẽ bằng canvas trên lưới 2× (vẽ nửa cỡ rồi phóng ×2 nearest),
 // đúng ô + anchor của docs/quan-com-tam/asset-spec.json ⇒ đi chung đường vẽ với frame thật (atlas.frame), thay bằng ảnh thật tự động.
 // Chỉ hình khối + màu theo ART-DIRECTION §2, không chữ trên đồ vật (trừ số trên tờ tiền dự phòng). Không bao giờ ra ảnh vỡ: tên lạ ⇒ khối màu trung tính.
-import { GRILL_SLOTS } from "../data/scene.js?v=c10";
+import { GRILL_SLOTS } from "../data/scene.js?v=c12";
 
 const PERSON = [216, 288, 108, 262];
 export const CELL = {

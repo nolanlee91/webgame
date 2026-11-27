@@ -201,6 +201,10 @@ check("M4: Nhật Ký: câu meme + câu trích", jLabel.includes(sum.headline) &
 const png = await b.ev("document.querySelector('#journalCanvas').toDataURL('image/png').length");
 check("M4: Nhật Ký: xuất PNG được (canvas không bị khoá)", png > 50000, String(png));
 await b.shot(OUT + "/07b-desktop-nhat-ky.png");
+{ // D11 TLC12-08: ô "Ẩn tên tiệm" 28 px, nhãn bọc ô là vùng chạm ≥ 44 px (bấm vào chữ cũng đổi)
+  const g = await b.ev("(()=>{const c=document.getElementById('jHideName'),l=c.closest('label'),a=c.getBoundingClientRect(),r=l.getBoundingClientRect();return JSON.stringify({c:[Math.round(a.width),Math.round(a.height)],l:[Math.round(r.width),Math.round(r.height)]})})()").then(JSON.parse);
+  check("D11 TLC12-08: Nhật Ký: ô Ẩn tên tiệm ≥ 28 px, nhãn bọc ≥ 44 × 44", g.c[0] >= 28 && g.c[1] >= 28 && g.l[0] >= 44 && g.l[1] >= 44, JSON.stringify(g));
+}
 await pressSel("#jHideName");
 await sleep(300);
 check("M4: Nhật Ký: ẩn tên tiệm vẽ lại thẻ", await b.ev("document.querySelector('#journalCanvas').dataset.drawn>='2'"));

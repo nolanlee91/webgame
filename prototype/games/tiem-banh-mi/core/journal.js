@@ -1,11 +1,11 @@
 // Nhật Ký Làm Chủ (DRAMA.md §6, chép core/journal.js Trà Sữa): câu chốt ca kiểu meme theo dữ kiện ca + nội dung thẻ 1080×1350
 // (ui/journal.js vẽ lên journal-card.webp khi có, không thì nền canvas dự phòng). Thuần: test kiểm câu chọn đúng tình huống, thẻ đủ dòng.
-import { CAPTIONS } from "../data/lines-m3.js?v=b13";
-import { CAPTIONS_M5 } from "../data/lines-m5.js?v=b13";
-import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b13";
-import { STOCK } from "../data/economy.js?v=b13";
-import { fill } from "./text.js?v=b13";
-import { int } from "./rng.js?v=b13";
+import { CAPTIONS } from "../data/lines-m3.js?v=b14";
+import { CAPTIONS_M5 } from "../data/lines-m5.js?v=b14";
+import { CAPTIONS_PERSONA, CAPTIONS_REPLY } from "../data/lines-reply.js?v=b14";
+import { STOCK } from "../data/economy.js?v=b14";
+import { fill } from "./text.js?v=b14";
+import { int } from "./rng.js?v=b14";
 
 const PLAIN = new Set(["good", "few", "perfect"]);
 const ALL = { ...CAPTIONS, ...CAPTIONS_M5, replyViral: CAPTIONS_REPLY.viral, replyPhot: CAPTIONS_REPLY.phot, flip: CAPTIONS_REPLY.flip };
@@ -72,7 +72,7 @@ export function journalCard(sum, { shopName = "", hideName = false, moment = 0 }
   return {
     brand: "Lụm Kèo", title: "Nhật Ký Làm Chủ", shop: hideName ? "" : shopName || "", day: `Ngày ${sum.day}`,
     headline: sum.headline || "", quote: m.line, who: m.who,
-    stats: [{ label: "Ổ bán", value: String(sum.loaves) }, { label: "Lời ca", value: k(sum.profit) }, { label: "Sao", value: sum.avg ? sum.avg.toLocaleString("vi-VN") : "—" }],
+    stats: [{ label: "Ổ bán", value: String(sum.loaves) }, { label: "Lời còn lại", value: k(sum.profit) }, { label: "Sao", value: sum.avg ? sum.avg.toLocaleString("vi-VN") : "—" }],
     footer: "lumkeo.com", moments: ms.length,
   };
 }

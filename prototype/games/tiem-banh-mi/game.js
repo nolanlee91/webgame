@@ -1,25 +1,25 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b13";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b14";
 import { frameErrorLog } from "../_shared/frame-errors.js?v=fe1";
-import { placeholderFallback } from "./render/placeholder.js?v=b13";
-import { createScene } from "./render/scene.js?v=b13";
-import { createBench } from "./ui/bench.js?v=b13";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=d10";
+import { placeholderFallback } from "./render/placeholder.js?v=b14";
+import { createScene } from "./render/scene.js?v=b14";
+import { createBench } from "./ui/bench.js?v=b14";
+import { createHud, createRail, createOverlays, createToaster, fmtK, levelUpShare } from "./ui/screens.js?v=b14";
 import { shareResult } from "../_shared/share.js?v=s3";
-import { apply } from "./core/apply.js?v=b13";
-import { customer } from "./core/shift.js?v=b13";
-import { hint } from "./core/tutorial.js?v=b13";
-import { itemName } from "./core/rescue.js?v=b13";
-import { STEP_NAME, STEPS } from "./core/board.js?v=b13";
-import { STOCK, NAMES } from "./data/economy.js?v=b13";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b13";
-import { shopSave, browserStorage } from "./save.js?v=b13";
-import { setJournalBg } from "./ui/journal.js?v=b13";
-import { currentEvent, openEvent } from "./core/drama.js?v=b13";
-import { DECOR } from "./data/equipment.js?v=b13";
-import { PLACE_REASON } from "./core/progress.js?v=b13";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b13";
+import { apply } from "./core/apply.js?v=b14";
+import { customer } from "./core/shift.js?v=b14";
+import { hint } from "./core/tutorial.js?v=b14";
+import { itemName } from "./core/rescue.js?v=b14";
+import { STEP_NAME, STEPS } from "./core/board.js?v=b14";
+import { STOCK, NAMES } from "./data/economy.js?v=b14";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b14";
+import { shopSave, browserStorage } from "./save.js?v=b14";
+import { setJournalBg } from "./ui/journal.js?v=b14";
+import { currentEvent, openEvent } from "./core/drama.js?v=b14";
+import { DECOR } from "./data/equipment.js?v=b14";
+import { PLACE_REASON } from "./core/progress.js?v=b14";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b14";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -65,7 +65,10 @@ async function boot() {
     if (!force && now - lastSave < 2500) { dirty = true; return; }
     store.write(state); lastSave = now; dirty = false;
   };
-  const say = (t, kind = "") => toast($("#toasts"), t, kind);
+  // D11 TLC2-12: một thông báo một lúc; bảng phủ mở ⇒ xếp hàng, đóng bảng hiện lần lượt; câu quan trọng thành dòng trong bảng
+  const toaster = createToaster($("#toasts"), { isOpen: () => !$("#overlay").hidden, sheet: $("#sheet"), footSel: ".sum-foot", watch: [[$("#overlay"), { attributes: true, attributeFilter: ["hidden"] }]] });
+  let userAct = false;
+  const say = (t, kind = "", opt) => toaster.toast(t, kind, null, opt ?? (userAct ? { sheet: true } : undefined));
   /** Vùng bong bóng thoại phải tránh: chip HUD + viên Lò / Gas (toạ độ trong khung cảnh).
    *  D6: nhớ sẵn, không đọc getBoundingClientRect mỗi khung (như hudBottom của Trà Sữa, D5-shops). HUD / viên là lớp phủ tuyệt đối
    *  cùng khung với #scene, dựng một lần ⇒ vị trí tương đối chỉ đổi khi khung cảnh, HUD hay một chip / viên đổi cỡ (đổi chữ, ẩn hiện,
@@ -103,7 +106,7 @@ async function boot() {
     moved: () => showMove(),
     decor: () => decorMode(true),
     sceneImage: () => { const img = document.querySelector('.stage img[data-layer="shop"], .stage img[data-layer="cart"]'); return img && img.complete && img.naturalWidth ? img : null; },
-    toast: (t, k) => say(t, k),
+    toast: (t, k) => say(t, k, { sheet: true }), // trả lời thao tác trong bảng: dòng trong bảng, không xếp hàng
     prepSpeed: () => Number(params.get("prepSpeed")) || 1,
   });
 
@@ -132,7 +135,12 @@ async function boot() {
     "grill-raw": () => "Thịt chưa chín, chờ thêm chút.",
     "too-soon": () => "Hội chợ mỗi 4 ngày mới thuê gian lại được.",
   };
+  // D11: sự kiện do người chơi bấm (không phải nhịp đồng hồ) khi bảng phủ đang mở ⇒ trả lời thành dòng trong bảng, không xếp hàng (userAct khai báo cạnh say)
   function act(a, fromLoop = false) {
+    const prev = userAct; userAct = a?.type !== "tick" && !fromLoop;
+    try { return actInner(a, fromLoop); } finally { userAct = prev; }
+  }
+  function actInner(a, fromLoop = false) {
     if (a?.type === "startShift") store.snapshotDay(state);
     const r = apply(state, a);
     if (r.err) {
@@ -173,7 +181,7 @@ async function boot() {
         case "preorderFail": say(`Trễ đơn đặt trước của ${e.name}. ${e.line}`, "warn"); break;
         case "helperChange": say(e.line, "good"); break;
         case "partialTaken": say(`Khách lấy luôn ${e.n} ổ đã gói, trả ${e.pay}k (70%).`, "warn"); break;
-        case "spareGas": say("Hết gas, đã thay bình dự phòng.", "good"); break;
+        case "spareGas": say("Hết gas, đã thay bình dự phòng.", "good", { important: true }); break;
         case "cookWait": say(e.why === "egg" ? "Trứng đang chiên (6 giây), xong là bỏ vào ổ." : e.why === "meat" ? "Đã bỏ mẻ thịt lên bếp than (25 giây). Chín thì gắp rồi bỏ vào ổ." : e.why === "meat-pull" ? "Thịt chín rồi, bấm “Gắp thịt” trước." : "Hết hàng sống để nấu.", "warn"); break;
         case "eggReady": say("Trứng chín rồi!", "good"); break;
         case "grillReady": say("Mẻ thịt nướng chín, gắp ra!", "good"); break;
@@ -188,12 +196,12 @@ async function boot() {
         case "fair": say(`Thuê gian Lễ hội Bánh Mì phố (lần ${e.count}). Ca hôm nay dài hơn, đông hơn!`, "good"); break;
         case "replied": break;
         case "persona": break;
-        case "lowStock": say(`“${LOW_LINES[0].replace("{item}", STOCK[e.id]?.name || e.id).replace("{n}", e.n)}”`, "warn"); break;
+        case "lowStock": say(`“${LOW_LINES[0].replace("{item}", STOCK[e.id]?.name || e.id).replace("{n}", e.n)}”`, "warn", { important: true }); break;
         case "ranBack": case "delivered": say(e.line, e.wrong ? "warn" : "good"); break;
         case "timeout": say(`${e.name} bỏ về vì chờ lâu. Review 1 sao.`, "warn"); break;
         case "levelUp": { // nút "Khoe" trên thông báo (7 giây); bấm thì ca tạm dừng tới khi đóng bảng chia sẻ. Bảng chốt ca cũng ghi "Lên cấp N!"
           const lv = e.level;
-          toast($("#toasts"), `Lên cấp ${lv}!`, "good", { label: "Khoe", act: "shareLevel", onClick: () => shareLevel(lv) });
+          toaster.toast(`Lên cấp ${lv}!`, "good", { label: "Khoe", act: "shareLevel", onClick: () => shareLevel(lv) });
           break;
         }
         case "phase": showBanner(e.text); break;
@@ -451,6 +459,8 @@ async function boot() {
     visibleRect: () => scene.visibleRect(),
     sceneScale: () => scene.scale,
     names: NAMES,
+    toast: (t, k, opt) => say(t, k, opt), // D11: thử hàng đợi thông báo
+    get toastQueue() { return toaster.queued; },
   };
 }
 

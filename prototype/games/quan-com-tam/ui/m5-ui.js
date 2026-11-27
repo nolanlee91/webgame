@@ -1,9 +1,9 @@
 // S (M5): giao diện tối thiểu cho lối chơi mới — tab Chuẩn bị "Hội chợ · Thử thách" (thẻ hội chợ + lịch thử thách 5 ngày),
 // nút bật / tắt món ở tab Menu, danh sách huy hiệu ở Sổ · Huy hiệu. Gọi từ ui/progress-ui.js, ui/overlays.js, ui/book-tabs.js qua dòng "// S:".
 // Không sửa index.html: dùng lại lớp có sẵn (card, rowx, btn, review, muted).
-import { el, button } from "./common.js?v=c10";
-import { FAIR, CHALLENGE, DISHES, GEAR } from "../data/economy.js?v=c10";
-import * as EX from "../core/extras.js?v=c10";
+import { el, button } from "./common.js?v=c12";
+import { FAIR, CHALLENGE, DISHES, GEAR } from "../data/economy.js?v=c12";
+import * as EX from "../core/extras.js?v=c12";
 
 const ERR = { "too-soon": "Hội chợ mỗi 4 ngày một lần.", already: "Hôm nay đã thuê gian rồi.", "fair-day": "Hôm nay đi hội chợ, thử thách để hôm khác.", "day-started": "Ngày đã bắt đầu, mai nha.",
   money: "Không đủ tiền.", locked: "Chưa mở khoá.", "last-dish": "Phải còn ít nhất một món.", needs: "Cần mua đồ nghề trước." };

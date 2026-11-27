@@ -1,18 +1,18 @@
 // Bảng phủ: màn chào, Chuẩn bị (Nhập hàng · Ướp sườn · Mẻ đầu · Menu · Ca · Dự báo), chốt ca (lời lỗ), nghỉ giữa ca, tạm dừng, cách chơi,
 // xác nhận chơi lại, khiếu nại, tính dư, hết hàng, Kho (nhập gấp trong ca), Sổ (review, khách quen). Ca tạm dừng khi có bảng phủ.
-import { el, button, fmtK, starText, tableName } from "./common.js?v=c10";
-import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c10";
-import { ARCHETYPES } from "../data/customers.js?v=c10";
-import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c10";
-import { stockoutOptions, itemName } from "../core/rescue.js?v=c10";
-import { MISTAKES } from "../core/score.js?v=c10";
-import { xpToNext } from "../core/progress.js?v=c10";
-import { groupById } from "../core/tables.js?v=c10";
-import { createBook } from "./notebook.js?v=c10"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
-import * as PU from "./progress-ui.js?v=c10"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
-import { potSize } from "../core/progression.js?v=c10"; // A: cỡ nồi theo giai đoạn
-import "./book-tabs.js?v=c10"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
-import * as M5 from "./m5-ui.js?v=c10"; // S: nút bật / tắt món (M5)
+import { el, button, fmtK, starText, tableName } from "./common.js?v=c12";
+import { STOCK, DISHES, GEAR, SHIFTS, GRILL, guestsFor } from "../data/economy.js?v=c12";
+import { ARCHETYPES } from "../data/customers.js?v=c12";
+import { packPrice, packSize, canBuy, capacity, stockUsed, forecast, consignAvailable, maxPlates } from "../core/stock.js?v=c12";
+import { stockoutOptions, itemName } from "../core/rescue.js?v=c12";
+import { MISTAKES } from "../core/score.js?v=c12";
+import { xpToNext } from "../core/progress.js?v=c12";
+import { groupById } from "../core/tables.js?v=c12";
+import { createBook } from "./notebook.js?v=c12"; // C: Sổ quản lý, tính cách, thẻ Nhật Ký
+import * as PU from "./progress-ui.js?v=c12"; // A: tab Chuẩn bị M3 (đồ nghề, trang trí, đơn đặt, hạng quán, ca, Chú Hòa), chốt ca, sổ nợ
+import { potSize } from "../core/progression.js?v=c12"; // A: cỡ nồi theo giai đoạn
+import "./book-tabs.js?v=c12"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
+import * as M5 from "./m5-ui.js?v=c12"; // S: nút bật / tắt món (M5)
 import { shareResult } from "../../_shared/share.js?v=s3";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".

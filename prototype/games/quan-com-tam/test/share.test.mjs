@@ -2,11 +2,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { newGame, prepDay, must } from "./helpers.mjs";
-import { gainXp } from "../core/progress.js?v=c10";
-import { endShift } from "../core/shift.js?v=c10";
-import { loadSave, dump } from "../core/state.js?v=c10";
-import { LEVELS } from "../data/economy.js?v=c10";
-import { summaryShare, levelUpShare } from "../ui/overlays.js?v=c10";
+import { gainXp } from "../core/progress.js?v=c12";
+import { endShift } from "../core/shift.js?v=c12";
+import { loadSave, dump } from "../core/state.js?v=c12";
+import { LEVELS } from "../data/economy.js?v=c12";
+import { summaryShare, levelUpShare } from "../ui/overlays.js?v=c12";
 
 const openShift = () => { const s = newGame(11); s.tutorialDone = true; prepDay(s); must(s, { type: "startShift" }); return s; };
 

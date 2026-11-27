@@ -34,6 +34,7 @@ async function waitFor(expr, ms = 8000) { for (let t = 0; t < ms; t += 80) { if 
 async function notCovered(sels) {
   return b.ev(`(()=>{const bad=[];for(const sel of ${JSON.stringify(sels)}){for(const e of document.querySelectorAll(sel)){if(e.closest('[hidden]')||!e.getBoundingClientRect().width)continue;const r=e.getBoundingClientRect();
     if(r.bottom>innerHeight||r.top<0||r.right>innerWidth||r.left<0)continue;
+    const ft=e.closest('.footer')?null:[...document.querySelectorAll('#sheet .footer')].map(f=>f.getBoundingClientRect()).find(f=>r.top+r.height/2>=f.top);if(ft)continue; // D11: nằm sau chân bảng dính đáy ⇒ cuộn mới tới (cố ý), không tính là bị che
     const pts=[[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8]];for(const[fx,fy]of pts){const x=r.left+r.width*fx,y=r.top+r.height*fy;const h=document.elementFromPoint(x,y);if(!h||!(h===e||e.contains(h))){bad.push(sel+(e.dataset.slot??e.dataset.layer??e.dataset.table??e.dataset.dock??e.dataset.act??'')+'@'+Math.round(x)+','+Math.round(y)+' ⇐ '+(h?h.className||h.tagName:'null'));break;}}}}return bad})()`);
 }
 const CONTROLS = ['[data-act="serve"]', '[data-act="undo"]', ".strip .lay", ".gchip", '[data-act="addCoal"]', '[data-act="fan"]', '[data-act="cookRice"]', '[data-act="wash"]', "#dock button", ".tbtn-scene", ".slip"];
@@ -61,7 +62,7 @@ async function tendGrill() {
     if (st && (await b.ev("__game.ownerFree()"))) await pressSel(`.gchip[data-slot="${i}"]`);
   }
 }
-const step = () => b.ev(`(async()=>{const m=await import('./core/plate.js?v=c10');return m.nextStep(__game.state)})()`);
+const step = () => b.ev(`(async()=>{const m=await import('./core/plate.js?v=c12');return m.nextStep(__game.state)})()`);
 
 async function playDay1(tag, shots) {
   await b.send("Page.navigate", { url: "about:blank" }); await sleep(300); await b.send("Storage.clearDataForOrigin", { origin: `http://127.0.0.1:${PORT}`, storageTypes: "local_storage" }); await b.nav(BASE);
@@ -160,6 +161,13 @@ async function playDay1(tag, shots) {
   check(`${tag}: gợi ý ngày 1 dẫn từng bước (mời ngồi, lấy phiếu, ghim phiếu, lật, bày, gắp, giao, tính tiền, dọn)`, ["seat", "visit", "pin", "flip", "layer", "pick", "serve", "bill", "clean"].every((k) => hintSeen.has(k)), [...hintSeen].join(","));
   check(`${tag}: không nút nào bị che lúc đang chơi (có thông báo)`, covered.length === 0, covered.slice(0, 4).join(" | "));
   check(`${tag}: bảng chốt ca hiện lời lỗ`, await waitFor("__game.overlay==='summary'", 6000));
+  {
+    const vis = await b.ev(`[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none'&&t.getBoundingClientRect().height>0).length`);
+    await b.ev("__game.toast('Nồi cơm còn 2 phần (thử)','warn',{important:true});__game.toast('Khách thử bỏ về','warn')"); await sleep(150);
+    const r = await b.ev(`JSON.stringify({n:[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none'&&t.getBoundingClientRect().height>0).length,note:(document.querySelector('#sheet .sheet-note')||{}).textContent||'',q:__game.toastQueue})`).then(JSON.parse);
+    check(`${tag} D11 TLC2-12: bảng chốt ca mở ⇒ không thông báo nào đè thanh đầu; câu sắp hết hàng thành dòng trong bảng; câu thường xếp hàng`,
+      vis === 0 && r.n === 0 && /Nồi cơm còn 2/.test(r.note) && r.q.includes("Khách thử bỏ về"), JSON.stringify({ vis, ...r }));
+  }
   const sum = await S("JSON.stringify(s.lastSummary)").then(JSON.parse);
   check(`${tag}: chốt ca có doanh thu, giá vốn, sao trung bình`, sum.revenue > 0 && sum.cogs > 0 && sum.avg >= 3, `doanh thu ${sum.revenue}k · lời ${sum.profit}k · ${sum.avg} sao · ${sum.plates} dĩa · bỏ về ${sum.lost} · lật đúng lúc ${sum.perfectFlips}`);
   await shot("08-chot-ca");
@@ -272,6 +280,22 @@ else if (!MOBILE_ONLY) {
   const before = await S("JSON.stringify([s.shift.slots[0].plate&&{c:s.shift.slots[0].plate.com,m:s.shift.slots[0].plate.moHanh},s.shift.rice.n,s.moHanh.n,s.money,s.shift.cleanPlates])");
   await b.nav(BASE);
   check("desktop: giữa ca tải lại giữ dĩa đang bày, nồi cơm, hũ mỡ hành, tiền (không trừ hai lần)", (await S("JSON.stringify([s.shift.slots[0].plate&&{c:s.shift.slots[0].plate.com,m:s.shift.slots[0].plate.moHanh},s.shift.rice.n,s.moHanh.n,s.money,s.shift.cleanPlates])")) === before && (await b.ev("__game.overlay")) === "pause", before);
+  // D11 TLC2-12: bảng Tạm dừng (tải lại giữa ca) đang mở ⇒ 0 thông báo nổi, câu mới xếp hàng; đóng ⇒ hiện lần lượt từng câu; 3 câu liền ⇒ 1
+  {
+    const shown = () => b.ev(`JSON.stringify([...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none'&&t.getBoundingClientRect().height>0).map(t=>t.textContent))`).then(JSON.parse);
+    const ov = await b.ev("__game.overlay");
+    await b.ev("__game.toast('Xếp A','');__game.toast('Xếp B','warn')"); await sleep(120);
+    const t0 = await shown(), q = await b.ev("__game.toastQueue");
+    await pressSel('[data-act="resume"]'); await sleep(150);
+    const t1 = await shown(); await sleep(2600); const t2 = await shown();
+    check("desktop D11: bảng phủ mở ⇒ 0 thông báo nổi, câu mới xếp hàng; đóng bảng ⇒ hiện lần lượt, mỗi lúc 1 câu",
+      !!ov && t0.length === 0 && q.includes("Xếp A") && q.includes("Xếp B") && t1.length === 1 && t2.length === 1 && t1[0] !== t2[0], JSON.stringify({ ov, t0, q, t1, t2 }));
+    await sleep(2600);
+    await b.ev("__game.toast('Thử 1','');__game.toast('Thử 2','good');__game.toast('Thử 3','warn')"); await sleep(120);
+    const t3 = await shown();
+    check("desktop D11: 3 thông báo liền nhau ⇒ chỉ hiện 1 (1366)", t3.length === 1 && t3[0] === "Thử 3", JSON.stringify(t3));
+    await pressSel("#pauseBtn").catch(() => b.ev("document.querySelector('#pauseBtn').click()"));
+  }
   // ===== B: Drama — mở sự kiện bằng móc, ca dừng, chân dung, chọn lựa chọn và kiểm hiệu ứng, không nút nào bị che =====
   await pressSel('[data-act="resume"]');
   const r1 = await b.ev("JSON.stringify(__game.openEvent('K14'))");

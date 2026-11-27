@@ -3,9 +3,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { apply, openWithOrder } from "./helpers.mjs?v=c10";
-import { groupById, tableById } from "../core/tables.js?v=c10";
-import { CLOSE_GRACE_MS } from "../data/economy.js?v=c10";
+import { apply, openWithOrder } from "./helpers.mjs?v=c12";
+import { groupById, tableById } from "../core/tables.js?v=c12";
+import { CLOSE_GRACE_MS } from "../data/economy.js?v=c12";
 
 /** Ca chỉ còn 1 nhóm đang ăn, sát hạn ân hạn ⇒ tick sau tự thu tiền (autoPay) và chốt ca luôn. */
 function lastTableSameTick(seed) {

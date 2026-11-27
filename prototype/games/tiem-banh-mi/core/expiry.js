@@ -1,8 +1,8 @@
 // Hạn dùng nguyên liệu (Milestone 5, ECONOMY §1 cột "Hạn"), bản đơn giản: kho vẫn là một con số mỗi món; s.lots ghi các lô theo ngày nhập
 // để biết phần nào cũ. Đối chiếu một lần lúc chốt ca: dùng theo kiểu lô cũ trước (FIFO), phần tăng không rõ nguồn (nhập, ký gửi, sự kiện) là lô hôm nay;
 // lô hết hạn ghi hao hụt "hết hạn" và trừ kho. Tủ mát (cấp 13) giữ thêm 1 ngày cho đồ hạn 2 ngày; chậu rau thơm giữ rau thêm 1 ngày. Thuần.
-import { STOCK } from "../data/economy.js?v=b13";
-import { addWaste } from "./oven.js?v=b13";
+import { STOCK } from "../data/economy.js?v=b14";
+import { addWaste } from "./oven.js?v=b14";
 
 /** Số ngày dùng được (1 = trong ngày: nhập hôm nay, hết hạn cuối ca hôm nay). Món không có ở đây không hết hạn. */
 /** M5 (bộ mô phỏng): bản ECONOMY M0 (phôi / chả 2 ngày, rau trong ngày) làm người chơi trung bình bỏ 30–60k mỗi ca vì gói nhập

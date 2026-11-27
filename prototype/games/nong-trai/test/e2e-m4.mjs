@@ -159,9 +159,9 @@ await ev("__m4.dev.reset()"); await pressSel('.nav [data-scene="animals"]');
 check("0 con: thẻ hướng dẫn hiện", await ev(`!document.querySelector('.an-pen[data-kind="ga"] .an-empty').hidden && /Mua gà/.test(document.querySelector('.an-pen[data-kind="ga"] .an-empty').textContent)`));
 await shot("10-animals-empty-mobile.png", true);
 
-// Milestone 6: trang thử nạp đúng một bản module (?v=m16), không lẫn bản cũ m5
-check("M6: mọi module JS của game nạp với tag ?v=m16", await ev("(()=>{const js=performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/nong-trai\\/.*\\.js(\\?|$)/.test(n)&&!/_shared/.test(n));return js.length>5&&js.every(n=>/\\?v=m16/.test(n)||/dev-m4\\.js$/.test(n))})()"),
-  await ev("performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/\\.js(\\?|$)/.test(n)&&!/\\?v=m16/.test(n)).join(' ')"));
+// Milestone 6: trang thử nạp đúng một bản module (?v=m17), không lẫn bản cũ m5
+check("M6: mọi module JS của game nạp với tag ?v=m17", await ev("(()=>{const js=performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/nong-trai\\/.*\\.js(\\?|$)/.test(n)&&!/_shared/.test(n));return js.length>5&&js.every(n=>/\\?v=m17/.test(n)||/dev-m4\\.js$/.test(n))})()"),
+  await ev("performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/\\.js(\\?|$)/.test(n)&&!/\\?v=m17/.test(n)).join(' ')"));
 
 check("0 lỗi console / exception", errors.length === 0, errors.join(" | "));
 console.log(fails ? `${fails} FAIL` : "ALL PASS");

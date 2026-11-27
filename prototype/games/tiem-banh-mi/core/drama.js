@@ -2,21 +2,21 @@
 // nhiều bước (goto), hên xui (roll), hẹn quay lại ngày sau (later → s.drama.queue). Trong ca: tối đa 1–2 sự kiện, đồng hồ dừng khi hội thoại
 // mở (sh.dialog kind "event"). Giữa hai ca: tối đa 1 sự kiện (s.drama.pending), hiện sau bảng chốt ca. Mỗi lựa chọn lưu một khoảnh khắc
 // cho Nhật Ký Làm Chủ. Thuần, RNG của ván ⇒ cùng hạt + cùng thao tác ⇒ cùng sự kiện.
-import { EVENTS, EVENT } from "../data/events.js?v=b13";
-import { NPCS } from "../data/npcs.js?v=b13";
-import { ARCHETYPES } from "../data/customers.js?v=b13";
-import { STOCK, STOCK_IDS, LEVELS } from "../data/economy.js?v=b13";
-import { EQUIPMENT, DECOR } from "../data/equipment.js?v=b13";
-import { QUIRKS } from "../data/quirks.js?v=b13";
-import { PHASES, SHIFT_MS } from "../data/shift.js?v=b13";
-import { next, int, pick, weighted } from "./rng.js?v=b13";
-import { fill, freshLine } from "./text.js?v=b13";
-import { FLAG_DAYS, freshDrama, today, liveFlags, addMod, engineFlag } from "./flags.js?v=b13";
-import { canChange, spend } from "./money.js?v=b13";
-import { STEPS } from "./board.js?v=b13";
-import { loafName } from "./order.js?v=b13";
-import { newLoaf, addWaste } from "./oven.js?v=b13";
-import { PERSONA_ASIDE } from "../data/lines-reply.js?v=b13";
+import { EVENTS, EVENT } from "../data/events.js?v=b14";
+import { NPCS } from "../data/npcs.js?v=b14";
+import { ARCHETYPES } from "../data/customers.js?v=b14";
+import { STOCK, STOCK_IDS, LEVELS } from "../data/economy.js?v=b14";
+import { EQUIPMENT, DECOR } from "../data/equipment.js?v=b14";
+import { QUIRKS } from "../data/quirks.js?v=b14";
+import { PHASES, SHIFT_MS } from "../data/shift.js?v=b14";
+import { next, int, pick, weighted } from "./rng.js?v=b14";
+import { fill, freshLine } from "./text.js?v=b14";
+import { FLAG_DAYS, freshDrama, today, liveFlags, addMod, engineFlag } from "./flags.js?v=b14";
+import { canChange, spend } from "./money.js?v=b14";
+import { STEPS } from "./board.js?v=b14";
+import { loafName } from "./order.js?v=b14";
+import { newLoaf, addWaste } from "./oven.js?v=b14";
+import { PERSONA_ASIDE } from "../data/lines-reply.js?v=b14";
 
 export { freshDrama };
 export const DRAMA = { perShift: 2, perShiftEarly: 1, manyFromDay: 5, firstAt: [30000, 70000], gap: [50000, 80000], closeBefore: 25000, betweenDaysChance: 0.6 };

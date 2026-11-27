@@ -569,7 +569,7 @@ export const MISSION_DONE = {
   nhuCu: ["Như cũ, đúng như cũ. Khách quen cười hiền.", "Nhớ món của khách quen mà không cần sổ. Tình hẻm là vậy."],
   revenue: ["Doanh thu vượt mốc. Két hôm nay nặng tay.", "Đủ doanh thu ca. Hôm nay trả được tiền than, tiền gas, còn dư."],
   preorder: ["Đơn đặt trước tới đúng giờ. Công ty khách gọi lại đặt tiếp.", "Đúng hẹn, đủ ổ, đúng người. Đơn lớn thành công."],
-  lowWaste: ["Hao hụt thấp, rau còn tươi, chả không bỏ phí.", "Ít đổ bỏ, mẹ nói: 'Biết tiếc của là biết làm ăn.'"],
+  lowWaste: ["Đồ hỏng bỏ ít, rau còn tươi, chả không bỏ phí.", "Ít đổ bỏ, mẹ nói: 'Biết tiếc của là biết làm ăn.'"],
 };
 export const MISSION_MISS = {
   default: [
@@ -597,7 +597,7 @@ export const MISSION_MISS = {
   nhuCu: ["Khách quen nói 'như cũ' mà tiệm làm 'như mới'."],
   revenue: ["Doanh thu chưa tới mốc. Két hơi nhẹ."],
   preorder: ["Đơn đặt trước chưa đúng giờ. Lần sau nướng sớm hơn."],
-  lowWaste: ["Hao hụt cao. Rau héo, chả dư, mẹ thở dài."],
+  lowWaste: ["Đồ hỏng bỏ nhiều. Rau héo, chả dư, mẹ thở dài."],
 };
 export const MISSION_ALL = [
   "Ba nhiệm vụ, ba dấu tích. Hôm nay làm chủ đúng nghĩa.",
@@ -767,13 +767,13 @@ export const CAPTIONS = {
     "Chạy chợ một lần, nhớ đặt hàng cả đời.",
   ],
   lost: [
-    "Hao hụt {lost}k. Rau héo không biết nói, nhưng nhìn rất buồn.",
+    "Đồ hỏng bỏ {lost}k. Rau héo không biết nói, nhưng nhìn rất buồn.",
     "Bỏ đi {lost}k tiền hàng. Mẹ mà biết chắc tiếc tới tối.",
     "Đặt nhiều, bán ít, đổ bỏ {lost}k. Bài học đắt giá về dự báo.",
     "Hôm nay mất {lost}k cho thùng rác. Thùng rác ăn ngon hơn chủ.",
     "Chả lụa dư, rau dư, bánh dư. Chỉ có tiền là không dư.",
     "{lost}k ra đi không một lời từ biệt.",
-    "Hao hụt cao nhưng không sao, mai đặt ít lại. Lý thuyết là vậy.",
+    "Đồ hỏng bỏ nhiều nhưng không sao, mai đặt ít lại. Lý thuyết là vậy.",
     "Bánh dư sáng mai thành bánh hôm qua. Rau dư thì không có tương lai.",
   ],
   drama: [
