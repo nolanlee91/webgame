@@ -5,7 +5,7 @@
 // mà chưa di quá 10 px / trang chưa cuộn / trình duyệt chưa huỷ chạm (pointercancel khi nó nhận cuộn).
 // Bấm thật ⇒ giữ lún ~130 ms rồi mới chuyển trang. Ctrl/⌘/Shift/chuột giữa / mở tab mới / link #trong trang: để trình duyệt tự xử lý.
 // Vuốt slide: app.js chặn click (preventDefault ở pha capture) ⇒ ở đây thấy defaultPrevented thì bỏ qua.
-import { play, clickName } from "../games/_shared/feedback.js?v=f3"; // CÙNG địa chỉ với thẻ script trong index.html (khác ⇒ 2 bản, kêu 2 lần)
+import { play, clickName } from "../games/_shared/feedback.js?v=f4"; // CÙNG địa chỉ với thẻ script trong index.html (khác ⇒ 2 bản, kêu 2 lần)
 
 // HOME2-10 (D11): thêm chip / mục điều hướng chính (a.mainnav__a) — trước đây chạm chip "Phòng" (#lobby) im lặng trong khi nút và thẻ đều bụp.
 const NAV = "a.tile[href], a.slide[href], a.dcard[href], a.tile__chal[href], a.mainnav__a[href]";

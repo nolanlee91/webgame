@@ -15,7 +15,7 @@ import { PLACE_REASON } from "./core/decor.js?v=m38";
 import { STEP_VERB, STOCK } from "./data/ingredients.js?v=m38";
 import { EQUIPMENT } from "./data/equipment.js?v=m38";
 import { shopSave, browserStorage } from "./save.js?v=m38";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=m38";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=d11";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
