@@ -11,6 +11,7 @@ const { pathToFileURL } = require("url");
 const { attachWs } = require("../ma-soi/ws");
 const { DEFAULT_NAME, cleanLine, cleanPlayerName, maskChat } = require("../moderation"); // bộ lọc dùng chung (games-server/MODERATION.md)
 const { KICK_BAN_MS, cleanSid, rememberSid, isBanned, addBan } = require("../kick"); // "Mời ra" + chặn vào lại 10 phút theo phiên
+const { roomEvent, viaOf } = require("../stats-hook"); // Đợt 10: đếm tạo phòng / vào phòng (games-server/stats.js)
 
 const GAME_DIR = path.join(__dirname, "..", "..", "prototype", "games", "noi-tu");
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
@@ -163,6 +164,7 @@ function createNoiTuHost(server, opts = {}) {
         const e = { code, ip: conn.ip, public: m.public === undefined || m.public === true, seats: [{ token: crypto.randomBytes(16).toString("hex"), name }, null], conns: new Set(), ref: null, idleTimer: null, graceTimers: [null, null],
           chat: [], chatRate: [0, 1].map(() => ({ tok: CHAT.burst, at: Date.now() })) };
         rooms.set(code, e);
+        roomEvent("noi-tu", "create", conn.via);
         return enter(conn, e, e.seats[0].token, sid);
       }
       const e = rooms.get(String(m.code || "").toUpperCase().trim().slice(0, 8));
@@ -184,6 +186,7 @@ function createNoiTuHost(server, opts = {}) {
       e.seats[1] = { token: crypto.randomBytes(16).toString("hex"), name };
       e.chatRate[1] = { tok: CHAT.burst, at: Date.now() };
       enter(conn, e, e.seats[1].token, sid);
+      roomEvent("noi-tu", "join", conn.via);
       startMatch(e);
       return;
     }
@@ -241,7 +244,7 @@ function createNoiTuHost(server, opts = {}) {
     const ip = ipOf(req);
     if ((ipConns.get(ip) || 0) >= perIp.conns) { ws.send(JSON.stringify({ t: "err", code: "busy" })); return ws.close(1008); }
     ipConns.set(ip, (ipConns.get(ip) || 0) + 1);
-    const conn = { id: `c${++connSeq}`, ws, ip, entry: null, token: null, bucket: RATE.burst, at: Date.now() };
+    const conn = { id: `c${++connSeq}`, ws, ip, via: viaOf(req), entry: null, token: null, bucket: RATE.burst, at: Date.now() };
     sockets.add(ws);
     ws.on("message", (raw) => { try { onMessage(conn, raw); } catch (err) { console.error("[noi-tu]", err); reply(conn, { t: "err", code: "server" }); } });
     ws.on("close", () => {
