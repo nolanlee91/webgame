@@ -236,10 +236,15 @@ async function boot() {
   const chips = $("#chips");
   const chip = (cls) => { const c = el("span", "chip " + cls, chips); const b = el("b", "", c); const sm = el("small", "", c); return { c, b, sm }; };
   const cDay = chip("day"), cMoney = chip("money"), cStar = chip("rep"), cLv = chip("lv");
+  const hudNarrow = matchMedia("(max-width: 639px), (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait)");
+  const short1 = (x) => String(Math.floor(x * 10) / 10).replace(".", ",");
+  const shortMoney = (k) => { const s = k < 0 ? "−" : "", n = Math.abs(Math.round(k)); return s + (n < 1000 ? `${n}k` : n < 1e6 ? `${short1(n / 1000)}tr` : `${short1(n / 1e6)} tỷ`); };
+  hudNarrow.addEventListener?.("change", () => hud());
   function hud() {
     const sh = state.shift;
     cDay.b.textContent = sh ? clockText(sh) : `Ngày ${state.day}`; cDay.sm.textContent = sh ? `Ngày ${state.day}` : "chuẩn bị";
-    cMoney.b.textContent = fmtK(state.money); cMoney.sm.textContent = "";
+    // D9: điện thoại dọc: tiền dạng gọn (1,2tr / 1,2 tỷ), số đủ ở title — ô tiền từng bị cắt mất ở 320–360
+    cMoney.b.textContent = hudNarrow.matches && Math.abs(state.money) >= 1000 ? shortMoney(state.money) : fmtK(state.money); cMoney.sm.textContent = ""; cMoney.c.title = "Tiền: " + fmtK(state.money);
     cStar.b.textContent = state.rating ? state.rating.toFixed(1).replace(".", ",") + "★" : "—★"; cStar.sm.textContent = "";
     cLv.b.textContent = `Cấp ${state.level}`; cLv.sm.textContent = `${state.xp} XP`;
   }
