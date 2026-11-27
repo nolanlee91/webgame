@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bảng xếp hạng Thử thách hôm nay — Lụm Kèo</title>
+  <title>Thử thách hôm nay và bảng xếp hạng — Lụm Kèo</title>
   <meta name="description" content="Bảng xếp hạng Thử thách hôm nay của Lụm Kèo: Sudoku, 2048, Đố Vui. Cả nước chung một đề mỗi ngày, xem hạng hôm nay và hôm qua." />
   <link rel="canonical" href="https://lumkeo.com/homepage/bang-xep-hang.html" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Lụm Kèo" />
   <meta property="og:locale" content="vi_VN" />
-  <meta property="og:title" content="Bảng xếp hạng Thử thách hôm nay — Lụm Kèo" />
+  <meta property="og:title" content="Thử thách hôm nay và bảng xếp hạng — Lụm Kèo" />
   <meta property="og:description" content="Sudoku, 2048, Đố Vui: cả nước chung một đề mỗi ngày. Vào chơi rồi xem bạn hạng mấy." />
   <meta property="og:url" content="https://lumkeo.com/homepage/bang-xep-hang.html" />
   <meta property="og:image" content="https://lumkeo.com/homepage/assets/og/home.jpg" />
@@ -48,16 +48,16 @@
       </div>
       <nav class="mainnav" aria-label="Điều hướng chính" data-name="mainnav">
         <a class="mainnav__a" href="./#games"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi</a>
-        <a class="mainnav__a" href="./#lobby"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v1H3zM2 3h1v3H2zM7 3h1v3H7zM3 6h4v1H3zM1 8h8v1H1zM0 9h1v5H0zM9 9h1v5H9zM1 14h8v1H1zM10 2h3v1h-3zM13 3h1v3h-1zM10 6h3v1h-3zM11 8h4v1h-4zM15 9h1v5h-1zM12 14h3v1h-3z"/></svg><span>Phòng<span class="mainnav__l"> online</span></span></a>
-        <a class="mainnav__a" href="#thu-thach"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1h2v3H7zM6 4h4v2H6zM1 6h14v2H1zM3 8h10v2H3zM4 10h8v2H4zM3 12h4v2H3zM9 12h4v2H9zM2 14h3v1H2zM11 14h3v1h-3z"/></svg>Thử thách</a>
-        <a class="mainnav__a" href="#bang" aria-current="page"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1h10v6H3zM1 2h2v1H1zM13 2h2v1h-2zM1 3h1v2H1zM14 3h1v2h-1zM2 5h1v1H2zM13 5h1v1h-1zM4 7h8v1H4zM6 8h4v2H6zM7 10h2v2H7zM5 12h6v1H5zM4 13h8v2H4z"/></svg><span class="mainnav__l">Bảng xếp hạng</span><span class="mainnav__s">Xếp hạng</span></a>
+        <!-- D11: một mục "Thử thách" (gộp Thử thách + Bảng xếp hạng; bảng xếp hạng nằm trong trang này). Đích link: chỉ ở đây và ở mục cùng tên của
+             bang-xep-hang.html (data-nav="thu-thach") — đổi sang trang "Kèo ngày" thì sửa 2 chỗ này. Bỏ mục "Phòng online" (#lobby vẫn còn cho link cũ). -->
+        <a class="mainnav__a" href="#thu-thach" data-nav="thu-thach" aria-current="page"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1h2v3H7zM6 4h4v2H6zM1 6h14v2H1zM3 8h10v2H3zM4 10h8v2H4zM3 12h4v2H3zM9 12h4v2H9zM2 14h3v1H2zM11 14h3v1h-3z"/></svg>Thử thách</a>
       </nav>
     </div>
   </header>
 
   <main class="page lb">
     <div class="lb__intro">
-      <h1 class="section__title lb__h1">Bảng xếp hạng</h1>
+      <h1 class="section__title lb__h1">Thử thách</h1>
       <p class="lb__lead">Mỗi ngày cả nước chung một đề Sudoku, 2048, Đố Vui. Đề mới sau <b id="lbCount">--:--:--</b></p>
     </div>
 

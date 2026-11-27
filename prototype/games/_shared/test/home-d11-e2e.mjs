@@ -1,8 +1,10 @@
 // e2e Đợt 11 trang chủ (docs/audits/fixes/D11-misc.md):
 //  HOME2-06 chạm hero đúng lúc đang tự trượt ⇒ mở game của slide nằm dưới ngón tay; chạm / vuốt hero ⇒ dừng hẳn tự chuyển.
 //  HOME2-07 thẻ phòng: tên chủ phòng dài có "…" (390, 1366); điện thoại ≤ 3 phòng ⇒ danh sách rộng hết panel, nút "Vào" sát mép phải.
-//  HOME2-10 chip điều hướng (link #lobby…) kêu "bụp" như mọi nút / thẻ; lướt ngang hàng chip không kêu.
+//  HOME2-10 chip điều hướng (link #games…) kêu "bụp" như mọi nút / thẻ; lướt ngang hàng chip không kêu.
 //  HOME2-13 568×320 (iPhone SE xoay ngang): hàng chip + ô tìm gộp một hàng ⇒ dải "Chơi ngay" lên cao.
+//  Quyết định chủ dự án (D11): điện thoại dọc ẩn hero, ô đầu "Chơi ngay" = "Tựa game của tuần"; nav chỉ còn Chơi · Thử thách;
+//  sảnh trống thu về một hàng mã phòng (máy tính: hero trọn hàng), có phòng thì đầy đủ; CLS lúc tải ≈ 0.
 // Chạy: node prototype/games/_shared/test/home-d11-e2e.mjs [thư-mục-ảnh]   (tự bật server.js trong tiến trình, cổng ngẫu nhiên)
 import { mkdirSync } from "node:fs";
 import path from "node:path";
@@ -44,28 +46,28 @@ try {
   // ---------- HOME2-10: chip điều hướng kêu ----------
   {
     const t = await open("chip-390", 390, 844, true);
-    const p = await center(t, '.mainnav__a[href="#lobby"]');
+    const p = await center(t, '.mainnav__a[href="#games"]');
     const n0 = await osc(t);
     await touch(t, [p]); await sleep(400);
     const n1 = await osc(t);
-    check("HOME2-10: chạm chip 'Phòng' (#lobby) ⇒ có tiếng bụp + nhảy tới sảnh", n1 > n0 && (await t.ev("location.hash")) === "#lobby", `osc ${n0}→${n1}, hash ${await t.ev("location.hash")}`);
+    check("HOME2-10: chạm chip 'Chơi' (#games) ⇒ có tiếng bụp + nhảy tới danh sách game", n1 > n0 && (await t.ev("location.hash")) === "#games", `osc ${n0}→${n1}, hash ${await t.ev("location.hash")}`);
     await t.ev("scrollTo(0,0)"); await sleep(200);
-    const q = await center(t, '.mainnav__a[href="#lobby"]');
+    const q = await center(t, '.mainnav__a[href="#games"]');
     const n2 = await osc(t);
     await touch(t, [q, { x: q.x - 20, y: q.y }, { x: q.x - 45, y: q.y }, { x: q.x - 70, y: q.y }]); await sleep(400);
     check("HOME2-10: lướt ngang qua hàng chip ⇒ không kêu", (await osc(t)) === n2, `osc ${n2}→${await osc(t)}`);
     const d = await open("chip-1366", 1366, 768, false);
-    const c = await center(d, '.mainnav__a[href="#lobby"]');
+    const c = await center(d, '.mainnav__a[href="#games"]');
     const m0 = await osc(d);
     await d.cmd("Input.dispatchMouseEvent", { type: "mousePressed", x: c.x, y: c.y, button: "left", clickCount: 1 });
     await d.cmd("Input.dispatchMouseEvent", { type: "mouseReleased", x: c.x, y: c.y, button: "left", clickCount: 1 });
     await sleep(300);
-    check("HOME2-10: máy tính bấm chuột mục 'Phòng online' ⇒ có tiếng như nút khác", (await osc(d)) > m0);
+    check("HOME2-10: máy tính bấm chuột mục 'Chơi' ⇒ có tiếng như nút khác", (await osc(d)) > m0);
   }
 
   // ---------- HOME2-06: chạm hero lúc đang trượt ----------
   {
-    const t = await open("hero-390", 390, 844, true);
+    const t = await open("hero-ngang", 844, 390, true); // D11: điện thoại dọc không còn hero ⇒ thử ở xoay ngang
     const want = await t.ev(`new URL(document.querySelector("#heroTrack .slide").href).pathname`);
     const p = await center(t, ".slide .hero__art");
     await t.ev(`document.getElementById("heroNext").click()`); // trượt 0 → 1 (0,5 s); chạm ngay khi slide 0 còn gần như kín khung
@@ -75,7 +77,7 @@ try {
     const got = await t.ev("location.pathname");
     check("HOME2-06: chạm đúng lúc đang trượt ⇒ mở game của slide đang nằm dưới ngón tay (không hụt, không sang slide mới)", got === want, `muốn ${want}, ra ${got}`);
 
-    const u = await open("hero-stop", 390, 844, true);
+    const u = await open("hero-stop", 844, 390, true);
     const h = await center(u, ".slide .hero__art");
     await touch(u, [h, { x: h.x - 30, y: h.y }, { x: h.x - 70, y: h.y }, { x: h.x - 110, y: h.y }]); // vuốt sang slide 2
     await sleep(700);
@@ -114,7 +116,7 @@ try {
       const chips = [...document.querySelectorAll(".mainnav__a")].map(a => a.getBoundingClientRect()).filter(c => c.right <= innerWidth && c.left >= 0).length;
       return { navMid: Math.round(nav.top + nav.height / 2), qMid: Math.round(q.top + q.height / 2), qLeft: Math.round(q.left), navRight: Math.round(nav.right), qW: Math.round(q.width),
         qp: Math.round(qp.top), chips, sw: document.documentElement.scrollWidth <= innerWidth + 1, sticky: getComputedStyle(document.querySelector(".topbar__row")).position }; })()`);
-    check(`HOME2-13 ${w}×${h}: 4 chip + ô tìm cùng một hàng, ô tìm ≥ 140 px, không tràn ngang`, Math.abs(m.navMid - m.qMid) <= 6 && m.qLeft >= m.navRight && m.qW >= 140 && m.chips === 4 && m.sw, JSON.stringify(m));
+    check(`HOME2-13 ${w}×${h}: 2 chip + ô tìm cùng một hàng, ô tìm ≥ 140 px, không tràn ngang`, Math.abs(m.navMid - m.qMid) <= 6 && m.qLeft >= m.navRight && m.qW >= 140 && m.chips === 2 && m.sw, JSON.stringify(m));
     check(`HOME2-13 ${w}×${h}: dải 'Chơi ngay' bắt đầu ≤ ${h - 90} px (trước: y 291 ở 568×320)`, m.qp <= h - 90, JSON.stringify(m));
     await shot(t, `ngang-${w}x${h}.png`);
   }
@@ -123,6 +125,74 @@ try {
     const m = await t.ev(`(() => { const nav = document.querySelector(".mainnav").getBoundingClientRect(), q = document.querySelector(".field.search").getBoundingClientRect();
       return { below: q.top >= nav.bottom, float: getComputedStyle(document.querySelector(".mainnav")).float }; })()`);
     check("dọc 390: không đổi (ô tìm vẫn nằm dưới hàng chip)", m.below && m.float === "none", JSON.stringify(m));
+  }
+
+
+  // ---------- D11: điện thoại dọc — hero gộp vào "Chơi ngay" ----------
+  for (const [w, h] of [[390, 844], [360, 640], [320, 568]]) {
+    const t = await open(`gop-${w}`, w, h, true);
+    const m = await t.ev(`(() => { const tiles = [...document.querySelectorAll("#qpRow .tile")], f = tiles[0], fr = f.getBoundingClientRect();
+      const full = tiles.filter(e => { const r = e.getBoundingClientRect(); return r.width && r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth; });
+      const ids = tiles.map(e => e.dataset.id);
+      return { hero: document.querySelector(".hero").getBoundingClientRect().height, first: f.dataset.id, slide1: window.HERO_SLIDES[0].id, feat: f.classList.contains("tile--feat"),
+        kicker: (f.querySelector(".feat__kicker") || {}).textContent, go: !!f.querySelector(".feat__go"), big: fr.width > tiles[1].getBoundingClientRect().width * 1.8,
+        dup: ids.length !== new Set(ids).size, full: full.length, prio: f.querySelector("img").getAttribute("fetchpriority"), sw: document.documentElement.scrollWidth <= innerWidth }; })()`);
+    check(`D11 ${w}×${h}: không còn hero; ô đầu "Chơi ngay" là ô lớn "Tựa game của tuần" = HERO_SLIDES[0], có "Chơi ngay", không trùng game`,
+      m.hero === 0 && m.feat && m.first === m.slide1 && m.kicker === "Tựa game của tuần" && m.go && m.big && !m.dup && m.prio === "high" && m.sw, JSON.stringify(m));
+    check(`D11 ${w}×${h}: màn đầu thấy trọn ≥ 6 game`, m.full >= 6, JSON.stringify(m));
+    await shot(t, `gop-${w}x${h}.png`);
+  }
+  {
+    const t = await open("gop-ngang", 568, 320, true);
+    const m = await t.ev(`({ hero: document.querySelector(".hero").getBoundingClientRect().height, feat: getComputedStyle(document.querySelector(".tile--feat")).display })`);
+    check("D11 568×320 xoay ngang: hero giữ nguyên, ô lớn ẩn", m.hero > 80 && m.feat === "none", JSON.stringify(m));
+    await shot(t, "gop-568x320.png");
+  }
+
+  // ---------- D11: nav Chơi · Thử thách ----------
+  for (const [w, h, mob, url] of [[390, 844, true, "/homepage/"], [1366, 768, false, "/homepage/"], [1366, 768, false, "/homepage/bang-xep-hang.html"]]) {
+    const ctx = await chrome.newContext(); const t = await chrome.newTab("nav", w, h, mob, ctx); tabs.push(t);
+    await t.go(base + url); await sleep(300);
+    const m = await t.ev(`({ items: [...document.querySelectorAll(".mainnav__a")].map(a => a.textContent.trim() + ">" + a.getAttribute("href")), lobby: !!document.getElementById("lobby"),
+      title: document.title, h1: (document.querySelector("h1:not(.sr-only)") || {}).textContent || "" })`);
+    const want = url.endsWith("/") ? ["Chơi>#games", "Thử thách>bang-xep-hang.html#thu-thach"] : ["Chơi>./#games", "Thử thách>#thu-thach"];
+    check(`D11 nav ${w} ${url}: chỉ còn "Chơi · Thử thách" (bỏ Phòng online, gộp Bảng xếp hạng)`, JSON.stringify(m.items) === JSON.stringify(want), JSON.stringify(m));
+    if (url.endsWith("/")) check(`D11 ${w}: #lobby vẫn có cho link cũ`, m.lobby);
+    else check("D11 trang Thử thách: title / h1 lấy 'Thử thách' làm tên chính", /^Thử thách/.test(m.title) && m.h1 === "Thử thách", JSON.stringify(m));
+  }
+
+  // ---------- D11: sảnh trống thu gọn / có phòng đầy đủ + CLS ----------
+  const CLS = `new Promise(r => { let v = 0; new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) v += e.value; }).observe({ type: "layout-shift", buffered: true }); setTimeout(() => r(+v.toFixed(4)), 1200); })`;
+  for (const [w, h, mob] of [[1366, 768, false], [1920, 1080, false], [390, 844, true]]) {
+    for (const rooms of [[], [{ game: "co-caro", code: "ABCDE", host: "Mèo 12", have: 1, max: 2 }]]) {
+      const t = await open(`sanh-${w}-${rooms.length}`, w, h, mob, { rooms });
+      const m = await t.ev(`(() => { const L = document.getElementById("lobby"), r = L.getBoundingClientRect(), hero = document.querySelector(".hero").getBoundingClientRect();
+        const vis = (s) => { const e = L.querySelector(s); return !!e && e.getBoundingClientRect().height > 0; };
+        return { h: Math.round(r.height), head: vis(".lobby__head"), tabs: vis(".ltabs"), input: vis("#roomInlineCode"), create: vis("#createRoom"), empty: vis("#lobbyEmpty"),
+          heroW: Math.round(hero.width), lobbyBelow: r.top >= hero.bottom - 1 }; })()`);
+      const cls = await t.ev(CLS);
+      if (!rooms.length) check(`D11 sảnh trống ${w}: một hàng [mã][Vào][+ Tạo phòng], không tiêu đề / tab / khối trống${mob ? "" : "; hero trọn hàng, hàng mã ngay dưới"}`,
+        !m.head && !m.tabs && !m.empty && m.input && m.create && m.h <= (mob ? 110 : 80) && (mob || (m.lobbyBelow && m.heroW > w * 0.6)), JSON.stringify(m));
+      else check(`D11 có phòng ${w}: sảnh đầy đủ (tiêu đề, tab, danh sách)`, m.head && m.tabs && m.input, JSON.stringify(m));
+      check(`D11 ${w} ${rooms.length ? "có phòng" : "sảnh trống"}: CLS lúc tải ≈ 0`, cls <= 0.01, String(cls));
+      await shot(t, `sanh-${w}-${rooms.length ? "co-phong" : "trong"}.png`);
+    }
+  }
+
+  // phòng về MUỘN (sau khi trang đã vẽ): không tự bung (CLS), chỉ hiện nút "N phòng đang chờ · Xem"; bấm ⇒ sảnh đầy đủ
+  for (const [w, h, mob] of [[1366, 768, false], [390, 844, true]]) {
+    const ctx = await chrome.newContext(); const t = await chrome.newTab(`sanh-muon-${w}`, w, h, mob, ctx); tabs.push(t);
+    const body = JSON.stringify(JSON.stringify({ rooms: [{ game: "co-caro", code: "ABCDE", host: "Mèo 12", have: 1, max: 2 }] }));
+    await t.cmd("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const real = window.fetch.bind(window); window.fetch = (u, o) => String(u).endsWith("/api/lobby")
+      ? new Promise(r => setTimeout(() => r(new Response(${body}, { status: 200, headers: { "Content-Type": "application/json" } })), 1500)) : real(u, o); })()` });
+    await t.go(base + "/homepage/");
+    await t.waitFor(`!document.getElementById("lobbyPeek").hidden`, 8000);
+    const cls = await t.ev(CLS);
+    const m = await t.ev(`({ full: document.getElementById("lobby").classList.contains("has-rooms"), peek: document.getElementById("lobbyPeek").textContent.trim() })`);
+    check(`D11 phòng về muộn ${w}: sảnh vẫn gọn + nút "1 phòng đang chờ · Xem", CLS ≈ 0`, !m.full && /1 phòng đang chờ/.test(m.peek) && cls <= 0.01, JSON.stringify(m) + " CLS " + cls);
+    await t.ev(`document.getElementById("lobbyPeek").click()`); await sleep(300);
+    check(`D11 phòng về muộn ${w}: bấm Xem ⇒ sảnh đầy đủ có phòng`, await t.ev(`document.getElementById("lobby").classList.contains("has-rooms") && document.querySelectorAll("#rooms .room").length === 1 && document.getElementById("lobbyPeek").hidden`));
+    await shot(t, `sanh-muon-${w}.png`);
   }
 
   const errs = tabs.flatMap((t) => t.errors.map((e) => t.name + ": " + e)).filter((e) => !/ws\//.test(e));
