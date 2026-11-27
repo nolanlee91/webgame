@@ -1,6 +1,6 @@
 // Đơn nhiều ổ dang dở mà khách phải đi (hết kiên nhẫn, không chịu đổi món): khách lấy luôn mấy ổ ĐÃ GÓI, trả 70% giá (không XP, không review tốt).
 // M5 (bộ mô phỏng): trước đây cả đơn 6–12 ổ đã gói đều ghi hao (người chơi ẩu mất 150–230k một ca, kẹt nghèo nhiều ngày). Thuần.
-import { STOCK, QUE } from "../data/economy.js?v=b11";
+import { STOCK, QUE } from "../data/economy.js?v=b12";
 
 export const PARTIAL = { pay: 0.7 };
 /** Trả số ổ khách mang đi; các ổ đó không còn trong c.filled (không bị ghi hao nữa). */

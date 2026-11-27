@@ -1,8 +1,8 @@
 // Nồi cơm theo mẻ (gạo tấm), mỡ hành, chảo trứng; bày dĩa xếp lớp (thứ tự tối thiểu, trừ kho đúng một lần, hoàn tác / đổ dĩa tính hao); phiếu biến thể.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { freshRice, startCook, tickRice, takeRice, cookNow, eggState, startEgg, takeEgg, makeJar } from "../core/rice.js?v=c9";
-import { targetOf, plateFrames, nextStep } from "../core/plate.js?v=c9";
+import { freshRice, startCook, tickRice, takeRice, cookNow, eggState, startEgg, takeEgg, makeJar } from "../core/rice.js?v=c10";
+import { targetOf, plateFrames, nextStep } from "../core/plate.js?v=c10";
 import { apply, must, openWithOrder, home, cookedPiece, until, newGame } from "./helpers.mjs";
 
 test("nồi cơm: Nấu lấy gạo tấm bù đầy nồi, 40 giây sau mới xới được; hết gạo ⇒ lỗi", () => {

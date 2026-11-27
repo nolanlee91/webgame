@@ -3,15 +3,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, playDay, playShift, prepDay } from "./helpers.mjs";
-import { loadSave, dump } from "../core/state.js?v=c9";
-import { reviewPool, pushReview, replyOptions, topicOf, linesFor, needPersona, trafficBonus, ratingOf, onShiftStart, FLIP_DAY, SERIOUS } from "../core/reviews.js?v=c9";
-import { captionKind, caption, journalCard, journalMoments } from "../core/journal.js?v=c9";
-import { MISTAKE_IDS } from "../core/score.js?v=c9";
-import { PERSONAS, PERSONA_IDS, REPLY_OPTIONS, REPLY_LINES, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_REVIEW, RETURN_LINES, CAPTIONS_PERSONA, CAPTIONS_REPLY, MISTAKE_TEXT } from "../data/lines-reply.js?v=c9";
-import { CAPTIONS } from "../data/lines-journal.js?v=c9";
-import * as M4 from "../data/lines-reviews-m4.js?v=c9";
-import { freshLine, fill } from "../core/text.js?v=c9";
-import { pickFree } from "../core/drama.js?v=c9";
+import { loadSave, dump } from "../core/state.js?v=c10";
+import { reviewPool, pushReview, replyOptions, topicOf, linesFor, needPersona, trafficBonus, ratingOf, onShiftStart, FLIP_DAY, SERIOUS } from "../core/reviews.js?v=c10";
+import { captionKind, caption, journalCard, journalMoments } from "../core/journal.js?v=c10";
+import { MISTAKE_IDS } from "../core/score.js?v=c10";
+import { PERSONAS, PERSONA_IDS, REPLY_OPTIONS, REPLY_LINES, OUTCOME_LABEL, COMEBACK, FLIP_LINES, NET_REVIEW, RETURN_LINES, CAPTIONS_PERSONA, CAPTIONS_REPLY, MISTAKE_TEXT } from "../data/lines-reply.js?v=c10";
+import { CAPTIONS } from "../data/lines-journal.js?v=c10";
+import * as M4 from "../data/lines-reviews-m4.js?v=c10";
+import { freshLine, fill } from "../core/text.js?v=c10";
+import { pickFree } from "../core/drama.js?v=c10";
 
 const review = (s, o = {}) => pushReview(s, { name: "Chú Tư", role: "worker", stars: 2, line: "Câu review.", mistake: null, dish: "com-suon", ...o });
 const ROLES = ["office", "worker", "student", "regular", "driver", "nurse", "reviewer", "tourist", "worker2", "student2"];

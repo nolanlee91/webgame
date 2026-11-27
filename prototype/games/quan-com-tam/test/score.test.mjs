@@ -1,8 +1,8 @@
 // Chấm điểm 0–100 + sao 1–5 + trần sao của đủ 13 kiểu lỗi (DRAMA.md §3); khiếu nại (làm lại / giảm giá / miễn phí); lỗi nặng mở xin lỗi nghiêm túc.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { judge, scorePlate, servicePoints, finalStars, starsFor, timePoints, MISTAKES, MISTAKE_IDS } from "../core/score.js?v=c9";
-import { emptyPlate } from "../core/plate.js?v=c9";
+import { judge, scorePlate, servicePoints, finalStars, starsFor, timePoints, MISTAKES, MISTAKE_IDS } from "../core/score.js?v=c10";
+import { emptyPlate } from "../core/plate.js?v=c10";
 import { apply, must, openWithOrder, home, cookedPiece, until } from "./helpers.mjs";
 
 const T = (dish = "com-suon", quirks = [], extra = {}) => ({ id: 1, dish, quirks, ...extra });

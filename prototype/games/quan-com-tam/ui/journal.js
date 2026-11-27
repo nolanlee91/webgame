@@ -2,7 +2,7 @@
 // Nền: assets/journal-card.webp (Codex đợt 2) khi manifest có; chưa có thì vẽ nền dự phòng bằng canvas (kem, khung nâu, vùng ảnh cắt từ cảnh quán).
 // Khung đầu (70..1010 × 60..175): "Lụm Kèo · Nhật Ký Làm Chủ", tên quán và ngày. Vùng ảnh 60..1020 × 210..850. Vùng kem dưới (40..1040 × 885..1320):
 // câu chốt ngày, câu trích, ba số, lumkeo.com. Chữ dài tự xuống dòng và thu cỡ.
-import { journalCard } from "../core/journal.js?v=c9";
+import { journalCard } from "../core/journal.js?v=c10";
 
 export const CARD_W = 1080, CARD_H = 1350;
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';

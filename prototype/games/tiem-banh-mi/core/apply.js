@@ -3,20 +3,20 @@
 // tiền ≥ 0 (số nguyên), quỹ lẻ là tờ nguyên ≥ 0 và không vượt tổng tiền, kho số nguyên ≥ 0 và không vượt sức chứa vì hàng mới,
 // tủ kính không vượt sức chứa, danh tiếng 0–100, cấp khớp XP.
 // Bấm lặp / tải lại không cộng hai lần: giao chỉ khi ổ đã gói và khách còn chờ; thối tiền chỉ khi đang có khách trả tiền; mỗi bước ráp đúng thứ tự.
-import * as shift from "./shift.js?v=b11";
-import * as bd from "./board.js?v=b11";
-import { loadBatch, pullBatch, firstBatch, caseCap } from "./oven.js?v=b11";
-import { restock, restockToday, exchangePack, consign, capacity, stockUsed } from "./stock.js?v=b11";
-import { resolveStockout, resolveNochange } from "./rescue.js?v=b11";
-import { floatValue } from "./money.js?v=b11";
-import { STOCK_IDS, FLOAT_BILLS } from "../data/economy.js?v=b11";
-import { autoSpread } from "./board.js?v=b11";
-import { setPersona, reply } from "./reviews.js?v=b11";
-import { missionsOnPull } from "./missions.js?v=b11";
-import * as pg from "./progress.js?v=b11";
-import { scenePointsShop } from "./placements.js?v=b11";
-import { fry, grillLoad, grillPull } from "./cook.js?v=b11";
-import { checkBadges } from "./challenge.js?v=b11";
+import * as shift from "./shift.js?v=b12";
+import * as bd from "./board.js?v=b12";
+import { loadBatch, pullBatch, firstBatch, caseCap } from "./oven.js?v=b12";
+import { restock, restockToday, exchangePack, consign, capacity, stockUsed } from "./stock.js?v=b12";
+import { resolveStockout, resolveNochange } from "./rescue.js?v=b12";
+import { floatValue } from "./money.js?v=b12";
+import { STOCK_IDS, FLOAT_BILLS } from "../data/economy.js?v=b12";
+import { autoSpread } from "./board.js?v=b12";
+import { setPersona, reply } from "./reviews.js?v=b12";
+import { missionsOnPull } from "./missions.js?v=b12";
+import * as pg from "./progress.js?v=b12";
+import { scenePointsShop } from "./placements.js?v=b12";
+import { fry, grillLoad, grillPull } from "./cook.js?v=b12";
+import { checkBadges } from "./challenge.js?v=b12";
 
 const HANDLERS = {
   tick: (s, a, ev) => shift.tick(s, a.dt, ev),
