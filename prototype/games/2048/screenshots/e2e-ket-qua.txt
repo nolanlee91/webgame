@@ -1,10 +1,10 @@
 PASS menu hiện khi mở game
-PASS Bắt đầu → ván 4×4, 2 ô đầu — [0,0,0,0,0,0,0,0,2,0,2,0,0,0,0,0]
+PASS Bắt đầu → ván 4×4, 2 ô đầu — [0,0,0,0,0,0,0,0,4,0,0,2,0,0,0,0]
 PASS DOM khớp bàn lúc đầu — ok
-PASS 40 lần bấm mũi tên → ô trượt/gộp, DOM luôn khớp bàn — nước=37 điểm=212
+PASS 40 lần bấm mũi tên → ô trượt/gộp, DOM luôn khớp bàn — nước=37 điểm=260
 PASS điểm ghi trên HUD đúng
 PASS phím WASD cũng trượt — 37→41
-PASS [2,2,4,4] ← → [4,8], +12 điểm — [4,8,2,0]
+PASS [2,2,4,4] ← → [4,8], +12 điểm — [4,8,0,0]
 PASS DOM sau gộp đúng — ok
 PASS chữ "+điểm" bay mượt: vị trí đổi mỗi khung hình, chỉ dùng transform, tự dọn khi xong — {"n":42,"distinct":41,"mono":true,"left":"","maxOp":1,"gone":true}
 PASS gộp liên tiếp 10 lần: tối đa 3 chữ bay, 1 chữ ở ô điểm, dọn sạch sau đó — float≤3 gain≤1 còn 0
@@ -20,6 +20,10 @@ PASS báo SDK gameOver result=goal
 PASS Chơi tiếp → tiếp tục ván, không hỏi lại
 PASS bàn kín không còn cặp → hết nước đi
 PASS hiện bảng Hết nước đi / Kết thúc + kỷ lục
+PASS bảng hết ván thường có "Khoe kết quả" cạnh "⚔ Thách bạn"
+PASS bấm Khoe kết quả → mở bảng chia sẻ, đếm share_click — ["{\"e\":\"share_click\",\"g\":\"2048\"}"]
+PASS ảnh khoe ghi đúng số thật: điểm, ô lớn nhất, bàn, nước đi — Ảnh kết quả 2048: Kỷ lục mới 2.832 điểm · {"title":"Kỷ lục mới 2.832 điểm","lines":["Ô lớn nhất: 256","Bàn: 4×4","Nước đi: 56"],"tagline":"Kỷ lục mới! Ai dám vô phá thử không?"}
+PASS Esc đóng bảng chia sẻ, bảng hết ván vẫn còn
 PASS phím mũi tên bị chặn khi đã thua
 PASS Hoàn tác từ bảng thua → chơi lại được
 PASS hết lượt hoàn tác → nút mờ
@@ -38,8 +42,9 @@ PASS 5×5: bàn 25 ô, mục tiêu 4096, DOM khớp
 PASS 5×5 vừa khung
 PASS 3×3: ghép tới 256 là thắng
 PASS ô đến 131072 vẫn vừa chữ
+PASS ván thách hết nước → không hiện "Khoe kết quả", vẫn có "⚔ Thách lại"
 PASS desktop lớn 1440×900: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
-PASS laptop 1280×720: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
+PASS laptop 1280×720: bàn vừa khung, không tràn, nút trong màn hình — ô 130px true,true,true,true
 PASS tablet ngang 1024×768: bàn vừa khung, không tràn, nút trong màn hình — ô 132px true,true,true,true
 PASS tablet dọc 768×1024: bàn vừa khung, không tràn, nút trong màn hình — ô 125px true,true,true,true
 PASS điện thoại 390×844: bàn vừa khung, không tràn, nút trong màn hình — ô 80px true,true,true,true
@@ -57,4 +62,4 @@ PASS mobile: thua → bảng kết quả, nút trong màn hình
 PASS mobile: Về menu
 PASS mobile ngang: bàn + nút vừa màn hình
 PASS không có lỗi console
-59/59 PASS
+64/64 PASS

@@ -21,10 +21,10 @@
 //   effect: giá trị mà core/build.js effects() cộng dồn (mốc sau ghi đè mốc trước).
 // SPRITE: { sheet, id } — sheet là key trong assets/v3/manifest.json `sheets`, hoặc "garden" = assets/garden/<id>.webp.
 
-import { featureLevel } from "./levels.js?v=m17";
+import { featureLevel } from "./levels.js?v=m18";
 // Cấp của một tính năng trong data/levels.js; tính năng chưa có trong bản levels.js đang dùng ⇒ số dự phòng (theo §3).
 const fl = (id, fallback) => (Number.isFinite(featureLevel(id)) ? featureLevel(id) : fallback);
-import { WAREHOUSE } from "./warehouse.js?v=m17";
+import { WAREHOUSE } from "./warehouse.js?v=m18";
 
 // Milestone 5: bản đồ cao 600 → 640 px (thêm dải cỏ dưới cùng) — chuồng gà / chuồng bò / Nhà kính ở mép dưới không còn bị cắt nhãn,
 // có chỗ cho gà / bò đi lại trước chuồng. Mọi toạ độ ghi bằng px gốc nên công trình giữ nguyên chỗ.

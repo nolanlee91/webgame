@@ -10,9 +10,9 @@
 //   }
 // Mọi handler có chữ ký (s, a, now, ev, deps) giống HANDLERS trong apply.js (trừ deps) và trả { ok, ... } | { err }.
 // Trong apply.js: HANDLERS = { ..., ...bindM4(deps) } — xem core/README-M4.md "Wiring".
-import * as A from "./animals.js?v=m17";
-import * as V from "./village.js?v=m17";
-import { HARD_MAX } from "../data/animals.js?v=m17";
+import * as A from "./animals.js?v=m18";
+import * as V from "./village.js?v=m18";
+import { HARD_MAX } from "../data/animals.js?v=m18";
 
 /** ctx cho core/animals.js + core/village.js từ trạng thái. */
 export function m4Ctx(s, now, deps = {}) {

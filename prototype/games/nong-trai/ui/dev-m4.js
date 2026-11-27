@@ -2,13 +2,13 @@
 // Dựng một trạng thái thật trong bộ nhớ (core/animals.js + core/village.js + core/inventory.js bag()), một exec() tối giản
 // dùng chính handler sẽ ghép vào apply() (core/m4-handlers.js), chạy trên bản nháp (lỗi ⇒ không đổi gì), và đồng hồ tua được.
 // window.__m4 = { s, exec, travel(ms), now(), dev, scenes } cho test tự động qua CDP.
-import { bag, wallet } from "../core/inventory.js?v=m17";
-import { bindM4, m4Sync, m4Track, m4InvariantError, ensureM4 } from "../core/m4-handlers.js?v=m17";
-import { TUTORIAL } from "../data/quests.js?v=m17";
-import { createAnimalsScene } from "./scene-animals.js?v=m17";
-import { createVillageScene } from "./scene-village.js?v=m17";
-import { createTruck } from "./truck.js?v=m17";
-import { makeToast, fmtNum } from "./m4-art.js?v=m17";
+import { bag, wallet } from "../core/inventory.js?v=m18";
+import { bindM4, m4Sync, m4Track, m4InvariantError, ensureM4 } from "../core/m4-handlers.js?v=m18";
+import { TUTORIAL } from "../data/quests.js?v=m18";
+import { createAnimalsScene } from "./scene-animals.js?v=m18";
+import { createVillageScene } from "./scene-village.js?v=m18";
+import { createTruck } from "./truck.js?v=m18";
+import { makeToast, fmtNum } from "./m4-art.js?v=m18";
 
 const MAX_LEVEL = 20, xpNeed = (lv) => 60 * lv * lv;
 function addXp(s, n, ev) {

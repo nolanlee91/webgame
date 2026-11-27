@@ -9,10 +9,10 @@ import { plain } from "./core/text.js?v=t10";
 import { makeSave, browserStorage } from "./save.js?v=t10";
 import { setManifest, registerSheets, preloadCaseArt } from "./ui/art.js?v=t10";
 import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t10";
-import { createDialog } from "./ui/dialog.js?v=t11";
+import { createDialog } from "./ui/dialog.js?v=d12";
 import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t10";
-import * as S from "./ui/screens.js?v=d11";
-import * as P from "./ui/panels.js?v=d11";
+import * as S from "./ui/screens.js?v=d12";
+import * as P from "./ui/panels.js?v=d12";
 import { stamp, shake, crackLens } from "./ui/fx.js?v=t10";
 
 const params = new URLSearchParams(location.search);
@@ -39,6 +39,7 @@ const app = {
     const fresh = r.ev.filter((e) => e.type === "word");
     G.s = r.s;
     if (fresh.length) { for (const e of fresh) toast("Từ khoá mới: " + G.c.words[e.id].text, "word"); sfx("keyword"); app.save(); P.refreshBadges(app); }
+    return fresh.length > 0; // D12: dialog biết đã kêu "keyword" ⇒ nút Đọc nhanh không kêu thêm "click" (mỗi lần bấm 1 tiếng)
   },
   /** Hành động engine ⇒ hiệu ứng ⇒ thoại ⇒ vẽ lại. */
   async act(a, { quiet = false, before = null } = {}) {
@@ -222,7 +223,8 @@ addEventListener("keydown", (e) => {
   if (document.querySelector(".modal")) return;
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
   if (app.dialog?.open) {
-    if (e.key === " " || e.key === "Enter") { e.preventDefault(); app.dialog.next(); }
+    // nút trong khung thoại (Đọc nhanh, Tua) đang có focus ⇒ để Space/Enter bấm chính nút đó (D12)
+    if ((e.key === " " || e.key === "Enter") && !document.activeElement?.closest?.(".dlg-ctl button")) { e.preventDefault(); app.dialog.next(); }
     return;
   }
   if (typing) return;

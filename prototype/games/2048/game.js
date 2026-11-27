@@ -2,6 +2,7 @@
 import * as L from "./logic.js?v=daily1";
 import * as UI from "../_shared/daily-ui.js?v=d10";
 import * as CH from "../_shared/challenge.js?v=ch1"; // Đợt 10: "Thách cùng màn" (cỡ bàn = seed % 3)
+import { shareResult } from "../_shared/share.js?v=s3"; // D12: "Khoe kết quả" ở màn hết ván thường
 
 const D = UI.D;
 const DAILY_ID = "2048";
@@ -81,7 +82,7 @@ export function mount(root, ctx = {}) {
   const ov = { menu: $("ovMenu"), win: $("ovWin"), end: $("ovEnd"), confirm: $("ovConfirm") };
   const sfx = makeSfx("assets/sfx/", ["buoc-nhay", "trung-da", "trung-kim-cuong", "qua-man", "thang", "thua", "do-xuc-xac"], sdk);
   let save = loadSave();
-  let size = save.size, s = null, startBest = 0, destroyed = false;
+  let size = save.size, s = null, startBest = 0, destroyed = false, lastEnd = null, lastShare = null; // lastEnd: số thật ván vừa hết (nút Khoe kết quả); lastShare: nội dung ảnh lần khoe gần nhất (test)
   let seedBase = ctx.seed ?? (Date.now() & 0xffffff), games = 0;
   const els = new Map();
   let pending = null, endTimer = 0, raf = 0, last = performance.now(), lastSec = -1;
@@ -362,6 +363,10 @@ export function mount(root, ctx = {}) {
     $("againBtn").textContent = chal ? "▶ Chơi màn mới" : "▶ Chơi lại";
     $("chalBtnE").textContent = chal ? "⚔ Thách lại" : "⚔ Thách bạn";
     $("chalBtnE").hidden = s.seed0 == null; // ván lưu từ bản cũ (không biết seed) ⇒ không tạo được link thách
+    // D12 "Khoe kết quả": chỉ ván thường. Ván thách (?thach) đã có "⚔ Thách lại" + bảng so điểm, điểm không tính kỷ lục ⇒ ẩn cho khỏi rối;
+    // Thử thách hôm nay (?daily=1) không dùng màn này (bảng daily-ui có nút chia sẻ riêng).
+    $("shareBtnE").hidden = !!chal;
+    lastEnd = { score: s.score, maxTile: s.maxTile, size: s.size, moves: s.moves, record: s.score > startBest && s.score > 0, prevBest: startBest };
     hud();
     show(ov.end);
     sdk.gameOver && sdk.gameOver({ score: s.score, maxTile: s.maxTile, size: s.size, moves: s.moves, time: Math.round(s.time), result: "over" });
@@ -473,6 +478,20 @@ export function mount(root, ctx = {}) {
     sfx.unlock(); sfx.play("qua-man", 0.5);
     stage.focus({ preventScroll: true });
   }
+  function shareEnd(e) {
+    const r = lastEnd;
+    if (!r) return;
+    if (e && e.detail > 0) e.currentTarget.blur();
+    const title = r.record ? `Kỷ lục mới ${fmt(r.score)} điểm` : `${fmt(r.score)} điểm`;
+    const lines = [`Ô lớn nhất: ${r.maxTile}`, `Bàn: ${r.size}×${r.size}`, `Nước đi: ${fmt(r.moves)}`];
+    if (!r.record && r.prevBest > 0) lines.push(`Kỷ lục: ${fmt(r.prevBest)}`);
+    const tagline = r.maxTile >= 2048 ? "Ghép tới 2048 rồi, tay ai mà khéo dữ vậy!"
+      : r.record ? "Kỷ lục mới! Ai dám vô phá thử không?"
+      : r.maxTile >= 1024 ? "Chạm ngõ 2048, chỉ thiếu một cú gộp!"
+      : r.maxTile >= 256 ? "Gộp cũng ra gì đó, ván sau là kỷ lục!" : "Bàn kín hơi nhanh, ván sau gộp góc thử coi!";
+    lastShare = { title, lines, tagline };
+    shareResult({ game: "2048", title, lines, tagline });
+  }
   function challengeRun(e) {
     if (!s || s.seed0 == null) return;
     if (e && e.detail > 0) e.currentTarget.blur();
@@ -561,6 +580,7 @@ export function mount(root, ctx = {}) {
   $("winNewBtn").addEventListener("click", () => start(true));
   $("againBtn").addEventListener("click", () => start(true));
   $("chalBtnE").addEventListener("click", challengeRun);
+  $("shareBtnE").addEventListener("click", shareEnd);
   $("menuBtnE").addEventListener("click", showMenu);
   $("endUndoBtn").addEventListener("click", doUndo);
   $("undoBtn").addEventListener("click", doUndo);
@@ -630,6 +650,7 @@ export function mount(root, ctx = {}) {
     get state() { return s; },
     get layout() { return G; },
     get challenge() { return chal; },
+    get lastShare() { return lastShare; },
     get daily() { return daily ? { day: daily.day, seed: daily.seed, limit: daily.limit, done: daily.done, log: daily.log } : null; },
     sfx,
     move: doMove, undo: doUndo, start, showMenu,

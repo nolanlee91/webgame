@@ -6,7 +6,7 @@ import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mj
 const OUT = process.argv[2] || shotDir('2048'), BASE = 'http://127.0.0.1:' + (process.env.PORT || 8768) + '/games/2048/';
 mkdirSync(OUT, { recursive: true });
 try { rmSync(OUT + '/prof', { recursive: true, force: true }); } catch {}
-const PORT = 9344;
+const PORT = process.env.CDP_PORT || 9344;
 const PROF = tempProfile('2048'); // %TEMP%/lk-e2e-*, tự xoá khi thoát
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=' + PORT, '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
@@ -158,6 +158,17 @@ check('bàn kín không còn cặp → hết nước đi', s.status === 'over');
 await sleep(1100);
 check('hiện bảng Hết nước đi / Kết thúc + kỷ lục', await visible('#ovEnd') && (await ev('document.querySelector("#eRecord").textContent')).includes('Kỷ lục'));
 await shot('g2048-desktop-thua.png');
+// D12 "Khoe kết quả": cạnh "⚔ Thách bạn", số thật của ván, đếm share_click (share.js tự gửi)
+check('bảng hết ván thường có "Khoe kết quả" cạnh "⚔ Thách bạn"', await visible('#shareBtnE') && await inView('#ovEnd .btn') && await ev(`document.getElementById('chalBtnE').nextElementSibling===document.getElementById('shareBtnE')`));
+await ev(`window.__beacons=[];navigator.sendBeacon=(u,b)=>{window.__beacons.push(String(b));return true};window.__shareOpts=null`);
+await pressSel('#shareBtnE');
+for (let i = 0; i < 40 && !(await ev('!!document.querySelector(".lk-share")')); i++) await sleep(100);
+const endS = await S();
+check('bấm Khoe kết quả → mở bảng chia sẻ, đếm share_click', await ev('!!document.querySelector(".lk-share")') && await ev(`window.__beacons.some(b=>/share_click/.test(b))`), JSON.stringify(await ev('window.__beacons')));
+check('ảnh khoe ghi đúng số thật: điểm, ô lớn nhất, bàn, nước đi', await ev(`(()=>{const t=document.querySelector('.lk-share__img')?.alt||'';return t.includes(${JSON.stringify(endS.score.toLocaleString('vi-VN') + ' điểm')})})()`) && await ev(`(()=>{const o=__game.lastShare;return !!o&&o.lines.includes('Ô lớn nhất: '+${endS.maxTile})&&o.lines.includes('Bàn: 4×4')&&o.lines.includes('Nước đi: '+${JSON.stringify(endS.moves.toLocaleString('vi-VN'))})})()`), await ev(`document.querySelector('.lk-share__img')?.alt`) + ' · ' + JSON.stringify(await ev('__game.lastShare')));
+await shot('g2048-desktop-khoe.png');
+await key('Escape'); await sleep(200);
+check('Esc đóng bảng chia sẻ, bảng hết ván vẫn còn', !(await ev('!!document.querySelector(".lk-share")')) && await visible('#ovEnd'));
 check('phím mũi tên bị chặn khi đã thua', await (async () => { const a = (await S()).moves; await key('ArrowRight'); return (await S()).moves === a; })());
 await pressSel('#endUndoBtn'); await sleep(150); s = await S();
 check('Hoàn tác từ bảng thua → chơi lại được', s.status === 'playing' && !(await visible('#ovEnd')) && s.undoLeft === 0);
@@ -212,6 +223,15 @@ await setBoard([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 1638
 const fitText = await ev(`[...document.querySelectorAll('#board .tile span')].every(sp=>{const t=sp.getBoundingClientRect(),f=sp.closest('.tile').getBoundingClientRect();return t.width<=f.width-4})`);
 check('ô đến 131072 vẫn vừa chữ', fitText);
 await shot('g2048-desktop-bang-mau.png');
+
+// D12: ván thách (?thach) → không có "Khoe kết quả" (đã có "⚔ Thách lại" + bảng so điểm)
+await nav(BASE + '?thach=4.500'); await sleep(300);
+await pressSel('#chalGo'); await sleep(200);
+await setBoard([0, 2, 4, 8, 16, 32, 64, 128, 2, 4, 8, 16, 32, 64, 128, 256], 'g.won=true');
+await key('ArrowLeft'); await sleep(1300);
+check('ván thách hết nước → không hiện "Khoe kết quả", vẫn có "⚔ Thách lại"', await visible('#ovEnd') && !(await visible('#shareBtnE')) && /Thách lại/.test(await ev(`document.getElementById('chalBtnE').textContent`)));
+await pressSel('#againBtn'); await sleep(200);
+await nav(BASE); await sleep(300);
 
 // ===== 2. Nhiều cỡ màn hình =====
 for (const [w, h, mob, label] of [[1440, 900, false, 'desktop lớn'], [1280, 720, false, 'laptop'], [1024, 768, false, 'tablet ngang'], [768, 1024, true, 'tablet dọc'], [390, 844, true, 'điện thoại'], [360, 640, true, 'điện thoại nhỏ'], [844, 390, true, 'điện thoại ngang']]) {

@@ -1,16 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m17";
-import { shortNum } from "./ui/short-num.js?v=m17"; // TLC12-04
-import { browserStorage, farmSave } from "./save.js?v=m17";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m17";
-import { createMarketScene } from "./ui/scene-market.js?v=m17";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m17";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m17";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m17";
-import { createVillageScene } from "./ui/scene-village.js?v=m17";
-import { createTruck } from "./ui/truck.js?v=m17";
-import { farmShare } from "./ui/share-card.js?v=m17";
+import * as L from "./logic.js?v=m18";
+import { shortNum } from "./ui/short-num.js?v=m18"; // TLC12-04
+import { browserStorage, farmSave } from "./save.js?v=m18";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m18";
+import { createMarketScene } from "./ui/scene-market.js?v=m18";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m18";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m18";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m18";
+import { createVillageScene } from "./ui/scene-village.js?v=m18";
+import { createTruck } from "./ui/truck.js?v=m18";
+import { farmShare } from "./ui/share-card.js?v=m18";
 import { shareResult } from "../_shared/share.js?v=s3";
 
 const MUTE_KEY = "wgp.muted";
@@ -150,6 +150,7 @@ function faceHtml(npcId, cls = "") {
 
 export function mount(root, ctx = {}) {
   let lastPanSig = "", panRaf = 0; // nút cuộn bản đồ (placePan): chữ ký lần đặt trước + khung hình đã hẹn
+  let panHintDue = false; // D12: tab → đang ẩn vì không có chỗ ⇒ second() thử nhắc (panHint) khi hết thông báo / bảng phủ
   const sdk = ctx.sdk || { sound: { muted: false } };
   const now = ctx.now || (() => Date.now());
   const storage = ctx.storage ?? browserStorage();
@@ -806,20 +807,25 @@ export function mount(root, ctx = {}) {
   }
   const PAN_SZ = 44, PAN_HIT = ".bld:not([hidden]), .plot:not([hidden]), .dslot, .market-tag:not(:empty), .up-arrow:not([hidden])";
   /** Toạ độ dọc (theo khung nhìn) cho tab ở dải x [x0, x1]. Điểm phạt mỗi vật cản = phần bị che (tỉ lệ diện tích còn thấy)
-   *  + 4 nếu che tâm (chỗ trẻ chạm); công trình / nhãn / ô trang trí nặng gấp 3 ô ruộng. Ít phạt nhất, hoà thì gần chỗ cũ. */
+   *  + 4 nếu che tâm (chỗ trẻ chạm); công trình / nhãn / ô trang trí nặng gấp 3 ô ruộng. Ít phạt nhất, hoà thì gần chỗ cũ.
+   *  D12 (quyết định A của chủ dự án): nấc nào chạm ô ruộng (dù một phần) hoặc che tâm bất kỳ vật gì thì loại hẳn.
+   *  Không còn nấc nào ⇒ null: tab ẩn (vẫn vuốt ngang được), ngừng cuộn tới chỗ có khoảng trống thì hiện lại. */
   function panFreeY(x0, x1, top, bottom, prefer, obs) {
     let best = null;
     for (let y = top; y <= bottom - PAN_SZ; y += 4) {
-      let cost = 0;
+      let cost = 0, blocked = false;
       for (const o of obs) {
         const w = Math.min(x1, o.r) - Math.max(x0, o.l), h = Math.min(y + PAN_SZ, o.b) - Math.max(y, o.t);
-        if (w <= 0 || h <= 0) continue;
-        cost += o.k * ((w * h) / o.a + (o.cx >= x0 && o.cx <= x1 && o.cy >= y && o.cy <= y + PAN_SZ ? 4 : 0));
+        if (w <= 1 || h <= 1) continue;
+        const center = o.cx >= x0 && o.cx <= x1 && o.cy >= y && o.cy <= y + PAN_SZ;
+        if (center || o.k === 1) { blocked = true; break; }
+        cost += o.k * ((w * h) / o.a);
       }
+      if (blocked) continue;
       const d = Math.abs(y - prefer);
       if (!best || cost < best.cost - 1e-6 || (Math.abs(cost - best.cost) <= 1e-6 && d < best.d)) best = { y, cost, d };
     }
-    return best ? best.y : top;
+    return best ? best.y : null;
   }
   function placePan(scrolling) {
     const f = ui.farm, max = f.scrollWidth - f.clientWidth, on = max > 8 && scene === "farm";
@@ -830,11 +836,12 @@ export function mount(root, ctx = {}) {
     const east = fmap.bw > 1;
     ui.panE.setAttribute("aria-label", east ? "Cuộn bản đồ sang phía Đông" : "Xem phần bản đồ bên phải");
     ui.panW.setAttribute("aria-label", east ? "Cuộn bản đồ về phía Tây (ruộng)" : "Xem phần bản đồ bên trái");
-    // D4: xoay ngang thì .farm-world là display:contents ⇒ khung chứa nút là .wrap; dùng offsetParent chung của bản đồ và nút
-    const tab = showE ? ui.panE : ui.panW, box = tab.offsetParent || f.parentElement;
+    // D4: xoay ngang thì .farm-world là display:contents ⇒ khung chứa nút là .wrap; dùng offsetParent chung của bản đồ và nút.
+    // Tab đang ẩn vì không có chỗ (nospot, display:none) thì offsetParent = null ⇒ lấy từ tab kia / cha của bản đồ.
+    const tab = showE ? ui.panE : ui.panW, box = tab.offsetParent || (showE && showW ? ui.panW.offsetParent || ui.panE.offsetParent : null) || f.offsetParent || f.parentElement;
     ui.panE.style.right = `${box.clientWidth - f.offsetLeft - f.offsetWidth}px`;
     ui.panW.style.left = `${f.offsetLeft}px`;
-    if (scrolling && tab.style.top) return; // đang cuộn: giữ chỗ cũ, chọn lại khi ngừng
+    if (scrolling && (tab.style.top || tab.classList.contains("nospot"))) return; // đang cuộn: giữ chỗ cũ (kể cả đang ẩn vì không có chỗ), chọn lại khi ngừng
     // vùng thấy được của khung: cắt theo màn hình và thanh công cụ dính đáy (điện thoại dọc)
     const fr = f.getBoundingClientRect(), br = box.getBoundingClientRect();
     let top = Math.max(fr.top, 0) + 4, bottom = Math.min(fr.bottom - (f.offsetHeight - f.clientHeight), innerHeight) - 4;
@@ -851,8 +858,26 @@ export function mount(root, ctx = {}) {
     for (const [t, show, x0] of [[ui.panE, showE, fr.left + f.clientWidth - PAN_SZ], [ui.panW, showW, fr.left]]) {
       if (!show) continue;
       const prev = t.style.top ? br.top + parseFloat(t.style.top) : (top + bottom - PAN_SZ) / 2;
-      t.style.top = `${Math.round(panFreeY(x0, x0 + PAN_SZ, top, bottom, prev, obs) - br.top)}px`;
+      const y = panFreeY(x0, x0 + PAN_SZ, top, bottom, prev, obs);
+      t.classList.toggle("nospot", y === null);
+      if (y !== null) t.style.top = `${Math.round(y - br.top)}px`;
     }
+    panHintDue = ui.panE.classList.contains("nospot") && showE;
+    if (panHintDue) panHint();
+  }
+  /** D12: tab → bị ẩn (không có chỗ trống) ⇒ trẻ mới chơi có thể không biết bản đồ còn bên phải. Nhắc MỘT lần bằng thông báo
+   *  (sau khi xong NV1–NV5, lúc không có thông báo / bảng nào mở), thêm một lần khi Khu đất phía Đông "Có thể xây".
+   *  Người chơi đã tự cuộn tới mép phải thì coi như đã biết, không nhắc. Lưu ở localStorage "nt.panHint" (1 / 2), không vào bản lưu. */
+  function panHintGot() { try { return Number(localStorage.getItem("nt.panHint")) || 0; } catch { return 0; } }
+  function panHintSet(v) { try { if (panHintGot() < v) localStorage.setItem("nt.panHint", String(v)); } catch {} }
+  function panHintWant() { return fmap.layout?.items.find((x) => x.id === "dat-phia-dong")?.status === "available" ? 2 : 1; }
+  function panHint() {
+    const want = panHintWant();
+    if (panHintGot() >= want) { panHintDue = false; return; }
+    if (scene !== "farm" || !L.tutorialDone(s)) return;
+    if (!ui.toast.hidden || document.querySelector(".ov:not([hidden])")) return;
+    panHintSet(want); panHintDue = false;
+    toast(want === 2 ? "Khu đất phía Đông đã mở bán — vuốt bản đồ sang phải để tới chỗ xây." : "Bản đồ còn rộng bên phải — vuốt ngang để xem thêm.", 4200);
   }
   function setBuildMode(on, quiet) {
     buildMode = !!on;
@@ -1266,6 +1291,7 @@ export function mount(root, ctx = {}) {
     const t = now();
     for (const el of document.querySelectorAll("[data-until]")) el.textContent = fmtClock(Number(el.dataset.until) - t);
     if (scene === "farm") renderMap(t);
+    if (panHintDue && !ui.panE.hidden && ui.panE.classList.contains("nospot")) panHint(); // D12: chỉ đọc cờ, không đọc bố cục
     renderM4(t);
     markTruck();
     if (!ui.ovGh.hidden) renderField(t);
@@ -1358,6 +1384,8 @@ export function mount(root, ctx = {}) {
     f.scrollTo({ left: before - field > 8 ? field : 0, behavior: "smooth" });
   };
   ui.farm.addEventListener("scroll", schedulePan, { passive: true });
+  // tự cuộn tới mép phải ⇒ đã biết bản đồ còn bên phải (không cần nhắc panHint nữa)
+  ui.farm.addEventListener("scroll", () => { const f = ui.farm; if (f.scrollLeft >= f.scrollWidth - f.clientWidth - 8 && f.scrollWidth - f.clientWidth > 8) panHintSet(panHintWant()); }, { passive: true });
   window.addEventListener("resize", schedulePan);
   // khung / bản đồ đổi cỡ (mở Khu đất phía Đông, thanh công cụ xuống dòng…) ⇒ đặt lại nút cuộn
   const panRO = typeof ResizeObserver === "function" ? new ResizeObserver(schedulePan) : null;

@@ -1,10 +1,10 @@
 // Các màn nền: mở game (đặt tên), bản đồ Hẻm 47, văn phòng nhận hồ sơ (+ bài đăng nhóm), hiện trường, vạch mặt, kết vụ.
 import { h, icon, toast } from "./dom.js?v=t10";
 import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portraitEl, mapPin, dpr, SCENE_W, SCENE_H } from "./art.js?v=t10";
-import { renderText } from "./dialog.js?v=t11";
+import { renderText } from "./dialog.js?v=d12";
 import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
-import { pickEvidence, clueCard } from "./panels.js?v=d11";
+import { pickEvidence, clueCard } from "./panels.js?v=d12";
 import { play as sfx } from "./sfx.js?v=t10";
 import { shareResult } from "../../_shared/share.js?v=s3";
 

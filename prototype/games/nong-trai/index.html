@@ -526,6 +526,7 @@
     .pan-tab:hover::before { background: #3a2a14f0; }
     .pan-tab:active svg { transform: translateX(var(--nudge, 2px)); } .pan-tab--w { --nudge: -2px; }
     .pan-tab:focus-visible { outline: 2px dashed var(--gold); outline-offset: -2px; }
+    .pan-tab.nospot { display: none; } /* D12: không có chỗ 44 × 44 trống (cả mép là ruộng) ⇒ ẩn tab, vẫn vuốt ngang được */
     .build-card .bc-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 6px; }
     .build-card .bc-pic { flex: none; width: 96px; height: 96px; image-rendering: pixelated; background-repeat: no-repeat; }
     .build-card .bc-status { display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: 800; color: #fff; background: #4a3f33; box-shadow: 2px 2px #0005; }
@@ -981,7 +982,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m17";
+    import { mount } from "./game.js?v=m18";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

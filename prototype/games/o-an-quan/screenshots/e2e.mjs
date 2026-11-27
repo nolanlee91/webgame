@@ -6,14 +6,15 @@ import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
 const OUT = process.argv[2] || shotDir('o-an-quan'), PORT = process.env.PORT || 8771, BASE = 'http://127.0.0.1:' + PORT + '/games/o-an-quan/';
 mkdirSync(OUT, { recursive: true });
+const CDP = process.env.CDP_PORT || 9353;
 const PROF = tempProfile('o-an-quan'); // %TEMP%/lk-e2e-o-an-quan-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9353', '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + CDP, '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
 guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {
-  try { const l = await (await fetch('http://127.0.0.1:9353/json')).json(); const p = l.find((x) => x.type === 'page'); if (p) { ws = new WebSocket(p.webSocketDebuggerUrl); break; } } catch {}
+  try { const l = await (await fetch('http://127.0.0.1:' + CDP + '/json')).json(); const p = l.find((x) => x.type === 'page'); if (p) { ws = new WebSocket(p.webSocketDebuggerUrl); break; } } catch {}
   await sleep(250);
 }
 await new Promise((r) => (ws.onopen = r));
@@ -97,8 +98,16 @@ await pressSel('#soloBtn');
 check('"Chơi với máy" → bước tuỳ chọn Máy (Dễ/Vừa/Khó) + Luật, mặc định Vừa · Thường', await visible('#vSolo') && await soloOpts() === 'medium,thuong' && await ev(`document.querySelectorAll('#vSolo [data-k=aiLevel] button').length===3`));
 await key('Escape');
 check('Esc → quay lại màn đầu', await visible('#vEntry'));
+// D12: ô tên giờ điền sẵn tên khách (_shared/online-kit.js sharedName) ⇒ bấm "Tạo phòng online" ngay là vào bước tạo phòng.
+// Kiểm "báo nhập tên" bằng cách xoá trắng ô tên trước (người chơi tự xoá tên rồi bấm).
+check('ô tên điền sẵn tên khách', (await ev(`document.getElementById('nameIn').value.trim().length`)) > 0);
 await pressSel('#createBtn');
-check('"Tạo phòng online" khi chưa nhập tên → báo nhập tên', /Nhập tên/.test(await text('#mErr')));
+check('tên khách điền sẵn → "Tạo phòng online" vào thẳng bước tạo phòng', await visible('#vCreate'));
+await key('Escape');
+check('Esc ở bước tạo phòng → quay lại màn đầu', await visible('#vEntry'));
+await ev(`(()=>{const i=document.getElementById('nameIn');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}))})()`);
+await pressSel('#createBtn');
+check('"Tạo phòng online" khi ô tên trống → báo nhập tên', /Nhập tên/.test(await text('#mErr')) && await visible('#vEntry'));
 await ev(`document.getElementById('nameIn').value='Tí Sỏi'`);
 await pressSel('#createBtn');
 check('nhập tên → bước tạo phòng: Chế độ 1v1/2v2 + Luật Thường/Quan non', await visible('#vCreate') && await ev(`document.querySelectorAll('#vCreate [data-k=size] button').length===2 && document.querySelectorAll('#vCreate [data-k=rule] button').length===2`));
@@ -159,7 +168,7 @@ check('desktop: suốt ván, mọi điểm bấm (ô + mũi tên) đều trúng 
 check('bảng kết quả: tiêu đề, điểm hai đội, tỉ số các ván, nút Ván tiếp', await visible('#ovEnd') && /thắng|thua|Hòa/.test(await text('#eTitle')) && await ev(`document.querySelectorAll('#eResult b').length===2`) && /Tỉ số các ván/.test(await text('#eTally')));
 await shot('desktop-ket-qua.png');
 const snd = await ev('__game.sfx.loaded');
-check('âm thanh Codex (AUDIO.md): nạp đủ 14 hiệu ứng mp3; pebble-1..4 xoay vòng khi rải, bốc, ăn, chọn, tới lượt, kết ván', snd === 14 && await ev(`(()=>{const n=__game.sfx.log.map(x=>x.n);return ['pebble-1','pebble-2','pebble-3','pebble-4','pick-up','capture','select','turn'].every(k=>n.includes(k))&&(n.includes('win')||n.includes('lose')||n.includes('draw'))})()`), snd + ' file · ' + [...new Set(await ev('__game.sfx.log.map(x=>x.n)'))].join(','));
+check('âm thanh Codex (AUDIO.md): nạp đủ 17 hiệu ứng mp3 (14 + chat, pause, invalid của Codex 11/2026); pebble-1..4 xoay vòng khi rải, bốc, ăn, chọn, tới lượt, kết ván', snd === 17 && await ev(`(()=>{const n=__game.sfx.log.map(x=>x.n);return ['pebble-1','pebble-2','pebble-3','pebble-4','pick-up','capture','select','turn'].every(k=>n.includes(k))&&(n.includes('win')||n.includes('lose')||n.includes('draw'))})()`), snd + ' file · ' + [...new Set(await ev('__game.sfx.log.map(x=>x.n)'))].join(','));
 check('dùng ảnh thật của Codex (sân, bàn, sỏi, quan, tay)', (await ev('__game.assets.loaded.join()')) === 'yard,board,stones,quan,hand');
 await pressSel('#viewBtn');
 check('"Xem bàn" đóng bảng, nút công cụ thành "Ván tiếp"', !(await visible('#ovEnd')) && /Ván tiếp/.test(await text('#newBtn')));

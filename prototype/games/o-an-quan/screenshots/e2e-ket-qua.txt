@@ -2,10 +2,13 @@ PASS màn vào game chuẩn: tên · Tạo phòng online · Phòng kín · mã p
 PASS chưa có ván dở → không có nút "Chơi tiếp"
 PASS "Chơi với máy" → bước tuỳ chọn Máy (Dễ/Vừa/Khó) + Luật, mặc định Vừa · Thường
 PASS Esc → quay lại màn đầu
-PASS "Tạo phòng online" khi chưa nhập tên → báo nhập tên
+PASS ô tên điền sẵn tên khách
+PASS tên khách điền sẵn → "Tạo phòng online" vào thẳng bước tạo phòng
+PASS Esc ở bước tạo phòng → quay lại màn đầu
+PASS "Tạo phòng online" khi ô tên trống → báo nhập tên
 PASS nhập tên → bước tạo phòng: Chế độ 1v1/2v2 + Luật Thường/Quan non
 PASS Bắt đầu → bàn 2×5 ô, mỗi ô 5 dân, 2 quan, bạn (đội A) đi trước, khung A sáng "LƯỢT" — [0,5,5,5,5,5,0,5,5,5,5,5]
-PASS desktop: bàn nằm ngang, phóng bội 0,5 (ảnh pixel sắc) — {"k":1,"kCss":1,"dpr":1,"rot":false,"flip":false,"smooth":false,"W":1248,"H":620}
+PASS desktop: bàn nằm ngang, phóng bội 0,5 (ảnh pixel sắc) — {"k":1,"kCss":1,"dpr":1,"rot":false,"flip":false,"smooth":false,"W":1248,"H":615}
 PASS bàn gọn trong khung, trang không tràn
 PASS ô dân + mũi tên không bị nút / lớp phủ che (elementFromPoint)
 PASS bấm ô bên đối thủ → không chọn được
@@ -20,15 +23,15 @@ PASS máy (Vừa) đi xong → trả lượt cho bạn
 PASS bàn phím: mũi tên chọn ô, Enter → hiện mũi tên hướng
 PASS bàn phím: mũi tên ← khi đã chọn → rải sang trái
 PASS phím U → đi lại (bỏ nước của bạn + nước máy) — moves 2
-PASS nền lặp (sân + nhạc ván) bật sau lần chạm đầu — {"amb-yard":true,"music-game":true}
+PASS nhạc ván bật sau lần chạm đầu, không còn nền sân (amb-yard) — {"music-game":true}
 PASS phím M tắt tất cả (lưu chung wgp.muted), nền lặp dừng
 PASS nút âm thanh bật lại, nền lặp chạy lại
 PASS tải lại trang → màn đầu có "▶ Chơi tiếp" (ván 1, 2 nước, máy Vừa) — Ván 1 đang dở · 2 nước · điểm 6 – 21 (máy Vừa)
 PASS Chơi tiếp → đúng bàn, đúng điểm, đúng lượt
-PASS desktop: đánh với máy bằng chuột tới hết ván → có kết quả, tổng điểm 70 — người thắng 1 sau 20 nước, điểm 10–60
+PASS desktop: đánh với máy bằng chuột tới hết ván → có kết quả, tổng điểm 70 — người thắng 1 sau 13 nước, điểm 32–38
 PASS desktop: suốt ván, mọi điểm bấm (ô + mũi tên) đều trúng bàn, không bị che — bị che 0
 PASS bảng kết quả: tiêu đề, điểm hai đội, tỉ số các ván, nút Ván tiếp
-PASS âm thanh Codex (AUDIO.md): nạp đủ 14 hiệu ứng mp3; pebble-1..4 xoay vòng khi rải, bốc, ăn, chọn, tới lượt, kết ván — 14 file · amb-yard,music-game,select,pick-up,pebble-2,pebble-3,pebble-4,capture,borrow,pebble-1,capture-quan,chain,turn,lose
+PASS âm thanh Codex (AUDIO.md): nạp đủ 17 hiệu ứng mp3 (14 + chat, pause, invalid của Codex 11/2026); pebble-1..4 xoay vòng khi rải, bốc, ăn, chọn, tới lượt, kết ván — 17 file · select,music-game,pick-up,pebble-2,pebble-3,pebble-4,pebble-1,turn,capture,lose
 PASS dùng ảnh thật của Codex (sân, bàn, sỏi, quan, tay)
 PASS "Xem bàn" đóng bảng, nút công cụ thành "Ván tiếp"
 PASS Ván tiếp → ván 2, đội thua đi trước, giữ tỉ số — {"w":1,"turn":0}
@@ -37,25 +40,25 @@ PASS bản lưu thiếu phiên bản → giữ tuỳ chọn (Khó · Quan non), 
 PASS bản lưu có nước sai luật → bỏ ván dở
 PASS bản lưu hỏng JSON → về mặc định, vẫn chơi được
 PASS link mời ?room=K7M2Q → điền sẵn mã + nhắc
-PASS 1366×768 dpr 1,25: hệ số phóng thiết bị là bội 0,5 → ảnh pixel nét — {"k":1,"kCss":0.8,"dpr":1.25,"rot":false,"flip":false,"smooth":false,"W":1560,"H":775}
+PASS 1366×768 dpr 1,25: hệ số phóng thiết bị là bội 0,5 → ảnh pixel nét — {"k":1,"kCss":0.8,"dpr":1.25,"rot":false,"flip":false,"smooth":false,"W":1560,"H":768}
 PASS mobile: màn vào game gọn, 3 nút ≥ 44px, không tràn
-PASS mobile dọc: bàn tự xoay dọc để ô to hơn, hệ số bội 0,5 — {"k":1.5,"kCss":0.5,"dpr":3,"rot":true,"flip":false,"smooth":false,"W":1110,"H":1973}
+PASS mobile dọc: bàn tự xoay dọc để ô to hơn, hệ số bội 0,5 — {"k":1.5,"kCss":0.5,"dpr":3,"rot":true,"flip":false,"smooth":false,"W":1110,"H":1883}
 PASS mobile: bàn gọn trong màn, không tràn
 PASS mobile: chạm ô → 2 mũi tên trên bàn, cách nhau đủ xa cho ngón cái, không bị che — cách 92px
 PASS mobile: chạm mũi tên → rải, có nút Tua / Bỏ qua
 PASS mobile: nút "Tua ×4" bật
-PASS mobile: đánh với máy Khó bằng chạm tới hết ván → có kết quả — người thắng 1 sau 12 nước
+PASS mobile: đánh với máy Khó bằng chạm tới hết ván → có kết quả — người thắng 1 sau 11 nước
 PASS mobile: suốt ván mọi điểm chạm trúng bàn, không bị che — bị che 0
 PASS mobile: bảng kết quả gọn trong màn
-PASS điện thoại ngang: HUD dồn cột trái, bàn nằm ngang phóng bội 0,5 lớn nhất (1,5 thiết bị), gọn, không tràn — {"k":1.5,"kCss":0.5,"dpr":3,"rot":false,"flip":false,"smooth":false,"W":1896,"H":1043}
-PASS online: tạo phòng → phòng chờ có mã 5 ký tự, luật quan non, chủ phòng chọn được luật — DDJQD
+PASS điện thoại ngang: HUD dồn cột trái, bàn nằm ngang phóng bội 0,5 lớn nhất (1,5 thiết bị), gọn, không tràn — {"k":1.5,"kCss":0.5,"dpr":3,"rot":false,"flip":false,"smooth":false,"W":1896,"H":996}
+PASS online: tạo phòng → phòng chờ có mã 5 ký tự, luật quan non, chủ phòng chọn được luật — HKGH7
 PASS online: người thứ 2 vào → nút Bắt đầu mở
 PASS online: vào ván, quan non bật, tới lượt bạn, có ô chat
 PASS online: nước của bạn tới máy chủ, máy kia nhận đúng
 PASS online: nước của đối thủ → hoạt cảnh rải trên máy mình
 PASS online: tin nhắn của đối thủ hiện trong khung chat
 PASS online: đối thủ rời giữa ván → về phòng chờ, báo có người rời
-PASS online 2v2: phòng chờ 4 ghế (Đội A1, B1, A2, B2), Bắt đầu khoá tới khi đủ 4; danh sách phòng công khai ghi 1/4 — {"game":"o-an-quan","code":"BGZCT","host":"Tí Sỏi","have":1,"max":4} BGZCT
+PASS online 2v2: phòng chờ 4 ghế (Đội A1, B1, A2, B2), Bắt đầu khoá tới khi đủ 4; danh sách phòng công khai ghi 1/4 — {"game":"o-an-quan","code":"9QM5F","host":"Tí Sỏi","have":1,"max":4} 9QM5F
 PASS không có lỗi JS / console
 
-59/59 đạt
+62/62 đạt
