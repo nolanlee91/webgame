@@ -39,6 +39,7 @@ const app = {
     const fresh = r.ev.filter((e) => e.type === "word");
     G.s = r.s;
     if (fresh.length) { for (const e of fresh) toast("Từ khoá mới: " + G.c.words[e.id].text, "word"); sfx("keyword"); app.save(); P.refreshBadges(app); }
+    return fresh.length > 0; // D12: dialog biết đã kêu "keyword" ⇒ nút Đọc nhanh không kêu thêm "click" (mỗi lần bấm 1 tiếng)
   },
   /** Hành động engine ⇒ hiệu ứng ⇒ thoại ⇒ vẽ lại. */
   async act(a, { quiet = false, before = null } = {}) {

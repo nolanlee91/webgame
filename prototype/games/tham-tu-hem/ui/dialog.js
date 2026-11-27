@@ -20,7 +20,7 @@ export function renderText(text, words, cls = "w") {
 }
 
 export function createDialog(root, ctx) {
-  let queue = [], idx = 0, typing = null, resolve = null, shown = 0, full = "", cur = null, end = 0;
+  let queue = [], idx = 0, typing = null, resolve = null, shown = 0, full = "", cur = null, end = 0, heard = false;
   const left = h("div.dlg-side.dlg-left"), right = h("div.dlg-side.dlg-right");
   const name = h("div.dlg-name"), text = h("div.dlg-text", { "aria-live": "polite" }), card = h("div.dlg-card");
   const more = h("span.dlg-more", { "aria-hidden": "true" }, "▼");
@@ -81,9 +81,10 @@ export function createDialog(root, ctx) {
     box.classList.add("fastread"); name.hidden = true;
     clear(text); more.hidden = false;
     let last = null;
+    heard = false;
     for (let k = idx; k < j; k++) {
       const l = norm(queue[k]);
-      ctx.read(l.text);
+      if (ctx.read(l.text)) heard = true;
       const row = h("p.dlg-line" + (l.who === "narr" ? ".narr" : ""));
       if (l.who !== "narr") {
         row.append(h("b.dlg-who", { style: { "--who": accentOf(l.who) } }, ctx.name(l.who) + ": "));
@@ -101,9 +102,11 @@ export function createDialog(root, ctx) {
   function toggleFast() {
     const on = !fastRead();
     setFastRead(on); fastBtn.setAttribute("aria-pressed", String(on));
-    sfx("click");
     // đổi ngay trên đoạn đang xem: bật ⇒ hiện cả đoạn từ dòng hiện tại; tắt ⇒ về từng dòng, từ dòng hiện tại
+    heard = false;
     if (resolve && cur && cur.t === "line") showItem(queue[idx]);
+    // mỗi lần bấm đúng 1 tiếng: hiện cả đoạn mà nhặt được từ khoá mới thì tiếng "keyword" đã kêu, không thêm "click"
+    if (!heard) sfx("click");
   }
   function typeOut(t, who) {
     const segs = segments(t, ctx.words());

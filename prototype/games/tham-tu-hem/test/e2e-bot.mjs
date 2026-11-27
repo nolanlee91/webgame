@@ -37,7 +37,10 @@ async function press(sel, wait = 40) {
 }
 const waitFor = async (expr, ms = 5000) => { for (let t = 0; t < ms; t += 80) { if (await b.ev(expr).catch(() => false)) return true; await sleep(80); } return false; };
 async function talk(ms = 2500) { if (!(await waitFor("__game.dialogOpen", ms))) return;
-  if (FAST && !fastOn) { await press("#fastReadBtn"); fastOn = true; check("Đọc nhanh bật (aria-pressed, cả đoạn trong khung)", await b.ev(`document.querySelector('#fastReadBtn').getAttribute('aria-pressed')==='true'&&localStorage.getItem('tth.fastread')==='1'&&(document.querySelector('.dlg-box.fastread')!==null||document.querySelector('.dlg-box.is-card')!==null)`)); }
+  if (FAST && !fastOn) {
+    await b.ev(`(()=>{window.__snd=[];if(!HTMLMediaElement.prototype.__d12){const P=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){if(!this.loop)__snd.push(String(this.src).split('/').pop());return P.call(this)};HTMLMediaElement.prototype.__d12=1}})()`);
+    await press("#fastReadBtn"); fastOn = true; await sleep(300);
+    check("Đọc nhanh: một lần bấm đúng 1 tiếng", (await b.ev("__snd.length")) === 1, await b.ev("JSON.stringify(__snd)")); check("Đọc nhanh bật (aria-pressed, cả đoạn trong khung)", await b.ev(`document.querySelector('#fastReadBtn').getAttribute('aria-pressed')==='true'&&localStorage.getItem('tth.fastread')==='1'&&(document.querySelector('.dlg-box.fastread')!==null||document.querySelector('.dlg-box.is-card')!==null)`)); }
   for (let n = 0; n < 400 && (await b.ev("__game.dialogOpen")); n++) await press(".dlg-box"); }
 const esc = async () => { for (const type of ["keyDown", "keyUp"]) await b.send("Input.dispatchKeyEvent", { type, key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); await sleep(80); };
 const overlay = () => b.ev("__game.overlay");
