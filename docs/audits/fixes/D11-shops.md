@@ -83,14 +83,17 @@ Mỗi game có `createToaster` riêng (`tiem-banh-mi/ui/screens.js`, `quan-com-t
 - **TLC12-08 Trà Sữa, ô "Ẩn tên tiệm".** Ô 22 → 28 px. Nhãn bọc ô cao ≥ 44, rộng ≥ 44, cả nhãn bấm được.
 - **TLC22-07 Bánh Mì, dải bước ngày 1.**
   - Ẩn ô "Nướng lại" khi phiếu không dặn "giòn giòn" (và ổ không đang / đã nướng lại). Áp mọi ngày.
-  - Khung ổ trống thấp lại, để nút không bị đẩy xuống: 150 → 72 px; điện thoại / màn thấp 104 → 60 px.
+  - Khung ổ trống thấp lại, để nút không bị đẩy xuống: 150 → 72 px; điện thoại xoay ngang 104 → 60 px.
+    Chỉ áp khi màn cao ≥ 640 px. Ở 320×568, khung thấp làm game tự cuộn xuống quầy lúc ghim phiếu, và phiếu khách bị dải dính
+    che (`e2e-layout` 320 trượt 2/4 lần). Ở đó giữ 150 px như cũ.
 - **TLC22-05, màn chào / Chuẩn bị ca phải cuộn.**
   - Chưa sửa hết: `#introGo` (844×390, 740×360) và nút Mở hàng vẫn dưới mép màn. Cơm Tấm dọc 390: nút vào quán ở y = 886.
   - Phần đã có từ trước: "Nhập đủ cho hôm nay" không còn bị `.tab` che.
   - Sửa: chân bảng dính đáy, như bảng chốt ca của Bánh Mì (TLC2-13) / Đặt Bom.
     - Bánh Mì: màn chào + Chuẩn bị ca (`.sum-foot`).
     - Cơm Tấm: mọi `.footer` trong bảng (màn chào, Chuẩn bị, chốt ca, xác nhận).
-  - Thêm `scroll-padding-bottom` để Tab / focus không đưa nút xuống sau chân bảng.
+  - Bảng tự đặt `scroll-padding-bottom` bằng chiều cao thật của chân bảng, cộng 12 px (`padFoot` trong toaster). Nhờ vậy Tab /
+    focus / `scrollIntoView` không đưa nút xuống sau chân bảng. Chân bảng có dòng thông báo thì cao hơn.
   - Đo lại: BM và CT ở 844×390, 740×360, 390×844, 360×640, 320×568, nút chính đều trong màn và bấm được (`elementFromPoint`).
     CT 390: nút vào quán ở y = 784–832.
 
@@ -108,7 +111,14 @@ Mỗi game có `createToaster` riêng (`tiem-banh-mi/ui/screens.js`, `quan-com-t
 
 Chạy lần lượt từng game (không song song):
 
-KẾT_QUẢ_TEST
+Kết quả sau khi gộp master (D10), bản cuối:
+
+| Game | Unit | e2e |
+|---|---|---|
+| Nông Trại | 182/182 | `e2e` 190/190 · `e2e-m4` ALL PASS · `e2e-cards` 44/44 |
+| Bánh Mì | 125/125 | `e2e` 167/167, đạt (gồm `e2e-layout` 7 khung, `e2e-m34`, `e2e-m5`) |
+| Cơm Tấm | 147/147 | `e2e` 221/221, đạt (gồm `e2e-m3a`, `e2e-m5`) |
+| Trà Sữa | 179/179 | `e2e` 181/181 |
 
 **Kiểm tra mới:**
 - **Nông Trại (`e2e.mjs`):**
@@ -136,8 +146,8 @@ KẾT_QUẢ_TEST
 - **Trà Sữa:** ô Ẩn tên tiệm ≥ 28, nhãn ≥ 44 × 44.
 
 **Lỗi có sẵn, không do D11:**
-- Cơm Tấm `e2e.mjs` "desktop: dĩa đổi lớp sau mỗi bước bày (plate-layers)": trượt cả trên master (chạy bản master `fdc6589`
-  tách riêng, cùng máy).
+- Cơm Tấm `e2e.mjs` "desktop: dĩa đổi lớp sau mỗi bước bày (plate-layers)" chập chờn: trượt cả trên master (chạy bản master
+  `fdc6589` tách riêng, cùng máy). Lần chạy cuối thì đạt.
 - `e2e` Bánh Mì một lần vỡ ở "mobile: mở game có ô tên tiệm" (`#shopName` null). Đây là chập chờn TLC22-06, xảy ra khi máy đang
   chạy test Cơm Tấm cùng lúc. Chạy lại một mình thì đạt.
 
