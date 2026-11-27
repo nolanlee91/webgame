@@ -1,7 +1,7 @@
 // logic.js giờ chỉ là lớp gom (re-export) core/ + data/ cho game.js. Test luật chi tiết nằm ở các file *.test.mjs theo module.
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as L from "../logic.js?v=m15";
+import * as L from "../logic.js?v=m16";
 
 test("logic.js gom đủ API mà game.js dùng", () => {
   for (const name of ["apply", "needsSync", "createState", "loadV3", "migrateV2", "dump", "boardView", "demand", "currentQuest",
