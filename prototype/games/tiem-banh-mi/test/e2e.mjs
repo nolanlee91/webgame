@@ -113,18 +113,25 @@ async function changeHintDay4(tag) {
   }
   await waitFor("!!__game.state.shift");
   await b.ev("__game.state.shift.drama&&(__game.state.shift.drama.max=0)");
-  let cid = null;
-  for (let i = 0; i < 300 && cid === null; i++) { await clearDialogs(); cid = await S("(s.shift.customers.find(c=>c.phase==='wait'&&!c.filled.some(Boolean)&&!c.pre)||{}).id??null"); if (cid === null) await b.ev("__game.advance(400)"); }
-  await tendOven(1);
-  await pressSel(`#rail .slip[data-cid="${cid}"]`);
-  const n = await S(`s.shift.customers.find(c=>c.id===${cid}).items.length`);
-  for (let k = 0; k < n; k++) { await buildClicks(null); await pressSel('[data-act="serve"]'); }
-  await clearDialogs();
-  const paying = await waitFor("__game.state.shift&&__game.state.shift.paying!==null&&!!document.querySelector('#change')", 3000);
+  // phục vụ tới khi gặp khách cần thối (khách đưa vừa đủ thì không có khay thối)
+  let paying = false;
+  for (let tries = 0; tries < 6 && !paying; tries++) {
+    let cid = null;
+    for (let i = 0; i < 300 && cid === null; i++) { await clearDialogs(); cid = await S("(s.shift.customers.find(c=>c.phase==='wait'&&!c.filled.some(Boolean)&&!c.pre)||{}).id??null"); if (cid === null) await b.ev("__game.advance(400)"); }
+    if (cid === null) break;
+    await tendOven(1);
+    await pressSel(`#rail .slip[data-cid="${cid}"]`);
+    const n = await S(`s.shift.customers.find(c=>c.id===${cid}).items.length`);
+    for (let k = 0; k < n; k++) { await buildClicks(null); await pressSel('[data-act="serve"]'); }
+    await clearDialogs();
+    paying = await waitFor("(()=>{const sh=__game.state.shift;if(!sh||sh.paying===null||!document.querySelector('#change'))return false;return __game.state.shift.customers.find(x=>x.id===sh.paying).pay.change>0})()", 2500);
+    if (!paying && (await S("!!s.shift&&s.shift.paying!==null"))) await payClicks(true);
+  }
+  if (!paying) { check(`${tag} D9: tới được khách cần thối ở ngày 4`, false, await S("JSON.stringify({shift:!!s.shift,paying:s.shift?.paying})")); return; }
   const want = paying ? await b.ev("(async()=>{const m=await import('./core/money.js?v=b13');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse) : null;
   const look = () => b.ev(`JSON.stringify((()=>{const t=document.querySelector('#chgHint'),hs=[...document.querySelectorAll('#change .billbtn.hint')],a=hs[0]&&getComputedStyle(hs[0],'::after');
     return {txt:t?t.textContent:null,tVis:!!t&&t.getBoundingClientRect().height>0,bills:hs.map(e=>e.dataset.bill).sort((x,y)=>x-y).join(","),anim:a?a.animationName:null,op:a?a.opacity:null,
-      give:document.querySelector('[data-act="giveChange"]').disabled,auto:!!document.querySelector('[data-act="autoChange"]')}})())`).then(JSON.parse);
+      give:!!document.querySelector('[data-act="giveChange"]')?.disabled,auto:!!document.querySelector('[data-act="autoChange"]')}})())`).then(JSON.parse);
   const wantBills = want ? Object.keys(want).map(Number).sort((x, y) => x - y).join(",") : "";
   const h0 = await look();
   check(`${tag} D9: ngày 4 chưa chọn tờ ⇒ "Chạm tờ tiền để thối" + tờ cần thối nhấp nháy`, paying && h0.txt === "Chạm tờ tiền để thối" && h0.tVis && h0.bills === wantBills && h0.anim === "billHint" && h0.give && !h0.auto, JSON.stringify({ want: wantBills, ...h0 }));
