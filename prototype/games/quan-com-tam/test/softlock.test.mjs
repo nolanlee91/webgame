@@ -3,9 +3,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, prepDay, playDay, playShift, seeded, openWithOrder, home } from "./helpers.mjs";
-import { canMakeOne, consignAvailable, stockUsed, capacity } from "../core/stock.js?v=c10";
-import { stockoutOptions } from "../core/rescue.js?v=c10";
-import { invariantError } from "../core/apply.js?v=c10";
+import { canMakeOne, consignAvailable, stockUsed, capacity } from "../core/stock.js?v=c12";
+import { stockoutOptions } from "../core/rescue.js?v=c12";
+import { invariantError } from "../core/apply.js?v=c12";
 
 test("bot chơi 6 ngày × 3 hạt × 2 kiểu người chơi: ca nào cũng đóng được, bất biến giữ, luôn làm nổi một dĩa hoặc có ký gửi", () => {
   for (const seed of [1, 2, 3]) for (const skill of ["good", "sloppy"]) {

@@ -2,9 +2,9 @@
 // Phiếu tính tiền liệt kê các dòng có thể tính: món đã ăn + phần gọi thêm (dòng thật) và 1–2 dòng "nhiễu" (món bàn không ăn).
 // Người chơi chạm từng dòng để cộng. Thiếu dòng = tính thiếu (mất tiền, không trừ sao). Thừa dòng = tính dư (trần 2 sao + khách phản đối).
 // Ngày 1–3 có nút "Tính đúng" (tự chạm đúng các dòng thật); hộp tính tiền (cấp 15) cũng tự cộng.
-import { DISHES, EXTRAS } from "../data/economy.js?v=c10";
-import { QUIRKS } from "../data/customers.js?v=c10";
-import { next, int } from "./rng.js?v=c10";
+import { DISHES, EXTRAS } from "../data/economy.js?v=c12";
+import { QUIRKS } from "../data/customers.js?v=c12";
+import { next, int } from "./rng.js?v=c12";
 
 export const AUTO_BILL_DAYS = 3;
 export const canAutoBill = (s) => s.day <= AUTO_BILL_DAYS || !!s.owned?.["cash-box"];

@@ -3,14 +3,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { apply, must, newGame, prepDay, playShift, playDay, seeded, until, botStep, cookedPiece, home } from "./helpers.mjs";
-import * as PG from "../core/progression.js?v=c10";
-import { loadSave, dump, createState } from "../core/state.js?v=c10";
-import { invariantError } from "../core/apply.js?v=c10";
-import { availableTables, tableJob } from "../core/tables.js?v=c10";
-import { ticketPrice } from "../core/bill.js?v=c10";
-import { targetOf } from "../core/plate.js?v=c10";
-import { LEVELS, DISHES, GEAR, HOA, hoaPack, STOCK, TIERS, FISH_SAUCE, DEBT, LATE, STAFF } from "../data/economy.js?v=c10";
-import * as LP from "../data/lines-progress.js?v=c10";
+import * as PG from "../core/progression.js?v=c12";
+import { loadSave, dump, createState } from "../core/state.js?v=c12";
+import { invariantError } from "../core/apply.js?v=c12";
+import { availableTables, tableJob } from "../core/tables.js?v=c12";
+import { ticketPrice } from "../core/bill.js?v=c12";
+import { targetOf } from "../core/plate.js?v=c12";
+import { LEVELS, DISHES, GEAR, HOA, hoaPack, STOCK, TIERS, FISH_SAUCE, DEBT, LATE, STAFF } from "../data/economy.js?v=c12";
+import * as LP from "../data/lines-progress.js?v=c12";
 
 /** Ván ở cấp `lv` (đủ tiền, đã qua hướng dẫn); stage tuỳ chọn; đồ mua sẵn. */
 function at(lv, { seed = 11, stage = "street", owned = [], money = 5000 } = {}) {
@@ -129,7 +129,7 @@ test("ghép bàn (vỉa hè, cấp 5): nhóm 3–4 ngồi hai bàn 2 cạnh nhau
   assert.equal(T("s1").state, "dirty"); assert.equal(T("s2").state, "dirty"); assert.equal(T("s2").joinOf, null);
   assert.equal(apply(s, { type: "tableTap", tid: "s2" }).err, undefined, "dọn bàn ghép riêng được");
 });
-import * as await_tables from "../core/tables.js?v=c10";
+import * as await_tables from "../core/tables.js?v=c12";
 
 test("ghi sổ (cấp 6): khách quen xin ghi sổ ⇒ ăn trước trả sau, cờ ghiso-open / ghiso-unpaid-<id>, review riêng; từ chối thì trả liền; sang ngày trả nợ (review đã trả)", () => {
   const s = at(6, { owned: ["egg-pan"] });
@@ -453,7 +453,7 @@ test("nội dung cơ chế: 8–12 review mỗi kết quả, không emoji, đi�
 });
 
 test("hệ số hiện thiết bị là dữ liệu theo sheet: bản đợt 1 vẽ to ⇒ ×0,5; bản vẽ đúng thước (manifest đổi) ⇒ ×1; displayScale trong manifest ưu tiên", async () => {
-  const { makeAtlas } = await import("../render/atlas.js?v=c10");
+  const { makeAtlas } = await import("../render/atlas.js?v=c12");
   const { readFileSync } = await import("node:fs");
   const man = JSON.parse(readFileSync(new URL("../data/asset-manifest.json", import.meta.url), "utf8"));
   const a = makeAtlas(man);

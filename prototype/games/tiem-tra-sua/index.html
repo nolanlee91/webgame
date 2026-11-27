@@ -528,7 +528,7 @@
     .jcard { display: grid; place-items: center; margin: 8px 0; }
     .jcard canvas { width: min(100%, 420px); height: auto; aspect-ratio: 1080 / 1350; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.45); }
     .jtools { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
-    .chk { display: flex; align-items: center; gap: 6px; font-weight: 700; min-height: 44px; } .chk input { width: 22px; height: 22px; }
+    .chk { display: flex; align-items: center; gap: 8px; font-weight: 700; min-height: 44px; min-width: 44px; padding: 0 8px 0 0; cursor: pointer; } .chk input { flex: none; width: 28px; height: 28px; margin: 0 0 0 8px; cursor: pointer; } /* D11 TLC12-08: ô 28 px, cả nhãn là vùng chạm ≥ 44 px */
     @media (max-width: 760px) {
       .goals { width: 150px; padding: 4px 8px; font-size: 11px; }
       .stn { min-height: 44px; padding: 2px 6px; }

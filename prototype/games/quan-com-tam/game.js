@@ -1,31 +1,31 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c10";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c12";
 import { frameErrorLog } from "../_shared/frame-errors.js?v=fe1";
-import { placeholderFallback } from "./render/placeholder.js?v=c10";
-import { createScene } from "./render/scene.js?v=c10";
-import { configureScene } from "./core/placements.js?v=c10";
-import { createGrillbar } from "./ui/grillbar.js?v=c10";
-import { createColumn } from "./ui/column.js?v=c10";
-import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c10";
+import { placeholderFallback } from "./render/placeholder.js?v=c12";
+import { createScene } from "./render/scene.js?v=c12";
+import { configureScene } from "./core/placements.js?v=c12";
+import { createGrillbar } from "./ui/grillbar.js?v=c12";
+import { createColumn } from "./ui/column.js?v=c12";
+import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c12";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { createDrama } from "./ui/drama.js?v=c10"; // B: drama
-import { createBigGrill } from "./ui/bigrill.js?v=c10"; // V: bếp lớn HD
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c10";
-import { apply } from "./core/apply.js?v=c10";
-import { hint } from "./core/tutorial.js?v=c10";
-import { layerStrip } from "./core/plate.js?v=c10";
-import { tableJob, groupById } from "./core/tables.js?v=c10";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c10";
-import { itemName } from "./core/rescue.js?v=c10";
-import { MISTAKES } from "./core/score.js?v=c10";
-import { shopSave, browserStorage } from "./save.js?v=c10";
-import { DISHES, LEVELS } from "./data/economy.js?v=c10";
-import { setJournalBg } from "./ui/journal.js?v=c10"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c10"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c10"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c10"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c10";
+import { createDrama } from "./ui/drama.js?v=c12"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c12"; // V: bếp lớn HD
+import { el, createToaster, fmtK, clockText, tableName } from "./ui/common.js?v=c12";
+import { apply } from "./core/apply.js?v=c12";
+import { hint } from "./core/tutorial.js?v=c12";
+import { layerStrip } from "./core/plate.js?v=c12";
+import { tableJob, groupById } from "./core/tables.js?v=c12";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c12";
+import { itemName } from "./core/rescue.js?v=c12";
+import { MISTAKES } from "./core/score.js?v=c12";
+import { shopSave, browserStorage } from "./save.js?v=c12";
+import { DISHES, LEVELS } from "./data/economy.js?v=c12";
+import { setJournalBg } from "./ui/journal.js?v=c12"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c12"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c12"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c12"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c12";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -72,7 +72,10 @@ async function boot() {
     if (!force && now - lastSave < 2500) { dirty = true; return; }
     store.write(state); lastSave = now; dirty = false;
   };
-  const say = (t, kind = "") => toast($("#toasts"), t, kind);
+  // D11 TLC2-12: một thông báo một lúc; bảng phủ / lớp thoại mở (body.ov) ⇒ xếp hàng, đóng bảng hiện lần lượt; câu quan trọng thành dòng trong bảng
+  const toaster = createToaster($("#toasts"), { isOpen: () => document.body.classList.contains("ov"), sheet: $("#sheet"), footSel: ".footer", watch: [[document.body, { attributes: true, attributeFilter: ["class"] }]] });
+  let userAct = false;
+  const say = (t, kind = "", opt) => toaster.toast(t, kind, null, opt ?? (userAct ? { sheet: true } : undefined));
   /** Vùng bong bóng phải tránh trong khung cảnh: dải gợi ý, thông báo, băng chữ. */
   const avoidRects = () => {
     const r0 = $("#scene").getBoundingClientRect();
@@ -98,7 +101,7 @@ async function boot() {
     restart: () => { if (!store.reset()) return false; restarting = true; location.reload(); return true; },
     replayInfo: () => { const i = store.replayInfo(); return i && i.seed === state.seed && i.day <= state.day ? i : null; },
     replay: () => { save(true); if (!store.replayDay()) return false; restarting = true; location.reload(); return true; },
-    toast: (t, k) => say(t, k),
+    toast: (t, k) => say(t, k, { sheet: true }), // trả lời thao tác trong bảng: dòng trong bảng, không xếp hàng
     sceneImage: () => document.querySelector('.stage img[data-layer="quan"], .stage img[data-layer="street"]'), // C: ảnh cảnh cho thẻ Nhật Ký dự phòng
   });
 
@@ -146,7 +149,12 @@ async function boot() {
     "plates-max": () => "Chồng dĩa đã tới trần tủ.",
     ...PU.ERR_EXTRA, // A:
   };
+  // D11: sự kiện do người chơi bấm (không phải nhịp đồng hồ) khi bảng phủ đang mở ⇒ trả lời thành dòng trong bảng, không xếp hàng (userAct khai báo cạnh say)
   function act(a, quiet = false) {
+    const prev = userAct; userAct = a?.type !== "tick" && !quiet;
+    try { return actInner(a, quiet); } finally { userAct = prev; }
+  }
+  function actInner(a, quiet = false) {
     if (a?.type === "startShift") store.snapshotDay(state);
     const r = apply(state, a);
     if (r.err) {
@@ -163,11 +171,11 @@ async function boot() {
         case "layer": case "pinned": scene.act("plate", 400); break;
         case "burnt": say("Một miếng sườn cháy đen rồi!", "warn"); break;
         case "flare": say("Lửa bùng! Vùng nóng chín gấp đôi 3 giây.", "warn"); break;
-        case "spareSack": say("Hết than trong kho, đã mở bao than dự phòng (+10 rổ).", "good"); break;
+        case "spareSack": say("Hết than trong kho, đã mở bao than dự phòng (+10 rổ).", "good", { important: true }); break;
         case "say": say(e.text, e.kind); break;
         case "riceReady": if (!e.prep) say(`Nồi cơm chín, có ${e.n} phần.`, "good"); break;
-        case "riceLow": say(`Nồi cơm còn ${e.n} phần. Nấu mẻ mới đi!`, "warn"); break;
-        case "platesLow": say(`Dĩa sạch còn ${e.n}. Rửa chén đi!`, "warn"); break;
+        case "riceLow": say(`Nồi cơm còn ${e.n} phần. Nấu mẻ mới đi!`, "warn", { important: true }); break;
+        case "platesLow": say(`Dĩa sạch còn ${e.n}. Rửa chén đi!`, "warn", { important: true }); break;
         case "moHanhReady": say("Hũ mỡ hành mới (20 phần).", "good"); break;
         case "marinated": if (e.rush) say(`Ướp gấp ${e.n} miếng sườn (tươi tối đa 90).`, "good"); break;
         case "seated": scene.selectGroup(null); break;
@@ -193,7 +201,7 @@ async function boot() {
         case "persona": if (e.from) say(`Đổi tính: ${e.switches >= 3 ? "cư dân mạng bắt đầu để ý!" : "lựa chọn trả lời đã đổi theo."}`, e.switches >= 3 ? "warn" : ""); break; // C:
         case "levelUp": { // nút "Khoe" trên thông báo (7 giây); bấm thì ca tạm dừng tới khi đóng bảng chia sẻ. Bảng chốt ca cũng ghi "Lên cấp N!"
           const lv = e.level;
-          toast($("#toasts"), `Lên cấp ${lv}!`, "good", { label: "Khoe", act: "shareLevel", onClick: () => shareLevel(lv) });
+          toaster.toast(`Lên cấp ${lv}!`, "good", { label: "Khoe", act: "shareLevel", onClick: () => shareLevel(lv) });
           break;
         }
         case "newDish": say(`Món mới vào menu: ${e.name}. Nhớ nhập đủ nguyên liệu!`, "good"); break;
@@ -213,7 +221,7 @@ async function boot() {
         case "complaint": case "overcharge": case "stockout": case "drama": setTimeout(() => openDialog(), reduced() ? 0 : 250); break;
         case "shiftStarted": startRest(); prefetchShift(); setDock("plate"); say(`Mở quán ngày ${e.day}! Khoảng ${e.guests} khách.${e.tutorial ? " Làm theo dải gợi ý màu xanh." : ""}`, "good"); break;
         case "shiftEnded": prefetchJournal(); setTimeout(() => overlays.summary(state), reduced() ? 0 : 500); break;
-        case "newDay": if (e.expired || Object.keys(e.spoiled || {}).length) say(`Sang ngày mới: bỏ ${e.expired ? e.expired + " miếng sườn ướp cũ" : ""}${Object.keys(e.spoiled || {}).length ? " và hàng tươi quá hạn" : ""}.`, "warn"); break;
+        case "newDay": if (e.expired || Object.keys(e.spoiled || {}).length) say(`Sang ngày mới: bỏ ${e.expired ? e.expired + " miếng sườn ướp cũ" : ""}${Object.keys(e.spoiled || {}).length ? " và hàng tươi quá hạn" : ""}.`, "warn", { important: true }); break;
         default: { const x = PU.toastFor(e); if (x) say(x[0], x[1]); break; } // A:
       }
     }
@@ -405,6 +413,8 @@ async function boot() {
     // A: móc e2e tiến trình: nhảy cấp / thêm tiền (ghi qua bản lưu như thao tác thường)
     setLevel(n) { state.xp = LEVELS[n - 1] || 0; state.level = n; state.tutorialDone = true; addNewDishes(state); save(true); },
     addMoney(k) { state.money += Math.max(0, Math.floor(k)); save(true); },
+    toast: (t, k, opt) => say(t, k, opt), // D11: thử hàng đợi thông báo
+    get toastQueue() { return toaster.queued; },
   };
   if (params.get("event") && state.introSeen) window.__game.openEvent(params.get("event")); // B: drama
 }

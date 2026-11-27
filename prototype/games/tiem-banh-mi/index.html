@@ -313,6 +313,7 @@
     /* D11 TLC2-12: bảng phủ mở thì không còn thông báo nổi đè thanh đầu (game.js xếp hàng, đóng bảng mới hiện lần lượt).
        Câu quan trọng / trả lời thao tác trong bảng: một dòng trong chân bảng dính đáy (ngay trên nút chính), không có chân bảng thì dưới tiêu đề */
     .sum-foot > .sheet-note { flex: 1 1 100%; margin: 0 0 2px; }
+    .sheet:has(.sum-foot) { scroll-padding-bottom: 132px; } /* cuộn tới nút (Tab / focus) thì nút không nằm sau chân bảng dính đáy */
     .sheet-note { margin: 2px 0 8px; padding: 7px 12px; font-weight: 800; font-size: 14px; color: var(--cream); background: rgb(22, 32, 45);
       --b: #050a12; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .12), var(--px-border); }
     .sheet-note.good { background: rgb(47, 90, 80); } .sheet-note.warn { background: rgb(160, 60, 50); }

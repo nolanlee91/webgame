@@ -51,7 +51,7 @@ if (isMain) {
   // (không import sim.mjs: sim.mjs import file này ⇒ vòng import treo top-level await)
   const TARGETS = { 4: [7, 14], 7: [30, 50], 10: [100, 140], 20: [600, 720] };
   const checkTargets = (r) => Object.fromEntries(Object.entries(TARGETS).map(([lv, [lo, hi]]) => { const m = r.levels[lv]?.minutes ?? null; return [lv, { minutes: m, lo, hi, ok: m !== null && m >= lo && m <= hi }]; }));
-  const { LEVELS } = await import("../../data/economy.js?v=c10");
+  const { LEVELS } = await import("../../data/economy.js?v=c12");
   const files = process.argv.slice(2).filter((x) => x.endsWith(".json"));
   const results = files.map((f) => JSON.parse(readFileSync(f, "utf8")));
   const dir = dirname(fileURLToPath(import.meta.url));

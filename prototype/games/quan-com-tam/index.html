@@ -142,7 +142,12 @@
     /* thông báo: trong khung cảnh, không bao giờ đè nút (bàn, khách chờ, Thanh Bếp, Cột Dĩa) */
     .toasts { position: absolute; left: 8px; right: 8px; top: 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 13; pointer-events: none; }
     .hintbar:not([hidden]) ~ .toasts { top: 50px; }
-    body.ov .toasts { position: fixed; top: 6px; bottom: auto; left: 50%; right: auto; transform: translateX(-50%); width: min(92vw, 640px); z-index: 60; }
+    /* D11 TLC2-12: bảng phủ mở thì không vẽ thông báo đè thanh đầu (game.js xếp hàng, đóng bảng mới hiện lần lượt).
+       Câu quan trọng (sắp hết cơm / dĩa / than) và trả lời thao tác trong bảng: một dòng trong chân bảng dính đáy (ngay trên nút chính), không có thì dưới tiêu đề */
+    .footer > .sheet-note { flex: 1 1 100%; margin: 0 0 2px; }
+    .sheet-note { margin: 2px 0 8px; padding: 6px 12px; font-weight: 800; font-size: 13.5px; background: #fffaf0; color: var(--ink);
+      --b: var(--ink); box-shadow: var(--px-border2), 3px 4px 0 0 rgba(0, 0, 0, .25); }
+    .sheet-note.good { background: #e3f4e6; } .sheet-note.warn { background: #ffe7dc; }
     .toast { background: rgba(255, 250, 240, .98); color: var(--ink); padding: 6px 12px; font-weight: 700; font-size: 13px; --b: var(--ink); box-shadow: var(--px-border2), 3px 4px 0 0 rgba(0, 0, 0, .45); max-width: 100%; animation: pop .2s steps(3); }
     .toast.good { background: #e3f4e6; } .toast.warn { background: #ffe7dc; } .toast.phase { background: #2b2a5c; color: var(--cream); --b: var(--cream3); }
     .toast.has-act { display: flex; align-items: center; gap: 10px; padding-right: 5px; }
@@ -277,6 +282,10 @@
     .journal-canvas { width: min(480px, 100%, calc((100svh - 220px) * 0.8)); height: auto; aspect-ratio: 1080 / 1350; display: block; margin: 8px auto; --b: var(--line); box-shadow: var(--px-border), var(--px-drop); }
     .footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; padding: 8px 0 0; }
     .footer.ask { align-items: center; } /* TLC22-04: hỏi lại khi mở quán rỗng hàng */
+    /* D11 TLC22-05: chân bảng (nút chính) dính đáy bảng ⇒ màn chào / Chuẩn bị / chốt ca không phải cuộn tìm nút (dọc 390 nút cũ ở y = 886) */
+    .sheet .footer { position: sticky; bottom: -16px; z-index: 2; background: var(--cream); margin: 12px -18px -16px; padding: 8px 18px 12px; box-shadow: 0 -3px 0 rgba(59, 38, 24, .2); }
+    .sheet.intro .footer { bottom: 0; margin: 12px -18px -18px; padding: 8px 18px 14px; }
+    .sheet:has(.footer) { scroll-padding-bottom: 132px; } /* cuộn tới nút (Tab / focus) thì nút không nằm sau chân bảng dính đáy */
     .footer .warn-txt { flex: 1 1 100%; margin: 0; padding: 8px 10px; background: var(--ember-l); color: #7a2a22; font-weight: 700; --b: #7a2a22; box-shadow: var(--px-border2, 0 0 0 2px #7a2a22); }
     input.name { font: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--cream3); width: 100%; background: #fff; color: var(--ink); }
     .intro { display: grid; grid-template-columns: 1fr 420px; gap: 0; padding: 0; overflow-x: hidden; overflow-y: auto; } /* cuộn được khi bảng cao hơn màn (điện thoại): "overflow: hidden" cũ đè .sheet ⇒ không cuộn được, nút Mở quán bị khuất */
@@ -331,6 +340,7 @@
       .dock button:disabled { opacity: .45; }
       .overlay { padding: 46px 0 0; align-items: stretch; }
       .sheet { max-height: none; height: calc(100svh - 46px); padding: 12px; }
+      .sheet .footer { bottom: -12px; margin: 12px -12px -12px; padding: 8px 12px 10px; } .sheet.intro .footer { bottom: -12px; margin: 12px -18px -18px; padding: 8px 18px 12px; }
       .grid2 { grid-template-columns: 1fr; }
       .intro { grid-template-columns: 1fr; } .intro .art { min-height: 38svh; }
       .nb-grid { grid-template-columns: 1fr; } .nb-list { max-height: 34vh; } .persona-cards { grid-template-columns: 1fr 1fr; } /* C: */
@@ -436,6 +446,6 @@
   </nav>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="bootError" hidden></div>
-  <script type="module" src="game.js?v=c11"></script>
+  <script type="module" src="game.js?v=c12"></script>
 </body>
 </html>
