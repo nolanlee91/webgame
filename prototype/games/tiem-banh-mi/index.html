@@ -365,6 +365,11 @@
     .dockbar #hintbar { position: static; }
     .dockbar #toasts { position: static; width: auto; transform: none; }
     .dockbar #toasts:empty { display: none; }
+    /* D9: ở 320–360 px ô HUD trong dải bị cắt ("1,2 tỷ" mất số đầu) vì 2 viên Lò / Gas giữ min-width 100 px ⇒ viên gọn theo chữ, Gas bỏ chữ "mẻ" */
+    .dockbar .pill { min-width: 0; gap: 5px; padding: 2px 6px 2px 3px; }
+    .dockbar .pill .ring { width: 26px; height: 26px; }
+    .dockbar .pill.gas .u { display: none; }
+    @media (max-width: 360px) { .dockbar .chip { padding-inline: 4px; } }
     /* máy tính bảng dọc (761–1024): cảnh cao hơn, ô nguyên liệu nhiều cột hơn */
     @media (min-width: 761px) and (max-width: 1024px) and (orientation: portrait) {
       .world { height: clamp(300px, 40svh, 440px); }

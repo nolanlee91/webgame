@@ -125,8 +125,8 @@ export function createHud(root, pills, atlas, dispatch) {
       pillAction = { type: "bake", slot: 0 };
     }
     const gas = state.stock.gas || 0;
-    const gt = `Gas ${gas} mẻ`;
-    if (gasPill.textContent !== gt) gasPill.textContent = gt;
+    const gt = `Gas ${gas} mẻ`; // D9: " mẻ" bọc riêng để dải dính hẹp ẩn được (index.html .dockbar .pill.gas .u)
+    if (gasPill.textContent !== gt) gasPill.innerHTML = `Gas ${gas}<span class="u"> mẻ</span>`;
     gasPill.className = "pill gas" + (gas <= 0 ? " out" : gas < 6 ? " low" : "");
   };
 }
