@@ -112,7 +112,8 @@ const CHAL_VISIBLE = `(() => { const b = document.querySelector("#chalBtnE, #cha
 
 const chrome = await launchChrome("double-sound");
 async function openTab(touch) {
-  const t = await chrome.newTab(touch ? "touch" : "mouse", touch ? 390 : 1366, touch ? 844 : 768, touch);
+  // mỗi tab một hồ sơ trình duyệt riêng (localStorage tách biệt): tab chuột và tab chạm chạy song song, bấm 🔊 ở tab này không làm tab kia im
+  const t = await chrome.newTab(touch ? "touch" : "mouse", touch ? 390 : 1366, touch ? 844 : 768, touch, await chrome.newContext());
   const orig = t.ws.onmessage;
   t.ws.onmessage = (e) => {
     orig(e);
@@ -189,7 +190,8 @@ try {
             const c = classify(r.snd.filter((x) => x.t >= r.down - 5)); // chỉ tiếng bắt đầu từ lúc nhấn (tiếng nền của ván — gộp ô, kỷ lục hẹn giờ — không tính)
             pressCount++;
             const row = { page: p, phase, input, label: pos.label, ...c, gameAfterUp: c.gameAt != null && r.up ? Math.round(c.gameAt - r.up) : null,
-              gameAfterClick: c.gameAt != null && r.click > r.down ? Math.round(c.gameAt - r.click) : null };
+              gameAfterClick: c.gameAt != null && r.click > r.down ? Math.round(c.gameAt - r.click) : null,
+              raw: r.snd.map((x) => [x.k, x.n || x.f, Math.round(x.t - r.down)]), up: Math.round(r.up - r.down), click: r.click > r.down ? Math.round(r.click - r.down) : null };
             results.push(row);
             if (c.fbAt != null && !touch && r.up) delays.push(c.fbAt - r.up), clickDelays.push(c.fbAt - Math.max(r.click, r.up));
             if (c.count >= 2) {
