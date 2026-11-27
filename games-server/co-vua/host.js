@@ -9,6 +9,7 @@ const { pathToFileURL } = require("url");
 const { attachWs } = require("./ws");
 const { Room, MAX_PLAYERS } = require("./room");
 const { cleanSid, rememberSid, isBanned, kickFromRoom } = require("../kick");
+const { roomEvent, viaOf } = require("../stats-hook"); // Đợt 10: đếm tạo phòng / vào phòng (games-server/stats.js)
 const { listPublicRooms } = require("../public-rooms");
 
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // bỏ I, L, O, 0, 1 cho dễ đọc
@@ -118,6 +119,7 @@ function createCoVuaHost(server, opts = {}) {
       conn.entry = entry; conn.token = token; conn.last = null; rememberSid(entry, token, sid);
       entry.conns.add(conn); clearTimeout(entry.idleTimer);
       reply(conn, { t: "joined", code: entry.room.code, token });
+      roomEvent("co-vua", m.t, conn.via);
       entry.room.setConnected(seatOf(entry, token), true);
       push(entry);
       return;
@@ -158,7 +160,7 @@ function createCoVuaHost(server, opts = {}) {
     const ip = ipOf(req);
     if ((ipConns.get(ip) || 0) >= perIp.conns) { ws.send(JSON.stringify({ t: "err", code: "busy" })); return ws.close(1008); }
     ipConns.set(ip, (ipConns.get(ip) || 0) + 1);
-    const conn = { ws, ip, entry: null, token: null, last: null, bucket: RATE.burst, at: clock.now() };
+    const conn = { ws, ip, via: viaOf(req), entry: null, token: null, last: null, bucket: RATE.burst, at: clock.now() };
     sockets.add(ws);
     ws.on("message", (raw) => { try { onMessage(conn, raw); } catch (e) { console.error("[co-vua]", e); reply(conn, { t: "err", code: "server" }); } });
     ws.on("close", () => {

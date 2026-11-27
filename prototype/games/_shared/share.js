@@ -1,13 +1,15 @@
 // Khoe kết quả — module chia sẻ dùng chung cho mọi game Lụm Kèo (ES module, không thư viện ngoài).
-//   import { shareResult } from "../_shared/share.js?v=s2";
+//   import { shareResult } from "../_shared/share.js?v=s3";
 //   shareResult({ game: "o-an-quan", title: "Thắng máy 38–12", lines: ["Quân ăn được: 38", "Số lượt: 21"], tagline: "Máy xin thua!" });
 // API + ví dụ: xem SHARE.md cùng thư mục.
 //   makeCard(opts)    → Promise<Blob>  ảnh PNG 1080×1080 (pixel V5: khung góc khuyết, bóng cứng, nền navy/gỗ, Be Vietnam Pro)
 //   makeBanner(opts)  → Promise<Blob>  ảnh 1200×630 cho thẻ xem trước link (tools/og/render-og-images.mjs dùng)
-//   shareResult(opts) → Promise<"native"|"panel"|"cancelled"|"error">  tạo ảnh rồi mở bảng chia sẻ
+//   shareResult(opts) → Promise<"native"|"panel"|"cancelled"|"error">  tạo ảnh rồi mở bảng chia sẻ (đếm "share_click")
+//   shareLink(opts)   → Promise<"native"|"panel"|"cancelled">  chia sẻ một link + câu chữ, không ảnh (dùng cho "Thách bạn")
 // Phần dựng nội dung (normalizeOpts, layoutCard, shareUrl, shareText…) là hàm thuần, test được trên Node không cần canvas.
 import { SITE_URL, SITE_NAME } from "./site.js";
 import { GAMES_META } from "./games-meta.js";
+import { ev } from "./stats.js?v=st1"; // số đếm lượt bấm "Khoe" (+ tự đếm lượt mở link ?ref=share) — chỉ số gộp, không danh tính
 
 export const CARD_SIZE = 1080;
 export const FONT_FAMILY = '"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -401,6 +403,8 @@ export function loadCommunity() {
 const isTouchPhone = () => {
   try { return matchMedia("(pointer: coarse)").matches && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); } catch { return false; }
 };
+const canShareLink = () => { try { return typeof navigator.share === "function"; } catch { return false; } };
+const escHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const canShareFile = (file) => { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); } catch { return false; } };
 
 async function copyText(text) {
@@ -455,7 +459,7 @@ const PANEL_CSS = `
 
 let openPanel = null;
 /** Bảng chia sẻ dự phòng (máy tính, hoặc điện thoại không chia sẻ được tệp). Trả về Promise khi đóng. */
-export function showSharePanel({ blob, file, m, text, community = [], afterShare = false }) {
+export function showSharePanel({ blob = null, file = null, m, text, community = [], afterShare = false, title = "Khoe kết quả" }) {
   if (openPanel) openPanel.close();
   if (!document.getElementById("lk-share-css")) {
     const st = document.createElement("style"); st.id = "lk-share-css"; st.textContent = PANEL_CSS; document.head.appendChild(st);
@@ -465,18 +469,18 @@ export function showSharePanel({ blob, file, m, text, community = [], afterShare
   root.className = "lk-share";
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-labelledby", "lk-share-title");
   root.dataset.game = m.game;
-  const imgUrl = URL.createObjectURL(blob);
-  const native = canShareFile(file);
+  const imgUrl = blob ? URL.createObjectURL(blob) : "";
+  const native = file ? canShareFile(file) : canShareLink();
   const phone = isTouchPhone();
   root.innerHTML = `
     <div class="lk-share__box" style="--lk-accent:${m.accent}">
-      <div class="lk-share__head"><h2 class="lk-share__title" id="lk-share-title">Khoe kết quả</h2>
+      <div class="lk-share__head"><h2 class="lk-share__title" id="lk-share-title">${escHtml(title)}</h2>
         <button class="lk-share__x" type="button" data-act="close" aria-label="Đóng">×</button></div>
-      <img class="lk-share__img" alt="Ảnh kết quả ${m.name}: ${m.title}" src="${imgUrl}" width="1080" height="1080" />
+      ${blob ? `<img class="lk-share__img" alt="Ảnh kết quả ${escHtml(m.name)}: ${escHtml(m.title)}" src="${imgUrl}" width="1080" height="1080" />` : ""}
       <div class="lk-share__grid">
         ${native ? `<button class="lk-share__btn lk-share__btn--main" type="button" data-act="native">Chia sẻ…</button>` : ""}
-        <button class="lk-share__btn ${native ? "" : "lk-share__btn--main"}" type="button" data-act="download">Tải ảnh</button>
-        <button class="lk-share__btn" type="button" data-act="copy">Chép link</button>
+        ${blob ? `<button class="lk-share__btn ${native ? "" : "lk-share__btn--main"}" type="button" data-act="download">Tải ảnh</button>` : ""}
+        <button class="lk-share__btn${!blob && !native ? " lk-share__btn--main" : ""}" type="button" data-act="copy">Chép link</button>
         <button class="lk-share__btn lk-share__btn--fb" type="button" data-act="facebook">Facebook</button>
         ${phone ? `<button class="lk-share__btn lk-share__btn--ms" type="button" data-act="messenger">Messenger</button>` : ""}
         <button class="lk-share__btn lk-share__btn--zalo" type="button" data-act="zalo">Zalo</button>
@@ -501,7 +505,7 @@ export function showSharePanel({ blob, file, m, text, community = [], afterShare
   const actions = {
     close: () => close(),
     native: async () => {
-      try { await navigator.share({ files: [file], text, url: m.url }); say("Đã chia sẻ!"); shared(); }
+      try { await navigator.share(file ? { files: [file], text, url: m.url } : { text, url: m.url }); say("Đã chia sẻ!"); shared(); }
       catch (e) { if (e?.name !== "AbortError") say("Không mở được bảng chia sẻ — thử Tải ảnh rồi gửi nhé."); }
     },
     download: () => { downloadBlob(blob, fileName); say("Đã tải ảnh — đăng kèm link để bạn bè vào chơi nhé."); shared(); },
@@ -535,7 +539,7 @@ export function showSharePanel({ blob, file, m, text, community = [], afterShare
   let done;
   const closed = new Promise((r) => (done = r));
   function close() {
-    root.remove(); URL.revokeObjectURL(imgUrl); openPanel = null;
+    root.remove(); if (imgUrl) URL.revokeObjectURL(imgUrl); openPanel = null;
     try { prevFocus?.focus?.({ preventScroll: true }); } catch {}
     done();
   }
@@ -552,6 +556,7 @@ export function showSharePanel({ blob, file, m, text, community = [], afterShare
  * opts thêm: native?: false (luôn dùng bảng), onDone?(kết quả).
  */
 export async function shareResult(opts = {}) {
+  ev("share_click", opts.game);
   const m = normalizeOpts(opts);
   const text = shareText(opts);
   let blob;
@@ -570,5 +575,21 @@ export async function shareResult(opts = {}) {
     }
   }
   showSharePanel({ blob, file, m, text, community });
+  return "panel";
+}
+
+/**
+ * Chia sẻ một link kèm câu chữ, không có ảnh (dùng cho "Thách bạn" — _shared/challenge.js). Không tự đếm (người gọi đếm).
+ * Điện thoại có bảng chia sẻ hệ thống ⇒ navigator.share({ text, url }); còn lại ⇒ bảng nhỏ: Chép link · Facebook · Messenger · Zalo.
+ * opts: { game, url, text, title = "Chia sẻ", accent, native }
+ */
+export async function shareLink({ game = "", url, text = "", title = "Chia sẻ", accent, native = true } = {}) {
+  const m = { ...normalizeOpts({ game, accent }), url: String(url || shareUrl(game)) };
+  if (native !== false && isTouchPhone() && canShareLink()) {
+    try { await navigator.share({ text, url: m.url }); return "native"; }
+    catch (e) { if (e?.name === "AbortError") return "cancelled"; }
+  }
+  const community = communityLinks(await Promise.race([loadCommunity(), new Promise((r) => setTimeout(() => r({}), 800))]));
+  showSharePanel({ m, text, community, title });
   return "panel";
 }

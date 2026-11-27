@@ -1,17 +1,17 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m16";
-import { shortNum } from "./ui/short-num.js?v=m16"; // TLC12-04
-import { browserStorage, farmSave } from "./save.js?v=m16";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m16";
-import { createMarketScene } from "./ui/scene-market.js?v=m16";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m16";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m16";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m16";
-import { createVillageScene } from "./ui/scene-village.js?v=m16";
-import { createTruck } from "./ui/truck.js?v=m16";
-import { farmShare } from "./ui/share-card.js?v=m16";
-import { shareResult } from "../_shared/share.js?v=s2";
+import * as L from "./logic.js?v=m17";
+import { shortNum } from "./ui/short-num.js?v=m17"; // TLC12-04
+import { browserStorage, farmSave } from "./save.js?v=m17";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m17";
+import { createMarketScene } from "./ui/scene-market.js?v=m17";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m17";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m17";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m17";
+import { createVillageScene } from "./ui/scene-village.js?v=m17";
+import { createTruck } from "./ui/truck.js?v=m17";
+import { farmShare } from "./ui/share-card.js?v=m17";
+import { shareResult } from "../_shared/share.js?v=s3";
 
 const MUTE_KEY = "wgp.muted";
 const CEL_KEY = "wgp.nongtrai.cards"; // m7: thẻ chúc mừng đã xem (khoá riêng, không thuộc bản lưu)

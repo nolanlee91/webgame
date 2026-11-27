@@ -4,7 +4,15 @@
 // Dưới các nút là "Bảng xếp hạng hôm nay" (daily-board.js, nạp lười; máy chủ tắt bảng thì ẩn hẳn).
 // Bảng kết quả KHÔNG che thanh trên của game (link "← Trang chủ" vẫn bấm được — QCK-03), có nút "Về trang chủ",
 // dòng "Còn: Sudoku #N · 2048 #N" sang 2 thử thách còn lại (HOME-17), Esc = "Xem bàn".
-import * as D from "./daily.js?v=daily1";
+import * as D0 from "./daily.js?v=daily1";
+import { ev } from "./stats.js?v=st1"; // Đợt 10: số đếm gộp (xong thử thách, bấm khoe, mở link khoe) — không danh tính
+
+// D = daily.js nguyên bản, chỉ bọc record(): lần ghi ĐẦU TIÊN của ngày ⇒ đếm "daily_submit" (mọi thứ khác giữ nguyên).
+const D = Object.freeze({ ...D0, record(game, day, result, opts) {
+  const r = D0.record(game, day, result, opts);
+  if (r && !r.already) ev("daily_submit", game);
+  return r;
+} });
 
 const CSS = `
 .dly-chip{display:inline-flex;align-items:center;gap:6px;margin-left:12px;padding:3px 9px;vertical-align:middle;font:800 12px/1.2 "Be Vietnam Pro",system-ui,sans-serif;
@@ -158,6 +166,7 @@ export function panel({ game, day, result, title = "Xong rồi!", normalUrl = ".
 
   const shareBtn = ov.querySelector("#dlyShare");
   shareBtn.addEventListener("click", async () => {
+    ev("share_click", game);
     const text = D.shareText(game, result, { streak: D.stats(game, day).streak });
     window.__dailyShareText = text; // để test đọc lại
     const how = await D.share(text);

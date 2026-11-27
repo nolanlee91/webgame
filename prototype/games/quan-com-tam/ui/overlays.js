@@ -13,7 +13,7 @@ import * as PU from "./progress-ui.js?v=c12"; // A: tab Chuẩn bị M3 (đồ n
 import { potSize } from "../core/progression.js?v=c12"; // A: cỡ nồi theo giai đoạn
 import "./book-tabs.js?v=c12"; // gộp: tab Sổ của A (Sổ nợ, Nhiệm vụ, Huy hiệu) + B (Sự kiện)
 import * as M5 from "./m5-ui.js?v=c12"; // S: nút bật / tắt món (M5)
-import { shareResult } from "../../_shared/share.js?v=s2";
+import { shareResult } from "../../_shared/share.js?v=s3";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
 const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;

@@ -25,7 +25,7 @@ import { MERGE_SLICE_DAYS } from "../core/board.js?v=b14";
 import { PERSONAS } from "../data/lines-reply.js?v=b14";
 import { STALE } from "../data/lines-m3.js?v=b14";
 import { FILLINGS, NAMES } from "../data/economy.js?v=b14";
-import { shareResult } from "../../_shared/share.js?v=s2";
+import { shareResult } from "../../_shared/share.js?v=s3";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
 const vnd = (kNum) => `${Math.round(Math.abs(kNum) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ`;
