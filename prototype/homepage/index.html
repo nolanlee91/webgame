@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://lumkeo.com/homepage/assets/og/home.jpg" />
   <!-- og:end -->
   <!-- Hỏi danh sách phòng ngay khi có HTML, trước khi ảnh tranh băng thông (app.js dùng lại kết quả này) -->
-  <script>try { window.__lobbyP = fetch("/api/lobby", window.AbortSignal && AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {}).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); window.__lobbyP.catch(function () {}); } catch (e) {}</script>
+  <script>try { window.__lobbyP = fetch("/api/lobby", window.AbortSignal && AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {}).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) { window.__lobbyD = d; return d; }); window.__lobbyP.catch(function () {}); } catch (e) {}</script>
   <!-- Font tự host (../assets/fonts/fonts.css, ~190 KB / 10 file). D9 (HOME2-05): KHÔNG nạp trước và không để trong <head> nữa: preload font làm
        Chrome giữ lần vẽ đầu tới khi font về, và 10 file độ ưu tiên VeryHigh giành băng thông với ảnh hero (390 dpr 3, Slow 4G: FCP ~2,3 s).
        Giờ: lần đầu nạp fonts.css sau khi ảnh hero tải xong (script cuối trang); chữ hiện ngay bằng font máy chỉnh cỡ ("LK Body/Title Fallback"
@@ -114,6 +114,8 @@
 
       <aside class="lobby px-panel is-loading" id="lobby" tabindex="-1" data-name="lobby" aria-labelledby="lobbyTitle">
         <!-- D11: sảnh đang gọn mà phòng về sau khi trang đã vẽ ⇒ chỉ hiện nút nhỏ này (nằm đè mép trên khung, không xô bố cục); bấm mới mở đầy đủ -->
+        <!-- D11: kết quả sảnh đã về trước khi tới đây ⇒ đặt dạng đầy đủ ngay trong lần vẽ đầu (không xô trang khi app.js vẽ danh sách) -->
+        <script>try { var _l = window.__lobbyD; if (_l && ((_l.rooms && _l.rooms.length) || (_l.playing && _l.playing.some(function (p) { return p.rooms > 0; })))) document.getElementById("lobby").classList.add("has-rooms"); } catch (e) {}</script>
         <button class="btn btn--sm lobby__peek" id="lobbyPeek" type="button" hidden><i class="live" aria-hidden="true"></i><span></span> · Xem</button>
         <div class="lobby__head">
           <h2 class="lobby__title" id="lobbyTitle"><span class="live" aria-hidden="true"></span>Sảnh chờ trực tiếp</h2>

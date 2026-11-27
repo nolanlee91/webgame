@@ -216,7 +216,7 @@
     // D11 sảnh gọn: lần vẽ đầu là dạng gọn (đa số lúc không có phòng). Có phòng ⇒ mở đầy đủ, nhưng CHỈ khi trang chưa vẽ (kết quả về sớm)
     // hoặc người chơi bấm "N phòng đang chờ · Xem" — tự bung sau khi đã vẽ sẽ xô cả trang (máy tính đo CLS 0,32). Đã mở thì không tự thu lại.
     var any = rooms.length > 0 || playing.length > 0, L = $("lobby"), peek = $("lobbyPeek");
-    if (any && !L.classList.contains("has-rooms") && (lobbyOpen || !painted())) L.classList.add("has-rooms");
+    if (any && !L.classList.contains("has-rooms") && (lobbyOpen || earlyRender)) L.classList.add("has-rooms");
     var waiting = any && !L.classList.contains("has-rooms");
     if (peek) {
       peek.hidden = !waiting;
@@ -226,9 +226,9 @@
     lastLobby = { rooms: rooms, status: status, live: live };
   }
   var lastLobby = null, lobbyOpen = false;
-  // "Đã vẽ": có mục paint, hoặc đã qua 1 khung hình kể từ lúc app.js chạy (mục paint ghi trễ hơn lúc khung hình hiện thật)
-  var framed = false; requestAnimationFrame(function () { framed = true; });
-  function painted() { if (framed) return true; try { return performance.getEntriesByType("paint").length > 0; } catch (e) { return false; } }
+  // Chỉ tự mở đầy đủ khi kết quả /api/lobby (gửi từ <head>) ĐÃ có lúc app.js chạy — vẽ ngay trong lần chạy này (earlyRender).
+  // Về sau đó ⇒ nút "Xem" (đo bằng mục paint / rAF không chắc: có lần khung hình đã hiện mà chưa có mục paint ⇒ CLS 0,22).
+  var earlyRender = false;
   if ($("lobbyPeek")) $("lobbyPeek").addEventListener("click", function () {
     lobbyOpen = true; $("lobby").classList.add("has-rooms"); $("lobbyPeek").hidden = true;
     if (lastLobby) renderRooms(lastLobby.rooms, lastLobby.status, lastLobby.live);
@@ -269,6 +269,11 @@
   }
   // Lần đầu dùng request đã gửi từ <head> (window.__lobbyP); lỗi ⇒ thử lại 1 lần sau 1 giây rồi mới báo lỗi.
   var firstLobby = window.__lobbyP || null;
+  if (window.__lobbyD && window.__lobbyD.rooms) {
+    var d0 = window.__lobbyD; earlyRender = true;
+    try { renderRooms(d0.rooms.filter(function (r) { return duelIds.includes(r.game); }), "", { players: d0.players, playing: d0.playing }); } catch (e) {}
+    earlyRender = false;
+  }
   async function refreshRooms() {
     if (!document.hidden) {
       try {
