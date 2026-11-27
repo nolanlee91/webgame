@@ -90,14 +90,16 @@ export async function m5Flows(ctx, tag, shots = true) {
     for(const id of ["egg-pan","egg-pan-2","grill","xiu-mai-pot","long-board","vegan-board"])s.owned[id]=true;s.stock.trung=10;s.stock["thit-nuong"]=10;s.stock.phoi=40;
     s.drama.pending=null;__game.save();__game.overlays.prep(s);})()`);
   check(`${tag}: Chuẩn bị ca cấp 20 có thẻ Hội chợ + Lịch thử thách (5 ngày)`, await waitFor(`!!document.querySelector('[data-card="fair"]')&&!!document.querySelector('[data-card="challenge"]')&&document.querySelectorAll('[data-card="challenge"] .week span').length===5`));
-  // thông báo khi đang mở bảng phủ: nằm ở dải trên cùng, không đè nút / tab nào của bảng (kể cả khi cuộn)
+  // D11 TLC2-12: bảng phủ mở ⇒ không thông báo nổi nào (không đè thanh đầu / nút của bảng); trả lời thao tác trong bảng (thuê tiệm)
+  // thành một dòng trong chân bảng dính đáy, thấy được cả khi đã cuộn bảng, không che nút nào
   await b.ev("document.querySelector('#sheet').scrollTop=400;__game.act({type:'rentShop'})");
   await sleep(150);
-  const tov = await b.ev(`(()=>{const t=[...document.querySelectorAll('#toasts .toast')].filter(x=>getComputedStyle(x).display!=='none').map(x=>x.getBoundingClientRect());
-    const inter=(a,c)=>a.left<c.right&&a.right>c.left&&a.top<c.bottom&&a.bottom>c.top;
-    const bad=[...document.querySelectorAll('#sheet button')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&t.some(x=>inter(x,r))}).map(e=>e.textContent.slice(0,20));
-    return JSON.stringify({n:t.length,bad})})()`).then(JSON.parse);
-  check(`${tag}: thông báo trên bảng phủ không đè nút của bảng`, tov.n >= 1 && tov.bad.length === 0, JSON.stringify(tov));
+  const tov = await b.ev(`(()=>{const t=[...document.querySelectorAll('#toasts .toast')].filter(x=>getComputedStyle(x).display!=='none'&&x.getBoundingClientRect().height>0);
+    const n=document.querySelector('#sheet .sheet-note'),sh=document.getElementById('sheet').getBoundingClientRect(),r=n&&n.getBoundingClientRect();
+    const inter=(a,c)=>a.left<c.right-1&&a.right>c.left+1&&a.top<c.bottom-1&&a.bottom>c.top+1;
+    const bad=r?[...document.querySelectorAll('#sheet .sum-foot button')].filter(e=>{const q=e.getBoundingClientRect();return q.width&&inter(r,q)}).map(e=>e.textContent.slice(0,20)):[];
+    return JSON.stringify({n:t.length,note:n?n.textContent.slice(0,40):'',inView:!!r&&r.top>=sh.top&&r.bottom<=sh.bottom,bad})})()`).then(JSON.parse);
+  check(`${tag} D11: bảng phủ mở ⇒ 0 thông báo nổi; trả lời thao tác là dòng trong chân bảng dính đáy, thấy được khi đã cuộn, không che nút chân bảng`, tov.n === 0 && tov.note.length > 3 && tov.inView && tov.bad.length === 0, JSON.stringify(tov));
   await b.ev("document.querySelector('#sheet').scrollTop=0");
   if (shots) await b.shot(`${OUT}/${tag}-n1-ca-dac-biet.png`);
   await pressSel('[data-act="challenge"]');

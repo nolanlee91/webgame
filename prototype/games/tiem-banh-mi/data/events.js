@@ -66,15 +66,15 @@
 //   rep-viral rep-phot rep-trend rep-back rep-sale rep-cuc rep-meme rep-flip (câu trả lời review, core/reviews.js)
 //
 // ===== Biến trong câu =====  {name} {self} {Self} {call} {Call} (người nói) · {shop} tên tiệm · {day} · {followers} · {loaf} món của người nói · {n} · {price}
-import { EVENTS_KHACH } from "./events-khach.js?v=b13";
-import { EVENTS_VANHANH } from "./events-van-hanh.js?v=b13";
-import { EVENTS_MANG } from "./events-mang.js?v=b13";
-import { EVENTS_M3 } from "./events-m3.js?v=b13";
-import { EVENTS_REPLY } from "./events-reply.js?v=b13";
-import { EVENTS_M5 } from "./events-m5.js?v=b13";
+import { EVENTS_KHACH } from "./events-khach.js?v=b14";
+import { EVENTS_VANHANH } from "./events-van-hanh.js?v=b14";
+import { EVENTS_MANG } from "./events-mang.js?v=b14";
+import { EVENTS_M3 } from "./events-m3.js?v=b14";
+import { EVENTS_REPLY } from "./events-reply.js?v=b14";
+import { EVENTS_M5 } from "./events-m5.js?v=b14";
 
 export const EVENTS = [...EVENTS_KHACH, ...EVENTS_VANHANH, ...EVENTS_MANG, ...EVENTS_M3, ...EVENTS_REPLY, ...EVENTS_M5];
-export { M5_IDS } from "./events-m5.js?v=b13";
+export { M5_IDS } from "./events-m5.js?v=b14";
 export const EVENT = Object.fromEntries(EVENTS.map((e) => [e.id, e]));
 /** 59 sự kiện của DRAMA.md §2.1–2.5 (test kiểm đủ). */
 export const DRAMA_IDS = [

@@ -102,6 +102,6 @@ export const MISSIONS = [
   { id: "nhu-cu", kind: "nhuCu", n: 1, unlock: 4, text: "Phục vụ khách quen “như cũ” đúng", reward: { xp: 12, money: 0 } },
   { id: "revenue", kind: "revenue", n: 250, unlock: 5, text: "Doanh thu ca đạt {n}k", reward: { xp: 15, money: 15 } },
   { id: "preorder", kind: "preorder", n: 1, unlock: 7, text: "Giao đơn đặt trước đúng giờ", reward: { xp: 15, money: 15 } },
-  { id: "low-waste", kind: "lowWaste", n: 12, unlock: 7, text: "Hao hụt cả ca dưới {n}k", reward: { xp: 12, money: 12 } },
+  { id: "low-waste", kind: "lowWaste", n: 12, unlock: 7, text: "Đồ hỏng bỏ cả ca dưới {n}k", reward: { xp: 12, money: 12 } },
 ];
 export const MISSIONS_PER_DAY = 3;

@@ -94,7 +94,7 @@ async function payClicks(manual) {
     check("TLC22-03: chưa chọn tờ ⇒ không có 'Thối 0k' bấm được; 'Thối đúng' là nút chính, đứng đầu", tray.gDis && !tray.gPri && !/0k/.test(tray.txt) && (!tray.hasAuto || (tray.aPri && tray.aFirst)), JSON.stringify(tray));
   }
   if (manual) {
-    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b13');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
+    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b14');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
     if (bills) { for (const [d, n] of Object.entries(bills)) for (let i = 0; i < n; i++) await pressSel(`[data-bill="${d}"]`); await pressSel('[data-act="giveChange"]'); return "manual"; }
   }
   await pressSel('[data-act="autoChange"]');
@@ -128,7 +128,7 @@ async function changeHintDay4(tag) {
     if (!paying && (await S("!!s.shift&&s.shift.paying!==null"))) await payClicks(true);
   }
   if (!paying) { check(`${tag} D9: tới được khách cần thối ở ngày 4`, false, await S("JSON.stringify({shift:!!s.shift,paying:s.shift?.paying})")); return; }
-  const want = paying ? await b.ev("(async()=>{const m=await import('./core/money.js?v=b13');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse) : null;
+  const want = paying ? await b.ev("(async()=>{const m=await import('./core/money.js?v=b14');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse) : null;
   const look = () => b.ev(`JSON.stringify((()=>{const t=document.querySelector('#chgHint'),hs=[...document.querySelectorAll('#change .billbtn.hint')],a=hs[0]&&getComputedStyle(hs[0],'::after');
     return {txt:t?t.textContent:null,tVis:!!t&&t.getBoundingClientRect().height>0,bills:hs.map(e=>e.dataset.bill).sort((x,y)=>x-y).join(","),anim:a?a.animationName:null,op:a?a.opacity:null,
       give:!!document.querySelector('[data-act="giveChange"]')?.disabled,auto:!!document.querySelector('[data-act="autoChange"]')}})())`).then(JSON.parse);
@@ -182,10 +182,30 @@ async function playDay1(tag, shots) {
   await pressSel("#openShop");
   check(`${tag}: mở hàng, 4 ổ trong tủ kính`, await waitFor("!!__game.state.shift") && (await S("s.shift.case.length")) === 4);
   await audioInShift(ctx, tag);
-  let served = 0, manualDone = 0, autoDone = 0, layersOk = true, toastOk = null, firstShot = true;
+  let served = 0, manualDone = 0, autoDone = 0, layersOk = true, toastOk = null, firstShot = true, toastTested = false; const stripSeen = [null, null];
   for (let guard = 0; guard < 40; guard++) {
     if (!(await S("!!s.shift"))) break;
     await clearDialogs();
+    if (served >= 1 && !toastTested) {
+    // D11 TLC2-12: một thông báo một lúc (cả 1366); bảng phủ mở ⇒ không vẽ thông báo, xếp hàng; đóng bảng ⇒ hiện lần lượt từng câu
+    {
+      const shown = () => b.ev("JSON.stringify([...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none'&&t.getBoundingClientRect().height>0).map(t=>t.textContent))").then(JSON.parse);
+      if (await S("!!s.shift&&!s.shift.dialog&&s.shift.paying===null") && !(await b.ev("__game.overlay"))) {
+        await b.ev("__game.toast('Thử 1','');__game.toast('Thử 2','good');__game.toast('Thử 3','warn')"); await sleep(120);
+        const t1 = await shown();
+        await pressSel("#pauseBtn");
+        const t2 = await shown();
+        await b.ev("__game.toast('Xếp A','');__game.toast('Xếp B','warn')"); await sleep(120);
+        const t3 = await shown(), q = await b.ev("__game.toastQueue");
+        await pressSel('[data-act="resume"]'); await sleep(150);
+        const t4 = await shown(); await sleep(2600); const t5 = await shown();
+        check(`${tag} D11: 3 thông báo liền nhau ⇒ chỉ hiện 1`, t1.length === 1 && t1[0] === "Thử 3", JSON.stringify(t1));
+        check(`${tag} D11: bảng Tạm dừng mở ⇒ 0 thông báo trên màn, câu mới xếp hàng (≤ 3)`, t2.length === 0 && t3.length === 0 && q.length <= 3 && q.includes("Xếp A") && q.includes("Xếp B"), JSON.stringify({ t2, t3, q }));
+        check(`${tag} D11: đóng bảng ⇒ hiện lần lượt, mỗi lúc 1 câu`, t4.length === 1 && t5.length === 1 && t4[0] !== t5[0], JSON.stringify({ t4, t5 }));
+      } else check(`${tag} D11: thử hàng đợi thông báo (cần đang trong ca)`, false, "không ở trong ca");
+      toastTested = true;
+    }
+    }
     // chờ khách
     let cid = null;
     for (let i = 0; i < 300 && (await S("!!s.shift")); i++) {
@@ -201,6 +221,9 @@ async function playDay1(tag, shots) {
     const n = await S(`s.shift.customers.find(c=>c.id===${cid}).items.length`);
     for (let k = 0; k < n; k++) {
       const crispy = await S("(()=>{const b=s.shift.boards[0];return s.shift.customers.find(c=>c.id===b.cid).items[b.item].crispy})()");
+      if (!stripSeen[crispy ? 1 : 0] && await S("!s.shift.boards[0].loaf")) { // D11 TLC22-07: chưa lấy ổ — dải bước + khung ổ
+        stripSeen[crispy ? 1 : 0] = await b.ev("JSON.stringify({steps:[...document.querySelectorAll('#bench .steps li')].map(l=>l.textContent),h:Math.round(document.getElementById('loafView').getBoundingClientRect().height)})").then(JSON.parse);
+      }
       const st = await buildClicks(firstShot && shots ? tag + "-05" : null);
       if (crispy) toastOk = await S("s.shift.boards[0].loaf.crisp>=85&&s.shift.boards[0].loaf.toasted");
       if (new Set(st).size < st.length - 1) layersOk = false;
@@ -220,11 +243,23 @@ async function playDay1(tag, shots) {
   check(`${tag}: ổ bánh đổi lớp ở từng bước (loaf-layers)`, layersOk);
   check(`${tag}: ngày 1 "Lấy + rạch" một chạm (ổ đã rạch ngay sau khi lấy)`, mergeSeen.length > 0 && mergeSeen.every(Boolean), JSON.stringify(mergeSeen));
   mergeSeen.length = 0;
+  check(`${tag} D11 TLC22-07: phiếu thường ⇒ dải bước không có "Nướng lại", khung ổ trống thấp (≤ 80 px); phiếu "giòn giòn" ⇒ vẫn có`,
+    !!stripSeen[0] && !stripSeen[0].steps.includes("Nướng lại") && stripSeen[0].h <= 80 && (!stripSeen[1] || stripSeen[1].steps.includes("Nướng lại")), JSON.stringify(stripSeen));
   check(`${tag}: phiếu "giòn giòn" được nướng lại ở lò than (≥ 85)`, toastOk !== false, String(toastOk));
   check(`${tag}: thối tiền cả nút Thối đúng lẫn chọn tờ tay`, autoDone >= 1 && manualDone >= 1, `${autoDone} tự động · ${manualDone} tay`);
   check(`${tag}: bảng chốt ca hiện lời lỗ`, await waitFor("__game.overlay==='summary'", 5000));
   const sum = await S("JSON.stringify(s.lastSummary)").then(JSON.parse);
-  check(`${tag}: chốt ca có doanh thu, giá vốn, sao trung bình`, sum.revenue > 0 && sum.cogs > 0 && sum.avg >= 3.5, `doanh thu ${sum.revenue}k · lời ${sum.profit}k · ${sum.avg} sao · bán ${sum.loaves} ổ`);
+  {
+    const txt = await b.ev("document.getElementById('sheet').textContent");
+    check(`${tag} D11 TLC2-13: chốt ca dùng chữ dễ hiểu (Tiền nguyên liệu / Đồ hỏng bỏ / Lời còn lại), không còn Giá vốn / Hao hụt / Lời vận hành`,
+      /Tiền nguyên liệu/.test(txt) && /Đồ hỏng bỏ/.test(txt) && /Lời còn lại/.test(txt) && !/Giá vốn|Hao hụt|Lời vận hành/.test(txt));
+    const vis = await b.ev("[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none'&&t.getBoundingClientRect().height>0).length");
+    await b.ev("__game.toast('Sắp hết pate (thử)','warn',{important:true});__game.toast('Khách thử bỏ về','warn')"); await sleep(150);
+    const r = await b.ev("JSON.stringify({n:[...document.querySelectorAll('#toasts .toast')].filter(t=>getComputedStyle(t).display!=='none'&&t.getBoundingClientRect().height>0).length,note:(document.querySelector('#sheet .sheet-note')||{}).textContent||'',q:__game.toastQueue})").then(JSON.parse);
+    check(`${tag} D11 TLC2-12: bảng chốt ca mở ⇒ không thông báo nào đè thanh đầu; câu hết hàng thành dòng trong bảng; câu thường xếp hàng`,
+      vis === 0 && r.n === 0 && /Sắp hết pate/.test(r.note) && r.q.includes("Khách thử bỏ về"), JSON.stringify({ vis, ...r }));
+  }
+  check(`${tag}: chốt ca có doanh thu, tiền nguyên liệu, sao trung bình`, sum.revenue > 0 && sum.cogs > 0 && sum.avg >= 3.5, `doanh thu ${sum.revenue}k · lời ${sum.profit}k · ${sum.avg} sao · bán ${sum.loaves} ổ`);
   if (shots) await b.shot(`${OUT}/${tag}-08-chot-ca.png`);
   check(`${tag}: không tràn ngang`, await noOverflowX());
   await pressSel('[data-act="nextDay"]');
