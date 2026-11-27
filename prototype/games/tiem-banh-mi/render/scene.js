@@ -7,14 +7,14 @@
 // vào đúng ô. Tủ tiệm chưa có ô xếp thì đổi frame "display-case-*" theo số ổ (trống / ít / đầy). Chưa có fixtures thì không vẽ ổ chồng lên tranh
 // (tranh đợt 1 đã vẽ sẵn bánh). Luôn có nhãn số ổ + độ giòn trung bình ở lớp UI.
 // Đợt 2 còn: bảng hiệu bậc 1–3, dây xếp hàng, bàn phụ việc (fixtures), trang trí (decor, vị trí mặc định placements[id]), mưa (weather-fx).
-import { paint, placeAt, setSnap } from "./atlas.js?v=b12";
-import { CART, SHOP, WALK_MS, ORDER_ANIM_MS, BUBBLE_MS } from "../data/shift.js?v=b12";
-import { DECOR } from "../data/equipment.js?v=b12";
-import { patienceLeft } from "../core/shift.js?v=b12";
-import { batchLevel } from "../core/oven.js?v=b12";
-import { placeOf } from "../core/progress.js?v=b12";
-import { crustOf } from "./loafview.js?v=b12";
-import { orderQueue, exitRoute, entryRoute, along } from "../core/placements.js?v=b12";
+import { paint, placeAt, setSnap } from "./atlas.js?v=b13";
+import { CART, SHOP, WALK_MS, ORDER_ANIM_MS, BUBBLE_MS } from "../data/shift.js?v=b13";
+import { DECOR } from "../data/equipment.js?v=b13";
+import { patienceLeft } from "../core/shift.js?v=b13";
+import { batchLevel } from "../core/oven.js?v=b13";
+import { placeOf } from "../core/progress.js?v=b13";
+import { crustOf } from "./loafview.js?v=b13";
+import { orderQueue, exitRoute, entryRoute, along } from "../core/placements.js?v=b13";
 
 const W = 1280, H = 720;
 const lerp = (a, b, p) => a + (b - a) * p;

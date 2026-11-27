@@ -68,6 +68,7 @@ export async function runLayout({ b, check, PORT, OUT }) {
     if (OUT && !late) await b.shot(`${OUT}/layout-${w}x${h}.png`);
   }
   await runEventLandscape({ b, check, PORT, OUT });
+  await runEventPortrait({ b, check, PORT, OUT });
 }
 
 /** TLC12-02: bảng sự kiện khi xoay ngang màn thấp — mọi lựa chọn (và nút Tiếp tục của bảng kết quả) nằm trọn trong khung,
@@ -90,6 +91,60 @@ export async function runEventLandscape({ b, check, PORT, OUT }) {
     const nx = await b.ev(`JSON.stringify(${vis("#eventNext")})`).then(JSON.parse);
     check(`sự kiện ${id} ở ${w}×${h}: nút Tiếp tục của bảng kết quả bấm được không cuộn`, nx.length === 1 && nx[0], JSON.stringify(nx));
   }
+}
+
+/** D9-decide: bảng sự kiện ở điện thoại dọc thấp (320×568, 360×640, 375×667) — dải ảnh chân dung thu còn ~110 px nên MỌI lựa chọn của
+ *  MỌI bước của MỌI sự kiện trong nội dung nằm trọn trong khung, bấm được tại tâm và hai góc, không phải cuộn trong bảng.
+ *  Mỗi bước được mở thật qua __game.forceEvent: tạm đổi `when` / `who` / `nodes.start` của bản ghi sự kiện (cùng module với game) cho
+ *  bước cần đo (vẽ xong thì trả lại, đặt dialog.node = bước đó để lựa chọn được xử lý đúng), có khách đang chờ làm người nói, tiền / hàng đủ để mọi lựa chọn bật. Trả số bước đã đo (để báo). */
+export async function runEventPortrait({ b, check, PORT, OUT, views = [[320, 568], [360, 640], [375, 667]] }) {
+  const BASE = `http://127.0.0.1:${PORT}/games/tiem-tra-sua/?seed=42&calm=1`;
+  const vis = (sel) => `[...document.querySelectorAll(${JSON.stringify(sel)})].map(e=>{const r=e.getBoundingClientRect();const at=(x,y)=>{const t=document.elementFromPoint(x,y);return !!t&&e.contains(t)};
+    return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth&&at(r.x+r.width/2,r.y+r.height/2)&&at(r.x+6,r.y+6)&&at(r.right-6,r.bottom-6)})`;
+  const RICH = `(()=>{const s=__game.state;s.money=9e6;if(s.shift?.drama)s.shift.drama.max=0;for(const k of Object.keys(s.stock))s.stock[k]=99;})()`;
+  let total = 0;
+  for (const [w, h] of views) {
+    await b.view(w, h, true, 2); await b.touch(true);
+    await freshProfile(b, PORT, BASE);
+    await b.ev("document.querySelector('#introGo').click()"); await sleep(300);
+    await b.ev("document.querySelector('#openShop')?.click()"); await sleep(400);
+    // một khách đang chờ (người nói cho sự kiện "who: waiting / lastServed")
+    for (let i = 0; i < 60 && !(await b.ev("!!__game.state.shift&&__game.state.shift.customers.some(c=>c.phase==='wait')")); i++) await b.ev("__game.advance(500)");
+    const list = await b.ev(`import("./data/events.js?v=m38").then(m=>JSON.stringify(m.EVENTS.flatMap(e=>Object.keys(e.nodes).map(n=>[e.id,n,Object.keys(e.nodes).length]))))`).then(JSON.parse);
+    const bad = []; let worst = null, n = 0;
+    for (const [id, node] of list) {
+      if (!(await b.ev("!!__game.state.shift"))) { await b.ev("document.querySelector('#openShop')?.click()"); await sleep(300); for (let i = 0; i < 60 && !(await b.ev("__game.state.shift.customers.some(c=>c.phase==='wait')")); i++) await b.ev("__game.advance(500)"); }
+      await b.ev(RICH);
+      for (let k = 0; k < 8 && (await b.ev("!!(__game.overlay||__game.state.shift?.dialog)")); k++) {
+        await b.ev("(document.querySelector('.sheet .btn.choice:not([disabled])')||document.querySelector('#eventNext,#stockoutNext'))?.click()"); await sleep(150);
+      }
+      const r = await b.ev(`import("./data/events.js?v=m38").then(m=>{const ev=m.EVENT[${JSON.stringify(id)}];window.__evBak={when:ev.when,who:ev.who,start:ev.nodes.start};
+        ev.when="shift";if(ev.who==="lastServed")ev.who="waiting";ev.nodes.start=ev.nodes[${JSON.stringify(node)}];
+        const s=__game.state;const c=s.shift.customers.find(c=>c.phase==='wait');if(c)c.arch=ev.who?.arch||c.arch;
+        const r=__game.forceEvent(ev.id);Object.assign(ev,{when:__evBak.when,who:__evBak.who});ev.nodes.start=__evBak.start;if(r.ok)s.shift.dialog.node=${JSON.stringify(node)};return JSON.stringify(r)})`);
+      if (!r.includes('"ok"')) { bad.push([1e9, `${id}/${node}: không mở được ${r} ${await b.ev("JSON.stringify([__game.overlay,__game.state.shift?.dialog,__game.state.drama.pending])")}`]); continue; }
+      await sleep(120);
+      const m = await b.ev(`(()=>{const sh=document.querySelector('.sheet.drama.event');if(!sh)return null;const st=sh.querySelector('.drama-stage');
+        return JSON.stringify({vis:${vis(".sheet.drama.event .btn.choice")},sh:sh.scrollHeight-sh.clientHeight,stage:Math.round(st.getBoundingClientRect().height),room:Math.round(parseFloat(getComputedStyle(sh).maxHeight)-sh.scrollHeight),top:Math.round(sh.getBoundingClientRect().top),bot:Math.round(sh.getBoundingClientRect().bottom)})})()`).then((x) => x && JSON.parse(x));
+      n++;
+      if (!m || !m.vis.length || !m.vis.every(Boolean) || m.sh > 1) bad.push([m ? m.sh : 1e9, `${id}/${node}: ${JSON.stringify(m)}`]);
+      if (m && (!worst || m.room < worst.room)) worst = { id, node, ...m };
+      if (OUT && id === "R09" && node === "start") await b.shot(`${OUT}/event-portrait-${w}x${h}.png`);
+      // bảng kết quả (lựa chọn đầu bấm được): nút Tiếp tục / Tiếp… cũng thấy trọn, không cuộn
+      await b.ev("document.querySelector('.sheet.drama.event .btn.choice:not([disabled])')?.click()"); await sleep(150);
+      const nx = await b.ev(`JSON.stringify(${vis(".sheet.drama.event-result #eventNext")})`).then(JSON.parse);
+      if (nx.length !== 1 || !nx[0]) bad.push([1e8, `${id}/${node} kết quả: nút Tiếp tục ${JSON.stringify(nx)}`]);
+      // đóng: dọn hộp thoại rồi đóng lớp phủ bằng một lựa chọn + Tiếp tục (sự kiện nhiều bước thì bấm tiếp tới hết)
+      for (let k = 0; k < 6; k++) {
+        if (!(await b.ev("!!document.querySelector('.sheet.drama')"))) break;
+        await b.ev("(document.querySelector('.sheet.drama .btn.choice:not([disabled])')||document.querySelector('#eventNext'))?.click()"); await sleep(150);
+      }
+    }
+    total += n;
+    check(`D9 sự kiện dọc ${w}×${h}: ${n}/${list.length} bước, mọi lựa chọn + nút Tiếp tục thấy trọn, bấm được không cuộn`, bad.length === 0 && n === list.length,
+      bad.length ? bad.sort((x, y) => y[0] - x[0]).slice(0, 6).map((x) => x[1]).join(" | ") + (bad.length > 6 ? ` … (+${bad.length - 6})` : "") : `dải ảnh ${worst?.stage}px, sát nhất ${worst?.id}/${worst?.node}: bảng còn dư ${worst?.room}px`);
+  }
+  return total;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

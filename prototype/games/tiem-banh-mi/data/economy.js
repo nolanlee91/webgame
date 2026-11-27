@@ -117,6 +117,8 @@ export const EXCHANGE = {
 };
 /** Ngày 1–3 có nút "Thối đúng" (chủ dự án duyệt 19/11/2026), từ ngày 4 thối tay. */
 export const AUTO_CHANGE_DAYS = 3;
+/** D9: ngày 4–5 (vừa phải thối tay) — chưa chạm tờ nào thì tờ cần thối nhấp nháy nhẹ + dòng "Chạm tờ tiền để thối". Từ ngày 6 thôi. */
+export const CHANGE_HINT_DAYS = [4, 5];
 /** Khách thật thà trả lại tiền thối dư. */
 export const HONEST_RETURN = 0.4;
 

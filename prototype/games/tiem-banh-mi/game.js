@@ -1,25 +1,25 @@
 // Nối mọi thứ: tải manifest + ảnh → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / quầy ráp / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b12";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=b13";
 import { frameErrorLog } from "../_shared/frame-errors.js?v=fe1";
-import { placeholderFallback } from "./render/placeholder.js?v=b12";
-import { createScene } from "./render/scene.js?v=b12";
-import { createBench } from "./ui/bench.js?v=b12";
-import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b12";
+import { placeholderFallback } from "./render/placeholder.js?v=b13";
+import { createScene } from "./render/scene.js?v=b13";
+import { createBench } from "./ui/bench.js?v=b13";
+import { createHud, createRail, createOverlays, toast, fmtK, levelUpShare } from "./ui/screens.js?v=b13";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { apply } from "./core/apply.js?v=b12";
-import { customer } from "./core/shift.js?v=b12";
-import { hint } from "./core/tutorial.js?v=b12";
-import { itemName } from "./core/rescue.js?v=b12";
-import { STEP_NAME, STEPS } from "./core/board.js?v=b12";
-import { STOCK, NAMES } from "./data/economy.js?v=b12";
-import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b12";
-import { shopSave, browserStorage } from "./save.js?v=b12";
-import { setJournalBg } from "./ui/journal.js?v=b12";
-import { currentEvent, openEvent } from "./core/drama.js?v=b12";
-import { DECOR } from "./data/equipment.js?v=b12";
-import { PLACE_REASON } from "./core/progress.js?v=b12";
-import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b12";
+import { apply } from "./core/apply.js?v=b13";
+import { customer } from "./core/shift.js?v=b13";
+import { hint } from "./core/tutorial.js?v=b13";
+import { itemName } from "./core/rescue.js?v=b13";
+import { STEP_NAME, STEPS } from "./core/board.js?v=b13";
+import { STOCK, NAMES } from "./data/economy.js?v=b13";
+import { OVEN_LINES, LOW_LINES } from "./data/lines-ops.js?v=b13";
+import { shopSave, browserStorage } from "./save.js?v=b13";
+import { setJournalBg } from "./ui/journal.js?v=b13";
+import { currentEvent, openEvent } from "./core/drama.js?v=b13";
+import { DECOR } from "./data/equipment.js?v=b13";
+import { PLACE_REASON } from "./core/progress.js?v=b13";
+import { play, playEvent, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=b13";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { shop, act, err, openDay, untilWaiting, build, board, customer } from "./helpers.mjs";
 import { makeChange, canChange, floatValue, spend, greedyBills, till } from "../core/money.js";
 import { nochangeOptions } from "../core/rescue.js";
+import { changeHint } from "../core/shift.js";
 
 function paying(seed = 7, bill = 50, setup = null) {
   const s = shop(seed); openDay(s);
@@ -91,6 +92,26 @@ test("nút Thối đúng chỉ ngày 1–3; từ ngày 4 phải thối tay", () 
   act(s, { type: "autoChange" });
   const [s4] = paying(7, 50, (x) => { x.day = 4; });
   assert.equal(err(s4, { type: "autoChange" }), "manual-change");
+});
+
+test("D9: gợi ý thối tiền chỉ ngày 4–5, khi chưa chạm tờ nào; đúng cách thối ít tờ nhất", () => {
+  for (const day of [4, 5]) {
+    const [s, c] = paying(7, 50, (x) => { x.day = day; });
+    const tip = changeHint(s, {});
+    assert.deepEqual(tip, makeChange(s.float, c.pay.change), `ngày ${day}: gợi ý = cách thối đúng`);
+    assert.ok(Object.keys(tip).length > 0);
+    const d = Number(Object.keys(tip)[0]);
+    assert.equal(changeHint(s, { [d]: 1 }), null, "đã chọn tờ ⇒ thôi gợi ý");
+    assert.equal(changeHint(s, {}, true), null, "đã chạm tờ ở lượt này (rồi Chọn lại) ⇒ thôi gợi ý");
+    assert.equal(changeHint(s, { 10: 0 }) !== null, true, "tờ số 0 không tính là đã chọn");
+    act(s, { type: "giveChange", bills: tip });
+    assert.equal(s.shift.stats.changeRight, 1, "làm theo gợi ý là thối đúng");
+    assert.equal(changeHint(s, {}), null, "hết khách cần thối ⇒ không gợi ý");
+  }
+  for (const day of [1, 3, 6, 9]) { const [s] = paying(7, 50, (x) => { x.day = day; }); assert.equal(changeHint(s, {}), null, `ngày ${day}: không gợi ý`); }
+  // không thể thối đúng (quỹ lẻ không đủ) ⇒ không nhấp nháy tờ nào (người chơi dùng "Hết lẻ?")
+  const [s0] = paying(7, 50, (x) => { x.day = 4; x.float = { 50: 1 }; });
+  assert.equal(changeHint(s0, {}), null);
 });
 
 test("đổi lẻ ở Cô Sáu: tối đa 100k/ngày ở xe đẩy, lấy từ két; chi tiền lấy két trước", () => {
