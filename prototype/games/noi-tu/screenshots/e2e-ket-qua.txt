@@ -8,10 +8,10 @@ PASS Esc ở bước 2 → quay lại màn đầu, focus nút Chơi với máy
 PASS nút Quay lại → màn đầu
 PASS Bắt đầu → ván 1, bạn đi trước, chuỗi trống, thẻ Bạn sáng LƯỢT, ô nhập được focus — {"no":1,"turn":0,"chain":[],"seats":[],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS HUD: huy hiệu chữ cái "B" (Bạn, đỏ) / "M" (Máy, xanh), không hình ngựa, không chữ "Phường" — ["B","M"]
-PASS đồng hồ hiện số giây của trọng tài (≈15, khớp session.remainingMs) — [15,14803.25]
+PASS đồng hồ hiện số giây của trọng tài (≈15, khớp session.remainingMs) — [15,14770.000244140625]
 PASS từ 1 tiếng ở lượt mở đầu → báo "2 tiếng", không vào chuỗi — Cần đúng một từ ghép 2 tiếng (vd: học tập).
-PASS từ không dấu lạ → nhắc bật bộ gõ tiếng Việt — “xyz abc” chưa có trong từ điển bản thử — thử từ khác nhé. Gõ có dấu (bật bộ gõ tiếng Việt) để chắc chắn nhé.
-PASS từ không có trong từ điển → báo lý do, ghi vào danh sách từ thiếu để duyệt — “xyz abc” chưa có trong từ điển bản thử — thử từ khác nhé. Gõ có dấu (bật bộ gõ tiếng Việt) để chắc chắn nhé.
+PASS từ không dấu lạ → nhắc bật bộ gõ tiếng Việt — “xyz abc” chưa có trong từ điển — thử từ khác nhé. Gõ có dấu (bật bộ gõ tiếng Việt) để chắc chắn nhé.
+PASS từ không có trong từ điển → báo lý do, ghi vào danh sách từ thiếu để duyệt — “xyz abc” chưa có trong từ điển — thử từ khác nhé. Gõ có dấu (bật bộ gõ tiếng Việt) để chắc chắn nhé.
 PASS gõ lại cùng từ lạ → danh sách từ thiếu không bị trùng
 PASS danh sách từ thiếu giữ tối đa 200: bỏ từ cũ nhất, thêm từ mới ở cuối — [200,"zz1 qq","qwe rty"]
 PASS gõ lại từ lạ khi danh sách đã đầy → không thêm trùng, vẫn 200
@@ -19,41 +19,41 @@ PASS ô nhập giữ nguyên chữ vừa gõ để sửa
 PASS gõ "BAN CÔNG" (hoa, thừa cách) → được chuẩn hoá và nối, thẻ màu Đỏ, chuyển lượt máy — {"no":1,"turn":1,"chain":["ban công"],"seats":[0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS lượt máy: hiện thẻ "máy đang nghĩ", đồng hồ chuyển màu máy, nút Nối khoá
 PASS gõ Enter khi chưa tới lượt → không gửi lệnh, báo chờ
-PASS máy nối từ hợp lệ trong ≤ 2,5 s rồi trả lượt (thẻ Xanh, âm tiết nối tô sáng) — {"no":1,"turn":0,"chain":["ban công","công ty"],"seats":[0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS máy nối từ hợp lệ trong ≤ 2,5 s rồi trả lượt (thẻ Xanh, âm tiết nối tô sáng) — {"no":1,"turn":0,"chain":["ban công","công chức"],"seats":[0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS âm tiết nối giữa 2 thẻ được đánh dấu
-PASS khay nhập hiện sẵn tiếng phải nối — ty
-PASS từ sai đầu ("a còng") → báo phải bắt đầu bằng "ty" — Phải bắt đầu bằng “ty”.
+PASS khay nhập hiện sẵn tiếng phải nối — chức
+PASS từ sai đầu ("a còng") → báo phải bắt đầu bằng "chức" — Phải bắt đầu bằng “chức”.
 PASS 3 từ bị từ chối (sai đầu / không có trong từ điển / 3 tiếng) → nhật ký, seq, bản lưu của trọng tài KHÔNG đổi — [["wrong-link","not-in-dict","need-two-syllables"],4,4,4,4]
-PASS đồng hồ đếm lùi theo trọng tài: remainingMs giảm 0,9–1,6 s VÀ số trên màn giảm VÀ = ceil(remainingMs) — [[14,13268.100341796875],[13,12151.000244140625]]
-PASS có từ nối được để thử gõ tắt (lượt mình, ván chưa kết thúc) — ty thể
-PASS chỉ gõ tiếng thứ hai ("thể") → tự ghép thành "ty thể", đúng ghế mình — {"no":1,"turn":1,"chain":["ban công","công ty","ty thể"],"seats":[0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS đồng hồ đếm lùi theo trọng tài: remainingMs giảm 0,9–1,6 s VÀ số trên màn giảm VÀ = ceil(remainingMs) — [[13,11988.9501953125],[11,10861.750244140625]]
+PASS có từ nối được để thử gõ tắt (lượt mình, ván chưa kết thúc) — chức danh
+PASS chỉ gõ tiếng thứ hai ("danh") → tự ghép thành "chức danh", đúng ghế mình — {"no":1,"turn":1,"chain":["ban công","công chức","chức danh"],"seats":[0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS đang chơi: lớp phiên có hẹn giờ sống (bộ đếm timer hoạt động) — 2
 PASS Esc → trọng tài đóng, mọi hẹn giờ (hết lượt/bot/chờ kết nối/ping/sync) đã huỷ — 0
 PASS Esc giữa ván → menu tạm dừng, phiên chơi đóng (trọng tài dừng) — Đã tạm dừng — đồng hồ đứng yên. Trận đang lưu: ván 1, tỉ số Bạn 0 – 0 Máy (ván đang dở — chơi tiếp được tính lại 15 giây).
-PASS Chơi tiếp → đúng chuỗi cũ + tỉ số, lượt đang dở được tính lại đủ 15 s — [4,14836.150146484375]
-PASS chờ tới sát hạn chót (< 0,7 s) — 648.5
+PASS Chơi tiếp → đúng chuỗi cũ + tỉ số, lượt đang dở được tính lại đủ 15 s — [4,14848.94970703125]
+PASS chờ tới sát hạn chót (< 0,7 s) — 487.300048828125
 PASS tạm dừng sát hạn chót: không bị xử thua sau đó, nhật ký + bản lưu không đổi, không còn timer — [7,7,false,0]
-PASS chơi tiếp sau tạm dừng sát hạn chót → chuỗi + tỉ số y nguyên, vẫn lượt mình, được đủ 15 s — [{"no":1,"turn":0,"chain":["ban công","công ty","ty thể","thể vĩ"],"seats":[0,1,0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]},14861.2998046875]
+PASS chơi tiếp sau tạm dừng sát hạn chót → chuỗi + tỉ số y nguyên, vẫn lượt mình, được đủ 15 s — [{"no":1,"turn":0,"chain":["ban công","công chức","chức danh","danh cách"],"seats":[0,1,0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]},14787.800048828125]
 PASS tạm dừng liên tiếp lần 1: trọng tài cũ đóng, không còn timer — 0
 PASS tạm dừng liên tiếp lần 2: trọng tài cũ đóng, không còn timer — 0
 PASS tạm dừng liên tiếp lần 3: trọng tài cũ đóng, không còn timer — 0
 PASS tạm dừng liên tiếp lần 4: trọng tài cũ đóng, không còn timer — 0
 PASS sau 4 lần dừng/chơi tiếp: chuỗi + tỉ số + số ván y nguyên; nhật ký chỉ thêm đúng 4 sự kiện clockReset — ["clockReset","clockReset","clockReset","clockReset"]
-PASS đã sang lượt máy (từ vừa đánh không cụt) để thử tạm dừng khi máy nghĩ — {"no":1,"turn":1,"chain":["ban công","công ty","ty thể","thể vĩ","vĩ đại"],"seats":[0,1,0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS đã sang lượt máy (từ vừa đánh không cụt) để thử tạm dừng khi máy nghĩ — {"no":1,"turn":1,"chain":["ban công","công chức","chức danh","danh cách","cách làm"],"seats":[0,1,0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS tạm dừng khi máy đang nghĩ: máy KHÔNG đánh ngầm, nhật ký + bản lưu không đổi, không còn timer — [13,13,0]
-PASS chơi tiếp → vẫn lượt máy, chuỗi + tỉ số y nguyên, hiện "máy đang nghĩ" — {"no":1,"turn":1,"chain":["ban công","công ty","ty thể","thể vĩ","vĩ đại"],"seats":[0,1,0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
-PASS máy đánh tiếp sau khi chơi lại (≤ 3,5 s) — {"no":1,"turn":0,"chain":["ban công","công ty","ty thể","thể vĩ","vĩ đại","đại kị"],"seats":[0,1,0,1,0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS chơi tiếp → vẫn lượt máy, chuỗi + tỉ số y nguyên, hiện "máy đang nghĩ" — {"no":1,"turn":1,"chain":["ban công","công chức","chức danh","danh cách","cách làm"],"seats":[0,1,0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS máy đánh tiếp sau khi chơi lại (≤ 3,5 s) — {"no":1,"turn":0,"chain":["ban công","công chức","chức danh","danh cách","cách làm","làm reo"],"seats":[0,1,0,1,0,1],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS tải lại trang giữa ván → màn đầu báo có trận lưu — Có trận với máy đang lưu (ván 1) — vào “Chơi với máy” để chơi tiếp.
 PASS → Chơi với máy: có "Chơi tiếp" + mô tả trận lưu — Trận đang lưu: ván 1, tỉ số Bạn 0 – 0 Máy (ván đang dở — chơi tiếp được tính lại 15 giây).
 PASS Chơi tiếp sau tải lại → dựng lại đúng chuỗi từ (không chạy lại hiệu ứng cũ)
-PASS không gõ gì 15 s → trọng tài xử thua hết giờ, máy +1 — [14899,{"no":1,"turn":0,"chain":["ban công","công ty","ty thể","thể vĩ","vĩ đại","đại kị"],"seats":[0,1,0,1,0,1],"over":true,"winner":1,"reason":"timeout","first":0,"score":[0,1]}]
+PASS không gõ gì 15 s → trọng tài xử thua hết giờ, máy +1 — [14862,{"no":1,"turn":0,"chain":["ban công","công chức","chức danh","danh cách","cách làm","làm reo"],"seats":[0,1,0,1,0,1],"over":true,"winner":1,"reason":"timeout","first":0,"score":[0,1]}]
 PASS bảng kết quả: "Máy thắng!" + lý do hết giờ + người thua đi trước — Bạn hết 15 giây mà chưa nối được. Chuỗi dài 6 từ.
 PASS Ván tiếp → ván mới, BẠN (người thua) đi trước, chuỗi trống — {"no":2,"turn":0,"chain":[],"seats":[],"over":false,"winner":null,"reason":null,"first":0,"score":[0,1]}
 PASS đánh từ cụt "a giay" → thắng ngay (không chờ máy hết giờ), thẻ cụt gạch tiếng cuối — {"no":2,"turn":1,"chain":["a giay"],"seats":[0],"over":true,"winner":0,"reason":"no-move","first":0,"score":[1,1]}
 PASS máy thua ⇒ ván sau MÁY đi trước, máy tự mở màn — {"no":3,"turn":1,"chain":[],"seats":[],"over":false,"winner":null,"reason":null,"first":1,"score":[1,1]}
-PASS máy mở màn bằng một từ trong ≤ 2,5 s — {"no":3,"turn":0,"chain":["duy ngã"],"seats":[1],"over":false,"winner":null,"reason":null,"first":1,"score":[1,1]}
+PASS máy mở màn bằng một từ trong ≤ 2,5 s — {"no":3,"turn":0,"chain":["rơm khô"],"seats":[1],"over":false,"winner":null,"reason":null,"first":1,"score":[1,1]}
 PASS bấm "Chịu thua" lần 1 → chỉ hỏi lại, ván chưa kết thúc
-PASS bấm lần 2 → thua ván (resign), bảng kết quả "Bạn đã chịu thua" — {"no":3,"turn":0,"chain":["duy ngã"],"seats":[1],"over":true,"winner":1,"reason":"resign","first":1,"score":[1,2]}
+PASS bấm lần 2 → thua ván (resign), bảng kết quả "Bạn đã chịu thua" — {"no":3,"turn":0,"chain":["rơm khô"],"seats":[1],"over":true,"winner":1,"reason":"resign","first":1,"score":[1,2]}
 PASS "Xem chuỗi từ" → đóng bảng, chuỗi còn nguyên, khay hiện nút Ván tiếp
 PASS nút Ván tiếp trong khay → mở ván mới
 PASS nút âm thanh → tắt (aria-pressed, lưu wgp.muted)
@@ -66,7 +66,7 @@ PASS mobile: bước Chơi với máy gọn, nút ≥ 44px — 44
 PASS mobile: không tràn trang, khay nhập + đồng hồ + 2 thẻ người chơi đều trong màn
 PASS mobile: nút công cụ + nút Nối ≥ 44px; chữ ô nhập ≥ 16px (iOS không tự phóng to) — menuBtn:48x44 muteBtn:48x44 sendBtn:52x48 resignBtn:115x44
 PASS chưa bật bộ gõ: gõ Telex thô "hocj taapj" → nhận "học tập", đúng ghế mình — {"no":1,"turn":1,"chain":["học tập"],"seats":[0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
-PASS chưa bật bộ gõ: gõ tắt không dấu "bai" → nhận "viết bài" — {"no":1,"turn":1,"chain":["học tập","tập viết","viết bài"],"seats":[0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
+PASS chưa bật bộ gõ: gõ tắt không dấu "buon" → nhận "lái buôn" — {"no":1,"turn":1,"chain":["học tập","tập lái","lái buôn"],"seats":[0,1,0],"over":false,"winner":null,"reason":null,"first":0,"score":[0,0]}
 PASS mobile: chạm ô nhập + gõ + chạm "Nối" → từ vào chuỗi (3 lượt) — 3
 PASS mobile: chuỗi từ xuống dòng trong khung, không cuộn ngang
 PASS mũi tên nối không bị lặp: số mũi tên = số từ − 1 (+1 nếu máy đang nghĩ) — [9,10]
@@ -74,7 +74,7 @@ PASS mobile: thanh thời gian hiện rõ (rộng > 40% khung đồng hồ)
 PASS mobile + bàn phím ảo (khung 390×440): ô nhập, đồng hồ, thẻ người chơi vẫn thấy, không tràn
 PASS mobile + bàn phím ảo: thẻ từ mới nhất vẫn thấy trong khung chuỗi
 PASS mobile: bảng kết quả gọn trong màn, nút ≥ 44px
-PASS mobile 360×740: không tràn, khay nhập trong màn — 360x740 360x740 #dock:599-723/13-343 #clock:126-170/13-221 #stage:186-583/13-347 sendBtn:52x48
+PASS mobile 360×740: không tràn, khay nhập trong màn — 360x740 360x740 #dock:599-723/13-343 #clock:131-175/13-221 #stage:191-583/13-347 sendBtn:52x48
 PASS mobile xoay ngang 844×390: không tràn, khay nhập + đồng hồ trong màn
 PASS chuyển app/ẩn tab giữa ván → tự tạm dừng (không bị xử thua khi không nhìn)
 PASS không có lỗi JS / console
