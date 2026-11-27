@@ -58,8 +58,7 @@ window.SHELVES = [
 
 window.CATEGORIES = [{ id: "all", label: "Tất cả" }].concat(window.SHELVES.map(function (s) { return { id: s.cat, label: s.title }; }));
 
-// "Chơi ngay" (HOME-02): dải cuộn ngang 2 hàng dưới slide nổi bật, CHỈ trên điện thoại — game bấm là chơi, không cần phòng.
-window.QUICK_PLAY = ["dao-vang", "co-caro", "ran-san-moi", "noi-thu", "tiem-tra-sua", "xep-gach", "2048", "ban-bong"];
+// D12: bỏ QUICK_PLAY (dải "Chơi ngay" của điện thoại) — mỗi game chỉ xuất hiện một lần trên trang chủ, trong kệ của nó.
 
 // Game có "Thử thách hôm nay" (games/_shared/daily.js): id thẻ trang chủ → id + thư mục của thử thách. Thẻ có nhãn "★ Thử thách".
 window.DAILY_GAMES = { sudoku: { id: "sudoku", path: "sudoku" }, "2048": { id: "2048", path: "2048" }, "do-vui": { id: "do-vui-nhanh", path: "do-vui-nhanh" } };
@@ -77,4 +76,4 @@ window.SEARCH_WORDS = {
 
 // Thẻ "Tài trợ" cuối kệ game (HOME-11, chủ dự án chốt 25/11/2026). url trống / không phải https:// ⇒ thẻ ẨN (D5: chưa có link chính thức).
 // Điền url (https://…) là thẻ tự hiện, thành link mở tab mới, rel="sponsored noopener".
-window.SPONSOR = { name: "SpeakUp Kids", text: "Tiếng Anh cho bé qua trò chơi", url: "" };
+window.SPONSOR = { name: "SpeakUp Kids", text: "Tiếng Anh cho bé qua trò chơi", url: "https://speakupkids.net/" };

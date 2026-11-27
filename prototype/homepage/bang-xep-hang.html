@@ -19,7 +19,7 @@
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
   <link rel="stylesheet" href="styles.css?v=d9a" />
   <link rel="stylesheet" href="portal.css?v=d9a" />
-  <link rel="stylesheet" href="portal-pixel.css?v=d11a" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d12a" />
   <link rel="stylesheet" href="nav.css?v=d11a" />
   <link rel="stylesheet" href="daily.css?v=board2" />
   <link rel="stylesheet" href="bang-xep-hang.css?v=d3a" />
@@ -109,8 +109,21 @@
   <footer class="footer" data-name="footer">
     <div class="footer__inner">
       <div class="footer__row">
-        <p class="footer__brand"><strong>Lụm Kèo</strong> · Rủ bạn vào chơi · © 2026 · <a class="footer__link" href="quyen-rieng-tu.html">Quyền riêng tư</a></p>
+        <p class="footer__brand"><strong>Lụm Kèo</strong> · Rủ bạn vào chơi · © 2026 · <a class="footer__link" href="quyen-rieng-tu.html">Quyền riêng tư</a> · <button class="footer__link footer__donate" id="donateBtn" type="button" aria-haspopup="dialog" aria-controls="donateDlg">☕ Ủng hộ Lụm Kèo</button></p>
       </div>
+      <!-- D12: hộp "Ủng hộ Lụm Kèo" (donate.js). Ảnh QR chỉ tải khi mở (data-src). Chỉ hiện QR ngân hàng — không tiền / dữ liệu thanh toán nào đi qua Lụm Kèo. -->
+      <dialog class="donate" id="donateDlg" aria-labelledby="donateTitle">
+        <div class="donate__box px-panel">
+          <button class="donate__x" type="button" aria-label="Đóng"><svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3h2v1h1v1h1v1h2V5h1V4h1V3h2v2h-1v1h-1v1h-1v2h1v1h1v1h1v2h-2v-1h-1v-1h-1v-1H7v1H6v1H5v1H3v-2h1v-1h1V9h1V7H5V6H4V5H3z"/></svg></button>
+          <h2 class="donate__title" id="donateTitle">☕ Ủng hộ Lụm Kèo</h2>
+          <p class="donate__thanks">Lụm Kèo miễn phí cho mọi người. Nếu bạn thấy vui, có thể mời team một ly trà đá ❤</p>
+          <div class="donate__qr"><img data-src="assets/ung-ho-qr.webp" width="720" height="780" alt="Mã QR chuyển khoản VietQR tới tài khoản LE TRUNG DUNG, BIDV, số 8970940236" decoding="async" /></div>
+          <p class="donate__hint">Mở app ngân hàng → Quét QR</p>
+          <p class="donate__acc" data-acc="8970940236">LE TRUNG DUNG · BIDV · <strong>8970940236</strong></p>
+          <button class="btn btn--teal donate__copy" type="button">Chép số tài khoản</button>
+          <p class="donate__toast" role="status" hidden></p>
+        </div>
+      </dialog>
     </div>
   </footer>
 
@@ -118,5 +131,6 @@
   <script type="module" src="../games/_shared/feedback.js?v=f4"></script>
   <script type="module" src="press-nav.js?v=d11a"></script>
   <script type="module" src="profile.js?v=d6g"></script>
+  <script type="module" src="donate.js?v=d12a"></script>
 </body>
 </html>

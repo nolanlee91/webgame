@@ -59,8 +59,12 @@ try {
 
   // ---------- HOME-11: thẻ Tài trợ ----------
   const sp = (t) => t.ev(`(() => { const s = document.querySelector("#grid .tile--sponsor"); return s ? s.tagName + "|" + s.getAttribute("href") + "|" + s.getAttribute("rel") : ""; })()`);
-  check("HOME-11: SPONSOR.url trống ⇒ không có thẻ Tài trợ", (await sp(C)) === "");
+  // D12: link thật của chủ dự án ⇒ thẻ hiện sẵn, tab mới, rel có noopener + sponsored
+  const sp0 = await sp(C);
+  check("HOME-11/D12: SPONSOR.url = https://speakupkids.net/ ⇒ thẻ Tài trợ hiện, mở tab mới, rel noopener sponsored", sp0.startsWith("A|https://speakupkids.net/|") && sp0.split("|")[2].split(" ").sort().join(" ") === "noopener sponsored"
+    && (await C.ev(`document.querySelector("#grid .tile--sponsor").target === "_blank"`)), sp0);
   const rer = (t, u) => t.ev(`(() => { window.SPONSOR.url = ${JSON.stringify(u)}; document.querySelector('#chips .tab[data-cat="all"]').click(); })()`);
+  await rer(C, ""); check("HOME-11: xoá link (url trống) ⇒ thẻ ẩn", (await sp(C)) === "");
   for (const u of ["#", "http://speakup.vn", "javascript:alert(1)", "https://", "  "]) { await rer(C, u); check(`HOME-11: url ${JSON.stringify(u)} ⇒ vẫn ẩn`, (await sp(C)) === ""); }
   await rer(C, "https://speakup.example/kids");
   check("HOME-11: điền link https:// ⇒ thẻ tự hiện, là link tab mới rel=sponsored", (await sp(C)) === "A|https://speakup.example/kids|sponsored noopener");
@@ -70,23 +74,24 @@ try {
     const L = await open(`ngang-${w}`, w, h, true, { rooms: [] });
     await sleep(500);
     const m = JSON.parse(await L.ev(`JSON.stringify((() => { const r = (s) => document.querySelector(s).getBoundingClientRect();
-      const qp = [...document.querySelectorAll("#qpRow .card")].filter(e => { const q = e.getBoundingClientRect(); return q.top >= 0 && q.bottom <= innerHeight && q.left >= 0 && q.right <= innerWidth; });
       const hit = (s) => { const e = document.querySelector(s), q = e.getBoundingClientRect(), x = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return !!x && (x === e || e.contains(x)); };
-      return { hero: Math.round(r(".hero").height), heroFrac: +(r(".hero").height / innerHeight).toFixed(2), qp: qp.length, sticky: getComputedStyle(document.querySelector(".topbar")).position,
-        play: hit(".slide .btn"), dot: Math.round(r(".hero__dot").height), nav: Math.round(r("#heroNext").height) }; })())`));
-    check(`ngang ${w}×${h}: slide ≤ 35% chiều cao, thấy trọn ≥ 5 game 'Chơi ngay' trong màn đầu`, m.heroFrac <= 0.35 && m.qp >= 5, JSON.stringify(m));
-    check(`ngang ${w}×${h}: thanh trên không dính, nút Chơi ngay bấm được, chấm / mũi tên ≥ 44 px, không tràn ngang`, m.sticky === "static" && m.play && m.dot >= 44 && m.nav >= 44 && (await noHScroll(L)), JSON.stringify(m));
+      return { hero: Math.round(r(".hero").height), heroFrac: +(r(".hero").height / innerHeight).toFixed(2), qp: !!document.getElementById("quickPlay"), sticky: getComputedStyle(document.querySelector(".topbar")).position,
+        play: hit(".slide .btn"), dots: r(".hero__dots").height, nav: r("#heroNext").height, lobby: Math.round(r("#lobby").top) }; })())`));
+    // D12: xoay ngang cũng một danh sách — băng "Tựa game của tuần" thấp (không ‹ › / chấm), sảnh ngay dưới, không dải "Chơi ngay"
+    check(`ngang ${w}×${h}: băng Tựa game của tuần ≤ 35% chiều cao, không dải 'Chơi ngay', sảnh bắt đầu trong màn đầu`, m.heroFrac <= 0.35 && !m.qp && m.lobby < h, JSON.stringify(m));
+    check(`ngang ${w}×${h}: thanh trên không dính, nút Chơi ngay bấm được, không ‹ › / chấm, không tràn ngang`, m.sticky === "static" && m.play && m.dots === 0 && m.nav === 0 && (await noHScroll(L)), JSON.stringify(m));
     await shot(L, `man-dau-${w}x${h}.png`);
   }
   // dọc + máy tính: không đổi
   const P = await open("doc-390", 390, 844, true, { rooms: [] });
-  const pm = JSON.parse(await P.ev(`JSON.stringify({ hero: Math.round(document.querySelector(".hero").getBoundingClientRect().height), rows: getComputedStyle(document.getElementById("qpRow")).gridTemplateRows.split(" ").length, text: getComputedStyle(document.querySelector(".hero__info")).paddingBottom })`));
-  // D11 (quyết định chủ dự án): điện thoại dọc không còn hero — ô lớn "Tựa game của tuần" nằm đầu dải "Chơi ngay" 3 hàng
-  check("dọc 390×844: không hero, dải Chơi ngay 3 hàng (D11)", pm.hero === 0 && pm.rows === 3, JSON.stringify(pm));
+  const pm = JSON.parse(await P.ev(`JSON.stringify({ hero: Math.round(document.querySelector(".hero").getBoundingClientRect().height), qp: !!document.getElementById("quickPlay"), kicker: document.querySelector(".slide .kicker").textContent })`));
+  // D12 (quyết định chủ dự án): điện thoại dọc — hero là băng thấp "Tựa game của tuần" (96–120 px), không dải "Chơi ngay"
+  check("dọc 390×844: băng Tựa game của tuần 96–120 px, không dải Chơi ngay (D12)", pm.hero >= 96 && pm.hero <= 120 && !pm.qp && pm.kicker === "Tựa game của tuần", JSON.stringify(pm));
   const Dk = await open("may-tinh", 1366, 768, false, { rooms: [] });
-  const dm = JSON.parse(await Dk.ev(`JSON.stringify({ hero: Math.round(document.querySelector(".hero").getBoundingClientRect().height), qp: getComputedStyle(document.getElementById("quickPlay")).display, sticky: getComputedStyle(document.querySelector(".topbar")).position })`));
-  // D11: sảnh trống ⇒ hero trọn hàng, ảnh 440×330
-  check("máy tính 1366×768: sảnh trống ⇒ hero trọn hàng 330 px, không có dải Chơi ngay, thanh trên dính như cũ", dm.hero === 330 && dm.qp === "none" && dm.sticky === "sticky", JSON.stringify(dm));
+  const dm = JSON.parse(await Dk.ev(`JSON.stringify((() => { const h = document.querySelector(".hero").getBoundingClientRect(), l = document.getElementById("lobby").getBoundingClientRect();
+    return { heroW: Math.round(h.width), heroH: Math.round(h.height), lobbyH: Math.round(l.height), right: l.left >= h.right, qp: !!document.getElementById("quickPlay"), sticky: getComputedStyle(document.querySelector(".topbar")).position }; })())`));
+  // D12: sảnh trống vẫn hero trái + sảnh phải cao bằng hero (bỏ "hero trọn hàng" của D11)
+  check("máy tính 1366×768: sảnh trống ⇒ hero trái, sảnh phải cao bằng hero, không có dải Chơi ngay, thanh trên dính như cũ", dm.right && Math.abs(dm.heroH - dm.lobbyH) <= 2 && dm.heroW < 1366 * 0.4 && !dm.qp && dm.sticky === "sticky", JSON.stringify(dm));
 
   const errs = tabs.flatMap((t) => t.errors.map((e) => t.name + ": " + e)).filter((e) => !/ws\//.test(e));
   check("không có lỗi JS / console error", !errs.length, errs.join(" || "));

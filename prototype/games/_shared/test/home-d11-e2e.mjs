@@ -4,7 +4,7 @@
 //  HOME2-10 chip điều hướng (link #games…) kêu "bụp" như mọi nút / thẻ; lướt ngang hàng chip không kêu.
 //  HOME2-13 568×320 (iPhone SE xoay ngang): hàng chip + ô tìm gộp một hàng ⇒ dải "Chơi ngay" lên cao.
 //  Quyết định chủ dự án (D11): điện thoại dọc ẩn hero, ô đầu "Chơi ngay" = "Tựa game của tuần"; nav chỉ còn Chơi · Thử thách;
-//  sảnh trống thu về một hàng mã phòng (máy tính: hero trọn hàng), có phòng thì đầy đủ; CLS lúc tải ≈ 0.
+//  (D12 thay: "sảnh gọn", hero trọn hàng, nút "Xem" và ô lớn "Chơi ngay" đã bỏ — kiểm ở home-d12-e2e.mjs; các mục đó đã xoá khỏi file này.)
 // Chạy: node prototype/games/_shared/test/home-d11-e2e.mjs [thư-mục-ảnh]   (tự bật server.js trong tiến trình, cổng ngẫu nhiên)
 import { mkdirSync } from "node:fs";
 import path from "node:path";
@@ -67,7 +67,7 @@ try {
 
   // ---------- HOME2-06: chạm hero lúc đang trượt ----------
   {
-    const t = await open("hero-ngang", 844, 390, true); // D11: điện thoại dọc không còn hero ⇒ thử ở xoay ngang
+    const t = await open("hero-tablet", 820, 1180, true); // D12: điện thoại (dọc + ngang) là băng "Tựa game của tuần" không trượt ⇒ thử ở máy tính bảng dọc
     const want = await t.ev(`new URL(document.querySelector("#heroTrack .slide").href).pathname`);
     const p = await center(t, ".slide .hero__art");
     await t.ev(`document.getElementById("heroNext").click()`); // trượt 0 → 1 (0,5 s); chạm ngay khi slide 0 còn gần như kín khung
@@ -77,7 +77,7 @@ try {
     const got = await t.ev("location.pathname");
     check("HOME2-06: chạm đúng lúc đang trượt ⇒ mở game của slide đang nằm dưới ngón tay (không hụt, không sang slide mới)", got === want, `muốn ${want}, ra ${got}`);
 
-    const u = await open("hero-stop", 844, 390, true);
+    const u = await open("hero-stop", 820, 1180, true);
     const h = await center(u, ".slide .hero__art");
     await touch(u, [h, { x: h.x - 30, y: h.y }, { x: h.x - 70, y: h.y }, { x: h.x - 110, y: h.y }]); // vuốt sang slide 2
     await sleep(700);
@@ -95,7 +95,7 @@ try {
     const t = await open(`phong-${w}`, w, h, mob, { rooms: [{ game: "co-caro", code: "ABCDE", host: LONG, have: 1, max: 2 }] });
     await t.ev(`document.getElementById("lobby").scrollIntoView()`); await sleep(200);
     const m = await t.ev(`(() => { const n = document.querySelector("#rooms .room__hostName"), cs = getComputedStyle(n), room = document.querySelector("#rooms .room"),
-      list = document.getElementById("rooms"), go = room.querySelector(".room__go"), L = list.getBoundingClientRect(), R = room.getBoundingClientRect(), G = go.getBoundingClientRect(),
+      list = document.querySelector(".lobby__lists"), go = room.querySelector(".room__go"), L = list.getBoundingClientRect(), R = room.getBoundingClientRect(), G = go.getBoundingClientRect(),
       lp = parseFloat(getComputedStyle(list).paddingRight);
       return { ell: cs.textOverflow, clipped: n.scrollWidth > n.clientWidth, text: n.textContent, roomRight: Math.round(L.right - lp - R.right), goGap: Math.round(R.right - G.right), sw: document.documentElement.scrollWidth <= innerWidth }; })()`);
     check(`HOME2-07 ${w}: tên chủ phòng dài bị cắt CÓ "…" (text-overflow: ellipsis)`, m.ell === "ellipsis" && m.text === LONG, JSON.stringify(m));
@@ -105,19 +105,19 @@ try {
   {
     const many = Array.from({ length: 5 }, (_, i) => ({ game: "co-caro", code: "ABCD" + i, host: "Mèo " + i, have: 1, max: 2 }));
     const t = await open("phong-nhieu-390", 390, 844, true, { rooms: many });
-    const cols = await t.ev(`getComputedStyle(document.getElementById("rooms")).gridAutoColumns`);
-    check("HOME2-07: ≥ 4 phòng ⇒ vẫn là dải vuốt ngang 88% (lộ mép cột sau)", cols === "88%" || (/px$/.test(cols) && parseFloat(cols) < 390 * 0.9), cols);
+    const cols = await t.ev(`getComputedStyle(document.querySelector(".lobby__lists")).gridAutoColumns`);
+    check("HOME2-07/D12: nhiều phòng ⇒ dải vuốt ngang một hàng 88% (lộ mép thẻ sau)", cols === "88%" || (/px$/.test(cols) && parseFloat(cols) < 390 * 0.9), cols);
   }
 
   // ---------- HOME2-13: 568×320 ----------
   for (const [w, h] of [[568, 320], [667, 375]]) {
     const t = await open(`ngang-${w}`, w, h, true);
-    const m = await t.ev(`(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), nav = r(".mainnav"), q = r(".field.search"), qp = r("#quickPlay");
+    const m = await t.ev(`(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), nav = r(".mainnav"), q = r(".field.search"), qp = r(".hero");
       const chips = [...document.querySelectorAll(".mainnav__a")].map(a => a.getBoundingClientRect()).filter(c => c.right <= innerWidth && c.left >= 0).length;
       return { navMid: Math.round(nav.top + nav.height / 2), qMid: Math.round(q.top + q.height / 2), qLeft: Math.round(q.left), navRight: Math.round(nav.right), qW: Math.round(q.width),
         qp: Math.round(qp.top), chips, sw: document.documentElement.scrollWidth <= innerWidth + 1, sticky: getComputedStyle(document.querySelector(".topbar__row")).position }; })()`);
     check(`HOME2-13 ${w}×${h}: 2 chip + ô tìm cùng một hàng, ô tìm ≥ 140 px, không tràn ngang`, Math.abs(m.navMid - m.qMid) <= 6 && m.qLeft >= m.navRight && m.qW >= 140 && m.chips === 2 && m.sw, JSON.stringify(m));
-    check(`HOME2-13 ${w}×${h}: dải 'Chơi ngay' bắt đầu ≤ ${h - 90} px (trước: y 291 ở 568×320)`, m.qp <= h - 90, JSON.stringify(m));
+    check(`HOME2-13 ${w}×${h}: băng 'Tựa game của tuần' bắt đầu ≤ ${h - 90} px (D12 thay dải 'Chơi ngay'; trước D11: y 291 ở 568×320)`, m.qp <= h - 90, JSON.stringify(m));
     await shot(t, `ngang-${w}x${h}.png`);
   }
   {
@@ -128,26 +128,7 @@ try {
   }
 
 
-  // ---------- D11: điện thoại dọc — hero gộp vào "Chơi ngay" ----------
-  for (const [w, h] of [[390, 844], [360, 640], [320, 568]]) {
-    const t = await open(`gop-${w}`, w, h, true);
-    const m = await t.ev(`(() => { const tiles = [...document.querySelectorAll("#qpRow .tile")], f = tiles[0], fr = f.getBoundingClientRect();
-      const full = tiles.filter(e => { const r = e.getBoundingClientRect(); return r.width && r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth; });
-      const ids = tiles.map(e => e.dataset.id);
-      return { hero: document.querySelector(".hero").getBoundingClientRect().height, first: f.dataset.id, slide1: window.HERO_SLIDES[0].id, feat: f.classList.contains("tile--feat"),
-        kicker: (f.querySelector(".feat__kicker") || {}).textContent, go: !!f.querySelector(".feat__go"), big: fr.width > tiles[1].getBoundingClientRect().width * 1.8,
-        dup: ids.length !== new Set(ids).size, full: full.length, prio: f.querySelector("img").getAttribute("fetchpriority"), sw: document.documentElement.scrollWidth <= innerWidth }; })()`);
-    check(`D11 ${w}×${h}: không còn hero; ô đầu "Chơi ngay" là ô lớn "Tựa game của tuần" = HERO_SLIDES[0], có "Chơi ngay", không trùng game`,
-      m.hero === 0 && m.feat && m.first === m.slide1 && m.kicker === "Tựa game của tuần" && m.go && m.big && !m.dup && m.prio === "high" && m.sw, JSON.stringify(m));
-    check(`D11 ${w}×${h}: màn đầu thấy trọn ≥ 6 game`, m.full >= 6, JSON.stringify(m));
-    await shot(t, `gop-${w}x${h}.png`);
-  }
-  {
-    const t = await open("gop-ngang", 568, 320, true);
-    const m = await t.ev(`({ hero: document.querySelector(".hero").getBoundingClientRect().height, feat: getComputedStyle(document.querySelector(".tile--feat")).display })`);
-    check("D11 568×320 xoay ngang: hero giữ nguyên, ô lớn ẩn", m.hero > 80 && m.feat === "none", JSON.stringify(m));
-    await shot(t, "gop-568x320.png");
-  }
+  // (D11 "hero gộp vào Chơi ngay" — bỏ ở D12, xem home-d12-e2e.mjs)
 
   // ---------- D11: nav Chơi · Thử thách ----------
   for (const [w, h, mob, url] of [[390, 844, true, "/homepage/"], [1366, 768, false, "/homepage/"], [1366, 768, false, "/homepage/bang-xep-hang.html"]]) {
@@ -161,39 +142,7 @@ try {
     else check("D11 trang Thử thách: title / h1 lấy 'Thử thách' làm tên chính", /^Thử thách/.test(m.title) && m.h1 === "Thử thách", JSON.stringify(m));
   }
 
-  // ---------- D11: sảnh trống thu gọn / có phòng đầy đủ + CLS ----------
-  const CLS = `new Promise(r => { let v = 0; new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) v += e.value; }).observe({ type: "layout-shift", buffered: true }); setTimeout(() => r(+v.toFixed(4)), 1200); })`;
-  for (const [w, h, mob] of [[1366, 768, false], [1920, 1080, false], [390, 844, true]]) {
-    for (const rooms of [[], [{ game: "co-caro", code: "ABCDE", host: "Mèo 12", have: 1, max: 2 }]]) {
-      const t = await open(`sanh-${w}-${rooms.length}`, w, h, mob, { rooms });
-      const m = await t.ev(`(() => { const L = document.getElementById("lobby"), r = L.getBoundingClientRect(), hero = document.querySelector(".hero").getBoundingClientRect();
-        const vis = (s) => { const e = L.querySelector(s); return !!e && e.getBoundingClientRect().height > 0; };
-        return { h: Math.round(r.height), head: vis(".lobby__head"), tabs: vis(".ltabs"), input: vis("#roomInlineCode"), create: vis("#createRoom"), empty: vis("#lobbyEmpty"),
-          heroW: Math.round(hero.width), lobbyBelow: r.top >= hero.bottom - 1 }; })()`);
-      const cls = await t.ev(CLS);
-      if (!rooms.length) check(`D11 sảnh trống ${w}: một hàng [mã][Vào][+ Tạo phòng], không tiêu đề / tab / khối trống${mob ? "" : "; hero trọn hàng, hàng mã ngay dưới"}`,
-        !m.head && !m.tabs && !m.empty && m.input && m.create && m.h <= (mob ? 110 : 80) && (mob || (m.lobbyBelow && m.heroW > w * 0.6)), JSON.stringify(m));
-      else check(`D11 có phòng ${w}: sảnh đầy đủ (tiêu đề, tab, danh sách)`, m.head && m.tabs && m.input, JSON.stringify(m));
-      check(`D11 ${w} ${rooms.length ? "có phòng" : "sảnh trống"}: CLS lúc tải ≈ 0`, cls <= 0.01, String(cls));
-      await shot(t, `sanh-${w}-${rooms.length ? "co-phong" : "trong"}.png`);
-    }
-  }
-
-  // phòng về MUỘN (sau khi trang đã vẽ): không tự bung (CLS), chỉ hiện nút "N phòng đang chờ · Xem"; bấm ⇒ sảnh đầy đủ
-  for (const [w, h, mob] of [[1366, 768, false], [390, 844, true]]) {
-    const ctx = await chrome.newContext(); const t = await chrome.newTab(`sanh-muon-${w}`, w, h, mob, ctx); tabs.push(t);
-    const body = JSON.stringify(JSON.stringify({ rooms: [{ game: "co-caro", code: "ABCDE", host: "Mèo 12", have: 1, max: 2 }] }));
-    await t.cmd("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const real = window.fetch.bind(window); window.fetch = (u, o) => String(u).endsWith("/api/lobby")
-      ? new Promise(r => setTimeout(() => r(new Response(${body}, { status: 200, headers: { "Content-Type": "application/json" } })), 1500)) : real(u, o); })()` });
-    await t.go(base + "/homepage/");
-    await t.waitFor(`!document.getElementById("lobbyPeek").hidden`, 8000);
-    const cls = await t.ev(CLS);
-    const m = await t.ev(`({ full: document.getElementById("lobby").classList.contains("has-rooms"), peek: document.getElementById("lobbyPeek").textContent.trim() })`);
-    check(`D11 phòng về muộn ${w}: sảnh vẫn gọn + nút "1 phòng đang chờ · Xem", CLS ≈ 0`, !m.full && /1 phòng đang chờ/.test(m.peek) && cls <= 0.01, JSON.stringify(m) + " CLS " + cls);
-    await t.ev(`document.getElementById("lobbyPeek").click()`); await sleep(300);
-    check(`D11 phòng về muộn ${w}: bấm Xem ⇒ sảnh đầy đủ có phòng`, await t.ev(`document.getElementById("lobby").classList.contains("has-rooms") && document.querySelectorAll("#rooms .room").length === 1 && document.getElementById("lobbyPeek").hidden`));
-    await shot(t, `sanh-muon-${w}.png`);
-  }
+  // (D11 sảnh gọn / nút "N phòng đang chờ · Xem" — bỏ ở D12; sảnh cố định + CLS kiểm ở home-d12-e2e.mjs)
 
   const errs = tabs.flatMap((t) => t.errors.map((e) => t.name + ": " + e)).filter((e) => !/ws\//.test(e));
   check("không có lỗi JS / console error", !errs.length, errs.join(" || "));

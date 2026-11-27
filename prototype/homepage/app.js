@@ -4,7 +4,7 @@
   // 3 tầng: (1) hero trượt nhiều game + sảnh chờ trực tiếp · (2) kho game theo danh mục (cùng lưới 6 ô) · (3) footer.
   var GAMES = window.GAMES, CATS = window.CATEGORIES, SLIDES = window.HERO_SLIDES || [];
   var SHELVES = window.SHELVES || [], duelIds = window.DUEL_IDS || [];
-  var QUICK = window.QUICK_PLAY || [], DAILY = window.DAILY_GAMES || {}, SW = window.SEARCH_WORDS || {}, SPONSOR = window.SPONSOR || null;
+  var DAILY = window.DAILY_GAMES || {}, SW = window.SEARCH_WORDS || {}, SPONSOR = window.SPONSOR || null;
   var MUTE_KEY = "wgp.muted", HERO_MS = 5500;
   var state = { cat: "all", q: "", slide: 0 };
 
@@ -44,10 +44,9 @@
     var paint = (g.tw || 720) === 720;
     return rows.filter(function (r) { return paint || !r[2]; }).map(function (r) { return r[0] ? r[0] + " " + r[1] : r[1]; }).join(", ");
   }
-  var HERO_SIZES = [[LAND + HI, "15vw", 1], [LAND, "22vw"], ["(max-width: 720px)" + HI, "29vw", 1], ["(max-width: 720px)", "44vw"],
-    ["(max-width: 1023px)", "53vw"], ["(max-width: 1180px)", "40vw"], ["", "440px"]]; // D11: sảnh trống ⇒ ảnh hero rộng 440 px
+  // D12: điện thoại (dọc ≤ 720 px và xoay ngang thấp) hero chỉ còn băng "Tựa game của tuần" thấp — ảnh nhỏ cố định (≤ 139 px) ⇒ máy dpr 3 vẫn chọn bản 360w.
+  var HERO_SIZES = [[LAND, "128px"], ["(max-width: 720px)", "120px"], ["(max-width: 1023px)", "53vw"], ["(max-width: 1180px)", "40vw"], ["", "360px"]];
   var TILE_SIZES = [["(max-width: 720px)" + HI, "21vw", 1], ["(max-width: 720px)", "31vw"], ["(max-width: 1023px)", "25vw"], ["(max-width: 1180px)", "19vw"], ["", "190px"]];
-  var QP_SIZES = [[LAND + HI, "11vw", 1], [LAND, "16vw"], ["(max-width: 720px)" + HI, "20vw", 1], ["(max-width: 720px)", "29vw"], ["", "1px"]];
   function imgHTML(g, sizes, eager) {
     if (typeof sizes !== "string") sizes = sz(g, sizes);
     if (eager) return '<img src="' + halfSrc(g.thumb) + '" srcset="' + srcsetOf(g) + '" sizes="' + sizes + '" alt="" loading="lazy" decoding="async" />';
@@ -116,8 +115,10 @@
     var el = track.children[i], img = el && el.querySelector("img[data-src]");
     if (img) showImg(img);
   }
-  // D11: điện thoại dọc ẩn hero (ô "Tựa game của tuần" thay chỗ) ⇒ không tải trước slide sau, không tự chuyển.
-  function heroShown() { return heroEl.offsetWidth > 0; }
+  // D12: điện thoại (dọc ≤ 720 px, xoay ngang thấp) hero là băng "Tựa game của tuần" (chỉ slide 1, không ‹ › / chấm) ⇒ không tải trước slide sau,
+  // không tự chuyển, không vuốt. Cùng điều kiện với khối "băng" trong portal-pixel.css.
+  var bannerMQ = window.matchMedia("(max-width: 720px), " + LAND + " and (max-width: 1023px)");
+  function heroShown() { return !bannerMQ.matches && heroEl.offsetWidth > 0; }
   function loadAround(i) {
     if (!heroShown()) return;
     loadSlide(i);
@@ -154,12 +155,12 @@
   heroEl.addEventListener("mouseenter", pause); heroEl.addEventListener("mouseleave", resume);
   heroEl.addEventListener("focusin", pause); heroEl.addEventListener("focusout", resume);
   document.addEventListener("visibilitychange", arm);
-  // xoay điện thoại dọc → ngang thấp: hero hiện lại ⇒ gắn ảnh slide quanh slide đang đứng + chạy lại tự chuyển
+  // đổi khung (xoay máy tính bảng / kéo cửa sổ): băng ⇄ băng chuyền. Sang băng ⇒ về slide 1, dừng tự chuyển; sang băng chuyền ⇒ gắn ảnh + chạy lại.
   var wasShown = null;
-  window.addEventListener("resize", function () { var on = heroShown(); if (on !== wasShown) { wasShown = on; if (on) { loadAround(state.slide); arm(); } } });
+  window.addEventListener("resize", function () { var on = heroShown(); if (on !== wasShown) { wasShown = on; if (on) { loadAround(state.slide); arm(); } else { clearTimeout(timer); if (state.slide) goSlide(0, true); } } });
   heroEl.addEventListener("keydown", function (e) {
     var d = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
-    if (!d) return;
+    if (!d || !heroShown()) return;
     // HOME-10: slide cũ thành inert ⇒ focus rơi về <body>. Đang đứng trên slide thì chuyển focus sang slide mới.
     var onSlide = track.contains(document.activeElement);
     goSlide(state.slide + d); e.preventDefault();
@@ -178,7 +179,7 @@
   track.addEventListener("touchend", function (e) {
     if (sx == null) return;
     var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; goSlide(state.slide + (dx < 0 ? 1 : -1)); }
+    if (heroShown() && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; goSlide(state.slide + (dx < 0 ? 1 : -1)); }
     resume();
   });
   track.addEventListener("click", function (e) { if (swiped) { e.preventDefault(); swiped = false; } }, true);
@@ -206,33 +207,23 @@
     if (!on.hidden) on.innerHTML = "<strong>" + players.toLocaleString("vi-VN") + "</strong> người đang chơi";
     // chưa tự chọn tab: không có phòng chờ mà có ván đang chơi ⇒ mở sẵn tab Đang diễn ra
     if (!tabPicked && !status) setLobbyTab(!rooms.length && playing.length ? "live" : "wait");
-    var note = status || (lobbyTab === "live" ? (playing.length ? "" : "Chưa có ván nào đang diễn ra. Tạo phòng rủ bạn vào chơi nhé!")
-      : (rooms.length ? "" : "Chưa có phòng công khai đang chờ người."));
+    // D12: bố cục sảnh cố định — chỉ nội dung ô .lobby__body đổi (có phòng ⇒ tab + danh sách; trống / đang tải / lỗi ⇒ một dòng nhắn).
+    // Ô cao cố định nên đổi qua lại lúc nào cũng không xô trang (kể cả phòng về sau khi trang đã vẽ).
+    var any = !status && (rooms.length > 0 || playing.length > 0);
+    var note = !any ? "" : lobbyTab === "live" ? (playing.length ? "" : "Chưa có ván nào đang diễn ra. Tạo phòng rủ bạn vào chơi nhé!")
+      : (rooms.length ? "" : "Chưa có phòng công khai đang chờ người.");
     if ($("roomStatus").textContent !== note) $("roomStatus").textContent = note;
     $("roomStatus").hidden = !note;
-    var empty = !status && !rooms.length && !playing.length;
-    $("lobby").classList.remove("is-loading");
-    $("lobby").classList.toggle("is-empty", empty);
-    // D11 sảnh gọn: lần vẽ đầu là dạng gọn (đa số lúc không có phòng). Có phòng ⇒ mở đầy đủ, nhưng CHỈ khi trang chưa vẽ (kết quả về sớm)
-    // hoặc người chơi bấm "N phòng đang chờ · Xem" — tự bung sau khi đã vẽ sẽ xô cả trang (máy tính đo CLS 0,32). Đã mở thì không tự thu lại.
-    var any = rooms.length > 0 || playing.length > 0, L = $("lobby"), peek = $("lobbyPeek");
-    if (any && !L.classList.contains("has-rooms") && (lobbyOpen || earlyRender)) L.classList.add("has-rooms");
-    var waiting = any && !L.classList.contains("has-rooms");
-    if (peek) {
-      peek.hidden = !waiting;
-      if (waiting) peek.querySelector("span").textContent = rooms.length ? rooms.length + " phòng đang chờ" : playing.reduce(function (n, p) { return n + p.rooms; }, 0) + " bàn đang chơi";
-    }
-    $("lobbyEmpty").hidden = !empty;
+    var L = $("lobby");
+    L.classList.remove("is-loading");
+    L.classList.toggle("is-empty", !any);
+    L.classList.toggle("has-rooms", any);
+    L.dataset.n = any ? rooms.length + playing.length : 0;
+    var msg = status || EMPTY_MSG;
+    if ($("lobbyEmpty").textContent !== msg) $("lobbyEmpty").textContent = msg;
     lastLobby = { rooms: rooms, status: status, live: live };
   }
-  var lastLobby = null, lobbyOpen = false;
-  // Chỉ tự mở đầy đủ khi kết quả /api/lobby (gửi từ <head>) ĐÃ có lúc app.js chạy — vẽ ngay trong lần chạy này (earlyRender).
-  // Về sau đó ⇒ nút "Xem" (đo bằng mục paint / rAF không chắc: có lần khung hình đã hiện mà chưa có mục paint ⇒ CLS 0,22).
-  var earlyRender = false;
-  if ($("lobbyPeek")) $("lobbyPeek").addEventListener("click", function () {
-    lobbyOpen = true; $("lobby").classList.add("has-rooms"); $("lobbyPeek").hidden = true;
-    if (lastLobby) renderRooms(lastLobby.rooms, lastLobby.status, lastLobby.live);
-  });
+  var lastLobby = null, EMPTY_MSG = "Chưa có phòng nào đang chờ — tạo phòng rồi gửi mã cho bạn bè.";
   function liveHTML(p) {
     var g = byId(p.game);
     return '<li class="room room--live">' +
@@ -269,10 +260,10 @@
   }
   // Lần đầu dùng request đã gửi từ <head> (window.__lobbyP); lỗi ⇒ thử lại 1 lần sau 1 giây rồi mới báo lỗi.
   var firstLobby = window.__lobbyP || null;
+  // kết quả đã về trước khi app.js chạy ⇒ vẽ ngay (không chờ vòng refreshRooms)
   if (window.__lobbyD && window.__lobbyD.rooms) {
-    var d0 = window.__lobbyD; earlyRender = true;
+    var d0 = window.__lobbyD;
     try { renderRooms(d0.rooms.filter(function (r) { return duelIds.includes(r.game); }), "", { players: d0.players, playing: d0.playing }); } catch (e) {}
-    earlyRender = false;
   }
   async function refreshRooms() {
     if (!document.hidden) {
@@ -430,30 +421,8 @@
     }
   }
 
-  // ---------- Chơi ngay (HOME-02): dải 2 hàng cuộn ngang dưới slide, chỉ hiện trên điện thoại ----------
-  function renderQuickPlay() {
-    var row = $("qpRow"); if (!row) return;
-    // D11: ô đầu = "Tựa game của tuần" (HERO_SLIDES[0], chỉ hiện ở điện thoại dọc — ở đó hero bị ẩn), rồi QUICK_PLAY bỏ trùng game đó.
-    var f = slides[0] && !soon(slides[0].g) ? slides[0] : null;
-    var list = QUICK.map(byId).filter(function (g) { return g && !soon(g) && (!f || g.id !== f.g.id); });
-    // Ô viết sẵn trong index.html (giữ chỗ từ lần vẽ đầu — CLS) khớp ⇒ giữ nguyên, chỉ gắn ảnh lười.
-    var want = (f ? [f.g.id] : []).concat(list.map(function (g) { return g.id; })).join();
-    var pre = [].map.call(row.children, function (a) { return a.dataset.id; }).join();
-    if (pre && pre === want) { lazyIn(row); return; }
-    row.innerHTML = (f ? featHTML(f) : "") + list.map(function (g) {
-      return '<a class="card tile tile--qp" href="' + href(g) + '" data-id="' + g.id + '"><span class="tile__art">' + imgHTML(g, QP_SIZES) +
-        '</span><span class="tile__body"><span class="card__name">' + esc(g.name) + "</span></span></a>";
-    }).join("");
-    lazyIn(row);
-  }
-  // Ô lớn "Tựa game của tuần": cùng srcset + sizes với ảnh slide 1 của hero ⇒ cùng một file ảnh (1 lần tải).
-  function featHTML(x) {
-    var g = x.g;
-    return '<a class="card tile tile--qp tile--feat" href="' + href(g) + '" data-id="' + g.id + '" aria-label="' + esc((x.s.kicker || "Nổi bật") + ": " + g.name) + ' — chơi ngay">' +
-      '<span class="tile__art"><img src="' + g.thumb + '" srcset="' + srcsetOf(g) + '" sizes="' + sz(g, HERO_SIZES) + '" alt="" decoding="async" fetchpriority="high" /></span>' +
-      '<span class="tile__body"><span class="feat__kicker">' + esc(x.s.kicker || "") + '</span><span class="card__name">' + esc(g.name) + "</span>" +
-      '<span class="btn btn--gold feat__go" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span></span></a>';
-  }
+  // D12 (quyết định chủ dự án): bỏ dải "Chơi ngay" của điện thoại (trùng game với các kệ bên dưới) — mỗi game xuất hiện một lần, trong kệ.
+  // Game của tuần ở điện thoại là băng hero thấp (slide 1); vẫn nằm trong kệ của nó (ở dưới, ngoài màn đầu).
 
   function renderFeatured() { $("featuredSection").hidden = !!state.q; }
   function renderAll() { renderChips(); renderFeatured(); renderGrid(); }
@@ -575,7 +544,7 @@
   });
   showSound();
 
-  renderHero(); renderQuickPlay(); renderAll(); arm(); refreshRooms();
+  renderHero(); renderAll(); arm(); refreshRooms();
   var invite = new URLSearchParams(location.search).get("room");
   if (invite && /^[A-Z0-9]{5}$/i.test(invite)) {
     inl.value = invite.toUpperCase();
