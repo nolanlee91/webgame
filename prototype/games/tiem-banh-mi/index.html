@@ -263,6 +263,12 @@
     .billbtn small { font-size: 11px; color: var(--ink2); }
     .billbtn .n { position: absolute; top: 2px; right: 4px; font-size: 11px; background: var(--moss); color: #fff; padding: 0 5px; }
     .billbtn:disabled { opacity: .4; }
+    /* D9: gợi ý thối tiền ngày 4–5 — viền hổ phách đứng yên + vòng sáng nhấp nháy nhẹ (chỉ đổi opacity của ::after); giảm chuyển động ⇒ chỉ viền đứng yên */
+    .chg-hint { margin: 0; font-size: 13px; font-weight: 800; color: #7a4a10; background: var(--amber-l); padding: 4px 10px; justify-self: start; }
+    .billbtn.hint { --b: #c27c26; box-shadow: var(--px-bevel), var(--px-border2), inset 0 0 0 2px var(--amber), 2px 3px 0 0 rgba(128, 84, 58, .35); }
+    .billbtn.hint::after { content: ""; position: absolute; inset: -4px; pointer-events: none; box-shadow: 0 0 0 3px rgba(240, 170, 60, .85); opacity: 0; animation: billHint 1.6s ease-in-out infinite; }
+    @keyframes billHint { 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .billbtn.hint::after { animation: none; opacity: 1; } }
     .picked { display: flex; justify-content: space-between; font-weight: 800; }
     .picked.ok { color: #1d6a3a; } .picked.short { color: #8a1f14; } .picked.over { color: #8a4a1a; }
 
@@ -466,6 +472,6 @@
   <div class="decor-bar" id="decorBar" hidden></div>
   <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
   <div class="boot-error" id="bootError" hidden></div>
-  <script type="module" src="./game.js?v=b12"></script>
+  <script type="module" src="./game.js?v=b13"></script>
 </body>
 </html>

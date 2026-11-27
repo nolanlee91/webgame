@@ -94,12 +94,61 @@ async function payClicks(manual) {
     check("TLC22-03: chưa chọn tờ ⇒ không có 'Thối 0k' bấm được; 'Thối đúng' là nút chính, đứng đầu", tray.gDis && !tray.gPri && !/0k/.test(tray.txt) && (!tray.hasAuto || (tray.aPri && tray.aFirst)), JSON.stringify(tray));
   }
   if (manual) {
-    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b12');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
+    const bills = await b.ev("(async()=>{const m=await import('./core/money.js?v=b13');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse);
     if (bills) { for (const [d, n] of Object.entries(bills)) for (let i = 0; i < n; i++) await pressSel(`[data-bill="${d}"]`); await pressSel('[data-act="giveChange"]'); return "manual"; }
   }
   await pressSel('[data-act="autoChange"]');
   await clearDialogs();
   return "auto";
+}
+
+/** D9: gợi ý thối tiền ngày 4–5 (bấm thật). Chưa chạm tờ ⇒ tờ của cách thối đúng nhấp nháy + "Chạm tờ tiền để thối"; giảm chuyển động ⇒
+ *  viền đứng yên (không animation); ngày 6 / ngày 3 không có; chạm một tờ là thôi (cả sau "Chọn lại"); thối theo gợi ý là thối đúng. */
+async function changeHintDay4(tag) {
+  await b.ev("(()=>{const s=__game.state;s.day=4;s.drama.pending=null;__game.save&&__game.save()})()");
+  await b.nav(BASE);
+  if (!(await S("!!s.shift"))) {
+    if (await waitFor(`!!document.querySelector('[data-act="restockToday"]:not(:disabled)')`, 3000)) await pressSel('[data-act="restockToday"]');
+    await pressSel("#openShop");
+  }
+  await waitFor("!!__game.state.shift");
+  await b.ev("__game.state.shift.drama&&(__game.state.shift.drama.max=0)");
+  let cid = null;
+  for (let i = 0; i < 300 && cid === null; i++) { await clearDialogs(); cid = await S("(s.shift.customers.find(c=>c.phase==='wait'&&!c.filled.some(Boolean)&&!c.pre)||{}).id??null"); if (cid === null) await b.ev("__game.advance(400)"); }
+  await tendOven(1);
+  await pressSel(`#rail .slip[data-cid="${cid}"]`);
+  const n = await S(`s.shift.customers.find(c=>c.id===${cid}).items.length`);
+  for (let k = 0; k < n; k++) { await buildClicks(null); await pressSel('[data-act="serve"]'); }
+  await clearDialogs();
+  const paying = await waitFor("__game.state.shift&&__game.state.shift.paying!==null&&!!document.querySelector('#change')", 3000);
+  const want = paying ? await b.ev("(async()=>{const m=await import('./core/money.js?v=b13');const s=__game.state;const c=s.shift.customers.find(x=>x.id===s.shift.paying);return JSON.stringify(m.makeChange(s.float,c.pay.change))})()").then(JSON.parse) : null;
+  const look = () => b.ev(`JSON.stringify((()=>{const t=document.querySelector('#chgHint'),hs=[...document.querySelectorAll('#change .billbtn.hint')],a=hs[0]&&getComputedStyle(hs[0],'::after');
+    return {txt:t?t.textContent:null,tVis:!!t&&t.getBoundingClientRect().height>0,bills:hs.map(e=>e.dataset.bill).sort((x,y)=>x-y).join(","),anim:a?a.animationName:null,op:a?a.opacity:null,
+      give:document.querySelector('[data-act="giveChange"]').disabled,auto:!!document.querySelector('[data-act="autoChange"]')}})())`).then(JSON.parse);
+  const wantBills = want ? Object.keys(want).map(Number).sort((x, y) => x - y).join(",") : "";
+  const h0 = await look();
+  check(`${tag} D9: ngày 4 chưa chọn tờ ⇒ "Chạm tờ tiền để thối" + tờ cần thối nhấp nháy`, paying && h0.txt === "Chạm tờ tiền để thối" && h0.tVis && h0.bills === wantBills && h0.anim === "billHint" && h0.give && !h0.auto, JSON.stringify({ want: wantBills, ...h0 }));
+  if (OUT) await b.shot(`${OUT}/${tag}-d9-goi-y-thoi.png`);
+  await b.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] }); await sleep(100);
+  const h1 = await look();
+  check(`${tag} D9: giảm chuyển động ⇒ tờ gợi ý có viền đứng yên, không nhấp nháy`, h1.bills === wantBills && h1.anim === "none" && Number(h1.op) === 1, JSON.stringify(h1));
+  await b.send("Emulation.setEmulatedMedia", { features: [] });
+  await b.ev("__game.state.day=6"); await sleep(250);
+  const h6 = await look();
+  await b.ev("__game.state.day=3"); await sleep(250);
+  const h3 = await look();
+  await b.ev("__game.state.day=4"); await sleep(250);
+  check(`${tag} D9: ngày 6 và ngày 3 không có gợi ý tờ`, h6.txt === null && h6.bills === "" && h3.txt === null && h3.bills === "", JSON.stringify([h6, h3]));
+  const first = wantBills.split(",")[0];
+  await pressSel(`#change .billbtn.hint[data-bill="${first}"]`);
+  const h2 = await look();
+  await pressSel('[data-act="clearChange"]');
+  const h2b = await look();
+  check(`${tag} D9: chạm một tờ ⇒ thôi gợi ý (cả sau khi bấm Chọn lại)`, h2.txt === null && h2.bills === "" && h2b.txt === null && h2b.bills === "", JSON.stringify([h2, h2b]));
+  const right0 = await S("s.shift.stats.changeRight||0");
+  for (const [d, k] of Object.entries(want || {})) for (let i = 0; i < k; i++) await pressSel(`[data-bill="${d}"]`);
+  await pressSel('[data-act="giveChange"]');
+  check(`${tag} D9: thối theo các tờ gợi ý là thối đúng`, (await S("s.shift.stats.changeRight||0")) === right0 + 1);
 }
 
 async function playDay1(tag, shots) {
@@ -215,6 +264,7 @@ await m5Flows(ctx, "desktop");
 await b.view(390, 844, true, 3); await b.touch(true); press = b.tap;
 if (!process.env.LAYOUT_ONLY) {
 await playDay1("mobile", true);
+await changeHintDay4("mobile");
 await playM34(ctx, "mobile");
 await m5Flows(ctx, "mobile");
 check("mobile: cảnh hệ số bội 0,5 thiết bị", await b.ev("(()=>{const k=__game.sceneScale()*devicePixelRatio*2;return Math.abs(k-Math.round(k))<1e-6})()"), String(await b.ev("__game.sceneScale()")));

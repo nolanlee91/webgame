@@ -1,36 +1,36 @@
 // Một ca: khách tới theo ba buổi, ghim phiếu, giao ổ (cả ráp ×N), chấm sao, khiếu nại, trả tiền + thối, review, chốt ca lời lỗ. Thuần.
 // M3: đơn nhiều ổ (đơn nhóm từ sự kiện), đơn đặt trước (cọc, hạn giao, trễ), thớt đôi / ba, phụ việc, bánh hôm qua, quảng bá, hội chợ,
 // thử thách, nhiệm vụ ngày, bộ điều chỉnh có hạn. M4: Drama Engine (core/drama.js), review lưu sổ + trả lời (core/reviews.js), Nhật Ký.
-import { RECIPE, NAMES, LEVELS, XP_MUL, STOCK, AUTO_CHANGE_DAYS, HONEST_RETURN, BACHUC, QUEUE_MAX, QUE } from "../data/economy.js?v=b12";
-import { ARCHETYPES, ARCH_IDS, REGULARS, REGULAR_KNOWN_AT } from "../data/customers.js?v=b12";
-import { QUIRKS } from "../data/quirks.js?v=b12";
-import { PHASES, SHIFT_MS, PHASE_BANNER, NORMAL_DAY, TUTORIAL, WALK_MS } from "../data/shift.js?v=b12";
-import { PREORDER, FAIR } from "../data/equipment.js?v=b12";
-import * as L from "../data/lines.js?v=b12";
-import * as M3 from "../data/lines-m3.js?v=b12";
-import { STAR_REVIEWS_MORE, STAR_REVIEWS_ARCH_MORE, MISTAKE_SAY_MORE, MISTAKE_REVIEW_MORE } from "../data/lines-reviews.js?v=b12";
-import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=b12";
-import { next, int, pick, weighted } from "./rng.js?v=b12";
-import { fill, freshLine, poolFor } from "./text.js?v=b12";
-import { makeItem, makeBachuc, menuFor, orderText, loafName, bachucMax, bachucPrice } from "./order.js?v=b12";
-import { scoreOrder } from "./score.js?v=b12";
-import { customerPays, makeChange, canChange, payOut, receive, spend, greedyBills, sumBills } from "./money.js?v=b12";
-import { ovenOf, newLoaf, tickOven, addWaste } from "./oven.js?v=b12";
-import { emptyBoard, board, finished, wasteLoaf } from "./board.js?v=b12";
-import { shiftFee, repayConsign, stage, baseGuests } from "./stock.js?v=b12";
-import { tickRescue, openNochange } from "./rescue.js?v=b12";
-import { engineFlag, modSum, modGuests, pruneMods, today, hasFlag } from "./flags.js?v=b12";
-import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./drama.js?v=b12";
-import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b12";
-import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b12";
-import { caption } from "./journal.js?v=b12";
-import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, rollWeather, createPreorder, STALE_CRISP, rainMul, shiftLenFor } from "./progress.js?v=b12";
-import { judgeChallenge, challengeMods, checkBadges } from "./challenge.js?v=b12";
-import { freshCook, tickCook, cookLeftover } from "./cook.js?v=b12";
-import { addContract, contractOrders, contractDelivered, contractFailed } from "./contracts.js?v=b12";
-import { expire } from "./expiry.js?v=b12";
-import { takePartial } from "./partial.js?v=b12";
-import { CONTRACT_LINES, CONTRACT_REVIEW, COOK_LINES, EXPIRY_LINES, BO_DUONG, FAIR_LINES } from "../data/lines-m5.js?v=b12";
+import { RECIPE, NAMES, LEVELS, XP_MUL, STOCK, AUTO_CHANGE_DAYS, CHANGE_HINT_DAYS, HONEST_RETURN, BACHUC, QUEUE_MAX, QUE } from "../data/economy.js?v=b13";
+import { ARCHETYPES, ARCH_IDS, REGULARS, REGULAR_KNOWN_AT } from "../data/customers.js?v=b13";
+import { QUIRKS } from "../data/quirks.js?v=b13";
+import { PHASES, SHIFT_MS, PHASE_BANNER, NORMAL_DAY, TUTORIAL, WALK_MS } from "../data/shift.js?v=b13";
+import { PREORDER, FAIR } from "../data/equipment.js?v=b13";
+import * as L from "../data/lines.js?v=b13";
+import * as M3 from "../data/lines-m3.js?v=b13";
+import { STAR_REVIEWS_MORE, STAR_REVIEWS_ARCH_MORE, MISTAKE_SAY_MORE, MISTAKE_REVIEW_MORE } from "../data/lines-reviews.js?v=b13";
+import { MISTAKE_SAY, MISTAKE_REVIEW } from "../data/lines-mistakes.js?v=b13";
+import { next, int, pick, weighted } from "./rng.js?v=b13";
+import { fill, freshLine, poolFor } from "./text.js?v=b13";
+import { makeItem, makeBachuc, menuFor, orderText, loafName, bachucMax, bachucPrice } from "./order.js?v=b13";
+import { scoreOrder } from "./score.js?v=b13";
+import { customerPays, makeChange, canChange, payOut, receive, spend, greedyBills, sumBills } from "./money.js?v=b13";
+import { ovenOf, newLoaf, tickOven, addWaste } from "./oven.js?v=b13";
+import { emptyBoard, board, finished, wasteLoaf } from "./board.js?v=b13";
+import { shiftFee, repayConsign, stage, baseGuests } from "./stock.js?v=b13";
+import { tickRescue, openNochange } from "./rescue.js?v=b13";
+import { engineFlag, modSum, modGuests, pruneMods, today, hasFlag } from "./flags.js?v=b13";
+import { startDrama, maybeTrigger, endDrama, choose as dramaChoose } from "./drama.js?v=b13";
+import { pushReview, netReview, archiveShift, returningGuests, ratingOf } from "./reviews.js?v=b13";
+import { startMissions, missionsOnServe, missionsOnEnd, missionsOnChange, missionsOnDrama } from "./missions.js?v=b13";
+import { caption } from "./journal.js?v=b13";
+import { patienceBonus, boardCount, helperToday, fairToday, promoGuests, rollWeather, createPreorder, STALE_CRISP, rainMul, shiftLenFor } from "./progress.js?v=b13";
+import { judgeChallenge, challengeMods, checkBadges } from "./challenge.js?v=b13";
+import { freshCook, tickCook, cookLeftover } from "./cook.js?v=b13";
+import { addContract, contractOrders, contractDelivered, contractFailed } from "./contracts.js?v=b13";
+import { expire } from "./expiry.js?v=b13";
+import { takePartial } from "./partial.js?v=b13";
+import { CONTRACT_LINES, CONTRACT_REVIEW, COOK_LINES, EXPIRY_LINES, BO_DUONG, FAIR_LINES } from "../data/lines-m5.js?v=b13";
 
 export const customer = (s, cid) => s.shift?.customers.find((c) => c.id === cid) || null;
 export const levelForXp = (xp) => { let lv = 1; for (let i = 0; i < LEVELS.length; i++) if (xp >= LEVELS[i]) lv = i + 1; return lv; };
@@ -41,6 +41,17 @@ export function clockOf(t) {
   return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
 }
 export const autoChangeAllowed = (s) => s.day <= AUTO_CHANGE_DAYS && !challengeMods(s).manual;
+/** D9: gợi ý thối tiền ngày 4–5. Đang thối tay, khách cần thối, chưa chạm tờ nào (tapped: đã chạm tờ ở lượt thối này, kể cả khi
+ *  bấm "Chọn lại") ⇒ trả { mệnh giá: số tờ } của cách thối đúng (ít tờ nhất) để nhấp nháy các tờ đó. Ngoài ra trả null. */
+export function changeHint(s, picked = {}, tapped = false) {
+  const sh = s.shift;
+  if (!sh || sh.paying === null || tapped || !CHANGE_HINT_DAYS.includes(s.day) || autoChangeAllowed(s)) return null;
+  if (sumBills(picked) > 0) return null;
+  const c = customer(s, sh.paying);
+  if (!(c?.pay?.change > 0)) return null;
+  const bills = makeChange(s.float, c.pay.change);
+  return bills && Object.keys(bills).length ? bills : null;
+}
 /** Độ dài ca đang mở (hội chợ 4,5 phút). */
 export const shiftLen = (sh) => sh?.len || SHIFT_MS;
 export const lineCtx = (c, extra = {}) => ({ self: c.self, call: c.call, name: c.name, n: c.items?.length || 1, loaf: c.items?.[0] ? loafName(c.items[0]) : "bánh mì", ...extra });

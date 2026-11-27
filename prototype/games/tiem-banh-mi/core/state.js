@@ -3,20 +3,20 @@
 // MIGRATIONS[v] nâng v → v+1. v1 → v2 (M3 + M4): thêm tính cách chủ tiệm, người theo dõi / độ hot, Drama, Nhật Ký, bánh hôm qua, bộ điều chỉnh,
 // trang trí, hạng tiệm, pate nhà làm, ổ mang tên tiệm, đơn đặt trước, quảng bá, phụ việc, hội chợ, thử thách, thời tiết (mặc định an toàn).
 // save.js giữ bản sao nguyên văn bản cũ (KEY.bak-v1) một lần trước khi nâng.
-import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b12";
-import { ARCHETYPES } from "../data/customers.js?v=b12";
-import { QUIRKS } from "../data/quirks.js?v=b12";
-import { levelForXp } from "./shift.js?v=b12";
-import { floatValue } from "./money.js?v=b12";
-import { freshDrama } from "./flags.js?v=b12";
-import { EVENT } from "../data/events.js?v=b12";
-import { NPCS } from "../data/npcs.js?v=b12";
-import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b12";
-import { PERSONAS } from "../data/lines-reply.js?v=b12";
-import { loadContracts } from "./contracts.js?v=b12";
-import { loadCook } from "./cook.js?v=b12";
-import { loadLots } from "./expiry.js?v=b12";
-import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b12";
+import { STOCK_IDS, START_MONEY, START_STOCK, START_FLOAT, FLOAT_BILLS, RECIPE, OVENS, BILLS, WRAPS, LEVELS } from "../data/economy.js?v=b13";
+import { ARCHETYPES } from "../data/customers.js?v=b13";
+import { QUIRKS } from "../data/quirks.js?v=b13";
+import { levelForXp } from "./shift.js?v=b13";
+import { floatValue } from "./money.js?v=b13";
+import { freshDrama } from "./flags.js?v=b13";
+import { EVENT } from "../data/events.js?v=b13";
+import { NPCS } from "../data/npcs.js?v=b13";
+import { EQUIPMENT, DECOR, SIGNBOARDS } from "../data/equipment.js?v=b13";
+import { PERSONAS } from "../data/lines-reply.js?v=b13";
+import { loadContracts } from "./contracts.js?v=b13";
+import { loadCook } from "./cook.js?v=b13";
+import { loadLots } from "./expiry.js?v=b13";
+import { CHALLENGE_BY_ID, BADGE } from "./challenge.js?v=b13";
 
 export const SAVE_VERSION = 3;
 /** v2 → v3 (M5): hợp đồng định kỳ, lô hàng theo ngày (hạn dùng), số lần hội chợ, thử thách theo lịch, huy hiệu theo id.

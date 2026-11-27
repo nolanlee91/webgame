@@ -1,7 +1,7 @@
 // Ổ bánh trên thớt ⇒ danh sách lớp loaf-layers theo thứ tự vẽ (ART-DIRECTION §5). Thuần (test được bằng node).
 // Dưới lên: loaf-open-back → spread-* → fill-* → do-chua → dua-leo → rau-mui → hanh-la → ot-* → sauce-* → loaf-open-front
 // → loaf-toasted-sheen → wrap-* (gói thay toàn bộ ổ). Chưa rạch: loaf-whole-{mức nướng}.
-import { SPREADS, VEG_IDS, SAUCES, WRAPS } from "../data/economy.js?v=b12";
+import { SPREADS, VEG_IDS, SAUCES, WRAPS } from "../data/economy.js?v=b13";
 
 export const OT_LAYER = [null, "ot-it", "ot-vua", "ot-nhieu"];
 /** Mức vỏ theo độ giòn / cháy / xém của ổ trong tủ hoặc trên thớt. */

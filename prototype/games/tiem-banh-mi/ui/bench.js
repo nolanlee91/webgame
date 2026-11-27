@@ -1,19 +1,19 @@
 // Quầy ráp (cột phải desktop / dưới cảnh trên mobile): lò, phiếu ghim, ổ bánh cận cảnh (loaf-layers), dải bước, ô nguyên liệu,
 // Hoàn tác / Đổ / Giao, và khay thối tiền khi khách trả tiền. Dựng lại DOM khi khoá trạng thái đổi; phần động (thanh lò, độ giòn,
 // lò than) cập nhật mỗi khung. Mọi thao tác đi qua dispatch(action) ⇒ core/apply.js.
-import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b12";
-import { loafLayers } from "../render/loafview.js?v=b12";
-import { STEPS, STEP_NAME } from "../core/board.js?v=b12";
-import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b12";
-import { autoChangeAllowed, customer, orderPrice, helperOn } from "../core/shift.js?v=b12";
-import { sumBills, makeChange } from "../core/money.js?v=b12";
-import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b12";
-import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b12";
-import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b12";
+import { paint, crisp as crispScale, icon } from "../render/atlas.js?v=b13";
+import { loafLayers } from "../render/loafview.js?v=b13";
+import { STEPS, STEP_NAME } from "../core/board.js?v=b13";
+import { batchSec, batchLevel, ovenOf, caseCap, CRUST } from "../core/oven.js?v=b13";
+import { autoChangeAllowed, changeHint, customer, orderPrice, helperOn } from "../core/shift.js?v=b13";
+import { sumBills, makeChange } from "../core/money.js?v=b13";
+import { sameLeft, batchMax, mergedSlice } from "../core/board.js?v=b13";
+import { itemSpec, itemSteps, loafName, bachucPrice } from "../core/order.js?v=b13";
+import { STOCK, NAMES, LEVEL_NAMES, SPREADS, FILLINGS, VEG_IDS, SAUCES, WRAPS, TOASTER, FLOAT_BILLS, RECIPE, QUE } from "../data/economy.js?v=b13";
 const FILL_NEEDS = { trung: "egg-pan", "xiu-mai": "xiu-mai-pot", "thit-nuong": "grill" };
 const fmtS = (ms) => `${Math.max(0, Math.ceil(ms / 1000))}s`;
-import { QUIRKS } from "../data/quirks.js?v=b12";
-import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b12";
+import { QUIRKS } from "../data/quirks.js?v=b13";
+import { panSlots, grillLevel, COOK } from "../core/cook.js?v=b13";
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const LV_ORDER = [2, 3, 1, 0]; // chạm lần đầu = vừa (mặc định công thức), rồi nhiều → ít → không
@@ -28,7 +28,7 @@ export function quirkChips(it) {
 }
 
 export function createBench(root, atlas, dispatch, hooks = {}) {
-  let key = "", picked = {}, showBook = false, loafScale = 1;
+  let key = "", picked = {}, tapped = null, showBook = false, loafScale = 1;
   const dyn = { bars: [], crispNum: null, toastBar: null, due: null };
 
   function ovenBox(state) {
@@ -288,6 +288,10 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const right = h("div"); right.appendChild(h("small", "muted", "Cần thối ")); right.appendChild(h("b", "", c.pay.change + "k"));
     due.appendChild(right);
     box.appendChild(due);
+    // D9: ngày 4–5, chưa chạm tờ nào ⇒ tờ cần thối nhấp nháy nhẹ (giảm chuyển động: viền đứng yên) + dòng gợi ý; chạm một tờ là thôi
+    const pay = `${state.day}:${sh.paying}`; // lượt thối này (id khách lặp lại qua ngày)
+    const tip = changeHint(state, picked, tapped === pay) || {};
+    if (Object.keys(tip).length) { const t = h("p", "chg-hint", "Chạm tờ tiền để thối"); t.id = "chgHint"; box.appendChild(t); }
     const bills = h("div", "bills");
     const sug = state.owned?.["cash-counter"] ? makeChange(state.float, c.pay.change) || {} : {};
     for (const d of FLOAT_BILLS) {
@@ -298,8 +302,9 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
       b.appendChild(h("small", "", `còn ${state.float[d] || 0} tờ`));
       if (picked[d]) b.appendChild(h("span", "n", "×" + picked[d]));
       if (sug[d] && (picked[d] || 0) < sug[d]) { b.classList.add("sug"); b.title = `Hộp đếm tiền gợi ý ${sug[d]} tờ`; }
+      if (tip[d]) { b.classList.add("hint"); b.setAttribute("aria-describedby", "chgHint"); }
       b.disabled = have <= 0;
-      b.addEventListener("click", () => { picked[d] = (picked[d] || 0) + 1; key = ""; });
+      b.addEventListener("click", () => { picked[d] = (picked[d] || 0) + 1; tapped = pay; key = ""; });
       bills.appendChild(b);
     }
     box.appendChild(bills);
@@ -344,7 +349,7 @@ export function createBench(root, atlas, dispatch, hooks = {}) {
     const b = sh.boards[sh.sel];
     const l = b.loaf;
     const k = JSON.stringify([b.cid, b.item, b.step, l && [l.sliced, l.wrap, l.toastT0 !== null, l.spreads, l.fills, l.veg, l.ot, l.sauces, l.toasted, l.burnt, l.id],
-      sh.paying, sh.paying !== null && state.float, picked, sh.oven.map((x) => !!x), sh.case.length, state.stock, hint?.key, showBook, loafScale, state.day,
+      sh.paying, sh.paying !== null && state.float, picked, tapped, sh.oven.map((x) => !!x), sh.case.length, state.stock, hint?.key, showBook, loafScale, state.day,
       b.cid !== null && customer(state, b.cid)?.filled.map(Boolean), sh.sel, sh.boards.map((x) => [x.cid, !!x.loaf]), sh.que, l?.n, helperOn(state), Object.keys(state.owned || {}).length,
       sh.cook && [sh.cook.eggs, sh.cook.pan.map((x) => x !== null), sh.cook.meat, !!sh.cook.grill],
       b.cid === null && sh.customers.some((x) => x.phase === "wait")]); // TLC2-06: thớt trống ⇒ chữ "Chưa có khách chờ" đổi ngay khi có khách tới
