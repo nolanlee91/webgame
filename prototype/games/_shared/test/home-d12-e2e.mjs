@@ -138,7 +138,7 @@ try {
         render: getComputedStyle(d.querySelector(".donate__qr img")).imageRendering, focusIn: d.contains(document.activeElement), hint: /Quét QR/.test(d.textContent), thanks: /trà đá/.test(d.textContent),
         acc: d.querySelector("[data-acc]").dataset.acc.length, beacons: window.__beacons.filter(x => /donate_open/.test(x)).length }; })()`);
     check(`Ủng hộ ${w}: bấm ⇒ mở hộp, đúng 1 tiếng, ảnh tải lúc này, QR ≥ 240 px (image-rendering auto), focus trong hộp, cả hộp nằm trong màn`,
-      free && n === 1 && m.qrW >= 240 && m.nat === 720 && m.render === "auto" && m.focusIn && m.inView && m.hint && m.thanks && (await qrReq()) === 1, JSON.stringify({ ...m, sounds: n }));
+      free && n === 1 && m.qrW >= 240 && m.nat === 422 && m.render === "auto" && m.focusIn && m.inView && m.hint && m.thanks && (await qrReq()) === 1, JSON.stringify({ ...m, sounds: n }));
     check(`Ủng hộ ${w}: mở hộp ⇒ gửi đúng 1 sự kiện donate_open`, m.beacons === 1, String(m.beacons));
     await shot(t, `ung-ho-${w}x${h}.png`);
     // chép số tài khoản (không in số ra log)
