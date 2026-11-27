@@ -9,6 +9,7 @@
 // Thêm: trang chủ — thẻ game (press-nav.js) bấm chuột + chạm ⇒ đúng 1 "bụp"; đo độ trễ "tách" sau khi nhả chuột.
 //
 // Chạy:  node prototype/games/_shared/test/double-sound-e2e.mjs [lọc-trang] [--baseline] [--out kq.json] [--shots]
+//   lọc-trang: một hoặc nhiều chuỗi cách nhau dấu phẩy (vd. "2048,xep-gach")
 //   --baseline : thay feedback.js bằng bản ở nhánh master (git show) — tự kiểm test BẮT được lỗi cũ (phải báo Ô Ăn Quan #startBtn).
 import { launchChrome, sleep, REPO } from "./cdp.mjs";
 import { shotDir } from "./lk-temp.mjs";
@@ -27,7 +28,7 @@ const SHOTS = flag("--shots") ? shotDir("double-sound") : null;
 
 const GAMES = join(REPO, "prototype/games");
 const PAGES = ["/homepage/", ...readdirSync(GAMES).filter((d) => !d.startsWith("_") && existsSync(join(GAMES, d, "index.html"))).map((d) => `/games/${d}/`)]
-  .filter((p) => !only || p.includes(only));
+  .filter((p) => !only || only.split(",").some((o) => p.includes(o)));
 const MAX_BTNS = 24, WAIT = 350;
 const baselineSrc = BASELINE ? Buffer.from(execFileSync("git", ["show", "master:prototype/games/_shared/feedback.js"], { cwd: REPO })).toString("base64") : null;
 
@@ -165,8 +166,9 @@ const doubles = [], unreached = [];
 const delays = [], clickDelays = [];
 let pressCount = 0;
 try {
-  for (const p of PAGES) {
-    for (const touch of [false, true]) {
+  // chuột và chạm chạy song song (2 tab) cho nhanh; các trang lần lượt
+  const runInput = async (p, touch) => {
+    {
       const input = touch ? "chạm" : "chuột";
       const t = await openTab(touch);
       for (const phase of ["menu", "game", ...(OVER[p] ? ["over", "share"] : [])]) {
@@ -203,11 +205,14 @@ try {
       if (t.errors.length) console.error(`  (lỗi console ${p} ${input}: ${t.errors.length})`);
       await t.closeTab();
     }
+  };
+  for (const p of PAGES) {
+    await Promise.all([runInput(p, false), runInput(p, true)]);
     console.error(`xong ${p}`);
   }
 
   // ── Trang chủ: thẻ game (press-nav.js gọi play() của feedback.js) ⇒ đúng 1 "bụp", không chuyển trang trong lúc kiểm ──
-  if (!only || "/homepage/".includes(only)) {
+  if (!only || only.split(",").some((o) => "/homepage/".includes(o))) {
     for (const touch of [false, true]) {
       const t = await openTab(touch);
       await load(t, base + "/homepage/", "menu");

@@ -209,6 +209,8 @@ export function play(name, delay = 0) {
   const key = voice ? "voice" : name;
   if (now - (recent.get(key) ?? -Infinity) < (voice ? VOICE_GAP : GAP[name] ?? 150)) return false;
   recent.set(key, now);
+  // Tiếng phát SAU khi tải/giải mã xong (có thể > 100 ms lần đầu) ⇒ báo trước cho _shared/feedback.js để nó không kêu thêm "tách" (D11)
+  try { dispatchEvent(new Event("wgp:sfx")); } catch {}
   void load(name).then((clip) => {
     if (!clip || ctx.state !== "running" || !audible() || performance.now() - now > 900) return;
     const node = ctx.createBufferSource(), gain = ctx.createGain();

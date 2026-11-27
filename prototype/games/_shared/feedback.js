@@ -59,6 +59,8 @@ let otherAt = -1;     // lần cuối có tiếng KHÁC "tách"/"bụp": tiếng
 const oscs = [];      // oscillator của game mới start: { o, at, stopped }
 const oscRec = new WeakMap();
 const markOther = () => { otherAt = performance.now(); };
+// Game phát tiếng KHÔNG đồng bộ (chờ tải/giải mã file rồi mới start(), vd. Trà Sữa) báo trước bằng: dispatchEvent(new Event("wgp:sfx"))
+addEventListener("wgp:sfx", markOther);
 try {
   const BS = AudioBufferSourceNode.prototype.start;
   AudioBufferSourceNode.prototype.start = function (...a) { if (!own && !this.loop) markOther(); return BS.apply(this, a); };
