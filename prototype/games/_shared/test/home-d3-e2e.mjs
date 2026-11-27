@@ -100,8 +100,9 @@ try {
     row: (() => { const r = [...document.querySelectorAll(".mainnav a")].map(a => Math.round(a.getBoundingClientRect().top)); return r.every(x => x === r[0]); })(),
     logoTop: Math.round(document.querySelector(".logo").getBoundingClientRect().top), navTop: Math.round(document.querySelector(".mainnav a").getBoundingClientRect().top) })`));
   // D7 HOME2-01: 1181–1440 px dùng nhãn ngắn "Xếp hạng" để ô tìm không đè mục cuối
-  check("P-D desktop: 4 mục Chơi · Phòng online · Thử thách · (Bảng) Xếp hạng trên CÙNG hàng logo; có 1 h1",
-    N.h1 === 1 && /^Chơi>#games,Phòng online>#lobby,Thử thách>bang-xep-hang\.html#thu-thach,(Bảng xếp hạng|Xếp hạng)>bang-xep-hang\.html$/.test(N.links.join()) && N.row && Math.abs(N.logoTop - N.navTop) < 30, JSON.stringify(N));
+  // D11 (quyết định chủ dự án): bỏ "Phòng online", gộp "Bảng xếp hạng" vào "Thử thách" ⇒ 2 mục
+  check("P-D desktop: 2 mục Chơi · Thử thách trên CÙNG hàng logo; có 1 h1",
+    N.h1 === 1 && /^Chơi>#games,Thử thách>bang-xep-hang\.html#thu-thach$/.test(N.links.join()) && N.row && Math.abs(N.logoTop - N.navTop) < 30, JSON.stringify(N));
   const NO = JSON.parse(await T.ev(`JSON.stringify((() => { const n = document.querySelector(".mainnav"), a = [...n.querySelectorAll("a")].pop().getBoundingClientRect(), s = document.querySelector(".search").getBoundingClientRect();
     return { sw: n.scrollWidth, cw: n.clientWidth, lastRight: Math.round(a.right), searchLeft: Math.round(s.left) }; })())`));
   check("HOME2-01 desktop: điều hướng không tràn, mục cuối không bị ô tìm đè", NO.sw <= NO.cw && NO.lastRight < NO.searchLeft, JSON.stringify(NO));
@@ -150,7 +151,7 @@ try {
   check("HOME-02 màn đầu 390×844: thấy trọn ≥ 6 thẻ game", F.n >= 6, F.n + ": " + F.ids.join());
   check("HOME-02 sảnh điện thoại: mã phòng + Vào + Tạo phòng cùng MỘT hàng, nằm trong màn đầu", F.pinRow <= 8 && F.lobbyBottom <= 844, JSON.stringify({ pinRow: F.pinRow, lobbyBottom: F.lobbyBottom }));
   check("HOME-05 ô tìm 16 px trên điện thoại", F.font === "16px", F.font);
-  check("P-D/P-B điện thoại: chip điều hướng + ô hồ sơ cao ≥ 44 px", F.nav.length === 4 && F.nav.every((h) => h >= 44) && F.me >= 44, JSON.stringify(F.nav) + " me " + F.me);
+  check("P-D/P-B điện thoại: chip điều hướng + ô hồ sơ cao ≥ 44 px", F.nav.length === 2 && F.nav.every((h) => h >= 44) && F.me >= 44, JSON.stringify(F.nav) + " me " + F.me);
   check("390: không tràn ngang", await noHScroll(M));
   await shot(M, "man-dau-390x844.png");
   await M.click("#meBtn", { touch: true }); await sleep(300);
@@ -193,7 +194,7 @@ try {
   const R = JSON.parse(await L.ev(`JSON.stringify({ rows: [...document.querySelectorAll("#lbList .lb__row")].map(r => r.querySelector(".lb__rank").textContent + " " + r.querySelector(".lb__name").firstChild.textContent.trim() + " " + r.querySelector(".lb__score").textContent + (r.classList.contains("is-you") ? " *" : "")),
     sel: document.querySelector('.lb__tab[aria-selected="true"]').dataset.game, cur: document.querySelector('.mainnav a[aria-current="page"]')?.getAttribute("href") })`));
   check("P-C tab Đố Vui từ ?game=, 3 dòng đúng thứ tự, dòng của mình tô (*), bằng điểm hiện '4/5 · 15 giây' (HOME-16)",
-    R.sel === "do-vui-nhanh" && R.rows.join(" | ") === "#1 Trùm Hẻm 31 5/5 | #2 Heo Cute 15 4/5 · 15 giây | #3 Mèo Mập 42 4/5 · 20 giây *" && R.cur === "#bang", JSON.stringify(R));
+    R.sel === "do-vui-nhanh" && R.rows.join(" | ") === "#1 Trùm Hẻm 31 5/5 | #2 Heo Cute 15 4/5 · 15 giây | #3 Mèo Mập 42 4/5 · 20 giây *" && R.cur === "#thu-thach", JSON.stringify(R)); // D11: mục "Thử thách" (gộp Bảng xếp hạng) đang chọn
   await L.ev(`document.getElementById("bang").scrollIntoView({ block: "start" })`); await sleep(200);
   await shot(L, "bang-xep-hang-1366.png");
   // bàn phím: ← → đổi tab, URL cập nhật

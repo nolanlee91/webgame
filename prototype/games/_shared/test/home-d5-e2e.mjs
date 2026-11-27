@@ -81,10 +81,12 @@ try {
   // dọc + máy tính: không đổi
   const P = await open("doc-390", 390, 844, true, { rooms: [] });
   const pm = JSON.parse(await P.ev(`JSON.stringify({ hero: Math.round(document.querySelector(".hero").getBoundingClientRect().height), rows: getComputedStyle(document.getElementById("qpRow")).gridTemplateRows.split(" ").length, text: getComputedStyle(document.querySelector(".hero__info")).paddingBottom })`));
-  check("dọc 390×844: slide + dải Chơi ngay 2 hàng như D3", pm.hero === 152 && pm.rows === 2, JSON.stringify(pm));
+  // D11 (quyết định chủ dự án): điện thoại dọc không còn hero — ô lớn "Tựa game của tuần" nằm đầu dải "Chơi ngay" 3 hàng
+  check("dọc 390×844: không hero, dải Chơi ngay 3 hàng (D11)", pm.hero === 0 && pm.rows === 3, JSON.stringify(pm));
   const Dk = await open("may-tinh", 1366, 768, false, { rooms: [] });
   const dm = JSON.parse(await Dk.ev(`JSON.stringify({ hero: Math.round(document.querySelector(".hero").getBoundingClientRect().height), qp: getComputedStyle(document.getElementById("quickPlay")).display, sticky: getComputedStyle(document.querySelector(".topbar")).position })`));
-  check("máy tính 1366×768: slide 470 px, không có dải Chơi ngay, thanh trên dính như cũ", dm.hero === 470 && dm.qp === "none" && dm.sticky === "sticky", JSON.stringify(dm));
+  // D11: sảnh trống ⇒ hero trọn hàng, ảnh 440×330
+  check("máy tính 1366×768: sảnh trống ⇒ hero trọn hàng 330 px, không có dải Chơi ngay, thanh trên dính như cũ", dm.hero === 330 && dm.qp === "none" && dm.sticky === "sticky", JSON.stringify(dm));
 
   const errs = tabs.flatMap((t) => t.errors.map((e) => t.name + ": " + e)).filter((e) => !/ws\//.test(e));
   check("không có lỗi JS / console error", !errs.length, errs.join(" || "));
