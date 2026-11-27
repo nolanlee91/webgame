@@ -123,6 +123,17 @@ await A.tap('#start');
 for (const T of [A, B, C]) check(T.name + ': vào ván, lớp phủ phòng chờ đóng', await T.waitFor('__cotyphu.room.phase==="play"&&document.querySelector("#lobby").hidden&&!!__cotyphu.g'));
 check('3 thẻ người chơi hiện, đúng tên', (await A.ev('[0,1,2].every(k=>!document.querySelector("#pc"+k).hidden)&&document.querySelector("#pc3").hidden')) && (await A.text('#pc1')).includes('Bình'));
 check('quân của mình có dấu ▼ (đúng ghế)', await B.ev('document.querySelectorAll(".token.me").length===1&&__cotyphu.g.players[1].token===3'));
+// BRD-23 (D11): nút loa là SVG pixel (không emoji), giữ aria-label + 44 px trên điện thoại, bấm đổi trạng thái
+{ const m = await B.ev('(()=>{const b=document.querySelector("#mute"),r=b.getBoundingClientRect();return {svg:!!b.querySelector("svg.snd-ico[shape-rendering=crispEdges]"),emoji:/🔊|🔇/.test(b.textContent),lbl:b.getAttribute("aria-label"),w:Math.round(r.width),h:Math.round(r.height),p:b.getAttribute("aria-pressed")}})()');
+  check('BRD-23: loa là SVG pixel, không emoji, có aria-label, ≥ 44 px (mobile)', m.svg && !m.emoji && !!m.lbl && m.w >= 44 && m.h >= 44, JSON.stringify(m));
+  await B.tap('#mute'); const p2 = await B.ev('document.querySelector("#mute").getAttribute("aria-pressed")+"|"+!!document.querySelector("#mute svg")'); await B.tap('#mute');
+  check('BRD-23: bấm loa ⇒ hình tắt tiếng (aria-pressed đổi), bấm lại ⇒ như cũ', p2 === (m.p === 'true' ? 'false' : 'true') + '|true' && (await B.ev('document.querySelector("#mute").getAttribute("aria-pressed")')) === m.p, p2); }
+// BOARD2-11 (D11): hộp thông tin ô có ‹ › sang ô bên cạnh (ô trên bàn nhỏ dễ chạm lệch)
+{ await B.ev('document.querySelector(".tile[data-i=\'6\']").click()');
+  const a = await B.ev('document.querySelector("#infoOv").hidden?"":document.querySelector(".info__no").textContent');
+  await B.tap('#infoNext'); const b2 = await B.ev('document.querySelector(".info__no").textContent'); await B.tap('#infoPrev'); await B.tap('#infoPrev');
+  const c2 = await B.ev('document.querySelector(".info__no").textContent'); await B.tap('#infoOk');
+  check('BOARD2-11: chạm ô ⇒ hộp thông tin có ‹ › đi sang ô kế bên', a === 'Ô 7/40' && b2 === 'Ô 8/40' && c2 === 'Ô 6/40' && (await B.ev('document.querySelector("#infoOv").hidden')), [a, b2, c2].join(' ')); }
 
 // Bấm nút hành động của người đang có lượt (chỉ người có lượt mới có nút)
 const tabs = [A, B, C];

@@ -49,6 +49,7 @@
     .bar h1 { margin: 0; font: 800 18px "Be Vietnam Pro", system-ui; letter-spacing: .06em; text-transform: uppercase; text-shadow: 2px 2px 0 #000; white-space: nowrap; }
     .round { margin-left: auto; font: 800 13px "Be Vietnam Pro"; color: var(--gold); background: var(--panel2); padding: 4px 10px; box-shadow: var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; }
     .iconbtn { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; background: var(--panel2); box-shadow: var(--bevel), var(--border); font-size: 16px; }
+    .iconbtn .snd-ico { display: block; image-rendering: pixelated; }
     .iconbtn:focus-visible { outline: 2px dashed var(--gold); outline-offset: 4px; }
     .iconbtn:active { transform: translate(2px, 2px); box-shadow: var(--border); }
 
@@ -192,6 +193,10 @@
     .info table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 14px; font-variant-numeric: tabular-nums; }
     .info td { padding: 5px 8px; text-align: left; border-bottom: 2px solid #0d0b09; } .info td:last-child { text-align: right; color: var(--gold); font-weight: 800; }
     .info tr.cur td { background: #322a20; }
+    .info__nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; }
+    .info__nav .btn { min-width: 52px; min-height: 44px; font-size: 20px; }
+    .info__no { color: var(--soft); font-size: 13px; font-weight: 700; }
+    .seg .btn { min-width: 44px; min-height: 44px; } /* BOARD2-11: nút số người 2/3/4 trước chỉ 38 px */
     .info .regband { height: 10px; margin: -4px 0 12px; box-shadow: 0 0 0 3px var(--line); }
     .rank { display: grid; gap: 8px; margin: 14px 0 18px; }
     .rank div { display: grid; grid-template-columns: 30px 44px 1fr auto; gap: 10px; align-items: center; padding: 6px 10px; background: var(--panel2); box-shadow: var(--border); text-align: left; font-weight: 700; }
@@ -323,7 +328,7 @@
     <span class="round" id="round"><span class="rw">Vòng </span>1/25</span>
     <button class="iconbtn chatbtn" id="chatBtn" type="button" aria-label="Trò chuyện" hidden><span class="ci" aria-hidden="true">💬</span><span class="ct">Chat</span><span class="n" hidden></span></button>
     <button class="iconbtn" id="quitBtn" type="button" aria-label="Rời phòng" title="Rời phòng" hidden>Rời</button>
-    <button class="iconbtn" id="mute" aria-label="Tắt/bật âm thanh" title="Âm thanh">🔊</button>
+    <button class="iconbtn" id="mute" aria-label="Tắt/bật âm thanh" title="Âm thanh" aria-pressed="false"><svg class="snd-ico" viewBox="0 0 12 11" width="24" height="22" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="1" y="4" width="2" height="3" fill="#f4ead2"/><rect x="3" y="3" width="1" height="5" fill="#f4ead2"/><rect x="4" y="2" width="1" height="7" fill="#f4ead2"/><rect x="5" y="1" width="1" height="9" fill="#f4ead2"/><rect x="7" y="4" width="1" height="3" fill="#ffc94a"/><rect x="8" y="2" width="1" height="1" fill="#ffc94a"/><rect x="9" y="3" width="1" height="5" fill="#ffc94a"/><rect x="8" y="8" width="1" height="1" fill="#ffc94a"/></svg></button>
   </header>
   <main class="wrap">
     <section class="pcard" id="pc0" hidden></section>
@@ -421,7 +426,7 @@
       if (document.readyState === "complete") go(); else addEventListener("load", go, { once: true });
     })();
   </script>
-  <script type="module" src="game.js?v=d7a"></script>
+  <script type="module" src="game.js?v=d11a"></script>
   <script type="module" src="../_shared/feedback.js"></script>
 </body>
 </html>

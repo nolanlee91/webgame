@@ -40,8 +40,12 @@ const SFX = { hop: () => beep(520, 0.04), dice: () => beep(220 + Math.random() *
   leave: () => { beep(523, 0.07, "triangle"); setTimeout(() => beep(330, 0.1, "triangle"), 90); },
   turn: () => { beep(784, 0.06); setTimeout(() => beep(1047, 0.09), 90); },
   start: () => [392, 523, 659].forEach((f, i) => setTimeout(() => beep(f, 0.1), i * 110)) };
-$("#mute").textContent = muted ? "🔇" : "🔊";
-$("#mute").onclick = () => { muted = !muted; localStorage.setItem("wgp.muted", muted ? "1" : "0"); $("#mute").textContent = muted ? "🔇" : "🔊"; };
+// BRD-23 (D11): loa pixel vẽ bằng SVG lưới 12×11 (crispEdges, như Cơm Tấm) thay emoji 🔊/🔇 — cùng màu bảng của game (--ink/--gold, tắt: --dim/--red)
+const SND_ON = '<svg class="snd-ico" viewBox="0 0 12 11" width="24" height="22" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="1" y="4" width="2" height="3" fill="#f4ead2"/><rect x="3" y="3" width="1" height="5" fill="#f4ead2"/><rect x="4" y="2" width="1" height="7" fill="#f4ead2"/><rect x="5" y="1" width="1" height="9" fill="#f4ead2"/><rect x="7" y="4" width="1" height="3" fill="#ffc94a"/><rect x="8" y="2" width="1" height="1" fill="#ffc94a"/><rect x="9" y="3" width="1" height="5" fill="#ffc94a"/><rect x="8" y="8" width="1" height="1" fill="#ffc94a"/></svg>';
+const SND_OFF = '<svg class="snd-ico" viewBox="0 0 12 11" width="24" height="22" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="1" y="4" width="2" height="3" fill="#7d7564"/><rect x="3" y="3" width="1" height="5" fill="#7d7564"/><rect x="4" y="2" width="1" height="7" fill="#7d7564"/><rect x="5" y="1" width="1" height="9" fill="#7d7564"/><rect x="7" y="3" width="1" height="1" fill="#e0483d"/><rect x="10" y="3" width="1" height="1" fill="#e0483d"/><rect x="8" y="4" width="2" height="2" fill="#e0483d"/><rect x="7" y="6" width="1" height="1" fill="#e0483d"/><rect x="10" y="6" width="1" height="1" fill="#e0483d"/></svg>';
+const syncMute = () => { const b = $("#mute"); b.innerHTML = muted ? SND_OFF : SND_ON; b.setAttribute("aria-pressed", muted ? "true" : "false"); };
+syncMute();
+$("#mute").onclick = () => { muted = !muted; localStorage.setItem("wgp.muted", muted ? "1" : "0"); syncMute(); };
 
 // ---------- Bàn ----------
 let RECTS = null; // board.tiles trong manifest
@@ -307,9 +311,15 @@ function showInfo(i) {
       "keo-thom": "Rút thẻ Kèo Thơm: thưởng đột xuất.", "keo-thoi": "Rút thẻ Kèo Thối: nộp phạt, xui xẻo." };
     html += `<p class="sub" style="margin:10px 0 16px">${desc[t.type]}</p>`;
   }
+  // BOARD2-11 (D11): ô trên bàn nhỏ (≤ 360 px chỉ 21–27 px, không dời được ô) ⇒ chạm lệch sang ô bên cạnh thì đi tiếp ‹ › ngay trong hộp, ô đang xem nhấp nháy trên bàn
+  const n = TILES.length;
+  html += `<div class="info__nav"><button class="btn" id="infoPrev" aria-label="Ô trước">‹</button><span class="info__no">Ô ${i + 1}/${n}</span><button class="btn" id="infoNext" aria-label="Ô sau">›</button></div>`;
   html += `<button class="btn btn--primary" id="infoOk">Đóng</button>`;
   box.innerHTML = html; $("#infoOv").hidden = false; $("#infoOk").focus();
   $("#infoOk").onclick = () => { $("#infoOv").hidden = true; };
+  $("#infoPrev").onclick = () => { showInfo((i + n - 1) % n); $("#infoPrev").focus(); };
+  $("#infoNext").onclick = () => { showInfo((i + 1) % n); $("#infoNext").focus(); };
+  if (tileEls[i]) hlTile(i);
 }
 $("#infoOv").onclick = (e) => { if (e.target.id === "infoOv") $("#infoOv").hidden = true; };
 document.addEventListener("keydown", (e) => {
