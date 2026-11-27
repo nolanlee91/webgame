@@ -1,6 +1,7 @@
 // E2E "bot qua giao diện": mỗi vụ có file trong data/cases được giải trọn bằng BẤM THẬT (chuột / chạm), bước kế tiếp lấy từ core/solver.js nextAction.
 // Kiểm: đi hết vụ ra 3★, không lỗi console, nút bấm không bị che; chụp ảnh từng địa điểm + bài đăng + bảng suy luận + vạch mặt + kết vụ để soi bố cục.
 // Chạy: PORT=8871 node server.js  rồi  PORT=8871 node prototype/games/tham-tu-hem/test/e2e-bot.mjs <thư mục ảnh> [id vụ…] (mặc định: mọi vụ có file, cả mùa 2; vụ chưa có file ⇒ SKIP)
+// FASTREAD=1 ⇒ ở đoạn thoại đầu tiên bấm nút "Đọc nhanh" (D12) rồi đi tiếp; cuối mỗi vụ in "TAPS <vụ>: N" (mọi lần bấm/chạm của bot, kể cả nút Đọc nhanh).
 // VIEW=mob ⇒ 390×844 dpr 3 (chạm). VIEW=land ⇒ 844×390 dpr 2 (chạm, điện thoại xoay ngang — D5). Mặc định 1366×768 dpr 1,25.
 import { readdirSync } from "node:fs";
 import { launch, sleep } from "./cdp.mjs";
@@ -17,7 +18,8 @@ const land = process.env.VIEW === "land", mob = process.env.VIEW === "mob" || la
 const b = await launch(OUT, Number(process.env.CDP_PORT) || 9671);
 await b.view(land ? 844 : mob ? 390 : 1366, land ? 390 : mob ? 844 : 768, mob, land ? 2 : mob ? 3 : 1.25);
 if (mob) await b.touch(true);
-let fails = 0;
+let fails = 0, taps = 0, fastOn = false;
+const FAST = process.env.FASTREAD === "1";
 const check = (n, c, d = "") => { console.log((c ? "PASS " : "FAIL ") + n + (d ? " — " + d : "")); if (!c) fails++; };
 // điểm bấm: tâm phần tử, nếu tâm bị điểm soi nhỏ hơn nằm đè thì dò lưới tìm chỗ lộ ra (như người chơi bấm vào phần còn thấy)
 const at = (sel) => b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e||e.closest('[hidden]')||e.disabled)return null;e.scrollIntoView({block:'nearest',inline:'center'});const r=e.getBoundingClientRect();if(!r.width)return null;
@@ -30,16 +32,20 @@ async function press(sel, wait = 40) {
   const hit = await b.ev(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});const h=document.elementFromPoint(${p[0]},${p[1]});return !!h&&(h===e||e.contains(h))})()`);
   if (!hit) check("không bị che: " + sel, false);
   if (mob) await b.tap(...p); else await b.click(...p);
+  taps++;
   await sleep(80);
 }
 const waitFor = async (expr, ms = 5000) => { for (let t = 0; t < ms; t += 80) { if (await b.ev(expr).catch(() => false)) return true; await sleep(80); } return false; };
-async function talk(ms = 2500) { if (!(await waitFor("__game.dialogOpen", ms))) return; for (let n = 0; n < 400 && (await b.ev("__game.dialogOpen")); n++) await press(".dlg-box"); }
+async function talk(ms = 2500) { if (!(await waitFor("__game.dialogOpen", ms))) return;
+  if (FAST && !fastOn) { await press("#fastReadBtn"); fastOn = true; check("Đọc nhanh bật (aria-pressed, cả đoạn trong khung)", await b.ev(`document.querySelector('#fastReadBtn').getAttribute('aria-pressed')==='true'&&localStorage.getItem('tth.fastread')==='1'&&(document.querySelector('.dlg-box.fastread')!==null||document.querySelector('.dlg-box.is-card')!==null)`)); }
+  for (let n = 0; n < 400 && (await b.ev("__game.dialogOpen")); n++) await press(".dlg-box"); }
 const esc = async () => { for (const type of ["keyDown", "keyUp"]) await b.send("Input.dispatchKeyEvent", { type, key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); await sleep(80); };
 const overlay = () => b.ev("__game.overlay");
 async function closeOv() { for (let i = 0; i < 5 && (await overlay()); i++) await esc(); }
 
 for (const id of ids) {
   const idx = CASES.findIndex((c) => c.id === id);
+  taps = 0; fastOn = false;
   await b.send("Page.navigate", { url: "about:blank" }); await sleep(200);
   await b.send("Storage.clearDataForOrigin", { origin: ORIGIN, storageTypes: "local_storage" });
   await b.nav(`${ORIGIN}/games/tham-tu-hem/?fast=1`);
@@ -76,6 +82,7 @@ for (const id of ids) {
       if (a.type === "bonus") { await waitFor("__game.screen==='result'"); await press(`[data-bonus="${a.id}"][data-choice="${a.choice}"]`); await talk(); continue; }
     }
     await sleep(600); await b.shot(`${OUT}/${id}-${V}-ket-vu.png`);
+    console.log(`TAPS ${id}: ${taps}${FAST ? " (Đọc nhanh)" : ""}`);
     check(`${id}: giải trọn qua giao diện ra 3★`, await b.ev("!!__game.state&&__game.state.phase==='done'&&__game.state.result.stars===3"), JSON.stringify(await b.ev("__game.state&&{ph:__game.state.phase,r:__game.state.result}")));
   } catch (e) { check(`${id}: kịch bản`, false, e.message); }
 }
