@@ -3,12 +3,14 @@
 // Đồng hồ: trang mở với ?testclock ⇒ window.__ntOffset (ms) dịch thời gian để cây chín ngay, không phải chờ.
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
-const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8801, BASE = `http://127.0.0.1:${PORT}/games/nong-trai/?testclock`;
+import { tempProfile, guardChrome, shotDir } from "../../_shared/test/lk-temp.mjs";
+const OUT = process.argv[2] || shotDir("nong-trai"), PORT = process.env.PORT || 8801, BASE = `http://127.0.0.1:${PORT}/games/nong-trai/?testclock`;
 const DBG = Number(process.env.DBG_PORT || 9384);
 mkdirSync(OUT, { recursive: true });
-const PROF = OUT + "/prof";
+const PROF = tempProfile("nong-trai"); // %TEMP%/lk-e2e-nong-trai-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn("C:/Program Files/Google/Chrome/Application/chrome.exe",
   ["--headless=new", `--remote-debugging-port=${DBG}`, "--user-data-dir=" + PROF, "--hide-scrollbars", "--autoplay-policy=no-user-gesture-required", "about:blank"], { stdio: "ignore" });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {

@@ -3,9 +3,12 @@
 // Chế độ chơi với máy: người chơi cầm ghế 0 (Đỏ), máy (ai.js) tự gieo + tự đi các ghế còn lại.
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
-const OUT = process.argv[2], URL0 = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-ca-ngua/index.html';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-ca-ngua'), URL0 = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-ca-ngua/index.html';
+const PROF = tempProfile('co-ca-ngua'); // %TEMP%/lk-e2e-co-ca-ngua-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9334', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=9334', '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {

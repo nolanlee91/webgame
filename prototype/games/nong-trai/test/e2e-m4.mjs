@@ -3,11 +3,14 @@
 // Chạy: (ở gốc repo) PORT=8805 node server.js   rồi   PORT=8805 node prototype/games/nong-trai/test/e2e-m4.mjs <thư mục output>
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync } from "node:fs";
-const OUT = process.argv[2] || ".", PORT = process.env.PORT || 8805, BASE = `http://127.0.0.1:${PORT}/games/nong-trai/ui/dev-m4.html`;
+import { tempProfile, guardChrome, shotDir } from "../../_shared/test/lk-temp.mjs";
+const OUT = process.argv[2] || shotDir("nong-trai-m4"), PORT = process.env.PORT || 8805, BASE = `http://127.0.0.1:${PORT}/games/nong-trai/ui/dev-m4.html`;
 const DBG = 9375;
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile("nong-trai-m4"); // %TEMP%/lk-e2e-nong-trai-m4-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn("C:/Program Files/Google/Chrome/Application/chrome.exe",
-  ["--headless=new", `--remote-debugging-port=${DBG}`, "--user-data-dir=" + OUT + "/prof", "--hide-scrollbars", "about:blank"], { stdio: "ignore" });
+  ["--headless=new", `--remote-debugging-port=${DBG}`, "--user-data-dir=" + PROF, "--hide-scrollbars", "about:blank"], { stdio: "ignore" });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60 && !ws; i++) {

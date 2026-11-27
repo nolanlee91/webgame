@@ -5,16 +5,15 @@
 // trang không ghi console, không lỗi JS.
 // Chạy: node games-server/ai-la-noi-gian/test/browser-e2e.mjs [thư mục ảnh]
 import { spawn } from 'node:child_process';
-import { mkdtemp } from 'node:fs/promises';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
+import { tempProfile, guardChrome, shotDir } from '../../../prototype/games/_shared/test/lk-temp.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../../..');
-const OUT = process.argv[2] || join(tmpdir(), 'ai-la-noi-gian-shots');
+const OUT = process.argv[2] || shotDir('noi-gian');
 mkdirSync(OUT, { recursive: true });
 process.env.NOIGIAN_SPEED = process.env.NOIGIAN_SPEED || '0.3';
 const server = createRequire(import.meta.url)(join(REPO, 'server.js'));
@@ -24,10 +23,11 @@ const BASE = `http://127.0.0.1:${server.address().port}/games/ai-la-noi-gian/`;
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome', '/usr/bin/chromium', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(existsSync);
 if (!CHROME) { console.error('Không thấy Chrome/Edge'); process.exit(2); }
-const prof = await mkdtemp(join(tmpdir(), 'noigian-e2e-'));
+const prof = tempProfile('noi-gian'); // %TEMP%/lk-e2e-noi-gian-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const DPORT = 9400 + Math.floor(Math.random() * 400);
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${DPORT}`, `--user-data-dir=${prof}`, '--hide-scrollbars', '--no-first-run',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, prof);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, msg) => { console.log(`${c ? '✔' : '✘'} ${msg}`); if (!c) fails++; };

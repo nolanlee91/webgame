@@ -3,16 +3,15 @@
 // gõ sai lượt bị chặn, tải lại trang giữa ván vẫn vào lại đúng ghế, chịu thua + chơi lại cần cả hai đồng ý.
 // Chạy: node games-server/noi-tu/test/browser-e2e.mjs [thư mục ảnh]   (mặc định prototype/games/noi-tu/screenshots/online/)
 import { spawn } from 'node:child_process';
-import { mkdtemp } from 'node:fs/promises';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
+import { tempProfile, guardChrome, shotDir } from '../../../prototype/games/_shared/test/lk-temp.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../../..');
-const OUT = process.argv[2] || join(REPO, 'prototype/games/noi-tu/screenshots/online');
+const OUT = process.argv[2] || shotDir('noi-tu-online');
 mkdirSync(OUT, { recursive: true });
 process.env.NOITU_ONLINE = '1';
 const server = createRequire(import.meta.url)(join(REPO, 'server.js'));
@@ -22,10 +21,11 @@ const BASE = `http://127.0.0.1:${server.address().port}/games/noi-tu/`;
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome', '/usr/bin/chromium', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(existsSync);
 if (!CHROME) { console.error('Không thấy Chrome/Edge'); process.exit(2); }
-const prof = await mkdtemp(join(tmpdir(), 'noitu-online-'));
+const prof = tempProfile('noi-tu-online'); // %TEMP%/lk-e2e-noi-tu-online-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const DPORT = 9400 + Math.floor(Math.random() * 400);
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${DPORT}`, `--user-data-dir=${prof}`, '--hide-scrollbars', '--no-first-run',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, prof);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0;
 const ok = (c, msg) => { console.log(`${c ? '✔' : '✘'} ${msg}`); if (!c) fails++; };

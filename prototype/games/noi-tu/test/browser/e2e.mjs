@@ -4,11 +4,11 @@
 // Không nằm trong `npm test` (cần Chrome, ~1,5 phút): `npm run test:e2e`.
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { readFile, mkdtemp, rm } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tmpdir } from 'node:os';
+import { tempProfile, guardChrome } from '../../../_shared/test/lk-temp.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = normalize(join(HERE, '../../../..'));                  // prototype/
@@ -29,10 +29,11 @@ const BASE = `http://127.0.0.1:${srv.address().port}/games/noi-tu/`;
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome', '/usr/bin/chromium', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find(existsSync);
 if (!CHROME) { console.error('Không thấy Chrome/Edge'); process.exit(2); }
-const prof = await mkdtemp(join(tmpdir(), 'noitu-e2e-'));
+const prof = tempProfile('noi-tu'); // %TEMP%/lk-e2e-noi-tu-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const PORT = 9400 + Math.floor(Math.random() * 400);
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${prof}`, '--hide-scrollbars', '--no-first-run',
   '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, prof);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 80 && !ws; i++) {
@@ -398,6 +399,5 @@ try {
 }
 writeFileSync(join(OUT, 'e2e-ket-qua.txt'), R.join('\n') + `\n\n${R.length - fails}/${R.length} PASS\n`);
 console.log(`\n${R.length - fails}/${R.length} PASS`);
-ws.close(); chrome.kill(); srv.close();
-await sleep(300); await rm(prof, { recursive: true, force: true }).catch(() => {});
+ws.close(); srv.close(); // Chrome + hồ sơ: lk-temp dọn khi process.exit
 process.exit(fails ? 1 : 0);

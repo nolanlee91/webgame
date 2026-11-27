@@ -3,11 +3,14 @@
 // Chạy: (ở gốc repo) node games-server/co-tuong/dev.js   rồi   node prototype/games/co-tuong/screenshots/e2e.mjs <thư mục output>   [PORT=8769]
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', PORT = process.env.PORT || 8769, CDP = 9347;
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-tuong'), PORT = process.env.PORT || 8769, CDP = 9347;
 const URL0 = `http://127.0.0.1:${PORT}/games/co-tuong/`;
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('co-tuong'); // %TEMP%/lk-e2e-co-tuong-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=' + CDP, '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + CDP, '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const R = []; const check = (n, c, d = '') => { const s = (c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''); R.push(s); console.log(s); };
 // ô theo ký hiệu cờ: cột a–i (trái → phải nhìn từ phía Đỏ), hàng 0 = hàng cuối của Đỏ

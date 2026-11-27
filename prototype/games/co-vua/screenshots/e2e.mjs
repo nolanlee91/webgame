@@ -2,10 +2,13 @@
 // Chạy: (ở gốc repo) PORT=8768 node server.js   rồi   node prototype/games/co-vua/screenshots/e2e.mjs <thư mục output>
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', HOST = '127.0.0.1:' + (process.env.PORT || 8768), BASE = 'http://' + HOST + '/games/co-vua/';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-vua'), HOST = '127.0.0.1:' + (process.env.PORT || 8768), BASE = 'http://' + HOST + '/games/co-vua/';
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('co-vua'); // %TEMP%/lk-e2e-co-vua-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9350', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=9350', '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {

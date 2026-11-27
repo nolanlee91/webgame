@@ -1,14 +1,18 @@
 // E2E Cờ Tỷ Phú online trên Chrome headless — 3 tab = 3 người chơi thật (mỗi tab sessionStorage riêng), bấm chuột / chạm qua CDP.
 // Thử: tạo phòng, vào bằng link + mã, đổi linh vật, chủ phòng bắt đầu, chơi các lượt, chat, rớt mạng nối lại, rời ván, hết ván,
 // về phòng chờ; chơi với máy vẫn chạy; trang chủ xếp kệ đúng. Chụp ảnh desktop 1440×900 + mobile 390×844.
-// Chạy: (ở gốc repo) PORT=8768 node server.js   rồi   node prototype/games/co-ty-phu/screenshots/e2e-online.mjs <thư mục output>
+// Chạy: (ở gốc repo) PORT=8768 node server.js   rồi   [PORT=8768] node prototype/games/co-ty-phu/screenshots/e2e-online.mjs [thư mục output]
+// (mặc định ảnh + result.txt vào %TEMP%/lk-e2e-shots-co-ty-phu-online)
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', PORT = process.env.PORT || 8768, ORIGIN = 'http://127.0.0.1:' + PORT, BASE = ORIGIN + '/games/co-ty-phu/';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-ty-phu-online'), PORT = process.env.PORT || 8768, ORIGIN = 'http://127.0.0.1:' + PORT, BASE = ORIGIN + '/games/co-ty-phu/';
 const DBG = 9361;
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('co-ty-phu-online'); // %TEMP%/lk-e2e-co-ty-phu-online-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=' + DBG, '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + DBG, '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 setTimeout(() => { console.log('TIMEOUT sau bước: ' + (R.at(-1) || '-')); try { writeFileSync(OUT + '/result.txt', R.join(String.fromCharCode(10)) + ' TIMEOUT'); } catch {} chrome.kill(); process.exit(1); }, 480000).unref();
 const R = []; const check = (n, c, d = '') => { const s = (c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''); R.push(s); console.log(s); };
@@ -68,7 +72,18 @@ class Tab {
 
 let list;
 for (let i = 0; i < 60; i++) { try { list = await (await fetch(`http://127.0.0.1:${DBG}/json`)).json(); if (list.find((x) => x.type === 'page')) break; } catch {} await sleep(250); }
-const newTab = async (name) => { const t = await (await fetch(`http://127.0.0.1:${DBG}/json/new?about:blank`, { method: 'PUT' })).json(); return new Tab(name, t.webSocketDebuggerUrl).open(); };
+// Mỗi người chơi một browser context riêng (localStorage / cookie tách biệt = như 3 máy). Chung một context thì tab B mở link mời
+// sẽ dùng lại ghế đã lưu của A trong localStorage (tính năng "mở lại link ⇒ về đúng ghế") và đá A ra — đó là lý do bản cũ dừng ở #start.
+const bws = new WebSocket((await (await fetch(`http://127.0.0.1:${DBG}/json/version`)).json()).webSocketDebuggerUrl);
+await new Promise((r) => (bws.onopen = r));
+let bid = 0; const bpend = new Map();
+bws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.id && bpend.has(m.id)) { bpend.get(m.id)(m.result); bpend.delete(m.id); } };
+const bcmd = (method, params = {}) => new Promise((r) => { const i = ++bid; bpend.set(i, r); bws.send(JSON.stringify({ id: i, method, params })); });
+const newTab = async (name) => {
+  const { browserContextId } = await bcmd('Target.createBrowserContext', { disposeOnDetach: true });
+  const { targetId } = await bcmd('Target.createTarget', { url: 'about:blank', browserContextId });
+  return new Tab(name, `ws://127.0.0.1:${DBG}/devtools/page/${targetId}`).open();
+};
 const A = await newTab('A'), B = await newTab('B'), C = await newTab('C');
 await A.view(1440, 900, false); await B.view(390, 844, true); await C.view(1280, 800, false);
 
@@ -206,7 +221,8 @@ await A.send('Page.navigate', { url: ORIGIN + '/homepage/' }); await sleep(1800)
 const shelf = (id) => A.ev(`(()=>{const s=document.getElementById(${JSON.stringify(id)});return s?[...s.querySelectorAll('.tile')].map(t=>t.textContent.replace(/\\s+/g,' ')):[]})()`);
 const duel = await shelf('duel'), tri = await shelf('tri-tue');
 check('trang chủ: Cờ Tỷ Phú ở kệ Đối kháng đông người, nhãn 2–4 người', duel.some((t) => t.includes('Cờ Tỷ Phú') && t.includes('2–4 người')), duel.find((t) => t.includes('Tỷ Phú')) || '');
-check('trang chủ: Cờ Vua + Cờ Tướng ở kệ Trí tuệ, không còn ở kệ Đối kháng', tri.some((t) => t.includes('Cờ Vua')) && tri.some((t) => t.includes('Cờ Tướng')) && !duel.some((t) => /Cờ Vua|Cờ Tướng/.test(t)));
+// Từ khi trang chủ gom mọi game chơi online vào kệ Đối kháng (DUEL_IDS trong homepage/games.js), Cờ Vua + Cờ Tướng nằm ở kệ này.
+check('trang chủ: Cờ Vua + Cờ Tướng ở kệ Đối kháng (game online), không lặp ở kệ Trí tuệ', duel.some((t) => t.includes('Cờ Vua')) && duel.some((t) => t.includes('Cờ Tướng')) && !tri.some((t) => /Cờ Vua|Cờ Tướng/.test(t)));
 check('trang chủ: Cờ Tỷ Phú không còn ở kệ Trí tuệ', !tri.some((t) => t.includes('Tỷ Phú')));
 await A.ev('document.getElementById("duel").scrollIntoView()'); await A.shot('home-desktop-duel.png');
 await A.ev('document.getElementById("tri-tue").scrollIntoView()'); await A.shot('home-desktop-tritue.png');

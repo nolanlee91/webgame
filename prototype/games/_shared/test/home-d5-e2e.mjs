@@ -55,7 +55,7 @@ try {
   check("P-F: sảnh vắng (7 người) ⇒ KHÔNG hiện số người; không phòng chờ mà có ván ⇒ mở sẵn 'Đang diễn ra'", s3.online && s3.sel === "true" && s3.n === 1 && !s3.empty && s3.tabsShown, JSON.stringify(s3));
 
   const C = await open("tab-rong", 1366, 768, false, { rooms: [] });
-  check("P-F: máy chủ cũ (chỉ có rooms) / không ai chơi ⇒ như trước: 'mở phòng nhanh', không số người, không lỗi", await C.ev(`document.getElementById("lobby").classList.contains("is-empty") && document.getElementById("lobbyOnline").hidden && /mở phòng nhanh/.test(document.getElementById("quickTitle").textContent)`));
+  check("P-F: máy chủ cũ (chỉ có rooms) / không ai chơi ⇒ sảnh trống có lời nhắn + nút Tạo phòng (D9: bỏ 'Mở phòng nhanh'), không số người, không lỗi", await C.ev(`document.getElementById("lobby").classList.contains("is-empty") && document.getElementById("lobbyOnline").hidden && !document.getElementById("lobbyEmpty").hidden && /Tạo phòng/.test(document.getElementById("createRoom2").textContent) && !document.querySelector(".quick__item, #quickTitle, #quickGrid")`));
 
   // ---------- HOME-11: thẻ Tài trợ ----------
   const sp = (t) => t.ev(`(() => { const s = document.querySelector("#grid .tile--sponsor"); return s ? s.tagName + "|" + s.getAttribute("href") + "|" + s.getAttribute("rel") : ""; })()`);

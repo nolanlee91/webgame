@@ -54,7 +54,7 @@ const flat = (tf) => tf === "none" || /^matrix\(1, 0, 0, 1, 0, 0\)$/.test(tf);
 {
   const t = await open(true);
   const url0 = await t.ev("location.href");
-  for (const [name, sel] of [["thẻ game", "a.tile[href]"], ["ô Mở phòng nhanh", "a.quick__item[href]"], ["nút", "button[type=submit].btn"]]) {
+  for (const [name, sel] of [["thẻ game", "a.tile[href]"], ["slide hero", "a.slide[href]"], ["nút", "button[type=submit].btn"]]) {
     const p = await center(t, sel);
     if (!p) { console.log(`(bỏ qua ${name}: không thấy trên màn)`); continue; }
     await reset(t);

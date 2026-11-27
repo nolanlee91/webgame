@@ -14,12 +14,23 @@
   --px-bevel: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -2px 0 rgba(0,0,0,.35);
   --px-drop: 4px 7px 0 0 var(--px-shadow), 7px 4px 0 0 var(--px-shadow);
   /* Font dự phòng khi webfont lỗi / chưa tải: chỉ dùng font vẽ đúng dấu tiếng Việt chồng (Georgia vỡ dấu: "Tâ´t cả game") */
-  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
-  --font-title: "Roboto Slab", "Noto Serif", "Times New Roman", Times, serif;
+  --font-body: "Be Vietnam Pro", "LK Body Fallback", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --font-title: "Roboto Slab", "LK Title Fallback", "Noto Serif", "Times New Roman", Times, serif;
   /* tên cũ — play.html vẫn dùng */
   --ink: var(--px-ink); --ink-soft: var(--px-soft);
   color-scheme: dark;
 }
+
+/* D9 (HOME2-05): trang chủ nạp webfont SAU ảnh hero (index.html) ⇒ lần đầu chữ hiện bằng font máy rồi đổi. Hai mặt chữ dự phòng dưới đây
+   là Arial / Times New Roman chỉnh cỡ + ascent/descent cho khớp Be Vietnam Pro / Roboto Slab (đo bằng fontTools trên chuỗi tiếng Việt của
+   trang: BVP 500 rộng hơn Arial 8,3 %, BVP 700–800 rộng hơn Arial Bold 3,7–4,6 %, Roboto Slab 800 rộng hơn Times Bold 8,2 %) ⇒ đổi font
+   gần như không xô dòng. Máy không có Arial (Android) ⇒ local() hỏng ⇒ rơi xuống system-ui như trước. */
+@font-face { font-family: "LK Body Fallback"; font-weight: 100 599; src: local("Arial"), local("ArialMT");
+  size-adjust: 108%; ascent-override: 92.6%; descent-override: 24.5%; line-gap-override: 0%; }
+@font-face { font-family: "LK Body Fallback"; font-weight: 600 900; src: local("Arial Bold"), local("Arial-BoldMT");
+  size-adjust: 104%; ascent-override: 96.2%; descent-override: 25.5%; line-gap-override: 0%; }
+@font-face { font-family: "LK Title Fallback"; font-weight: 100 900; src: local("Times New Roman Bold"), local("TimesNewRomanPS-BoldMT");
+  size-adjust: 108%; ascent-override: 97%; descent-override: 25.1%; line-gap-override: 0%; }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
