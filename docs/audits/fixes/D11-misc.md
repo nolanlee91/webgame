@@ -31,7 +31,7 @@ Không đổi ảnh. Đo bằng Chrome headless qua `_shared/test/cdp.mjs`, ch�
 - Không có phòng chờ và không có ván đang chơi (cả lúc đang tải — trường hợp hay gặp nhất, nên lần vẽ đầu đã là dạng gọn): sảnh chỉ còn **một hàng** "Có mã phòng bạn gửi? [mã] Vào phòng · + Tạo phòng mới". Ẩn tiêu đề, tab, danh sách, lời nhắn trống.
 - Máy tính (≥ 1024): sảnh gọn ⇒ hero chiếm trọn hàng (ảnh 4:3 rộng 440 px bên trái, tên 38 px + mô tả + Chơi ngay bên phải, chấm chuyển slide dưới phần chữ), hàng mã phòng ngay dưới. Khối đầu trang 470 → 330 + 72 px. `sizes` hero cuối danh sách 360px → 440px (cả HTML viết sẵn).
 - Có phòng ⇒ sảnh đầy đủ như cũ (tab Phòng chờ / Đang diễn ra, danh sách).
-- **CLS:** nếu kết quả `/api/lobby` về khi trang **đã vẽ** thì tự bung sảnh sẽ xô cả trang (đo: máy tính **0,32**, 390: 0,05). Nên: kết quả về trước lần vẽ ⇒ mở đầy đủ luôn; về sau ⇒ sảnh vẫn gọn, hiện nút nhỏ **"● N phòng đang chờ · Xem"** đè mép trên khung (không chiếm chỗ), bấm mới mở đầy đủ (do người bấm nên không tính CLS). Đã mở thì không tự thu lại.
+- **CLS:** nếu kết quả `/api/lobby` về khi trang **đã vẽ** thì tự bung sảnh sẽ xô cả trang (đo: máy tính **0,32**, 390: 0,05). Nên: kết quả đã có khi trình duyệt đọc tới khung sảnh (script trong `<head>` lưu `window.__lobbyD`, một dòng script ngay trong khung sảnh đặt `.has-rooms` trước lần vẽ đầu) ⇒ mở đầy đủ luôn; về sau ⇒ sảnh vẫn gọn, hiện nút nhỏ **"● N phòng đang chờ · Xem"** đè mép trên khung (không chiếm chỗ), bấm mới mở đầy đủ (do người bấm nên không tính CLS). Đã mở thì không tự thu lại.
 - CLS lúc tải (mock `/api/lobby`, `home-d11-e2e`): trống 1366 0,0003 · 1920 0,0001 · 390 0; có phòng về ngay 1366 0,0003 · 1920 0,0001 · 390 0; phòng về sau 1,5 s 1366 0,0004 · 390 0,0004.
 - Ảnh: `sanh-1366-trong.png`, `sanh-1366-co-phong.png`, `sanh-1920-trong.png`, `sanh-1920-co-phong.png`, `sanh-390-trong.png`, `sanh-390-co-phong.png`, `sanh-muon-1366.png`.
 
@@ -71,14 +71,14 @@ Tag: `game.js`, `ui/screens.js`, `ui/panels.js` t14 → **t15**; mọi file vụ
 
 | Bộ | Kết quả |
 |---|---|
-| `_shared/test/home-d11-e2e.mjs` (mới) | 48/48 ĐẠT: HOME2-06/07/10/13, gộp hero (320/360/390 + 568×320), nav, sảnh gọn / đầy đủ / phòng về muộn + CLS |
+| `_shared/test/home-d11-e2e.mjs` (mới) | 47/47 ĐẠT (2 lần liền sau khi gộp master): HOME2-06/07/10/13, gộp hero (320/360/390 + 568×320), nav, sảnh gọn / đầy đủ / phòng về muộn + CLS |
 | `home-d3-e2e` | ĐẠT (sửa kỳ vọng nav 4 → 2 mục, mục đang chọn ở trang Thử thách) |
 | `home-d5-e2e` | ĐẠT (dọc: không hero, dải 3 hàng; máy tính sảnh trống: hero 330 px) |
 | `touch-scroll-e2e` | 30/30 (thay "slide hero" bằng ô Tựa game của tuần + thêm chip điều hướng) |
-| `sound-press-e2e` | SOUND_RESULT |
+| `sound-press-e2e` | 245/246: trang chủ đạt hết; 1 FAIL ở **Rắn Săn Mồi** 390 (`#pauseBtn` bị vô hiệu mà vẫn lún) — file của D10, nhánh này không đụng, lỗi có sẵn sau khi gộp master |
 | `daily-e2e` | ĐẠT |
-| Thám Tử unit (`node --test`) | 46/46 (thêm test choices + độ dài thú nhận / kết) |
-| Thám Tử `e2e-bot` | TTH_BOT |
+| Thám Tử unit (`node --test`) | 45/45 (thêm test choices + độ dài thú nhận / kết) |
+| Thám Tử `e2e-bot` | VIEW=mob đủ 12 vụ: 25/25, 0 FAIL (không còn FAIL "0 lỗi console"); VIEW=land Vụ 1: ĐẠT |
 | Ma Sói `browser-e2e` | ĐẠT (thêm kiểm PTY-07 ở phòng chờ 320/360/390) |
 | Nội Gián `browser-e2e` | ĐẠT |
 | `board-online-e2e` Caro / Vua / Tướng / Ô Ăn Quan | ĐẠT cả 4 |
@@ -88,7 +88,8 @@ Tag: `game.js`, `ui/screens.js`, `ui/panels.js` t14 → **t15**; mọi file vụ
 
 ## 5. Tag cache đã đổi
 
-- Trang chủ: `app.js` d9b → **d11b**; `nav.css` d8a → **d11a**, `portal-pixel.css` d9a → **d11a** (index, bang-xep-hang, quyen-rieng-tu); `press-nav.js` d9a → **d11a** (vẫn import `feedback.js?v=f3`).
+- Sau khi gộp master (D10, `fdc6589`), file cả hai nhánh cùng sửa dùng tag mới **d11**: trang chủ `app.js` (master d10); Thám Tử `game.js`, `ui/screens.js`, `ui/panels.js` (master d10); Tỷ Phú `game.js`; Cá Ngựa `game.js`, `online.js`, `hud.js`. Giữ `stats.js?v=st1` và cookie `lk_via=sanh` của nút "Vào" ở sảnh (chỉ có khi sảnh mở đầy đủ — đúng lúc có phòng).
+- Trang chủ (trước khi gộp): `app.js` d9b → d11b; `nav.css` d8a → **d11a**, `portal-pixel.css` d9a → **d11a** (index, bang-xep-hang, quyen-rieng-tu); `press-nav.js` d9a → **d11a** (vẫn import `feedback.js?v=f3`).
 - Thám Tử: `game.js`, `ui/screens.js`, `ui/panels.js` → **t15**; file vụ → **t15**.
 - Ma Sói `style.css` d8o → **d11a**.
 - Tỷ Phú `game.js` d7a → **d11a**.
