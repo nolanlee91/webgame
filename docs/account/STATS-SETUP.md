@@ -86,6 +86,7 @@ chưa gửi nên số luôn mới nhất.
 | `room_join_link` | Vào phòng bằng link hoặc mã (kể cả gõ mã trên trang chủ) | máy chủ |
 | `room_join_lobby` | Vào phòng bằng nút "Vào" ở sảnh chờ trang chủ | máy chủ (cookie `lk_via`, 2 phút) |
 | `daily_submit` | Xong một Thử thách hôm nay (lần ghi đầu tiên trong ngày, kể cả khi bảng xếp hạng tắt) | trình duyệt |
+| `donate_open` | Mở hộp "☕ Ủng hộ Lụm Kèo" ở chân trang chủ / trang Thử thách (không gắn game) | trình duyệt (`homepage/donate.js`) |
 
 Không lưu IP, user id, user agent hay tên. IP chỉ dùng giới hạn 60 sự kiện/phút/IP trong RAM.
 Trình duyệt có thể tự gửi số giả (ví dụ bấm F12 gửi hàng loạt): giới hạn theo IP làm chậm việc này nhưng không chặn hẳn.

@@ -106,9 +106,11 @@ try {
   const NO = JSON.parse(await T.ev(`JSON.stringify((() => { const n = document.querySelector(".mainnav"), a = [...n.querySelectorAll("a")].pop().getBoundingClientRect(), s = document.querySelector(".search").getBoundingClientRect();
     return { sw: n.scrollWidth, cw: n.clientWidth, lastRight: Math.round(a.right), searchLeft: Math.round(s.left) }; })())`));
   check("HOME2-01 desktop: điều hướng không tràn, mục cuối không bị ô tìm đè", NO.sw <= NO.cw && NO.lastRight < NO.searchLeft, JSON.stringify(NO));
-  // D5: chưa có link https:// thật ⇒ thẻ ẩn; điền link ⇒ thẻ tự hiện (vẽ lại kệ) — xem home-d5-e2e.mjs
-  check("HOME-11/D5 thẻ 'Tài trợ' ẩn khi SPONSOR.url trống", await T.ev(`!document.querySelector("#grid .tile--sponsor") && !window.SPONSOR.url`));
-  await T.ev(`(() => { window.SPONSOR.url = "https://example.com/speakup"; document.querySelector('#chips .tab[data-cat="all"]').click(); })()`); await sleep(150);
+  // D12: chủ dự án đã có link thật (games.js) ⇒ thẻ hiện ngay; xoá link ⇒ ẩn (D5), điền lại ⇒ hiện — xem thêm home-d5-e2e.mjs
+  check("HOME-11/D12 thẻ 'Tài trợ' hiện với link thật https://speakupkids.net/", await T.ev(`window.SPONSOR.url === "https://speakupkids.net/" && document.querySelector("#grid .tile--sponsor")?.getAttribute("href") === "https://speakupkids.net/"`));
+  await T.ev(`(() => { window.SPONSOR.url = ""; document.querySelector('#chips .tab[data-cat="all"]').click(); })()`); await sleep(150);
+  check("HOME-11/D5 xoá SPONSOR.url ⇒ thẻ 'Tài trợ' ẩn", await T.ev(`!document.querySelector("#grid .tile--sponsor")`));
+  await T.ev(`(() => { window.SPONSOR.url = "https://speakupkids.net/"; document.querySelector('#chips .tab[data-cat="all"]').click(); })()`); await sleep(150);
   check("HOME-11 thẻ 'Tài trợ' SpeakUp Kids cuối kệ, cùng cỡ thẻ game", await T.ev(`(() => { const s = document.querySelector("#grid .tile--sponsor"); if (!s) return false;
     const tiles = s.parentElement.querySelectorAll(".tile"); const a = s.querySelector(".tile__art").getBoundingClientRect(), b = tiles[0].querySelector(".tile__art").getBoundingClientRect();
     return tiles[tiles.length - 1] === s && s.closest(".shelf") === [...document.querySelectorAll("#grid .shelf")].pop() && /Tài trợ/.test(s.textContent) && /SpeakUp Kids/.test(s.textContent)
@@ -148,7 +150,8 @@ try {
       me: Math.round(document.getElementById("meBtn").getBoundingClientRect().height),
       lobbyBottom: Math.round(document.getElementById("lobby").querySelector(".lobby__bar").getBoundingClientRect().bottom),
       pinRow: (() => { const r = [document.getElementById("roomInlineCode"), document.querySelector("#roomInline button"), document.getElementById("createRoom")].map(e => Math.round(e.getBoundingClientRect().top)); return Math.max(...r) - Math.min(...r); })() }; })())`));
-  check("HOME-02 màn đầu 390×844: thấy trọn ≥ 6 thẻ game", F.n >= 6, F.n + ": " + F.ids.join());
+  // D12 (quyết định chủ dự án): bỏ dải "Chơi ngay" (game trùng kệ) ⇒ màn đầu = băng "Tựa game của tuần" + sảnh + hàng ô đầu của kệ đầu (1 + 3)
+  check("HOME-02/D12 màn đầu 390×844: thấy trọn băng Tựa game của tuần + ≥ 3 thẻ game, không game nào lặp", F.n >= 4 && F.ids[0] === "co-ca-ngua" && new Set(F.ids).size === F.ids.length, F.n + ": " + F.ids.join());
   check("HOME-02 sảnh điện thoại: mã phòng + Vào + Tạo phòng cùng MỘT hàng, nằm trong màn đầu", F.pinRow <= 8 && F.lobbyBottom <= 844, JSON.stringify({ pinRow: F.pinRow, lobbyBottom: F.lobbyBottom }));
   check("HOME-05 ô tìm 16 px trên điện thoại", F.font === "16px", F.font);
   check("P-D/P-B điện thoại: chip điều hướng + ô hồ sơ cao ≥ 44 px", F.nav.length === 2 && F.nav.every((h) => h >= 44) && F.me >= 44, JSON.stringify(F.nav) + " me " + F.me);

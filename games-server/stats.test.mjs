@@ -44,7 +44,7 @@ test("loadGameIds: lấy id game từ games-meta.js (sinh từ homepage/games.js
 test("count: chỉ nhận sự kiện trong danh sách và game hợp lệ (hoặc rỗng)", () => {
   const s = createStats({ env: {}, games: GAMES, now: () => T0 });
   assert.equal(s.mode, "memory");
-  assert.deepEqual(EVENTS, ["share_click", "challenge_click", "share_open", "challenge_open", "challenge_done", "room_create", "room_join_link", "room_join_lobby", "daily_submit"]);
+  assert.deepEqual(EVENTS, ["share_click", "challenge_click", "share_open", "challenge_open", "challenge_done", "room_create", "room_join_link", "room_join_lobby", "daily_submit", "donate_open"]);
   for (const e of EVENTS) assert.equal(s.count(e, "2048"), true, e);
   assert.equal(s.count("share_open", ""), true);
   assert.equal(s.count("page_view", "2048"), false);

@@ -27,12 +27,13 @@ const EVENTS = Object.freeze([
   "room_join_link",   // máy chủ: vào phòng bằng link / mã
   "room_join_lobby",  // máy chủ: vào phòng từ sảnh chờ công khai trên trang chủ
   "daily_submit",     // xong một Thử thách hôm nay (ghi kết quả lần đầu trong ngày)
+  "donate_open",      // D12: mở hộp "Ủng hộ Lụm Kèo" ở chân trang chủ / trang Thử thách (không gắn game, g = "")
 ]);
 const EVENT_SET = new Set(EVENTS);
 const EVENT_LABEL = {
   share_click: "Bấm Khoe", challenge_click: "Bấm Thách bạn", share_open: "Mở link khoe", challenge_open: "Mở link thách",
   challenge_done: "Chơi xong ván thách", room_create: "Tạo phòng", room_join_link: "Vào phòng bằng link/mã",
-  room_join_lobby: "Vào phòng từ sảnh", daily_submit: "Xong Thử thách ngày",
+  room_join_lobby: "Vào phòng từ sảnh", daily_submit: "Xong Thử thách ngày", donate_open: "Mở hộp Ủng hộ",
 };
 const BODY_MAX = 512;
 const VN_OFFSET = 7 * 3600 * 1000;

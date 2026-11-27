@@ -96,7 +96,9 @@ test("stats.js: gameId nhận id lẫn tên thư mục, ev chỉ gửi sự ki�
 test("stats.js: danh sách sự kiện trùng với máy chủ", async () => {
   const { createRequire } = await import("node:module");
   const { EVENTS } = createRequire(import.meta.url)("../../../../games-server/stats.js");
-  assert.deepEqual(ST.EVENTS, EVENTS);
+  // D12: "donate_open" do homepage/donate.js tự gửi (không qua ev() — thêm vào đây buộc đổi tag ?v= ở ~40 file game) ⇒ máy chủ = client + phần riêng trang chủ
+  assert.deepEqual(ST.EVENTS, EVENTS.filter((e) => e !== "donate_open"));
+  assert.ok(EVENTS.includes("donate_open"));
 });
 
 // ───────────── seed tái lập được: cùng seed ⇒ cùng màn ─────────────
