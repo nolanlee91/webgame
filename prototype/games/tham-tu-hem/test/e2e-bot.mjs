@@ -79,7 +79,10 @@ for (const id of ids) {
     check(`${id}: giải trọn qua giao diện ra 3★`, await b.ev("!!__game.state&&__game.state.phase==='done'&&__game.state.result.stars===3"), JSON.stringify(await b.ev("__game.state&&{ph:__game.state.phase,r:__game.state.result}")));
   } catch (e) { check(`${id}: kịch bản`, false, e.message); }
 }
-const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t\d+/.test(e));
+// TTH2-08 (D11): Chrome headless báo net::ERR_CACHE_OPERATION_NOT_SUPPORTED cho yêu cầu Range (206) của file .mp3 khi đọc từ cache —
+// lỗi của bộ nhớ đệm trình duyệt test, tiếng vẫn phát; trên máy người chơi không có. Chỉ bỏ qua đúng lỗi này với file mp3.
+const benign = (e) => /net::ERR_CACHE_OPERATION_NOT_SUPPORTED/.test(e) && /\.mp3(\?|\s|$)/.test(e);
+const errs = b.errors.filter((e) => !/data\/cases\/[\w-]+\.js\?v=t\d+/.test(e) && !benign(e));
 check("0 lỗi console", !errs.length, errs.slice(0, 5).join(" | "));
 b.close();
 console.log(fails ? `${fails} FAIL` : "E2E-BOT ĐẠT");

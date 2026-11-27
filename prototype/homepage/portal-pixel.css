@@ -230,3 +230,63 @@ article.tile--sponsor { cursor: default; }
 @media (orientation: landscape) and (max-height: 380px) and (max-width: 1023px) {
   .hero__tags { display: none; } /* băng slide chỉ còn ~92 px: giữ tên game + nút Chơi ngay */
 }
+
+/* =====================================================================================================
+   D11 — thẻ phòng (HOME2-07)
+   ===================================================================================================== */
+/* Tên chủ phòng dài: cắt có "…" (trước là cắt cứng — .room__host là flex nên text-overflow không ăn vào chữ trần) */
+.room__hostName { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Điện thoại: ≤ 3 phòng (chỉ một cột) ⇒ cột rộng hết panel, nút "Vào" sát mép phải như các khung khác (88% chỉ để lộ mép phòng thứ 4 khi vuốt được) */
+@media (max-width: 720px) {
+  .rooms:not(:has(> li:nth-child(4))) { grid-auto-columns: 100%; }
+}
+
+/* ---------- D11 (quyết định chủ dự án): điện thoại dọc gộp hero vào "Chơi ngay" ----------
+   Hero ẩn; ô đầu dải là ô lớn "Tựa game của tuần" (2 cột × 2 hàng), dải thành 3 hàng ⇒ màn đầu 390×844 thấy trọn ô lớn + 5 game.
+   Xoay ngang thấp (khối sau) và > 720 px: giữ hero như cũ, ẩn ô lớn. */
+.tile--feat { display: none; }
+@media (max-width: 720px) {
+  .arena__hero { display: none; }
+  .qp__row { grid-template-rows: repeat(3, auto); }
+  .qp__row .tile--feat { display: flex; grid-column: 1 / span 2; grid-row: 1 / span 2; }
+  .tile--feat .tile__art { aspect-ratio: auto; flex: 1 1 0; min-height: 0; }
+  .qp__row .tile--feat .tile__body { grid-template-rows: none; align-content: end; gap: 3px; padding: 6px 9px 9px; }
+  .feat__kicker { font: 800 10px/1.2 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--px-gold, #f7c96d); }
+  .qp__row .tile--feat .card__name { height: auto; font: 800 16px/1.2 var(--font-title); white-space: nowrap; text-overflow: ellipsis; }
+  .tile--feat .feat__go { justify-self: start; min-height: 34px; margin-top: 3px; padding: 0 12px; font-size: 13px; }
+}
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1023px) {
+  .arena__hero { display: flex; }
+  .qp__row .tile--feat { display: none; }
+  .qp__row { grid-template-rows: auto; }
+}
+
+/* ---------- D11 (quyết định chủ dự án): sảnh gọn khi trống ----------
+   Không có phòng chờ và không có ván đang chơi (cả lúc đang tải — trường hợp thường gặp, nên lần vẽ đầu đã ở dạng gọn, CLS ≈ 0):
+   sảnh chỉ còn MỘT hàng "Có mã phòng? [mã] Vào  + Tạo phòng mới". Có phòng (app.js thêm .has-rooms) ⇒ sảnh đầy đủ như cũ.
+   Máy tính: hero chiếm trọn hàng (ảnh 4:3 trái 440 px, chữ phải), hàng mã phòng nằm ngay dưới. */
+.lobby:not(.has-rooms) .lobby__head, .lobby:not(.has-rooms) .lobby__subrow, .lobby:not(.has-rooms) .rooms,
+.lobby:not(.has-rooms) .lobby__note, .lobby:not(.has-rooms) .lobby__empty { display: none !important; }
+.portal .lobby:not(.has-rooms) { height: auto; min-height: 0; gap: 0; padding: 12px 0; }
+@media (min-width: 1024px) {
+  .arena:has(> .lobby:not(.has-rooms)) { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .arena:has(> .lobby:not(.has-rooms)) .slide { display: grid; grid-template-columns: 440px minmax(0, 1fr); }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__art { width: 440px; box-shadow: inset -3px 0 0 #000; }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__info { align-content: center; gap: 10px; padding: 24px 40px 48px; }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__name { font-size: 38px; }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__text { font-size: 16px; max-width: 46ch; min-height: 0; }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__nav { top: 145px; }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__nav--next { right: auto; left: 398px; }
+  .arena:has(> .lobby:not(.has-rooms)) .hero__dots { position: absolute; left: 440px; right: 0; bottom: 6px; }
+  .portal .lobby:not(.has-rooms) { padding: 12px 19px; }
+  .lobby:not(.has-rooms) .lobby__bar { align-items: center; padding: 0; gap: 16px; }
+  .lobby:not(.has-rooms) .pin { display: flex; align-items: center; gap: 14px; }
+  .lobby:not(.has-rooms) .pin__head { flex: none; margin: 0; }
+  .lobby:not(.has-rooms) .pin__row { flex: 0 1 440px; }
+}
+.portal .lobby { position: relative; }
+.lobby__peek { position: absolute; right: 12px; top: -16px; z-index: 2; min-height: 34px; gap: 6px; padding: 0 12px; font-size: 12px; }
+.lobby__peek[hidden] { display: none; }
+.lobby__peek .live { display: inline-block; width: 6px; height: 6px; background: #6fe3b5; }
+.lobby__peek::after { content: ""; position: absolute; inset: -5px 0; } /* vùng chạm 44 px */
+.lobby.has-rooms .lobby__peek { display: none; }

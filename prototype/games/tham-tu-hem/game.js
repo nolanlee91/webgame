@@ -11,8 +11,8 @@ import { setManifest, registerSheets, preloadCaseArt } from "./ui/art.js?v=t10";
 import { h, $, clear, icon, toast, confirmBox, choiceBox } from "./ui/dom.js?v=t10";
 import { createDialog } from "./ui/dialog.js?v=t11";
 import { soundsFor, unlockSound, muted, setMuted, musicOn, setMusic, setScene, play as sfx, soundDebug } from "./ui/sfx.js?v=t10";
-import * as S from "./ui/screens.js?v=d10";
-import * as P from "./ui/panels.js?v=d10";
+import * as S from "./ui/screens.js?v=d11";
+import * as P from "./ui/panels.js?v=d11";
 import { stamp, shake, crackLens } from "./ui/fx.js?v=t10";
 
 const params = new URLSearchParams(location.search);
@@ -257,10 +257,10 @@ async function ensureCase(e) {
 function prefetchNextCase() {
   const real = G.cat.filter((x) => !x.dev && x.open && x.status === "lazy");
   const next = real.find((x) => { const r = G.profile.runs[x.id]; return r && r.phase && r.phase !== "intro"; }) || real.find((x) => !G.profile.solved[x.id]);
-  if (next) import(`./data/cases/${next.id}.js?v=t12`).catch(() => {});
+  if (next) import(`./data/cases/${next.id}.js?v=t15`).catch(() => {});
 }
 async function loadCase(entry) {
-  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t10" : `./data/cases/${entry.id}.js?v=t12`;
+  const url = entry.dev ? "./test/fixtures/mini-case.js?v=t10" : `./data/cases/${entry.id}.js?v=t15`;
   try {
     const c = (await import(url)).default;
     const v = validateCase(c);

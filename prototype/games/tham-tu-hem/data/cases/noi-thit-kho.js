@@ -678,7 +678,8 @@ export default {
     {
       id: "tuan-noi-doi",
       text: "Tuấn nói dối là không xuống bếp: cậu xuống bếp nấu mì, và vết đỏ trên áo là {b}.",
-      blanks: { b: { answer: "sa-te", kind: "vat" } },
+      // TTH2-04 (D11): Vụ 1 nhặt được 12 từ "Vật gì" ⇒ chỗ này chỉ bày 4 lựa chọn gần nhau (đúng + nhiễu), trẻ khỏi đoán mò trong 12 chip
+      blanks: { b: { answer: "sa-te", kind: "vat", choices: ["sa-te", "nuoc-mau", "thit-kho", "vet-nuoc-mau"] } },
       explain: [
         ["me", "Nồi mì trong bồn rửa, vỏ gói mì cấp độ 7, và hột ớt trên áo. Tuấn nói dối vì ngại, không phải vì ăn trộm."],
         ["tuan", "Em xin lỗi cả xóm. Em sẽ ăn mì gói một cách công khai từ nay về sau.", "nervous"],
@@ -759,25 +760,21 @@ export default {
         wrong: [["linh", "Anh thấy chưa, anh đâu có bằng chứng em là người lên đó.", "smug"]],
       },
     ],
+    // TTH2-04 (D11): thú nhận 9 → 6 dòng, kết 10 → 8 dòng (gộp câu cùng người nói, bỏ câu đệm); cốt truyện giữ nguyên.
     confess: [
-      ["linh", "Tối qua em định live mì trộn. Mà view thấp quá, có ba chục người coi.", "nervous"],
-      ["linh", "Em xuống bếp thì thấy nồi thịt kho của cô Hai. Mùi y chang mùi nhà em ở quê.", "nervous"],
+      ["linh", "Tối qua em định live mì trộn mà view thấp quá. Xuống bếp thấy nồi thịt kho của cô Hai, mùi y chang mùi nhà em ở quê.", "nervous"],
       ["linh", "Em nghĩ: mượn quay một xíu, đặt tên 'thịt kho mẹ nấu', chắc nhiều người coi. Rồi em trả lại.", "nervous"],
-      ["linh", "Mà lên sóng em nếm một miếng... rồi em khóc. Năm nay em không đủ tiền về quê. Mẹ em cũng kho thịt kiểu này, cũng bỏ nước dừa xiêm.", "nervous"],
-      ["linh", "Người xem vô đông quá, ai cũng nói 'ăn đi em, ăn cho mẹ vui'. Em ăn... ăn hết lúc nào không hay.", "shock"],
+      ["linh", "Mà lên sóng em nếm một miếng... rồi em khóc. Năm nay em không đủ tiền về quê. Người xem nói 'ăn đi em, ăn cho mẹ vui', em ăn hết lúc nào không hay.", "shock"],
       ["linh", "Em rửa nồi thật sạch, định sáng nay xin lỗi cô Hai. Mà em sợ quá, em trốn luôn. Em xin lỗi cô.", "nervous"],
-      ["cohai", "Con nhỏ này...", "angry"],
-      ["cohai", "Ăn hết hai chục trứng vịt luôn hả con?", "shock"],
+      ["cohai", "Con nhỏ này... Ăn hết hai chục trứng vịt luôn hả con?", "shock"],
       ["linh", "Dạ... mười tám trứng. Còn hai trứng em chia cho người xem... qua màn hình... không chia được nên em ăn luôn.", "nervous"],
     ],
     epilogue: [
       ["cohai", "Thôi. Tết nhứt ai mà nỡ. Chiều nay con xuống phụ cô kho nồi khác. Học cho biết, mai mốt tự kho mà ăn.", "neutral"],
       ["linh", "Dạ! Con sẽ live cảnh cô dạy con kho thịt, tiền quà tặng con đưa cô hết!", "happy"],
-      ["cohai", "Live thì live, nhưng quay cái mặt tui đẹp đẹp đó nghe.", "smug"],
       ["ongsau", "Tui... tui tặng thêm hai chục bông hồng.", "nervous"],
       ["tuan", "Cô Hai ơi, còn em... em có được ăn ké không?", "nervous"],
       ["cohai", "Đóng tiền trọ cho ông Sáu đi rồi ăn.", "angry"],
-      ["ongsau", "Đúng rồi!", "happy"],
       ["narr", "Tối 29 Tết, livestream 'KHO THỊT CÙNG CÔ HAI 🥺' đạt 11 nghìn người xem. Cả xóm trọ ngồi ăn chung trên sân thượng, dưới cái ring light hồng."],
       ["teo", "Sếp ơi, vụ đầu tiên phá xong mà em đói quá. Mình xuống ăn ké được không sếp?", "happy"],
       ["me", "Đi. Nhưng đừng đụng nồi của ai không dán tên mình."],

@@ -4,7 +4,7 @@ import { crispScale, hasFile, sceneFile, placeholderScene, hotspotRect, portrait
 import { renderText } from "./dialog.js?v=t11";
 import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFilled, stmtList } from "../core/engine.js?v=t10";
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
-import { pickEvidence, clueCard } from "./panels.js?v=d10";
+import { pickEvidence, clueCard } from "./panels.js?v=d11";
 import { play as sfx } from "./sfx.js?v=t10";
 import { shareResult } from "../../_shared/share.js?v=s3";
 
@@ -368,6 +368,7 @@ export function result(app) {
     return h("div.bonus", h("p.q", q.q), h("div.choices", q.choices.map((ch, i) => h("button.btn.btn--sm.choice" + (ans == null ? "" : i === q.answer ? ".right" : i === ans ? ".wrongc" : ""), { type: "button", data: { bonus: q.id, choice: String(i) }, disabled: ans != null,
       onclick: async () => { const r = await app.act({ type: "bonus", id: q.id, choice: i }); if (!r.error) toast(i === q.answer ? `Đúng! +20 danh tiếng` : "Trật mất rồi.", i === q.answer ? "good" : "bad"); } }, ch))));
   });
+  const left = (c.bonus || []).filter((q) => s.bonus[q.id] == null).length;
   after.push(() => { if (!app.G.ui.solvedSfx) { app.G.ui.solvedSfx = true; sfx("case-solved", 0.15); if (r1.index > r0.index) sfx("rank-up", 1.1); } });
   return h("section.result-screen",
     h("div.result-grid",
@@ -385,9 +386,12 @@ export function result(app) {
           h("span.rep-txt", r1.index > r0.index ? `LÊN HẠNG: ${r1.name}!` : `${r1.name} · ${pre.p.rep} danh tiếng`)),
         bonus.length ? h("div.bonus-box", h("h3.sec", "Câu hỏi phụ (+20 mỗi câu)"), bonus) : null,
         h("div.actions",
+          // TTH2-07 (D11): xoay ngang thấp, câu hỏi phụ nằm dưới hàng nút dính đáy ⇒ nút "Còn N câu hỏi phụ ↓" cuộn tới câu chưa trả lời (chỉ hiện ở màn ngang thấp, CSS)
+          left ? h("button.btn.btn--sm#bonusJump", { type: "button", onclick: () => { const q = [...document.querySelectorAll(".bonus")].find((e) => !e.querySelector(".choice:disabled")); q?.scrollIntoView({ block: "nearest", behavior: "smooth" }); } },
+            `${left} câu hỏi phụ ↓`) : null,
           h("button.btn.btn--primary.btn--big#backMap", { type: "button", onclick: () => app.leaveCase("map") }, "Về bản đồ"),
           h("button.btn#replayCase", { type: "button", onclick: () => app.replayCase() }, "Chơi lại vụ"),
-          h("button.btn#shareBtn", { type: "button", onclick: () => shareCase(c, s, res, r1) }, icon("heart", 16), " Khoe kết quả"))),
+          h("button.btn#shareBtn", { type: "button", onclick: () => shareCase(c, s, res, r1) }, icon("heart", 16), " Khoe", h("span.kq", " kết quả")))),
       h("div.phone.wall-phone", h("div.phone-top", h("span", "9:41"), h("b", c.social?.group || "Hẻm 47 Hóng Biến"), h("span", "4G")),
         h("div.viral", icon("heart", 16), " Bài phá án đang viral!"), wall)));
 }

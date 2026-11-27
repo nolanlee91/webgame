@@ -45,7 +45,7 @@
     return rows.filter(function (r) { return paint || !r[2]; }).map(function (r) { return r[0] ? r[0] + " " + r[1] : r[1]; }).join(", ");
   }
   var HERO_SIZES = [[LAND + HI, "15vw", 1], [LAND, "22vw"], ["(max-width: 720px)" + HI, "29vw", 1], ["(max-width: 720px)", "44vw"],
-    ["(max-width: 1023px)", "53vw"], ["(max-width: 1180px)", "40vw"], ["", "360px"]];
+    ["(max-width: 1023px)", "53vw"], ["(max-width: 1180px)", "40vw"], ["", "440px"]]; // D11: sảnh trống ⇒ ảnh hero rộng 440 px
   var TILE_SIZES = [["(max-width: 720px)" + HI, "21vw", 1], ["(max-width: 720px)", "31vw"], ["(max-width: 1023px)", "25vw"], ["(max-width: 1180px)", "19vw"], ["", "190px"]];
   var QP_SIZES = [[LAND + HI, "11vw", 1], [LAND, "16vw"], ["(max-width: 720px)" + HI, "20vw", 1], ["(max-width: 720px)", "29vw"], ["", "1px"]];
   function imgHTML(g, sizes, eager) {
@@ -116,27 +116,36 @@
     var el = track.children[i], img = el && el.querySelector("img[data-src]");
     if (img) showImg(img);
   }
+  // D11: điện thoại dọc ẩn hero (ô "Tựa game của tuần" thay chỗ) ⇒ không tải trước slide sau, không tự chuyển.
+  function heroShown() { return heroEl.offsetWidth > 0; }
   function loadAround(i) {
+    if (!heroShown()) return;
     loadSlide(i);
     if (pageLoaded && slides.length > 1) loadSlide((i + 1) % slides.length);
   }
   if (!pageLoaded) window.addEventListener("load", function () { pageLoaded = true; loadAround(state.slide); });
+  // HOME2-06 (D11): lúc đang trượt, slide cũ CHƯA inert (inert thì chạm vào nó rơi xuống .hero__track ⇒ hụt) — chỉ inert khi trượt xong.
+  var inertT = null;
   function goSlide(i, instant) {
     var n = slides.length; if (!n) return;
+    var prev = state.slide;
     state.slide = (i + n) % n;
     loadAround(state.slide);
     track.classList.toggle("no-anim", !!instant);
     track.style.transform = "translateX(" + (-100 * state.slide) + "%)";
+    clearTimeout(inertT);
+    var moving = !instant && !reduce && prev !== state.slide;
     [].forEach.call(track.children, function (el, k) {
       var on = k === state.slide;
       el.setAttribute("aria-hidden", String(!on)); el.tabIndex = on ? 0 : -1;
-      if ("inert" in el) el.inert = !on;
+      if ("inert" in el) el.inert = !on && !(moving && k === prev);
     });
+    if (moving) inertT = setTimeout(function () { var o = track.children[prev]; if (o && prev !== state.slide && "inert" in o) o.inert = true; }, 560); // = transition .5s + dư
     [].forEach.call(dots.children, function (d, k) { d.setAttribute("aria-current", String(k === state.slide)); });
   }
   // Tự chuyển sau HERO_MS; dừng khi rê chuột / đang focus / tab ẩn; tắt hẳn nếu máy đặt "giảm chuyển động".
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches, timer = null, hold = 0;
-  function arm() { clearTimeout(timer); if (!reduce && !hold && !document.hidden && slides.length > 1) timer = setTimeout(function () { goSlide(state.slide + 1); arm(); }, HERO_MS); }
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches, timer = null, hold = 0, stopped = false;
+  function arm() { clearTimeout(timer); if (!reduce && !hold && !stopped && !document.hidden && slides.length > 1 && heroShown()) timer = setTimeout(function () { goSlide(state.slide + 1); arm(); }, HERO_MS); }
   function pause() { hold++; clearTimeout(timer); }
   function resume() { hold = Math.max(0, hold - 1); arm(); }
   $("heroPrev").addEventListener("click", function () { goSlide(state.slide - 1); arm(); });
@@ -145,6 +154,9 @@
   heroEl.addEventListener("mouseenter", pause); heroEl.addEventListener("mouseleave", resume);
   heroEl.addEventListener("focusin", pause); heroEl.addEventListener("focusout", resume);
   document.addEventListener("visibilitychange", arm);
+  // xoay điện thoại dọc → ngang thấp: hero hiện lại ⇒ gắn ảnh slide quanh slide đang đứng + chạy lại tự chuyển
+  var wasShown = null;
+  window.addEventListener("resize", function () { var on = heroShown(); if (on !== wasShown) { wasShown = on; if (on) { loadAround(state.slide); arm(); } } });
   heroEl.addEventListener("keydown", function (e) {
     var d = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
     if (!d) return;
@@ -153,6 +165,13 @@
     goSlide(state.slide + d); e.preventDefault();
     if (onSlide) { var cur = track.children[state.slide]; if (cur) cur.focus({ preventScroll: true }); }
   });
+  // HOME2-06 (D11): chạm / nhấn vào hero ⇒ dừng HẲN tự chuyển. Nhấn đúng lúc đang trượt ⇒ dừng ngay ở slide nằm dưới ngón tay
+  // (nhảy tức thì về slide đó) để cú chạm mở đúng game đang thấy dưới tay, không phải game của slide mới.
+  track.addEventListener("pointerdown", function (e) {
+    stopped = true; clearTimeout(timer);
+    var s = e.target.closest && e.target.closest(".slide"), k = s ? [].indexOf.call(track.children, s) : -1;
+    if (k >= 0 && k !== state.slide) goSlide(k, true);
+  }, true);
   // Vuốt ngang trên điện thoại để chuyển game; vuốt xong thì không tính là bấm vào thẻ.
   var sx = null, sy = 0, swiped = false;
   track.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiped = false; pause(); }, { passive: true });
@@ -194,11 +213,26 @@
     var empty = !status && !rooms.length && !playing.length;
     $("lobby").classList.remove("is-loading");
     $("lobby").classList.toggle("is-empty", empty);
-    $("lobby").classList.toggle("has-rooms", rooms.length > 0 || playing.length > 0);
+    // D11 sảnh gọn: lần vẽ đầu là dạng gọn (đa số lúc không có phòng). Có phòng ⇒ mở đầy đủ, nhưng CHỈ khi trang chưa vẽ (kết quả về sớm)
+    // hoặc người chơi bấm "N phòng đang chờ · Xem" — tự bung sau khi đã vẽ sẽ xô cả trang (máy tính đo CLS 0,32). Đã mở thì không tự thu lại.
+    var any = rooms.length > 0 || playing.length > 0, L = $("lobby"), peek = $("lobbyPeek");
+    if (any && !L.classList.contains("has-rooms") && (lobbyOpen || earlyRender)) L.classList.add("has-rooms");
+    var waiting = any && !L.classList.contains("has-rooms");
+    if (peek) {
+      peek.hidden = !waiting;
+      if (waiting) peek.querySelector("span").textContent = rooms.length ? rooms.length + " phòng đang chờ" : playing.reduce(function (n, p) { return n + p.rooms; }, 0) + " bàn đang chơi";
+    }
     $("lobbyEmpty").hidden = !empty;
     lastLobby = { rooms: rooms, status: status, live: live };
   }
-  var lastLobby = null;
+  var lastLobby = null, lobbyOpen = false;
+  // Chỉ tự mở đầy đủ khi kết quả /api/lobby (gửi từ <head>) ĐÃ có lúc app.js chạy — vẽ ngay trong lần chạy này (earlyRender).
+  // Về sau đó ⇒ nút "Xem" (đo bằng mục paint / rAF không chắc: có lần khung hình đã hiện mà chưa có mục paint ⇒ CLS 0,22).
+  var earlyRender = false;
+  if ($("lobbyPeek")) $("lobbyPeek").addEventListener("click", function () {
+    lobbyOpen = true; $("lobby").classList.add("has-rooms"); $("lobbyPeek").hidden = true;
+    if (lastLobby) renderRooms(lastLobby.rooms, lastLobby.status, lastLobby.live);
+  });
   function liveHTML(p) {
     var g = byId(p.game);
     return '<li class="room room--live">' +
@@ -235,6 +269,11 @@
   }
   // Lần đầu dùng request đã gửi từ <head> (window.__lobbyP); lỗi ⇒ thử lại 1 lần sau 1 giây rồi mới báo lỗi.
   var firstLobby = window.__lobbyP || null;
+  if (window.__lobbyD && window.__lobbyD.rooms) {
+    var d0 = window.__lobbyD; earlyRender = true;
+    try { renderRooms(d0.rooms.filter(function (r) { return duelIds.includes(r.game); }), "", { players: d0.players, playing: d0.playing }); } catch (e) {}
+    earlyRender = false;
+  }
   async function refreshRooms() {
     if (!document.hidden) {
       try {
@@ -269,7 +308,7 @@
     return '<li class="room' + soonCls(g) + '">' +
       '<span class="room__art">' + imgHTML(g, "56px", true) + "</span>" +
       '<span class="room__info"><span class="room__name">' + g.name + ' <span class="room__no">#' + esc(r.code) + "</span></span>" +
-        '<span class="room__meta"><span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" />' + esc(r.host) + "</span>" +
+        '<span class="room__meta"><span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" /><span class="room__hostName">' + esc(r.host) + "</span></span>" +
         '<span class="room__side">' + seatsHTML(r) + '<span class="room__cnt">' + r.have + "/" + r.max + '<span class="sr-only"> người</span></span></span></span></span>' +
       '<a class="btn btn--teal btn--sm room__go" href="' + esc(roomHref(r.game, r.code)) + '" aria-label="Vào phòng ' + g.name + " " + esc(r.code) + ", " + r.have + " trên " + r.max + ' người">Vào</a>' +
     "</li>";
@@ -394,14 +433,26 @@
   // ---------- Chơi ngay (HOME-02): dải 2 hàng cuộn ngang dưới slide, chỉ hiện trên điện thoại ----------
   function renderQuickPlay() {
     var row = $("qpRow"); if (!row) return;
-    // Ô viết sẵn trong index.html (giữ chỗ từ lần vẽ đầu — CLS) khớp QUICK_PLAY ⇒ giữ nguyên, chỉ gắn ảnh lười.
+    // D11: ô đầu = "Tựa game của tuần" (HERO_SLIDES[0], chỉ hiện ở điện thoại dọc — ở đó hero bị ẩn), rồi QUICK_PLAY bỏ trùng game đó.
+    var f = slides[0] && !soon(slides[0].g) ? slides[0] : null;
+    var list = QUICK.map(byId).filter(function (g) { return g && !soon(g) && (!f || g.id !== f.g.id); });
+    // Ô viết sẵn trong index.html (giữ chỗ từ lần vẽ đầu — CLS) khớp ⇒ giữ nguyên, chỉ gắn ảnh lười.
+    var want = (f ? [f.g.id] : []).concat(list.map(function (g) { return g.id; })).join();
     var pre = [].map.call(row.children, function (a) { return a.dataset.id; }).join();
-    if (pre && pre === QUICK.filter(function (id) { var g = byId(id); return g && !soon(g); }).join()) { lazyIn(row); return; }
-    row.innerHTML = QUICK.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
+    if (pre && pre === want) { lazyIn(row); return; }
+    row.innerHTML = (f ? featHTML(f) : "") + list.map(function (g) {
       return '<a class="card tile tile--qp" href="' + href(g) + '" data-id="' + g.id + '"><span class="tile__art">' + imgHTML(g, QP_SIZES) +
         '</span><span class="tile__body"><span class="card__name">' + esc(g.name) + "</span></span></a>";
     }).join("");
     lazyIn(row);
+  }
+  // Ô lớn "Tựa game của tuần": cùng srcset + sizes với ảnh slide 1 của hero ⇒ cùng một file ảnh (1 lần tải).
+  function featHTML(x) {
+    var g = x.g;
+    return '<a class="card tile tile--qp tile--feat" href="' + href(g) + '" data-id="' + g.id + '" aria-label="' + esc((x.s.kicker || "Nổi bật") + ": " + g.name) + ' — chơi ngay">' +
+      '<span class="tile__art"><img src="' + g.thumb + '" srcset="' + srcsetOf(g) + '" sizes="' + sz(g, HERO_SIZES) + '" alt="" decoding="async" fetchpriority="high" /></span>' +
+      '<span class="tile__body"><span class="feat__kicker">' + esc(x.s.kicker || "") + '</span><span class="card__name">' + esc(g.name) + "</span>" +
+      '<span class="btn btn--gold feat__go" aria-hidden="true"><svg class="px-svg" viewBox="0 0 16 16"><path d="M4 2h2v12H4zM6 3h2v10H6zM8 4h2v8H8zM10 5h2v6h-2zM12 7h1v2h-1z"/></svg>Chơi ngay</span></span></a>';
   }
 
   function renderFeatured() { $("featuredSection").hidden = !!state.q; }

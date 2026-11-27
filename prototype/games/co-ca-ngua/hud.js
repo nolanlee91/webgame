@@ -16,7 +16,7 @@ let cssAdded = false;
 function addCss() {
   if (cssAdded || document.querySelector("link[data-cn-hud]")) return;
   const l = document.createElement("link");
-  l.rel = "stylesheet"; l.href = new URL("hud.css?v=d8o", import.meta.url).href; l.dataset.cnHud = "";
+  l.rel = "stylesheet"; l.href = new URL("hud.css?v=d11a", import.meta.url).href; l.dataset.cnHud = "";
   document.head.appendChild(l); cssAdded = true;
 }
 

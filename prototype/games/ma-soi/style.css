@@ -295,6 +295,18 @@ body.is-lobby .me { display: none; }
   .rcard__n { font-size: 13px; min-width: 28px; right: -4px; }
   .chip { font-size: 10px; padding: 4px 5px; }
 }
+/* ---------- PTY-07 (D11): điện thoại dọc ≤ 640 px — 8 ghế xếp thành vòng elip riêng (không bám ghế gỗ trong ảnh) ----------
+   Ở bản bám ảnh, ghế cạnh nhau chỉ cách 32–40 px nên khung ghế chồng nhau (3–4 cặp ở 320–390) và ô đồng hồ pha che ghế trên cùng.
+   Toạ độ tính theo khung cảnh (W × 1,02W): tâm (50%, 66,3%), bán kính 37% × 28,7% (ghế trên cùng nằm dưới ô đồng hồ pha cao ~60 px), ghế 1 ở đỉnh, đi theo chiều kim đồng hồ như cũ;
+   đổi sang % của .world (rộng 180%, lệch trái 40%, cao 1,0125W): x = (sx + 0,4) / 1,8, y = sy × 1,0074. Ảnh không đổi. */
+@media (max-width: 640px) and (orientation: portrait) {
+  .seat { width: 6.33%; }
+  .seat__name { max-width: 200%; }
+  .seat:nth-child(1) { left: 50%;    top: 37.88%; } .seat:nth-child(2) { left: 64.53%; top: 46.35%; }
+  .seat:nth-child(3) { left: 70.56%; top: 66.79%; } .seat:nth-child(4) { left: 64.53%; top: 87.23%; }
+  .seat:nth-child(5) { left: 50%;    top: 95.7%; }  .seat:nth-child(6) { left: 35.47%; top: 87.23%; }
+  .seat:nth-child(7) { left: 29.44%; top: 66.79%; } .seat:nth-child(8) { left: 35.47%; top: 46.35%; }
+}
 /* ---------- điện thoại xoay ngang (PARTY2-04, D8): 2 cột vừa một màn, trang không cuộn ----------
    Trái: cảnh (cắt quanh chỗ ngồi, vừa chiều cao) — phòng chờ thì danh sách người + bộ vai (cuộn riêng).
    Phải: vai của bạn, hành động, chat (chat co giãn theo phần còn lại). */

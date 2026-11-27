@@ -99,6 +99,18 @@ try {
   await host.waitFor(`document.querySelectorAll('.seat[data-seat]').length===6`);
   await host.shot('02-lobby-desktop.png');
 
+  // PTY-07 (D11): phòng chờ 6 người, điện thoại dọc ≤ 640 px — vòng ghế riêng: 0 cặp khung ghế chồng nhau, ô đồng hồ pha không che ghế nào
+  for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
+    const t = tabs[1];
+    await t.size(w, h, true); await sleep(300);
+    const m = await t.ev(`(() => { const S = [...document.querySelectorAll('.seat[data-seat]')].map(e => e.getBoundingClientRect()), D = document.getElementById('dial').getBoundingClientRect();
+      const I = (a, b) => Math.min(a.right, b.right) > Math.max(a.left, b.left) && Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top); let ov = 0, cov = 0;
+      for (let i = 0; i < S.length; i++) { if (I(S[i], D)) cov++; for (let j = i + 1; j < S.length; j++) if (I(S[i], S[j])) ov++; }
+      return { n: S.length, ov, cov, sw: document.documentElement.scrollWidth <= innerWidth }; })()`);
+    ok(m.n === 6 && m.ov === 0 && m.cov === 0 && m.sw, `PTY-07 ${w}×${h}: 6 ghế không chồng nhau, đồng hồ pha không che ghế (${JSON.stringify(m)})`);
+    if (w === 320) await t.shot('02b-phong-cho-320.png');
+  }
+  await tabs[1].size(1366, 860); await sleep(200);
   // ---- bắt đầu, phát thẻ ----
   await host.click('[data-a="start"]');
   await Promise.all(tabs.map((t) => t.waitFor(`!document.getElementById('ovReveal').hidden`)));

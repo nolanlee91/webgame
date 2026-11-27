@@ -4,7 +4,7 @@ import { portraitEl, accentOf, clueSprite } from "./art.js?v=t10";
 import { renderText } from "./dialog.js?v=t11";
 import { topicsOf, stmtList, peopleList, wordsOfKind, boardFilled } from "../core/engine.js?v=t10";
 import { KINDS } from "../core/validate.js?v=t10";
-import { accuse } from "./screens.js?v=d10";
+import { accuse } from "./screens.js?v=d11";
 import { play as sfx } from "./sfx.js?v=t10";
 
 export const KIND_NAME = { ai: "Ai", luc: "Lúc nào", o: "Ở đâu", vat: "Vật gì", cach: "Cách nào", vi: "Vì sao", khac: "Khác" };
@@ -171,7 +171,9 @@ export function board(app) {
   const tray = h("div.tray",
     h("small.lb", slotSel ? `Chọn từ khoá loại “${KIND_NAME[kinds[0]]}”` + (s.board[slotSel.ded][slotSel.blank] ? " · hoặc gỡ chỗ này" : "") : "Kéo từ khoá vào chỗ trống, hoặc chạm chỗ trống rồi chạm từ khoá"),
     h("div.tray-chips", kinds.map((k) => {
-      const ws = wordsOfKind(c, s, k);
+      // TTH2-04 (D11): chỗ trống có `choices` (vụ hướng dẫn) ⇒ khay chỉ bày các từ đã nhặt nằm trong danh sách đó
+      const only = slotSel && c.deduction.find((d) => d.id === slotSel.ded).blanks[slotSel.blank].choices;
+      const ws = wordsOfKind(c, s, k).filter((w) => !only || only.includes(w));
       return h("div.kind-row", h("span.kl", KIND_NAME[k]), ws.length ? ws.map((w) => h("button.chip.k-" + k + (ui.chip === w ? ".on" : ""), { type: "button", data: { word: w, kind: k }, disabled: s.solved,
         onpointerdown: (e) => dragChip(app, e, w, k, fill),
         onclick: () => { if (performance.now() - lastDrag < 350) return; if (slotSel) return fill(slotSel.ded, slotSel.blank, w); ui.chip = ui.chip === w ? null : w; app.refresh(); } }, c.words[w].text)) : h("span.none", "chưa nhặt được"));

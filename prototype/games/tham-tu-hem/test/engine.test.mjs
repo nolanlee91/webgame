@@ -226,3 +226,16 @@ test("TTH-02: Vụ 1 bật sẵn Chế độ soi, bảng ≤ 6 chỗ trống, in
   assert.ok(c1.locations.kitchen.intro.length <= 1);
   assert.ok(!c1.words.soi && !c1.words["tu-khoa"]);
 });
+
+test("TTH2-04 (D11): Vụ 1 mỗi chỗ trống bày ≤ 6 chip; choices (nếu có) chứa đáp án, cùng loại; thú nhận / kết gọn", async () => {
+  const { default: c1 } = await import("../data/cases/noi-thit-kho.js");
+  for (const d of c1.deduction) for (const [b, spec] of Object.entries(d.blanks)) {
+    const pool = spec.choices || Object.keys(c1.words).filter((w) => c1.words[w].kind === spec.kind);
+    assert.ok(pool.length <= 6, `${d.id}.${b}: ${pool.length} chip`);
+    if (spec.choices) {
+      assert.ok(spec.choices.includes(spec.answer), `${d.id}.${b}: choices thiếu đáp án`);
+      for (const w of spec.choices) assert.equal(c1.words[w]?.kind, spec.kind, `${d.id}.${b}: ${w}`);
+    }
+  }
+  assert.ok(c1.finale.confess.length <= 6 && c1.finale.epilogue.length <= 8, `${c1.finale.confess.length} / ${c1.finale.epilogue.length}`);
+});
