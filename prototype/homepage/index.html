@@ -145,8 +145,9 @@
             <ul class="rooms rooms--live" id="liveRooms" role="tabpanel" aria-labelledby="ltabLive" hidden></ul>
           </div>
           <p class="lobby__note" id="roomStatus" role="status" hidden></p>
-          <!-- Không có phòng chờ / ván nào (hoặc đang tải, hoặc lỗi): MỘT dòng ở giữa ô — không nút Tạo phòng thứ hai (đã có ở hàng trên) -->
-          <p class="lobby__empty" id="lobbyEmpty" data-name="lobby-empty" role="status">Đang tìm phòng đang chờ…</p>
+          <!-- Không có phòng chờ / ván nào (hoặc lỗi): MỘT dòng ở giữa ô — không nút Tạo phòng thứ hai (đã có ở hàng trên).
+               Lúc đang tải cũng hiện đúng câu này (trường hợp hay gặp nhất là trống) ⇒ chữ không đổi số dòng khi kết quả về (CLS). -->
+          <p class="lobby__empty" id="lobbyEmpty" data-name="lobby-empty" role="status">Chưa có phòng nào đang chờ — tạo phòng rồi gửi mã cho bạn bè.</p>
         </div>
       </aside>
     </section>
