@@ -187,6 +187,8 @@
       .card .how { order: 9; margin-top: 16px; font-size: 13px; }
       .modes { gap: 8px; } .mode { padding: 8px 8px; } .mode b { font-size: 18px; } .mode small { font-size: 11px; }
       .actions .btn { flex: 1 1 200px; }
+      /* D12: "⚔ Thách bạn" + "Khoe kết quả" chung một hàng (đỡ một hàng nút, "Về menu" không bị đẩy xuống dưới thanh dưới) */
+      #ovEnd .actions #chalBtnE:not([hidden]), #ovEnd .actions #shareBtnE { flex: 1 1 120px; padding-left: 8px; padding-right: 8px; }
       /* Thử thách: số nước còn lại quan trọng hơn kỷ lục ⇒ đổi chỗ */
       .is-daily .stat.best { display: none; } .is-daily .stat.moves { display: grid; }
       .is-daily .acts { grid-template-columns: 1fr; }
@@ -208,6 +210,9 @@
       .acts, .is-daily .acts { grid-template-columns: 1fr 1fr; gap: 8px 10px; }
       .acts .wide { grid-column: span 2; } .acts .mute { display: inline-flex; }
       .acts .btn { padding: 6px 8px; }
+      /* D12: bảng hết ván có thêm "Khoe kết quả" ⇒ nút gọn lại để 5 nút vẫn 2 hàng như trước (hàng nút ghim đáy không che thêm) */
+      #ovEnd .actions { gap: 8px 10px; }
+      #ovEnd .actions .btn, #ovEnd .actions #chalBtnE:not([hidden]), #ovEnd .actions #shareBtnE { flex: 0 1 auto; min-height: 44px; padding: 6px 14px; font-size: 14px; }
     }
     /* QUICK2-03 (D8): viewport-fit=cover ⇒ chừa tai thỏ / góc bo / thanh home cho thanh trên, bàn chơi, nút đáy.
        env() = 0 trên máy không tai thỏ (Android, máy tính) ⇒ không đổi gì. Lớp phủ cố định tự chừa trong _shared/short-screen.css. */
@@ -311,6 +316,7 @@
             <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
             <button class="btn btn--big btn--teal" id="endUndoBtn" type="button">↶ Hoàn tác <span class="n" id="endUndoN">3</span></button>
             <button class="btn btn--big" id="chalBtnE" type="button">⚔ Thách bạn</button>
+            <button class="btn btn--big" id="shareBtnE" type="button">Khoe kết quả</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Về menu</button>
           </div>
         </div>
@@ -329,7 +335,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js?v=d10";
+    import { mount } from "./game.js?v=d12";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {
