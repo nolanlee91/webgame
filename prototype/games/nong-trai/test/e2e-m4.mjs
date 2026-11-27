@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { tempProfile, guardChrome, shotDir } from "../../_shared/test/lk-temp.mjs";
 const OUT = process.argv[2] || shotDir("nong-trai-m4"), PORT = process.env.PORT || 8805, BASE = `http://127.0.0.1:${PORT}/games/nong-trai/ui/dev-m4.html`;
-const DBG = 9375;
+const DBG = Number(process.env.DBG_PORT || 9375);
 mkdirSync(OUT, { recursive: true });
 const PROF = tempProfile("nong-trai-m4"); // %TEMP%/lk-e2e-nong-trai-m4-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn("C:/Program Files/Google/Chrome/Application/chrome.exe",
