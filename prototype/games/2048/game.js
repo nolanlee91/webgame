@@ -356,7 +356,8 @@ export function mount(root, ctx = {}) {
     $("eTitle").textContent = s.won ? "Kết thúc!" : "Hết nước đi!";
     $("eSub").textContent = chal ? `Ván thách đấu bàn ${s.size}×${s.size} (không tính kỷ lục).` : s.won ? `Bàn đã kín. Bạn đã vượt mục tiêu ${s.goal} — giỏi lắm!` : "Bàn đã kín, không còn cặp nào gộp được.";
     resultRows($("eResult"), stats());
-    if (chal) { $("eRecord").replaceChildren(CH.compareBox(chal, s.score)); chalEnded = true; chal.done(); }
+    ov.end.querySelector(".lk-chal--cmp")?.remove();
+    if (chal) { $("eRecord").replaceChildren(); $("eSub").after(CH.compareBox(chal, s.score)); chalEnded = true; chal.done(); } // so điểm ngay dưới tiêu đề
     else recordBadge($("eRecord"));
     $("againBtn").textContent = chal ? "▶ Chơi màn mới" : "▶ Chơi lại";
     $("chalBtnE").textContent = chal ? "⚔ Thách lại" : "⚔ Thách bạn";

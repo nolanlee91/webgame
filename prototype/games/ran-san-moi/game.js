@@ -326,7 +326,8 @@ export function mount(root, ctx = {}) {
     ui.eResult.innerHTML = `<span>Mồi đã ăn</span><b>${s.eaten}</b><span>Độ dài</span><b>${s.snake.length}</b><span>Tốc độ đạt</span><b>Cấp ${speedLevel(s)}</b>`
       + `<span>Thời gian</span><b>${fmtTime(time)}</b><span class="total">Tổng điểm</span><b>${fmtNum(s.score)}</b>`;
     ui.eRecord.innerHTML = inChal ? "" : newRecord && s.score > 0 ? '<span class="record">★ Kỷ lục mới</span>' : prev ? `<div class="best">Kỷ lục ${MODE_NAME[s.mode]}: ${fmtNum(prev)}</div>` : "";
-    if (inChal) { ui.eRecord.appendChild(CH.compareBox(chal, s.score)); chalEnded = true; chal.done(); }
+    ui.ovEnd.querySelector(".lk-chal--cmp")?.remove();
+    if (inChal) { ui.eSub.after(CH.compareBox(chal, s.score)); chalEnded = true; chal.done(); } // so điểm ngay dưới tiêu đề: luôn thấy, không bị hàng nút ghim che
     lastRun = { score: s.score, record: newRecord && s.score > 0, prev, mode: s.mode, len: s.snake.length, eaten: s.eaten, time, won, seed: runSeed, chal: inChal ? chal : null };
     $("againBtn").textContent = inChal ? "▶ Chơi màn mới" : "▶ Chơi lại";
     $("chalBtnE").textContent = inChal ? "⚔ Thách lại" : "⚔ Thách bạn";
