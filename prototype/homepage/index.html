@@ -144,12 +144,11 @@
 
         <p class="lobby__note" id="roomStatus" role="status">Đang tải danh sách phòng…</p>
 
-        <!-- D9: bỏ khối "Mở phòng nhanh" (trùng lựa chọn game với hero + danh sách bên dưới). Sảnh trống: lời nhắn + nút tạo phòng nằm giữa
+        <!-- D9: bỏ khối "Mở phòng nhanh" (trùng lựa chọn game với hero + danh sách bên dưới). Sảnh trống: chỉ lời nhắn (nút Tạo phòng đã có ở thanh trên, không lặp) nằm giữa
              phần còn lại của khung (máy tính: khung cao bằng hero); điện thoại: ẩn, khung co theo nội dung. -->
         <div class="lobby__empty" id="lobbyEmpty" data-name="lobby-empty" hidden>
           <p class="lobby__emptyTitle">Chưa có phòng nào đang chờ</p>
-          <p class="lobby__emptyText">Tạo phòng rồi gửi mã cho bạn bè, hoặc chọn một game bên dưới để chơi ngay.</p>
-          <a class="btn btn--teal lobby__emptyGo" href="#duel" id="createRoom2"><span class="btn__plus" aria-hidden="true">+</span><span>Tạo phòng mới</span></a>
+          <p class="lobby__emptyText">Bấm “Tạo phòng mới” ở trên rồi gửi mã cho bạn bè, hoặc chọn một game bên dưới để chơi ngay.</p>
         </div>
       </aside>
     </section>
@@ -223,7 +222,7 @@
   <script>(function () { var img = document.querySelector(".hero__art img"), t; function go() { clearTimeout(t); requestAnimationFrame(function () { setTimeout(window.__lkFonts, 0); }); }
     if (!img || img.complete) go(); else { img.addEventListener("load", go); img.addEventListener("error", go); t = setTimeout(go, 3000); } })();</script>
   <script src="games.js?v=d5a"></script>
-  <script src="app.js?v=d9a"></script>
+  <script src="app.js?v=d9b"></script>
   <script type="module" src="../games/_shared/feedback.js?v=f3"></script>
   <script type="module" src="press-nav.js?v=d9a"></script>
   <script type="module" src="profile.js?v=d6g"></script>

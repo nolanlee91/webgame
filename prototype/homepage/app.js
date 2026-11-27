@@ -497,7 +497,6 @@
     d.classList.remove("is-flash"); void d.offsetWidth; d.classList.add("is-flash");
   }
   $("createRoom").addEventListener("click", goCreate);
-  $("createRoom2").addEventListener("click", goCreate); // nút giữa sảnh trống (D9)
 
   var inl = $("roomInlineCode"), inlErr = $("roomInlineError");
   inl.addEventListener("input", function () { cleanCode(inl); inlErr.textContent = ""; $("roomMatches").replaceChildren(); });
