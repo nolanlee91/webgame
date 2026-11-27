@@ -52,7 +52,7 @@ const QUAN_SVG = [pebbleSvg("#3fae98", "#8be3cf", "#0f3a33"), pebbleSvg("#c8452e
 // Âm thanh Codex (docs/o-an-quan/AUDIO.md): hiệu ứng mp3 ngắn giải mã vào WebAudio, nạp lười (sau lần chạm đầu hoặc
 // ~1,5 s rảnh) để không chặn lúc vào game; hai nền lặp (sân + nhạc) là <audio> nhỏ, chỉ bật sau lần chạm đầu. M tắt tất cả.
 const SFX = ["pebble-1", "pebble-2", "pebble-3", "pebble-4", "pick-up", "capture", "capture-quan", "chain", "borrow", "select", "turn", "win", "lose", "draw", "invalid", "chat", "pause"]; // 3 tiếng cuối: Codex 11/2026
-const LOOPS = { "amb-yard": 0.22, "music-game": 0.14 };
+const LOOPS = { "music-game": 0.14 }; // D11: bỏ nền "sân" amb-yard (tiếng gió ồn trải đều, nghe như loa rè) — chủ dự án duyệt
 function makeAudio(dir, sdk) {
   const AC = window.AudioContext || window.webkitAudioContext;
   const buf = {}, log = [];
@@ -72,7 +72,7 @@ function makeAudio(dir, sdk) {
   const idle = setTimeout(load, 1500);
   function syncLoops() {
     for (const [n, vol] of Object.entries(LOOPS)) {
-      const want = unlocked && !muted() && (n === "amb-yard" || inGame);
+      const want = unlocked && !muted() && inGame;
       let a = loops[n];
       if (want && !a) { a = loops[n] = new Audio(url(n)); a.loop = true; a.volume = vol; a.preload = "auto"; }
       if (!a) continue;

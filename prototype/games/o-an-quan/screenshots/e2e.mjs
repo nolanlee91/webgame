@@ -140,11 +140,11 @@ await key('KeyS'); await waitIdle();
 await key('KeyU'); s = await S();
 check('phím U → đi lại (bỏ nước của bạn + nước máy)', s.moves === 2 && s.turn === 0, 'moves ' + s.moves);
 await sleep(400);
-check('nền lặp (sân + nhạc ván) bật sau lần chạm đầu', await ev(`(()=>{const l=__game.sfx.loops;return l['amb-yard']===true&&l['music-game']===true})()`), JSON.stringify(await ev('__game.sfx.loops')));
+check('nhạc ván bật sau lần chạm đầu, không còn nền sân (amb-yard)', await ev(`(()=>{const l=__game.sfx.loops;return l['music-game']===true&&!('amb-yard' in l)})()`), JSON.stringify(await ev('__game.sfx.loops')));
 await key('KeyM'); await sleep(100);
 check('phím M tắt tất cả (lưu chung wgp.muted), nền lặp dừng', await ev(`localStorage.getItem('wgp.muted')==='1'&&document.getElementById('muteBtn').getAttribute('aria-pressed')==='true'&&!Object.values(__game.sfx.loops).some(Boolean)`));
 await pressSel('#muteBtn'); await sleep(300);
-check('nút âm thanh bật lại, nền lặp chạy lại', await ev(`localStorage.getItem('wgp.muted')==='0'&&__game.sfx.loops['amb-yard']===true`));
+check('nút âm thanh bật lại, nền lặp chạy lại', await ev(`localStorage.getItem('wgp.muted')==='0'&&__game.sfx.loops['music-game']===true`));
 // lưu ván dở → tải lại → "Chơi tiếp"
 await nav(BASE);
 check('tải lại trang → màn đầu có "▶ Chơi tiếp" (ván 1, 2 nước, máy Vừa)', await visible('#resumeGameBtn') && /Ván 1.*2 nước.*Vừa/.test(await text('#mResume')), await text('#mResume'));
