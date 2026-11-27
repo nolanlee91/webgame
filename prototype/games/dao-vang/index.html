@@ -191,7 +191,8 @@
     </div>
   </main>
   <script type="module">
-    import { mount } from "./game.js?v=d8a";
+    import { mount } from "./game.js?v=d10";
+    import * as CH from "../_shared/challenge.js?v=ch1";
     const stage = document.getElementById("stage"), menu = document.getElementById("menu"), hud = document.getElementById("hud");
     const controls = document.getElementById("controls"), pauseBtn = document.getElementById("pauseBtn");
     const params = new URLSearchParams(location.search);
@@ -207,12 +208,31 @@
       if (inst) inst.destroy();
       document.body.classList.remove("is-menu");
       menu.hidden = true; controls.hidden = false; hud.hidden = false;
-      const seed = params.has("seed") ? Number(params.get("seed")) : undefined;
-      inst = mount(stage, { mode: "single", locale: "vi", localPlayers: 1, seed, sdk, hudEl: hud, player: { id: "guest", name: "Khách" } });
+      const seed = chal ? chal.seed : params.has("seed") ? Number(params.get("seed")) : undefined;
+      inst = mount(stage, { mode: "single", locale: "vi", localPlayers: 1, seed, sdk, hudEl: hud, player: { id: "guest", name: "Khách" }, challenge: chal, onLeaveChallenge: leaveChallenge });
       window.__game = inst;
       stage.querySelector("canvas").focus();
     }
     document.getElementById("play1").onclick = () => start(1);
+    // Thách cùng màn (Đợt 10): link ?thach= hợp lệ ⇒ menu thành màn nhận thách; hỏng ⇒ báo nhỏ, chơi thường.
+    let chal = CH.readChallenge("dao-vang");
+    const menuGo = menu.querySelector(".menu__go"), menuH = menuGo.querySelector("h2"), menuP = menuGo.querySelector("p"), play1 = document.getElementById("play1");
+    const normalMenu = { h: menuH.textContent, p: menuP.textContent, b: play1.textContent };
+    let chalBox = null, skipBtn = null;
+    function leaveChallenge() {
+      chal = null; CH.stripParam();
+      menuH.textContent = normalMenu.h; menuP.textContent = normalMenu.p; play1.textContent = normalMenu.b;
+      chalBox?.remove(); skipBtn?.remove(); chalBox = skipBtn = null;
+    }
+    if (chal) {
+      menuH.textContent = "Thách đấu!";
+      menuP.textContent = "Cùng màn mỏ với người thách: vàng, đá, túi bí ẩn nằm y chỗ cũ. Gom được nhiều điểm hơn là thắng.";
+      chalBox = CH.introBox(chal); menuP.after(chalBox);
+      play1.textContent = "⚔ Nhận thách đấu";
+      skipBtn = document.createElement("button"); skipBtn.type = "button"; skipBtn.className = "btn btn--big"; skipBtn.id = "chalSkip"; skipBtn.textContent = "Chơi thường";
+      skipBtn.onclick = () => { leaveChallenge(); start(1); };
+      play1.after(skipBtn);
+    }
     const muteBtn = document.getElementById("muteBtn");
     const showMute = () => { const m = sdk.sound.muted; document.getElementById("muteTx").innerHTML = (m ? "Âm thanh: tắt" : "Âm thanh: bật") + '<span class="kb"> (M)</span>'; document.getElementById("muteIc").src = "assets/ui/icon-am-thanh-" + (m ? "tat" : "bat") + ".png"; muteBtn.setAttribute("aria-pressed", String(m)); };
     const toggleMute = () => { sdk.sound.muted = !sdk.sound.muted; localStorage.setItem("wgp.muted", sdk.sound.muted ? "1" : "0"); showMute(); };
@@ -220,7 +240,7 @@
     window.addEventListener("keydown", (e) => { if (e.code === "KeyM" && !e.repeat && inst) toggleMute(); });
     showMute();
     pauseBtn.onclick = () => { inst.paused ? inst.resume() : inst.pause(); stage.querySelector("canvas").focus(); };
-    document.getElementById("menuBtn").onclick = () => { inst && inst.destroy(); inst = null; document.body.classList.add("is-menu"); menu.hidden = false; controls.hidden = true; hud.hidden = true; };
+    document.getElementById("menuBtn").onclick = () => { if (chal) leaveChallenge(); inst && inst.destroy(); inst = null; document.body.classList.add("is-menu"); menu.hidden = false; controls.hidden = true; hud.hidden = true; };
     // Chỉ còn 1 người chơi: link cũ ?players=2 (2 người cùng máy, đã bỏ) cũng vào thẳng ván 1 người.
     if (params.get("players") === "1" || params.get("players") === "2") start(1);
   </script>

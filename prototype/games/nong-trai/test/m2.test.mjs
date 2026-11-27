@@ -2,19 +2,19 @@
 // một nguồn giá cho Nhà kho, di chuyển save v3 → v4, offline, đơn có thành phẩm, chuỗi A & C, nhiệm vụ tiến trình.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apply } from "../core/apply.js?v=m15";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m15";
-import { MARKET, CYCLE_MS } from "../core/market.js?v=m15";
-import { workshopState, finishedJobs, finishedWhileAway } from "../core/workshop.js?v=m15";
-import * as O from "../core/orders.js?v=m15";
-import { used, capacity } from "../core/inventory.js?v=m15";
-import { currentQuest } from "../core/quests.js?v=m15";
-import { xpNeed } from "../core/progression.js?v=m15";
-import { TUTORIAL } from "../data/quests.js?v=m15";
-import { WORKSHOP } from "../data/workshop.js?v=m15";
-import { RECIPE } from "../data/recipes.js?v=m15";
-import { ITEM } from "../data/catalog.js?v=m15";
-import { farmSave, KEY, V3_KEY, V3_BACKUP_KEY } from "../save.js?v=m15";
+import { apply } from "../core/apply.js?v=m16";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m16";
+import { MARKET, CYCLE_MS } from "../core/market.js?v=m16";
+import { workshopState, finishedJobs, finishedWhileAway } from "../core/workshop.js?v=m16";
+import * as O from "../core/orders.js?v=m16";
+import { used, capacity } from "../core/inventory.js?v=m16";
+import { currentQuest } from "../core/quests.js?v=m16";
+import { xpNeed } from "../core/progression.js?v=m16";
+import { TUTORIAL } from "../data/quests.js?v=m16";
+import { WORKSHOP } from "../data/workshop.js?v=m16";
+import { RECIPE } from "../data/recipes.js?v=m16";
+import { ITEM } from "../data/catalog.js?v=m16";
+import { farmSave, KEY, V3_KEY, V3_BACKUP_KEY } from "../save.js?v=m16";
 import { act, err, START } from "./helpers.mjs";
 
 const MIN = 60_000, HOUR = 3600_000;

@@ -1,16 +1,16 @@
 // Test luật Làng / NPC / nhiệm vụ M4 (core/village.js). Chạy: node --test prototype/games/nong-trai/test/village.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as V from "../core/village.js?v=m15";
-import * as A from "../core/animals.js?v=m15";
+import * as V from "../core/village.js?v=m16";
+import * as A from "../core/animals.js?v=m16";
 import {
   VILLAGERS, VILLAGER, PROGRESSION, REPEATABLE, REPEATABLE_BY_ID, BOARD_SIZE, VILLAGE_LEVEL, CHAIN_LEVEL, TRUCK, TALK_COOLDOWN_MS,
-} from "../data/village.js?v=m15";
-import { TUTORIAL } from "../data/quests.js?v=m15";
-import { NPC } from "../data/npcs.js?v=m15";
-import { ITEM } from "../data/catalog.js?v=m15";
-import { RECIPE } from "../data/recipes.js?v=m15";
-import { FEED } from "../data/animals.js?v=m15";
+} from "../data/village.js?v=m16";
+import { TUTORIAL } from "../data/quests.js?v=m16";
+import { NPC } from "../data/npcs.js?v=m16";
+import { ITEM } from "../data/catalog.js?v=m16";
+import { RECIPE } from "../data/recipes.js?v=m16";
+import { FEED } from "../data/animals.js?v=m16";
 
 const T0 = 1_700_000_000_000, MIN = 60_000, HOUR = 3600_000;
 

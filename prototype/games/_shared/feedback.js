@@ -1,5 +1,5 @@
 // Phản hồi chung cho mọi trang Lụm Kèo: bấm nút ⇒ lún xuống (chiều sâu) + tiếng "tách"; gửi chat ⇒ tiếng "vút".
-// Nhúng: <script type="module" src="../_shared/feedback.js"></script>. Tôn trọng khoá tắt tiếng chung "wgp.muted".
+// Nhúng: <script type="module" src="../_shared/feedback.js?v=f4"></script> (đổi file ⇒ tăng tag ở MỌI nơi, kể cả import trong homepage/press-nav.js). Tôn trọng khoá tắt tiếng chung "wgp.muted".
 // Dùng thuộc tính CSS `translate`/`scale` (độc lập với `transform`) nên không phá nút đang được căn giữa bằng transform.
 // Bỏ qua một phần tử: thêm data-nosfx (không tiếng) hoặc data-nopress (không lún). data-nosfx đặt trên vùng cha ⇒ cả vùng im (game có tiếng riêng).
 

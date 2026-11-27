@@ -1,6 +1,7 @@
 // Rắn Săn Mồi — phần vẽ (canvas, khối pixel vẽ bằng code), điều khiển (phím, vuốt, nút), HUD, âm thanh, kỷ lục. Luật trong logic.js.
 import { N, START_LEN, GOLD_LIFE, newGame, step, turn, interval, speedLevel } from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s2";
+import { shareResult } from "../_shared/share.js?v=s3";
+import * as CH from "../_shared/challenge.js?v=ch1"; // Đợt 10: "Thách cùng màn" (?thach=<seed>.<điểm>[.<tên>]; chế độ = bit thấp của seed)
 
 const SAVE_KEY = "wgp.ransanmoi.v1";
 const FONT = '"Be Vietnam Pro", system-ui, sans-serif';
@@ -70,6 +71,10 @@ export function mount(root, ctx = {}) {
   };
   const sfx = makeSfx("assets/sfx/", ["trung-kim-cuong", "trung-da", "buoc-nhay", "qua-man", "thang", "thua", "het-gio"], sdk);
   let save = loadSave(), mode = save.mode;
+  // Thách cùng màn: link ?thach= hợp lệ ⇒ cùng seed (mồi rơi đúng thứ tự như người gửi), chế độ lấy từ bit thấp của seed.
+  // Ván thách KHÔNG ghi kỷ lục / độ dài dài nhất (điểm so với người gửi, không lẫn vào thành tích riêng). Chơi thường giữ nguyên.
+  let chal = CH.readChallenge("ran-san-moi"), chalEnded = false, runSeed = 0;
+  if (chal) mode = CH.variantOf(chal.seed, 2) ? "wrap" : "classic";
   let s = null, paused = false, destroyed = false, raf = 0, last = performance.now(), acc = 0, time = 0;
   let seedBase = ctx.seed ?? (Date.now() & 0xffffff), games = 0, endTimer = 0, newRecord = false;
   let L = { cs: 20, dpr: 1, w: 0, h: 0, bx: 0, by: 0, fr: 0 };
@@ -293,10 +298,14 @@ export function mount(root, ctx = {}) {
     if (s.status === "won") { sfx.play("thang", 0.9); clearTimeout(endTimer); endTimer = setTimeout(() => finish(), 600); }
   }
 
+  function leaveChallenge() { chal = null; chalEnded = false; CH.stripParam(); }
   function start() {
     clearTimeout(endTimer);
-    save.mode = mode; persist();
-    s = newGame({ seed: (seedBase + games * 7919) >>> 0, mode });
+    if (chal && chalEnded) { leaveChallenge(); mode = save.mode; } // hết ván thách ⇒ "Chơi màn mới" = ván thường
+    if (!chal) { save.mode = mode; persist(); }
+    // seed ván thường: bit thấp = chế độ (để link "Thách bạn" tái tạo đúng ván); ván thách: seed trong link
+    runSeed = chal ? chal.seed : CH.seedWithVariant((seedBase + games * 7919) >>> 0, mode === "wrap" ? 1 : 0, 2);
+    s = newGame({ seed: runSeed, mode });
     games++; paused = false; acc = 0; time = 0; newRecord = false; fx = { parts: [], floats: [], shake: null, flash: null, deadAt: 0 };
     showOv(null); sfx.play("qua-man", 0.6);
     cv.focus({ preventScroll: true });
@@ -304,17 +313,24 @@ export function mount(root, ctx = {}) {
   function finish() {
     if (!s) return;
     const prev = save.best[s.mode];
-    newRecord = s.score > prev;
-    if (newRecord) save.best[s.mode] = s.score;
-    save.longest[s.mode] = Math.max(save.longest[s.mode], s.snake.length);
-    persist();
+    const inChal = !!chal;
+    newRecord = !inChal && s.score > prev;
+    if (!inChal) {
+      if (newRecord) save.best[s.mode] = s.score;
+      save.longest[s.mode] = Math.max(save.longest[s.mode], s.snake.length);
+      persist();
+    }
     const won = s.status === "won";
     ui.eTitle.textContent = won ? "Rắn phủ kín bàn!" : s.died && s.died.by === "wall" ? "Đụng tường rồi!" : "Cắn trúng đuôi!";
-    ui.eSub.textContent = MODE_NAME[s.mode] + " · " + (won ? "Bạn đã thắng tuyệt đối!" : "Thử lại để phá kỷ lục nhé.");
+    ui.eSub.textContent = MODE_NAME[s.mode] + " · " + (inChal ? "Ván thách đấu (không tính kỷ lục)" : won ? "Bạn đã thắng tuyệt đối!" : "Thử lại để phá kỷ lục nhé.");
     ui.eResult.innerHTML = `<span>Mồi đã ăn</span><b>${s.eaten}</b><span>Độ dài</span><b>${s.snake.length}</b><span>Tốc độ đạt</span><b>Cấp ${speedLevel(s)}</b>`
       + `<span>Thời gian</span><b>${fmtTime(time)}</b><span class="total">Tổng điểm</span><b>${fmtNum(s.score)}</b>`;
-    ui.eRecord.innerHTML = newRecord && s.score > 0 ? '<span class="record">★ Kỷ lục mới</span>' : prev ? `<div class="best">Kỷ lục ${MODE_NAME[s.mode]}: ${fmtNum(prev)}</div>` : "";
-    lastRun = { score: s.score, record: newRecord && s.score > 0, prev, mode: s.mode, len: s.snake.length, eaten: s.eaten, time, won };
+    ui.eRecord.innerHTML = inChal ? "" : newRecord && s.score > 0 ? '<span class="record">★ Kỷ lục mới</span>' : prev ? `<div class="best">Kỷ lục ${MODE_NAME[s.mode]}: ${fmtNum(prev)}</div>` : "";
+    ui.ovEnd.querySelector(".lk-chal--cmp")?.remove();
+    if (inChal) { ui.eSub.after(CH.compareBox(chal, s.score)); chalEnded = true; chal.done(); } // so điểm ngay dưới tiêu đề: luôn thấy, không bị hàng nút ghim che
+    lastRun = { score: s.score, record: newRecord && s.score > 0, prev, mode: s.mode, len: s.snake.length, eaten: s.eaten, time, won, seed: runSeed, chal: inChal ? chal : null };
+    $("againBtn").textContent = inChal ? "▶ Chơi màn mới" : "▶ Chơi lại";
+    $("chalBtnE").textContent = inChal ? "⚔ Thách lại" : "⚔ Thách bạn";
     showOv("ovEnd");
     if (!won) sfx.play(newRecord && s.score > 0 ? "thang" : "thua", 0.7);
     sdk.reportScore?.(s.score);
@@ -340,10 +356,32 @@ export function mount(root, ctx = {}) {
       tagline,
     });
   }
+  // Thách bạn / Thách lại: link cùng seed + điểm của mình (số thật của ván vừa xong)
+  function challengeRun(e) {
+    const r = lastRun; if (!r) return;
+    if (e && e.detail > 0) e.currentTarget.blur();
+    CH.shareChallenge({ game: "ran-san-moi", seed: r.seed, score: r.score, against: r.chal });
+  }
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
+  // Màn nhận thách: thẻ riêng cùng kiểu thẻ menu (dựng bằng DOM, nút dùng class nút của game)
+  if (chal) {
+    const ovChal = document.createElement("div");
+    ovChal.className = "ov ss-ov"; ovChal.id = "ovChal"; ovChal.hidden = true;
+    const card = document.createElement("div"); card.className = "card";
+    const h = document.createElement("h2"); h.textContent = "Thách đấu!";
+    const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = "Rắn Săn Mồi · " + MODE_NAME[mode] + " · mồi rơi đúng thứ tự như người thách";
+    const acts = document.createElement("div"); acts.className = "actions ss-cta";
+    const go = document.createElement("button"); go.type = "button"; go.className = "btn btn--big btn--primary"; go.id = "chalGo"; go.textContent = "⚔ Nhận thách đấu";
+    const skip = document.createElement("button"); skip.type = "button"; skip.className = "btn btn--big"; skip.id = "chalSkip"; skip.textContent = "Chơi thường";
+    go.addEventListener("click", start);
+    skip.addEventListener("click", () => { leaveChallenge(); mode = save.mode; showMenu(); showOv("ovMenu"); });
+    acts.append(go, skip); card.append(h, sub, CH.introBox(chal), acts); ovChal.appendChild(card);
+    ui.ovMenu.after(ovChal);
+    ui.ovChal = ovChal;
+  }
   function showOv(which) {
-    for (const k of ["ovMenu", "ovPause", "ovEnd"]) ui[k].hidden = k !== which;
-    document.body.classList.toggle("is-menu", which === "ovMenu" || which === "ovEnd");
+    for (const k of ["ovMenu", "ovPause", "ovEnd", "ovChal"]) if (ui[k]) ui[k].hidden = k !== which;
+    document.body.classList.toggle("is-menu", which === "ovMenu" || which === "ovEnd" || which === "ovChal");
   }
   function setPaused(on) {
     if (!s || s.status !== "play" || paused === on) return;
@@ -351,7 +389,7 @@ export function mount(root, ctx = {}) {
     sfx.play("buoc-nhay", 0.4, on ? 0.8 : 1.2);
     if (!on) { last = performance.now(); cv.focus({ preventScroll: true }); }
   }
-  function toMenu() { if (s) sfx.play("buoc-nhay", 0.35, 0.8); clearTimeout(endTimer); s = null; paused = false; showMenu(); showOv("ovMenu"); }
+  function toMenu() { if (s) sfx.play("buoc-nhay", 0.35, 0.8); clearTimeout(endTimer); s = null; paused = false; if (chal) { leaveChallenge(); mode = save.mode; } showMenu(); showOv("ovMenu"); }
   function showMenu() {
     for (const b of document.querySelectorAll(".mode")) { const on = b.dataset.mode === mode; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }
     const bc = save.best.classic, bw = save.best.wrap;
@@ -387,7 +425,7 @@ export function mount(root, ctx = {}) {
     if (k === " " || k === "enter") {
       if (document.activeElement && document.activeElement.tagName === "BUTTON") return;
       e.preventDefault();
-      if (!ui.ovMenu.hidden || !ui.ovEnd.hidden) start(); else if (paused) setPaused(false);
+      if (!ui.ovMenu.hidden || !ui.ovEnd.hidden || (ui.ovChal && !ui.ovChal.hidden)) start(); else if (paused) setPaused(false);
     }
   }
   document.addEventListener("keydown", onKey);
@@ -410,6 +448,7 @@ export function mount(root, ctx = {}) {
   $("againBtn").addEventListener("click", start);
   $("retryBtnP").addEventListener("click", start);
   $("shareBtnE").addEventListener("click", shareRun);
+  $("chalBtnE").addEventListener("click", challengeRun);
   $("menuBtnE").addEventListener("click", toMenu);
   $("menuBtnP").addEventListener("click", toMenu);
   $("resumeBtn").addEventListener("click", () => setPaused(false));
@@ -422,11 +461,11 @@ export function mount(root, ctx = {}) {
   document.addEventListener("visibilitychange", onVis);
   window.addEventListener("blur", onBlur);
 
-  layout(); showMute(); showMenu(); showOv("ovMenu");
+  layout(); showMute(); showMenu(); showOv(chal ? "ovChal" : "ovMenu");
   raf = requestAnimationFrame(tickLoop);
 
   return {
-    get state() { return s; }, get paused() { return paused; }, get save() { return save; }, get layout() { return L; }, get time() { return time; }, sfx,
+    get state() { return s; }, get paused() { return paused; }, get challenge() { return chal; }, get runSeed() { return runSeed; }, get lastRun() { return lastRun; }, get save() { return save; }, get layout() { return L; }, get time() { return time; }, sfx,
     cellPoint, start, go, setPaused, toMenu,
     /** test: chạy n nhịp ngay lập tức */
     steps(n) { for (let i = 0; i < n && s && s.status === "play"; i++) onStep(step(s), performance.now()); },

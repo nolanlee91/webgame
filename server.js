@@ -33,12 +33,22 @@ const accountApi = import("./games-server/account/index.mjs").then((m) => {
   return api;
 });
 accountApi.catch((e) => console.error("[daily-board] không nạp được games-server/account:", e && e.message));
+
+// Đợt 10: số đếm lượt dùng, chỉ số gộp theo ngày, không IP / không danh tính (games-server/stats.js, docs/audits/fixes/D10-viral.md).
+//   POST /api/ev (sự kiện từ trình duyệt) + móc phòng online (games-server/stats-hook.js) + trang /admin/stats (ADMIN_PASSWORD).
+const { createStats } = require("./games-server/stats");
+const stats = createStats({ env: process.env });
+require("./games-server/stats-hook").setSink((e, g) => stats.count(e, g));
+if (require.main === module) console.log(`Số đếm: chế độ ${stats.mode}${process.env.ADMIN_PASSWORD ? ", trang /admin/stats bật" : ""}`);
 function handleAccount(req, res) {
   accountApi.then((api) => api.handle(req, res)).then((done) => { if (!done && !res.headersSent) sendJson(res, 404, { error: "not_found" }); })
     .catch(() => { if (!res.headersSent) sendJson(res, 500, { error: "server" }); else res.destroy(); });
 }
 
 const server = http.createServer((req, res) => {
+  if (req.url === "/api/ev" || req.url.startsWith("/api/ev?")) {
+    return void stats.handleEvent(req, res).catch(() => { if (!res.headersSent) send(res, 500, ""); else res.destroy(); });
+  }
   if (req.url === "/api/config" || req.url.startsWith("/api/config?") || req.url.startsWith("/api/daily/") || req.url.startsWith("/api/account/") || req.url === "/api/name/check") return handleAccount(req, res);
   if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, "Method Not Allowed", { Allow: "GET, HEAD" });
   let urlPath;
@@ -46,6 +56,11 @@ const server = http.createServer((req, res) => {
   // Giữ query khi chuyển: Supabase quay về Site URL "https://lumkeo.com/?code=…" vẫn tới trang chủ để xử lý đăng nhập Google.
   if (urlPath === "/") { const q = req.url.indexOf("?"); return send(res, 302, "", { Location: "/homepage/" + (q >= 0 ? req.url.slice(q) : "") }); }
   if (urlPath === "/healthz") return send(res, 200, "ok");
+  // /admin/* KHÔNG BAO GIỜ rơi xuống file tĩnh: chỉ /admin/stats (cần ADMIN_PASSWORD, thiếu biến ⇒ 404), còn lại 404.
+  if (urlPath.toLowerCase().startsWith("/admin")) {
+    if (urlPath === "/admin/stats") return void stats.handleAdmin(req, res).catch(() => { if (!res.headersSent) send(res, 500, "Lỗi máy chủ"); else res.destroy(); });
+    return send(res, 404, "Not Found", { "Cache-Control": "no-store" });
+  }
 
   if (urlPath === "/api/lobby") {
     const rooms = [...gameHosts].flatMap(([game, host]) =>
@@ -168,5 +183,12 @@ if (server.getMaxListeners() && nextUpgradeCount > server.getMaxListeners()) ser
 gameHosts.set("o-an-quan", require("./games-server/o-an-quan/host").createOAnQuanHost(server));
 console.log("Ô Ăn Quan online: đường /ws/o-an-quan");
 
-if (require.main === module) server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
+if (require.main === module) {
+  server.listen(PORT, () => console.log(`Webgame Portal: http://localhost:${PORT}/ (phục vụ ${ROOT})`));
+  // Railway tắt máy bằng SIGTERM ⇒ gửi nốt số đếm đang gom lên Supabase (tối đa 4 giây) rồi mới thoát.
+  const bye = () => { setTimeout(() => process.exit(0), 4000).unref(); stats.flush().finally(() => process.exit(0)); };
+  process.once("SIGTERM", bye);
+  process.once("SIGINT", bye);
+}
+server.stats = stats; // test / e2e đọc số đếm trong RAM
 module.exports = server;

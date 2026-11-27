@@ -14,10 +14,10 @@
 //   wallet = { coins() -> number, spend(n) -> bool, earn(n) }
 //   ctx    = { level }
 
-import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m15";
-import { CROPS } from "../data/crops.js?v=m15";
-import { RECIPES } from "../data/recipes.js?v=m15";
-import { FAIR_GOODS_MULT, FAIR_HOT_MULT } from "../data/fair.js?v=m15";
+import { ITEMS, ANIMAL_REF } from "../data/catalog.js?v=m16";
+import { CROPS } from "../data/crops.js?v=m16";
+import { RECIPES } from "../data/recipes.js?v=m16";
+import { FAIR_GOODS_MULT, FAIR_HOT_MULT } from "../data/fair.js?v=m16";
 
 export const CYCLE_MS = 3 * 3600_000;
 export const SWING = 0.15;
