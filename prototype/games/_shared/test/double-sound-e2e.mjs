@@ -5,6 +5,7 @@
 //  - "tách"/"bụp" của feedback.js = oscillator có tần số đầu (setValueAtTime) 1400/240 hoặc 300/700; mỗi cụm < 30 ms tính 1 tiếng.
 //  - tiếng game = AudioBufferSource / <audio> không lặp, hoặc oscillator có hẹn stop() (tiếng máy chạy liên tục không tính).
 //  - LỖI khi một lần bấm có ≥ 2 tiếng: tách + tiếng game, hoặc tách 2 lần.
+// Đào Vàng / 2048 / Rắn còn kiểm thêm màn hết ván (nút ⚔ Thách bạn) và bảng chia sẻ "Thách bạn" của challenge.js.
 // Thêm: trang chủ — thẻ game (press-nav.js) bấm chuột + chạm ⇒ đúng 1 "bụp"; đo độ trễ "tách" sau khi nhả chuột.
 //
 // Chạy:  node prototype/games/_shared/test/double-sound-e2e.mjs [lọc-trang] [--baseline] [--out kq.json] [--shots]
@@ -42,7 +43,7 @@ const base = `http://127.0.0.1:${port}`;
 
 const HOOK = `(() => {
   const D = window.__ds = { snd: [], up: 0, down: 0, click: 0 };
-  try { localStorage.removeItem("wgp.muted"); } catch {}
+  try { localStorage.clear(); } catch {} // mỗi lần tải: trạng thái mới (không mang chế độ / bản lưu / tắt tiếng từ lần bấm trước)
   const now = () => performance.now();
   const abUrl = new WeakMap(), bufName = new WeakMap(), freq0 = new WeakMap(), recOf = new WeakMap();
   const nameOf = (u) => { try { return decodeURIComponent(new URL(u, location.href).pathname.split("/").pop()); } catch { return String(u); } };
@@ -100,6 +101,14 @@ const START_JS = `(() => { const c = [...document.querySelectorAll("#playBtn,#pl
   (/^(playBtn|play1|goSolo|introGo|startBtn)$/.test(b.id) || /^(▶\\s*)?(Chơi|Bắt đầu|Chơi ngay|Vào quán|Mở quán)/i.test(b.textContent.trim())));
   if (c) { c.click(); return c.id || c.textContent.trim().slice(0, 20); } return ""; })()`;
 
+// Màn kết thúc ván + bảng "Thách bạn" (challenge.js, Đợt 10) của 3 game có nút ⚔ Thách bạn: ép hết ván bằng __game.
+const OVER = {
+  "/games/ran-san-moi/": `(async () => { __game.steps(400); })()`,
+  "/games/2048/": `(async () => { const d = ["left","up","right","down"]; for (let i = 0; i < 4000 && __game.state.status === "playing"; i++) { if (!__game.move(d[i % 4])) for (const x of d) if (__game.move(x)) break; if (i % 50 === 0) await new Promise((r) => setTimeout(r, 0)); } })()`,
+  "/games/dao-vang/": `(async () => { __game.state.time = 0.02; })()`,
+};
+const CHAL_VISIBLE = `(() => { const b = document.querySelector("#chalBtnE, #chalBtn"); return !!b && !b.hidden && b.getClientRects().length > 0 && !b.closest("[hidden]"); })()`;
+
 const chrome = await launchChrome("double-sound");
 async function openTab(touch) {
   const t = await chrome.newTab(touch ? "touch" : "mouse", touch ? 390 : 1366, touch ? 844 : 768, touch);
@@ -134,12 +143,25 @@ async function load(t, url, phase) {
   await t.go(url); await sleep(900);
   await t.cmd("Input.dispatchKeyEvent", { type: "rawKeyDown", key: "Shift", code: "ShiftLeft", windowsVirtualKeyCode: 16 }); // kích hoạt người dùng (mở khoá AudioContext) mà không bấm vào đâu
   await t.cmd("Input.dispatchKeyEvent", { type: "keyUp", key: "Shift", code: "ShiftLeft", windowsVirtualKeyCode: 16 });
-  if (phase === "game") { if (!(await t.ev(START_JS))) return false; await sleep(1500); }
+  if (phase === "menu") return true;
+  if (!(await t.ev(START_JS))) return false;
+  await sleep(1500);
+  if (phase === "over" || phase === "share") {
+    await t.ev(OVER[url.slice(base.length)]);
+    try { await t.waitFor(CHAL_VISIBLE, 8000); } catch { console.error("  over?", await t.ev(`JSON.stringify({ st: __game.state && __game.state.status, ov: [...document.querySelectorAll("[id^=ov]")].map((o) => o.id + ":" + o.hidden) })`)); return false; }
+    await sleep(1500); // chờ tiếng hết ván / kỷ lục (hẹn 700 ms) qua hết
+    await t.ev(`navigator.clipboard && (navigator.clipboard.writeText = () => Promise.resolve()); true`);
+  }
+  if (phase === "share") {
+    await t.ev(`document.querySelector("#chalBtnE, #chalBtn").click(); true`);
+    try { await t.waitFor(`!!document.querySelector(".lk-share")`, 5000); } catch { return false; }
+    await sleep(500);
+  }
   return true;
 }
 
 const results = [];
-const doubles = [];
+const doubles = [], unreached = [];
 const delays = [], clickDelays = [];
 let pressCount = 0;
 try {
@@ -147,8 +169,8 @@ try {
     for (const touch of [false, true]) {
       const input = touch ? "chạm" : "chuột";
       const t = await openTab(touch);
-      for (const phase of ["menu", "game"]) {
-        if (!(await load(t, base + p, phase))) continue;
+      for (const phase of ["menu", "game", ...(OVER[p] ? ["over", "share"] : [])]) {
+        if (!(await load(t, base + p, phase))) { if (phase !== "menu" && phase !== "game") console.log(`FAIL ${p} [${phase}/${input}] không tới được màn này`), unreached.push(`${p} ${phase}/${input}`); continue; }
         const btns = (await t.ev(LIST_JS)).slice(0, MAX_BTNS);
         let dirty = false;
         for (const b of btns) {
@@ -162,7 +184,7 @@ try {
             let r;
             try { r = await t.ev(`({ snd: __ds.snd.slice(${n0}), up: __ds.up, down: __ds.down, click: __ds.click, href: location.href })`); } catch { dirty = true; continue; }
             if (!r || !r.href.includes(p)) { dirty = true; continue; } // đã chuyển trang
-            const c = classify(r.snd);
+            const c = classify(r.snd.filter((x) => x.t >= r.down - 5)); // chỉ tiếng bắt đầu từ lúc nhấn (tiếng nền của ván — gộp ô, kỷ lục hẹn giờ — không tính)
             pressCount++;
             const row = { page: p, phase, input, label: pos.label, ...c, gameAfterUp: c.gameAt != null && r.up ? Math.round(c.gameAt - r.up) : null,
               gameAfterClick: c.gameAt != null && r.click > r.down ? Math.round(c.gameAt - r.click) : null };
@@ -202,7 +224,7 @@ try {
         const good = c.groups === 1 && c.count === 1;
         console.log(`${good ? "PASS" : "FAIL"} trang chủ press-nav ${row.input} ${row.label}: bụp×${c.groups}, game=${c.game.join(",") || "-"}`);
         if (!good) doubles.push(row);
-      } else console.log("FAIL trang chủ: không thấy thẻ game để bấm"), doubles.push({ page: "/homepage/", phase: "press-nav", label: "không thấy a.tile" });
+      } else console.log("FAIL trang chủ: không thấy thẻ game để bấm"), unreached.push("/homepage/ press-nav");
       await t.closeTab();
     }
   }
@@ -223,5 +245,7 @@ if (late.length) console.log(`Tiếng game bắt đầu sau khi nhả tay: trung
 const lc = results.filter((r) => r.gameAfterClick != null).map((r) => r.gameAfterClick).sort((a, b) => a - b);
 if (lc.length) console.log(`  … tính từ sự kiện click: trung vị ${lc[lc.length >> 1]} ms, lớn nhất ${lc[lc.length - 1]} ms; ${lc.filter((v) => v > 0).length}/${lc.length} lần phát SAU khi click đã xử lý xong (bất đồng bộ)`);
 if (OUTFILE) writeFileSync(OUTFILE, JSON.stringify({ baseline: BASELINE, results, delays: ds }, null, 1));
-console.log(doubles.length ? `\n${doubles.length} FAIL` : "\n0 FAIL — mỗi lần bấm một tiếng");
-process.exit(doubles.length ? 1 : 0);
+if (unreached.length) console.log(`Không tới được màn cần kiểm: ${unreached.join("; ")}`);
+const nFail = doubles.length + unreached.length;
+console.log(nFail ? `\n${nFail} FAIL` : "\n0 FAIL — mỗi lần bấm một tiếng");
+process.exit(nFail ? 1 : 0);
