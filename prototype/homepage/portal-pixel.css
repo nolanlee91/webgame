@@ -232,7 +232,7 @@ article.tile--sponsor { cursor: default; }
 .lobby__lists > .rooms { flex: 1 1 auto; }
 .lobby:not(.has-rooms) .lobby__subrow, .lobby:not(.has-rooms) .lobby__lists, .lobby:not(.has-rooms) .lobby__note { display: none; }
 .portal .lobby__empty, .portal .lobby.is-empty .lobby__empty { display: block; margin: auto; padding: 4px 24px; max-width: 34em; text-align: center;
-  font: 600 14px/1.45 var(--font-body); color: var(--px-soft); }
+  font: 600 14px/1.45 var(--font-body); color: var(--px-soft); text-wrap: balance; }
 .portal .lobby.has-rooms .lobby__empty { display: none; }
 
 /* ≤ 1023 px (sảnh nằm dưới hero / băng, cao theo nội dung): ô danh sách cao CỐ ĐỊNH đúng một hàng phòng ⇒ phòng về sau khi trang đã vẽ
