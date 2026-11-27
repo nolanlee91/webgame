@@ -121,22 +121,28 @@
     if (pageLoaded && slides.length > 1) loadSlide((i + 1) % slides.length);
   }
   if (!pageLoaded) window.addEventListener("load", function () { pageLoaded = true; loadAround(state.slide); });
+  // HOME2-06 (D11): lúc đang trượt, slide cũ CHƯA inert (inert thì chạm vào nó rơi xuống .hero__track ⇒ hụt) — chỉ inert khi trượt xong.
+  var inertT = null;
   function goSlide(i, instant) {
     var n = slides.length; if (!n) return;
+    var prev = state.slide;
     state.slide = (i + n) % n;
     loadAround(state.slide);
     track.classList.toggle("no-anim", !!instant);
     track.style.transform = "translateX(" + (-100 * state.slide) + "%)";
+    clearTimeout(inertT);
+    var moving = !instant && !reduce && prev !== state.slide;
     [].forEach.call(track.children, function (el, k) {
       var on = k === state.slide;
       el.setAttribute("aria-hidden", String(!on)); el.tabIndex = on ? 0 : -1;
-      if ("inert" in el) el.inert = !on;
+      if ("inert" in el) el.inert = !on && !(moving && k === prev);
     });
+    if (moving) inertT = setTimeout(function () { var o = track.children[prev]; if (o && prev !== state.slide && "inert" in o) o.inert = true; }, 560); // = transition .5s + dư
     [].forEach.call(dots.children, function (d, k) { d.setAttribute("aria-current", String(k === state.slide)); });
   }
   // Tự chuyển sau HERO_MS; dừng khi rê chuột / đang focus / tab ẩn; tắt hẳn nếu máy đặt "giảm chuyển động".
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches, timer = null, hold = 0;
-  function arm() { clearTimeout(timer); if (!reduce && !hold && !document.hidden && slides.length > 1) timer = setTimeout(function () { goSlide(state.slide + 1); arm(); }, HERO_MS); }
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches, timer = null, hold = 0, stopped = false;
+  function arm() { clearTimeout(timer); if (!reduce && !hold && !stopped && !document.hidden && slides.length > 1) timer = setTimeout(function () { goSlide(state.slide + 1); arm(); }, HERO_MS); }
   function pause() { hold++; clearTimeout(timer); }
   function resume() { hold = Math.max(0, hold - 1); arm(); }
   $("heroPrev").addEventListener("click", function () { goSlide(state.slide - 1); arm(); });
@@ -153,6 +159,13 @@
     goSlide(state.slide + d); e.preventDefault();
     if (onSlide) { var cur = track.children[state.slide]; if (cur) cur.focus({ preventScroll: true }); }
   });
+  // HOME2-06 (D11): chạm / nhấn vào hero ⇒ dừng HẲN tự chuyển. Nhấn đúng lúc đang trượt ⇒ dừng ngay ở slide nằm dưới ngón tay
+  // (nhảy tức thì về slide đó) để cú chạm mở đúng game đang thấy dưới tay, không phải game của slide mới.
+  track.addEventListener("pointerdown", function (e) {
+    stopped = true; clearTimeout(timer);
+    var s = e.target.closest && e.target.closest(".slide"), k = s ? [].indexOf.call(track.children, s) : -1;
+    if (k >= 0 && k !== state.slide) goSlide(k, true);
+  }, true);
   // Vuốt ngang trên điện thoại để chuyển game; vuốt xong thì không tính là bấm vào thẻ.
   var sx = null, sy = 0, swiped = false;
   track.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiped = false; pause(); }, { passive: true });
@@ -262,7 +275,7 @@
     return '<li class="room' + soonCls(g) + '">' +
       '<span class="room__art">' + imgHTML(g, "56px", true) + "</span>" +
       '<span class="room__info"><span class="room__name">' + g.name + ' <span class="room__no">#' + esc(r.code) + "</span></span>" +
-        '<span class="room__meta"><span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" />' + esc(r.host) + "</span>" +
+        '<span class="room__meta"><span class="room__host"><img src="assets/ui/icon-chu-phong.png" alt="" width="16" height="16" /><span class="room__hostName">' + esc(r.host) + "</span></span>" +
         '<span class="room__side">' + seatsHTML(r) + '<span class="room__cnt">' + r.have + "/" + r.max + '<span class="sr-only"> người</span></span></span></span></span>' +
       '<a class="btn btn--teal btn--sm room__go" href="' + esc(roomHref(r.game, r.code)) + '" aria-label="Vào phòng ' + g.name + " " + esc(r.code) + ", " + r.have + " trên " + r.max + ' người">Vào</a>' +
     "</li>";

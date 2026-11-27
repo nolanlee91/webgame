@@ -230,3 +230,13 @@ article.tile--sponsor { cursor: default; }
 @media (orientation: landscape) and (max-height: 380px) and (max-width: 1023px) {
   .hero__tags { display: none; } /* băng slide chỉ còn ~92 px: giữ tên game + nút Chơi ngay */
 }
+
+/* =====================================================================================================
+   D11 — thẻ phòng (HOME2-07)
+   ===================================================================================================== */
+/* Tên chủ phòng dài: cắt có "…" (trước là cắt cứng — .room__host là flex nên text-overflow không ăn vào chữ trần) */
+.room__hostName { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Điện thoại: ≤ 3 phòng (chỉ một cột) ⇒ cột rộng hết panel, nút "Vào" sát mép phải như các khung khác (88% chỉ để lộ mép phòng thứ 4 khi vuốt được) */
+@media (max-width: 720px) {
+  .rooms:not(:has(> li:nth-child(4))) { grid-auto-columns: 100%; }
+}
