@@ -3,11 +3,13 @@
 // Kết quả ghi vào <output>/e2e-ket-qua.txt; ảnh chụp ghi vào <output>/*.png.
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
-const OUT = process.argv[2] || '.', PORT = process.env.PORT || 8771, BASE = 'http://127.0.0.1:' + PORT + '/games/o-an-quan/';
-const PROF = (await import('node:path')).resolve(OUT, 'prof');
-mkdirSync(OUT, { recursive: true }); rmSync(PROF, { recursive: true, force: true });
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('o-an-quan'), PORT = process.env.PORT || 8771, BASE = 'http://127.0.0.1:' + PORT + '/games/o-an-quan/';
+mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('o-an-quan'); // %TEMP%/lk-e2e-o-an-quan-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
   ['--headless=new', '--remote-debugging-port=9353', '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {

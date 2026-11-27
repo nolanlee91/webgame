@@ -4,11 +4,14 @@
 // node screenshots/online-e2e.mjs <thư mục output>   [PORT=8768] [OFFPORT=<cổng server KHÔNG bật Caro online để thử thông báo>]
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', PORT = process.env.PORT || 8768, CDP = 9336;
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-caro-online'), PORT = process.env.PORT || 8768, CDP = 9336;
 const URL0 = `http://127.0.0.1:${PORT}/games/co-caro/index.html`;
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('co-caro-online'); // %TEMP%/lk-e2e-co-caro-online-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=' + CDP, '--user-data-dir=' + OUT + '/prof-online', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + CDP, '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const R = []; const check = (n, c, d = '') => { const s = (c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''); R.push(s); console.log(s); };
 

@@ -4,11 +4,14 @@
 // Chạy: (ở gốc repo) PORT=8768 node server.js   rồi   node prototype/games/co-ty-phu/screenshots/e2e-online.mjs <thư mục output>
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', PORT = process.env.PORT || 8768, ORIGIN = 'http://127.0.0.1:' + PORT, BASE = ORIGIN + '/games/co-ty-phu/';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-ty-phu-online'), PORT = process.env.PORT || 8768, ORIGIN = 'http://127.0.0.1:' + PORT, BASE = ORIGIN + '/games/co-ty-phu/';
 const DBG = 9361;
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('co-ty-phu-online'); // %TEMP%/lk-e2e-co-ty-phu-online-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=' + DBG, '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=' + DBG, '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 setTimeout(() => { console.log('TIMEOUT sau bước: ' + (R.at(-1) || '-')); try { writeFileSync(OUT + '/result.txt', R.join(String.fromCharCode(10)) + ' TIMEOUT'); } catch {} chrome.kill(); process.exit(1); }, 480000).unref();
 const R = []; const check = (n, c, d = '') => { const s = (c ? 'PASS ' : 'FAIL ') + n + (d !== '' ? ' — ' + d : ''); R.push(s); console.log(s); };

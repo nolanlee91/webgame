@@ -12,7 +12,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { REPO, sleep, launchChrome } from "./cdp.mjs";
 import { fakeSupabase } from "../../../../games-server/account/test/helpers.mjs";
-import { shotDir } from "./lk-temp.mjs";
+import { shotDir, guardServer } from "./lk-temp.mjs";
 
 const OUT = path.resolve(process.argv[2] || shotDir("google-login"));
 mkdirSync(OUT, { recursive: true });
@@ -21,7 +21,7 @@ const ANON = "sb_publishable_E2E_GOOGLE", SECRET = "sb_secret_E2E_GOOGLE_MUST_NO
 const fake = await fakeSupabase({ serviceKey: SECRET, anonKey: ANON, google: false });
 const env = { ...process.env, PORT: String(PORT), SUPABASE_URL: fake.base, SUPABASE_ANON_KEY: ANON, SUPABASE_SERVICE_ROLE_KEY: SECRET };
 delete env.DAILY_BOARD;
-const server = spawn(process.execPath, ["server.js"], { cwd: REPO, env, stdio: "ignore" });
+const server = guardServer(spawn(process.execPath, ["server.js"], { cwd: REPO, env, stdio: "ignore" })); // tắt cùng test, kể cả khi bị giết cứng
 let fails = 0;
 const check = (n, c, d = "") => { if (!c) fails++; console.log((c ? "PASS " : "FAIL ") + n + (d !== "" ? " — " + d : "")); };
 for (let i = 0; i < 120; i++) { try { if ((await fetch(BASE + "/healthz")).ok) break; } catch {} await sleep(250); }

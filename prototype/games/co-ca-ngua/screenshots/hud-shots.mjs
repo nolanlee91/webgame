@@ -2,10 +2,13 @@
 // node hud-shots.mjs <thư mục output>   (cần server: PORT=8766 node server.js ở gốc repo)
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2]; mkdirSync(OUT, { recursive: true });
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-ca-ngua-hud'); mkdirSync(OUT, { recursive: true });
 const URL0 = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-ca-ngua/index.html';
+const PROF = tempProfile('co-ca-ngua-hud'); // %TEMP%/lk-e2e-co-ca-ngua-hud-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9335', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=9335', '--user-data-dir=' + PROF, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {

@@ -6,6 +6,7 @@
 //   const proc = spawn(CHROME, [..., "--user-data-dir=" + prof, ...]);
 //   guardChrome(proc, prof);                       // thoát (kể cả Ctrl+C, lỗi, bị giết cứng) ⇒ tắt Chrome + xoá hồ sơ
 //   const OUT = process.argv[2] || shotDir("home-d3");   // ảnh chụp mặc định: %TEMP%/lk-e2e-shots-home-d3
+//   const server = guardServer(spawn(process.execPath, ["server.js"], …));   // server con: tắt cùng lúc với test (kể cả bị giết cứng)
 //
 // Dọn tay mọi thứ: node tools/clean-test-temp.mjs
 import { mkdtempSync, mkdirSync, readdirSync, statSync, renameSync, rmSync, existsSync } from "node:fs";
@@ -120,6 +121,10 @@ export function guardChrome(proc, prof) {
   } catch {}
   return proc;
 }
+
+/** Gắn một tiến trình con khác (vd. `node server.js` do test tự bật) vào cùng vòng dọn: thoát / lỗi / tín hiệu ⇒ tắt cả cây;
+ *  tiến trình test bị giết cứng ⇒ lính gác tắt nó (không có hồ sơ nào phải xoá). Trả lại chính proc. */
+export function guardServer(proc) { return guardChrome(proc, ""); }
 
 /** Thư mục ảnh chụp mặc định %TEMP%/lk-e2e-shots-<name> (dùng lại giữa các lần chạy; dọn bằng tools/clean-test-temp.mjs). */
 export function shotDir(name) {

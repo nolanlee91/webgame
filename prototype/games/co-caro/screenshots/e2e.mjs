@@ -2,10 +2,13 @@
 // Chạy: (ở gốc repo) PORT=8766 node server.js   rồi   node e2e.mjs <thư mục output>   [PORT=8766]
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
-const OUT = process.argv[2] || '.', BASE = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-caro/';
+import { tempProfile, guardChrome, shotDir } from '../../_shared/test/lk-temp.mjs';
+const OUT = process.argv[2] || shotDir('co-caro'), BASE = 'http://127.0.0.1:' + (process.env.PORT || 8766) + '/games/co-caro/';
 mkdirSync(OUT, { recursive: true });
+const PROF = tempProfile('co-caro'); // %TEMP%/lk-e2e-co-caro-*, tự xoá khi thoát (kể cả Ctrl+C / bị giết cứng)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',
-  ['--headless=new', '--remote-debugging-port=9343', '--user-data-dir=' + OUT + '/prof', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+  ['--headless=new', '--remote-debugging-port=9343', '--user-data-dir=' + PROF, '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+guardChrome(chrome, PROF);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60; i++) {
