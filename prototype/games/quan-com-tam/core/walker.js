@@ -2,8 +2,8 @@
 // Trong lúc đi, bếp vẫn chạy (đồng hồ ca chung) — đây là căng thẳng chính: bưng dĩa ra bàn xa thì miếng sườn vùng nóng có thể cháy.
 // Hàng đợi việc tối đa 4. Hết việc thì tự đi về chỗ đứng sau bếp. Việc ở bếp / ô bày chỉ làm được khi cô chủ đứng ở bếp (ownerFree).
 // Thuần: toạ độ từ core/placements.js (manifest hoặc dự phòng), thời gian = quãng đường / tốc độ (SERVICE.ownerSpeed px/giây).
-import { SERVICE } from "../data/economy.js?v=c9";
-import { scenePoints, ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c9";
+import { SERVICE } from "../data/economy.js?v=c10";
+import { scenePoints, ownerRoute, pathLen, alongDist, dist } from "./placements.js?v=c10";
 
 export const freshOwner = (P) => ({ pos: [...P.owner], path: null, walked: 0, task: null, queue: [], away: null });
 export const pointsOf = (s) => scenePoints(s.stage);

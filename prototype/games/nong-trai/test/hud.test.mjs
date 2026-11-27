@@ -1,7 +1,7 @@
 // TLC12-04: số gọn cho HUD (như Trà Sữa) ⇒ xu lớn không đẩy HUD xuống 2 hàng.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { shortNum } from "../ui/short-num.js?v=m14";
+import { shortNum } from "../ui/short-num.js?v=m15";
 
 test("shortNum: 24 · 9.999 · 148k · 1,2tr · 999tr · 1,5 tỷ, cắt xuống không làm tròn lên, ≤ 6 ký tự tới 999 tỷ", () => {
   assert.equal(shortNum(24), "24");

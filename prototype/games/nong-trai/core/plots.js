@@ -1,10 +1,10 @@
 // Ruộng: gieo / tưới / thu hoạch / mở ô. Thời gian tuyệt đối (plantAt / readyAt) ⇒ cây lớn cả khi tắt trang.
 // Ruộng 5×5, mở sẵn 3×3 ở giữa. Các hàm đổi trạng thái chỉ gọi qua apply() và trả { err } hoặc kết quả.
-import { CROP } from "../data/crops.js?v=m14";
-import { MATERIALS } from "../data/catalog.js?v=m14";
-import { cropUnlocked, hasFeature, addXp } from "./progression.js?v=m14";
-import { add, canAdd } from "./inventory.js?v=m14";
-import { rand, pick } from "./rng.js?v=m14";
+import { CROP } from "../data/crops.js?v=m15";
+import { MATERIALS } from "../data/catalog.js?v=m15";
+import { cropUnlocked, hasFeature, addXp } from "./progression.js?v=m15";
+import { add, canAdd } from "./inventory.js?v=m15";
+import { rand, pick } from "./rng.js?v=m15";
 
 export const W = 5, H = 5;
 // Milestone 3: s.plots có 43 ô cố định — 0..24 ruộng chính (5×5), 25..33 Khu đất phía Đông (cấp 17, +9 ô, east: true),

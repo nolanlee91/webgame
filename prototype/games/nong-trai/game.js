@@ -1,16 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m14";
-import { shortNum } from "./ui/short-num.js?v=m14"; // TLC12-04
-import { browserStorage, farmSave } from "./save.js?v=m14";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m14";
-import { createMarketScene } from "./ui/scene-market.js?v=m14";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m14";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m14";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m14";
-import { createVillageScene } from "./ui/scene-village.js?v=m14";
-import { createTruck } from "./ui/truck.js?v=m14";
-import { farmShare } from "./ui/share-card.js?v=m14";
+import * as L from "./logic.js?v=m15";
+import { shortNum } from "./ui/short-num.js?v=m15"; // TLC12-04
+import { browserStorage, farmSave } from "./save.js?v=m15";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m15";
+import { createMarketScene } from "./ui/scene-market.js?v=m15";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m15";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m15";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m15";
+import { createVillageScene } from "./ui/scene-village.js?v=m15";
+import { createTruck } from "./ui/truck.js?v=m15";
+import { farmShare } from "./ui/share-card.js?v=m15";
 import { shareResult } from "../_shared/share.js?v=s2";
 
 const MUTE_KEY = "wgp.muted";
@@ -416,18 +416,36 @@ export function mount(root, ctx = {}) {
   }
 
   let shownCoins = null;
+  // D9: điện thoại dọc 341–440 px — HUD (chỉ số + nút) phải một hàng. Thử hiện đủ "320/320"; nếu nút công cụ bị đẩy xuống hàng
+  // dưới thì ẩn phần "/320" (.hud.nocap, vẫn đọc được bằng trình đọc màn hình). Chỉ đo khi số đổi hoặc khung đổi cỡ.
+  const HUD_TIGHT = matchMedia("(max-width: 440px) and (min-width: 341px) and (orientation: portrait)");
+  const hudEl = document.querySelector(".hud"), statsEl = document.querySelector(".hud .stats"), toolsEl = document.querySelector(".hud .tools");
+  let hudFitDirty = true, hudCoinsTxt = "", shownStore = null;
+  function fitHud() {
+    hudFitDirty = false;
+    hudEl.classList.remove("nocap");
+    if (!HUD_TIGHT.matches || !statsEl.offsetWidth) return;
+    if (toolsEl.offsetTop >= statsEl.offsetTop + statsEl.offsetHeight - 2) hudEl.classList.add("nocap");
+  }
+  let fitRaf = 0; const refitHud = () => { cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(fitHud); };
+  HUD_TIGHT.addEventListener?.("change", refitHud);
+  window.addEventListener("resize", refitHud);
+  document.fonts?.ready.then(refitHud);
   function renderHud() {
     if (shownCoins !== s.coins) {
       if (shownCoins !== null && s.coins > shownCoins) { const st = ui.coins.closest(".stat"); st.classList.remove("bump"); void st.offsetWidth; st.classList.add("bump"); }
       shownCoins = s.coins; ui.coins.textContent = shortNum(s.coins); // TLC12-04: số gọn, số đủ ở title / aria-label
       const full = `${fmtNum(s.coins)} xu`, st = ui.coins.closest(".stat"); st.title = full; st.setAttribute("aria-label", "Xu: " + full);
     }
-    ui.level.textContent = s.level;
+    if (ui.level.textContent !== String(s.level)) { ui.level.textContent = s.level; hudFitDirty = true; }
     const need = L.xpNeed(s.level);
     ui.xp.style.width = Math.round((100 * s.xp) / need) + "%";
     ui.xpTxt.textContent = `${shortNum(s.xp)}/${shortNum(need)} XP`; ui.xpTxt.title = `${fmtNum(s.xp)}/${fmtNum(need)} XP`;
     const used = L.used(s), cap = L.capacity(s), over = L.overflowCount(s);
-    ui.store.textContent = `${used}/${cap}`;
+    const storeTxt = `${used}/${cap}`;
+    if (shownStore !== storeTxt) { shownStore = storeTxt; ui.store.innerHTML = `${used}<span class="cap">/${cap}</span>`; hudFitDirty = true; } // D9: phần "/sức chứa" ẩn được khi chật (fitHud)
+    if (ui.coins.textContent !== hudCoinsTxt) { hudCoinsTxt = ui.coins.textContent; hudFitDirty = true; }
+    if (hudFitDirty) fitHud();
     ui.over.textContent = over ? `+${over} giỏ tràn` : "";
     ui.over.hidden = !over;
     ui.storeBar.style.width = Math.min(100, Math.round((100 * used) / cap)) + "%";

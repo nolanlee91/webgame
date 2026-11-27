@@ -701,23 +701,33 @@
       .toast { top: calc(env(safe-area-inset-top) + 52px); bottom: auto; } /* không che khay hạt */
       #bookBtn > span:not(.nav-badge) { display: none; } /* Sổ: chỉ biểu tượng (số món ở aria-label + chấm "!") để chỗ cho các số */
     }
-    @media (max-width: 360px) and (orientation: portrait) {
-      .stats { gap: 6px; padding-inline: 6px; }
-      .stat + .stat { padding-left: 6px; }
-      .stat b { font-size: 14px; } .stat.main b { font-size: 15px; }
-      /* nhãn chữ "Cấp" / "Kho" ⇒ biểu tượng (chữ vẫn còn cho đọc màn hình) */
+    /* D9: điện thoại dọc ≤ 440 px — HUD một hàng cả cuối game (999tr, kho 320/320) ở 360 / 375 / 390 / 412.
+       Nhãn chữ "Cấp" / "Kho" 10 px ⇒ biểu tượng (chữ vẫn còn cho đọc màn hình); "Thu hết" 2 dòng chữ 12 px (nút vẫn ≥ 44 × 44);
+       khi vẫn không đủ chỗ, game.js thêm .hud.nocap ⇒ ô Kho chỉ hiện số đang chứa (sức chứa ở title / aria-label, thanh đầy vẫn đỏ). */
+    @media (max-width: 440px) and (orientation: portrait) {
+      .hud { column-gap: 4px; }
+      .stats { gap: 4px; padding-inline: 5px; }
+      .stat + .stat { padding-left: 5px; }
+      .stat b, #hStore { font-size: 15px; } .stat.main b { font-size: 16px; }
       .stat:not(.main) small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
       .stats > .stat:nth-child(2)::before, #hStoreStat::before { content: ""; flex: none; align-self: center; width: 16px; height: 16px; image-rendering: pixelated; }
       .stats > .stat:nth-child(2)::before { background: url(assets/icons.png) 66.667% 0 / 400% 100% no-repeat; }
       #hStoreStat::before { background: url(assets/v3/items.webp) 42.857% 100% / 800% 400% no-repeat; }
-      .stat .ico { width: 16px; height: 16px; }
-      .tools { gap: 5px; } .tools .btn { padding-inline: 6px; font-size: 11px; }
+      .stat .ico { width: 16px; height: 16px; margin-right: 2px; }
+      .tools { gap: 5px; } .tools .btn { padding-inline: 6px; font-size: 12px; }
+      #allBtn { white-space: normal; max-width: 46px; padding-inline: 4px; letter-spacing: 0; line-height: 1.05; text-align: center; }
+    }
+    @media (max-width: 440px) and (min-width: 341px) and (orientation: portrait) {
+      .hud.nocap #hStore .cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } /* vẫn đọc được bằng trình đọc màn hình */
+    }
+    @media (max-width: 360px) and (orientation: portrait) {
+      .stat b, #hStore { font-size: 14px; } .stat.main b { font-size: 15px; }
     }
     /* ≤ 340 px (iPhone SE đời đầu): số liệu một hàng, ba nút một hàng — không đủ chỗ cho cả hai cạnh nhau */
     @media (max-width: 340px) and (orientation: portrait) {
       .hud { flex-wrap: wrap; row-gap: 0; }
       .stats { flex: 1 1 100%; justify-content: space-around; }
-      .tools { flex: 1 1 100%; margin-left: 3px; } .tools .btn { flex: 1; }
+      .tools { flex: 1 1 100%; margin-left: 3px; } .tools .btn { flex: 1; } #allBtn { max-width: none; white-space: nowrap; }
     }
 
     /* TLC12-03: điện thoại dọc màn thấp (≤ 700 px cao, vd 320×568) khi gieo / tưới: trang không cuộn nữa — bản đồ là khung cuộn riêng
@@ -960,7 +970,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m14";
+    import { mount } from "./game.js?v=m15";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

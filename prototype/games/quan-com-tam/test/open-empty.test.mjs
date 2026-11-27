@@ -2,7 +2,7 @@
 // thì lời nhắc chỉ cách mua gấp. Bảng Chuẩn bị (ui/overlays.js) hỏi lại trước khi mở quán rỗng: kiểm ở e2e.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { newGame, prepDay, must } from "./helpers.mjs?v=c9";
+import { newGame, prepDay, must } from "./helpers.mjs?v=c10";
 
 const says = (r) => r.events.filter((e) => e.type === "say" && e.kind === "warn").map((e) => e.text);
 

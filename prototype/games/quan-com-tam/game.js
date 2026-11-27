@@ -1,30 +1,31 @@
 // Nối mọi thứ: tải manifest (+ toạ độ cảnh) → đọc bản lưu → vòng lặp (tick theo thời gian ca) → vẽ cảnh / Thanh Bếp / Cột Dĩa / HUD → lưu tự động.
 // Trạng thái chỉ đổi qua apply() (core/apply.js). Giao diện đọc trạng thái + sự kiện trả về để chạy hiệu ứng, âm thanh, thông báo.
-import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c9";
-import { placeholderFallback } from "./render/placeholder.js?v=c9";
-import { createScene } from "./render/scene.js?v=c9";
-import { configureScene } from "./core/placements.js?v=c9";
-import { createGrillbar } from "./ui/grillbar.js?v=c9";
-import { createColumn } from "./ui/column.js?v=c9";
-import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c9";
+import { makeAtlas, SHEETS, HD_SHEETS, LAZY_SHEETS, OPTIONAL_SHEETS, KEEP_BASE, preload } from "./render/atlas.js?v=c10";
+import { frameErrorLog } from "../_shared/frame-errors.js?v=fe1";
+import { placeholderFallback } from "./render/placeholder.js?v=c10";
+import { createScene } from "./render/scene.js?v=c10";
+import { configureScene } from "./core/placements.js?v=c10";
+import { createGrillbar } from "./ui/grillbar.js?v=c10";
+import { createColumn } from "./ui/column.js?v=c10";
+import { createOverlays, levelUpShare } from "./ui/overlays.js?v=c10";
 import { shareResult } from "../_shared/share.js?v=s2";
-import { createDrama } from "./ui/drama.js?v=c9"; // B: drama
-import { createBigGrill } from "./ui/bigrill.js?v=c9"; // V: bếp lớn HD
-import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c9";
-import { apply } from "./core/apply.js?v=c9";
-import { hint } from "./core/tutorial.js?v=c9";
-import { layerStrip } from "./core/plate.js?v=c9";
-import { tableJob, groupById } from "./core/tables.js?v=c9";
-import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c9";
-import { itemName } from "./core/rescue.js?v=c9";
-import { MISTAKES } from "./core/score.js?v=c9";
-import { shopSave, browserStorage } from "./save.js?v=c9";
-import { DISHES, LEVELS } from "./data/economy.js?v=c9";
-import { setJournalBg } from "./ui/journal.js?v=c9"; // C: nền thẻ Nhật Ký
-import { needPersona } from "./core/reviews.js?v=c9"; // C: hỏi tính cách một lần
-import { addNewDishes } from "./core/progress.js?v=c9"; // A: móc e2e nhảy cấp
-import * as PU from "./ui/progress-ui.js?v=c9"; // A: thông báo + lỗi của phần tiến trình M3
-import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c9";
+import { createDrama } from "./ui/drama.js?v=c10"; // B: drama
+import { createBigGrill } from "./ui/bigrill.js?v=c10"; // V: bếp lớn HD
+import { el, toast, fmtK, clockText, tableName } from "./ui/common.js?v=c10";
+import { apply } from "./core/apply.js?v=c10";
+import { hint } from "./core/tutorial.js?v=c10";
+import { layerStrip } from "./core/plate.js?v=c10";
+import { tableJob, groupById } from "./core/tables.js?v=c10";
+import { ownerFree, ownerBusyWhy } from "./core/walker.js?v=c10";
+import { itemName } from "./core/rescue.js?v=c10";
+import { MISTAKES } from "./core/score.js?v=c10";
+import { shopSave, browserStorage } from "./save.js?v=c10";
+import { DISHES, LEVELS } from "./data/economy.js?v=c10";
+import { setJournalBg } from "./ui/journal.js?v=c10"; // C: nền thẻ Nhật Ký
+import { needPersona } from "./core/reviews.js?v=c10"; // C: hỏi tính cách một lần
+import { addNewDishes } from "./core/progress.js?v=c10"; // A: móc e2e nhảy cấp
+import * as PU from "./ui/progress-ui.js?v=c10"; // A: thông báo + lỗi của phần tiến trình M3
+import { playEvent, play, soundMode, cycleSoundMode, unlockSound, setSoundScene, syncSound, soundDebug, MUTE_KEY, MUSIC_KEY } from "./ui/sfx.js?v=c10";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -235,10 +236,15 @@ async function boot() {
   const chips = $("#chips");
   const chip = (cls) => { const c = el("span", "chip " + cls, chips); const b = el("b", "", c); const sm = el("small", "", c); return { c, b, sm }; };
   const cDay = chip("day"), cMoney = chip("money"), cStar = chip("rep"), cLv = chip("lv");
+  const hudNarrow = matchMedia("(max-width: 639px), (max-width: 760px) and (min-height: 501px), (max-width: 1024px) and (orientation: portrait)");
+  const short1 = (x) => String(Math.floor(x * 10) / 10).replace(".", ",");
+  const shortMoney = (k) => { const s = k < 0 ? "−" : "", n = Math.abs(Math.round(k)); return s + (n < 1000 ? `${n}k` : n < 1e6 ? `${short1(n / 1000)}tr` : `${short1(n / 1e6)} tỷ`); };
+  hudNarrow.addEventListener?.("change", () => hud());
   function hud() {
     const sh = state.shift;
     cDay.b.textContent = sh ? clockText(sh) : `Ngày ${state.day}`; cDay.sm.textContent = sh ? `Ngày ${state.day}` : "chuẩn bị";
-    cMoney.b.textContent = fmtK(state.money); cMoney.sm.textContent = "";
+    // D9: điện thoại dọc: tiền dạng gọn (1,2tr / 1,2 tỷ), số đủ ở title — ô tiền từng bị cắt mất ở 320–360
+    cMoney.b.textContent = hudNarrow.matches && Math.abs(state.money) >= 1000 ? shortMoney(state.money) : fmtK(state.money); cMoney.sm.textContent = ""; cMoney.c.title = "Tiền: " + fmtK(state.money);
     cStar.b.textContent = state.rating ? state.rating.toFixed(1).replace(".", ",") + "★" : "—★"; cStar.sm.textContent = "";
     cLv.b.textContent = `Cấp ${state.level}`; cLv.sm.textContent = `${state.xp} XP`;
   }
@@ -255,10 +261,11 @@ async function boot() {
   }
   const shareOpen = () => sharing || !!document.querySelector(".lk-share");
   const running = () => state.shift && state.shift.status === "open" && !state.shift.dialog && !paused && !overlays.current && !shareOpen();
+  const frameErr = frameErrorLog("Cơm Tấm");
   function frame(now) {
     // TLC22-01: hẹn khung sau TRƯỚC khi làm việc ⇒ một lỗi trong event / vẽ không bao giờ làm đơ cả game
     requestAnimationFrame(frame);
-    try { step(now); } catch (err) { console.error(err); }
+    try { step(now); frameErr.ok(); } catch (err) { frameErr.error(err); } // D9: mỗi lỗi in 1 lần + số đếm ~5 s (_shared/frame-errors.js)
   }
   function step(now) {
     const dt = Math.min(250, now - last); last = now;

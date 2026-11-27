@@ -2,19 +2,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { apply } from "../core/apply.js?v=m14";
-import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m14";
-import { BOOK, BOOK_TIERS, unlockedCount, bookView, sanitize as sanitizeBook } from "../core/collection.js?v=m14";
-import { fairAt, fairOfDay, nextFair, activeFair, quote, dayOf, FAIR_LEVEL, HOT_CROPS, HOT_GOODS } from "../core/fair.js?v=m14";
-import { MARKET } from "../core/market.js?v=m14";
-import { SPECIAL2_LEVEL, specialSlotCount, allOrders } from "../core/orders.js?v=m14";
-import { effects, levelOf } from "../core/build.js?v=m14";
-import { ITEM, ITEMS, iconCell, ICON2_IDS } from "../data/catalog.js?v=m14";
-import { RECIPES } from "../data/recipes.js?v=m14";
-import { BUILDING, HOUSE_SHEET, FENCE_SHEET } from "../data/buildings.js?v=m14";
-import { FAIR_HOT_CAP, FAIR_DURATION_MS } from "../data/fair.js?v=m14";
-import { TUTORIAL } from "../data/quests.js?v=m14";
-import { farmSave, KEY, V6_KEY, V6_BACKUP_KEY } from "../save.js?v=m14";
+import { apply } from "../core/apply.js?v=m15";
+import { createState, loadSave, dump, SAVE_VERSION } from "../core/state.js?v=m15";
+import { BOOK, BOOK_TIERS, unlockedCount, bookView, sanitize as sanitizeBook } from "../core/collection.js?v=m15";
+import { fairAt, fairOfDay, nextFair, activeFair, quote, dayOf, FAIR_LEVEL, HOT_CROPS, HOT_GOODS } from "../core/fair.js?v=m15";
+import { MARKET } from "../core/market.js?v=m15";
+import { SPECIAL2_LEVEL, specialSlotCount, allOrders } from "../core/orders.js?v=m15";
+import { effects, levelOf } from "../core/build.js?v=m15";
+import { ITEM, ITEMS, iconCell, ICON2_IDS } from "../data/catalog.js?v=m15";
+import { RECIPES } from "../data/recipes.js?v=m15";
+import { BUILDING, HOUSE_SHEET, FENCE_SHEET } from "../data/buildings.js?v=m15";
+import { FAIR_HOT_CAP, FAIR_DURATION_MS } from "../data/fair.js?v=m15";
+import { TUTORIAL } from "../data/quests.js?v=m15";
+import { farmSave, KEY, V6_KEY, V6_BACKUP_KEY } from "../save.js?v=m15";
 
 const T = Date.UTC(2026, 10, 19, 1, 0, 0); // 8:00 giờ Việt Nam
 const MIN = 60_000;

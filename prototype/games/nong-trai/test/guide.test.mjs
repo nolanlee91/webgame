@@ -2,10 +2,10 @@
 // thiếu mục tiêu; NV4 không bao giờ "Bán hết"; bản lưu cũ kẹt giữa chừng (NV3 ruộng trống, NV5 kho trống) vẫn có đường đi.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TUTORIAL } from "../data/quests.js?v=m14";
-import { currentQuest } from "../core/quests.js?v=m14";
-import { tutorialGoal } from "../core/guide.js?v=m14";
-import { loadSave, dump } from "../core/state.js?v=m14";
+import { TUTORIAL } from "../data/quests.js?v=m15";
+import { currentQuest } from "../core/quests.js?v=m15";
+import { tutorialGoal } from "../core/guide.js?v=m15";
+import { loadSave, dump } from "../core/state.js?v=m15";
 import { farm, act, START } from "./helpers.mjs";
 
 /** Làm đúng một việc mũi tên chỉ. Trả mốc giờ mới. */

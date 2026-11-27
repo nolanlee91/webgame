@@ -1,30 +1,30 @@
 // HUD, viên Lò / Gas, dải phiếu, thông báo, và các bảng phủ: chào, Chuẩn bị ca (nhập hàng, tiền lẻ, mẻ đầu, dự báo), Cách chơi,
 // Tạm dừng (Chơi lại từ đầu có xác nhận + backup), Chốt ca (lời lỗ), khiếu nại, hết hàng, hết tiền lẻ.
-import { icon } from "../render/atlas.js?v=b11";
-import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b11";
-import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b11";
-import { floatValue, sumBills } from "../core/money.js?v=b11";
-import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b11";
-import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b11";
-import { orderText, loafName, menuAt } from "../core/order.js?v=b11";
-import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b11";
-import { MISTAKES } from "../data/lines-mistakes.js?v=b11";
-import { PHASES } from "../data/shift.js?v=b11";
-import { quirkChips } from "./bench.js?v=b11";
-import { personaCards } from "./persona.js?v=b11";
-import { buildEvent } from "./drama.js?v=b11";
-import { buildNotebook } from "./notebook.js?v=b11";
-import { drawJournal, download, share } from "./journal.js?v=b11";
-import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b11";
-import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b11";
-import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b11";
-import { expiringOn } from "../core/expiry.js?v=b11";
-import { maiOpen, MAI } from "../core/stock.js?v=b11";
-import { currentEvent } from "../core/drama.js?v=b11";
-import { MERGE_SLICE_DAYS } from "../core/board.js?v=b11";
-import { PERSONAS } from "../data/lines-reply.js?v=b11";
-import { STALE } from "../data/lines-m3.js?v=b11";
-import { FILLINGS, NAMES } from "../data/economy.js?v=b11";
+import { icon } from "../render/atlas.js?v=b12";
+import { clockOf, phaseAt, customer, patienceLeft, orderPrice } from "../core/shift.js?v=b12";
+import { batchSec, batchLevel, ovenOf, CRUST, doneness, traySize, caseCap, prepMax as prepMaxOf } from "../core/oven.js?v=b12";
+import { floatValue, sumBills } from "../core/money.js?v=b12";
+import { demandEstimate, packPrice, packSize, capacity, stockUsed, shiftFee, consignAvailable, stage } from "../core/stock.js?v=b12";
+import { stockoutOptions, nochangeOptions, itemName } from "../core/rescue.js?v=b12";
+import { orderText, loafName, menuAt } from "../core/order.js?v=b12";
+import { STOCK, STOCK_IDS, EXCHANGE, FLOAT_BILLS, LEVELS, AUTO_CHANGE_DAYS, OVENS } from "../data/economy.js?v=b12";
+import { MISTAKES } from "../data/lines-mistakes.js?v=b12";
+import { PHASES } from "../data/shift.js?v=b12";
+import { quirkChips } from "./bench.js?v=b12";
+import { personaCards } from "./persona.js?v=b12";
+import { buildEvent } from "./drama.js?v=b12";
+import { buildNotebook } from "./notebook.js?v=b12";
+import { drawJournal, download, share } from "./journal.js?v=b12";
+import { EQUIPMENT, DECOR, SIGNBOARDS, RANKS, HOUSE_PATE, PROMOS, PROMO_UNLOCK, RENT, HELPER, FAIR, CHALLENGE, HOUSE_LOAF, PREORDER } from "../data/equipment.js?v=b12";
+import { canBuy, preorderOffers, fairAvailable, fairToday, nextFairDay, helperToday, houseRange, appeal } from "../core/progress.js?v=b12";
+import { challengeToday, challengeWeek, activeChallenge } from "../core/challenge.js?v=b12";
+import { expiringOn } from "../core/expiry.js?v=b12";
+import { maiOpen, MAI } from "../core/stock.js?v=b12";
+import { currentEvent } from "../core/drama.js?v=b12";
+import { MERGE_SLICE_DAYS } from "../core/board.js?v=b12";
+import { PERSONAS } from "../data/lines-reply.js?v=b12";
+import { STALE } from "../data/lines-m3.js?v=b12";
+import { FILLINGS, NAMES } from "../data/economy.js?v=b12";
 import { shareResult } from "../../_shared/share.js?v=s2";
 
 // Khoe kết quả chốt ca: tiền trong game tính theo nghìn ⇒ 1.250k → "1.250.000đ".
@@ -125,8 +125,8 @@ export function createHud(root, pills, atlas, dispatch) {
       pillAction = { type: "bake", slot: 0 };
     }
     const gas = state.stock.gas || 0;
-    const gt = `Gas ${gas} mẻ`;
-    if (gasPill.textContent !== gt) gasPill.textContent = gt;
+    const gt = `Gas ${gas} mẻ`; // D9: " mẻ" bọc riêng để dải dính hẹp ẩn được (index.html .dockbar .pill.gas .u)
+    if (gasPill.textContent !== gt) gasPill.innerHTML = `Gas ${gas}<span class="u"> mẻ</span>`;
     gasPill.className = "pill gas" + (gas <= 0 ? " out" : gas < 6 ? " low" : "");
   };
 }
