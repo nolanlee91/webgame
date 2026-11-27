@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createState, loadV3, migrateV2, dump, START_COINS } from "../core/state.js?v=m14";
-import { apply } from "../core/apply.js?v=m14";
-import { readyWhileAway, stage } from "../core/plots.js?v=m14";
-import { used, capacity } from "../core/inventory.js?v=m14";
-import { farmSave, KEY, V2_KEY, BACKUP_KEY, V5_KEY, V5_BACKUP_KEY } from "../save.js?v=m14";
+import { createState, loadV3, migrateV2, dump, START_COINS } from "../core/state.js?v=m15";
+import { apply } from "../core/apply.js?v=m15";
+import { readyWhileAway, stage } from "../core/plots.js?v=m15";
+import { used, capacity } from "../core/inventory.js?v=m15";
+import { farmSave, KEY, V2_KEY, BACKUP_KEY, V5_KEY, V5_BACKUP_KEY } from "../save.js?v=m15";
 import { START } from "./helpers.mjs";
-import { xpNeed } from "../core/progression.js?v=m14";
+import { xpNeed } from "../core/progression.js?v=m15";
 
 /** Bản lưu v2 thật (định dạng của logic.js cũ + đơn hàng chưa commit). */
 function v2Save(t) {

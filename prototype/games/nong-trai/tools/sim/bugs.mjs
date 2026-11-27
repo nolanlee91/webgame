@@ -2,9 +2,9 @@
 // lỗi còn hay đã được sửa. KHÔNG sửa luật ở đây — chỉ báo.
 import { Farm } from "./harness.mjs";
 import { plots, orders, quests, B, P, A, V } from "./harness.mjs";
-import { addXp } from "../../core/progression.js?v=m14";
-import { MAX_LEVEL } from "../../data/levels.js?v=m14";
-import { QUESTS } from "../../data/quests.js?v=m14";
+import { addXp } from "../../core/progression.js?v=m15";
+import { MAX_LEVEL } from "../../data/levels.js?v=m15";
+import { QUESTS } from "../../data/quests.js?v=m15";
 
 const NOW = 1_000_000;
 const fresh = () => new Farm(NOW, 7);
@@ -102,7 +102,7 @@ export const BUG_CHECKS = [
   },
 ];
 
-import { stuck } from "../../core/economy.js?v=m14";
+import { stuck } from "../../core/economy.js?v=m15";
 function awaitStuck(s) { return stuck(s); }
 
 export function runBugChecks() {

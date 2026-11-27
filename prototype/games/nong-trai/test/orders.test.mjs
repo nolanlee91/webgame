@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as O from "../core/orders.js?v=m14";
-import { orderSlotCount, cropUnlocked, xpNeed } from "../core/progression.js?v=m14";
-import { loadV3, dump } from "../core/state.js?v=m14";
-import { apply } from "../core/apply.js?v=m14";
-import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m14";
-import { NPC } from "../data/npcs.js?v=m14";
+import * as O from "../core/orders.js?v=m15";
+import { orderSlotCount, cropUnlocked, xpNeed } from "../core/progression.js?v=m15";
+import { loadV3, dump } from "../core/state.js?v=m15";
+import { apply } from "../core/apply.js?v=m15";
+import { CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS } from "../data/orders.js?v=m15";
+import { NPC } from "../data/npcs.js?v=m15";
 import { farm, act, err, START } from "./helpers.mjs";
 
 const board = (s) => O.boardView(s).slots;
@@ -188,9 +188,9 @@ test("bỏ đơn: ô trống, đơn mới đúng sau 2 phút, giữ qua lưu/t�
 });
 
 // ---------- Milestone 4: trứng / sữa trong đơn, delivered.items ----------
-import * as V4 from "../core/village.js?v=m14";
-import { MACHINE as MACHINE4 } from "../data/machines.js?v=m14";
-import { CURRENT_MILESTONE as CM4 } from "../data/levels.js?v=m14";
+import * as V4 from "../core/village.js?v=m15";
+import { MACHINE as MACHINE4 } from "../data/machines.js?v=m15";
+import { CURRENT_MILESTONE as CM4 } from "../data/levels.js?v=m15";
 
 const machine = () => ({ level: 1, slots: 2, readyAt: 0, queue: [], nextUid: 1 });
 /** Cấp `lv`, có Cối xay + Lò bánh (+ Máy bơ sữa) đã xây, đàn `herd` = { ga: n, "bo-sua": n }. */
