@@ -16,7 +16,7 @@ Làm trên nhánh `claude/oaq-audio`, tạo từ `codex/o-an-quan-assets`.
 | `select.mp3` | Chọn ô / chọn hướng |
 | `turn.mp3` | Tới lượt mình |
 | `win.mp3` / `lose.mp3` / `draw.mp3` | Kết ván |
-| `amb-yard.mp3` | Nền: sân gạch buổi chiều, chim sẻ, lá xào xạc, xa xa tiếng rao (loop) |
+| ~~`amb-yard.mp3`~~ | **Đã bỏ (D11, 27/11/2026):** nền ồn trải đều nghe như loa rè. Chỉ giữ nhạc ván. |
 | `music-game.mp3` | Nhạc trong ván (loop, nhỏ) |
 
 ## Bản giao âm thanh

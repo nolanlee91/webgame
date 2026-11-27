@@ -1,7 +1,7 @@
 // Bắn Bóng Khủng Long — phần hiển thị + điều khiển. Luật nằm ở logic.js (không đụng DOM).
 // Bóng 6 màu giữ ký hiệu riêng để dễ phân biệt. Khủng long dùng sprite riêng và có hình dự phòng khi ảnh chưa tải.
 import * as L from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s2";
+import { shareResult } from "../_shared/share.js?v=s3";
 
 const SAVE_KEY = "wgp.ban-bong.v1";
 const FLY_SPEED = 26; // đơn vị (đường kính bóng) / giây

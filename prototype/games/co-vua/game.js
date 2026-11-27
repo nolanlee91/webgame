@@ -3,7 +3,7 @@
 import * as L from "./logic.js";
 import { bestMove } from "./ai.js";
 import { createNet, CODE_RE } from "./net.js?v=d6g";
-import { shareResult } from "../_shared/share.js?v=s2";
+import { shareResult } from "../_shared/share.js?v=s3";
 import { isChatOff, initChatOff } from "../_shared/chat-off.js?v=co1";
 import { sharedName, initKick, kickButtonHTML, BANNED_TEXT, KICK_ERR } from "../_shared/online-kit.js?v=d6g"; // tên dùng chung + "Mời ra"
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel thay confirm() của trình duyệt (BRD-11)

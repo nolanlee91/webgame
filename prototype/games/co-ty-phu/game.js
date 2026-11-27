@@ -3,7 +3,7 @@ import { TOKENS, REGIONS, TILES, LEVEL_NAMES, RULES, createGame, roll, decide, p
   current, rentOf, netWorth, ownedBy, upgradeCost, baseRent, ownsRegion } from "./logic.js";
 import { NAME_KEY, CODE_RE, createNet, createChat, toast } from "./online.js?v=d6g";
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
-import { shareResult } from "../_shared/share.js?v=s2"; // "Khoe kết quả" ở bảng tổng kết
+import { shareResult } from "../_shared/share.js?v=s3"; // "Khoe kết quả" ở bảng tổng kết
 import { sharedName, initKick, kickButtonHTML } from "../_shared/online-kit.js?v=d6g"; // tên dùng chung + "Mời ra"
 
 const $ = (s) => document.querySelector(s);

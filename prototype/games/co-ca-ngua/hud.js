@@ -2,7 +2,7 @@
 // Chỉ hiển thị: nhận "view" từ game.js mỗi khung hình, gọi lại game.js qua các hàm on* khi người chơi bấm.
 // Không biết gì về luật — luật nằm trong logic.js.
 import { pxConfirm } from "../_shared/px-confirm.js?v=pc1"; // hộp xác nhận pixel (thay confirm() của trình duyệt)
-import { shareResult } from "../_shared/share.js?v=s2"; // "Khoe kết quả" ở bảng xếp hạng cuối ván
+import { shareResult } from "../_shared/share.js?v=s3"; // "Khoe kết quả" ở bảng xếp hạng cuối ván
 const ICON = (n) => new URL("assets/icon-" + n + ".png", import.meta.url).href;
 const ic = (n, cls = "") => `<img class="px-ic ${cls}" src="${ICON(n)}" alt="" draggable="false">`;
 const COLORS = ["red", "blue", "yellow", "green"]; // màu hiển thị theo ghế = màu nhánh trên board-v5 (game.js VIEW_COLORS)

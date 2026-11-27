@@ -4,7 +4,7 @@
 // Nếu ảnh không tải được thì tự quay về hình khối tạm (cùng lưới 13×13) — vẫn chơi được.
 // Luật nằm hết trong logic.js; file này chỉ vẽ + nhận thao tác.
 import { SEAT_NAMES, BASE, createGame, roll, move, restart, currentSeat, stableLevel, isHome, drainEvents } from "./logic.js";
-import { createHud } from "./hud.js?v=d11a";
+import { createHud } from "./hud.js?v=d11";
 import { botMove, makeRng } from "./ai.js";
 import { simulateThrow, sampleThrow, releaseVelocity, freeSpot } from "./dice-throw.js?v=chat1";
 

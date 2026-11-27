@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TUTORIAL } from "../data/quests.js?v=m15";
-import { currentQuest } from "../core/quests.js?v=m15";
-import { apply } from "../core/apply.js?v=m15";
+import { TUTORIAL } from "../data/quests.js?v=m16";
+import { currentQuest } from "../core/quests.js?v=m16";
+import { apply } from "../core/apply.js?v=m16";
 import { farm, act, err, START, CENTER } from "./helpers.mjs";
 
 /** Cày bằng cơ chế thật (gieo cà rốt mọi ô trống → chờ chín → thu hết → bán hết) tới khi `until()` đúng. Trả mốc giờ mới. */
