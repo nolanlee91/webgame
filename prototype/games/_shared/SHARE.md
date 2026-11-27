@@ -1,6 +1,6 @@
 # Khoe kết quả — `_shared/share.js`
 
-Module dùng chung để người chơi **khoe kết quả**: vẽ ảnh 1080×1080 theo phong cách pixel V5 (khung góc khuyết, bóng cứng, nền navy hoặc gỗ tối, chữ Be Vietnam Pro) rồi mở bảng chia sẻ. ES module thuần, không thư viện ngoài, không gửi dữ liệu đi đâu.
+Module dùng chung để người chơi **khoe kết quả**: vẽ ảnh 1080×1080 theo phong cách pixel V5 (khung góc khuyết, bóng cứng, nền navy hoặc gỗ tối, chữ Be Vietnam Pro) rồi mở bảng chia sẻ. ES module thuần, không thư viện ngoài. Từ Đợt 10 chỉ gửi **một số đếm gộp** (`_shared/stats.js`): bấm "Khoe" ⇒ `share_click`, trang mở từ link `?ref=share` ⇒ `share_open`. Không gửi ảnh, tên hay mã người chơi.
 
 ## API
 
@@ -25,7 +25,8 @@ shareResult({
 | `shareResult(opts)` | `Promise<string>` | Tạo ảnh rồi chia sẻ. Điện thoại có bảng chia sẻ hệ thống ⇒ `navigator.share({ files, text, url })`. Còn lại ⇒ bảng nhỏ pixel V5. `opts.native: false` ép dùng bảng. |
 | `makeCard(opts)` | `Promise<Blob>` | Chỉ vẽ ảnh PNG 1080×1080. |
 | `makeBanner(opts)` | `Promise<Blob>` | Ảnh 1200×630 cho thẻ xem trước link (dùng bởi `tools/og/render-og-images.mjs`). |
-| `shareUrl(game)` | `string` | `https://<domain>/games/<thư mục>/?ref=share&g=<id>` — tham số để sau này đo, hiện không gửi đi đâu. |
+| `shareUrl(game)` | `string` | `https://<domain>/games/<thư mục>/?ref=share&g=<id>` — `ref=share` được `stats.js` đếm thành `share_open` khi trang mở. |
+| `shareLink({ game, url, text, title })` | `Promise<string>` | Chia sẻ link + câu chữ, **không ảnh** (dùng cho "Thách bạn" của `challenge.js`). Điện thoại: `navigator.share({ text, url })`; còn lại: bảng Chép link / Facebook / Messenger / Zalo với tiêu đề `title`. Không tự đếm. |
 | `normalizeOpts`, `layoutCard`, `shareText`, `communityLinks`… | | Hàm thuần, có test Node. |
 
 **Bảng dự phòng** (máy tính, hoặc điện thoại không chia sẻ được tệp): xem trước ảnh + nút **Chia sẻ…** (nếu trình duyệt hỗ trợ), **Tải ảnh**, **Chép link**, **Facebook** (sharer, không cần app id), **Messenger** (chỉ hiện trên điện thoại — mở app bằng `fb-messenger://`, máy tính cần app id nên ẩn), **Zalo** (Zalo không có link chia sẻ nào không cần SDK/OA ⇒ chép link + hướng dẫn "mở Zalo, dán vào cuộc trò chuyện"). Esc / bấm nền / nút × để đóng; phím trong bảng không lọt xuống game.
