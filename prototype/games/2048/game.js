@@ -1,6 +1,7 @@
 // 2048 — phần hiển thị + điều khiển. Ô số là phần tử DOM (trượt bằng transform), luật nằm ở logic.js.
 import * as L from "./logic.js?v=daily1";
-import * as UI from "../_shared/daily-ui.js?v=d6g";
+import * as UI from "../_shared/daily-ui.js?v=d10";
+import * as CH from "../_shared/challenge.js?v=ch1"; // Đợt 10: "Thách cùng màn" (cỡ bàn = seed % 3)
 
 const D = UI.D;
 const DAILY_ID = "2048";
@@ -91,14 +92,19 @@ export function mount(root, ctx = {}) {
   // null = ván tiếp từ bản lưu cũ không có log ⇒ không gửi lên bảng được.
   const daily = ctx.daily ? { day: D.dayNumber(), seed: 0, limit: D.GAMES["2048"].moveLimit, panel: null, done: false, log: "" } : null;
   if (daily) daily.seed = D.seedFor(DAILY_ID, daily.day);
+  // Thách cùng màn (Đợt 10): ?thach=<seed>.<điểm>[.<tên>] — tách hẳn khỏi Thử thách hôm nay (?daily=1 thắng, link thách bị bỏ qua).
+  // Cùng seed ⇒ cùng chuỗi ô sinh (cùng nước đi ⇒ cùng bàn); cỡ bàn = SIZES[seed % 3]. Luật như chơi thường (3 lần hoàn tác),
+  // đạt mục tiêu thì tự chơi tiếp tới hết nước. Ván thách KHÔNG ghi kỷ lục, KHÔNG đè ván đang lưu.
+  let chal = daily ? null : CH.readChallenge("2048"), chalEnded = false;
 
   // ---------- Lưu ----------
   function persist() {
+    if (chal) return; // ván thách không đụng bản lưu thường
     if (daily) { if (s && !daily.done && s.status === "playing") D.saveProgress(DAILY_ID, daily.day, { ...L.serialize(s), log: daily.log }); return; }
     try {
       if (s) {
         save.size = s.size;
-        if (s.status === "over") delete save.games[s.size]; else save.games[s.size] = L.serialize(s);
+        if (s.status === "over") delete save.games[s.size]; else save.games[s.size] = s.seed0 != null ? { ...L.serialize(s), seed0: s.seed0 } : L.serialize(s);
       }
       localStorage.setItem(SAVE_KEY, JSON.stringify(save));
     } catch { /* hết chỗ / chế độ riêng tư */ }
@@ -256,10 +262,16 @@ export function mount(root, ctx = {}) {
       hud();
       return true;
     }
-    if (s.score > save.best[s.size]) save.best[s.size] = s.score;
-    if (s.maxTile > save.top[s.size]) save.top[s.size] = s.maxTile;
+    if (!chal) {
+      if (s.score > save.best[s.size]) save.best[s.size] = s.score;
+      if (s.maxTile > save.top[s.size]) save.top[s.size] = s.maxTile;
+    }
     sdk.reportScore && sdk.reportScore(s.score);
-    if (r.reachedGoal) {
+    if (chal && r.reachedGoal) { // ván thách: đạt mục tiêu vẫn chơi tiếp tới hết nước (so tổng điểm)
+      L.keepGoing(s); sfx.play("qua-man", 0.7); CH.toast(`Đạt ${s.goal}! Chơi tiếp tới hết nước nhé`, 2400);
+      if (s.status === "over") r.over = true;
+    }
+    if (r.reachedGoal && !chal) {
       clearTimeout(endTimer);
       endTimer = setTimeout(() => { sfx.play("thang", 0.8); showWin(); }, ANIM + 260);
       sfx.play("qua-man", 0.7);
@@ -291,7 +303,7 @@ export function mount(root, ctx = {}) {
   function hud() {
     if (!s) return;
     setText("hScore", fmt(s.score));
-    setText("hBest", fmt(Math.max(save.best[s.size], s.score)));
+    setText("hBest", fmt(chal ? save.best[s.size] : Math.max(save.best[s.size], s.score)));
     setText("hTop", String(s.maxTile));
     setText("hTopL", ` · mục tiêu ${s.goal}`);
     setText("hMoves", daily ? `${s.moves}/${daily.limit}` : fmt(s.moves));
@@ -306,7 +318,7 @@ export function mount(root, ctx = {}) {
 
   // ---------- Màn hình phủ ----------
   const show = (o) => { o.hidden = false; }, hide = (o) => { o.hidden = true; };
-  function anyOverlay(which = ["menu", "win", "end", "confirm"]) { return which.some((k) => !ov[k].hidden); }
+  function anyOverlay(which = ["menu", "win", "end", "confirm", "chal"]) { return which.some((k) => ov[k] && !ov[k].hidden); }
   function setMenuMode(on) { document.body.classList.toggle("is-menu", on); }
 
   function resultRows(el, rows) {
@@ -342,9 +354,13 @@ export function mount(root, ctx = {}) {
   }
   function showEnd() {
     $("eTitle").textContent = s.won ? "Kết thúc!" : "Hết nước đi!";
-    $("eSub").textContent = s.won ? `Bàn đã kín. Bạn đã vượt mục tiêu ${s.goal} — giỏi lắm!` : "Bàn đã kín, không còn cặp nào gộp được.";
+    $("eSub").textContent = chal ? `Ván thách đấu bàn ${s.size}×${s.size} (không tính kỷ lục).` : s.won ? `Bàn đã kín. Bạn đã vượt mục tiêu ${s.goal} — giỏi lắm!` : "Bàn đã kín, không còn cặp nào gộp được.";
     resultRows($("eResult"), stats());
-    recordBadge($("eRecord"));
+    if (chal) { $("eRecord").replaceChildren(CH.compareBox(chal, s.score)); chalEnded = true; chal.done(); }
+    else recordBadge($("eRecord"));
+    $("againBtn").textContent = chal ? "▶ Chơi màn mới" : "▶ Chơi lại";
+    $("chalBtnE").textContent = chal ? "⚔ Thách lại" : "⚔ Thách bạn";
+    $("chalBtnE").hidden = s.seed0 == null; // ván lưu từ bản cũ (không biết seed) ⇒ không tạo được link thách
     hud();
     show(ov.end);
     sdk.gameOver && sdk.gameOver({ score: s.score, maxTile: s.maxTile, size: s.size, moves: s.moves, time: Math.round(s.time), result: "over" });
@@ -406,8 +422,10 @@ export function mount(root, ctx = {}) {
     const b = save.best[size], t = save.top[size];
     $("mBest").textContent = b ? `Kỷ lục ${size}×${size}: ${fmt(b)} điểm · ô lớn nhất ${t}` : `Chưa có kỷ lục ở bàn ${size}×${size}.`;
   }
+  function leaveChallenge() { if (!chal) return; chal = null; chalEnded = false; CH.stripParam(); if (ov.chal) hide(ov.chal); s = null; }
   function showMenu() {
     if (daily) { persist(); location.href = "./"; return; }
+    if (chal) { leaveChallenge(); syncAll(); demoBoardIfEmpty(); }
     finishPending(); clearTimeout(endTimer);
     if (s) sfx.play("buoc-nhay", 0.35, 0.8);
     if (s) persist();
@@ -419,10 +437,18 @@ export function mount(root, ctx = {}) {
     layout();
     $("playBtn").focus({ preventScroll: true });
   }
+  function loadGame(n) {
+    const d = save.games[n], g = d ? L.deserialize(d) : null;
+    if (g && Number.isInteger(d.seed0) && d.seed0 >= 0 && d.seed0 <= 0xffffffff) g.seed0 = d.seed0;
+    return g;
+  }
   function start(fresh) {
     finishPending(); clearTimeout(endTimer);
-    const g = !fresh && save.games[size] ? L.deserialize(save.games[size]) : null;
-    s = g || L.newGame({ size, seed: (seedBase + games++ * 7919) | 0 });
+    if (chal) leaveChallenge(); // "Chơi màn mới" sau ván thách / rời màn nhận thách
+    const g = !fresh && save.games[size] ? loadGame(size) : null;
+    // seed ván mới: seed % 3 = vị trí cỡ bàn trong SIZES (link "Thách bạn" tái tạo đúng bàn); giữ seed0 trong bản lưu
+    const seed0 = CH.seedWithVariant((seedBase + games++ * 7919) >>> 0, L.SIZES.indexOf(size), 3);
+    s = g || Object.assign(L.newGame({ size, seed: seed0 }), { seed0 });
     startBest = save.best[size];
     hide(ov.menu); hide(ov.win); hide(ov.end); hide(ov.confirm);
     setMenuMode(false);
@@ -432,6 +458,24 @@ export function mount(root, ctx = {}) {
     else if (s.status === "over") showEnd();
     sfx.unlock(); sfx.play("qua-man", 0.5);
     stage.focus({ preventScroll: true });
+  }
+  // Màn nhận thách → ván thách (cùng seed, cỡ bàn theo seed)
+  function startChallenge() {
+    finishPending(); clearTimeout(endTimer);
+    size = L.SIZES[CH.variantOf(chal.seed, 3)];
+    s = Object.assign(L.newGame({ size, seed: chal.seed }), { seed0: chal.seed });
+    chalEnded = false; startBest = Infinity;
+    hide(ov.menu); hide(ov.win); hide(ov.end); hide(ov.confirm); hide(ov.chal);
+    setMenuMode(false);
+    for (const k in hudCache) delete hudCache[k];
+    layout(); syncAll(); hud();
+    sfx.unlock(); sfx.play("qua-man", 0.5);
+    stage.focus({ preventScroll: true });
+  }
+  function challengeRun(e) {
+    if (!s || s.seed0 == null) return;
+    if (e && e.detail > 0) e.currentTarget.blur();
+    CH.shareChallenge({ game: "2048", seed: s.seed0, score: s.score, against: chal });
   }
   function askNew() {
     if (daily) return;
@@ -515,6 +559,7 @@ export function mount(root, ctx = {}) {
   $("keepBtn").addEventListener("click", () => { L.keepGoing(s); hide(ov.win); persist(); hud(); if (s.status === "over") showEnd(); else stage.focus({ preventScroll: true }); });
   $("winNewBtn").addEventListener("click", () => start(true));
   $("againBtn").addEventListener("click", () => start(true));
+  $("chalBtnE").addEventListener("click", challengeRun);
   $("menuBtnE").addEventListener("click", showMenu);
   $("endUndoBtn").addEventListener("click", doUndo);
   $("undoBtn").addEventListener("click", doUndo);
@@ -550,15 +595,32 @@ export function mount(root, ctx = {}) {
     let id = -1;
     vals.slice(0, n * n).forEach((v, i) => { if ((i * 3) % 5 !== 1) makeTile(id--, v, (i * 7) % (n * n)); });
   }
+  function demoBoardIfEmpty() { if (!els.size) { const g = save.games[size] ? loadGame(size) : null; if (g) { s = g; syncAll(); hud(); s = null; } else demoBoard(); } }
   {
-    const g = save.games[size] ? L.deserialize(save.games[size]) : null;
+    const g = save.games[size] ? loadGame(size) : null;
     layout();
     if (g) { s = g; syncAll(); hud(); s = null; } else demoBoard();
   }
   renderMenu(); showMute();
   raf = requestAnimationFrame(frameLoop);
   if (daily) startDaily();
-  else {
+  else if (chal) {
+    // thẻ nhận thách: cùng khuôn thẻ menu (.ov .card), nút dùng class nút của game
+    const o = document.createElement("div"); o.className = "ov ss-ov"; o.id = "ovChal";
+    const card = document.createElement("div"); card.className = "card";
+    const h = document.createElement("h2"); h.textContent = "Thách đấu!";
+    const n = L.SIZES[CH.variantOf(chal.seed, 3)];
+    const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = `Bàn ${n}×${n}, ô sinh ra đúng thứ tự như người thách. Có 3 lần hoàn tác như thường.`;
+    const acts = document.createElement("div"); acts.className = "actions ss-cta ss-cta--land";
+    const go = document.createElement("button"); go.type = "button"; go.className = "btn btn--big btn--primary"; go.id = "chalGo"; go.textContent = "⚔ Nhận thách đấu";
+    const skip = document.createElement("button"); skip.type = "button"; skip.className = "btn btn--big"; skip.id = "chalSkip"; skip.textContent = "Chơi thường";
+    go.addEventListener("click", startChallenge);
+    skip.addEventListener("click", () => { leaveChallenge(); syncAll(); renderMenu(); show(ov.menu); setMenuMode(true); layout(); demoBoardIfEmpty(); $("playBtn").focus({ preventScroll: true }); });
+    acts.append(go, skip); card.append(h, sub, CH.introBox(chal), acts); o.appendChild(card);
+    ov.menu.after(o); ov.chal = o;
+    hide(ov.menu); setMenuMode(true);
+    go.focus({ preventScroll: true });
+  } else {
     const dl = $("dailyLink");
     if (dl) { const n = D.dayNumber(); dl.textContent = D.isDone(DAILY_ID, n) ? `★ Thử thách #${n} · đã xong ✓` : `★ Thử thách hôm nay #${n}`; }
   }
@@ -566,6 +628,7 @@ export function mount(root, ctx = {}) {
   return {
     get state() { return s; },
     get layout() { return G; },
+    get challenge() { return chal; },
     get daily() { return daily ? { day: daily.day, seed: daily.seed, limit: daily.limit, done: daily.done, log: daily.log } : null; },
     sfx,
     move: doMove, undo: doUndo, start, showMenu,

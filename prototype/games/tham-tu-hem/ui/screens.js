@@ -6,7 +6,7 @@ import { locList, hotspotsAt, peopleList, topicsOf, unseenAt, newTopics, boardFi
 import { rankOf, displayName, cleanName, DEFAULT_NAME, caseRep, SEASONS, seasonOf } from "../core/progress.js?v=t10";
 import { pickEvidence, clueCard } from "./panels.js?v=t14";
 import { play as sfx } from "./sfx.js?v=t10";
-import { shareResult } from "../../_shared/share.js?v=s2";
+import { shareResult } from "../../_shared/share.js?v=s3";
 
 const after = [];
 /** Việc chạy sau khi màn đã gắn vào DOM (đo kích thước, tự phát thoại…). */

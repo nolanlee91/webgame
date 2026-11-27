@@ -11,7 +11,7 @@ import { createAnimalsScene } from "./ui/scene-animals.js?v=m15";
 import { createVillageScene } from "./ui/scene-village.js?v=m15";
 import { createTruck } from "./ui/truck.js?v=m15";
 import { farmShare } from "./ui/share-card.js?v=m15";
-import { shareResult } from "../_shared/share.js?v=s2";
+import { shareResult } from "../_shared/share.js?v=s3";
 
 const MUTE_KEY = "wgp.muted";
 const CEL_KEY = "wgp.nongtrai.cards"; // m7: thẻ chúc mừng đã xem (khoá riêng, không thuộc bản lưu)

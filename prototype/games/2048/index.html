@@ -310,6 +310,7 @@
           <div class="actions ss-cta ss-cta--land">
             <button class="btn btn--big btn--primary" id="againBtn" type="button">▶ Chơi lại</button>
             <button class="btn btn--big btn--teal" id="endUndoBtn" type="button">↶ Hoàn tác <span class="n" id="endUndoN">3</span></button>
+            <button class="btn btn--big" id="chalBtnE" type="button">⚔ Thách bạn</button>
             <button class="btn btn--big" id="menuBtnE" type="button">Về menu</button>
           </div>
         </div>
@@ -328,7 +329,7 @@
     </div>
   </div>
   <script type="module">
-    import { mount } from "./game.js?v=d6g";
+    import { mount } from "./game.js?v=d10";
     const params = new URLSearchParams(location.search);
     // SDK giả lập: core thật sẽ cung cấp các hàm này (lưu điểm, quảng cáo...).
     const sdk = {

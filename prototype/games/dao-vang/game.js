@@ -3,7 +3,8 @@
 // Hình vẽ dùng asset thật trong ./assets (nền hang, thợ mỏ + tời + móc, 8 vật thể gộp 1 ảnh — cắt theo SPRITES).
 // Khi ảnh chưa tải xong hoặc lỗi, tự quay về hình khối tạm (vẫn chơi được).
 import { W, H, CFG, KINDS, createGame, step, fire, nextLevel, restart, tipOf, drainEvents } from "./logic.js";
-import { shareResult } from "../_shared/share.js?v=s2";
+import { shareResult } from "../_shared/share.js?v=s3";
+import * as CH from "../_shared/challenge.js?v=ch1"; // Đợt 10: "Thách cùng màn"
 
 const DT = 1 / 60;
 const SAVE_KEY = "wgp.daovang.v1"; // kỷ lục điểm (chỉ để khoe kết quả + hiện trên bảng "Hết giờ")
@@ -120,6 +121,9 @@ export function mount(el, ctx = {}) {
   const sfx = makeSfx("assets/sfx/", ["tha-moc", "keo-vat", "trung-vang", "trung-kim-cuong", "trung-da", "no-tnt", "het-gio", "qua-man", "thang", "thua"], sdk);
   const players = 1; // chỉ chơi 1 người (đã bỏ chế độ 2 người cùng máy; ctx.localPlayers cũ = 2 cũng thành 1 người)
   let g = createGame({ players, seed: ctx.seed });
+  // Thách cùng màn (Đợt 10): ctx.challenge = object từ CH.readChallenge (index.html đọc link ?thach=). Cùng seed màn 1 ⇒ mọi màn sau
+  // (nextLevel tính seed từ seed trước) và túi bí ẩn ra cùng thứ tự. Ván thách KHÔNG ghi kỷ lục. runSeed = seed màn 1 của lượt đang chơi.
+  let chal = ctx.challenge || null, chalEnded = false, runSeed = g.seed >>> 0;
   let paused = false, destroyed = false, acc = 0, last = performance.now(), raf = 0;
   const pops = [];   // điểm bay lên
   let shake = 0, flash = 0;
@@ -154,7 +158,12 @@ export function mount(el, ctx = {}) {
   function advance() {
     // Khi màn kết thúc: một phím/chạm để sang màn hoặc chơi lại.
     if (g.status === "cleared") { g = nextLevel(g); sfx.play("qua-man"); return true; }
-    if (g.status === "failed") { g = restart(g); run = { gold: 0, diamond: 0, time: 0 }; result = null; return true; }
+    if (g.status === "failed") {
+      if (chal && chalEnded) { chal = null; chalEnded = false; g = createGame({ players, seed: (Date.now() ^ (runSeed * 2654435761)) >>> 0 }); ctx.onLeaveChallenge?.(); }
+      else g = chal ? createGame({ players, seed: chal.seed }) : restart(g);
+      runSeed = g.seed >>> 0;
+      run = { gold: 0, diamond: 0, time: 0 }; result = null; return true;
+    }
     return false;
   }
   function act(i) {
@@ -226,9 +235,10 @@ export function mount(el, ctx = {}) {
     if (ev.type === "levelEnd" && reported !== g) {
       reported = g;
       if (ev.status === "failed") {
-        const prev = saved.best, record = g.score > prev;
+        const prev = saved.best, record = !chal && g.score > prev;
         if (record) { saved = { best: g.score, level: g.level }; try { localStorage.setItem(SAVE_KEY, JSON.stringify(saved)); } catch {} }
-        result = { score: g.score, level: g.level, target: g.target, record, prev, gold: run.gold, diamond: run.diamond, time: run.time };
+        result = { score: g.score, level: g.level, target: g.target, record, prev, gold: run.gold, diamond: run.diamond, time: run.time, seed: runSeed, chal };
+        if (chal) { chalEnded = true; chal.done(); }
       }
       if (ev.status === "failed" && sdk.gameOver) sdk.gameOver({ score: g.score, level: g.level, players });
     }
@@ -444,28 +454,33 @@ export function mount(el, ctx = {}) {
   el.appendChild(ov);
   const shareBtn = document.createElement("button");
   shareBtn.type = "button"; shareBtn.className = "btn dv-share"; shareBtn.id = "shareBtn"; shareBtn.textContent = "Khoe kết quả";
+  const chalBtn = document.createElement("button");
+  chalBtn.type = "button"; chalBtn.className = "btn dv-chal"; chalBtn.id = "chalBtn"; chalBtn.textContent = "⚔ Thách bạn";
+  chalBtn.addEventListener("click", () => { const r = result; if (r) CH.shareChallenge({ game: "dao-vang", seed: r.seed, score: r.score, against: r.chal }); });
   let cardKey = "";
   function showCard() {
     const st = paused && g.status === "playing" ? "paused" : g.status;
-    const rec = st === "failed" ? (result && result.record && result.score > 0 ? "Kỷ lục mới!" : saved.best ? "Kỷ lục: " + fmtNum(saved.best) : "") : "";
-    const key = st === "playing" ? "" : [st, g.level, g.score, g.target, rec].join("|");
+    const inChal = st === "failed" && !!(result && result.chal);
+    const rec = st === "failed" && !inChal ? (result && result.record && result.score > 0 ? "Kỷ lục mới!" : saved.best ? "Kỷ lục: " + fmtNum(saved.best) : "") : "";
+    const key = st === "playing" ? "" : [st, g.level, g.score, g.target, rec, inChal].join("|");
     if (key === cardKey) return;
     cardKey = key;
     if (!key) { ov.hidden = true; ov.textContent = ""; return; }
     const kb = coarse ? "" : st === "paused" ? "hoặc nhấn P" : "hoặc nhấn Space";
     const C = { cleared: ["Qua màn " + g.level + "!", COLORS.ok, ["Điểm " + fmtNum(g.score) + " / mục tiêu " + fmtNum(g.target)], "Sang màn " + (g.level + 1)],
-      failed: ["Hết giờ!", COLORS.bad, ["Thiếu " + fmtNum(g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + fmtNum(g.score)], "Chơi lại"],
+      failed: ["Hết giờ!", COLORS.bad, inChal ? ["Dừng ở màn " + g.level + " · ván thách (không tính kỷ lục)"] : ["Thiếu " + fmtNum(g.target - g.score) + " điểm để qua màn " + g.level, "Tổng điểm: " + fmtNum(g.score)], inChal ? "Chơi màn mới" : "Chơi lại"],
       paused: ["Tạm dừng", PX.ink, ["Trò chơi đang dừng"], "Chơi tiếp"] }[st];
     const card = document.createElement("div");
     card.className = "dv-card"; card.setAttribute("role", "dialog"); card.setAttribute("aria-label", C[0]); card.style.setProperty("--c", C[1]);
     const h = document.createElement("h2"); h.textContent = C[0]; card.appendChild(h);
     for (const line of C[2]) { const p = document.createElement("p"); p.textContent = line; card.appendChild(p); }
     if (rec) { const p = document.createElement("p"); p.className = "dv-rec"; p.textContent = rec; card.appendChild(p); }
+    if (inChal) card.appendChild(CH.compareBox(result.chal, result.score));
     const acts = document.createElement("div"); acts.className = "dv-acts";
     const go = document.createElement("button"); go.type = "button"; go.className = "btn btn--primary dv-go"; go.textContent = C[3];
     go.addEventListener("click", () => { sfx.unlock(); act(0); canvas.focus({ preventScroll: true }); });
     acts.appendChild(go);
-    if (st === "failed") acts.appendChild(shareBtn);
+    if (st === "failed") { chalBtn.textContent = inChal ? "⚔ Thách lại" : "⚔ Thách bạn"; acts.append(chalBtn, shareBtn); }
     card.appendChild(acts);
     if (kb) { const p = document.createElement("p"); p.className = "dv-kb"; p.textContent = kb; card.appendChild(p); }
     ov.textContent = ""; ov.appendChild(card); ov.hidden = false;
@@ -503,6 +518,8 @@ export function mount(el, ctx = {}) {
     set state(v) { g = v; },
     get paused() { return paused; },
     get result() { return result; },
+    get challenge() { return chal; },
+    get runSeed() { return runSeed; },
     get artReady() { return art.ready; },
     get sfx() { return { loaded: sfx.loaded, state: sfx.state, log: sfx.log.slice() }; },
   };
