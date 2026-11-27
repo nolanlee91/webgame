@@ -11,12 +11,12 @@
 // }
 // Trả { root, open, close, show, hide, render, onEvents(events, origin), animalEl(uid) }.
 // game.js gọi onEvents(r.events, origin) sau mỗi apply() thành công để cảnh phát hiệu ứng (fx am-vat-nuoi / lap-lanh, chữ nổi).
-import * as A from "../core/animals.js?v=m17";
-import { ANIMALS, ANIMAL, FEED } from "../data/animals.js?v=m17";
-import { ITEM } from "../data/catalog.js?v=m17";
+import * as A from "../core/animals.js?v=m18";
+import { ANIMALS, ANIMAL, FEED } from "../data/animals.js?v=m18";
+import { ITEM } from "../data/catalog.js?v=m18";
 import {
   loadArt, artReady, draw, frame, fx, floatText, centerIn, injectStyle, esc, fmtNum, fmtLeft, iconHtml, makeToast, makeSfx, frameCss, frameEdgeCss,
-} from "./m4-art.js?v=m17";
+} from "./m4-art.js?v=m18";
 
 const W = 360; // khung vẽ logic của mỗi sân (CSS co giãn, pixel vuông)
 /** Vị trí (chân) từng con trong sân, theo thứ tự mua. Chuồng ở góc trên trái. */

@@ -4,20 +4,20 @@
 // s.orders = { nextId, slots: [{ rev, order | null, refillAt }], special: { rev, order | null, refillAt } | null, special2: … | null }
 // Milestone 6: "đơn đặc biệt hai lúc" (cấp 18) = ô thứ hai `special2`, cùng luật với `special` (hạn 2 giờ, chờ 15 phút sau khi giao / hết hạn).
 // order = { id, type, npc, items: { id: qty }, mult, coins, xp, materials: { id: qty }, createdAt, expiresAt | null }
-import { CROP, CROPS } from "../data/crops.js?v=m17";
-import { ITEM, MATERIALS } from "../data/catalog.js?v=m17";
-import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m17";
-import { featureLevel } from "../data/levels.js?v=m17";
-import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m17";
-import { have, take, add } from "./inventory.js?v=m17";
-import { rand, randInt, pick, sample } from "./rng.js?v=m17";
-import { RECIPES } from "../data/recipes.js?v=m17";
-import { MACHINE } from "../data/machines.js?v=m17";
-import { CURRENT_MILESTONE } from "../data/levels.js?v=m17";
-import { capacity as queueCap } from "./production.js?v=m17";
-import { extraSlots } from "./workshop.js?v=m17";
-import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m17";
-import { effects as buildEffects } from "./build.js?v=m17";
+import { CROP, CROPS } from "../data/crops.js?v=m18";
+import { ITEM, MATERIALS } from "../data/catalog.js?v=m18";
+import { ORDER_TYPES, CANCEL_REFILL_MS, SPECIAL_COOLDOWN_MS, COMBO_CHANCE, COMBO_MAX } from "../data/orders.js?v=m18";
+import { featureLevel } from "../data/levels.js?v=m18";
+import { cropUnlocked, orderSlotCount, addXp } from "./progression.js?v=m18";
+import { have, take, add } from "./inventory.js?v=m18";
+import { rand, randInt, pick, sample } from "./rng.js?v=m18";
+import { RECIPES } from "../data/recipes.js?v=m18";
+import { MACHINE } from "../data/machines.js?v=m18";
+import { CURRENT_MILESTONE } from "../data/levels.js?v=m18";
+import { capacity as queueCap } from "./production.js?v=m18";
+import { extraSlots } from "./workshop.js?v=m18";
+import { ANIMALS, ANIMAL, LEGACY_KIND } from "../data/animals.js?v=m18";
+import { effects as buildEffects } from "./build.js?v=m18";
 
 /** Xu thật nhận khi giao đơn: thưởng của phiếu + danh tiếng Nhà (Milestone 5, +2 % mỗi bậc). Phiếu lưu giá gốc ⇒ nâng Nhà có tác dụng ngay. */
 export function orderPayout(s, order, now) {

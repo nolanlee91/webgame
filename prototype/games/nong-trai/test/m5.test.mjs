@@ -1,18 +1,18 @@
 // Milestone 5 — hồi quy: bố cục bản đồ 960 × 640 (không công trình nào bị cắt mép / đè ruộng), bậc Nhà "danh tiếng" (chỗ tiêu xu
-// cuối game + đơn hàng thêm xu), đường XP mới + dồn XP save cũ, needsSync một bản chép, một tag module ?v=m17 cho mọi import.
+// cuối game + đơn hàng thêm xu), đường XP mới + dồn XP save cũ, needsSync một bản chép, một tag module ?v=m18 cho mọi import.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { apply, needsSync } from "../core/apply.js?v=m17";
-import { createState, loadSave, dump, carryXp } from "../core/state.js?v=m17";
-import { orderPayout } from "../core/orders.js?v=m17";
-import { effects } from "../core/build.js?v=m17";
-import { xpNeed } from "../core/progression.js?v=m17";
-import { BUILDINGS, BUILDING, DECOR_SLOTS, FIELD, MAP_W, MAP_H, FAME_TITLES, FAME_BONUS_STEP } from "../data/buildings.js?v=m17";
-import { CURRENT_MILESTONE, LEVELS, featureLevel } from "../data/levels.js?v=m17";
-import { TUTORIAL } from "../data/quests.js?v=m17";
+import { apply, needsSync } from "../core/apply.js?v=m18";
+import { createState, loadSave, dump, carryXp } from "../core/state.js?v=m18";
+import { orderPayout } from "../core/orders.js?v=m18";
+import { effects } from "../core/build.js?v=m18";
+import { xpNeed } from "../core/progression.js?v=m18";
+import { BUILDINGS, BUILDING, DECOR_SLOTS, FIELD, MAP_W, MAP_H, FAME_TITLES, FAME_BONUS_STEP } from "../data/buildings.js?v=m18";
+import { CURRENT_MILESTONE, LEVELS, featureLevel } from "../data/levels.js?v=m18";
+import { TUTORIAL } from "../data/quests.js?v=m18";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = JSON.parse(readFileSync(join(ROOT, "assets/v3/manifest.json"), "utf8"));
@@ -159,19 +159,19 @@ test("CURRENT_MILESTONE = 6: đơn đặc biệt hai lúc / Phiên chợ / hàng
   assert.deepEqual([ms["fame-house"], ms.fame, ms["warehouse-6"]], [5, 5, 5]);
 });
 
-test("một tag module ?v=m17 cho mọi import trong game (không lẫn bản cũ trong bộ nhớ đệm)", () => {
+test("một tag module ?v=m18 cho mọi import trong game (không lẫn bản cũ trong bộ nhớ đệm)", () => {
   const files = [];
   const walk = (d) => { for (const n of readdirSync(d)) { const p = join(d, n); if (n === "assets" || n === "node_modules") continue; if (statSync(p).isDirectory()) walk(p); else if (/\.(m?js|html)$/.test(n)) files.push(p); } };
   walk(ROOT);
   let count = 0;
   for (const f of files) {
     const src = readFileSync(f, "utf8");
-    for (const m of src.matchAll(/([\w./-]*)\.(?:m?js)\?v=([\w-]+)/g)) { if (m[1].includes("_shared/")) continue; count++; assert.equal(m[2], "m17", `${f}: ?v=${m[2]}`); }
+    for (const m of src.matchAll(/([\w./-]*)\.(?:m?js)\?v=([\w-]+)/g)) { if (m[1].includes("_shared/")) continue; count++; assert.equal(m[2], "m18", `${f}: ?v=${m[2]}`); }
     // import tĩnh / động của file .js trong game phải có tag (trừ ../_shared/ dùng chung toàn site)
     for (const m of src.matchAll(/(?:import\s[^"']*?from\s*|import\(\s*)["'](\.{1,2}\/[^"']+\.m?js)["']/g)) {
       if (m[1].includes("_shared/") || f.endsWith(".test.mjs") && /\.\/(harness|policy|sim|analysis|report|profiles|bugs|helpers)\.mjs$/.test(m[1])) continue;
       if (/\/tools\/sim\//.test(f.replace(/\\/g, "/")) && /\.mjs$/.test(m[1])) continue;
-      assert.fail(`${f}: import không có tag ?v=m17: ${m[1]}`);
+      assert.fail(`${f}: import không có tag ?v=m18: ${m[1]}`);
     }
   }
   assert.ok(count > 300, `chỉ thấy ${count} import có tag`);
