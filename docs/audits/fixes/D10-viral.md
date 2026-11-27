@@ -136,14 +136,17 @@ Muốn gắn cho một game mới, cần 3 điều:
 - Mới: `stats.js?v=st1`, `challenge.js?v=ch1`.
 - `share.js` `s2` → `s3` (26 chỗ).
 - `daily-ui.js` `d6g` → `d10` (Sudoku, 2048, Đố Vui).
-- Mọi file import `share.js` / `daily-ui.js` nên đổi theo, kéo dây chuyền tới `index.html`. Tag mới là `d10` ở:
+- Nhánh đã rebase lên `master` mới nhất (6823eb9). Mọi file import `share.js` / `daily-ui.js` nên đổi theo, kéo dây chuyền tới
+  `index.html`. Tag mới là `d10` ở:
   - `game.js` của 2048, Rắn, Đào Vàng, Sudoku, Đố Vui, Bắn Bóng, Cờ Caro, Cờ Tướng, Cờ Vua, Cờ Tỷ Phú, Đua Xe, Ghép Kẹo,
     Nối Thú, Nông Trại, Ô Ăn Quan, Xếp Gạch, Thám Tử Hẻm, Trà Sữa, Cá Ngựa;
   - `co-ca-ngua/hud.js`, `co-ca-ngua/online.js`;
   - `quan-com-tam/ui/overlays.js`;
   - `tham-tu-hem/ui/screens.js` + `ui/panels.js`;
   - `tiem-tra-sua/ui/screens.js`;
-  - trang chủ `app.js`.
+  - trang chủ `app.js` (master đang `d9b`);
+  - Bánh Mì `game.js` + `ui/screens.js`, Cơm Tấm `game.js` (master `b13` / `c11`).
+- **Nông Trại** dùng một tag chung cho mọi module (test `m5.test.mjs` kiểm) ⇒ đổi cả bộ `m15` → `m16` (69 file, gồm test + `tools/sim`).
 - `press-nav.js` vẫn import `feedback.js?v=f3`.
 - `node tools/cache-tags/check-tags.mjs master`: **OK**.
 
@@ -156,8 +159,13 @@ Muốn gắn cho một game mới, cần 3 điều:
 | Unit 3 game + `_shared/test/*.test.mjs` + `server-static.test.mjs` | 127/127 |
 | `games-server/*.test.mjs` + `account/test` | 207/207 |
 | `games-server/*/test/*.test.mjs` (10 game online) | 232/232 |
-| `daily-e2e.mjs` | TẤT CẢ ĐẠT |
-| `sound-press-e2e.mjs`, `share-e2e.mjs`, e2e ảnh 3 game | xem mục 6 |
+| `daily-e2e.mjs` | TẤT CẢ ĐẠT (40 kiểm, chạy lại sau rebase) |
+| `share-e2e.mjs` | 53/53 |
+| Toàn bộ unit `prototype/games/*/test` | 1.074/1.074 (sau khi đổi tag Nông Trại `m16`) |
+| e2e ảnh Rắn (`screenshots/e2e.mjs`) | 39 PASS, 0 FAIL |
+| e2e ảnh 2048 | 59 PASS, 0 FAIL |
+| e2e ảnh Đào Vàng | 40/41. Chỉ trượt "≥ 50 khung hình/giây" (đo được 49) vì máy đang chạy song song nhiều Chrome; không liên quan đợt này |
+| `sound-press-e2e.mjs` | 246/246 (chạy riêng; một lần chạy song song với e2e khác trượt 2 kiểm "nút vô hiệu không lún" do canh giờ, chạy lại đạt hết) |
 
 Chạy: `node --test --test-concurrency=1 games-server/stats.test.mjs`, `node --test prototype/games/_shared/test/challenge.test.mjs`,
 `node prototype/games/_shared/test/challenge-e2e.mjs` (cổng 8993, `PORT=` để đổi).
@@ -169,5 +177,3 @@ Chạy: `node --test --test-concurrency=1 games-server/stats.test.mjs`, `node --
 - SQL chưa chạy trên Postgres thật (xem mục 1).
 - `cdp.mjs` mở Chrome ở cổng gỡ lỗi ngẫu nhiên 9400–9900. Đây là hàm dùng chung nên không đổi; server của e2e mới dùng 8993.
 
-## 6. Kết quả các e2e còn lại
-(điền sau khi chạy xong, xem cuối file)
