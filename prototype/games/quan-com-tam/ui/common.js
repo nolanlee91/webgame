@@ -52,7 +52,16 @@ export function createToaster(root, { isOpen, sheet, footSel = "", view = () => 
     place(q.text, q.kind, q.action);
     if (queue.length) drainT = setTimeout(drain, GAP);
   }
+  /** Chân bảng dính đáy cao bao nhiêu thì cuộn tới nút (Tab / focus / scrollIntoView) chừa bấy nhiêu, để nút không nằm sau chân bảng. */
+  function padFoot() {
+    const foot = footSel && isOpen() ? [...sheet.querySelectorAll(footSel)].pop() : null;
+    const pad = foot ? `${Math.ceil(foot.getBoundingClientRect().height) + 12}px` : "";
+    if (sheet.style.scrollPaddingBottom !== pad) sheet.style.scrollPaddingBottom = pad;
+  }
   function renderNote() {
+    renderNoteEl(); padFoot();
+  }
+  function renderNoteEl() {
     const old = sheet.querySelector(".sheet-note");
     const live = note && isOpen() && note.view === view() && Date.now() - note.at < note.ms;
     if (!live) { old?.remove(); return; }

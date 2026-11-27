@@ -224,7 +224,9 @@
     .toastbar { position: absolute; z-index: 2; top: 8px; right: 8px; left: 90px; height: 10px; background: #0002; overflow: hidden; }
     .toastbar i { display: block; height: 100%; background: linear-gradient(90deg, #e8a040 0 40%, #3e9a5a 40% 100%); }
     .toastbar.burn i { background: #8a1f14; }
-    .loafwrap.is-empty { min-height: 72px; } .loafwrap.is-empty .empty-loaf { margin-bottom: 34px; }
+    /* D11 TLC22-07: chưa có ổ ⇒ khung ổ thấp, nút không bị đẩy xuống. Không áp ở màn thấp hơn 640 px (320×568): ở đó khung thấp làm
+       bước "ghim phiếu" tự cuộn xuống quầy, phiếu khách bị dải dính che (e2e-layout 320) */
+    @media (min-height: 640px) { .loafwrap.is-empty { min-height: 72px; } .loafwrap.is-empty .empty-loaf { margin-bottom: 34px; } }
     .empty-loaf { position: relative; z-index: 2; margin: auto auto 40px; color: var(--ink2); font-weight: 700; text-align: center; padding: 0 12px; }
     .steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 3px; overflow-x: auto; scrollbar-width: none; }
     .steps li { flex: 1 0 auto; text-align: center; font-size: 11px; font-weight: 700; color: var(--ink2); padding: 3px 4px; background: var(--cream2); }
