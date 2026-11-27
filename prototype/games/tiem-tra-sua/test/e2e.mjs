@@ -115,7 +115,7 @@ check("nút Tiếng lần 3: bật lại hết, nhạc chạy tiếp", await wai
 await b.ev("localStorage.setItem('wgp.muted','1');dispatchEvent(new StorageEvent('storage',{key:'wgp.muted'}))");
 const startsMuted = await b.ev("__game.sound().started");
 check("tắt tiếng ở tab khác: nút đổi sang tắt, vòng lặp dừng, hiệu ứng không phát", await waitFor("document.querySelector('#muteBtn').dataset.mode==='off'&&__game.sound().loops.length===0", 2000) &&
-  (await b.ev("import('/games/tiem-tra-sua/ui/sfx.js?v=m38').then(m=>m.play('coin'))")) === false && (await b.ev("__game.sound().started")) === startsMuted);
+  (await b.ev("import('/games/tiem-tra-sua/ui/sfx.js?v=d11').then(m=>m.play('coin'))")) === false && (await b.ev("__game.sound().started")) === startsMuted);
 await b.ev("localStorage.setItem('wgp.muted','0');dispatchEvent(new StorageEvent('storage',{key:'wgp.muted'}))");
 check("bật lại ở tab khác: nhạc chạy lại", await waitFor("document.querySelector('#muteBtn').dataset.mode==='all'&&__game.sound().loops.includes('counter-rhythm')", 3000));
 await pressSel("#pauseBtn");
