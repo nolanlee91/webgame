@@ -517,7 +517,15 @@
     .btn--build[aria-pressed="true"] { background: #6b5208; --b: var(--gold); color: var(--gold-l); }
     .build-bar { width: min(100%, 1000px); display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: #3a2c0c; --b: var(--gold-d); box-shadow: var(--border); font-size: 13px; font-weight: 700; color: var(--gold-l); }
     .build-bar span { flex: 1; min-width: 0; }
-    .pan-btn { position: absolute; z-index: 5; min-width: 44px; padding-inline: 10px; font-size: 12px; opacity: .92; }
+    /* D11: tab cuộn bản đồ — vùng chạm 44 × 44, phần vẽ 30 px ôm sát mép khung (phần còn lại trong suốt) */
+    .pan-tab { all: unset; box-sizing: border-box; position: absolute; z-index: 5; width: 44px; height: 44px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
+    .pan-tab::before { content: ""; position: absolute; top: 0; bottom: 0; width: 30px; background: #2a1d10e6; box-shadow: inset 0 0 0 2px #6d6150, inset 0 -4px 0 #0006; }
+    .pan-tab--e::before { right: 0; } .pan-tab--w::before { left: 0; }
+    .pan-tab svg { position: absolute; top: 12px; width: 16px; height: 20px; fill: var(--gold-l); shape-rendering: crispEdges; filter: drop-shadow(2px 2px 0 #000); }
+    .pan-tab--e svg { right: 7px; } .pan-tab--w svg { left: 7px; }
+    .pan-tab:hover::before { background: #3a2a14f0; }
+    .pan-tab:active svg { transform: translateX(var(--nudge, 2px)); } .pan-tab--w { --nudge: -2px; }
+    .pan-tab:focus-visible { outline: 2px dashed var(--gold); outline-offset: -2px; }
     .build-card .bc-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 6px; }
     .build-card .bc-pic { flex: none; width: 96px; height: 96px; image-rendering: pixelated; background-repeat: no-repeat; }
     .build-card .bc-status { display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: 800; color: #fff; background: #4a3f33; box-shadow: 2px 2px #0005; }
@@ -754,7 +762,8 @@
       body:not([data-scene]) .farm-world, body[data-scene="farm"] .farm-world { display: contents; }
       .build-bar { grid-area: build; width: auto; padding: 4px 8px; font-size: 12px; }
       .farm { grid-area: world; width: auto; min-height: 0; overflow: auto; contain: size; }
-      .farm-map { width: calc(max(100%, 700px) * var(--bw, 1)); } /* ô ruộng ≈ 44 px; bản đồ cuộn trong khung, ruộng đặt giữa (game.js centerField) */
+      .farm-map { width: calc(max(100%, 720px) * var(--bw, 1)); } /* ô ruộng ≥ 44 px; bản đồ cuộn trong khung, ruộng đặt giữa (game.js centerField) */
+      .field { gap: clamp(3px, calc(.5cqi / var(--bw, 1)), 6px); } /* D11 TLC12-07: khe theo bản đồ gốc — mở phía Đông (bw 1,5) không làm ô ruộng nhỏ lại (42 → 45 px) */
       .farm-controls { grid-area: ctrl; width: auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px; }
       .farm-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; margin-bottom: 6px; }
       .farm-nav .btn { min-height: 44px; padding: 2px; font-size: 11px; line-height: 1.1; letter-spacing: 0; white-space: normal; text-align: center; flex-direction: column; gap: 0;
@@ -838,7 +847,9 @@
           <div class="slot-layer" id="slotLayer"></div>
         </div>
       </section>
-      <button class="btn btn--sm pan-btn" id="panBtn" type="button" hidden>Phía Đông →</button>
+      <!-- D11 (TLC1-06/07): tab mũi tên ôm mép bản đồ thay nút chữ "Phía Đông →"; vị trí dọc tự chọn chỗ trống (game.js placePan) để không che công trình / ô ruộng / nhãn -->
+      <button class="pan-tab pan-tab--w" id="panW" type="button" aria-label="Cuộn bản đồ về phía Tây" title="Về phía Tây" hidden><svg viewBox="0 0 8 10" aria-hidden="true"><path d="M5 0h2v2H5zM3 2h2v2H3zM1 4h2v2H1zM3 6h2v2H3zM5 8h2v2H5z"/></svg></button>
+      <button class="pan-tab pan-tab--e" id="panE" type="button" aria-label="Cuộn bản đồ sang phía Đông" title="Sang phía Đông" hidden><svg viewBox="0 0 8 10" aria-hidden="true"><path d="M1 0h2v2H1zM3 2h2v2H3zM5 4h2v2H5zM3 6h2v2H3zM1 8h2v2H1z"/></svg></button>
       <div class="farm-controls">
         <nav class="farm-nav" aria-label="Công cụ nông trại">
           <button class="btn" id="seedTool" aria-pressed="true" type="button">Hạt giống</button>
@@ -970,7 +981,7 @@
   </div>
 
   <script type="module">
-    import { mount } from "./game.js?v=m15";
+    import { mount } from "./game.js?v=m16";
     // ?testclock: đồng hồ dịch được (window.__ntOffset, ms) — chỉ dùng cho e2e.
     if (location.search.includes("testclock")) { try { window.__ntOffset = Number(sessionStorage.getItem("ntOffset")) || 0; } catch {} }
     const clock = location.search.includes("testclock") ? { now: () => Date.now() + (window.__ntOffset || 0) } : {};

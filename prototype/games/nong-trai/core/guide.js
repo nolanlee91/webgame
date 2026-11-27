@@ -2,14 +2,14 @@
 // game.js highlight() đổi kết quả thành nút trên màn (chọn chế độ Gieo / Tưới, mở Kho, mở Bảng đơn…).
 // Không có mục tiêu đúng nghĩa (hết cây chín, kho trống, thiếu hàng giao đơn) ⇒ đi vòng: thu cây chín / chờ cây / gieo thêm,
 // kèm `hint` (game.js tự mở gợi ý khi `detour`).
-import { TUTORIAL } from "../data/quests.js?v=m15";
-import { CROP } from "../data/crops.js?v=m15";
-import { currentQuest, questComplete } from "./quests.js?v=m15";
-import { isReady } from "./plots.js?v=m15";
-import { cropUnlocked } from "./progression.js?v=m15";
-import { boardView, demand } from "./orders.js?v=m15";
-import { sellable } from "./economy.js?v=m15";
-import { ITEM } from "../data/catalog.js?v=m15";
+import { TUTORIAL } from "../data/quests.js?v=m16";
+import { CROP } from "../data/crops.js?v=m16";
+import { currentQuest, questComplete } from "./quests.js?v=m16";
+import { isReady } from "./plots.js?v=m16";
+import { cropUnlocked } from "./progression.js?v=m16";
+import { boardView, demand } from "./orders.js?v=m16";
+import { sellable } from "./economy.js?v=m16";
+import { ITEM } from "../data/catalog.js?v=m16";
 
 const FARM_TARGETS = new Set(["plot-empty", "plot-growing", "plot-ready", "sell", "orders"]);
 /** Thứ tự xét ô: ô giữa (12) trước rồi lần lượt — giống firstPlot cũ trong game.js. */

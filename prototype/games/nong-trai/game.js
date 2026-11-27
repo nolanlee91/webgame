@@ -1,16 +1,16 @@
 // Nông Trại — giao diện (DOM + canvas nhỏ mỗi ô), điều khiển (chạm / chuột / phím), lưu tiến trình, âm thanh.
 // Luật ở core/ (qua logic.js); mọi thay đổi trạng thái đi qua L.apply(state, action, now) trong run().
-import * as L from "./logic.js?v=m15";
-import { shortNum } from "./ui/short-num.js?v=m15"; // TLC12-04
-import { browserStorage, farmSave } from "./save.js?v=m15";
-import { createWorkshopScene } from "./ui/scene-workshop.js?v=m15";
-import { createMarketScene } from "./ui/scene-market.js?v=m15";
-import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m15";
-import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m15";
-import { createAnimalsScene } from "./ui/scene-animals.js?v=m15";
-import { createVillageScene } from "./ui/scene-village.js?v=m15";
-import { createTruck } from "./ui/truck.js?v=m15";
-import { farmShare } from "./ui/share-card.js?v=m15";
+import * as L from "./logic.js?v=m16";
+import { shortNum } from "./ui/short-num.js?v=m16"; // TLC12-04
+import { browserStorage, farmSave } from "./save.js?v=m16";
+import { createWorkshopScene } from "./ui/scene-workshop.js?v=m16";
+import { createMarketScene } from "./ui/scene-market.js?v=m16";
+import { loadSprites, playFx, frame as spriteFrame, sheet as spriteSheet } from "./ui/sprites.js?v=m16";
+import { createFarmMap, spriteCss, STATUS_TEXT, resolveSprite, GARDEN } from "./ui/farm-map.js?v=m16";
+import { createAnimalsScene } from "./ui/scene-animals.js?v=m16";
+import { createVillageScene } from "./ui/scene-village.js?v=m16";
+import { createTruck } from "./ui/truck.js?v=m16";
+import { farmShare } from "./ui/share-card.js?v=m16";
 import { shareResult } from "../_shared/share.js?v=s2";
 
 const MUTE_KEY = "wgp.muted";
@@ -167,7 +167,7 @@ export function mount(root, ctx = {}) {
     market: $("market"), board: $("boardBtn"), boardBadge: $("boardBadge"),
     lot: $("workshopLot"), lotTag: $("lotTag"), lotBar: $("lotBar"), wsBadge: $("wsBadge"), wsTool: $("workshopTool"), mkTool: $("marketTool"),
     ovBuild: $("ovBuild"), buildBody: $("buildBody"), buildOk: $("buildOk"), buildCancel: $("buildCancel"), buildEnter: $("buildEnter"), buildTitle: $("buildTitle"),
-    buildBtn: $("buildBtn"), buildBar: $("buildBar"), pan: $("panBtn"), buildExit: $("buildExit"), fieldEast: $("fieldEast"),
+    buildBtn: $("buildBtn"), buildBar: $("buildBar"), panW: $("panW"), panE: $("panE"), buildExit: $("buildExit"), fieldEast: $("fieldEast"),
     ovDecor: $("ovDecor"), decorBody: $("decorBody"), ovGh: $("ovGreenhouse"), ghSeeds: $("ghSeeds"), ghGrid: $("ghGrid"), ghNote: $("ghNote"), ghClose: $("ghClose"),
     animalsTool: $("animalsTool"), villageTool: $("villageTool"), truckLane: $("truckLane"), farmMap: $("farmMap"),
     coopBadge: $("coopBadge"), barnBadge: $("barnBadge"), villageBadge: $("villageBadge"),
@@ -255,8 +255,25 @@ export function mount(root, ctx = {}) {
   const exec = (action, origin) => mutate(() => run(action, origin));
 
   // ---------- hiển thị ----------
+  // D11 TLC12-09: điện thoại dọc — thông báo nằm ngay dưới dòng nhiệm vụ (không che ô Xu / Cấp / Kho đúng lúc thưởng bay vào)
+  const TOAST_PORTRAIT = matchMedia("(max-width: 760px) and (orientation: portrait), (max-width: 760px) and (min-height: 501px)");
+  function placeToast() {
+    let top = "";
+    if (TOAST_PORTRAIT.matches) {
+      const hb = document.querySelector(".hud")?.getBoundingClientRect(), qb = ui.quest.hidden ? null : ui.quest.getBoundingClientRect();
+      const below = Math.max(hb && hb.bottom > 0 ? hb.bottom : 0, qb && qb.bottom > 0 ? qb.bottom : 0);
+      if (below > 0 && below < innerHeight / 2) top = `${Math.round(below + 6)}px`;
+    }
+    if (ui.toast.style.top !== top) ui.toast.style.top = top;
+  }
+  // dòng nhiệm vụ mở / đóng gợi ý, HUD đổi cỡ, trang cuộn ⇒ đặt lại thông báo đang hiện
+  const toastRO = typeof ResizeObserver === "function" ? new ResizeObserver(() => { if (!ui.toast.hidden) placeToast(); }) : null;
+  for (const el of [ui.quest, document.querySelector(".hud")]) if (el && toastRO) toastRO.observe(el);
+  const onToastScroll = () => { if (!ui.toast.hidden) placeToast(); };
+  window.addEventListener("scroll", onToastScroll, { passive: true });
   function toast(text, ms = 2400, action = null) {
     ui.toast.textContent = text; ui.toast.hidden = false;
+    placeToast();
     if (action) { // nút nhỏ trong toast (vd "Khoe kết quả" khi lên cấp) — toast ở lâu hơn để kịp bấm
       const b = document.createElement("button"); b.type = "button"; b.className = "btn btn--sm btn--primary toast-act"; b.id = action.id || ""; b.textContent = action.label;
       b.addEventListener("click", () => { ui.toast.hidden = true; action.onClick(); });
@@ -778,20 +795,64 @@ export function mount(root, ctx = {}) {
     if (buildMode) setBuildMode(false, true);
     goScene("village");
   }
-  /** Bản đồ rộng hơn khung (khung hẹp / đã mở phía Đông): nút cuộn nhanh sang Đông / về ruộng, nằm ở mép phải khung. */
-  /** Gộp các lần cần đặt lại nút cuộn vào một khung hình (đọc bố cục một lần, sau khi DOM đã ghi xong). */
-  function schedulePan() { if (!panRaf) panRaf = requestAnimationFrame(() => { panRaf = 0; placePan(); }); }
-  function placePan() {
-    const f = ui.farm, wide = f.scrollWidth > f.clientWidth + 8;
-    ui.pan.hidden = !wide || scene !== "farm";
-    if (ui.pan.hidden) return;
-    const atEnd = f.scrollLeft + f.clientWidth >= f.scrollWidth - 8;
-    const txt = atEnd ? "← Về ruộng" : fmap.bw > 1 ? "Phía Đông →" : "Xem thêm →";
-    if (ui.pan.textContent !== txt) ui.pan.textContent = txt;
+  /** Bản đồ rộng hơn khung (khung hẹp / đã mở phía Đông): tab mũi tên ôm mép phải (sang Đông) / mép trái (về Tây).
+   *  D11 (TLC1-06/07): tab chỉ là mũi tên 44 × 44; vị trí dọc tự chọn chỗ không che công trình / ô ruộng / ô trang trí / nhãn. */
+  /** Gộp các lần cần đặt lại nút cuộn vào một khung hình (đọc bố cục một lần, sau khi DOM đã ghi xong). Cuộn ⇒ ẩn/hiện ngay,
+   *  chọn lại chỗ đứng khi ngừng cuộn (tab không nhảy theo từng khung hình). */
+  let panIdle = 0;
+  function schedulePan(e) {
+    if (!panRaf) panRaf = requestAnimationFrame(() => { panRaf = 0; placePan(e?.type === "scroll"); });
+    if (e?.type === "scroll") { clearTimeout(panIdle); panIdle = setTimeout(() => placePan(false), 140); }
+  }
+  const PAN_SZ = 44, PAN_HIT = ".bld:not([hidden]), .plot:not([hidden]), .dslot, .market-tag:not(:empty), .up-arrow:not([hidden])";
+  /** Toạ độ dọc (theo khung nhìn) cho tab ở dải x [x0, x1]. Điểm phạt mỗi vật cản = phần bị che (tỉ lệ diện tích còn thấy)
+   *  + 4 nếu che tâm (chỗ trẻ chạm); công trình / nhãn / ô trang trí nặng gấp 3 ô ruộng. Ít phạt nhất, hoà thì gần chỗ cũ. */
+  function panFreeY(x0, x1, top, bottom, prefer, obs) {
+    let best = null;
+    for (let y = top; y <= bottom - PAN_SZ; y += 4) {
+      let cost = 0;
+      for (const o of obs) {
+        const w = Math.min(x1, o.r) - Math.max(x0, o.l), h = Math.min(y + PAN_SZ, o.b) - Math.max(y, o.t);
+        if (w <= 0 || h <= 0) continue;
+        cost += o.k * ((w * h) / o.a + (o.cx >= x0 && o.cx <= x1 && o.cy >= y && o.cy <= y + PAN_SZ ? 4 : 0));
+      }
+      const d = Math.abs(y - prefer);
+      if (!best || cost < best.cost - 1e-6 || (Math.abs(cost - best.cost) <= 1e-6 && d < best.d)) best = { y, cost, d };
+    }
+    return best ? best.y : top;
+  }
+  function placePan(scrolling) {
+    const f = ui.farm, max = f.scrollWidth - f.clientWidth, on = max > 8 && scene === "farm";
+    const showE = on && f.scrollLeft < max - 8, showW = on && f.scrollLeft > 8;
+    if (ui.panE.hidden === showE) ui.panE.hidden = !showE;
+    if (ui.panW.hidden === showW) ui.panW.hidden = !showW;
+    if (!showE && !showW) return;
+    const east = fmap.bw > 1;
+    ui.panE.setAttribute("aria-label", east ? "Cuộn bản đồ sang phía Đông" : "Xem phần bản đồ bên phải");
+    ui.panW.setAttribute("aria-label", east ? "Cuộn bản đồ về phía Tây (ruộng)" : "Xem phần bản đồ bên trái");
     // D4: xoay ngang thì .farm-world là display:contents ⇒ khung chứa nút là .wrap; dùng offsetParent chung của bản đồ và nút
-    const box = ui.pan.offsetParent || f.parentElement;
-    ui.pan.style.top = `${f.offsetTop + 8}px`;
-    ui.pan.style.right = `${Math.max(8, box.clientWidth - f.offsetLeft - f.offsetWidth + 8)}px`;
+    const tab = showE ? ui.panE : ui.panW, box = tab.offsetParent || f.parentElement;
+    ui.panE.style.right = `${box.clientWidth - f.offsetLeft - f.offsetWidth}px`;
+    ui.panW.style.left = `${f.offsetLeft}px`;
+    if (scrolling && tab.style.top) return; // đang cuộn: giữ chỗ cũ, chọn lại khi ngừng
+    // vùng thấy được của khung: cắt theo màn hình và thanh công cụ dính đáy (điện thoại dọc)
+    const fr = f.getBoundingClientRect(), br = box.getBoundingClientRect();
+    let top = Math.max(fr.top, 0) + 4, bottom = Math.min(fr.bottom - (f.offsetHeight - f.clientHeight), innerHeight) - 4;
+    const ctl = document.querySelector(".farm-controls")?.getBoundingClientRect();
+    if (ctl && ctl.top > top && ctl.left < fr.right && ctl.right > fr.left) bottom = Math.min(bottom, ctl.top - 4);
+    if (bottom - top < PAN_SZ) { top = fr.top + 4; bottom = fr.top + 4 + PAN_SZ; }
+    // vật cản: phần thấy được trong khung (cắt theo mép khung / vùng thấy)
+    const obs = [];
+    for (const e of ui.farmMap.querySelectorAll(PAN_HIT)) {
+      const r = e.getBoundingClientRect(), l = Math.max(r.left, fr.left), rr = Math.min(r.right, fr.left + f.clientWidth), t = Math.max(r.top, top), b = Math.min(r.bottom, bottom);
+      if (rr - l < 1 || b - t < 1) continue;
+      obs.push({ l, r: rr, t, b, a: (rr - l) * (b - t), cx: (l + rr) / 2, cy: (t + b) / 2, k: e.classList.contains("plot") ? 1 : 3 });
+    }
+    for (const [t, show, x0] of [[ui.panE, showE, fr.left + f.clientWidth - PAN_SZ], [ui.panW, showW, fr.left]]) {
+      if (!show) continue;
+      const prev = t.style.top ? br.top + parseFloat(t.style.top) : (top + bottom - PAN_SZ) / 2;
+      t.style.top = `${Math.round(panFreeY(x0, x0 + PAN_SZ, top, bottom, prev, obs) - br.top)}px`;
+    }
   }
   function setBuildMode(on, quiet) {
     buildMode = !!on;
@@ -1284,10 +1345,17 @@ export function mount(root, ctx = {}) {
   ui.villageTool.onclick = () => openVillage();
   ui.buildBtn.onclick = () => setBuildMode(!buildMode);
   ui.buildExit.onclick = () => setBuildMode(false);
-  ui.pan.onclick = () => {
-    const f = ui.farm, atEnd = f.scrollLeft + f.clientWidth >= f.scrollWidth - 8;
+  ui.panE.onclick = () => {
+    const f = ui.farm;
     sfx.play("buoc-nhay", 0.3, 1.2);
-    if (atEnd) fmap.scrollToX(L.FIELD.x + L.FIELD.w / 2, true); else f.scrollTo({ left: f.scrollWidth, behavior: "smooth" });
+    f.scrollTo({ left: f.scrollWidth, behavior: "smooth" });
+  };
+  ui.panW.onclick = () => {
+    const f = ui.farm, before = f.scrollLeft;
+    sfx.play("buoc-nhay", 0.3, 1.2);
+    // về giữa ruộng chính; đã ở ruộng (hoặc bên trái ruộng) thì về hẳn mép trái
+    const field = Math.max(0, ((L.FIELD.x + L.FIELD.w / 2) / fmap.bw) * ui.farmMap.getBoundingClientRect().width - f.clientWidth / 2);
+    f.scrollTo({ left: before - field > 8 ? field : 0, behavior: "smooth" });
   };
   ui.farm.addEventListener("scroll", schedulePan, { passive: true });
   window.addEventListener("resize", schedulePan);
@@ -1459,7 +1527,7 @@ export function mount(root, ctx = {}) {
     destroy() {
       clearTimeout(tickTimer); clearTimeout(rewardTimer); clearInterval(secTimer); sfx.close(); onLeave(); truck?.destroy(); animals?.hide(); village?.hide();
       window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onVisibility); window.removeEventListener("pagehide", onLeave);
-      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); LANDSCAPE.removeEventListener?.("change", onOrient); SHORT.removeEventListener?.("change", onOrient); cancelAnimationFrame(panRaf);
+      window.removeEventListener("storage", onStorage); window.removeEventListener("resize", schedulePan); panRO?.disconnect(); LANDSCAPE.removeEventListener?.("change", onOrient); SHORT.removeEventListener?.("change", onOrient); cancelAnimationFrame(panRaf); clearTimeout(panIdle); toastRO?.disconnect(); window.removeEventListener("scroll", onToastScroll);
     },
     // Dành cho test/debug — không phải API cho core.
     get state() { return s; },
