@@ -164,7 +164,8 @@ try {
             if (!r || !r.href.includes(p)) { dirty = true; continue; } // đã chuyển trang
             const c = classify(r.snd);
             pressCount++;
-            const row = { page: p, phase, input, label: pos.label, ...c, gameAfterUp: c.gameAt != null && r.up ? Math.round(c.gameAt - r.up) : null };
+            const row = { page: p, phase, input, label: pos.label, ...c, gameAfterUp: c.gameAt != null && r.up ? Math.round(c.gameAt - r.up) : null,
+              gameAfterClick: c.gameAt != null && r.click > r.down ? Math.round(c.gameAt - r.click) : null };
             results.push(row);
             if (c.fbAt != null && !touch && r.up) delays.push(c.fbAt - r.up), clickDelays.push(c.fbAt - Math.max(r.click, r.up));
             if (c.count >= 2) {
@@ -190,8 +191,8 @@ try {
       await load(t, base + "/homepage/", "menu");
       await t.waitFor('document.querySelectorAll("a.tile[href]").length > 3');
       await t.ev(`addEventListener("click", (e) => { if (e.target.closest("a.tile")) { e.preventDefault(); e.stopImmediatePropagation(); } }, true); true`);
-      const pos = await t.ev(`(() => { const a = [...document.querySelectorAll("a.tile[href]")].find((a) => { const r = a.getBoundingClientRect(); return r.top > 60 && r.bottom < innerHeight - 10; });
-        if (!a) return null; const r = a.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, label: a.dataset.id }; })()`);
+      const pos = await t.ev(`(async () => { const a = [...document.querySelectorAll("a.tile[href]")].find((a) => a.getBoundingClientRect().width > 0);
+        if (!a) return null; a.scrollIntoView({ block: "center" }); await new Promise((r) => setTimeout(r, 400)); const r = a.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, label: a.dataset.id }; })()`);
       if (pos) {
         const n0 = await t.ev("__ds.snd.length");
         await press(t, touch, pos.x, pos.y); await sleep(WAIT);
@@ -219,6 +220,8 @@ const cd = clickDelays.sort((a, b) => a - b);
 if (cd.length) console.log(`  … tính từ lúc sự kiện click được phát (đã trừ thời gian trang bận trước click): trung vị ${cd[cd.length >> 1].toFixed(1)} ms, lớn nhất ${cd[cd.length - 1].toFixed(1)} ms`);
 const late = results.filter((r) => r.gameAfterUp != null).map((r) => r.gameAfterUp).sort((a, b) => a - b);
 if (late.length) console.log(`Tiếng game bắt đầu sau khi nhả tay: trung vị ${late[late.length >> 1]} ms, lớn nhất ${late[late.length - 1]} ms (${late.length} lần; âm = phát lúc nhấn xuống)`);
+const lc = results.filter((r) => r.gameAfterClick != null).map((r) => r.gameAfterClick).sort((a, b) => a - b);
+if (lc.length) console.log(`  … tính từ sự kiện click: trung vị ${lc[lc.length >> 1]} ms, lớn nhất ${lc[lc.length - 1]} ms; ${lc.filter((v) => v > 0).length}/${lc.length} lần phát SAU khi click đã xử lý xong (bất đồng bộ)`);
 if (OUTFILE) writeFileSync(OUTFILE, JSON.stringify({ baseline: BASELINE, results, delays: ds }, null, 1));
 console.log(doubles.length ? `\n${doubles.length} FAIL` : "\n0 FAIL — mỗi lần bấm một tiếng");
 process.exit(doubles.length ? 1 : 0);
