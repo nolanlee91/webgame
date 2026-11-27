@@ -116,11 +116,12 @@ addEventListener("pointerdown", (e) => {
   begin(e.target.closest(BTN), { id: e.pointerId, x: e.clientX, y: e.clientY, touch: e.pointerType !== "mouse" });
 }, true);
 addEventListener("pointermove", (e) => {
-  if (press && press.touch && e.pointerId === press.id && Math.hypot(e.clientX - press.x, e.clientY - press.y) > SLOP) cancel();
+  if (press && press.touch && !press.up && e.pointerId === press.id && Math.hypot(e.clientX - press.x, e.clientY - press.y) > SLOP) cancel();
 }, { capture: true, passive: true });
-addEventListener("pointercancel", (e) => { if (press && e.pointerId === press.id) cancel(); }, true);
-addEventListener("scroll", () => { if (press && press.touch) cancel(); }, { capture: true, passive: true });
-addEventListener("pointerup", (e) => { if (press && e.pointerId === press.id) decideIn(FALLBACK); }, true);
+addEventListener("pointercancel", (e) => { if (press && !press.up && e.pointerId === press.id) cancel(); }, true);
+// Đã nhấc tay (chạm thật) ⇒ chốt: trang cuộn SAU đó là do chính nút vừa bấm (mở hộp thoại, cuộn tới phần tử…), không phải ngón tay lướt
+addEventListener("scroll", () => { if (press && press.touch && !press.up) cancel(); }, { capture: true, passive: true });
+addEventListener("pointerup", (e) => { if (press && e.pointerId === press.id) { press.up = true; decideIn(FALLBACK); } }, true);
 addEventListener("keydown", (e) => {
   const el = document.activeElement;
   if ((e.key === "Enter" || e.key === " ") && el && el.matches?.(BTN) && !e.repeat) {
