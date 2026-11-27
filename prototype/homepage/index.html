@@ -35,8 +35,8 @@
   <noscript><link rel="stylesheet" href="../assets/fonts/fonts.css?v=f1" /></noscript>
   <link rel="icon" type="image/png" href="assets/ui/icon-xuc-xac-6.png" />
   <link rel="stylesheet" href="styles.css?v=d9a" />
-  <link rel="stylesheet" href="portal.css?v=perf1" />
-  <link rel="stylesheet" href="portal-pixel.css?v=d7a" />
+  <link rel="stylesheet" href="portal.css?v=d9a" />
+  <link rel="stylesheet" href="portal-pixel.css?v=d9a" />
   <link rel="stylesheet" href="nav.css?v=d8a" />
 </head>
 <body class="portal theme-b">
@@ -78,7 +78,7 @@
       <label class="field search" for="q">
         <svg class="px-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 1h5v1H5zM3 2h2v1H3zM10 2h2v1h-2zM2 3h1v2H2zM12 3h1v2h-1zM1 5h1v5H1zM13 5h1v5h-1zM2 10h1v2H2zM12 10h1v1h-1zM3 12h2v1H3zM10 11h2v1h-2zM5 13h5v1H5zM11 12h2v1h-2zM12 13h2v1h-2zM13 14h2v1h-2z"/></svg>
         <span class="sr-only">Tìm game theo tên, thể loại hoặc số người</span>
-        <input id="q" type="search" placeholder="Tìm game, thể loại, số người…" autocomplete="off" enterkeyhint="search" />
+        <input id="q" type="search" placeholder="Tìm game" autocomplete="off" enterkeyhint="search" />
       </label>
     </div>
   </header>
@@ -144,10 +144,12 @@
 
         <p class="lobby__note" id="roomStatus" role="status">Đang tải danh sách phòng…</p>
 
-        <!-- Mở phòng nhanh: lấp chỗ trống khi chưa có phòng công khai (desktop 2 hàng; có phòng thì 1 hàng; điện thoại ẩn) -->
-        <div class="lobby__quick" data-name="lobby-quick">
-          <h3 class="lobby__sub" id="quickTitle">Mở phòng nhanh</h3>
-          <div class="quick" id="quickGrid"><!-- ô giữ chỗ (không ảnh) — app.js thay bằng ô thật khi màn > 720 px --><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span><span class="quick__item quick__item--skel" aria-hidden="true"><span class="quick__art"></span><span class="quick__name">&nbsp;</span></span></div>
+        <!-- D9: bỏ khối "Mở phòng nhanh" (trùng lựa chọn game với hero + danh sách bên dưới). Sảnh trống: lời nhắn + nút tạo phòng nằm giữa
+             phần còn lại của khung (máy tính: khung cao bằng hero); điện thoại: ẩn, khung co theo nội dung. -->
+        <div class="lobby__empty" id="lobbyEmpty" data-name="lobby-empty" hidden>
+          <p class="lobby__emptyTitle">Chưa có phòng nào đang chờ</p>
+          <p class="lobby__emptyText">Tạo phòng rồi gửi mã cho bạn bè, hoặc chọn một game bên dưới để chơi ngay.</p>
+          <a class="btn btn--teal lobby__emptyGo" href="#duel" id="createRoom2"><span class="btn__plus" aria-hidden="true">+</span><span>Tạo phòng mới</span></a>
         </div>
       </aside>
     </section>
@@ -221,9 +223,9 @@
   <script>(function () { var img = document.querySelector(".hero__art img"), t; function go() { clearTimeout(t); requestAnimationFrame(function () { setTimeout(window.__lkFonts, 0); }); }
     if (!img || img.complete) go(); else { img.addEventListener("load", go); img.addEventListener("error", go); t = setTimeout(go, 3000); } })();</script>
   <script src="games.js?v=d5a"></script>
-  <script src="app.js?v=d8a"></script>
+  <script src="app.js?v=d9a"></script>
   <script type="module" src="../games/_shared/feedback.js?v=f3"></script>
-  <script type="module" src="press-nav.js?v=d3b"></script>
+  <script type="module" src="press-nav.js?v=d9a"></script>
   <script type="module" src="profile.js?v=d6g"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@
 
 /* Bề mặt: bỏ bo tròn + viền mảnh, thay bằng khung pixel */
 .theme-b .hero, .theme-b .lobby, .theme-b .tile, .theme-b .field, .theme-b .tabs, .theme-b .room,
-.theme-b .lobby__note, .theme-b .hero__viewport, .theme-b .lobby__head, .theme-b .quick__art, .theme-b .tab, .theme-b .count, .theme-b .badge { border-radius: 0 !important; }
+.theme-b .lobby__note, .theme-b .hero__viewport, .theme-b .lobby__head, .theme-b .tab, .theme-b .count, .theme-b .badge { border-radius: 0 !important; }
 .theme-b .hero, .theme-b .lobby { border: 0; --b: var(--nv-line); box-shadow: var(--b-bevel), var(--b-border), var(--b-drop); }
 .theme-b .lobby__head { box-shadow: inset 0 -3px 0 var(--nv-line); background: #1d2c41; }
 .theme-b .lobby__title, .theme-b .section__title, .theme-b .shelf__title { text-shadow: 2px 2px 0 #050a12; }
@@ -51,10 +51,6 @@
 .theme-b .shelf__hint { padding-left: 0; }
 
 /* Mở phòng nhanh */
-.theme-b .quick__art { border: 0; --b: var(--nv-line); box-shadow: var(--b-border), 3px 3px 0 3px #050a12; margin: 3px; }
-.theme-b .quick__item:hover .quick__art { --b: var(--nv-edge-hi); transform: translate(-2px, -2px); }
-.theme-b .quick__item:hover img { transform: none; }
-.theme-b .quick__item:active .quick__art { --b: var(--nv-edge-hi); transform: translate(3px, 3px); box-shadow: var(--b-border); }
 
 /* Slide hero (cả thẻ là link): nhấn thì ảnh lún xuống như thẻ game */
 .theme-b a.slide:active .hero__art { transform: translate(3px, 3px); }
@@ -67,7 +63,6 @@
 
 /* press-nav.js: lún khi chạm thẻ link (chạy cả trên điện thoại) + giữ lún lúc đang chuyển trang — y hệt :active */
 .theme-b a.tile.is-pressing { transform: translate(3px, 3px); box-shadow: var(--b-border); }
-.theme-b .quick__item.is-pressing .quick__art { --b: var(--nv-edge-hi); transform: translate(3px, 3px); box-shadow: var(--b-border); }
 .theme-b a.slide.is-pressing .hero__art { transform: translate(3px, 3px); }
 .theme-b a.slide.is-pressing .hero__art img { filter: brightness(.9); }
 .theme-b .dcard.is-pressing { transform: translate(3px, 3px); box-shadow: var(--b-bevel), var(--b-border); }
@@ -78,7 +73,6 @@
    ⇒ tắt hiệu ứng :active/:hover của thẻ link; chỉ lún bằng .is-pressing do press-nav.js bật khi là cú chạm thật. */
 @media (hover: none) {
   .theme-b a.tile:is(:hover, :active):not(.is-pressing) { transform: none; --b: var(--nv-line); box-shadow: var(--b-border), 4px 5px 0 0 #050a12; }
-  .theme-b .quick__item:is(:hover, :active):not(.is-pressing) .quick__art { transform: none; --b: var(--nv-line); box-shadow: var(--b-border), 3px 3px 0 3px #050a12; }
   .theme-b a.slide:active:not(.is-pressing) .hero__art { transform: none; }
   .theme-b a.slide:active:not(.is-pressing) .hero__art img { filter: none; }
   .theme-b .dcard:is(:hover, :active):not(.is-pressing) { transform: none; --b: #0a111c; box-shadow: var(--b-bevel), var(--b-border), var(--b-drop); }
@@ -89,7 +83,6 @@
 .theme-b .tabs { min-height: 48px; }
 /* Sảnh lúc đang hỏi /api/lobby: trên màn ≤ 1023 px (sảnh cao theo nội dung) trông y như lúc "chưa có phòng" — trường hợp hay gặp nhất —
    để danh sách game bên dưới không bị kéo lên khi kết quả về. Màn rộng: sảnh cao bằng hero nên vẫn hiện "Đang tải…". */
-.portal .quick__item--skel { pointer-events: none; }
 @media (max-width: 1023px) {
   .portal .lobby.is-loading .lobby__subrow, .portal .lobby.is-loading .lobby__note { display: none; }
 }

@@ -48,7 +48,6 @@
     ["(max-width: 1023px)", "53vw"], ["(max-width: 1180px)", "40vw"], ["", "360px"]];
   var TILE_SIZES = [["(max-width: 720px)" + HI, "21vw", 1], ["(max-width: 720px)", "31vw"], ["(max-width: 1023px)", "25vw"], ["(max-width: 1180px)", "19vw"], ["", "190px"]];
   var QP_SIZES = [[LAND + HI, "11vw", 1], [LAND, "16vw"], ["(max-width: 720px)" + HI, "20vw", 1], ["(max-width: 720px)", "29vw"], ["", "1px"]];
-  var QUICK_SIZES = [["(max-width: 1180px)" + HI, "90px", 1], ["(max-width: 1180px)", "130px"], ["", "150px"]];
   function imgHTML(g, sizes, eager) {
     if (typeof sizes !== "string") sizes = sz(g, sizes);
     if (eager) return '<img src="' + halfSrc(g.thumb) + '" srcset="' + srcsetOf(g) + '" sizes="' + sizes + '" alt="" loading="lazy" decoding="async" />';
@@ -196,7 +195,7 @@
     $("lobby").classList.remove("is-loading");
     $("lobby").classList.toggle("is-empty", empty);
     $("lobby").classList.toggle("has-rooms", rooms.length > 0 || playing.length > 0);
-    $("quickTitle").textContent = empty ? "Chưa có phòng nào đang chờ · mở phòng nhanh" : "Mở phòng mới";
+    $("lobbyEmpty").hidden = !empty;
     lastLobby = { rooms: rooms, status: status, live: live };
   }
   var lastLobby = null;
@@ -231,19 +230,6 @@
       e.preventDefault(); $(to).focus(); $(to).click();
     });
   });
-  // Mở phòng nhanh: mỗi game đối kháng một ô ảnh, bấm là vào màn tạo phòng của game đó.
-  // Điện thoại (≤ 720 px) khối này bị ẩn ⇒ không dựng, không tải ảnh; màn rộng ra (xoay ngang / kéo cửa sổ) thì dựng lúc đó.
-  var mqPhone = window.matchMedia("(max-width: 720px)"), quickDone = false;
-  function renderQuick() {
-    if (quickDone || mqPhone.matches) return;
-    quickDone = true;
-    var box = $("quickGrid");
-    box.innerHTML = duelIds.map(byId).filter(function (g) { return g && !soon(g); }).map(function (g) {
-      return '<a class="quick__item" href="' + href(g) + '"><span class="quick__art">' + imgHTML(g, QUICK_SIZES) + '</span><span class="quick__name">' + esc(g.name) + "</span></a>";
-    }).join("");
-    lazyIn(box);
-  }
-  if (mqPhone.addEventListener) mqPhone.addEventListener("change", renderQuick); else mqPhone.addListener(renderQuick);
   function fetchLobby() {
     return fetch("/api/lobby", { signal: AbortSignal.timeout(8000) }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
   }
@@ -503,13 +489,15 @@
   }
 
   // "Tạo phòng mới": mỗi game có phòng riêng ⇒ đưa người chơi tới kệ "Đối kháng đông người" để chọn game.
-  $("createRoom").addEventListener("click", function (e) {
+  function goCreate(e) {
     e.preventDefault();
     if (state.cat !== "all" || state.q) { $("q").value = ""; state.q = ""; state.cat = "all"; renderAll(); }
     var d = $("duel"); if (!d) return;
     d.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     d.classList.remove("is-flash"); void d.offsetWidth; d.classList.add("is-flash");
-  });
+  }
+  $("createRoom").addEventListener("click", goCreate);
+  $("createRoom2").addEventListener("click", goCreate); // nút giữa sảnh trống (D9)
 
   var inl = $("roomInlineCode"), inlErr = $("roomInlineError");
   inl.addEventListener("input", function () { cleanCode(inl); inlErr.textContent = ""; $("roomMatches").replaceChildren(); });
@@ -530,7 +518,7 @@
   });
   showSound();
 
-  renderHero(); renderQuickPlay(); renderAll(); renderQuick(); arm(); refreshRooms();
+  renderHero(); renderQuickPlay(); renderAll(); arm(); refreshRooms();
   var invite = new URLSearchParams(location.search).get("room");
   if (invite && /^[A-Z0-9]{5}$/i.test(invite)) {
     inl.value = invite.toUpperCase();
