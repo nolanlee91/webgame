@@ -277,7 +277,7 @@
     .footer.ask { align-items: center; } /* TLC22-04: hỏi lại khi mở quán rỗng hàng */
     .footer .warn-txt { flex: 1 1 100%; margin: 0; padding: 8px 10px; background: var(--ember-l); color: #7a2a22; font-weight: 700; --b: #7a2a22; box-shadow: var(--px-border2, 0 0 0 2px #7a2a22); }
     input.name { font: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--cream3); width: 100%; background: #fff; color: var(--ink); }
-    .intro { display: grid; grid-template-columns: 1fr 420px; gap: 0; padding: 0; overflow: hidden; }
+    .intro { display: grid; grid-template-columns: 1fr 420px; gap: 0; padding: 0; overflow-x: hidden; overflow-y: auto; } /* cuộn được khi bảng cao hơn màn (điện thoại): "overflow: hidden" cũ đè .sheet ⇒ không cuộn được, nút Mở quán bị khuất */
     .intro .art { min-height: 360px; background: #1c1a3a; position: relative; overflow: hidden; }
     .intro .art img { position: absolute; image-rendering: pixelated; }
     .intro .pane { padding: 18px; }
